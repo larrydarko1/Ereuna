@@ -49,7 +49,7 @@ const copyToClipboard = async (text: string) => {
 .copy-icon {
   background: none;
   border: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   cursor: pointer;
   padding: 2px;
   border-radius: 3px;
@@ -57,7 +57,7 @@ const copyToClipboard = async (text: string) => {
 }
 
 .copy-icon:hover {
-  background-color: var(--base3);
+  background-color: var(--color-elevated);
 }
 
 .icon-enter-active,

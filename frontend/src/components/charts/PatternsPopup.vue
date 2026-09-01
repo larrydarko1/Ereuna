@@ -107,7 +107,7 @@ function formatPatternName(type: string): string {
 }
 
 .modal-content {
-  background: var(--base2);
+  background: var(--color-surface);
   border-radius: 8px;
   padding: 0;
   width: 300px;
@@ -115,7 +115,7 @@ function formatPatternName(type: string): string {
   display: flex;
   flex-direction: column;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--base3);
+  border: 1px solid var(--color-elevated);
   animation: slideIn 0.15s ease-out;
 }
 
@@ -136,7 +136,7 @@ function formatPatternName(type: string): string {
   right: 8px;
   background: transparent;
   border: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 18px;
   width: 24px;
   height: 24px;
@@ -151,8 +151,8 @@ function formatPatternName(type: string): string {
 }
 
 .close-x:hover {
-  background: var(--base3);
-  color: var(--text1);
+  background: var(--color-elevated);
+  color: var(--color-text);
 }
 
 .patterns-title {
@@ -160,8 +160,8 @@ function formatPatternName(type: string): string {
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  background: var(--base1);
-  border-bottom: 1px solid var(--base3);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-elevated);
   border-radius: 8px 8px 0 0;
   position: relative;
 }
@@ -169,20 +169,20 @@ function formatPatternName(type: string): string {
 .patterns-icon {
   width: 16px;
   height: 16px;
-  color: var(--accent2);
+  color: var(--color-accent-2);
 }
 
 .patterns-title h2 {
   margin: 0;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text1);
+  color: var(--color-text);
   flex: 1;
 }
 
 .symbol-badge {
-  background: var(--accent2);
-  color: var(--text3);
+  background: var(--color-accent-2);
+  color: var(--color-text-inverted);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 10px;
@@ -192,8 +192,8 @@ function formatPatternName(type: string): string {
 
 .beta-badge {
   display: inline-block;
-  background: var(--text2);
-  color: var(--base1);
+  background: var(--color-text-muted);
+  color: var(--color-bg);
   font-size: 0.8rem;
   font-weight: 700;
   padding: 2px 6px;
@@ -225,21 +225,21 @@ function formatPatternName(type: string): string {
 .no-pattern-icon {
   width: 32px;
   height: 32px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   opacity: 0.5;
   margin-bottom: 8px;
 }
 
 .no-patterns p {
   font-size: 12px;
-  color: var(--text1);
+  color: var(--color-text);
   margin: 0 0 4px 0;
   font-weight: 500;
 }
 
 .no-pattern-subtext {
   font-size: 10px;
-  color: var(--text2);
+  color: var(--color-text-muted);
 }
 
 .patterns-list {
@@ -249,10 +249,10 @@ function formatPatternName(type: string): string {
 }
 
 .pattern-card {
-  background: var(--base1);
+  background: var(--color-bg);
   border-radius: 6px;
   padding: 8px;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--color-elevated);
   transition: all 0.2s;
 }
 
@@ -276,12 +276,12 @@ function formatPatternName(type: string): string {
 }
 
 .pattern-type.bullish {
-  color: var(--positive);
+  color: var(--color-positive);
   background: rgba(38, 166, 154, 0.15);
 }
 
 .pattern-type.bearish {
-  color: var(--negative);
+  color: var(--color-negative);
   background: rgba(239, 83, 80, 0.15);
 }
 
@@ -293,9 +293,9 @@ function formatPatternName(type: string): string {
 .pattern-confidence {
   font-size: 11px;
   font-weight: 600;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   padding: 2px 6px;
-  background: var(--base2);
+  background: var(--color-surface);
   border-radius: 4px;
 }
 
@@ -307,13 +307,13 @@ function formatPatternName(type: string): string {
 
 .pattern-description {
   font-size: 10px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   line-height: 1.3;
 }
 
 .pattern-points-count {
   font-size: 9px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-style: italic;
 }
 
@@ -323,15 +323,15 @@ function formatPatternName(type: string): string {
 }
 
 .patterns-popup-content::-webkit-scrollbar-track {
-  background: var(--base2);
+  background: var(--color-surface);
 }
 
 .patterns-popup-content::-webkit-scrollbar-thumb {
-  background: var(--base3);
+  background: var(--color-elevated);
   border-radius: 3px;
 }
 
 .patterns-popup-content::-webkit-scrollbar-thumb:hover {
-  background: var(--accent2);
+  background: var(--color-accent-2);
 }
 </style>

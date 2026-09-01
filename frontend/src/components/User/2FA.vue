@@ -243,19 +243,19 @@ async function confirmTwoFa() {
 .twofa-container {
   padding: 20px;
   margin-left: 5px;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
 }
 
 .twofa-title {
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 10px;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .twofa-instruction {
   font-size: 14px;
-  color: var(--text1);
+  color: var(--color-text);
   margin-bottom: 20px;
 }
 
@@ -276,7 +276,7 @@ async function confirmTwoFa() {
   display: inline-block;
   width: 40px;
   height: 20px;
-  background-color: var(--text1);
+  background-color: var(--color-text);
   border-radius: 10px;
   transition: background-color 0.3s;
   cursor: pointer;
@@ -287,7 +287,7 @@ async function confirmTwoFa() {
   position: absolute;
   width: 18px;
   height: 18px;
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   border-radius: 50%;
   top: 1px;
   left: 1px;
@@ -295,7 +295,7 @@ async function confirmTwoFa() {
 }
 
 .twofa-toggle-switch-checked {
-  background-color: var(--accent1);
+  background-color: var(--color-accent-1);
 }
 
 .twofa-toggle-switch-checked::before {
@@ -306,17 +306,17 @@ async function confirmTwoFa() {
   font-size: 14px;
   margin-left: 10px;
   margin-bottom: 2px;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   font-weight: bold;
 }
 
 .qr {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   padding: 10px;
 }
 .twofa-btn {
-  background-color: var(--accent1);
-  color: var(--text3);
+  background-color: var(--color-accent-1);
+  color: var(--color-text-inverted);
   border-radius: 5px;
   font-weight: bold;
   border: none;
@@ -332,11 +332,11 @@ async function confirmTwoFa() {
   transition: all 0.3s ease;
 }
 .twofa-btn:hover {
-  background-color: var(--accent2);
+  background-color: var(--color-accent-2);
 }
 
 .twofa-input:focus {
-  border-color: var(--accent1);
+  border-color: var(--color-accent-1);
   outline: none;
 }
 .twofa-input {
@@ -347,11 +347,11 @@ async function confirmTwoFa() {
   height: 40px;
   font-weight: bold;
   outline: none;
-  color: var(--base3);
+  color: var(--color-elevated);
   transition: border-color 0.3s, box-shadow 0.3s;
-  border: solid 1px var(--base4);
-  background-color: var(--base4);
-  color: var(--text1);
+  border: solid 1px var(--color-sunken);
+  background-color: var(--color-sunken);
+  color: var(--color-text);
 }
 .error {
   color: #e74c3c;

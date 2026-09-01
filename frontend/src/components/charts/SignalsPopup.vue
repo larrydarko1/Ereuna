@@ -125,7 +125,7 @@ function formatDate(dateString: string | undefined): string {
 }
 
 .modal-content {
-  background: var(--base2);
+  background: var(--color-surface);
   border-radius: 8px;
   padding: 0;
   width: 300px;
@@ -133,7 +133,7 @@ function formatDate(dateString: string | undefined): string {
   display: flex;
   flex-direction: column;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--base3);
+  border: 1px solid var(--color-elevated);
   animation: slideIn 0.15s ease-out;
 }
 
@@ -154,7 +154,7 @@ function formatDate(dateString: string | undefined): string {
   right: 8px;
   background: transparent;
   border: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 18px;
   width: 24px;
   height: 24px;
@@ -169,8 +169,8 @@ function formatDate(dateString: string | undefined): string {
 }
 
 .close-x:hover {
-  background: var(--base3);
-  color: var(--text1);
+  background: var(--color-elevated);
+  color: var(--color-text);
 }
 
 .signals-title {
@@ -178,8 +178,8 @@ function formatDate(dateString: string | undefined): string {
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  background: var(--base1);
-  border-bottom: 1px solid var(--base3);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-elevated);
   border-radius: 8px 8px 0 0;
   position: relative;
 }
@@ -187,20 +187,20 @@ function formatDate(dateString: string | undefined): string {
 .signals-icon {
   width: 16px;
   height: 16px;
-  color: var(--accent2);
+  color: var(--color-accent-2);
 }
 
 .signals-title h2 {
   margin: 0;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text1);
+  color: var(--color-text);
   flex: 1;
 }
 
 .symbol-badge {
-  background: var(--accent2);
-  color: var(--text3);
+  background: var(--color-accent-2);
+  color: var(--color-text-inverted);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 10px;
@@ -229,21 +229,21 @@ function formatDate(dateString: string | undefined): string {
 .no-signal-icon {
   width: 32px;
   height: 32px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   opacity: 0.5;
   margin-bottom: 8px;
 }
 
 .no-signals p {
   font-size: 12px;
-  color: var(--text1);
+  color: var(--color-text);
   margin: 0 0 4px 0;
   font-weight: 500;
 }
 
 .no-signal-subtext {
   font-size: 10px;
-  color: var(--text2);
+  color: var(--color-text-muted);
 }
 
 .signals-list {
@@ -253,10 +253,10 @@ function formatDate(dateString: string | undefined): string {
 }
 
 .signal-card {
-  background: var(--base1);
+  background: var(--color-bg);
   border-radius: 6px;
   padding: 8px;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--color-elevated);
 }
 
 .signal-header {
@@ -276,11 +276,11 @@ function formatDate(dateString: string | undefined): string {
 }
 
 .signal-type.buy {
-  color: var(--positive);
+  color: var(--color-positive);
 }
 
 .signal-type.sell {
-  color: var(--negative);
+  color: var(--color-negative);
 }
 
 .signal-arrow {
@@ -291,7 +291,7 @@ function formatDate(dateString: string | undefined): string {
 .signal-price {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .signal-body {
@@ -303,12 +303,12 @@ function formatDate(dateString: string | undefined): string {
 .signal-strategy {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .signal-description {
   font-size: 10px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   line-height: 1.3;
 }
 
@@ -321,20 +321,20 @@ function formatDate(dateString: string | undefined): string {
 }
 
 .indicator-label {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-weight: 500;
 }
 
 .indicator-value {
-  color: var(--accent2);
+  color: var(--color-accent-2);
   font-weight: 600;
   font-family: 'Courier New', monospace;
 }
 
 .signals-footer {
   padding: 8px;
-  border-top: 1px solid var(--base3);
-  background: var(--base1);
+  border-top: 1px solid var(--color-elevated);
+  background: var(--color-bg);
   border-radius: 0 0 8px 8px;
 }
 
@@ -357,7 +357,7 @@ function formatDate(dateString: string | undefined): string {
 
 .disclaimer span {
   font-size: 9px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   line-height: 1.3;
 }
 
@@ -401,15 +401,15 @@ function formatDate(dateString: string | undefined): string {
 }
 
 .signals-popup-content::-webkit-scrollbar-track {
-  background: var(--base2);
+  background: var(--color-surface);
 }
 
 .signals-popup-content::-webkit-scrollbar-thumb {
-  background: var(--base3);
+  background: var(--color-elevated);
   border-radius: 3px;
 }
 
 .signals-popup-content::-webkit-scrollbar-thumb:hover {
-  background: var(--accent2);
+  background: var(--color-accent-2);
 }
 </style>

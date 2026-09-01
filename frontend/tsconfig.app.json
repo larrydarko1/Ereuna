@@ -2,16 +2,24 @@
     "extends": "@vue/tsconfig/tsconfig.dom.json",
     "compilerOptions": {
         "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-        "baseUrl": ".",
         "paths": {
             "@/*": ["./src/*"]
         },
         "types": ["vite/client"],
-        "strict": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
+        // Off because of the vendored lightweight-charts fork, which imports
+        // types as values in ~1,300 places. It is frozen third-party code, so
+        // rewriting every import in it is precisely what freezing it rules out.
+        // esbuild, which actually performs the transform, resolves these fine.
+        // Turn this back on if the fork is ever rebased or replaced.
+        "verbatimModuleSyntax": false,
         "resolveJsonModule": true,
-        "forceConsistentCasingInFileNames": true
+        /* Linting */
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "erasableSyntaxOnly": true,
+        "noFallthroughCasesInSwitch": true,
+        "noUncheckedSideEffectImports": true
     },
-    "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/**/*.d.ts"]
+    "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
 }

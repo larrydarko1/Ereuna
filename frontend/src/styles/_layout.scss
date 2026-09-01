@@ -1,0 +1,55 @@
+// Layout — page shells and the grid/flex helpers shared across views.
+// Grid for page and section structure, flex for inline rows: when in doubt,
+// grid. Anything used by only one view stays scoped in that view.
+@use '@/styles/variables' as *;
+
+// The centred column every content page sits in.
+.page {
+    width: 100%;
+    max-width: $bp-xl;
+    margin-inline: auto;
+    padding: $space-4;
+
+    @include above($bp-md) {
+        padding: $space-6;
+    }
+}
+
+// A page that wants the full viewport width — charts, the screener table.
+.page--wide {
+    max-width: none;
+}
+
+// Vertical rhythm between the blocks of a page, without margins on children.
+.stack {
+    display: grid;
+    gap: $space-4;
+}
+
+.stack--tight {
+    gap: $space-2;
+}
+
+.stack--loose {
+    gap: $space-6;
+}
+
+// A row that wraps rather than overflowing: toolbars, filter chips, tag lists.
+.cluster {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-2;
+}
+
+.cluster--between {
+    justify-content: space-between;
+}
+
+// Wide content — tables, code, diagrams — scrolls inside its own box.
+// The page body must never scroll horizontally, so the overflow is owned here
+// rather than escaping to <body>.
+.scroll-x {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+}

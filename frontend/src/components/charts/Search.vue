@@ -18,7 +18,7 @@
       :aria-label="t('search.advancedSearchAriaLabel')"
     >
       <svg height="15" width="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 7H21M3 12H21M3 17H21" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M3 7H21M3 12H21M3 17H21" stroke="var(--color-text-muted)" stroke-width="2" stroke-linecap="round"/>
       </svg>
     </button>
     <button
@@ -32,7 +32,7 @@
       <svg height="15" width="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path
           d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-          stroke="var(--text3)"
+          stroke="var(--color-text-inverted)"
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -71,7 +71,7 @@ function onSearch() {
 #searchtable {
   display: flex;
   align-items: center;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   position: relative;
   border-radius: 6px;
   margin: 0 5px 2px 5px;
@@ -84,14 +84,14 @@ function onSearch() {
   margin: 7px;
   width: calc(100% - 30px);
   outline: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   transition: border-color 0.3s, box-shadow 0.3s;
-  border: solid 1px var(--base1);
-  background-color: var(--base4);
+  border: solid 1px var(--color-bg);
+  background-color: var(--color-sunken);
 }
 
 #searchbar:focus {
-  border-color: var(--accent1);
+  border-color: var(--color-accent-1);
   outline: none;
 }
 
@@ -102,8 +102,8 @@ function onSearch() {
   right: 8px;
   transform: translateY(-50%);
   flex-shrink: 0;
-  color: var(--text1);
-  background-color: var(--accent1);
+  color: var(--color-text);
+  background-color: var(--color-accent-1);
   border: none;
   padding: 0;
   outline: none;
@@ -121,7 +121,7 @@ function onSearch() {
 }
 
 .wlbtn2:hover {
-  background-color: var(--accent2);
+  background-color: var(--color-accent-2);
   box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
   outline: none;
 }
@@ -132,7 +132,7 @@ function onSearch() {
   right: 48px;
   transform: translateY(-50%);
   flex-shrink: 0;
-  color: var(--text1);
+  color: var(--color-text);
   background-color: transparent;
   border: none;
   padding: 0;
@@ -148,7 +148,7 @@ function onSearch() {
 }
 
 .wlbtn-advanced:hover {
-  background-color: var(--base1);
+  background-color: var(--color-bg);
 }
 
 .wlbtn-advanced svg {

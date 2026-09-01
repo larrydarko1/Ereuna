@@ -1,0 +1,20 @@
+// Global stylesheet — imported once, from main.ts.
+// The only file in styles/ without a leading underscore, because it is the only
+// one the compiler may emit standalone.
+// ── Architecture ─────────────────────────────────────────────────────────────
+// _variables.scss → tokens, aliases, mixins. EMITS NOTHING; auto-injected into
+//                   every SFC by vite.config.ts, so it is forwarded, not used.
+// _themes.scss    → the 52 palettes as [data-theme] blocks. Emits; used once.
+// _base.scss      → resets, element defaults, keyframes.
+// components/     → reusable patterns, one partial per category.
+// _layout.scss    → page shells and grid/flex helpers.
+
+// –– Forwarded: tokens reach SFCs through this ––
+@forward '@/styles/variables';
+
+// –– Emitted exactly once –––––––––––––––––––––––
+@use '@/styles/themes';
+@use '@/styles/marketing';
+@use '@/styles/base';
+@use '@/styles/components';
+@use '@/styles/layout';

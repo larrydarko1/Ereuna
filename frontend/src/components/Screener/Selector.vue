@@ -14,12 +14,12 @@
     <svg class="screener-dropdown-icon" viewBox="0 0 24 24" v-if="ScreenersName && ScreenersName.length > 0 && !showDropdown" aria-hidden="true">
       <path fill-rule="evenodd" clip-rule="evenodd"
         d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z"
-        fill="var(--text1)" />
+        fill="var(--color-text)" />
     </svg>
   <svg class="screener-dropdown-icon" viewBox="0 0 24 24" v-else-if="ScreenersName && ScreenersName.length > 0" style="transform: rotate(180deg);" aria-hidden="true">
       <path fill-rule="evenodd" clip-rule="evenodd"
         d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z"
-        fill="var(--text1)" />
+        fill="var(--color-text)" />
     </svg>
     <p
       class="screener-selected-value"
@@ -54,9 +54,9 @@
           {{ screener.Name }}
           <button class="screener-icondlt" @click.stop="$emit('deleteScreener', screener.Name)" v-b-tooltip.hover
             title="Delete This Screener">
-            <svg class="screener-img2" viewBox="0 0 16 16" fill="var(--text1)">
-              <rect transform="rotate(45)" y="-1" x="4.3137083" height="2" width="14" style="fill:var(--text1);" />
-              <rect transform="rotate(-45)" y="10.313708" x="-7" height="2" width="14" style="fill:var(--text1);" />
+            <svg class="screener-img2" viewBox="0 0 16 16" fill="var(--color-text)">
+              <rect transform="rotate(45)" y="-1" x="4.3137083" height="2" width="14" style="fill:var(--color-text);" />
+              <rect transform="rotate(-45)" y="10.313708" x="-7" height="2" width="14" style="fill:var(--color-text);" />
             </svg>
           </button>
         </div>
@@ -93,7 +93,7 @@ const emit = defineEmits([
 
 function getScreenerImage(screener: Screener): string {
   const includeSvg = `
-    <svg height=30 width=30 fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <svg height=30 width=30 fill="var(--color-text)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
       <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
       <g id="SVGRepo_iconCarrier">
@@ -103,7 +103,7 @@ function getScreenerImage(screener: Screener): string {
     </svg>
   `;
   const excludeSvg = `
-    <svg height=30 width=30 fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <svg height=30 width=30 fill="var(--color-text)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
       <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
       <g id="SVGRepo_iconCarrier">
@@ -137,8 +137,8 @@ function toggleDropdown() {
   justify-content: center;
   min-width: 295px;
   height: 32px;
-  background: var(--base2);
-  border: 1.5px solid var(--base2);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-surface);
   z-index: 1000;
   transition: box-shadow 0.25s, background 0.25s, border 0.25s;
   backdrop-filter: blur(8px) saturate(1.2);
@@ -167,7 +167,7 @@ function toggleDropdown() {
   font-size: 1.18rem;
   margin-right: 40px;
   font-weight: 700;
-  color: var(--text1);
+  color: var(--color-text);
   letter-spacing: 0.01em;
   cursor: pointer;
   transition: color 0.22s, background 0.22s, box-shadow 0.22s;
@@ -216,7 +216,7 @@ function toggleDropdown() {
     min-width: 100%;
     max-height: 230px;
     overflow-y: auto;
-    background: var(--base4);
+    background: var(--color-sunken);
     border-radius: 0 0 8px 8px;
     border: none;
     margin-top: 2px;
@@ -243,22 +243,22 @@ function toggleDropdown() {
   padding: 7px 12px 7px 6px;
   font-size: 1.05rem;
   font-weight: 500;
-  color: var(--text1);
+  color: var(--color-text);
   display: flex;
   align-items: center;
   transition: background 0.18s, color 0.18s;
   cursor: pointer;
   position: relative;
   border: none;
-  background: var(--base4);
+  background: var(--color-sunken);
 }
 .screener-wrapper > div.screener-selected {
-  background: var(--accent4);
-  color: var(--text1);
+  background: var(--color-accent-4);
+  color: var(--color-text);
 }
 .screener-wrapper > div:hover {
-  background: var(--base2);
-  color: var(--accent3);
+  background: var(--color-surface);
+  color: var(--color-accent-3);
 }
 
 .screener-icondlt2 {
@@ -278,7 +278,7 @@ function toggleDropdown() {
   box-shadow: 0 1.5px 8px 0 rgba(0,230,216,0.04);
 }
 .screener-icondlt2:hover {
-  background: var(--base2);
+  background: var(--color-surface);
   opacity: 1;
 }
 .screener-img3 {

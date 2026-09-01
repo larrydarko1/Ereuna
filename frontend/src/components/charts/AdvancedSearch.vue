@@ -25,8 +25,8 @@
             @keydown.esc="closeSearch"
           />
           <svg v-if="isLoading" class="search-spinner" width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" stroke="var(--accent1)" stroke-width="3" fill="none" opacity="0.25"/>
-            <path d="M12 2a10 10 0 0 1 10 10" stroke="var(--accent1)" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="10" stroke="var(--color-accent-1)" stroke-width="3" fill="none" opacity="0.25"/>
+            <path d="M12 2a10 10 0 0 1 10 10" stroke="var(--color-accent-1)" stroke-width="3" fill="none" stroke-linecap="round"/>
           </svg>
         </div>
 
@@ -216,7 +216,7 @@ function handleImageError(event: Event) {
 .advanced-search-overlay {
   position: fixed;
   inset: 0;
-  background: color-mix(in srgb, var(--base1) 70%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 70%, transparent);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -226,15 +226,15 @@ function handleImageError(event: Event) {
 }
 
 .advanced-search-popup {
-  background: color-mix(in srgb, var(--base2) 85%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
   border-radius: 18px;
-  box-shadow: 0 8px 32px color-mix(in srgb, var(--base1) 35%, transparent);
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--color-bg) 35%, transparent);
   width: 90%;
   max-width: 600px;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  border: 1.5px solid var(--base4);
+  border: 1.5px solid var(--color-sunken);
   backdrop-filter: blur(8px);
   transition: box-shadow 0.2s;
   animation: popup-in 0.18s cubic-bezier(.4,1.4,.6,1) backwards;
@@ -256,11 +256,11 @@ function handleImageError(event: Event) {
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 1.75rem 1rem 1.75rem;
-  border-bottom: 1px solid var(--base4);
+  border-bottom: 1px solid var(--color-sunken);
 
   h3 {
     margin: 0;
-    color: var(--accent1);
+    color: var(--color-accent-1);
     font-size: 1.35rem;
     font-weight: 700;
     letter-spacing: 0.01em;
@@ -270,7 +270,7 @@ function handleImageError(event: Event) {
 .close-btn {
   background: transparent;
   border: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 6px;
@@ -280,15 +280,15 @@ function handleImageError(event: Event) {
   justify-content: center;
 
   &:hover {
-    background-color: var(--base4);
-    color: var(--text1);
+    background-color: var(--color-sunken);
+    color: var(--color-text);
   }
 }
 
 .search-input-container {
   position: relative;
   padding: 1.25rem 1.75rem;
-  border-bottom: 1px solid var(--base4);
+  border-bottom: 1px solid var(--color-sunken);
 }
 
 .advanced-search-input {
@@ -297,8 +297,8 @@ function handleImageError(event: Event) {
   padding-right: 3.5rem;
   border: none;
   border-radius: 6px;
-  background: var(--base4);
-  color: var(--text1);
+  background: var(--color-sunken);
+  color: var(--color-text);
   font-size: 1.05rem;
   font-weight: 500;
   outline: none;
@@ -306,13 +306,13 @@ function handleImageError(event: Event) {
   box-sizing: border-box;
 
   &::placeholder {
-    color: var(--text2);
+    color: var(--color-text-muted);
     font-weight: 400;
   }
 
   &:focus {
-    background: var(--base1);
-    box-shadow: 0 0 0 2px var(--accent1);
+    background: var(--color-bg);
+    box-shadow: 0 0 0 2px var(--color-accent-1);
     transform: translateY(-1px);
   }
 }
@@ -343,7 +343,7 @@ function handleImageError(event: Event) {
 .search-status {
   padding: 2rem;
   text-align: center;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-style: italic;
   font-size: 0.95rem;
 }
@@ -357,11 +357,11 @@ function handleImageError(event: Event) {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s;
-  background: var(--base4);
+  background: var(--color-sunken);
 
   &:hover,
   &.highlighted {
-    background: var(--base1);
+    background: var(--color-bg);
     transform: translateX(4px);
   }
 }
@@ -380,7 +380,7 @@ function handleImageError(event: Event) {
   border-radius: 6px;
   flex-shrink: 0;
   object-fit: contain;
-  border: 1px solid var(--text2);
+  border: 1px solid var(--color-text-muted);
 }
 
 .result-info {
@@ -392,13 +392,13 @@ function handleImageError(event: Event) {
 
 .result-symbol {
   font-weight: 600;
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 1rem;
   letter-spacing: 0.02em;
 }
 
 .result-name {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 0.85rem;
   white-space: nowrap;
   overflow: hidden;
@@ -423,19 +423,19 @@ function handleImageError(event: Event) {
 }
 
 .result-exchange {
-  background: var(--base2);
-  color: var(--text2);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
 }
 
 .result-type {
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
 }
 
 .search-hint {
   padding: 2.5rem 1.75rem;
   text-align: center;
-  color: var(--text2);
+  color: var(--color-text-muted);
 
   p {
     margin: 0 0 1.25rem 0;
@@ -450,16 +450,16 @@ function handleImageError(event: Event) {
   justify-content: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: var(--text2);
+  color: var(--color-text-muted);
 
   kbd {
-    background: var(--base4);
-    color: var(--text1);
+    background: var(--color-sunken);
+    color: var(--color-text);
     padding: 0.3rem 0.6rem;
     border-radius: 5px;
     font-family: monospace;
     font-size: 0.8rem;
-    border: 1px solid var(--base1);
+    border: 1px solid var(--color-bg);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
     font-weight: 600;
   }

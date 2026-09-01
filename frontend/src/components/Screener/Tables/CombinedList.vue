@@ -31,9 +31,9 @@
               <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
               <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
               <g id="SVGRepo_iconCarrier">
-                <path d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z" fill="var(--text1)"></path>
-                <path d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z" fill="var(--text1)"></path>
-                <path d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z" fill="var(--text1)"></path>
+                <path d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z" fill="var(--color-text)"></path>
+                <path d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z" fill="var(--color-text)"></path>
+                <path d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z" fill="var(--color-text)"></path>
               </g>
             </svg>
           </button>
@@ -44,20 +44,20 @@
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
                   <g id="Edit / Hide">
-                    <path id="Vector" d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path id="Vector" d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113" stroke="var(--color-text)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
                   </g>
                 </g>
               </svg>
               <p>{{ t('screenerComponents.hideAsset') }}</p>
             </div>
             <div class="ml-nested-dropdown" style="display: flex; flex-direction: row; align-items: center; height: 14px;">
-              <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--text1)">
+              <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--color-text)">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
                   <title>new-indicator</title>
                   <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                    <g id="scheduler" fill="var(--text1)" transform="translate(85.333333, 85.333333)">
+                    <g id="scheduler" fill="var(--color-text)" transform="translate(85.333333, 85.333333)">
                       <path d="M170.666667,1.42108547e-14 C264.923264,-3.10380131e-15 341.333333,76.4100694 341.333333,170.666667 C341.333333,264.923264 264.923264,341.333333 170.666667,341.333333 C76.4100694,341.333333 2.57539587e-14,264.923264 1.42108547e-14,170.666667 C2.6677507e-15,76.4100694 76.4100694,3.15255107e-14 170.666667,1.42108547e-14 Z M170.666667,42.6666667 C99.9742187,42.6666667 42.6666667,99.9742187 42.6666667,170.666667 C42.6666667,241.359115 99.9742187,298.666667 170.666667,298.666667 C241.359115,298.666667 298.666667,241.359115 298.666667,170.666667 C298.666667,99.9742187 241.359115,42.6666667 170.666667,42.6666667 Z M192,85.3333333 L191.999333,149.333333 L256,149.333333 L256,192 L191.999333,191.999333 L192,256 L149.333333,256 L149.333333,191.999333 L85.3333333,192 L85.3333333,149.333333 L149.333333,149.333333 L149.333333,85.3333333 L192,85.3333333 Z" id="Combined-Shape"> </path>
                     </g>
                   </g>
@@ -392,9 +392,9 @@ function getColumnClass(asset: Asset, col: string): string {
 }
 
 .ml-Header {
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   text-align: center;
-  color: var(--text1);
+  color: var(--color-text);
   border: none;
   display: flex;
   flex-direction: row;
@@ -413,29 +413,29 @@ function getColumnClass(asset: Asset, col: string): string {
 }
 
 .ml-even {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   text-align: center;
-  color: var(--text1);
+  color: var(--color-text);
   border: none;
   word-break: break-all;
 }
 
 .ml-odd {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   text-align: center;
-  color: var(--text1);
+  color: var(--color-text);
   word-break: break-all;
 }
 
 .ml-even:hover,
 .ml-odd:hover {
-  background-color: var(--base3);
+  background-color: var(--color-elevated);
   cursor: pointer;
 }
 
 .ml-selected {
-  background-color: var(--base3);
-  color: var(--text1);
+  background-color: var(--color-elevated);
+  color: var(--color-text);
 }
 
 .ml-dropdown-btn {
@@ -462,12 +462,12 @@ function getColumnClass(asset: Asset, col: string): string {
   left: 20px;
   padding: 5px;
   border-radius: 7px;
-  background-color: var(--base4);
-  border: 1.5px solid var(--base3);
+  background-color: var(--color-sunken);
+  border: 1.5px solid var(--color-elevated);
 }
 
 .ml-dropdown-menu>div {
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   padding: 5px;
   height: 14px;
   display: flex;
@@ -477,7 +477,7 @@ function getColumnClass(asset: Asset, col: string): string {
 }
 
 .ml-dropdown-menu>div:hover {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
 }
 
 .ml-dropdown-btn:hover + .ml-dropdown-menu,
@@ -494,7 +494,7 @@ function getColumnClass(asset: Asset, col: string): string {
   position: absolute;
   left: 100%;
   top: 0;
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   max-height: 185px;
   overflow-y: scroll;
   padding: 5px;
@@ -503,7 +503,7 @@ function getColumnClass(asset: Asset, col: string): string {
   z-index: 1001;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid var(--base3);
+  border: 1.5px solid var(--color-elevated);
 }
 
 .ml-nested-dropdown:hover .ml-nested-dropdown-menu {
@@ -532,7 +532,7 @@ function getColumnClass(asset: Asset, col: string): string {
 }
 
 .ml-watchlist-item:hover {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
 }
 
 .ml-watchlist-item input[type="checkbox"] {
@@ -540,15 +540,15 @@ function getColumnClass(asset: Asset, col: string): string {
 }
 
 .ml-results2 {
-  background-color: var(--base1);
-  color: var(--text1);
+  background-color: var(--color-bg);
+  color: var(--color-text);
   border: none;
   height: 200px;
 }
 
 .ml-btsymbol {
   min-width: 70px;
-  border-right: solid 1px var(--base3);
+  border-right: solid 1px var(--color-elevated);
   height: 100%;
   align-items: center;
   display: flex;
@@ -556,7 +556,7 @@ function getColumnClass(asset: Asset, col: string): string {
 }
 
 .duplicate-asterisk {
-  color: var(--accent1);
+  color: var(--color-accent-1);
   margin-left: 4px;
   cursor: pointer;
   position: relative;
@@ -565,11 +565,11 @@ function getColumnClass(asset: Asset, col: string): string {
 .tooltip2 {
   visibility: hidden;
   width: 120px;
-  background-color: var(--base1);
-  color: var(--text1);
+  background-color: var(--color-bg);
+  color: var(--color-text);
   text-align: center;
   border-radius: 5px;
-  border: solid 1px var(--accent3);
+  border: solid 1px var(--color-accent-3);
   padding: 5px;
   position: absolute;
   z-index: 1000;

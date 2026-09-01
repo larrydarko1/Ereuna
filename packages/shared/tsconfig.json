@@ -1,9 +1,14 @@
+// Cross-workspace contracts, compiled for two runtimes: Node (api) and the
+// browser (frontend, which consumes this package as TypeScript source and
+// transpiles it with esbuild). The target is therefore the conservative one —
+// ES2024 rather than the api's ES2025 — because it has to be legible to
+// whichever toolchain reads it, and esbuild does not recognise ES2025.
 {
     "compilerOptions": {
-        "target": "ES2025",
+        "target": "ES2024",
         "module": "NodeNext",
         "moduleResolution": "NodeNext",
-        "lib": ["ES2025"],
+        "lib": ["ES2024"],
         "types": ["node"],
         "outDir": "dist",
         "rootDir": "src",

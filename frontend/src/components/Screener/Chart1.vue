@@ -327,24 +327,24 @@ onUnmounted(() => {
 
 const defaultStyles = getComputedStyle(document.documentElement);
 const theme = {
-  accent1: defaultStyles.getPropertyValue('--accent1'),
-  accent2: defaultStyles.getPropertyValue('--accent2'),
-  accent3: defaultStyles.getPropertyValue('--accent3'),
-  accent4: defaultStyles.getPropertyValue('--accent4'),
-  text1: defaultStyles.getPropertyValue('--text1'),
-  text2: defaultStyles.getPropertyValue('--text2'),
-  text3: defaultStyles.getPropertyValue('--text3'),
-  base1: defaultStyles.getPropertyValue('--base1'),
-  base2: defaultStyles.getPropertyValue('--base2'),
-  base3: defaultStyles.getPropertyValue('--base3'),
-  base4: defaultStyles.getPropertyValue('--base4'),
-  positive: defaultStyles.getPropertyValue('--positive'),
-  negative: defaultStyles.getPropertyValue('--negative'),
-  volume: defaultStyles.getPropertyValue('--volume'),
-  ma1: defaultStyles.getPropertyValue('--ma1'),
-  ma2: defaultStyles.getPropertyValue('--ma2'),
-  ma3: defaultStyles.getPropertyValue('--ma3'),
-  ma4: defaultStyles.getPropertyValue('--ma4'),
+  accent1: defaultStyles.getPropertyValue('--color-accent-1'),
+  accent2: defaultStyles.getPropertyValue('--color-accent-2'),
+  accent3: defaultStyles.getPropertyValue('--color-accent-3'),
+  accent4: defaultStyles.getPropertyValue('--color-accent-4'),
+  text1: defaultStyles.getPropertyValue('--color-text'),
+  text2: defaultStyles.getPropertyValue('--color-text-muted'),
+  text3: defaultStyles.getPropertyValue('--color-text-inverted'),
+  base1: defaultStyles.getPropertyValue('--color-bg'),
+  base2: defaultStyles.getPropertyValue('--color-surface'),
+  base3: defaultStyles.getPropertyValue('--color-elevated'),
+  base4: defaultStyles.getPropertyValue('--color-sunken'),
+  positive: defaultStyles.getPropertyValue('--color-positive'),
+  negative: defaultStyles.getPropertyValue('--color-negative'),
+  volume: defaultStyles.getPropertyValue('--color-volume'),
+  ma1: defaultStyles.getPropertyValue('--color-ma-1'),
+  ma2: defaultStyles.getPropertyValue('--color-ma-2'),
+  ma3: defaultStyles.getPropertyValue('--color-ma-3'),
+  ma4: defaultStyles.getPropertyValue('--color-ma-4'),
 };
 
 const wkchart = ref<HTMLElement | null>(null);
@@ -655,15 +655,15 @@ watch(() => props.selectedSymbol, (newSymbol, oldSymbol) => {
   display: flex;
   flex-wrap: wrap;
   gap: 3px;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   padding: 4px;
   border-radius: 6px;
 }
 
 .tf-btn {
   padding: 3px 6px;
-  background-color: var(--base3);
-  color: var(--text2);
+  background-color: var(--color-elevated);
+  color: var(--color-text-muted);
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -674,18 +674,18 @@ watch(() => props.selectedSymbol, (newSymbol, oldSymbol) => {
 }
 
 .tf-btn:hover {
-  background-color: var(--base4);
-  color: var(--text1);
+  background-color: var(--color-sunken);
+  color: var(--color-text);
 }
 
 .tf-btn.selected {
-  background-color: var(--accent1);
-  color: var(--base1);
+  background-color: var(--color-accent-1);
+  color: var(--color-bg);
 }
 
 .charttype-dropdown {
   position: relative;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   border-radius: 6px;
   cursor: pointer;
   user-select: none;
@@ -699,14 +699,14 @@ watch(() => props.selectedSymbol, (newSymbol, oldSymbol) => {
   padding: 6px 10px;
   font-size: 11px;
   font-weight: 500;
-  color: var(--text1);
+  color: var(--color-text);
   white-space: nowrap;
   min-width: 100px;
 }
 
 .dropdown-arrow {
   font-size: 10px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   transition: transform 0.2s ease;
 }
 
@@ -719,8 +719,8 @@ watch(() => props.selectedSymbol, (newSymbol, oldSymbol) => {
   top: 100%;
   right: 0;
   margin-top: 4px;
-  background-color: var(--base2);
-  border: 1px solid var(--base3);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-elevated);
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   overflow: hidden;
@@ -731,14 +731,14 @@ watch(() => props.selectedSymbol, (newSymbol, oldSymbol) => {
 .dropdown-item {
   padding: 8px 12px;
   font-size: 11px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .dropdown-item:hover {
-  background-color: var(--base3);
-  color: var(--text1);
+  background-color: var(--color-elevated);
+  color: var(--color-text);
 }
 
 .loading-container1 {
@@ -750,7 +750,7 @@ watch(() => props.selectedSymbol, (newSymbol, oldSymbol) => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   z-index: 10;
 }
 

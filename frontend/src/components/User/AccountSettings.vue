@@ -828,8 +828,8 @@ async function GenerateNewKey() {
 }
 
 .userbtn {
-  background-color: var(--accent1);
-  color: var(--text3);
+  background-color: var(--color-accent-1);
+  color: var(--color-text-inverted);
   border-radius: 8px;
   border: none;
   font-weight: 600;
@@ -846,12 +846,12 @@ async function GenerateNewKey() {
 
 .userbtn:disabled , .userbtn:disabled:hover {
   cursor: not-allowed;
-  background-color: var(--base3);
+  background-color: var(--color-elevated);
   box-shadow: none;
 }
 
 .userbtn:hover:not(:disabled) {
-  background-color: var(--accent2);
+  background-color: var(--color-accent-2);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   transform: translateY(-1px);
 }
@@ -865,19 +865,19 @@ async function GenerateNewKey() {
   min-width: 120px;
   max-width: 100%;
   outline: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
-  border: solid 1px var(--base4);
-  background-color: var(--base1);
+  border: solid 1px var(--color-sunken);
+  background-color: var(--color-bg);
   font-size: 1rem;
   font-family: inherit;
 }
 
 .userinput:focus {
-  border-color: var(--accent1);
+  border-color: var(--color-accent-1);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(var(--accent1-rgb), 0.1);
-  background-color: var(--base2);
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-1-rgb), 0.1);
+  background-color: var(--color-surface);
 }
 
 .password-toggle {
@@ -889,7 +889,7 @@ async function GenerateNewKey() {
   border: none;
   cursor: pointer;
   font-size: 10px;
-  color: var(--text1);
+  color: var(--color-text);
   opacity: 0.75;
   padding: 4px;
 }
@@ -903,7 +903,7 @@ async function GenerateNewKey() {
   border: none;
   cursor: pointer;
   font-size: 10px;
-  color: var(--text1);
+  color: var(--color-text);
   opacity: 0.75;
   padding: 4px;
 }
@@ -917,13 +917,13 @@ async function GenerateNewKey() {
   border: none;
   cursor: pointer;
   font-size: 10px;
-  color: var(--text1);
+  color: var(--color-text);
   opacity: 0.75;
   padding: 4px;
 }
 
 .userdiv {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   width: 99%;
   max-width: 100%;
   box-sizing: border-box;
@@ -931,7 +931,7 @@ async function GenerateNewKey() {
   margin: 0 auto;
   margin-bottom: 5px;
   margin-left: 5px;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .toggle-icon {
@@ -987,21 +987,21 @@ async function GenerateNewKey() {
   margin-bottom: 20px;
   font-size: 1.5rem;
   font-weight: bold;
-  color: var(--text1);
+  color: var(--color-text);
   padding: 10px 15px;
-  background: var(--base1);
+  background: var(--color-bg);
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .disclaimer {
   font-size: 1.2rem;
-  color: var(--text2);
+  color: var(--color-text-muted);
 }
 
 p {
   font-size: 1rem;
-  color: var(--text2);
+  color: var(--color-text-muted);
   line-height: 1.5;
   margin-bottom: 15px;
   font-weight: 400;
@@ -1009,7 +1009,7 @@ p {
 
 .translation-disclaimer {
   font-size: 1rem;
-  color: var(--text2);
+  color: var(--color-text-muted);
   text-align: center;
   margin-top: 12px;
   margin-bottom: 0;
@@ -1028,9 +1028,9 @@ p {
 .custom-select {
   border-radius: 7px;
   padding: 8px 40px 8px 10px;
-  border: 1.5px solid var(--base3);
-  background-color: var(--base1);
-  color: var(--text1);
+  border: 1.5px solid var(--color-elevated);
+  background-color: var(--color-bg);
+  color: var(--color-text);
   font-size: 1rem;
   outline: none;
   cursor: pointer;
@@ -1043,13 +1043,13 @@ p {
 }
 
 .custom-select:hover {
-  background-color: var(--base3);
-  border-color: var(--base4);
+  background-color: var(--color-elevated);
+  border-color: var(--color-sunken);
 }
 
 .custom-select:focus {
-  border-color: var(--accent1);
-  background-color: var(--base4);
+  border-color: var(--color-accent-1);
+  background-color: var(--color-sunken);
 }
 
 .selected-language {
@@ -1061,7 +1061,7 @@ p {
   width: 18px;
   height: 18px;
   transition: transform 0.2s ease;
-  color: var(--text2);
+  color: var(--color-text-muted);
   position: absolute;
   right: 12px;
   pointer-events: none;
@@ -1072,9 +1072,9 @@ p {
 }
 
 .language-dropdown {
-  background: var(--base2);
+  background: var(--color-surface);
   border-radius: 12px;
-  border: 1.5px solid var(--base3);
+  border: 1.5px solid var(--color-elevated);
   padding: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15);
   z-index: 10000;
@@ -1099,24 +1099,24 @@ p {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.18s;
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 0.95rem;
   font-weight: 400;
 }
 
 .language-option:hover {
-  background: var(--base3);
-  color: var(--accent1);
+  background: var(--color-elevated);
+  color: var(--color-accent-1);
 }
 
 .language-option.selected {
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
   font-weight: 600;
 }
 
 .language-option.selected:hover {
-  background: var(--accent2);
+  background: var(--color-accent-2);
 }
 
 @media (min-width: 1151px) {
@@ -1138,7 +1138,7 @@ p {
   }
 
   .userdiv {
-    background-color: var(--base2);
+    background-color: var(--color-surface);
     width: 97%;
     padding: 15px;
     margin: 0 auto;

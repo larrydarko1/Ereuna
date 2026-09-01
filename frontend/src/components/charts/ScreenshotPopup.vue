@@ -165,7 +165,7 @@ function handleExport() {
 }
 
 .screenshot-popup {
-  background: var(--base2);
+  background: var(--color-surface);
   border-radius: 12px;
   width: 90%;
   max-width: 700px;
@@ -173,12 +173,12 @@ function handleExport() {
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid var(--base3);
+  border: 1px solid var(--color-elevated);
 }
 
 .popup-header {
   padding: 20px 24px;
-  border-bottom: 1px solid var(--base3);
+  border-bottom: 1px solid var(--color-elevated);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -188,14 +188,14 @@ function handleExport() {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .close-btn {
   background: none;
   border: none;
   font-size: 32px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   cursor: pointer;
   padding: 0;
   width: 32px;
@@ -208,8 +208,8 @@ function handleExport() {
 }
 
 .close-btn:hover {
-  background: var(--base3);
-  color: var(--text1);
+  background: var(--color-elevated);
+  color: var(--color-text);
 }
 
 .popup-content {
@@ -229,20 +229,20 @@ function handleExport() {
 .preview-label {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text2);
+  color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .preview-box {
-  background: var(--base1);
+  background: var(--color-bg);
   border-radius: 8px;
   padding: 16px;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--color-elevated);
 }
 
 .preview-chart {
-  background: var(--base2);
+  background: var(--color-surface);
   border-radius: 6px;
   padding: 12px;
   display: flex;
@@ -256,7 +256,7 @@ function handleExport() {
   justify-content: space-between;
   align-items: flex-start;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--base3);
+  border-bottom: 1px solid var(--color-elevated);
 }
 
 .preview-logo {
@@ -282,7 +282,7 @@ function handleExport() {
   display: flex;
   gap: 8px;
   font-size: 10px;
-  color: var(--text2);
+  color: var(--color-text-muted);
 }
 
 .preview-timeframe {
@@ -301,12 +301,12 @@ function handleExport() {
 .preview-symbol {
   font-size: 11px;
   font-weight: 700;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .preview-name {
   font-size: 9px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -316,7 +316,7 @@ function handleExport() {
 .preview-price {
   font-size: 12px;
   font-weight: 700;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .preview-change {
@@ -326,7 +326,7 @@ function handleExport() {
 
 .preview-branding {
   font-size: 9px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   opacity: 0.7;
 }
 
@@ -335,11 +335,11 @@ function handleExport() {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 12px;
-  background: var(--base1);
+  background: var(--color-bg);
   border-radius: 4px;
-  border: 1px dashed var(--base3);
+  border: 1px dashed var(--color-elevated);
 }
 
 .options-section {
@@ -359,7 +359,7 @@ function handleExport() {
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 14px;
   font-weight: 500;
 }
@@ -368,12 +368,12 @@ function handleExport() {
   width: 18px;
   height: 18px;
   cursor: pointer;
-  accent-color: var(--text1);
+  accent-color: var(--color-text);
 }
 
 .option-label-full {
   display: block;
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 8px;
@@ -381,7 +381,7 @@ function handleExport() {
 
 .option-description {
   font-size: 12px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   margin: 0;
   padding-left: 28px;
 }
@@ -409,17 +409,17 @@ function handleExport() {
 
 .color-btn:hover {
   transform: scale(1.05);
-  border-color: var(--text2);
+  border-color: var(--color-text-muted);
 }
 
 .color-btn.active {
-  border-color: var(--text1);
+  border-color: var(--color-text);
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
 }
 
 .popup-footer {
   padding: 16px 24px;
-  border-top: 1px solid var(--base3);
+  border-top: 1px solid var(--color-elevated);
   display: flex;
   justify-content: flex-end;
   gap: 12px;
@@ -437,17 +437,17 @@ function handleExport() {
 }
 
 .btn-secondary {
-  background: var(--base3);
-  color: var(--text1);
+  background: var(--color-elevated);
+  color: var(--color-text);
 }
 
 .btn-secondary:hover {
-  background: var(--base4);
+  background: var(--color-sunken);
 }
 
 .btn-primary {
-  background: var(--text1);
-  color: var(--base1);
+  background: var(--color-text);
+  color: var(--color-bg);
 }
 
 .btn-primary:hover {

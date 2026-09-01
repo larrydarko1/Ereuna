@@ -154,15 +154,15 @@ onUnmounted(() => {
 
 .modal-content {
   position: relative;
-  background: var(--base2);
-  color: var(--text1);
+  background: var(--color-surface);
+  color: var(--color-text);
   border-radius: 18px;
   padding: 36px 32px 28px 32px;
   width: 90%;
   max-width: 650px;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--accent4);
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--color-accent-4);
   animation: popup-in 0.18s cubic-bezier(.4,1.4,.6,1) backwards;
 }
 
@@ -177,7 +177,7 @@ onUnmounted(() => {
   right: 18px;
   background: none;
   border: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 1.7rem;
   cursor: pointer;
   transition: color 0.15s;
@@ -185,7 +185,7 @@ onUnmounted(() => {
   padding: 0;
 }
 .close-x:hover {
-  color: var(--accent1);
+  color: var(--color-accent-1);
 }
 
 .ai-title {
@@ -198,7 +198,7 @@ onUnmounted(() => {
 .ai-icon {
   width: 22px;
   height: 22px;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   animation: sparkle 2s ease-in-out infinite;
 }
 
@@ -217,13 +217,13 @@ h2 {
   margin: 0;
   font-size: 1.35rem;
   font-weight: 700;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   letter-spacing: 0.01em;
 }
 
 .beta-badge {
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
   font-size: 0.65rem;
   font-weight: 700;
   padding: 3px 8px;
@@ -250,7 +250,7 @@ h2 {
 
 label {
   font-size: 1rem;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-weight: 500;
   letter-spacing: 0.01em;
 }
@@ -258,9 +258,9 @@ label {
 .ai-value {
   padding: 10px 12px;
   border-radius: 7px;
-  border: 1.5px solid var(--base3);
-  background: var(--base1);
-  color: var(--text1);
+  border: 1.5px solid var(--color-elevated);
+  background: var(--color-bg);
+  color: var(--color-text);
   font-size: 1.08rem;
   font-weight: 500;
   transition: border-color 0.18s;
@@ -275,43 +275,43 @@ label {
 }
 
 .recommendation.strong-buy {
-  background: var(--base1);
-  color: var(--positive);
-  border-color: var(--positive);
+  background: var(--color-bg);
+  color: var(--color-positive);
+  border-color: var(--color-positive);
 }
 
 .recommendation.buy {
-  background: var(--base1);
-  color: var(--positive);
-  border-color: var(--positive);
+  background: var(--color-bg);
+  color: var(--color-positive);
+  border-color: var(--color-positive);
   opacity: 0.85;
 }
 
 .recommendation.hold {
-  background: var(--base1);
-  color: var(--text2);
-  border-color: var(--text2);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  border-color: var(--color-text-muted);
 }
 
 .recommendation.sell {
-  background: var(--base1);
-  color: var(--negative);
-  border-color: var(--negative);
+  background: var(--color-bg);
+  color: var(--color-negative);
+  border-color: var(--color-negative);
   opacity: 0.85;
 }
 
 .recommendation.strong-sell {
-  background: var(--base1);
-  color: var(--negative);
-  border-color: var(--negative);
+  background: var(--color-bg);
+  color: var(--color-negative);
+  border-color: var(--color-negative);
 }
 
 .ai-report {
   padding: 12px;
   border-radius: 7px;
-  border: 1.5px solid var(--base3);
-  background: var(--base1);
-  color: var(--text1);
+  border: 1.5px solid var(--color-elevated);
+  background: var(--color-bg);
+  color: var(--color-text);
   font-size: 0.95rem;
   line-height: 1.6;
   height: 200px;
@@ -327,31 +327,31 @@ label {
 }
 
 .ai-report::-webkit-scrollbar-track {
-  background: var(--base1);
+  background: var(--color-bg);
   border-radius: 7px;
 }
 
 .ai-report::-webkit-scrollbar-thumb {
-  background: var(--base3);
+  background: var(--color-elevated);
   border-radius: 7px;
 }
 
 .ai-report::-webkit-scrollbar-thumb:hover {
-  background: var(--accent1);
+  background: var(--color-accent-1);
 }
 
 .ai-value.disclaimer {
-  background: var(--base1);
-  color: var(--text2);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
   font-style: italic;
   font-size: 0.92rem;
-  border-color: var(--base3);
+  border-color: var(--color-elevated);
 }
 
 .cursor {
   display: inline-block;
   width: 2px;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   font-weight: bold;
   animation: blink 0.8s infinite;
   margin-left: 2px;
@@ -372,17 +372,17 @@ label {
 }
 
 .modal-content::-webkit-scrollbar-track {
-  background: var(--base1);
+  background: var(--color-bg);
   border-radius: 7px;
 }
 
 .modal-content::-webkit-scrollbar-thumb {
-  background: var(--base3);
+  background: var(--color-elevated);
   border-radius: 7px;
 }
 
 .modal-content::-webkit-scrollbar-thumb:hover {
-  background: var(--accent1);
+  background: var(--color-accent-1);
 }
 
 @media (max-width: 768px) {

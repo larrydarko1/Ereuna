@@ -29,8 +29,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@use '../style.scss' as *;
-
 .overlay {
   position: fixed;
   top: 0;
@@ -49,7 +47,7 @@ onMounted(() => {
 
 /* Popup container styling */
 .popup-container {
-  background: var(--base2);
+  background: var(--color-surface);
   max-width: 400px;
   width: 100%;
   padding: 2rem 2rem 2.5rem;
@@ -57,7 +55,7 @@ onMounted(() => {
   box-shadow: 0 12px 28px rgba(0,0,0,0.2);
   position: relative;
   text-align: center;
-  color: var(--text2);
+  color: var(--color-text-muted);
 }
 
 /* Heading style */
@@ -66,7 +64,7 @@ onMounted(() => {
   margin-bottom: 1rem;
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 /* Paragraph styling */
@@ -74,7 +72,7 @@ onMounted(() => {
   font-size: 1.125rem;
   line-height: 1.5;
   margin-bottom: 2rem;
-  color: var(--text2);
+  color: var(--color-text-muted);
 }
 
 /* Close button styling */
@@ -86,7 +84,7 @@ onMounted(() => {
   background: transparent;
   font-size: 2rem;
   font-weight: 700;
-  color: var(--text1);
+  color: var(--color-text);
   cursor: pointer;
   transition: color 0.3s ease;
   line-height: 1;
@@ -95,7 +93,7 @@ onMounted(() => {
 
 .close-btn:hover,
 .close-btn:focus {
-  color: var(--accent1);
+  color: var(--color-accent-1);
   outline: none;
 }
 

@@ -1,38 +1,29 @@
+/**
+ * MIGRATION SCAFFOLDING — delete with the maintenance view's batch.
+ * Now reads GET /api/system/maintenance, the real endpoint, instead of the
+ * flat /api/maintenance-status route with an X-API-KEY header that no longer
+ * exists. Replacement: getMaintenanceStatus() from @/api/system.
+ */
 import { defineStore } from 'pinia';
-
-const apiKey = import.meta.env.VITE_EREUNA_KEY; // Add apiKey
+import { getMaintenanceStatus } from '@/api/system';
 
 export const useMaintenanceStore = defineStore('maintenance', {
     state: () => ({
         isUnderMaintenance: false,
-        maintenanceType: 'regular' as 'regular' | 'extraordinary',
-        errorMessage: ''
+        message: null as string | null,
     }),
     actions: {
-        async checkMaintenanceStatus() {
+        async checkMaintenanceStatus(): Promise<void> {
             try {
-                const response = await fetch('/api/maintenance-status', {
-                    headers: {
-                        'X-API-KEY': apiKey,
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-
-                const data = await response.json(); // Parse the response as JSON
-                this.isUnderMaintenance = data.maintenance;
-                this.maintenanceType = data.type || 'regular';
-                this.errorMessage = '';
-            } catch (error) {
-                if (error instanceof Error) {
-                    this.errorMessage = error.message;
-                } else {
-                    this.errorMessage = String(error);
-                }
-                this.isUnderMaintenance = false; // Set to false in case of an error
+                const { data } = await getMaintenanceStatus();
+                this.isUnderMaintenance = data.maintenanceMode;
+                this.message = data.message;
+            } catch {
+                // Fail open. A status check that cannot reach the server must not
+                // lock a working app behind a maintenance screen.
+                this.isUnderMaintenance = false;
+                this.message = null;
             }
-        }
-    }
+        },
+    },
 });

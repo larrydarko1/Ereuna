@@ -264,7 +264,7 @@ const showFundYoYQoQModel = computed({
 <style scoped>
 /* Card Container */
 .param-card {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   border-radius: 6px;
   padding: 8px 10px;
   margin: 4px 4px;
@@ -275,17 +275,17 @@ const showFundYoYQoQModel = computed({
 
 .param-card:hover {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  border-color: var(--base3);
+  border-color: var(--color-elevated);
 }
 
 .param-card-expanded {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   border-radius: 6px;
   padding: 8px 10px;
   margin: 4px 4px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   transition: all 0.2s ease;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--color-elevated);
 }
 
 /* Header Section */
@@ -305,7 +305,7 @@ const showFundYoYQoQModel = computed({
 .title {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text1);
+  color: var(--color-text);
   letter-spacing: 0.01em;
   background-color: transparent;
 }
@@ -313,13 +313,13 @@ const showFundYoYQoQModel = computed({
 .info-icon {
   width: 14px;
   height: 14px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   cursor: pointer;
   transition: color 0.2s ease;
 }
 
 .info-icon:hover {
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 /* Toggle Switch */
@@ -343,7 +343,7 @@ const showFundYoYQoQModel = computed({
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--base3);
+  background-color: var(--color-elevated);
   transition: 0.2s;
   border-radius: 18px;
 }
@@ -355,19 +355,19 @@ const showFundYoYQoQModel = computed({
   width: 12px;
   left: 3px;
   bottom: 3px;
-  background-color: var(--text2);
+  background-color: var(--color-text-muted);
   transition: 0.2s;
   border-radius: 50%;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 input:checked + .slider {
-  background-color: var(--accent1);
+  background-color: var(--color-accent-1);
 }
 
 input:checked + .slider:before {
   transform: translateX(16px);
-  background-color: var(--text3);
+  background-color: var(--color-text-inverted);
 }
 
 /* Content Section */
@@ -396,16 +396,16 @@ input:checked + .slider:before {
 }
 
 .growth-section {
-  border: 1px solid var(--base4);
+  border: 1px solid var(--color-sunken);
   border-radius: 4px;
   padding: 8px;
-  background-color: var(--base3);
+  background-color: var(--color-elevated);
 }
 
 .section-title {
   font-size: 12px;
   font-weight: 600;
-  color: var(--text1);
+  color: var(--color-text);
   margin: 0 0 6px 0;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -428,7 +428,7 @@ input:checked + .slider:before {
 .input-label {
   font-size: 10px;
   font-weight: 500;
-  color: var(--text2);
+  color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -437,9 +437,9 @@ input:checked + .slider:before {
   width: 100%;
   padding: 6px 8px;
   font-size: 12px;
-  color: var(--text1);
-  background-color: var(--base4);
-  border: 1px solid var(--base4);
+  color: var(--color-text);
+  background-color: var(--color-sunken);
+  border: 1px solid var(--color-sunken);
   border-radius: 4px;
   outline: none;
   transition: all 0.2s ease;
@@ -447,16 +447,16 @@ input:checked + .slider:before {
 }
 
 .input-field::placeholder {
-  color: var(--text2);
+  color: var(--color-text-muted);
   opacity: 0.6;
 }
 
 .input-field:focus {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
 }
 
 .input-field:hover:not(:focus) {
-  border-color: var(--text2);
+  border-color: var(--color-text-muted);
 }
 
 /* Actions */
@@ -478,14 +478,14 @@ input:checked + .slider:before {
 }
 
 .btn-secondary {
-  background-color: var(--base3);
-  color: var(--text2);
+  background-color: var(--color-elevated);
+  color: var(--color-text-muted);
   font-weight: 600;
 }
 
 .btn-secondary:hover {
-  background-color: var(--base4);
-  color: var(--text1);
+  background-color: var(--color-sunken);
+  color: var(--color-text);
 }
 
 .btn-secondary:active {
@@ -493,14 +493,14 @@ input:checked + .slider:before {
 }
 
 .btn-primary {
-  background-color: var(--accent1);
-  color: var(--text3);
+  background-color: var(--color-accent-1);
+  color: var(--color-text-inverted);
   font-weight: 600;
 }
 
 .btn-primary:hover {
   opacity: 0.9;
-  box-shadow: 0 1px 4px rgba(var(--accent1-rgb, 59, 130, 246), 0.3);
+  box-shadow: 0 1px 4px rgba(var(--color-accent-1-rgb, 59, 130, 246), 0.3);
 }
 
 .btn-primary:active {

@@ -1,0 +1,8 @@
+// Component partials — the folder's table of contents.
+// @forward only, never a rule of its own: `@use '@/styles/components'` resolves
+// here, so consumers are untouched when a partial is added or split.
+// A pattern earns a partial once it appears in two or more UNRELATED
+// components. Until then it stays scoped in the SFC that uses it — promoting
+// early is how a global stylesheet fills with rules only one view ever wanted.
+// Ereuna's old stylesheet held nothing but themes and everything else lived
+// inline, so these fill up as each domain is migrated rather than all at once.

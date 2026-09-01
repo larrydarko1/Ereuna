@@ -773,7 +773,7 @@ onMounted(() => {
 .dashboard-disclaimer {
   margin-top: 4px;
   font-size: 0.98rem;
-  color: var(--text2);
+  color: var(--color-text-muted);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -784,13 +784,13 @@ onMounted(() => {
 }
 .disclaimer-note {
   font-style: italic;
-  color: var(--accent2);
+  color: var(--color-accent-2);
 }
 .dashboard {
   min-height: 100vh;
   width: 100vw;
   box-sizing: border-box;
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   overflow-x: scroll;
   padding-top: 5px;
   padding-left: 10px;
@@ -850,7 +850,7 @@ onMounted(() => {
 .sector-lists h3 {
   margin-bottom: 8px;
   font-size: 1.1rem;
-  color: var(--accent1);
+  color: var(--color-accent-1);
 }
 .sector-lists ul {
   list-style: none;
@@ -858,12 +858,12 @@ onMounted(() => {
   margin: 0;
 }
 .sector-lists li {
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 1rem;
   margin-bottom: 4px;
 }
 .sector-lists .count {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 0.9rem;
   margin-left: 6px;
   font-weight: 600;
@@ -885,7 +885,7 @@ onMounted(() => {
 .movers-volume h3 {
   margin-bottom: 8px;
   font-size: 1.1rem;
-  color: var(--accent1);
+  color: var(--color-accent-1);
 }
 .movers-volume ul {
   list-style: none;
@@ -893,7 +893,7 @@ onMounted(() => {
   margin: 0;
 }
 .movers-volume li {
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 1rem;
   margin-bottom: 4px;
 }
@@ -906,7 +906,7 @@ onMounted(() => {
   gap: 12px;
 }
 .sentiment-label {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 1rem;
 }
 .sentiment-progress {
@@ -915,14 +915,14 @@ onMounted(() => {
   height: 14px;
   border-radius: 7px;
   overflow: hidden;
-  background: var(--base3);
+  background: var(--color-elevated);
 }
 .sentiment-positive {
-  background: var(--positive);
+  background: var(--color-positive);
   height: 100%;
 }
 .sentiment-negative {
-  background: var(--negative);
+  background: var(--color-negative);
   height: 100%;
 }
 .sma-bars {
@@ -938,7 +938,7 @@ onMounted(() => {
 }
 .sma-label {
   width: 80px;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   font-weight: 600;
 }
 .sma-bar .bar-container { 
@@ -955,16 +955,16 @@ onMounted(() => {
   display: flex;
   height: 18px;
   width: 90%;
-  background: var(--base3);
+  background: var(--color-elevated);
   border-radius: 5px;
   overflow: hidden;
 }
 .bar-positive {
-  background: var(--positive);
+  background: var(--color-positive);
   height: 100%;
 }
 .bar-negative {
-  background: var(--negative);
+  background: var(--color-negative);
   height: 100%;
 }
 
@@ -978,7 +978,7 @@ onMounted(() => {
   margin-left: 8px;
 }
 .bar-neutral {
-  background: var(--base3);
+  background: var(--color-elevated);
   height: 100%;
 }
 
@@ -987,7 +987,7 @@ onMounted(() => {
   display: flex;
   height: 20px;
   width: 100%;
-  background: var(--base3);
+  background: var(--color-elevated);
   border-radius: 5px;
   overflow: hidden;
 }
@@ -1001,15 +1001,15 @@ onMounted(() => {
 }
 
 .meter-value.positive {
-  color: var(--positive);
+  color: var(--color-positive);
 }
 
 .meter-value.negative {
-  color: var(--negative);
+  color: var(--color-negative);
 }
 
 .meter-value.neutral {
-  color: var(--text2);
+  color: var(--color-text-muted);
 }
 .dashboard-top {
   display: flex;
@@ -1017,7 +1017,7 @@ onMounted(() => {
   align-items: center;
   padding: 16px 18px; /* slightly more padding for card-like spacing */
   margin-bottom: 5px;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   box-shadow: 0 6px 18px rgba(10, 20, 30, 0.06);
   border: 1px solid rgba(0,0,0,0.035);
 }
@@ -1044,41 +1044,41 @@ onMounted(() => {
   justify-content: flex-end;
 }
 .datetime {
-  color: var(--text1);
+  color: var(--color-text);
   display: flex;
   flex-direction: column;
 }
 .date{
     font-size: 2.2rem;
     font-weight: 800;
-    color: var(--text1);
+    color: var(--color-text);
 }
 .time {
   font-size: 1.25rem;
-  color: var(--text2);
+  color: var(--color-text-muted);
 }
 .market-status {
   font-size: 1.2rem;
   padding: 8px 16px;
   border-radius: 5px;
-  background: var(--base3);
-  color: var(--text1);
+  background: var(--color-elevated);
+  color: var(--color-text);
   font-weight: bold;
 }
 .market-status.open {
-  background: var(--positive);
-  color: var(--base4);
+  background: var(--color-positive);
+  color: var(--color-sunken);
 }
 .market-status.closed {
-  background: var(--negative);
-  color: var(--base4);
+  background: var(--color-negative);
+  color: var(--color-sunken);
 }
 .market-status.holiday {
-  background: var(--accent2);
-  color: var(--base4);
+  background: var(--color-accent-2);
+  color: var(--color-sunken);
 }
 .card {
-  background: var(--base2);
+  background: var(--color-surface);
   padding: 22px;
   border-radius: 12px;
   box-shadow: 0 6px 18px rgba(10, 20, 30, 0.08);
@@ -1102,7 +1102,7 @@ onMounted(() => {
 }
 .market-indexes th,
 .sma-distribution th {
-  color: var(--accent1);
+  color: var(--color-accent-1);
   font-size: 0.95rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -1111,7 +1111,7 @@ onMounted(() => {
 }
 .market-indexes td,
 .sma-distribution td {
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 0.98rem;
 }
 
@@ -1125,10 +1125,10 @@ onMounted(() => {
   background: rgba(0,0,0,0.01);
 }
 .positive {
-  color: var(--positive) !important;
+  color: var(--color-positive) !important;
 }
 .negative {
-  color: var(--negative) !important;
+  color: var(--color-negative) !important;
 }
 
 /* SMA Header with Dropdown */
@@ -1147,11 +1147,11 @@ onMounted(() => {
 }
 
 .asset-type-dropdown .dropdown-selected {
-  background: var(--base3);
-  color: var(--text1);
+  background: var(--color-elevated);
+  color: var(--color-text);
   border-radius: 7px;
   padding: 10px 12px;
-  border: 1.5px solid var(--base3);
+  border: 1.5px solid var(--color-elevated);
   font-size: 0.95rem;
   font-weight: 600;
   display: flex;
@@ -1179,8 +1179,8 @@ onMounted(() => {
   top: 105%;
   right: 0;
   width: 100%;
-  background: var(--base2);
-  border: 1.5px solid var(--base3);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-elevated);
   border-radius: 7px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   z-index: 100;
@@ -1189,7 +1189,7 @@ onMounted(() => {
 
 .asset-type-dropdown .dropdown-item {
   padding: 10px 12px;
-  color: var(--text1);
+  color: var(--color-text);
   text-align: left;
   cursor: pointer;
   font-size: 0.95rem;
@@ -1206,8 +1206,8 @@ onMounted(() => {
 }
 
 .asset-type-dropdown .dropdown-item:hover {
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
 }
 
 /* Market Overview Section (Combined Outlook + Breadth) */
@@ -1245,16 +1245,16 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   padding: 6px 14px;
-  background: var(--base4);
+  background: var(--color-sunken);
   border-radius: 8px;
-  border: 1.5px solid var(--base3);
+  border: 1.5px solid var(--color-elevated);
   position: relative;
   cursor: help;
   transition: background 0.2s;
 }
 
 .pill-label {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 0.9rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -1277,18 +1277,18 @@ onMounted(() => {
 }
 
 .pill-badge.outlook-positive {
-  background: var(--positive);
-  color: var(--base1);
+  background: var(--color-positive);
+  color: var(--color-bg);
 }
 
 .pill-badge.outlook-neutral {
-  background: var(--accent1);
-  color: var(--base1);
+  background: var(--color-accent-1);
+  color: var(--color-bg);
 }
 
 .pill-badge.outlook-negative {
-  background: var(--negative);
-  color: var(--base1);
+  background: var(--color-negative);
+  color: var(--color-bg);
 }
 
 /* Compact Breadth Section */
@@ -1315,7 +1315,7 @@ onMounted(() => {
 .breadth-item h3 {
   margin-bottom: 10px;
   font-size: 1rem;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   font-weight: 600;
 }
 
@@ -1334,8 +1334,8 @@ onMounted(() => {
   left: -10%;
   transform: translateX(-50%);
   margin-top: 8px;
-  background: var(--base1);
-  border: 2px solid var(--accent1);
+  background: var(--color-bg);
+  border: 2px solid var(--color-accent-1);
   border-radius: 8px;
   padding: 14px 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
@@ -1359,14 +1359,14 @@ onMounted(() => {
 
 .breadth-tooltip strong {
   display: block;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   font-size: 1rem;
   margin-bottom: 8px;
   font-weight: 700;
 }
 
 .breadth-tooltip p {
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 0.9rem;
   line-height: 1.5;
   margin: 0 0 10px 0;
@@ -1379,7 +1379,7 @@ onMounted(() => {
 }
 
 .breadth-tooltip li {
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 0.85rem;
   line-height: 1.6;
   margin-bottom: 6px;
@@ -1399,15 +1399,15 @@ onMounted(() => {
 }
 
 .breadth-tooltip li .positive {
-  color: var(--positive);
+  color: var(--color-positive);
 }
 
 .breadth-tooltip li .negative {
-  color: var(--negative);
+  color: var(--color-negative);
 }
 
 .breadth-tooltip li .neutral {
-  color: var(--text2);
+  color: var(--color-text-muted);
 }
 
 /* Outlook Tooltip */
@@ -1417,8 +1417,8 @@ onMounted(() => {
   left: 50%;
   transform: translateX(-50%);
   margin-top: 8px;
-  background: var(--base1);
-  border: 2px solid var(--accent1);
+  background: var(--color-bg);
+  border: 2px solid var(--color-accent-1);
   border-radius: 8px;
   padding: 14px 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
@@ -1431,28 +1431,28 @@ onMounted(() => {
 
 .outlook-tooltip strong {
   display: block;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   font-size: 1rem;
   margin-bottom: 8px;
   font-weight: 700;
 }
 
 .outlook-tooltip p {
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 0.9rem;
   line-height: 1.5;
   margin: 0 0 10px 0;
 }
 
 .tooltip-metric {
-  background: var(--base3);
+  background: var(--color-elevated);
   padding: 8px 10px;
   border-radius: 6px;
-  border-left: 3px solid var(--accent1);
+  border-left: 3px solid var(--color-accent-1);
 }
 
 .tooltip-metric .metric-label {
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -1485,9 +1485,9 @@ onMounted(() => {
 }
 
 .nav-arrow {
-  background: var(--base3);
-  border: 1.5px solid var(--base3);
-  color: var(--text1);
+  background: var(--color-elevated);
+  border: 1.5px solid var(--color-elevated);
+  color: var(--color-text);
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -1502,8 +1502,8 @@ onMounted(() => {
 }
 
 .nav-arrow:hover {
-  background: var(--accent1);
-  color: var(--base1);
+  background: var(--color-accent-1);
+  color: var(--color-bg);
   transform: scale(1.1);
 }
 
@@ -1530,10 +1530,10 @@ onMounted(() => {
   min-width: 320px;
   max-width: 320px;
   flex-shrink: 0;
-  background: var(--base4);
+  background: var(--color-sunken);
   border-radius: 8px;
   padding: 14px;
-  border: 1.5px solid var(--base3);
+  border: 1.5px solid var(--color-elevated);
   text-decoration: none;
   transition: all 0.2s;
   display: flex;
@@ -1543,7 +1543,7 @@ onMounted(() => {
 
 .news-article:hover {
   transform: translateY(-2px);
-  border-color: var(--accent1);
+  border-color: var(--color-accent-1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -1555,19 +1555,19 @@ onMounted(() => {
 }
 
 .article-source {
-  color: var(--accent2);
+  color: var(--color-accent-2);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .article-date {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-style: italic;
 }
 
 .article-title {
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: 600;
   font-size: 0.95rem;
   line-height: 1.4;
@@ -1579,7 +1579,7 @@ onMounted(() => {
 }
 
 .article-description {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 0.85rem;
   line-height: 1.4;
   display: -webkit-box;
@@ -1597,8 +1597,8 @@ onMounted(() => {
 }
 
 .ticker-badge {
-  background: var(--accent1);
-  color: var(--base1);
+  background: var(--color-accent-1);
+  color: var(--color-bg);
   padding: 3px 8px;
   border-radius: 4px;
   font-size: 0.7rem;
@@ -1623,28 +1623,28 @@ onMounted(() => {
   gap: 12px;
   margin-bottom: 10px;
   flex-wrap: wrap;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .archie-text {
-  color: var(--accent1);
+  color: var(--color-accent-1);
   font-size: inherit;
 }
 
 .archie-full {
-  color: var(--text1);
+  color: var(--color-text);
   font-size: inherit;
 }
 
 .valuation-subtitle {
   font-size: 0.85rem;
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: 700;
   margin-left: auto;
-  background: var(--base2);
+  background: var(--color-surface);
   padding: 4px 10px;
   border-radius: 5px;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--color-elevated);
   letter-spacing: 0.2px;
 }
 
@@ -1665,7 +1665,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .badge-undervalued,
@@ -1679,13 +1679,13 @@ onMounted(() => {
 }
 
 .badge-undervalued {
-  background: var(--positive);
-  color: var(--base1);
+  background: var(--color-positive);
+  color: var(--color-bg);
 }
 
 .badge-overvalued {
-  background: var(--negative);
-  color: var(--base1);
+  background: var(--color-negative);
+  color: var(--color-bg);
 }
 
 .valuation-list {
@@ -1695,10 +1695,10 @@ onMounted(() => {
 }
 
 .valuation-item {
-  background: var(--base4);
+  background: var(--color-sunken);
   padding: 10px;
   border-radius: 8px;
-  border: 1.5px solid var(--base3);
+  border: 1.5px solid var(--color-elevated);
 }
 
 .stock-header {
@@ -1711,8 +1711,8 @@ onMounted(() => {
 .ranking-number {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--text1);
-  background: var(--base2);
+  color: var(--color-text);
+  background: var(--color-surface);
   padding: 2px 6px;
   border-radius: 5px;
   margin-right: 8px;
@@ -1723,7 +1723,7 @@ onMounted(() => {
 .stock-symbol {
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--text1);
+  color: var(--color-text);
   letter-spacing: 0.5px;
   flex: 1;
 }
@@ -1737,13 +1737,13 @@ onMounted(() => {
 }
 
 .upside-badge {
-  background: var(--positive);
-  color: var(--base1);
+  background: var(--color-positive);
+  color: var(--color-bg);
 }
 
 .downside-badge {
-  background: var(--negative);
-  color: var(--base1);
+  background: var(--color-negative);
+  color: var(--color-bg);
 }
 
 .stock-prices {
@@ -1760,17 +1760,17 @@ onMounted(() => {
 }
 
 .price-label {
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: 600;
 }
 
 .price-value {
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: 700;
 }
 
 .price-value.intrinsic {
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: 700;
 }
 
@@ -1779,36 +1779,36 @@ onMounted(() => {
 .empty-state {
   text-align: center;
   padding: 24px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-style: italic;
 }
 
 .valuation-disclaimer {
-  background: var(--base4);
-  border-left: 4px solid var(--accent1);
+  background: var(--color-sunken);
+  border-left: 4px solid var(--color-accent-1);
   padding: 8px 12px;
   border-radius: 6px;
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 0.85rem;
   line-height: 1.5;
 }
 
 .valuation-disclaimer strong {
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: 700;
 }
 
 .chart-type-icon {
   width: 20px;
   height: 20px;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   animation: sparkle 2s ease-in-out infinite;
 }
 
 .beta-badge {
   display: inline-block;
-  background: var(--text2);
-  color: var(--base1);
+  background: var(--color-text-muted);
+  color: var(--color-bg);
   font-size: 0.8rem;
   font-weight: 700;
   padding: 2px 6px;
@@ -1821,7 +1821,7 @@ onMounted(() => {
 h2 {
   margin: 0;
   font-size: 1.5rem;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-weight: 700;
 }
 
@@ -1858,7 +1858,7 @@ h2 {
   top: 0;
   margin-left: -50%;
   margin-top: -70%;
-  background: linear-gradient(744deg, var(--base1), var(--base2) 60%, var(--base3));
+  background: linear-gradient(744deg, var(--color-bg), var(--color-surface) 60%, var(--color-elevated));
   border-radius: 40%;
   animation: wave 300s infinite linear;
 }
@@ -1902,7 +1902,7 @@ h2 {
   width: 3em;
   margin-top: -1em;
   padding-bottom: 1em;
-  color: var(--accent1);
+  color: var(--color-accent-1);
 }
 
 .infotop {
@@ -1911,7 +1911,7 @@ h2 {
   position: absolute;
   left: 0;
   right: 0;
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: 600;
   display: flex;
   flex-direction: column;
@@ -1923,13 +1923,13 @@ h2 {
 .archie-title {
   font-size: 3rem;
   font-weight: 800;
-  color: var(--text1);
+  color: var(--color-text);
   margin-bottom: 0.2em;
   letter-spacing: 0.01em;
 }
 
 .archie-name {
-  color: var(--accent1);
+  color: var(--color-accent-1);
   font-size: 2.2rem;
   font-weight: 800;
 }
@@ -1939,11 +1939,11 @@ h2 {
   height: 13px;
   margin-left: 4px;
   margin-bottom: 6px;
-  color: var(--accent1);
+  color: var(--color-accent-1);
 }
 
 .archie-tagline {
-  color: var(--accent2);
+  color: var(--color-accent-2);
   font-size: 1.05rem;
   font-weight: 600;
   margin: 0 0 12px 0;
@@ -1960,7 +1960,7 @@ h2 {
 .loader-line {
   width: 36px;
   height: 4px;
-  background: var(--accent1);
+  background: var(--color-accent-1);
   border-radius: 2px;
   animation: spin 1s linear infinite;
   margin-right: 12px;
@@ -1992,33 +1992,33 @@ h2 {
 }
 
 .loader-text {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 1.01rem;
   font-style: italic;
 }
 
 .archie-desc {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 1.01rem;
   text-align: center;
   margin-bottom: 12px;
 }
 
 .archie-highlight {
-  color: var(--accent3);
+  color: var(--color-accent-3);
   font-weight: 700;
   font-size: 1.05em;
 }
 
 .archie-disclaimer {
-  color: var(--text2);
-  background: var(--base2);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 0.93rem;
   margin-top: 10px;
   text-align: left;
-  border-left: 4px solid var(--accent1);
+  border-left: 4px solid var(--color-accent-1);
   box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.07);
 }
 
@@ -2251,7 +2251,7 @@ h2 {
   align-items: center;
   gap: 8px;
   font-size: 1.2rem;
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: 700;
   margin-bottom: 16px;
 }
@@ -2259,15 +2259,15 @@ h2 {
 .section-icon {
   width: 20px;
   height: 20px;
-  color: var(--text2);
+  color: var(--color-text-muted);
 }
 
 .event-count-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--text2);
-  color: var(--base1);
+  background: var(--color-text-muted);
+  color: var(--color-bg);
   font-size: 0.75rem;
   font-weight: 700;
   padding: 2px 8px;
@@ -2281,28 +2281,28 @@ h2 {
   justify-content: center;
   gap: 12px;
   padding: 30px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 0.9rem;
 }
 
 .calendar-error-compact {
   text-align: center;
   padding: 20px;
-  color: var(--negative);
+  color: var(--color-negative);
   font-size: 0.9rem;
 }
 
 .calendar-empty-compact {
   text-align: center;
   padding: 30px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 0.95rem;
 }
 
 .calendar-table-wrapper {
   overflow-x: auto;
   border-radius: 6px;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--color-elevated);
 }
 
 .calendar-table {
@@ -2312,32 +2312,32 @@ h2 {
 }
 
 .calendar-table thead {
-  background: var(--base3);
-  border-bottom: 2px solid color-mix(in srgb, var(--text2) 20%, transparent);
+  background: var(--color-elevated);
+  border-bottom: 2px solid color-mix(in srgb, var(--color-text-muted) 20%, transparent);
 }
 
 .calendar-table th {
   padding: 10px 12px;
   text-align: left;
   font-weight: 600;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .calendar-table tbody tr {
-  border-bottom: 1px solid var(--base3);
+  border-bottom: 1px solid var(--color-elevated);
   transition: background 0.2s ease;
 }
 
 .calendar-table tbody tr:hover {
-  background: color-mix(in srgb, var(--base3) 40%, transparent);
+  background: color-mix(in srgb, var(--color-elevated) 40%, transparent);
 }
 
 .calendar-table td {
   padding: 10px 12px;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .symbol-cell {
@@ -2357,21 +2357,21 @@ h2 {
 }
 
 .event-type-badge.type-earnings {
-  background: color-mix(in srgb, var(--accent1) 20%, transparent);
-  color: var(--accent1);
-  border: 1px solid color-mix(in srgb, var(--accent1) 40%, transparent);
+  background: color-mix(in srgb, var(--color-accent-1) 20%, transparent);
+  color: var(--color-accent-1);
+  border: 1px solid color-mix(in srgb, var(--color-accent-1) 40%, transparent);
 }
 
 .event-type-badge.type-dividend {
-  background: color-mix(in srgb, var(--accent3) 20%, transparent);
-  color: var(--accent3);
-  border: 1px solid color-mix(in srgb, var(--accent3) 40%, transparent);
+  background: color-mix(in srgb, var(--color-accent-3) 20%, transparent);
+  color: var(--color-accent-3);
+  border: 1px solid color-mix(in srgb, var(--color-accent-3) 40%, transparent);
 }
 
 .event-type-badge.type-split {
-  background: color-mix(in srgb, var(--ma3) 20%, transparent);
-  color: var(--ma3);
-  border: 1px solid color-mix(in srgb, var(--ma3) 40%, transparent);
+  background: color-mix(in srgb, var(--color-ma-3) 20%, transparent);
+  color: var(--color-ma-3);
+  border: 1px solid color-mix(in srgb, var(--color-ma-3) 40%, transparent);
 }
 
 .calendar-pagination-compact {
@@ -2381,13 +2381,13 @@ h2 {
   gap: 16px;
   margin-top: 16px;
   padding-top: 12px;
-  border-top: 1px solid var(--base3);
+  border-top: 1px solid var(--color-elevated);
 }
 
 .pagination-btn-compact {
-  background: var(--base3);
-  color: var(--text1);
-  border: 1px solid color-mix(in srgb, var(--text2) 15%, transparent);
+  background: var(--color-elevated);
+  color: var(--color-text);
+  border: 1px solid color-mix(in srgb, var(--color-text-muted) 15%, transparent);
   width: 32px;
   height: 32px;
   border-radius: 6px;
@@ -2400,8 +2400,8 @@ h2 {
 }
 
 .pagination-btn-compact:hover:not(:disabled) {
-  background: var(--base2);
-  border-color: color-mix(in srgb, var(--text2) 30%, transparent);
+  background: var(--color-surface);
+  border-color: color-mix(in srgb, var(--color-text-muted) 30%, transparent);
 }
 
 .pagination-btn-compact:disabled {
@@ -2410,13 +2410,13 @@ h2 {
 }
 
 .pagination-info-compact {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 0.85rem;
   font-weight: 600;
 }
 
 .page-detail {
-  color: var(--text2);
+  color: var(--color-text-muted);
   opacity: 0.7;
   font-size: 0.8rem;
 }

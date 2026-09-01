@@ -1,0 +1,45 @@
+// Marketing palette — the public pages (landing, about, careers, quiz, signup).
+// A separate two-value axis from the 52 app themes: a signed-out visitor has no
+// account to carry a theme preference on, so these pages offer dark or light and
+// nothing else.
+// Carried over verbatim from the old stylesheet, `.light-mode` toggle included,
+// because the views that consume it have not been migrated yet. When they are,
+// this moves onto a data-attribute like the app themes and the tokens join the
+// $color-* aliases.
+:root {
+    --brand-primary: #7aa2f7;
+    --brand-secondary: #89ddff;
+    --brand-accent: #7dcfff;
+    --brand-bg-primary: #0f1419;
+    --brand-bg-secondary: #1a1f2e;
+    --brand-bg-card: rgb(30 41 59 / 50%);
+    --brand-bg-card-hover: rgb(30 41 59 / 70%);
+    --brand-glass: rgb(17 24 39 / 80%);
+    --brand-glass-border: rgb(255 255 255 / 10%);
+    --brand-text-primary: rgb(255 255 255 / 95%);
+    --brand-text-secondary: rgb(255 255 255 / 80%);
+    --brand-text-tertiary: rgb(255 255 255 / 70%);
+    --brand-text-muted: rgb(255 255 255 / 60%);
+    --brand-gradient-start: #7aa2f7;
+    --brand-gradient-end: #89ddff;
+    --brand-sphere-opacity: 0.15;
+}
+
+.light-mode {
+    --brand-primary: #7aa2f7;
+    --brand-secondary: #85abfb;
+    --brand-accent: #7dcfff;
+    --brand-bg-primary: #fff;
+    --brand-bg-secondary: #f3f4f4;
+    --brand-bg-card: rgb(252 252 252 / 90%);
+    --brand-bg-card-hover: rgb(255 255 255 / 100%);
+    --brand-glass: rgb(248 250 252 / 75%);
+    --brand-glass-border: rgb(15 23 42 / 12%);
+    --brand-text-primary: #242424;
+    --brand-text-secondary: #292929;
+    --brand-text-tertiary: #898989;
+    --brand-text-muted: rgb(137 137 137 / 80%);
+    --brand-gradient-start: #7aa2f7;
+    --brand-gradient-end: #89ddff;
+    --brand-sphere-opacity: 0.06;
+}

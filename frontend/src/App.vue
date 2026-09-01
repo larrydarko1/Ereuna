@@ -1,143 +1,57 @@
-<template>
-    <router-view></router-view>
-    <Message v-if="isMobile && isAllowedRoute"/>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import Message from '@/components/message.vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { useUserStore } from '@/store/store';
+import MobileNotice from '@/components/message.vue';
+import { useThrottleFn } from '@/composables/ui/useDebounce';
 
-const apiKey: string = import.meta.env.VITE_EREUNA_KEY;
-const userStore = useUserStore();
-const error = ref<string>('');
+/** Below this the data-dense views (charts, screener tables) stop being usable. */
+const NARROW_VIEWPORT = 1150;
 
-const themes: string[] = ['default', 'ihatemyeyes', 'colorblind', 'catpuccin'];
-
-const user = computed(() => userStore.getUser);
-const currentTheme = computed(() => userStore.currentTheme);
-
-async function setTheme(newTheme: string) {
-  const root = document.documentElement;
-  root.classList.remove(...themes);
-  root.classList.add(newTheme);
-  userStore.setTheme(newTheme);
-  try {
-    const response = await fetch('/api/theme', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-  body: JSON.stringify({ theme: newTheme, username: (user.value && 'username' in user.value) ? user.value.username : '' }),
-    });
-    const data = await response.json();
-    if (data.message !== 'Theme updated') {
-      error.value = data.message || '';
-    }
-  } catch (err: any) {
-    error.value = err.message;
-  }
-}
-
-
-async function loadTheme() {
-  const localTheme = localStorage.getItem('user-theme');
-  try {
-    const response = await fetch('/api/load-theme', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({ username: (user.value && 'username' in user.value) ? user.value.username : '' }),
-    });
-    const data = await response.json();
-    if (data.theme) {
-      setTheme(data.theme);
-    } else if (!localTheme) {
-      setTheme('default');
-    }
-    // If localTheme exists, do nothing (let main.ts/localStorage logic win)
-  } catch (err) {
-    if (!localTheme) {
-      setTheme('default');
-    }
-    // If localTheme exists, do nothing
-  }
-}
-
-onMounted(() => {
-  userStore.loadUserFromToken();
-  loadTheme();
-});
-
-defineExpose({
-  loadTheme,
-});
-
+/** The views that genuinely need the width. Everything else reads fine narrow. */
+const DENSE_ROUTES = ['/charts', '/screener', '/dashboard', '/account', '/portfolio'];
 
 const route = useRoute();
-const isMobile = ref(false);
-const allowedRoutes: string[] = ['/charts', '/screener', '/dashboard', '/account', '/portfolio', '/account'];
+const isNarrow = ref(false);
 
-const isAllowedRoute = computed(() => {
-  return allowedRoutes.includes(route.path);
-});
+const showMobileNotice = computed(() => isNarrow.value && DENSE_ROUTES.includes(route.path));
+
+// Throttled: a drag-resize fires this continuously, and the answer only ever
+// changes once as the viewport crosses the threshold.
+const measure = useThrottleFn(() => {
+    isNarrow.value = window.innerWidth <= NARROW_VIEWPORT;
+}, 150);
 
 onMounted(() => {
-  const screenWidth = window.innerWidth;
-  if (screenWidth <= 1150) {
-    isMobile.value = true;
-  }
-  window.addEventListener('resize', () => {
-    const screenWidth = window.innerWidth;
-    if (screenWidth <= 1150) {
-      isMobile.value = true;
-    } else {
-      isMobile.value = false;
-    }
-  });
+    measure();
+    window.addEventListener('resize', measure, { passive: true });
 });
 
+// The old version added this listener and never removed it.
+onUnmounted(() => window.removeEventListener('resize', measure));
 </script>
 
+<template>
+    <router-view />
+    <MobileNotice v-if="showMobileNotice" />
+</template>
+
+<!-- Unscoped: this is the application shell, and these rules are the page
+     ground itself rather than any one component's styling. -->
 <style lang="scss">
-@use './style.scss' as *;
-
-* {
-  font-family: Helvetica, Arial;
-  font-size: 10px;
-}
-
 body {
-  background-color: var(--base1);
-  padding: 0%;
-  margin: 0%;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
-.positive {
-  color: var(--positive);
-}
-
-.negative {
-  color: var(--negative);
-}
-
-.mobile-message {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-size: 16px;
-  color: var(--text2);
-  padding: 20px;
-  text-align: center;
-  background-color: var(--base1);
-  font-weight: bold;
+/**
+ * LEGACY TYPE BASELINE — remove with the last migrated view.
+ * The old app set a 10px base on every element and then wrote explicit pixel
+ * sizes against it in all 222 components. `_base.scss` carries the real
+ * baseline ($font-size-base); until every view is migrated, dropping this
+ * would resize the ones that have not been touched yet.
+ */
+* {
+    font-size: 10px;
 }
 </style>

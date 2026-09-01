@@ -1,0 +1,28 @@
+// Placeholders — %selectors shared by two or more sibling partials.
+// Emits nothing on its own, so _index.scss does not forward it: there is
+// nothing to forward, and @extend cannot cross the SFC compilation boundary
+// anyway. Siblings @use this file rather than each other, which is what keeps
+// the module graph free of cycles.
+@use '@/styles/variables' as *;
+
+// The shared card/panel ground: a surface, a hairline, a radius.
+%panel {
+    background: $color-surface;
+    border: $border-width solid $color-elevated;
+    border-radius: $radius-md;
+}
+
+// Strip a button back to text, keeping it a real <button>.
+%button-reset {
+    padding: 0;
+    background: none;
+    border: 0;
+    color: inherit;
+}
+
+// One line, clipped with an ellipsis.
+%truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

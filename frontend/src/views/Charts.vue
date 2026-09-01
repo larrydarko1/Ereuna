@@ -32,7 +32,7 @@
               <svg v-if="!showPanel" class="edit-icon" viewBox="0 0 24 24" height="10" width="10" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path fill-rule="evenodd" clip-rule="evenodd"
     d="M20.8477 1.87868C19.6761 0.707109 17.7766 0.707105 16.605 1.87868L2.44744 16.0363C2.02864 16.4551 1.74317 16.9885 1.62702 17.5692L1.03995 20.5046C0.760062 21.904 1.9939 23.1379 3.39334 22.858L6.32868 22.2709C6.90945 22.1548 7.44285 21.8693 7.86165 21.4505L22.0192 7.29289C23.1908 6.12132 23.1908 4.22183 22.0192 3.05025L20.8477 1.87868ZM18.0192 3.29289C18.4098 2.90237 19.0429 2.90237 19.4335 3.29289L20.605 4.46447C20.9956 4.85499 20.9956 5.48815 20.605 5.87868L17.9334 8.55027L15.3477 5.96448L18.0192 3.29289ZM13.9334 7.3787L3.86165 17.4505C3.72205 17.5901 3.6269 17.7679 3.58818 17.9615L3.00111 20.8968L5.93645 20.3097C6.13004 20.271 6.30784 20.1759 6.44744 20.0363L16.5192 9.96448L13.9334 7.3787Z"
-    fill="var(--text3)"></path>
+    fill="var(--color-text-inverted)"></path>
 </svg>
 <svg v-else class="edit-icon" viewBox="0 0 24 24" height="10" width="10" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path d="M18 6L6 18" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -602,8 +602,6 @@ function getSidebarProps(tag: string) {
 </script>
 
 <style lang="scss">
-@use '../style.scss' as *;
-
 #main {
   display: flex;
   min-height: 800px;
@@ -613,7 +611,7 @@ function getSidebarProps(tag: string) {
 #sidebar-left {
   flex: 1;
   flex-direction: column;
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   overflow-y: scroll;
   overflow-x: hidden;
   min-width: 300px;
@@ -635,8 +633,8 @@ function getSidebarProps(tag: string) {
 #chartdiv2 {
   flex: 1 1 0%;
   border: none;
-  background-color: var(--base2);
-  color: var(--text2);
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
   z-index: 10;
   box-sizing: border-box;
 }
@@ -644,23 +642,23 @@ function getSidebarProps(tag: string) {
 #sidebar-right {
   display: flex;
   flex-direction: column;
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   min-width: 300px;
 }
 
 #wlnav {
-  border-top: var(--base1) solid 1px;
+  border-top: var(--color-bg) solid 1px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
 }
 
 #realwatchlist {
   height: 20px;
   outline: none;
   border: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   text-align: center;
   flex-grow: 1;
   background-color: transparent;
@@ -668,7 +666,7 @@ function getSidebarProps(tag: string) {
 
 .wlbtn {
   flex-shrink: 0;
-  color: var(--text1);
+  color: var(--color-text);
   background-color: transparent;
   border: none;
   padding: 5px;
@@ -701,21 +699,21 @@ function getSidebarProps(tag: string) {
 
 
 #notes-container {
-  background-color: var(--base4);
-  color: var(--text1);
+  background-color: var(--color-sunken);
+  color: var(--color-text);
   width: 300px;
   height: 80px;
   padding-left: 5px;
   padding-top: 5px;
   margin: 5px;
-  border: 1px solid var(--base4);
+  border: 1px solid var(--color-sunken);
   border-radius: 5px;
   outline: none;
   resize: none;
 }
 
 #idSummary {
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .description {
@@ -731,7 +729,7 @@ function getSidebarProps(tag: string) {
 }
 
 .category {
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .response {
@@ -740,8 +738,8 @@ function getSidebarProps(tag: string) {
 }
 
 .title {
-  background-color: var(--base1);
-  color: var(--text1);
+  background-color: var(--color-bg);
+  color: var(--color-text);
   text-align: center;
   padding: 3.5px;
   border: none;
@@ -773,9 +771,9 @@ function getSidebarProps(tag: string) {
   text-align: center;
   display: flex;
   flex-direction: row;
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   border: none;
-  color: var(--text1);
+  color: var(--color-text);
   cursor: pointer;
   align-items: center;
   align-content: center;
@@ -783,23 +781,23 @@ function getSidebarProps(tag: string) {
 }
 
 .tbl:hover {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
 }
 
 .ntbl {
   text-align: center;
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   border: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
 }
 
 #title2 {
-  color: var(--text2);
+  color: var(--color-text-muted);
   text-align: center;
   padding: 3.5px;
   border: none;
   margin: 0px;
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
 }
 
 .btn {
@@ -833,7 +831,7 @@ function getSidebarProps(tag: string) {
 .dbtn {
   background-color: transparent;
   border: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   cursor: pointer;
 }
 
@@ -843,7 +841,7 @@ function getSidebarProps(tag: string) {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   width: 300px;
   height: 150px;
   display: flex;
@@ -855,7 +853,7 @@ function getSidebarProps(tag: string) {
   backdrop-filter: blur(10px);
   z-index: 1000;
   padding: 10px;
-  border: 2px solid var(--accent3);
+  border: 2px solid var(--color-accent-3);
 }
 
 .CreateNote {
@@ -863,7 +861,7 @@ function getSidebarProps(tag: string) {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   width: 350px;
   height: 200px;
   display: flex;
@@ -875,14 +873,14 @@ function getSidebarProps(tag: string) {
   backdrop-filter: blur(10px);
   z-index: 1000;
   padding: 10px;
-  border: 2px solid var(--accent3);
+  border: 2px solid var(--color-accent-3);
 }
 
 .RenameWatchlist h3,
 .CreateWatchlist h3,
 .CreateNote h3 {
   background-color: transparent;
-  color: rgba(var(--text1), 0.50);
+  color: rgba(var(--color-text), 0.50);
   border: none;
   margin-top: 10px;
 }
@@ -894,18 +892,18 @@ function getSidebarProps(tag: string) {
   margin: 7px;
   width: 160px;
   outline: none;
-  color: var(--base3);
+  color: var(--color-elevated);
   /* Dark text color */
   transition: border-color 0.3s, box-shadow 0.3s;
   /* Smooth transition for focus effects */
-  border: solid 1px var(--base4);
-  background-color: var(--base4);
+  border: solid 1px var(--color-sunken);
+  background-color: var(--color-sunken);
 }
 
 .RenameWatchlist input:focus,
 .CreateWatchlist input:focus {
-  border-color: var(--accent1);
-  box-shadow: 0 0 5px rgba(var(--accent3), 0.5);
+  border-color: var(--color-accent-1);
+  box-shadow: 0 0 5px rgba(var(--color-accent-3), 0.5);
   outline: none;
 }
 
@@ -966,14 +964,14 @@ function getSidebarProps(tag: string) {
   border: none;
   cursor: pointer;
   opacity: 0.80;
-  color: var(--text1);
+  color: var(--color-text);
   transition: opacity 0.2s ease;
   padding: 5px;
   margin: 5px;
 }
 
 .navbtn:hover {
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   border-radius: 5px;
 }
 
@@ -1002,17 +1000,17 @@ function getSidebarProps(tag: string) {
 
 
 .wlist {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   height: 30px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .wlist:hover {
   cursor: pointer;
-  background-color: var(--base3);
+  background-color: var(--color-elevated);
 }
 
 .wlist .dbtn {
@@ -1025,12 +1023,12 @@ function getSidebarProps(tag: string) {
 }
 
 .wlist.selected {
-  background-color: var(--base3);
-  color: var(--text1);
+  background-color: var(--color-elevated);
+  color: var(--color-text);
 }
 
 .results {
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   text-align: center;
   align-items: center;
   padding: 10px;
@@ -1048,7 +1046,7 @@ function getSidebarProps(tag: string) {
   justify-content: center;
   align-items: center;
   z-index: 2000;
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   opacity: 1;
   border: none;
 }
@@ -1075,7 +1073,7 @@ function getSidebarProps(tag: string) {
 
 .select-container .dropdown-container div {
   display: none;
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   max-height: 200px;
   overflow-y: scroll;
   border: none;
@@ -1088,16 +1086,16 @@ function getSidebarProps(tag: string) {
 }
 
 .watchlist-dropdown-menu {
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   padding: 10px;
   border-radius: 7px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-  border: 1.5px solid var(--base2);
+  border: 1.5px solid var(--color-surface);
 }
 
 .select-container .watchlist-dropdown-menu div:hover {
-  background-color: var(--base2);
-  color: var(--text1);
+  background-color: var(--color-surface);
+  color: var(--color-text);
   border-radius: 5px;
 }
 
@@ -1115,11 +1113,11 @@ function getSidebarProps(tag: string) {
 }
 
 .editbtn {
-  background-color: var(--accent1);
+  background-color: var(--color-accent-1);
   border: none;
   cursor: pointer;
   padding: 5px;
-  color: var(--text3);
+  color: var(--color-text-inverted);
   transition: background-color 0.5s ease-in-out;
   align-items: center;
   justify-content: center;
@@ -1133,28 +1131,28 @@ function getSidebarProps(tag: string) {
 }
 
 .editbtn:hover {
-  background-color: var(--accent2);
+  background-color: var(--color-accent-2);
 }
 
 .toggle-btn {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   border: none;
   cursor: pointer;
   width: 100%;
-  color: var(--text1);
+  color: var(--color-text);
   padding: 5px;
   transition: background-color 0.5s ease-in-out;
 }
 
 .toggle-btn:hover {
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
 }
 
 .no-data {
   padding: 20px;
   text-align: center;
-  background-color: var(--base2);
-  color: rgba(var(--text2), 0.40);
+  background-color: var(--color-surface);
+  color: rgba(var(--color-text-muted), 0.40);
 }
 
 .imgm {
@@ -1201,17 +1199,17 @@ function getSidebarProps(tag: string) {
 }
 
 .watchlist-dropdown-menu3 {
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   padding: 7px;
   display: flex;
   flex-direction: column;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
   border-radius: 7px;
-  border: 1.5px solid var(--base2);
+  border: 1.5px solid var(--color-surface);
 }
 
 .watchlist-dropdown-menu3>div {
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   padding: 1px;
   height: 28px;
   display: flex;
@@ -1219,8 +1217,8 @@ function getSidebarProps(tag: string) {
 }
 
 .watchlist-dropdown-menu3>div:hover {
-  background-color: var(--base2);
-  color: var(--text1);
+  background-color: var(--color-surface);
+  color: var(--color-text);
   border-radius: 5px;
 }
 
@@ -1252,24 +1250,24 @@ function getSidebarProps(tag: string) {
   align-items: center;
   width: 100%;
   padding: 10px;
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   border: none;
-  color: var(--text1);
+  color: var(--color-text);
   text-align: left;
   cursor: pointer;
 }
 
 .watchlist-dropdown-menu2 {
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   padding: 5px;
   border-radius: 7px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-  border: 1.5px solid var(--base2);
+  border: 1.5px solid var(--color-surface);
 }
 
 .dropdown-item:hover {
-  background-color: var(--base2);
-  color: var(--text1);
+  background-color: var(--color-surface);
+  color: var(--color-text);
   border-radius: 5px;
   cursor: pointer;
 }
@@ -1301,7 +1299,7 @@ function getSidebarProps(tag: string) {
   padding-bottom: 5px;
   align-items: center;
   justify-content: center;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   letter-spacing: 0.3px;
 }
 
@@ -1315,7 +1313,7 @@ function getSidebarProps(tag: string) {
   padding-bottom: 5px;
   align-items: center;
   justify-content: center;
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
 }
 
 .summary-row:last-child {
@@ -1338,9 +1336,9 @@ function getSidebarProps(tag: string) {
 .splits-header {
   display: flex;
   font-weight: bold;
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   text-align: center;
-  color: var(--text1);
+  color: var(--color-text);
   height: 20px;
   justify-content: center;
   align-items: center;
@@ -1354,7 +1352,7 @@ function getSidebarProps(tag: string) {
   display: flex;
   flex-direction: column;
   text-align: center;
-  color: var(--text2);
+  color: var(--color-text-muted);
 }
 
 .dividends-row,
@@ -1368,7 +1366,7 @@ function getSidebarProps(tag: string) {
   margin-bottom: 1px;
   justify-content: center;
   align-items: center;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   font-weight: bold;
 }
 
@@ -1383,7 +1381,7 @@ function getSidebarProps(tag: string) {
   display: inline-block;
   vertical-align: middle;
   position: relative;
-  color: var(--positive);
+  color: var(--color-positive);
   margin-left: 7px;
 }
 
@@ -1393,7 +1391,7 @@ function getSidebarProps(tag: string) {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: var(--positive);
+  color: var(--color-positive);
 }
 
 .arrow-down {
@@ -1402,7 +1400,7 @@ function getSidebarProps(tag: string) {
   display: inline-block;
   vertical-align: middle;
   position: relative;
-  color: var(--negative);
+  color: var(--color-negative);
   margin-left: 7px;
 }
 
@@ -1412,7 +1410,7 @@ function getSidebarProps(tag: string) {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: var(--negative);
+  color: var(--color-negative);
 }
 
 .chart-img2 {
@@ -1425,11 +1423,11 @@ function getSidebarProps(tag: string) {
   display: inline-block;
   padding: 2px 5px;
   font-weight: bold;
-  color: var(--base4);
+  color: var(--color-sunken);
   text-align: center;
   vertical-align: baseline;
   border-radius: 25px;
-  background-color: var(--text1);
+  background-color: var(--color-text);
 }
 
 #watch-container {
@@ -1461,8 +1459,8 @@ function getSidebarProps(tag: string) {
   display: flex;
   align-items: center;
   width: 100%;
-  background-color: var(--base2);
-  border-bottom: 1px solid var(--base4);
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-sunken);
 }
 
 .watch-panel {
@@ -1477,9 +1475,9 @@ function getSidebarProps(tag: string) {
 .edit-watch-panel-btn {
   flex: 0 1 5%;
   margin-right: 2rem;
-  background-color: var(--base2);
-  color: var(--text1);
-  border: 1px solid var(--base4);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-sunken);
   border-radius: 5px;
   padding: 0.5rem 1rem;
   cursor: pointer;
@@ -1488,12 +1486,12 @@ function getSidebarProps(tag: string) {
 }
 
 .edit-watch-panel-btn:hover {
-  background-color: var(--base4);
-  color: var(--text1);
+  background-color: var(--color-sunken);
+  color: var(--color-text);
 }
 
 .no-symbols {
-  color: var(--text3);
+  color: var(--color-text-inverted);
   font-style: italic;
   padding: 1rem 1rem;
 }
@@ -1523,8 +1521,8 @@ function getSidebarProps(tag: string) {
 }
 
 .index-btn {
-  background-color: var(--base2);
-  color: var(--text1);
+  background-color: var(--color-surface);
+  color: var(--color-text);
   border-radius: 5px;
   border-color: transparent;
   letter-spacing: 0.2px;
@@ -1534,19 +1532,19 @@ function getSidebarProps(tag: string) {
 }
 
 .index-btn:hover {
-  background-color: var(--base4);
-  color: var(--text1);
+  background-color: var(--color-sunken);
+  color: var(--color-text);
 }
 
 .index-btn.active {
-  background-color: var(--base1);
-  color: var(--text1);
+  background-color: var(--color-bg);
+  color: var(--color-text);
 }
 
 .tooltip {
   position: absolute;
-  background-color: var(--base1);
-  border: 1px solid var(--accent3);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-accent-3);
   padding: 10px;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -1555,7 +1553,7 @@ function getSidebarProps(tag: string) {
 }
 
 .tooltip-text {
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .question-img {
@@ -1567,7 +1565,7 @@ function getSidebarProps(tag: string) {
 .empty-list-message {
   text-align: center;
   padding: 20px;
-  color: var(--text1);
+  color: var(--color-text);
   opacity: 0.70;
   display: flex;
   flex-direction: column;
@@ -1578,8 +1576,8 @@ function getSidebarProps(tag: string) {
 .import-btn {
   margin-top: 12px;
   padding: 8px 18px;
-  background-color: var(--base2);
-  color: var(--text2);
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
   border: none;
   border-radius: 5px;
   font-weight: bold;
@@ -1589,8 +1587,8 @@ function getSidebarProps(tag: string) {
 }
 
 .import-btn:hover {
-  background-color: var(--base3);
-  color: var(--text1);
+  background-color: var(--color-elevated);
+  color: var(--color-text);
 }
 
 .empty-list-message p {
@@ -1609,12 +1607,12 @@ function getSidebarProps(tag: string) {
 }
 
 .green-sphere {
-  background-color: var(--positive);
+  background-color: var(--color-positive);
   /* default green */
 }
 
 .red-sphere {
-  background-color: var(--negative);
+  background-color: var(--color-negative);
   /* default red */
 }
 
@@ -1663,7 +1661,7 @@ function getSidebarProps(tag: string) {
     flex-direction: row;
     gap: 12px;
     padding: 8px 12px;
-    background-color: var(--base2);
+    background-color: var(--color-surface);
     justify-content: center;
     align-items: center;
     margin-bottom: 3px;
@@ -1674,9 +1672,9 @@ function getSidebarProps(tag: string) {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: var(--base3);
+    background-color: var(--color-elevated);
     padding: 10px 30px;
-    color: var(--text1);
+    color: var(--color-text);
     font-size: 1.5rem;
     font-weight: 600;
     letter-spacing: 0.02em;
@@ -1691,16 +1689,16 @@ function getSidebarProps(tag: string) {
   }
 
   .mnavbtn:hover {
-    background-color: var(--accent1);
-    color: var(--text3);
+    background-color: var(--color-accent-1);
+    color: var(--color-text-inverted);
     opacity: 1;
     transform: scale(1.05);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 
   .mnavbtn.selected {
-    background-color: var(--accent1);
-    color: var(--text3);
+    background-color: var(--color-accent-1);
+    color: var(--color-text-inverted);
     opacity: 1;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }

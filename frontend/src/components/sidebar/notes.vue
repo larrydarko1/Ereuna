@@ -125,10 +125,10 @@ watch(() => props.symbol, searchNotes);
 
 <style lang="scss" scoped>
 .note {
-  background-color: var(--accent4);
-  color: var(--text2);
+  background-color: var(--color-accent-4);
+  color: var(--color-text-muted);
   padding: 10px;
-  border-bottom: 1px solid var(--base3);
+  border-bottom: 1px solid var(--color-elevated);
   box-sizing: border-box;
   width: 100%;
   position: relative;
@@ -137,7 +137,7 @@ watch(() => props.symbol, searchNotes);
 .notebtn {
   background-color: transparent;
   border: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   cursor: pointer;
   position: absolute;
   top: 5px;
@@ -165,7 +165,7 @@ watch(() => props.symbol, searchNotes);
 }
 
 .note-msg {
-  color: var(--text1);
+  color: var(--color-text);
   border: none;
   margin-top: 0;
   padding-top: 0;
@@ -177,7 +177,7 @@ watch(() => props.symbol, searchNotes);
 }
 
 .note-msg-date {
-  color: var(--text1);
+  color: var(--color-text);
   border: none;
   display: inline-block;
   margin-left: 5px;
@@ -189,12 +189,12 @@ watch(() => props.symbol, searchNotes);
 .notes-container{
     display: flex;
     flex-direction: column;
-    color: var(--text2);
+    color: var(--color-text-muted);
     border: none;
     border-radius: 6px;
     margin: 5px;
     padding: 5px;
-    background-color: var(--base2);
+    background-color: var(--color-surface);
 }
 
 .no-data {

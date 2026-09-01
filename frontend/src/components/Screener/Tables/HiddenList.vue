@@ -30,15 +30,15 @@
               <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
               <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
               <g id="SVGRepo_iconCarrier">
-                <path d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z" fill="var(--text1)"></path>
-                <path d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z" fill="var(--text1)"></path>
-                <path d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z" fill="var(--text1)"></path>
+                <path d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z" fill="var(--color-text)"></path>
+                <path d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z" fill="var(--color-text)"></path>
+                <path d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z" fill="var(--color-text)"></path>
               </g>
             </svg>
           </button>
           <div class="ml-dropdown-menu">
             <div @click="ShowStock(asset as Asset)" @click.stop style="display: flex; flex-direction: row; align-items: center; height: 14px;">
-              <svg style="width: 15px; height: 15px; margin-right: 5px;" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)">
+              <svg style="width: 15px; height: 15px; margin-right: 5px;" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="var(--color-text)">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -52,13 +52,13 @@
               <p>{{ t('screenerComponents.showAsset') }}</p>
             </div>
             <div class="ml-nested-dropdown" style="display: flex; flex-direction: row; align-items: center; height: 14px;">
-              <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--text1)">
+              <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--color-text)">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
                   <title>new-indicator</title>
                   <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                    <g id="scheduler" fill="var(--text1)" transform="translate(85.333333, 85.333333)">
+                    <g id="scheduler" fill="var(--color-text)" transform="translate(85.333333, 85.333333)">
                       <path d="M170.666667,1.42108547e-14 C264.923264,-3.10380131e-15 341.333333,76.4100694 341.333333,170.666667 C341.333333,264.923264 264.923264,341.333333 170.666667,341.333333 C76.4100694,341.333333 2.57539587e-14,264.923264 1.42108547e-14,170.666667 C2.6677507e-15,76.4100694 76.4100694,3.15255107e-14 170.666667,1.42108547e-14 Z M170.666667,42.6666667 C99.9742187,42.6666667 42.6666667,99.9742187 42.6666667,170.666667 C42.6666667,241.359115 99.9742187,298.666667 170.666667,298.666667 C241.359115,298.666667 298.666667,241.359115 298.666667,170.666667 C298.666667,99.9742187 241.359115,42.6666667 170.666667,42.6666667 Z M192,85.3333333 L191.999333,149.333333 L256,149.333333 L256,192 L191.999333,191.999333 L192,256 L149.333333,256 L149.333333,191.999333 L85.3333333,192 L85.3333333,149.333333 L149.333333,149.333333 L149.333333,85.3333333 L192,85.3333333 Z" id="Combined-Shape"> </path>
                     </g>
                   </g>
@@ -392,9 +392,9 @@ const columnsMinWidth = computed(() => {
 }
 
 .ml-Header {
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   text-align: center;
-  color: var(--text1);
+  color: var(--color-text);
   border: none;
   display: flex;
   flex-direction: row;
@@ -413,29 +413,29 @@ const columnsMinWidth = computed(() => {
 }
 
 .ml-even {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   text-align: center;
-  color: var(--text1);
+  color: var(--color-text);
   border: none;
   word-break: break-all;
 }
 
 .ml-odd {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   text-align: center;
-  color: var(--text1);
+  color: var(--color-text);
   word-break: break-all;
 }
 
 .ml-even:hover,
 .ml-odd:hover {
-  background-color: var(--base3);
+  background-color: var(--color-elevated);
   cursor: pointer;
 }
 
 .ml-selected {
-  background-color: var(--base3);
-  color: var(--text1);
+  background-color: var(--color-elevated);
+  color: var(--color-text);
 }
 
 .ml-dropdown-btn {
@@ -462,12 +462,12 @@ const columnsMinWidth = computed(() => {
   left: 20px;
   padding: 5px;
   border-radius: 7px;
-  background-color: var(--base4);
-  border: 1.5px solid var(--base3);
+  background-color: var(--color-sunken);
+  border: 1.5px solid var(--color-elevated);
 }
 
 .ml-dropdown-menu>div {
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   padding: 5px;
   height: 14px;
   display: flex;
@@ -477,7 +477,7 @@ const columnsMinWidth = computed(() => {
 }
 
 .ml-dropdown-menu>div:hover {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
 }
 
 .ml-dropdown-btn:hover + .ml-dropdown-menu,
@@ -494,7 +494,7 @@ const columnsMinWidth = computed(() => {
   position: absolute;
   left: 100%;
   top: 0;
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   max-height: 185px;
   overflow-y: scroll;
   padding: 5px;
@@ -503,7 +503,7 @@ const columnsMinWidth = computed(() => {
   z-index: 1001;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid var(--base3);
+  border: 1.5px solid var(--color-elevated);
 }
 
 .ml-nested-dropdown:hover .ml-nested-dropdown-menu {
@@ -532,7 +532,7 @@ const columnsMinWidth = computed(() => {
 }
 
 .ml-watchlist-item:hover {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
 }
 
 .ml-watchlist-item input[type="checkbox"] {
@@ -540,15 +540,15 @@ const columnsMinWidth = computed(() => {
 }
 
 .ml-results2 {
-  background-color: var(--base1);
-  color: var(--text1);
+  background-color: var(--color-bg);
+  color: var(--color-text);
   border: none;
   height: 200px;
 }
 
 .ml-btsymbol {
   min-width: 70px;
-  border-right: solid 1px var(--base3);
+  border-right: solid 1px var(--color-elevated);
   height: 100%;
   align-items: center;
   display: flex;

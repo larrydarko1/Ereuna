@@ -38,7 +38,7 @@
                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                     <g id="SVGRepo_iconCarrier">
-                      <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z" fill="var(--text1)"></path>
+                      <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z" fill="var(--color-text)"></path>
                     </g>
                   </svg>
                 </span>
@@ -144,7 +144,7 @@
                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                     <g id="SVGRepo_iconCarrier">
-                      <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z" fill="var(--text1)"></path>
+                      <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z" fill="var(--color-text)"></path>
                     </g>
                   </svg>
                 </span>
@@ -356,7 +356,7 @@ function close() {
 }
 
 .modal-content {
-  background: var(--base2);
+  background: var(--color-surface);
   border-radius: 12px;
   width: 95%;
   max-width: 850px;
@@ -364,12 +364,12 @@ function close() {
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid var(--base3);
+  border: 1px solid var(--color-elevated);
 }
 
 .popup-header {
   padding: 16px 20px;
-  border-bottom: 1px solid var(--base3);
+  border-bottom: 1px solid var(--color-elevated);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -379,14 +379,14 @@ function close() {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .close-btn {
   background: none;
   border: none;
   font-size: 32px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   cursor: pointer;
   padding: 0;
   width: 32px;
@@ -399,8 +399,8 @@ function close() {
 }
 
 .close-btn:hover {
-  background: var(--base3);
-  color: var(--text1);
+  background: var(--color-elevated);
+  color: var(--color-text);
 }
 
 form {
@@ -420,7 +420,7 @@ form {
 
 .popup-footer {
   padding: 12px 20px;
-  border-top: 1px solid var(--base3);
+  border-top: 1px solid var(--color-elevated);
   display: flex;
   justify-content: flex-end;
   gap: 10px;
@@ -430,15 +430,15 @@ form {
   display: flex;
   align-items: center;
   padding: 8px 10px;
-  background: var(--base1);
+  background: var(--color-bg);
   border-radius: 6px;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--color-elevated);
   transition: all 0.2s;
   gap: 6px;
 }
 
 .indicator-row-compact:hover {
-  border-color: var(--accent1);
+  border-color: var(--color-accent-1);
 }
 
 .chart-type-row {
@@ -459,7 +459,7 @@ form {
 .indicator-label {
   flex: 1;
   font-size: 13px;
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: 500;
   min-width: 0;
   overflow: hidden;
@@ -469,7 +469,7 @@ form {
 
 .indicator-module.indicator-hidden .indicator-label {
   text-decoration: line-through;
-  color: var(--text2);
+  color: var(--color-text-muted);
 }
 
 .indicator-piece {
@@ -492,9 +492,9 @@ form {
 .indicator-input {
   padding: 6px 8px;
   border-radius: 6px;
-  border: 1px solid var(--base3);
-  background: var(--base2);
-  color: var(--text1);
+  border: 1px solid var(--color-elevated);
+  background: var(--color-surface);
+  color: var(--color-text);
   font-size: 13px;
   outline: none;
   transition: border-color 0.2s;
@@ -515,7 +515,7 @@ form {
 }
 
 .indicator-input:focus {
-  border-color: var(--accent1);
+  border-color: var(--color-accent-1);
 }
 
 .custom-dropdown {
@@ -526,11 +526,11 @@ form {
 }
 
 .selected-value {
-  background: var(--base2);
-  color: var(--text1);
+  background: var(--color-surface);
+  color: var(--color-text);
   border-radius: 6px;
   padding: 6px 8px;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--color-elevated);
   font-size: 12px;
   display: flex;
   justify-content: space-between;
@@ -539,7 +539,7 @@ form {
 }
 
 .selected-value:hover {
-  border-color: var(--accent1);
+  border-color: var(--color-accent-1);
 }
 
 .dropdown-arrow {
@@ -555,8 +555,8 @@ form {
 
 .dropdown-list {
   position: fixed;
-  background: var(--base2);
-  border: 1px solid var(--base3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-elevated);
   border-radius: 6px;
   z-index: 10001;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
@@ -571,7 +571,7 @@ form {
 
 .dropdown-item {
   padding: 8px 12px;
-  color: var(--text1);
+  color: var(--color-text);
   cursor: pointer;
   font-size: 13px;
   border-radius: 0;
@@ -595,7 +595,7 @@ form {
 }
 
 .dropdown-item:hover {
-  background: var(--base3);
+  background: var(--color-elevated);
 }
 
 .custom-checkbox {
@@ -608,18 +608,18 @@ form {
 .checkmark {
   width: 18px;
   height: 18px;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   border-radius: 4px;
   display: inline-block;
   transition: background-color 0.2s, border-color 0.2s;
-  border: 2px solid var(--base3);
+  border: 2px solid var(--color-elevated);
   box-sizing: border-box;
   position: relative;
 }
 
 .custom-checkbox.checked .checkmark {
-  background-color: var(--accent1);
-  border-color: var(--accent1);
+  background-color: var(--color-accent-1);
+  border-color: var(--color-accent-1);
 }
 
 .custom-checkbox.checked .checkmark::after {
@@ -628,7 +628,7 @@ form {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: var(--text3);
+  color: var(--color-text-inverted);
   font-size: 12px;
   font-weight: bold;
 }
@@ -645,17 +645,17 @@ form {
 }
 
 .btn-secondary {
-  background: var(--base3);
-  color: var(--text1);
+  background: var(--color-elevated);
+  color: var(--color-text);
 }
 
 .btn-secondary:hover {
-  background: var(--base4);
+  background: var(--color-sunken);
 }
 
 .btn-primary {
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
 }
 
 .btn-primary:hover {

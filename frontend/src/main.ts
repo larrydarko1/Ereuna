@@ -1,145 +1,67 @@
+/**
+ * Application entry point.
+ * Boot order is load-bearing:
+ *   1. Theme and locale are applied to <html> synchronously, before anything
+ *      renders — both read localStorage, so the first paint is already in the
+ *      right colours and the right language rather than flashing the defaults.
+ *   2. The session is restored (a silent refresh against the httpOnly cookie)
+ *      BEFORE mounting, so the first route guard knows whether the user is
+ *      signed in and no one sees the sign-in page on their way to the app.
+ *   3. Only then is the app mounted.
+ * `initAuth` never rejects: a failed refresh means "not signed in", which is an
+ * answer, not an error.
+ */
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
-import App from './App.vue';
-import router from './router/index.js';
-import authPlugin from './auth-plugin.js';
-import i18n from './i18n/index.js';
-import './style.scss';
-import { useMaintenanceStore } from './store/maintenance.js';
-import { useUserStore } from './store/store.js';
+import App from '@/App.vue';
+import router from '@/router/index';
+import { i18n, initLocale } from '@/i18n';
+import { initTheme, useTheme } from '@/composables/ui/useTheme';
+import { initAuth, isAuthenticated } from '@/api/client';
+import { useMaintenanceStore } from '@/store/maintenance';
+import '@/styles/index.scss';
 
-// If your store is Vuex, you need to migrate it to Pinia for full TS support. If already Pinia, you don't need to use 'store' as a plugin.
-// import store from './store/store'; // Remove if using Pinia only
+initTheme();
+initLocale();
 
-// --- THEME PERSISTENCE LOGIC (run before app creation) ---
-const themes = [
-    'default', 'ihatemyeyes', 'colorblind', 'catpuccin', 'black',
-    'nord', 'dracula', 'gruvbox', 'tokyo-night', 'solarized',
-    'synthwave', 'github-dark', 'everforest', 'ayu-dark', 'rose-pine',
-    'material', 'one-dark', 'night-owl', 'panda', 'monokai-pro',
-    'tomorrow-night', 'oceanic-next', 'palenight', 'cobalt', 'poimandres',
-    'github-light', 'neon', 'moonlight', 'nightfox', 'spacemacs',
-    'borland', 'amber', 'cyberpunk', 'matrix', 'sunset',
-    'deep-ocean', 'gotham', 'retro', 'spotify', 'autumn',
-    'noctis', 'iceberg', 'tango', 'horizon', 'railscasts',
-    'vscode-dark', 'slack-dark', 'mintty', 'atom-one', 'light-owl'
-];
-const root = document.documentElement;
-root.classList.remove(...themes);
-const theme = localStorage.getItem('user-theme') || 'default';
-root.classList.add(theme);
-
-// Now create the app and Pinia
 const app = createApp(App);
-const pinia = createPinia();
-
-app.use(pinia);
-// Persist user session from token
-const userStore = useUserStore();
-userStore.loadUserFromToken();
-
-// Setup i18n with user's preferred language
+app.use(createPinia());
 app.use(i18n);
-
 app.use(router);
-app.use(authPlugin);
 
+/** Routes a signed-out visitor may reach. Everything else needs a session. */
+const PUBLIC_ROUTES = new Set([
+    'Home',
+    'About',
+    'Blog',
+    'Careers',
+    'Communications',
+    'Documentation',
+    'Login',
+    'Maintenance',
+    'Quiz',
+    'Recovery',
+    'SignUp',
+]);
 
-import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
+/** Signing in again from inside a session just returns you to the app. */
+const AUTH_ROUTES = new Set(['Login', 'Recovery', 'SignUp']);
 
-// Helper function to load theme before redirecting authenticated users
-async function loadThemeBeforeRedirect(userStore: ReturnType<typeof useUserStore>) {
-    const themes = [
-        'default', 'ihatemyeyes', 'colorblind', 'catpuccin', 'black',
-        'nord', 'dracula', 'gruvbox', 'tokyo-night', 'solarized',
-        'synthwave', 'github-dark', 'everforest', 'ayu-dark', 'rose-pine',
-        'material', 'one-dark', 'night-owl', 'panda', 'monokai-pro',
-        'tomorrow-night', 'oceanic-next', 'palenight', 'cobalt', 'poimandres',
-        'github-light', 'neon', 'moonlight', 'nightfox', 'spacemacs',
-        'borland', 'amber', 'cyberpunk', 'matrix', 'sunset',
-        'deep-ocean', 'gotham', 'retro', 'spotify', 'autumn',
-        'noctis', 'iceberg', 'tango', 'horizon', 'railscasts',
-        'vscode-dark', 'slack-dark', 'mintty', 'atom-one', 'light-owl'
-    ];
+/** Held back during maintenance; the rest of the app stays reachable. */
+const MAINTAINED_ROUTES = new Set(['Account', 'Charts', 'Dashboard', 'Portfolio', 'Screener']);
 
-    let theme = localStorage.getItem('user-theme') || 'default';
+router.beforeEach(async (to) => {
+    const name = String(to.name);
 
-    // Try to fetch theme from server
-    if (userStore.user && userStore.user.Username) {
-        try {
-            const apiKey = import.meta.env.VITE_EREUNA_KEY;
-            const response = await fetch('/api/load-theme', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-API-KEY': apiKey,
-                },
-                body: JSON.stringify({ username: userStore.user.Username }),
-            });
-            const data = await response.json();
-            if (data.theme) {
-                theme = data.theme;
-                localStorage.setItem('user-theme', theme);
-            }
-        } catch (err) {
-            // Fallback to localStorage/default
-        }
-    }
+    if (isAuthenticated() && AUTH_ROUTES.has(name)) return { name: 'Dashboard' };
+    if (!isAuthenticated() && !PUBLIC_ROUTES.has(name)) return { name: 'Login' };
+    if (!MAINTAINED_ROUTES.has(name)) return true;
 
-    // Apply theme to document
-    const root = document.documentElement;
-    root.classList.remove(...themes);
-    root.classList.add(theme);
-    userStore.setTheme(theme);
-}
-
-router.beforeEach(async (
-    to: RouteLocationNormalized,
-    from: RouteLocationNormalized,
-    next: NavigationGuardNext
-) => {
-    const token = localStorage.getItem('token');
-    const userStore = useUserStore();
-    // List of public routes that do not require authentication
-    const publicPages = ['Login', 'SignUp', 'Recovery', 'Home', 'Documentation', 'Careers', 'Communications', 'About', 'Maintenance', 'Quiz', 'Blog'];
-    // Auth pages that authenticated users shouldn't access
-    const authPages = ['Login', 'SignUp', 'Recovery'];
-
-    // If authenticated user tries to access auth pages, redirect to Dashboard
-    if (token && authPages.includes(String(to.name))) {
-        // Load theme before redirecting to ensure proper theme application
-        await loadThemeBeforeRedirect(userStore);
-        next({ name: 'Dashboard' });
-        return;
-    }
-
-    // If no token and trying to access protected page, redirect to Login and clear caches
-    if (!token && !publicPages.includes(String(to.name))) {
-        await caches.keys().then(cacheNames => {
-            cacheNames.forEach(cacheName => caches.delete(cacheName));
-        });
-        next({ name: 'Login' });
-        return;
-    }
-
-    // At this point, user is authenticated or accessing public pages
-    const maintenanceStore = useMaintenanceStore();
-    await maintenanceStore.checkMaintenanceStatus();
-    if (token && maintenanceStore.isUnderMaintenance === true) {
-        // If trying to access restricted pages during maintenance, redirect to Upload
-        if ([
-            'Charts',
-            'Screener',
-            'Dashboard',
-            'Portfolio',
-            'Account'
-        ].includes(String(to.name))) {
-            next({ name: 'Maintenance' });
-            return;
-        }
-    }
-    // Otherwise allow navigation
-    next();
+    const maintenance = useMaintenanceStore();
+    await maintenance.checkMaintenanceStatus();
+    return maintenance.isUnderMaintenance ? { name: 'Maintenance' } : true;
 });
 
-app.mount('#app');
+void initAuth()
+    .then(() => useTheme().syncTheme())
+    .finally(() => app.mount('#app'));

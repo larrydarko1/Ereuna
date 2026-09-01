@@ -75,7 +75,7 @@
           </button>
           <button type="button" class="cancel-btn" @click="close" :aria-label="t('portfolio.cancelAddCash')">{{ t('portfolio.cancel') }}</button>
         </div>
-        <div v-if="error" style="color: var(--negative); margin-top: 12px;" role="alert" aria-live="polite">{{ error }}</div>
+        <div v-if="error" style="color: var(--color-negative); margin-top: 12px;" role="alert" aria-live="polite">{{ error }}</div>
       </form>
     </div>
   </div>
@@ -355,12 +355,12 @@ function close() {
 }
 .modal-content {
   position: relative;
-  background: var(--base2);
-  color: var(--text1);
+  background: var(--color-surface);
+  color: var(--color-text);
   border-radius: 18px;
   padding: 36px 32px 28px 32px;
   min-width: 340px;
-  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--accent4);
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--color-accent-4);
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -372,7 +372,7 @@ function close() {
   right: 18px;
   background: none;
   border: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 1.7rem;
   cursor: pointer;
   transition: color 0.15s;
@@ -380,7 +380,7 @@ function close() {
   padding: 0;
 }
 .close-x:hover {
-  color: var(--accent1);
+  color: var(--color-accent-1);
 }
 .input-row {
   display: flex;
@@ -402,23 +402,23 @@ function close() {
 }
 label {
   font-size: 1rem;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-weight: 500;
   letter-spacing: 0.01em;
 }
 input {
   padding: 10px 12px;
   border-radius: 7px;
-  border: 1.5px solid var(--base3);
-  background: var(--base1);
-  color: var(--text1);
+  border: 1.5px solid var(--color-elevated);
+  background: var(--color-bg);
+  color: var(--color-text);
   font-size: 1.08rem;
   outline: none;
   transition: border-color 0.18s;
 }
 input:focus {
-  border-color: var(--accent1);
-  background: var(--base4);
+  border-color: var(--color-accent-1);
+  background: var(--color-sunken);
 }
 .modal-actions {
   display: flex;
@@ -427,8 +427,8 @@ input:focus {
   justify-content: flex-end;
 }
 .trade-btn {
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
   border: none;
   border-radius: 7px;
   padding: 10px 24px;
@@ -438,12 +438,12 @@ input:focus {
   transition: background 0.18s;
 }
 .trade-btn:hover {
-  background: var(--accent2);
+  background: var(--color-accent-2);
 }
 .cancel-btn {
   background: transparent;
-  color: var(--text2);
-  border: 1.5px solid var(--base3);
+  color: var(--color-text-muted);
+  border: 1.5px solid var(--color-elevated);
   border-radius: 7px;
   padding: 10px 24px;
   font-weight: 600;
@@ -452,8 +452,8 @@ input:focus {
   transition: border-color 0.18s, color 0.18s;
 }
 .cancel-btn:hover {
-  border-color: var(--accent1);
-  color: var(--accent1);
+  border-color: var(--color-accent-1);
+  color: var(--color-accent-1);
 }
 
 /* Custom Date Picker Styles */
@@ -464,12 +464,12 @@ input:focus {
 .date-input {
   cursor: pointer;
   user-select: none;
-  background: var(--base1) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>') no-repeat right 10px center;
+  background: var(--color-bg) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>') no-repeat right 10px center;
   padding-right: 36px;
 }
 
 .date-input:focus {
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>') no-repeat right 10px center;
 }
 
@@ -478,9 +478,9 @@ input:focus {
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: var(--base2);
+  background: var(--color-surface);
   border-radius: 12px;
-  border: 1.5px solid var(--base3);
+  border: 1.5px solid var(--color-elevated);
   padding: 14px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15);
   z-index: 1000;
@@ -504,13 +504,13 @@ input:focus {
   justify-content: space-between;
   margin-bottom: 12px;
   padding-bottom: 10px;
-  border-bottom: 1.5px solid var(--base3);
+  border-bottom: 1.5px solid var(--color-elevated);
 }
 
 .nav-btn {
   background: transparent;
   border: none;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   font-size: 1.2rem;
   font-weight: 700;
   cursor: pointer;
@@ -521,14 +521,14 @@ input:focus {
 }
 
 .nav-btn:hover {
-  background: var(--base3);
-  color: var(--accent2);
+  background: var(--color-elevated);
+  color: var(--color-accent-2);
 }
 
 .month-year {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--text1);
+  color: var(--color-text);
   letter-spacing: 0.01em;
 }
 
@@ -542,7 +542,7 @@ input:focus {
   text-align: center;
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--text2);
+  color: var(--color-text-muted);
   padding: 6px 0;
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -557,30 +557,30 @@ input:focus {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.18s;
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: 500;
   position: relative;
 }
 
 .calendar-day:not(.disabled):not(.other-month):hover {
-  background: var(--base3);
-  color: var(--accent1);
+  background: var(--color-elevated);
+  color: var(--color-accent-1);
   transform: scale(1.05);
 }
 
 .calendar-day.other-month {
-  color: var(--text3);
+  color: var(--color-text-inverted);
   opacity: 0.4;
 }
 
 .calendar-day.disabled {
-  color: var(--text3);
+  color: var(--color-text-inverted);
   opacity: 0.3;
   cursor: not-allowed;
 }
 
 .calendar-day.today {
-  background: var(--base4);
+  background: var(--color-sunken);
   font-weight: 700;
 }
 
@@ -593,21 +593,21 @@ input:focus {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: var(--accent1);
+  background: var(--color-accent-1);
 }
 
 .calendar-day.selected {
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
   font-weight: 700;
 }
 
 .calendar-day.selected:hover {
-  background: var(--accent2);
+  background: var(--color-accent-2);
   transform: scale(1.05);
 }
 
 .calendar-day.selected.today::after {
-  background: var(--text3);
+  background: var(--color-text-inverted);
 }
 </style>

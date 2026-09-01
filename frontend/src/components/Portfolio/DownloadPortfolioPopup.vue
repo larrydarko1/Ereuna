@@ -674,12 +674,12 @@ function exportPortfolioData() {
 }
 .download-modal {
   position: relative;
-  background: var(--base2);
-  color: var(--text3);
+  background: var(--color-surface);
+  color: var(--color-text-inverted);
   border-radius: 18px;
   padding: 36px 32px 28px 32px;
   min-width: 340px;
-  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--accent4);
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--color-accent-4);
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -694,11 +694,11 @@ function exportPortfolioData() {
   margin: 0 0 12px 0;
   font-size: 1.35rem;
   font-weight: 700;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   letter-spacing: 0.01em;
 }
 .download-modal p {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 1rem;
   margin-bottom: 18px;
 }
@@ -708,7 +708,7 @@ function exportPortfolioData() {
   justify-content: center;
 }
 .download-error {
-  color: var(--negative);
+  color: var(--color-negative);
   margin-top: 12px;
   font-size: 1.05em;
 }
@@ -719,8 +719,8 @@ function exportPortfolioData() {
   justify-content: flex-end;
 }
 .trade-btn {
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
   border: none;
   border-radius: 7px;
   padding: 10px 24px;
@@ -730,16 +730,16 @@ function exportPortfolioData() {
   transition: background 0.18s;
 }
 .trade-btn:hover {
-  background: var(--accent2);
+  background: var(--color-accent-2);
 }
 
 .input {
   margin: 0 auto 18px auto;
   display: block;
-  background: var(--base1);
-  color: var(--text1);
+  background: var(--color-bg);
+  color: var(--color-text);
   border-radius: 7px;
-  border: 1.5px solid var(--base3);
+  border: 1.5px solid var(--color-elevated);
   padding: 10px 12px;
   font-size: 1.08rem;
   outline: none;
@@ -747,7 +747,7 @@ function exportPortfolioData() {
   cursor: pointer;
 }
 .input:focus {
-  border-color: var(--accent1);
-  background: var(--base4);
+  border-color: var(--color-accent-1);
+  background: var(--color-sunken);
 }
 </style>

@@ -276,7 +276,7 @@
             <template v-else>
               -
             </template>
-            <div v-if="portfolioSummary?.biggestWinner?.ticker" style="font-size: 0.7em; color: var(--text2); margin-top: 2px;">
+            <div v-if="portfolioSummary?.biggestWinner?.ticker" style="font-size: 0.7em; color: var(--color-text-muted); margin-top: 2px;">
               {{ t('portfolio.trades') }}: {{ portfolioSummary.biggestWinner.tradeCount }}
             </div>
           </div>
@@ -290,7 +290,7 @@
             <template v-else>
               -
             </template>
-            <div v-if="portfolioSummary?.biggestLoser?.ticker" style="font-size: 0.7em; color: var(--text2); margin-top: 2px;">
+            <div v-if="portfolioSummary?.biggestLoser?.ticker" style="font-size: 0.7em; color: var(--color-text-muted); margin-top: 2px;">
               {{ t('portfolio.trades') }}: {{ portfolioSummary.biggestLoser.tradeCount }}
             </div>
           </div>
@@ -300,10 +300,10 @@
       <div class="portfolio-charts">
         <div class="portfolio-linechart-container card" aria-label="Portfolio total value over time chart">
           <div class="chart-inner-wrapper">
-            <h3 style="color: var(--accent1); margin-bottom: 12px; font-size: 1rem;">{{ t('portfolio.portfolioValue') }}</h3>
+            <h3 style="color: var(--color-accent-1); margin-bottom: 12px; font-size: 1rem;">{{ t('portfolio.portfolioValue') }}</h3>
             <div class="linechart-fixed-height">
               <template v-if="portfolioValueHistory.length === 0">
-                <div class="no-data-message" style="display:flex; align-items: center; justify-content: center; height: 100%; color: var(--text2);">
+                <div class="no-data-message" style="display:flex; align-items: center; justify-content: center; height: 100%; color: var(--color-text-muted);">
                   <strong>{{ t('portfolio.noClosedTrades') }}</strong>
                 </div>
               </template>
@@ -315,10 +315,10 @@
         </div>
         <div class="portfolio-bar-chart-container card" aria-label="Trade returns bar chart">
           <div class="chart-inner-wrapper">
-            <h3 style="color: var(--accent1); margin-bottom: 12px; font-size: 1rem;">{{ t('portfolio.tradeReturns') }}</h3>
+            <h3 style="color: var(--color-accent-1); margin-bottom: 12px; font-size: 1rem;">{{ t('portfolio.tradeReturns') }}</h3>
             <div class="linechart-fixed-height">
               <template v-if="!portfolioSummary?.tradeReturnsChart || !Array.isArray(portfolioSummary.tradeReturnsChart.labels) || portfolioSummary.tradeReturnsChart.labels.length === 0">
-                <div class="no-data-message" style="display:flex; align-items: center; justify-content: center; height: 100%; color: var(--text2);">
+                <div class="no-data-message" style="display:flex; align-items: center; justify-content: center; height: 100%; color: var(--color-text-muted);">
                   <strong>{{ t('portfolio.noClosedTrades') }}</strong>
                 </div>
               </template>
@@ -338,9 +338,9 @@
           <p>{{ t('portfolio.resetConfirmation') }}</p>
           <div style="margin-top: 16px;">
             <button class="trade-btn" @click="confirmResetPortfolio">{{ t('portfolio.yesReset') }}</button>
-            <button class="trade-btn" style="margin-left: 12px; background: var(--base3); color: #fff;" @click="showResetDialog = false">{{ t('portfolio.cancel') }}</button>
+            <button class="trade-btn" style="margin-left: 12px; background: var(--color-elevated); color: #fff;" @click="showResetDialog = false">{{ t('portfolio.cancel') }}</button>
           </div>
-          <div v-if="resetError" style="color: var(--negative); margin-top: 12px;">{{ resetError }}</div>
+          <div v-if="resetError" style="color: var(--color-negative); margin-top: 12px;">{{ resetError }}</div>
         </div>
       </div>
         <TradePopup
@@ -431,7 +431,7 @@
           <div class="chart-inner-wrapper pie-chart-wrapper">
             <template v-if="(portfolioSummary?.positionsCount !== undefined ? portfolioSummary.positionsCount <= 100 : portfolio.length <= 100)">
               <template v-if="portfolio.length === 0 && cash === 0">
-                <div class="no-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; color: var(--text2);">
+                <div class="no-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; color: var(--color-text-muted);">
                   <strong>{{ t('portfolio.noPositionsAvailable') }}</strong>
                 </div>
               </template>
@@ -440,7 +440,7 @@
               </template>
             </template>
             <template v-else>
-              <div class="too-many-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; color: var(--text2);">
+              <div class="too-many-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; color: var(--color-text-muted);">
                 <strong>{{ t('portfolio.tooManyPositions') }}</strong><br>
                 {{ t('portfolio.reducePositions') }}
               </div>
@@ -488,7 +488,7 @@
                 </td>
               </tr>
               <tr v-if="portfolio.length === 0 && cash === 0">
-                <td colspan="10" style="text-align:center; color: var(--text2);">
+                <td colspan="10" style="text-align:center; color: var(--color-text-muted);">
                   {{ t('portfolio.noActivePositions') }}
                 </td>
               </tr>
@@ -614,13 +614,13 @@
           </div>
           <div class="monthly-charts-container">
             <div class="monthly-returns-chart card">
-              <h3 style="color: var(--accent1); margin-bottom: 12px; font-size: 1rem;">{{ t('portfolio.totalPLPercent2') }}</h3>
+              <h3 style="color: var(--color-accent-1); margin-bottom: 12px; font-size: 1rem;">{{ t('portfolio.totalPLPercent2') }}</h3>
               <div class="chart-container">
                 <Bar :data="monthlyPLDollarChartData" :options="(monthlyPLDollarChartOptions as any)" />
               </div>
             </div>
             <div class="monthly-returns-chart card">
-              <h3 style="color: var(--accent1); margin-bottom: 12px; font-size: 1rem;">{{ t('portfolio.monthlyReturns') }}</h3>
+              <h3 style="color: var(--color-accent-1); margin-bottom: 12px; font-size: 1rem;">{{ t('portfolio.monthlyReturns') }}</h3>
               <div class="chart-container">
                 <Bar :data="monthlyReturnsChartData" :options="(monthlyReturnsChartOptions as any)" />
               </div>
@@ -879,23 +879,23 @@ function getVar(name: string): string {
 }
 
 // Get theme colors from CSS variables
-const accent1 = getVar('--accent1') || '#8c8dfe';
-const accent2 = getVar('--accent2') || '#a9a5ff';
-const accent3 = getVar('--accent3') || '#cfcbff';
-const accent4 = getVar('--accent4') || '#a9a5ff53';
-const base1 = getVar('--base1') || '#1e1e2f';
-const text1 = getVar('--text1') || '#ffffff';
-const text2 = getVar('--text2') || '#cad3f5';
-const volume = getVar('--volume') || '#4d4d4d';
-const ma4 = getVar('--ma4') || '#4caf50';
-const ma3 = getVar('--ma3') || '#ffeb3b';
-const ma2 = getVar('--ma2') || '#2862ff';
-const ma1 = getVar('--ma1') || '#00bcd4';
+const accent1 = getVar('--color-accent-1') || '#8c8dfe';
+const accent2 = getVar('--color-accent-2') || '#a9a5ff';
+const accent3 = getVar('--color-accent-3') || '#cfcbff';
+const accent4 = getVar('--color-accent-4') || '#a9a5ff53';
+const base1 = getVar('--color-bg') || '#1e1e2f';
+const text1 = getVar('--color-text') || '#ffffff';
+const text2 = getVar('--color-text-muted') || '#cad3f5';
+const volume = getVar('--color-volume') || '#4d4d4d';
+const ma4 = getVar('--color-ma-4') || '#4caf50';
+const ma3 = getVar('--color-ma-3') || '#ffeb3b';
+const ma2 = getVar('--color-ma-2') || '#2862ff';
+const ma1 = getVar('--color-ma-1') || '#00bcd4';
 
 // Compute RGB values for theme colors
-const positiveRgb = getVar('--positive').replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ');
-const negativeRgb = getVar('--negative').replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ');
-const accentRgb = getVar('--accent1').replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ');
+const positiveRgb = getVar('--color-positive').replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ');
+const negativeRgb = getVar('--color-negative').replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ');
+const accentRgb = getVar('--color-accent-1').replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ');
 
 // Compute badge backgrounds and borders
 const buyBg = `rgba(${positiveRgb}, 0.15)`;
@@ -1499,8 +1499,8 @@ const tradeReturnsChartData = computed(() => {
       {
         label: t('portfolio.numberOfTrades'),
         data: chart.bins.map((b: { count: number; positive: boolean }) => b.count),
-        backgroundColor: chart.bins.map((b: { count: number; positive: boolean }) => b.positive ? `rgba(${getVar('--positive').replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ')}, 0.7)` : `rgba(${getVar('--negative').replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ')}, 0.7)`),
-        borderColor: chart.bins.map((b: { count: number; positive: boolean }) => b.positive ? getVar('--positive') : getVar('--negative')),
+        backgroundColor: chart.bins.map((b: { count: number; positive: boolean }) => b.positive ? `rgba(${getVar('--color-positive').replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ')}, 0.7)` : `rgba(${getVar('--color-negative').replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ')}, 0.7)`),
+        borderColor: chart.bins.map((b: { count: number; positive: boolean }) => b.positive ? getVar('--color-positive') : getVar('--color-negative')),
         borderWidth: 1,
         borderRadius: 4,
       }
@@ -1523,8 +1523,8 @@ const tradeReturnsChartOptions = computed(() => {
         grid: { display: false }
       },
       y: {
-        ticks: { color: getVar('--text2') },
-        title: { display: true, text: t('portfolio.numberOfTrades'), color: getVar('--text2') },
+        ticks: { color: getVar('--color-text-muted') },
+        title: { display: true, text: t('portfolio.numberOfTrades'), color: getVar('--color-text-muted') },
         grid: { display: false }
       }
     }
@@ -1954,8 +1954,8 @@ const monthlyReturnsChartData = computed(() => {
         ),
         borderColor: data.map(m => 
           m.monthlyReturn >= 0 
-            ? getVar('--positive') 
-            : getVar('--negative')
+            ? getVar('--color-positive') 
+            : getVar('--color-negative')
         ),
         borderWidth: 1,
         borderRadius: 4,
@@ -2059,8 +2059,8 @@ const monthlyPLDollarChartData = computed(() => {
         ),
         borderColor: cumulativePLPercentages.map(pl => 
           pl >= 0 
-            ? getVar('--positive') 
-            : getVar('--negative')
+            ? getVar('--color-positive') 
+            : getVar('--color-negative')
         ),
         borderWidth: 1,
         borderRadius: 4,
@@ -2123,7 +2123,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
   min-height: 100vh;
   width: 100vw;
   box-sizing: border-box;
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   overflow-x: scroll;
   padding-top: 5px;
   padding-left: 10px;
@@ -2146,7 +2146,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
 }
 
 .card {
-  background: var(--base2);
+  background: var(--color-surface);
   padding: 22px;
   border-radius: 12px;
   box-shadow: 0 6px 18px rgba(10, 20, 30, 0.08);
@@ -2155,15 +2155,15 @@ const monthlyPLDollarChartOptions = computed(() => ({
 }
 
 .portfolio-container {
-  background: var(--base1);
-  color: var(--text1);
+  background: var(--color-bg);
+  color: var(--color-text);
   min-height: 80vh;
 }
 
 .portfolio-menu {
   display: flex;
   flex-direction: row;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   width: 100%;
   padding: 5px 0px;
   justify-content: space-between; 
@@ -2176,7 +2176,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
 .benchmark-menu {
   display: flex;
   flex-direction: row;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   width: 100%;
   padding: 5px 0px;
   justify-content: space-between; 
@@ -2189,7 +2189,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   width: 100%;
   gap: 0px;
   position: relative;
@@ -2204,7 +2204,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
     align-items: flex-start;
 
     .no-benchmarks {
-      color: var(--text2);
+      color: var(--color-text-muted);
       font-size: 0.85rem;
       font-style: italic;
       padding: 8px 12px;
@@ -2216,7 +2216,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
     position: absolute;
     top: 4px;
     right: 4px;
-    color: var(--text2);
+    color: var(--color-text-muted);
     border: none;
     border-radius: 4px;
     padding: 4px 8px;
@@ -2232,8 +2232,8 @@ const monthlyPLDollarChartOptions = computed(() => ({
     margin-right: 6px;
 
     &:hover {
-      background-color: var(--base3);
-      color: var(--accent1);
+      background-color: var(--color-elevated);
+      color: var(--color-accent-1);
     }
 
     svg {
@@ -2250,8 +2250,8 @@ const monthlyPLDollarChartOptions = computed(() => ({
 }
 
 .menu-btn {
-    background: var(--base3);
-    color: var(--text1);
+    background: var(--color-elevated);
+    color: var(--color-text);
     border: none;
     border-radius: 3px;
     padding: 10px 10px;
@@ -2263,26 +2263,26 @@ const monthlyPLDollarChartOptions = computed(() => ({
     margin: 2px; 
 
     &.selected {
-      background: var(--accent1);
-      color: var(--text3);
+      background: var(--color-accent-1);
+      color: var(--color-text-inverted);
     }
 
     &:hover:enabled {
-      background: var(--accent2);
-      color: var(--text3);
+      background: var(--color-accent-2);
+      color: var(--color-text-inverted);
     }
 
     &:disabled {
-      background: var(--base1);
-      color: var(--text2);
+      background: var(--color-bg);
+      color: var(--color-text-muted);
       cursor: not-allowed;
       opacity: 1;
     }
 }
 
 .portfolio-btn {
-    background: var(--base3);
-    color: var(--text1);
+    background: var(--color-elevated);
+    color: var(--color-text);
     border: none;
     border-radius: 3px;
     padding: 10px 10px;
@@ -2294,19 +2294,19 @@ const monthlyPLDollarChartOptions = computed(() => ({
     margin: 2px;
 
     &.selected {
-      background: var(--accent1);
-      color: var(--text3);
+      background: var(--color-accent-1);
+      color: var(--color-text-inverted);
     }
 
     &:hover {
-      background: var(--accent2);
-      color: var(--text3);
+      background: var(--color-accent-2);
+      color: var(--color-text-inverted);
     }
   }
 
 .trade-btn {
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
   border: none;
   border-radius: 6px;
   padding: 10px 24px;
@@ -2316,13 +2316,13 @@ const monthlyPLDollarChartOptions = computed(() => ({
   transition: background 0.2s;
 
   &:hover {
-    background: var(--accent2);
+    background: var(--color-accent-2);
   }
 }
 
 .trade-btn:disabled {
-  background: var(--base3);
-  color: var(--text2);
+  background: var(--color-elevated);
+  color: var(--color-text-muted);
   opacity: 0.6;
   cursor: not-allowed;
   box-shadow: none;
@@ -2331,8 +2331,8 @@ const monthlyPLDollarChartOptions = computed(() => ({
 }
 
 .trade-btn2 {
-  background: var(--negative);
-  color: var(--text3);
+  background: var(--color-negative);
+  color: var(--color-text-inverted);
   border: none;
   border-radius: 6px;
   padding: 10px 24px;
@@ -2343,7 +2343,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
   transition: background 0.2s;
 
   &:hover {
-    background: var(--accent2);
+    background: var(--color-accent-2);
   }
 }
 
@@ -2386,7 +2386,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
   box-sizing: border-box;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px solid var(--base1);
+  border-bottom: 1px solid var(--color-bg);
   transition: background-color 0.15s ease;
 
   .attribute, .value {
@@ -2397,22 +2397,22 @@ const monthlyPLDollarChartOptions = computed(() => ({
   }
 
   .attribute {
-    color: var(--text2);
+    color: var(--color-text-muted);
     font-size: 0.85em;
     font-weight: 500;
   }
 
   .value {
-    color: var(--text1);
+    color: var(--color-text);
     text-align: right;
     font-size: 0.9em;
 
     &.positive {
-      color: var(--positive);
+      color: var(--color-positive);
     }
 
     &.negative {
-      color: var(--negative);
+      color: var(--color-negative);
     }
   }
 }
@@ -2451,7 +2451,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
 .portfolio-table-header {
   width: 100%;
   border-collapse: collapse;
-  color: var(--text1);
+  color: var(--color-text);
   table-layout: fixed;
 
   thead {
@@ -2459,11 +2459,11 @@ const monthlyPLDollarChartOptions = computed(() => ({
       text-transform: uppercase;
       font-size: 0.7rem;
       letter-spacing: 0.05em;
-      color: var(--text2);
+      color: var(--color-text-muted);
       font-weight: 600;
       padding: 12px 16px;
-      border-bottom: 2px solid var(--base3);
-      background: var(--base1);
+      border-bottom: 2px solid var(--color-elevated);
+      background: var(--color-bg);
       text-align: left;
     }
   }
@@ -2478,7 +2478,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
 .portfolio-table {
   width: 100%;
   border-collapse: collapse;
-  color: var(--text1);
+  color: var(--color-text);
   table-layout: fixed;
 
   tbody {
@@ -2486,7 +2486,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
       transition: background-color 0.15s ease;
       
       &:hover {
-        background: var(--base2);
+        background: var(--color-surface);
       }
     }
   }
@@ -2498,15 +2498,15 @@ const monthlyPLDollarChartOptions = computed(() => ({
   }
 
   td {
-    border-bottom: 1px solid var(--base3);
+    border-bottom: 1px solid var(--color-elevated);
   }
 
   .positive {
-    color: var(--positive);
+    color: var(--color-positive);
   }
 
   .negative {
-    color: var(--negative);
+    color: var(--color-negative);
   }
 }
 
@@ -2526,11 +2526,11 @@ const monthlyPLDollarChartOptions = computed(() => ({
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: var(--base2);
-  border-bottom: 1px solid var(--base1);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-bg);
 
   h2 {
-    color: var(--text1);
+    color: var(--color-text);
     margin: 0;
     font-size: 1.5rem;
     font-weight: 700;
@@ -2540,8 +2540,8 @@ const monthlyPLDollarChartOptions = computed(() => ({
 
 .history-count {
   font-size: 1rem;
-  color: var(--text3);
-  background: var(--accent1);
+  color: var(--color-text-inverted);
+  background: var(--color-accent-1);
   padding: 4px 12px;
   border-radius: 12px;
   font-weight: bold;
@@ -2552,17 +2552,17 @@ const monthlyPLDollarChartOptions = computed(() => ({
     position: sticky;
     top: 0;
     z-index: 10;
-    background: var(--base1);
+    background: var(--color-bg);
 
     th {
       text-transform: uppercase;
       font-size: 0.7rem;
       letter-spacing: 0.05em;
-      color: var(--text2);
+      color: var(--color-text-muted);
       font-weight: 600;
       padding: 12px 16px;
-      border-bottom: 2px solid var(--base3);
-      background: var(--base1);
+      border-bottom: 2px solid var(--color-elevated);
+      background: var(--color-bg);
     }
   }
 
@@ -2571,7 +2571,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
       transition: background-color 0.15s ease;
       
       &:hover {
-        background: var(--base2);
+        background: var(--color-surface);
       }
 
       &.buy-row {
@@ -2586,7 +2586,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
     td {
       padding: 14px 16px;
       font-size: 0.9rem;
-      color: var(--text1);
+      color: var(--color-text);
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       vertical-align: middle;
     }
@@ -2599,7 +2599,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
   }
 
   .date-col {
-    color: var(--text2);
+    color: var(--color-text-muted);
     font-size: 0.85rem;
     font-weight: 500;
   }
@@ -2607,7 +2607,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
   .symbol-col {
     .symbol-text {
       font-weight: 600;
-      color: var(--text1);
+      color: var(--color-text);
       font-size: 0.95rem;
     }
   }
@@ -2624,20 +2624,20 @@ const monthlyPLDollarChartOptions = computed(() => ({
 
       &.buy {
         background: var(--buy-bg);
-        color: var(--positive);
+        color: var(--color-positive);
         border: 1px solid var(--buy-border);
       }
 
       &.sell {
         background: var(--sell-bg);
-        color: var(--negative);
+        color: var(--color-negative);
         border: 1px solid var(--sell-border);
       }
 
       &.cash,
       &.dividend {
         background: var(--cash-bg);
-        color: var(--accent1);
+        color: var(--color-accent-1);
         border: 1px solid var(--cash-border);
       }
     }
@@ -2651,14 +2651,14 @@ const monthlyPLDollarChartOptions = computed(() => ({
     }
 
     .neutral-text {
-      color: var(--text2);
+      color: var(--color-text-muted);
       font-size: 0.85rem;
     }
   }
 
   .price-col,
   .commission-col {
-    color: var(--text2);
+    color: var(--color-text-muted);
     font-size: 0.88rem;
   }
 
@@ -2667,11 +2667,11 @@ const monthlyPLDollarChartOptions = computed(() => ({
     font-size: 0.92rem;
     
     &.positive {
-      color: var(--positive);
+      color: var(--color-positive);
     }
 
     &.negative {
-      color: var(--text1);
+      color: var(--color-text);
     }
   }
 
@@ -2692,7 +2692,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
     align-items: center;
     justify-content: center;
     gap: 12px;
-    color: var(--text2);
+    color: var(--color-text-muted);
 
     svg {
       width: 48px;
@@ -2708,8 +2708,8 @@ const monthlyPLDollarChartOptions = computed(() => ({
 }
 
 .action-btn {
-  background: var(--accent4);
-  color: var(--accent1);
+  background: var(--color-accent-4);
+  color: var(--color-accent-1);
   border: none;
   border-radius: 4px;
   padding: 6px 16px;
@@ -2718,15 +2718,15 @@ const monthlyPLDollarChartOptions = computed(() => ({
   transition: background 0.2s;
 
   &:hover {
-    background: var(--accent2);
-    color: var(--text3);
+    background: var(--color-accent-2);
+    color: var(--color-text-inverted);
   }
 }
 
 .delete-trade-btn {
   background: transparent;
   border: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   cursor: pointer;
   padding: 6px 8px;
   border-radius: 6px;
@@ -2737,7 +2737,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
 
   &:hover {
     background: rgba(255, 0, 0, 0.1);
-    color: var(--negative);
+    color: var(--color-negative);
   }
 
   svg {
@@ -2748,7 +2748,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
 .edit-trade-btn {
   background: transparent;
   border: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   cursor: pointer;
   padding: 6px 8px;
   border-radius: 6px;
@@ -2758,8 +2758,8 @@ const monthlyPLDollarChartOptions = computed(() => ({
   transition: all 0.2s;
 
   &:hover {
-    background: color-mix(in srgb, var(--accent1) 15%, transparent);
-    color: var(--accent1);
+    background: color-mix(in srgb, var(--color-accent-1) 15%, transparent);
+    color: var(--color-accent-1);
   }
 
   svg {
@@ -2795,7 +2795,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
 
 .chart-inner-wrapper {
 padding: 0px;
-  background: var(--base1);
+  background: var(--color-bg);
   border-radius: 6px;
   width: 100%;
   max-width: 100%;
@@ -2834,7 +2834,7 @@ padding: 0px;
   z-index: 1000;
 }
 .reset-modal {
-  background: var(--base2);
+  background: var(--color-surface);
   padding: 32px 24px;
   border-radius: 10px;
   box-shadow: 0 2px 12px 0 rgba(0,0,0,0.12);
@@ -2843,8 +2843,8 @@ padding: 0px;
 }
 
 .cash-row {
-  background: var(--base1);
-  color: var(--accent1);
+  background: var(--color-bg);
+  color: var(--color-accent-1);
   font-weight: 600;
 }
 
@@ -3014,15 +3014,15 @@ padding: 0px;
 }
 
 .position-type-badge.long {
-  background: color-mix(in srgb, var(--positive) 20%, transparent);
-  color: var(--positive);
-  border: 1px solid color-mix(in srgb, var(--positive) 40%, transparent);
+  background: color-mix(in srgb, var(--color-positive) 20%, transparent);
+  color: var(--color-positive);
+  border: 1px solid color-mix(in srgb, var(--color-positive) 40%, transparent);
 }
 
 .position-type-badge.short {
-  background: color-mix(in srgb, var(--negative) 20%, transparent);
-  color: var(--negative);
-  border: 1px solid color-mix(in srgb, var(--negative) 40%, transparent);
+  background: color-mix(in srgb, var(--color-negative) 20%, transparent);
+  color: var(--color-negative);
+  border: 1px solid color-mix(in srgb, var(--color-negative) 40%, transparent);
 }
 
 .leverage-badge {
@@ -3031,9 +3031,9 @@ padding: 0px;
   border-radius: 4px;
   font-size: 0.8em;
   font-weight: 700;
-  background: color-mix(in srgb, var(--accent1) 20%, transparent);
-  color: var(--accent1);
-  border: 1px solid color-mix(in srgb, var(--accent1) 40%, transparent);
+  background: color-mix(in srgb, var(--color-accent-1) 20%, transparent);
+  color: var(--color-accent-1);
+  border: 1px solid color-mix(in srgb, var(--color-accent-1) 40%, transparent);
 }
 
 .leverage-badge-small,
@@ -3052,19 +3052,19 @@ padding: 0px;
 
 .leverage-badge-small {
   background: var(--leverage-bg);
-  color: var(--accent1);
+  color: var(--color-accent-1);
   border: 1px solid var(--leverage-border);
 }
 
 .short-badge-small {
   background: var(--short-bg);
-  color: var(--negative);
+  color: var(--color-negative);
   border: 1px solid var(--short-border);
 }
 
 .long-badge-small {
   background: var(--long-bg);
-  color: var(--positive);
+  color: var(--color-positive);
   border: 1px solid var(--long-border);
 }
 
@@ -3083,7 +3083,7 @@ padding: 0px;
   justify-content: center;
   gap: 12px;
   padding: 24px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   
   svg {
     width: 40px;
@@ -3109,20 +3109,20 @@ padding: 0px;
   }
   
   &::-webkit-scrollbar-track {
-    background: var(--base3);
+    background: var(--color-elevated);
     border-radius: 3px;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: var(--accent1);
+    background: var(--color-accent-1);
     border-radius: 3px;
   }
 }
 .benchmark-card {
-  background: var(--base1);
+  background: var(--color-bg);
   border-radius: 6px;
   padding: 12px 14px;
-  border: 1px solid var(--base4);
+  border: 1px solid var(--color-sunken);
   min-width: 180px;
   flex-shrink: 0;
   transition: all 0.2s;
@@ -3140,7 +3140,7 @@ padding: 0px;
 .benchmark-symbol {
   font-size: 1rem;
   font-weight: bold;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   white-space: nowrap;
 }
 
@@ -3161,15 +3161,15 @@ padding: 0px;
   }
   
   &.outperforming {
-    background: color-mix(in srgb, var(--positive) 15%, transparent);
-    color: var(--positive);
-    border: 1px solid color-mix(in srgb, var(--positive) 30%, transparent);
+    background: color-mix(in srgb, var(--color-positive) 15%, transparent);
+    color: var(--color-positive);
+    border: 1px solid color-mix(in srgb, var(--color-positive) 30%, transparent);
   }
   
   &.underperforming {
-    background: color-mix(in srgb, var(--negative) 15%, transparent);
-    color: var(--negative);
-    border: 1px solid color-mix(in srgb, var(--negative) 30%, transparent);
+    background: color-mix(in srgb, var(--color-negative) 15%, transparent);
+    color: var(--color-negative);
+    border: 1px solid color-mix(in srgb, var(--color-negative) 30%, transparent);
   }
 }
 
@@ -3188,12 +3188,12 @@ padding: 0px;
   &.highlight {
     padding-top: 6px;
     margin-top: 2px;
-    border-top: 1px solid var(--base4);
+    border-top: 1px solid var(--color-sunken);
   }
 }
 
 .stat-label {
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 0.8rem;
   white-space: nowrap;
 }
@@ -3204,11 +3204,11 @@ padding: 0px;
   white-space: nowrap;
   
   &.positive {
-    color: var(--positive);
+    color: var(--color-positive);
   }
   
   &.negative {
-    color: var(--negative);
+    color: var(--color-negative);
   }
 }
 
@@ -3233,10 +3233,10 @@ padding: 0px;
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--base3);
+  border-bottom: 1px solid var(--color-elevated);
 
   h2 {
-    color: var(--text1);
+    color: var(--color-text);
     margin: 0;
     font-size: 1.5rem;
     font-weight: 700;
@@ -3244,8 +3244,8 @@ padding: 0px;
 
     .beta-badge {
       display: inline-block;
-      background: var(--text2);
-      color: var(--base1);
+      background: var(--color-text-muted);
+      color: var(--color-bg);
       font-size: 0.8rem;
       font-weight: 700;
       padding: 2px 6px;
@@ -3270,21 +3270,21 @@ padding: 0px;
     }
 
     .winning-months {
-      background: color-mix(in srgb, var(--positive) 15%, transparent);
-      color: var(--positive);
-      border: 1px solid color-mix(in srgb, var(--positive) 30%, transparent);
+      background: color-mix(in srgb, var(--color-positive) 15%, transparent);
+      color: var(--color-positive);
+      border: 1px solid color-mix(in srgb, var(--color-positive) 30%, transparent);
     }
 
     .losing-months {
-      background: color-mix(in srgb, var(--negative) 15%, transparent);
-      color: var(--negative);
-      border: 1px solid color-mix(in srgb, var(--negative) 30%, transparent);
+      background: color-mix(in srgb, var(--color-negative) 15%, transparent);
+      color: var(--color-negative);
+      border: 1px solid color-mix(in srgb, var(--color-negative) 30%, transparent);
     }
 
     .no-activity-months {
-      background: color-mix(in srgb, var(--text2) 15%, transparent);
-      color: var(--text2);
-      border: 1px solid color-mix(in srgb, var(--text2) 30%, transparent);
+      background: color-mix(in srgb, var(--color-text-muted) 15%, transparent);
+      color: var(--color-text-muted);
+      border: 1px solid color-mix(in srgb, var(--color-text-muted) 30%, transparent);
     }
   }
 }
@@ -3309,12 +3309,12 @@ padding: 0px;
   }
 
   &::-webkit-scrollbar-track {
-    background: var(--base3);
+    background: var(--color-elevated);
     border-radius: 4px;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: var(--volume);
+    background: var(--color-volume);
     border-radius: 4px;
   }
 }
@@ -3329,7 +3329,7 @@ padding: 0px;
 
 .monthly-returns-chart {
   padding: 16px;
-  background: var(--base1);
+  background: var(--color-bg);
   
   .chart-container {
     height: 200px;
@@ -3338,17 +3338,17 @@ padding: 0px;
 }
 
 .monthly-perf-card {
-  background: var(--base1);
+  background: var(--color-bg);
   border-radius: 8px;
   padding: 16px;
-  border: 1px solid var(--base4);
+  border: 1px solid var(--color-sunken);
   min-width: 220px;
   max-width: 230px;
   flex-shrink: 0;
   transition: all 0.2s;
 
   &:hover {
-    border-color: var(--base3);
+    border-color: var(--color-elevated);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 }
@@ -3359,7 +3359,7 @@ padding: 0px;
   align-items: flex-start;
   margin-bottom: 14px;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--base3);
+  border-bottom: 1px solid var(--color-elevated);
 
   .month-title {
     display: flex;
@@ -3369,12 +3369,12 @@ padding: 0px;
     .month-label {
       font-size: 1.1rem;
       font-weight: 700;
-      color: var(--accent1);
+      color: var(--color-accent-1);
     }
 
     .trade-count {
       font-size: 0.75rem;
-      color: var(--text2);
+      color: var(--color-text-muted);
       font-weight: 500;
     }
   }
@@ -3385,11 +3385,11 @@ padding: 0px;
     text-align: right;
 
     &.positive {
-      color: var(--positive);
+      color: var(--color-positive);
     }
 
     &.negative {
-      color: var(--negative);
+      color: var(--color-negative);
     }
   }
 }
@@ -3406,7 +3406,7 @@ padding: 0px;
     padding: 6px 0;
 
     .stat-label {
-      color: var(--text2);
+      color: var(--color-text-muted);
       font-size: 0.85rem;
       font-weight: 500;
     }
@@ -3414,18 +3414,18 @@ padding: 0px;
     .stat-value {
       font-weight: 600;
       font-size: 0.9rem;
-      color: var(--text1);
+      color: var(--color-text);
 
       &.positive {
-        color: var(--positive);
+        color: var(--color-positive);
       }
 
       &.negative {
-        color: var(--negative);
+        color: var(--color-negative);
       }
 
       &.neutral {
-        color: var(--text2);
+        color: var(--color-text-muted);
       }
     }
   }

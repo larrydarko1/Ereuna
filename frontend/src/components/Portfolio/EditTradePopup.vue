@@ -482,7 +482,7 @@ function close() {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: color-mix(in srgb, var(--base1) 55%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 55%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -492,14 +492,14 @@ function close() {
 
 .modal-content {
   position: relative;
-  background: var(--base2);
-  color: var(--text1);
+  background: var(--color-surface);
+  color: var(--color-text);
   border-radius: 18px;
   padding: 24px 28px 20px 28px;
   min-width: 340px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--accent4);
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--color-accent-4);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -517,7 +517,7 @@ function close() {
   right: 14px;
   background: none;
   border: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 1.6rem;
   cursor: pointer;
   transition: color 0.15s;
@@ -526,14 +526,14 @@ function close() {
 }
 
 .close-x:hover {
-  color: var(--accent1);
+  color: var(--color-accent-1);
 }
 
 h2 {
   margin: 0 0 4px 0;
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   letter-spacing: 0.01em;
 }
 
@@ -541,10 +541,10 @@ h2 {
   display: flex;
   gap: 10px;
   padding: 10px 12px;
-  background: color-mix(in srgb, var(--accent1) 8%, transparent);
-  border: 1.5px solid color-mix(in srgb, var(--accent1) 25%, transparent);
+  background: color-mix(in srgb, var(--color-accent-1) 8%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--color-accent-1) 25%, transparent);
   border-radius: 10px;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   font-size: 0.88rem;
   line-height: 1.4;
 }
@@ -582,7 +582,7 @@ form {
 
 label {
   font-size: 0.92rem;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-weight: 500;
   letter-spacing: 0.01em;
 }
@@ -590,17 +590,17 @@ label {
 input {
   padding: 8px 10px;
   border-radius: 7px;
-  border: 1.5px solid var(--base3);
-  background: var(--base1);
-  color: var(--text1);
+  border: 1.5px solid var(--color-elevated);
+  background: var(--color-bg);
+  color: var(--color-text);
   font-size: 1rem;
   outline: none;
   transition: border-color 0.18s, background 0.18s;
 }
 
 input:focus {
-  border-color: var(--accent1);
-  background: var(--base4);
+  border-color: var(--color-accent-1);
+  background: var(--color-sunken);
 }
 
 .symbol-locked {
@@ -612,7 +612,7 @@ input:focus {
 
 .hint {
   font-size: 0.88em;
-  color: var(--text2);
+  color: var(--color-text-muted);
   margin-top: 4px;
 }
 
@@ -621,9 +621,9 @@ input:focus {
   flex: 1;
   padding: 8px 14px;
   border-radius: 7px;
-  border: 1.5px solid var(--base3);
-  background: var(--base1);
-  color: var(--text2);
+  border: 1.5px solid var(--color-elevated);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
@@ -632,30 +632,30 @@ input:focus {
 
 .action-btn:hover,
 .position-type-btn:hover {
-  border-color: var(--accent1);
-  color: var(--accent1);
+  border-color: var(--color-accent-1);
+  color: var(--color-accent-1);
 }
 
 .action-btn.active.buy {
-  background: color-mix(in srgb, var(--positive) 15%, transparent);
-  border-color: color-mix(in srgb, var(--positive) 35%, transparent);
-  color: var(--positive);
+  background: color-mix(in srgb, var(--color-positive) 15%, transparent);
+  border-color: color-mix(in srgb, var(--color-positive) 35%, transparent);
+  color: var(--color-positive);
 }
 
 .action-btn.active.sell {
-  background: color-mix(in srgb, var(--negative) 15%, transparent);
-  border-color: color-mix(in srgb, var(--negative) 35%, transparent);
-  color: var(--negative);
+  background: color-mix(in srgb, var(--color-negative) 15%, transparent);
+  border-color: color-mix(in srgb, var(--color-negative) 35%, transparent);
+  color: var(--color-negative);
 }
 
 .position-type-btn.active {
-  background: var(--accent1);
-  color: var(--text3);
-  border-color: var(--accent1);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
+  border-color: var(--color-accent-1);
 }
 
 .calculated-info {
-  background: var(--base1);
+  background: var(--color-bg);
   border-radius: 10px;
   padding: 10px 12px;
   display: flex;
@@ -671,17 +671,17 @@ input:focus {
 
 .info-label {
   font-weight: 500;
-  color: var(--text2);
+  color: var(--color-text-muted);
 }
 
 .info-value {
   font-weight: 600;
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 1rem;
 }
 
 .leverage-highlight {
-  color: var(--accent2);
+  color: var(--color-accent-2);
 }
 
 .loading-state {
@@ -689,17 +689,17 @@ input:focus {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: var(--base1);
+  background: var(--color-bg);
   border-radius: 8px;
-  color: var(--accent1);
+  color: var(--color-accent-1);
 }
 
 .loader {
   width: 20px;
   height: 20px;
-  border: 2px solid var(--accent1);
+  border: 2px solid var(--color-accent-1);
   border-radius: 50%;
-  border-top: 2px solid var(--base3);
+  border-top: 2px solid var(--color-elevated);
   animation: spin 0.8s linear infinite;
 }
 
@@ -710,10 +710,10 @@ input:focus {
 
 .error-msg {
   padding: 10px 12px;
-  background: color-mix(in srgb, var(--negative) 8%, transparent);
-  border: 1.5px solid color-mix(in srgb, var(--negative) 25%, transparent);
+  background: color-mix(in srgb, var(--color-negative) 8%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--color-negative) 25%, transparent);
   border-radius: 8px;
-  color: var(--negative);
+  color: var(--color-negative);
   font-size: 0.9rem;
 }
 
@@ -725,8 +725,8 @@ input:focus {
 }
 
 .save-btn {
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
   border: none;
   border-radius: 7px;
   padding: 8px 20px;
@@ -747,8 +747,8 @@ input:focus {
 
 .cancel-btn {
   background: transparent;
-  color: var(--text2);
-  border: 1.5px solid var(--base3);
+  color: var(--color-text-muted);
+  border: 1.5px solid var(--color-elevated);
   border-radius: 7px;
   padding: 8px 20px;
   font-weight: 600;
@@ -758,8 +758,8 @@ input:focus {
 }
 
 .cancel-btn:hover:not(:disabled) {
-  border-color: var(--accent1);
-  color: var(--accent1);
+  border-color: var(--color-accent-1);
+  color: var(--color-accent-1);
 }
 
 .cancel-btn:disabled {
@@ -776,11 +776,11 @@ input:focus {
   cursor: pointer;
   user-select: none;
   width: 90%;
-  background: var(--base1) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>') no-repeat right 10px center;
+  background: var(--color-bg) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>') no-repeat right 10px center;
 }
 
 .date-input:focus {
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>') no-repeat right 10px center;
 }
 
@@ -789,9 +789,9 @@ input:focus {
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: var(--base2);
+  background: var(--color-surface);
   border-radius: 12px;
-  border: 1.5px solid var(--base3);
+  border: 1.5px solid var(--color-elevated);
   padding: 14px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15);
   z-index: 1000;
@@ -815,13 +815,13 @@ input:focus {
   justify-content: space-between;
   margin-bottom: 12px;
   padding-bottom: 10px;
-  border-bottom: 1.5px solid var(--base3);
+  border-bottom: 1.5px solid var(--color-elevated);
 }
 
 .nav-btn {
   background: transparent;
   border: none;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   font-size: 1.2rem;
   font-weight: 700;
   cursor: pointer;
@@ -832,14 +832,14 @@ input:focus {
 }
 
 .nav-btn:hover {
-  background: var(--base3);
-  color: var(--accent2);
+  background: var(--color-elevated);
+  color: var(--color-accent-2);
 }
 
 .month-year {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--text1);
+  color: var(--color-text);
   letter-spacing: 0.01em;
 }
 
@@ -853,7 +853,7 @@ input:focus {
   text-align: center;
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--text2);
+  color: var(--color-text-muted);
   padding: 6px 0;
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -868,30 +868,30 @@ input:focus {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.18s;
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: 500;
   position: relative;
 }
 
 .calendar-day:not(.disabled):not(.other-month):hover {
-  background: var(--base3);
-  color: var(--accent1);
+  background: var(--color-elevated);
+  color: var(--color-accent-1);
   transform: scale(1.05);
 }
 
 .calendar-day.other-month {
-  color: var(--text3);
+  color: var(--color-text-inverted);
   opacity: 0.4;
 }
 
 .calendar-day.disabled {
-  color: var(--text3);
+  color: var(--color-text-inverted);
   opacity: 0.3;
   cursor: not-allowed;
 }
 
 .calendar-day.today {
-  background: var(--base4);
+  background: var(--color-sunken);
   font-weight: 700;
 }
 
@@ -904,21 +904,21 @@ input:focus {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: var(--accent1);
+  background: var(--color-accent-1);
 }
 
 .calendar-day.selected {
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
   font-weight: 700;
 }
 
 .calendar-day.selected:hover {
-  background: var(--accent2);
+  background: var(--color-accent-2);
   transform: scale(1.05);
 }
 
 .calendar-day.selected.today::after {
-  background: var(--text3);
+  background: var(--color-text-inverted);
 }
 </style>

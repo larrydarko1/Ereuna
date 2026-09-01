@@ -12,12 +12,12 @@ const { t } = useI18n();
 
 <style scoped>
 .financialbtn {
-  background-color: var(--accent1);
+  background-color: var(--color-accent-1);
   border: none;
   cursor: pointer;
   width: 100%;
   padding: 10px;
-  color: var(--text3);
+  color: var(--color-text-inverted);
   font-weight: bold;
   transition: background-color 0.5s ease-in-out;
   border-radius: 6px;
@@ -26,6 +26,6 @@ const { t } = useI18n();
 }
 
 .financialbtn:hover {
-  background-color: var(--accent2);
+  background-color: var(--color-accent-2);
 }
 </style>

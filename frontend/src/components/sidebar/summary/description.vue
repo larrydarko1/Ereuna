@@ -32,9 +32,9 @@ const minHeight = '48px';
 .toggle-btn {
   background: none;
   border: none;
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: bold;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   cursor: pointer;
   padding: 5px;
   font-size: 0.9em;

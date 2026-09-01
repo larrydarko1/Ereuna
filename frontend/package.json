@@ -1,16 +1,20 @@
 {
     "name": "frontend",
     "version": "2026.6",
-    "description": "Ereuna web client — Vue 3, Pinia, vue-i18n, and a forked lightweight-charts single-page app.",
+    "description": "Ereuna web client — Vue 3, vue-i18n, and a forked lightweight-charts single-page app.",
     "license": "UNLICENSED",
     "type": "module",
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "typecheck": "vue-tsc --noEmit -p tsconfig.app.json",
+        "stylelint": "stylelint \"src/styles/**/*.scss\"",
+        "stylelint:fix": "stylelint \"src/styles/**/*.scss\" --fix"
     },
     "dependencies": {
         "@ereuna/shared": "*",
+        "axios": "^1.18.1",
         "chart.js": "^4.5.0",
         "chartjs-plugin-annotation": "^3.1.0",
         "fancy-canvas": "^2.1.0",
@@ -18,19 +22,30 @@
         "pinia": "^2.2.5",
         "qrcode.vue": "^3.6.0",
         "sortablejs": "^1.15.3",
-        "vue": "^3.5.12",
+        "vue": "^3.5.25",
         "vue-chartjs": "^5.3.2",
-        "vue-i18n": "^9.14.5",
-        "vue-router": "^4.4.5"
+        "vue-i18n": "^11.3.2",
+        "vue-router": "^4.6.3"
     },
     "devDependencies": {
-        "@types/node": "^24.3.1",
-        "@vitejs/plugin-vue": "^5.2.1",
+        "@types/node": "^26.1.2",
+        "@vitejs/plugin-vue": "^5.2.4",
         "@vue/tsconfig": "^0.8.1",
-        "sass-embedded": "^1.85.1",
-        "typescript": "~5.9.2",
-        "vite": "^6.1.0",
-        "vue-tsc": "^2.2.0"
+        "autoprefixer": "^10.5.2",
+        "postcss-html": "^1.8.1",
+        "sass-embedded": "^1.100.0",
+        "stylelint": "^17.13.0",
+        "stylelint-config-standard-scss": "^17.0.0",
+        "stylelint-declaration-strict-value": "^1.11.1",
+        "stylelint-scss": "^7.2.0",
+        "typescript": "~6.0.2",
+        "vite": "^6.4.3",
+        "vue-tsc": "^3.3.5"
     },
-    "private": true
+    "private": true,
+    "browserslist": [
+        "defaults",
+        "Safari >= 14",
+        "iOS >= 14"
+    ]
 }

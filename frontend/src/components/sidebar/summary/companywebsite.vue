@@ -53,7 +53,7 @@ const displayUrl = (url: string): string => {
 }
 
 .website-link {
-  color: var(--accent1);
+  color: var(--color-accent-1);
   text-decoration: none;
   display: flex;
   align-items: left;
@@ -61,7 +61,7 @@ const displayUrl = (url: string): string => {
   transition: color 0.2s ease;
   
   &:hover {
-    color: var(--accent2);
+    color: var(--color-accent-2);
     text-decoration: underline;
   }
 }

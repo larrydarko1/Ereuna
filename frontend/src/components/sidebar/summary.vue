@@ -241,11 +241,11 @@ const getSidebarProps = (tag: string) => {
 .summary-container {
   display: flex;
   flex-direction: column;
-  color: var(--text2);
+  color: var(--color-text-muted);
   border: none;
   border-radius: 6px;
   margin: 5px;
   padding: 5px;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
 }
 </style>

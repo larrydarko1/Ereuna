@@ -18,8 +18,6 @@
 </script>
 
 <style lang="scss" scoped>
-@use '../style.scss' as *;
-
 .loader {
   display: flex;
   justify-content: center;
@@ -37,7 +35,7 @@
   stroke: linear-gradient(45deg, #e8e8e8, #cdcdcd);
   stroke-linecap: round;
   animation: dash 1.5s ease-in-out infinite;
-  stroke: var(--accent1);
+  stroke: var(--color-accent-1);
 }
 
 @keyframes rotate {

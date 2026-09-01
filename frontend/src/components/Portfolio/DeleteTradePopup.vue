@@ -172,7 +172,7 @@ function close() {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: color-mix(in srgb, var(--base1) 55%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 55%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -182,15 +182,15 @@ function close() {
 
 .modal-content {
   position: relative;
-  background: var(--base2);
-  color: var(--text1);
+  background: var(--color-surface);
+  color: var(--color-text);
   border-radius: 18px;
   padding: 36px 32px 28px 32px;
   max-width: 500px;
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 8px 32px 0 color-mix(in srgb, var(--base4) 80%, transparent), 0 1.5px 8px 0 var(--accent4);
+  box-shadow: 0 8px 32px 0 color-mix(in srgb, var(--color-sunken) 80%, transparent), 0 1.5px 8px 0 var(--color-accent-4);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -208,7 +208,7 @@ function close() {
   right: 18px;
   background: none;
   border: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 1.7rem;
   cursor: pointer;
   transition: color 0.15s;
@@ -217,14 +217,14 @@ function close() {
 }
 
 .close-x:hover {
-  color: var(--accent1);
+  color: var(--color-accent-1);
 }
 
 h2 {
   margin: 0;
   font-size: 1.35rem;
   font-weight: 700;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   letter-spacing: 0.01em;
 }
 
@@ -232,17 +232,17 @@ h3 {
   margin: 0 0 10px 0;
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .warning-box {
   display: flex;
   gap: 12px;
   padding: 14px 16px;
-  background: color-mix(in srgb, var(--negative) 8%, transparent);
-  border: 1.5px solid color-mix(in srgb, var(--negative) 25%, transparent);
+  background: color-mix(in srgb, var(--color-negative) 8%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--color-negative) 25%, transparent);
   border-radius: 10px;
-  color: var(--negative);
+  color: var(--color-negative);
   font-size: 0.95rem;
   line-height: 1.5;
 }
@@ -253,7 +253,7 @@ h3 {
 }
 
 .trade-details {
-  background: var(--base1);
+  background: var(--color-bg);
   border-radius: 10px;
   padding: 16px;
 }
@@ -262,7 +262,7 @@ h3 {
   display: flex;
   justify-content: space-between;
   padding: 8px 0;
-  border-bottom: 1px solid var(--base3);
+  border-bottom: 1px solid var(--color-elevated);
 }
 
 .detail-row:last-child {
@@ -271,12 +271,12 @@ h3 {
 
 .detail-row .label {
   font-weight: 500;
-  color: var(--text2);
+  color: var(--color-text-muted);
 }
 
 .detail-row .value {
   font-weight: 600;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .action-badge {
@@ -290,15 +290,15 @@ h3 {
 }
 
 .action-badge.buy {
-  background: color-mix(in srgb, var(--positive) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--positive) 30%, transparent);
-  color: var(--positive);
+  background: color-mix(in srgb, var(--color-positive) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-positive) 30%, transparent);
+  color: var(--color-positive);
 }
 
 .action-badge.sell {
-  background: color-mix(in srgb, var(--negative) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--negative) 30%, transparent);
-  color: var(--negative);
+  background: color-mix(in srgb, var(--color-negative) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-negative) 30%, transparent);
+  color: var(--color-negative);
 }
 
 .short-indicator {
@@ -307,14 +307,14 @@ h3 {
 }
 
 .impact-info {
-  background: var(--base1);
+  background: var(--color-bg);
   border-radius: 10px;
   padding: 16px;
 }
 
 .impact-info p {
   margin: 0;
-  color: var(--text2);
+  color: var(--color-text-muted);
   line-height: 1.6;
 }
 
@@ -323,17 +323,17 @@ h3 {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: var(--base1);
+  background: var(--color-bg);
   border-radius: 8px;
-  color: var(--accent1);
+  color: var(--color-accent-1);
 }
 
 .loader {
   width: 20px;
   height: 20px;
-  border: 2px solid var(--accent1);
+  border: 2px solid var(--color-accent-1);
   border-radius: 50%;
-  border-top: 2px solid var(--base3);
+  border-top: 2px solid var(--color-elevated);
   animation: spin 0.8s linear infinite;
 }
 
@@ -344,10 +344,10 @@ h3 {
 
 .error-msg {
   padding: 12px 16px;
-  background: color-mix(in srgb, var(--negative) 8%, transparent);
-  border: 1.5px solid color-mix(in srgb, var(--negative) 25%, transparent);
+  background: color-mix(in srgb, var(--color-negative) 8%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--color-negative) 25%, transparent);
   border-radius: 8px;
-  color: var(--negative);
+  color: var(--color-negative);
   font-size: 0.95rem;
 }
 
@@ -359,8 +359,8 @@ h3 {
 }
 
 .delete-btn {
-  background: var(--negative);
-  color: var(--text3);
+  background: var(--color-negative);
+  color: var(--color-text-inverted);
   border: none;
   border-radius: 7px;
   padding: 10px 24px;
@@ -381,8 +381,8 @@ h3 {
 
 .cancel-btn {
   background: transparent;
-  color: var(--text2);
-  border: 1.5px solid var(--base3);
+  color: var(--color-text-muted);
+  border: 1.5px solid var(--color-elevated);
   border-radius: 7px;
   padding: 10px 24px;
   font-weight: 600;
@@ -392,8 +392,8 @@ h3 {
 }
 
 .cancel-btn:hover:not(:disabled) {
-  border-color: var(--accent1);
-  color: var(--accent1);
+  border-color: var(--color-accent-1);
+  color: var(--color-accent-1);
 }
 
 .cancel-btn:disabled {

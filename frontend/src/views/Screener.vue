@@ -42,8 +42,8 @@
         @click="showEditColumn = !showEditColumn" :aria-label="t('screener.editTableColumns')">{{ t('screener.editTable') }}</button>
           <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }"
             @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover :title="t('screener.createNewScreener')" :aria-label="t('screener.createNewScreener')">
-           <svg class="img2" viewBox="0 0 512 512" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg">
-  <g fill="var(--text1)" transform="translate(85.333333, 85.333333)">
+           <svg class="img2" viewBox="0 0 512 512" fill="var(--color-text)" xmlns="http://www.w3.org/2000/svg">
+  <g fill="var(--color-text)" transform="translate(85.333333, 85.333333)">
     <path d="M170.67,0C264.92,0,341.33,76.41,341.33,170.67S264.92,341.33,170.67,341.33S0,264.92,0,170.67S76.41,0,170.67,0ZM170.67,42.67c-70.69,0-128,57.31-128,128s57.31,128,128,128s128-57.31,128-128S241.36,42.67,170.67,42.67ZM192,85.33v64h64v42.67h-64v64h-42.67v-64h-64v-42.67h64v-64H192Z"/>
   </g>
 </svg>
@@ -51,14 +51,14 @@
           <button class="snavbtn" id="screenerModify" :class="{ 'snavbtnslct': showRenameScreener }"
             @click="showRenameScreener = !showRenameScreener" v-b-tooltip.hover :title="t('screener.renameCurrentScreener')" :aria-label="t('screener.renameCurrentScreener')">
           <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"></path>
-  <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path>
-  <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"></path>
+  <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--color-text)" stroke-width="2"></path>
+  <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--color-text)" stroke-width="2"></path>
+  <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--color-text)" stroke-width="2"></path>
 </svg>
             <label class=btnlabel>{{ t('screener.rename') }}</label></button>
          <!-- Replace your current Reset button with this: -->
 <button class="snavbtn" v-b-tooltip.hover :title="t('screener.resetScreener')" @click="showResetDialog = true" :aria-label="t('screener.resetScreener')">
-  <svg class="img2" fill="var(--text1)" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" stroke="var(--text1)" stroke-width="20.48">
+  <svg class="img2" fill="var(--color-text)" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" stroke="var(--color-text)" stroke-width="20.48">
     <path d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z"/>
   </svg>
   <label class="btnlabel">{{ t('screener.reset') }}</label>
@@ -69,15 +69,15 @@
     <p>{{ t('screener.resetDialogMessage') }} <br>{{ t('screener.resetDialogWarning') }}</p>
     <div style="margin-top: 16px;">
       <button class="trade-btn" @click="confirmResetScreener">{{ t('screener.yesReset') }}</button>
-      <button class="trade-btn" style="margin-left: 12px; background: var(--base3); color: #fff;" @click="showResetDialog = false">{{ t('common.cancel') }}</button>
+      <button class="trade-btn" style="margin-left: 12px; background: var(--color-elevated); color: #fff;" @click="showResetDialog = false">{{ t('common.cancel') }}</button>
     </div>
-    <div v-if="resetError" style="color: var(--negative); margin-top: 12px;">{{ resetError }}</div>
+    <div v-if="resetError" style="color: var(--color-negative); margin-top: 12px;">{{ resetError }}</div>
   </div>
 </div>
           <button id="watchlistAutoplay" class="snavbtn" :class="{ 'snavbtnslct': autoplayRunning }"
             @click="AutoPlay()" v-b-tooltip.hover :title="t('screener.autoplayResults')" :aria-label="t('screener.autoplayResults')">
-            <svg class="img2" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)">
-  <path fill="var(--text1)" fill-rule="evenodd"
+            <svg class="img2" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--color-text)">
+  <path fill="var(--color-text)" fill-rule="evenodd"
     d="M5.23331,0.493645 C6.8801,-0.113331 8.6808,-0.161915 10.3579,0.355379 C11.4019,0.6773972 12.361984,1.20757325 13.1838415,1.90671757 L13.4526,2.14597 L14.2929,1.30564 C14.8955087,0.703065739 15.9071843,1.0850774 15.994017,1.89911843 L16,2.01275 L16,6.00002 L12.0127,6.00002 C11.1605348,6.00002 10.7153321,5.01450817 11.2294893,4.37749065 L11.3056,4.29291 L12.0372,3.56137 C11.389,2.97184 10.6156,2.52782 9.76845,2.26653 C8.5106,1.87856 7.16008,1.915 5.92498,2.37023 C4.68989,2.82547 3.63877,3.67423 2.93361,4.78573 C2.22844,5.89723 1.90836,7.20978 2.02268,8.52112 C2.13701,9.83246 2.6794,11.0698 3.56627,12.0425 C4.45315,13.0152 5.63528,13.6693 6.93052,13.9039 C8.22576,14.1385 9.56221,13.9407 10.7339,13.3409 C11.9057,12.7412 12.8476,11.7727 13.4147,10.5848 C13.6526,10.0864 14.2495,9.8752 14.748,10.1131 C15.2464,10.351 15.4575,10.948 15.2196,11.4464 C14.4635,13.0302 13.2076,14.3215 11.6453,15.1213 C10.0829,15.921 8.30101,16.1847 6.57402,15.8719 C4.84704,15.559 3.27086,14.687 2.08836,13.39 C0.905861,12.0931 0.182675,10.4433 0.0302394,8.69483 C-0.122195,6.94637 0.304581,5.1963 1.2448,3.7143 C2.18503,2.2323 3.58652,1.10062 5.23331,0.493645 Z M6,5.46077 C6,5.09472714 6.37499031,4.86235811 6.69509872,5.0000726 L6.7678,5.03853 L10.7714,7.57776 C11.0528545,7.75626909 11.0784413,8.14585256 10.8481603,8.36273881 L10.7714,8.42224 L6.7678,10.9615 C6.45867857,11.1575214 6.06160816,10.965274 6.00646097,10.6211914 L6,10.5392 L6,5.46077 Z">
   </path>
 </svg>
@@ -87,12 +87,12 @@
           <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path
     d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113"
-    stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    stroke="var(--color-text)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
             <label class=btnlabel>{{ t('screener.hiddenAssets') }}</label></button>
           <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'combined' }" v-b-tooltip.hover
             :title="t('screener.showCombinedResults')" @click="showCombinedResults()" :aria-label="t('screener.showCombinedResults')">
-          <svg class="img2" fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <svg class="img2" fill="var(--color-text)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
   <path d="M8,8 L8,4.5 C8,3.11928813 9.11928813,2 10.5,2 L19.5,2 C20.8807119,2 22,3.11928813 22,4.5 L22,13.5 C22,14.8807119 20.8807119,16 19.5,16 L16,16 L16,19.5 C16,20.8807119 14.8807119,22 13.5,22 L4.5,22 C3.11928813,22 2,20.8807119 2,19.5 L2,10.5 C2,9.11928813 3.11928813,8 4.5,8 L8,8 Z M9,8.5 C9,8.77614237 8.77614237,9 8.5,9 L4.5,9 C3.67157288,9 3,9.67157288 3,10.5 L3,19.5 C3,20.3284271 3.67157288,21 4.5,21 L13.5,21 C14.3284271,21 15,20.3284271 15,19.5 L15,15.5 C15,15.2238576 15.2238576,15 15.5,15 L19.5,15 C20.3284271,15 21,14.3284271 21,13.5 L21,4.5 C21,3.67157288 20.3284271,3 19.5,3 L10.5,3 C9.67157288,3 9,3.67157288 9,4.5 L9,8.5 Z M13.5,9 C13.2238576,9 13,8.77614237 13,8.5 C13,8.22385763 13.2238576,8 13.5,8 C14.8807119,8 16,9.11928813 16,10.5 C16,10.7761424 15.7761424,11 15.5,11 C15.2238576,11 15,10.7761424 15,10.5 C15,9.67157288 14.3284271,9 13.5,9 Z M8,13.5 C8,13.2238576 8.22385763,13 8.5,13 C8.77614237,13 9,13.2238576 9,13.5 C9,14.3284271 9.67157288,15 10.5,15 C10.7761424,15 11,15.2238576 11,15.5 C11,15.7761424 10.7761424,16 10.5,16 C9.11928813,16 8,14.8807119 8,13.5 Z M12.5,16 C12.2238576,16 12,15.7761424 12,15.5 C12,15.2238576 12.2238576,15 12.5,15 L13.5,15 C13.7761424,15 14,15.2238576 14,15.5 C14,15.7761424 13.7761424,16 13.5,16 L12.5,16 Z M10.5,9 C10.2238576,9 10,8.77614237 10,8.5 C10,8.22385763 10.2238576,8 10.5,8 L11.5,8 C11.7761424,8 12,8.22385763 12,8.5 C12,8.77614237 11.7761424,9 11.5,9 L10.5,9 Z M8,10.5 C8,10.2238576 8.22385763,10 8.5,10 C8.77614237,10 9,10.2238576 9,10.5 L9,11.5 C9,11.7761424 8.77614237,12 8.5,12 C8.22385763,12 8,11.7761424 8,11.5 L8,10.5 Z M15,12.5 C15,12.2238576 15.2238576,12 15.5,12 C15.7761424,12 16,12.2238576 16,12.5 L16,13.5 C16,13.7761424 15.7761424,14 15.5,14 C15.2238576,14 15,13.7761424 15,13.5 L15,12.5 Z"/>
 </svg>
             <label class=btnlabel>{{ t('screener.multiScreener') }}</label>
@@ -675,21 +675,21 @@
            <h1 class="results-count" :key="resultListLength">{{ t('screener.resultsCount') }} {{ resultListLength }}</h1>
           <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }"
             @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover :title="t('screener.createNewScreener')">
-           <svg class="img2" viewBox="0 0 512 512" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg">
-  <g fill="var(--text1)" transform="translate(85.333333, 85.333333)">
+           <svg class="img2" viewBox="0 0 512 512" fill="var(--color-text)" xmlns="http://www.w3.org/2000/svg">
+  <g fill="var(--color-text)" transform="translate(85.333333, 85.333333)">
     <path d="M170.67,0C264.92,0,341.33,76.41,341.33,170.67S264.92,341.33,170.67,341.33S0,264.92,0,170.67S76.41,0,170.67,0ZM170.67,42.67c-70.69,0-128,57.31-128,128s57.31,128,128,128s128-57.31,128-128S241.36,42.67,170.67,42.67ZM192,85.33v64h64v42.67h-64v64h-42.67v-64h-64v-42.67h64v-64H192Z"/>
   </g>
 </svg></button>
           <button class="snavbtn" id="screenerModify" :class="{ 'snavbtnslct': showRenameScreener }"
             @click="showRenameScreener = !showRenameScreener" v-b-tooltip.hover :title="t('screener.renameCurrentScreener')">
           <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"></path>
-  <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path>
-  <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"></path>
+  <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--color-text)" stroke-width="2"></path>
+  <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--color-text)" stroke-width="2"></path>
+  <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--color-text)" stroke-width="2"></path>
 </svg></button>
          <!-- Replace your current Reset button with this: -->
 <button class="snavbtn" v-b-tooltip.hover :title="t('screener.resetScreener')" @click="showResetDialog = true">
-  <svg class="img2" fill="var(--text1)" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" stroke="var(--text1)" stroke-width="5">
+  <svg class="img2" fill="var(--color-text)" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" stroke="var(--color-text)" stroke-width="5">
     <path d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z"/>
   </svg>
 </button>
@@ -699,15 +699,15 @@
     <p>{{ t('screener.resetDialogMessage') }} <br>{{ t('screener.resetDialogWarning') }}</p>
     <div style="margin-top: 16px;">
       <button class="trade-btn" @click="confirmResetScreener">{{ t('screener.yesReset') }}</button>
-      <button class="trade-btn" style="margin-left: 12px; background: var(--base3); color: #fff;" @click="showResetDialog = false">{{ t('common.cancel') }}</button>
+      <button class="trade-btn" style="margin-left: 12px; background: var(--color-elevated); color: #fff;" @click="showResetDialog = false">{{ t('common.cancel') }}</button>
     </div>
-    <div v-if="resetError" style="color: var(--negative); margin-top: 12px;">{{ resetError }}</div>
+    <div v-if="resetError" style="color: var(--color-negative); margin-top: 12px;">{{ resetError }}</div>
   </div>
 </div>
           <button id="watchlistAutoplay" class="snavbtn" :class="{ 'snavbtnslct': autoplayRunning }"
             @click="AutoPlay()" v-b-tooltip.hover :title="t('screener.autoplayResults')">
-            <svg class="img2" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)">
-  <path fill="var(--text1)" fill-rule="evenodd"
+            <svg class="img2" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--color-text)">
+  <path fill="var(--color-text)" fill-rule="evenodd"
     d="M5.23331,0.493645 C6.8801,-0.113331 8.6808,-0.161915 10.3579,0.355379 C11.4019,0.6773972 12.361984,1.20757325 13.1838415,1.90671757 L13.4526,2.14597 L14.2929,1.30564 C14.8955087,0.703065739 15.9071843,1.0850774 15.994017,1.89911843 L16,2.01275 L16,6.00002 L12.0127,6.00002 C11.1605348,6.00002 10.7153321,5.01450817 11.2294893,4.37749065 L11.3056,4.29291 L12.0372,3.56137 C11.389,2.97184 10.6156,2.52782 9.76845,2.26653 C8.5106,1.87856 7.16008,1.915 5.92498,2.37023 C4.68989,2.82547 3.63877,3.67423 2.93361,4.78573 C2.22844,5.89723 1.90836,7.20978 2.02268,8.52112 C2.13701,9.83246 2.6794,11.0698 3.56627,12.0425 C4.45315,13.0152 5.63528,13.6693 6.93052,13.9039 C8.22576,14.1385 9.56221,13.9407 10.7339,13.3409 C11.9057,12.7412 12.8476,11.7727 13.4147,10.5848 C13.6526,10.0864 14.2495,9.8752 14.748,10.1131 C15.2464,10.351 15.4575,10.948 15.2196,11.4464 C14.4635,13.0302 13.2076,14.3215 11.6453,15.1213 C10.0829,15.921 8.30101,16.1847 6.57402,15.8719 C4.84704,15.559 3.27086,14.687 2.08836,13.39 C0.905861,12.0931 0.182675,10.4433 0.0302394,8.69483 C-0.122195,6.94637 0.304581,5.1963 1.2448,3.7143 C2.18503,2.2323 3.58652,1.10062 5.23331,0.493645 Z M6,5.46077 C6,5.09472714 6.37499031,4.86235811 6.69509872,5.0000726 L6.7678,5.03853 L10.7714,7.57776 C11.0528545,7.75626909 11.0784413,8.14585256 10.8481603,8.36273881 L10.7714,8.42224 L6.7678,10.9615 C6.45867857,11.1575214 6.06160816,10.965274 6.00646097,10.6211914 L6,10.5392 L6,5.46077 Z">
   </path>
 </svg></button>
@@ -716,11 +716,11 @@
           <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path
     d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113"
-    stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    stroke="var(--color-text)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg></button>
           <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'combined' }" v-b-tooltip.hover
             title="Show Combined Screener Results" @click="showCombinedResults()">
-          <svg class="img2" fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <svg class="img2" fill="var(--color-text)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
   <path d="M8,8 L8,4.5 C8,3.11928813 9.11928813,2 10.5,2 L19.5,2 C20.8807119,2 22,3.11928813 22,4.5 L22,13.5 C22,14.8807119 20.8807119,16 19.5,16 L16,16 L16,19.5 C16,20.8807119 14.8807119,22 13.5,22 L4.5,22 C3.11928813,22 2,20.8807119 2,19.5 L2,10.5 C2,9.11928813 3.11928813,8 4.5,8 L8,8 Z M9,8.5 C9,8.77614237 8.77614237,9 8.5,9 L4.5,9 C3.67157288,9 3,9.67157288 3,10.5 L3,19.5 C3,20.3284271 3.67157288,21 4.5,21 L13.5,21 C14.3284271,21 15,20.3284271 15,19.5 L15,15.5 C15,15.2238576 15.2238576,15 15.5,15 L19.5,15 C20.3284271,15 21,14.3284271 21,13.5 L21,4.5 C21,3.67157288 20.3284271,3 19.5,3 L10.5,3 C9.67157288,3 9,3.67157288 9,4.5 L9,8.5 Z M13.5,9 C13.2238576,9 13,8.77614237 13,8.5 C13,8.22385763 13.2238576,8 13.5,8 C14.8807119,8 16,9.11928813 16,10.5 C16,10.7761424 15.7761424,11 15.5,11 C15.2238576,11 15,10.7761424 15,10.5 C15,9.67157288 14.3284271,9 13.5,9 Z M8,13.5 C8,13.2238576 8.22385763,13 8.5,13 C8.77614237,13 9,13.2238576 9,13.5 C9,14.3284271 9.67157288,15 10.5,15 C10.7761424,15 11,15.2238576 11,15.5 C11,15.7761424 10.7761424,16 10.5,16 C9.11928813,16 8,14.8807119 8,13.5 Z M12.5,16 C12.2238576,16 12,15.7761424 12,15.5 C12,15.2238576 12.2238576,15 12.5,15 L13.5,15 C13.7761424,15 14,15.2238576 14,15.5 C14,15.7761424 13.7761424,16 13.5,16 L12.5,16 Z M10.5,9 C10.2238576,9 10,8.77614237 10,8.5 C10,8.22385763 10.2238576,8 10.5,8 L11.5,8 C11.7761424,8 12,8.22385763 12,8.5 C12,8.77614237 11.7761424,9 11.5,9 L10.5,9 Z M8,10.5 C8,10.2238576 8.22385763,10 8.5,10 C8.77614237,10 9,10.2238576 9,10.5 L9,11.5 C9,11.7761424 8.77614237,12 8.5,12 C8.22385763,12 8,11.7761424 8,11.5 L8,10.5 Z M15,12.5 C15,12.2238576 15.2238576,12 15.5,12 C15.7761424,12 16,12.2238576 16,12.5 L16,13.5 C16,13.7761424 15.7761424,14 15.5,14 C15.2238576,14 15,13.7761424 15,13.5 L15,12.5 Z"/>
 </svg>
           </button>
@@ -961,8 +961,8 @@ function getScreenerImage(screenerName: string) {
 function getWatchlistIcon(ticker: any, item: any): string {
   const watchlistName = typeof ticker === 'string' ? ticker : ticker?.Name ?? String(ticker);
   return isAssetInWatchlist(watchlistName, item)
-    ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><g id="Interface / Checkbox_Check"><path id="Vector" d="M8 12L11 15L16 9M4 16.8002V7.2002C4 6.08009 4 5.51962 4.21799 5.0918C4.40973 4.71547 4.71547 4.40973 5.0918 4.21799C5.51962 4 6.08009 4 7.2002 4H16.8002C17.9203 4 18.4796 4 18.9074 4.21799C19.2837 4.40973 19.5905 4.71547 19.7822 5.0918C20 5.5192 20 6.07899 20 7.19691V16.8036C20 17.9215 20 18.4805 19.7822 18.9079C19.5905 19.2842 19.2837 19.5905 18.9074 19.7822C18.48 20 17.921 20 16.8031 20H7.19691C6.07899 20 5.5192 20 5.0918 19.7822C4.71547 19.5905 4.40973 19.2842 4.21799 18.9079C4 18.4801 4 17.9203 4 16.8002Z" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></g></g></svg>'
-    : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><g id="Interface / Checkbox_Unchecked"><path id="Vector" d="M4 7.2002V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2842 19.7822 18.9079C20 18.4805 20 17.9215 20 16.8036V7.19691C20 6.07899 20 5.5192 19.7822 5.0918C19.5905 4.71547 19.2837 4.40973 18.9074 4.21799C18.4796 4 17.9203 4 16.8002 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002Z" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></g></g></svg>';
+    ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><g id="Interface / Checkbox_Check"><path id="Vector" d="M8 12L11 15L16 9M4 16.8002V7.2002C4 6.08009 4 5.51962 4.21799 5.0918C4.40973 4.71547 4.71547 4.40973 5.0918 4.21799C5.51962 4 6.08009 4 7.2002 4H16.8002C17.9203 4 18.4796 4 18.9074 4.21799C19.2837 4.40973 19.5905 4.71547 19.7822 5.0918C20 5.5192 20 6.07899 20 7.19691V16.8036C20 17.9215 20 18.4805 19.7822 18.9079C19.5905 19.2842 19.2837 19.5905 18.9074 19.7822C18.48 20 17.921 20 16.8031 20H7.19691C6.07899 20 5.5192 20 5.0918 19.7822C4.71547 19.5905 4.40973 19.2842 4.21799 18.9079C4 18.4801 4 17.9203 4 16.8002Z" stroke="var(--color-text)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></g></g></svg>'
+    : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><g id="Interface / Checkbox_Unchecked"><path id="Vector" d="M4 7.2002V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2842 19.7822 18.9079C20 18.4805 20 17.9215 20 16.8036V7.19691C20 6.07899 20 5.5192 19.7822 5.0918C19.5905 4.71547 19.2837 4.40973 18.9074 4.21799C18.4796 4 17.9203 4 16.8002 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002Z" stroke="var(--color-text)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></g></g></svg>';
 }
 
 // for handling dropdown menu
@@ -2516,8 +2516,6 @@ const showSelector = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-@use '../style.scss' as *;
-
 #main2 {
   position: relative;
   display: flex;
@@ -2527,7 +2525,7 @@ const showSelector = computed(() => {
 #filters {
   flex: 0 0 20%;
   flex-direction: column;
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   overflow-y: scroll;
   min-width: 300px;
 }
@@ -2543,7 +2541,7 @@ const showSelector = computed(() => {
 .simple-loader {
   padding: 12px 16px;
   text-align: center;
-  color: var(--text1);
+  color: var(--color-text);
   background: transparent;
   font-weight: 600;
 }
@@ -2553,7 +2551,7 @@ const showSelector = computed(() => {
   width: 12px;
   height: 1.5px;
   margin-right: 10px;
-  background: var(--text1);
+  background: var(--color-text);
   vertical-align: middle;
   transform-origin: center;
   animation: simple-rotate 0.8s linear infinite;
@@ -2569,14 +2567,14 @@ const showSelector = computed(() => {
   top: 0;
   right: 0;
   width: 30%;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   z-index: 1000;
 }
 
 #filters {
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   display: flexbox;
-  color: var(--text1);
+  color: var(--color-text);
   height: 100%;
   text-align: center;
 }
@@ -2595,8 +2593,8 @@ p {
   width: 100%;
   outline: none;
   border: none;
-  background-color: var(--base2);
-  color: var(--text1);
+  background-color: var(--color-surface);
+  color: var(--color-text);
   text-align: center;
   margin: 0 auto;
   display: block;
@@ -2607,8 +2605,8 @@ p {
   width: 100%;
   outline: none;
   border: none;
-  background-color: var(--base3);
-  color: var(--text1);
+  background-color: var(--color-elevated);
+  color: var(--color-text);
   text-align: center;
   margin: 0 auto;
   display: block;
@@ -2616,9 +2614,9 @@ p {
 }
 
 .Header {
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   text-align: center;
-  color: var(--text1);
+  color: var(--color-text);
   border: none;
   display: flex;
   flex-direction: row;
@@ -2629,31 +2627,31 @@ p {
 }
 
 .even {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   text-align: center;
-  color: var(--text1);
+  color: var(--color-text);
   border: none;
   word-break: break-all;
   min-width: 2610px;
 }
 
 .odd {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   text-align: center;
-  color: var(--text1);
+  color: var(--color-text);
   word-break: break-all;
   min-width: 2610px;
 }
 
 .even:hover,
 .odd:hover {
-  background-color: var(--accent4);
+  background-color: var(--color-accent-4);
   cursor: pointer;
 }
 
 .selected {
-  background-color: var(--accent4);
-  color: var(--text1);
+  background-color: var(--color-accent-4);
+  color: var(--color-text);
 }
 
 .RES {
@@ -2692,7 +2690,7 @@ p {
   position: relative;
   display: flex;
   flex-direction: row;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   border-radius: 6px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -2721,7 +2719,7 @@ p {
   padding: 5px 8px;
   cursor: pointer;
   text-decoration: none;
-  color: var(--text1);
+  color: var(--color-text);
   border-radius: 4px;
   transition: background-color 0.3s ease;
   background-color: transparent;
@@ -2739,7 +2737,7 @@ p {
   margin: 5px;
   padding: 5px 8px;
   text-decoration: none;
-  color: var(--text1);
+  color: var(--color-text);
   border-radius: 4px;
   transition: background-color 0.3s ease;
   background-color: transparent;
@@ -2767,7 +2765,7 @@ p {
 }
 
 .results-spinner .path {
-  stroke: var(--text1, #333);
+  stroke: var(--color-text, #333);
   stroke-linecap: round;
   animation: dash 1.5s ease-in-out infinite;
 }
@@ -2780,7 +2778,7 @@ p {
 
 .snavbtn:hover,
 .snavbtn.active {
-  background-color: var(--base3);
+  background-color: var(--color-elevated);
 }
 
 .snavbtn:disabled {
@@ -2796,12 +2794,12 @@ p {
 
 .snavbtn.active span,
 .activeText {
-  color: var(--accent1);
+  color: var(--color-accent-1);
 }
 
 .snavbtnslct {
-  background-color: var(--base3);
-  color: var(--text1);
+  background-color: var(--color-elevated);
+  color: var(--color-text);
   padding: 5px 8px;
   outline: none;
   border: none;
@@ -2822,7 +2820,7 @@ p {
   top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   width: 300px;
   height: 150px;
   display: flex;
@@ -2834,13 +2832,13 @@ p {
   backdrop-filter: blur(10px);
   z-index: 10000;
   padding: 10px;
-  border: 2px solid var(--accent3);
+  border: 2px solid var(--color-accent-3);
 }
 
 .RenameScreener h3,
 .CreateScreener h3 {
   background-color: transparent;
-  color: rgba(var(--text1), 0.5);
+  color: rgba(var(--color-text), 0.5);
   border: none;
   margin-top: 10px;
 }
@@ -2852,16 +2850,16 @@ p {
   margin: 7px;
   width: 160px;
   outline: none;
-  color: var(--base3);
+  color: var(--color-elevated);
   transition: border-color 0.3s, box-shadow 0.3s;
-  border: solid 1px var(--base4);
-  background-color: var(--base4);
+  border: solid 1px var(--color-sunken);
+  background-color: var(--color-sunken);
 }
 
 .RenameScreener input:focus,
 .CreateScreener input:focus {
-  border-color: var(--accent1);
-  box-shadow: 0 0 5px rgba(var(--accent3), 0.5);
+  border-color: var(--color-accent-1);
+  box-shadow: 0 0 5px rgba(var(--color-accent-3), 0.5);
   outline: none;
 }
 
@@ -2908,7 +2906,7 @@ p {
 }
 
 .path {
-  stroke: var(--text1, #333);
+  stroke: var(--color-text, #333);
   stroke-linecap: round;
   animation: dash 1.5s ease-in-out infinite;
 }
@@ -2940,8 +2938,8 @@ p {
 }
 
 .results {
-  background-color: var(--base4);
-  color: var(--text1);
+  background-color: var(--color-sunken);
+  color: var(--color-text);
   text-align: center;
   align-items: center;
   padding: 100px;
@@ -2949,16 +2947,16 @@ p {
 }
 
 .results2 {
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   width: 100vw;
-  color: var(--text1);
+  color: var(--color-text);
   border: none;
   height: 200px;
 }
 
 .results2v {
   padding: 20px;
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
 }
 
 .rowint {
@@ -2995,11 +2993,11 @@ p {
   left: 20px;
   padding: 5px;
   border-radius: 5px;
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
 }
 
 .dropdown-menu>div {
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   padding: 5px;
   height: 14px;
   display: flex;
@@ -3008,7 +3006,7 @@ p {
 }
 
 .dropdown-menu>div:hover {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
 }
 
 .dropdown-btn:hover+.dropdown-menu,
@@ -3025,7 +3023,7 @@ p {
   position: absolute;
   left: 100%;
   top: 0;
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
   max-height: 185px;
   overflow-y: scroll;
   padding: 5px;
@@ -3050,7 +3048,7 @@ p {
 }
 
 .watchlist-item:hover {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
 }
 
 .watchlist-item input[type="checkbox"] {
@@ -3107,11 +3105,11 @@ p {
   padding: 5px 8px;
   cursor: pointer;
   text-decoration: none;
-  color: var(--text1);
+  color: var(--color-text);
   border-radius: 4px;
   background-color: transparent;
   outline: none;
-  border: solid 1px var(--base4);
+  border: solid 1px var(--color-sunken);
   box-shadow: none;
   appearance: none;
   -webkit-appearance: none;
@@ -3127,11 +3125,11 @@ p {
   padding: 5px 8px;
   cursor: pointer;
   text-decoration: none;
-  color: var(--text1);
+  color: var(--color-text);
   border-radius: 4px;
   background-color: transparent;
   outline: none;
-  border: solid 1px var(--accent1);
+  border: solid 1px var(--color-accent-1);
   box-shadow: none;
   appearance: none;
   -webkit-appearance: none;
@@ -3141,12 +3139,12 @@ p {
 
 .edit-watch-panel-btn:hover,
 .edit-watch-panel-btn:focus {
-  background-color: var(--base3);
-  color: var(--text1);
+  background-color: var(--color-elevated);
+  color: var(--color-text);
 }
 
 .edit-watch-panel-btn:active {
-  background-color: var(--base4);
+  background-color: var(--color-sunken);
 }
 
 .imgbtn {
@@ -3165,14 +3163,14 @@ p {
 }
 
 .custom-checkbox.checked {
-  color: var(--text1);
+  color: var(--color-text);
   opacity: 1;
 }
 
 .checkmark {
   width: 8px;
   height: 8px;
-  background-color: var(--text1);
+  background-color: var(--color-text);
   border-radius: 50%;
   margin-right: 5px;
   display: inline-block;
@@ -3180,17 +3178,17 @@ p {
 }
 
 .custom-checkbox.checked .checkmark {
-  background-color: var(--accent1);
-  border-color: var(--accent1);
+  background-color: var(--color-accent-1);
+  border-color: var(--color-accent-1);
 }
 
 .custom-checkbox.checked {
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .select-container__no-screeners {
   text-align: center;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 14px;
 }
 
@@ -3200,14 +3198,14 @@ p {
   margin: 7px;
   width: 160px;
   outline: none;
-  color: var(--text1);
+  color: var(--color-text);
   transition: border-color 0.3s, box-shadow 0.3s;
-  border: solid 1px var(--base4);
-  background-color: var(--base4);
+  border: solid 1px var(--color-sunken);
+  background-color: var(--color-sunken);
 }
 
 .input:focus {
-  border-color: var(--accent1);
+  border-color: var(--color-accent-1);
   outline: none;
 }
 
@@ -3230,7 +3228,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 input[type="date"] {
-  color: var(--base3);
+  color: var(--color-elevated);
 }
 
 .input[type="number"]::-webkit-inner-spin-button,
@@ -3273,7 +3271,7 @@ input[type="date"] {
 }
 
 .reset-modal h3 {
-  color: var(--accent1);
+  color: var(--color-accent-1);
   font-size: 1.35rem;
   font-weight: 700;
   margin-bottom: 12px;
@@ -3281,7 +3279,7 @@ input[type="date"] {
 }
 
 .reset-modal p {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 1.05rem;
   margin-bottom: 18px;
   line-height: 1.6;
@@ -3298,13 +3296,13 @@ input[type="date"] {
 }
 
 .reset-modal .trade-btn {
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
   cursor: pointer;
 }
 .reset-modal .trade-btn:hover {
-  background: var(--accent2);
-  color: var(--text3);
+  background: var(--color-accent-2);
+  color: var(--color-text-inverted);
 }
 
 .wlist-container {
@@ -3332,8 +3330,8 @@ input[type="date"] {
 
 .tooltip {
   position: absolute;
-  background-color: var(--base1);
-  border: 1px solid var(--accent3);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-accent-3);
   padding: 10px;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -3342,7 +3340,7 @@ input[type="date"] {
 }
 
 .tooltip-text {
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .question-mark-wrapper:hover .tooltip {
@@ -3413,8 +3411,8 @@ input[type="date"] {
 }
 
 h1 {
-  background-color: var(--base2);
-  color: var(--text2);
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
   text-align: center;
   padding: 3.5px;
   margin: 0;
@@ -3452,7 +3450,7 @@ h1 {
     flex-direction: row;
     gap: 12px;
     padding: 8px 12px;
-    background-color: var(--base2);
+    background-color: var(--color-surface);
     justify-content: center;
     align-items: center;
     margin-bottom: 3px;
@@ -3463,9 +3461,9 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: var(--base3);
+    background-color: var(--color-elevated);
     padding: 10px 30px;
-    color: var(--text1);
+    color: var(--color-text);
     font-size: 1.5rem;
     font-weight: 600;
     letter-spacing: 0.02em;
@@ -3480,16 +3478,16 @@ h1 {
   }
 
   .mnavbtn:hover {
-    background-color: var(--accent1);
-    color: var(--text3);
+    background-color: var(--color-accent-1);
+    color: var(--color-text-inverted);
     opacity: 1;
     transform: scale(1.05);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 
   .mnavbtn.selected {
-    background-color: var(--accent1);
-    color: var(--text3);
+    background-color: var(--color-accent-1);
+    color: var(--color-text-inverted);
     opacity: 1;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
@@ -3502,7 +3500,7 @@ h1 {
   #filters {
     flex: 0 0 100%;
     flex-direction: column;
-    background-color: var(--base4);
+    background-color: var(--color-sunken);
   }
 
   #resultsDiv {
@@ -3514,13 +3512,13 @@ h1 {
 
   #sidebar-r {
     width: 100%;
-    background-color: var(--base4);
+    background-color: var(--color-sunken);
   }
 
   #filters {
-    background-color: var(--base4);
+    background-color: var(--color-sunken);
     display: flexbox;
-    color: var(--text1);
+    color: var(--color-text);
     height: 100%;
     text-align: center;
   }
@@ -3536,10 +3534,10 @@ h1 {
     margin: 7px;
     width: 200px;
     outline: none;
-    color: var(--text1);
+    color: var(--color-text);
     transition: border-color 0.3s, box-shadow 0.3s;
-    border: solid 1px var(--base4);
-    background-color: var(--base4);
+    border: solid 1px var(--color-sunken);
+    background-color: var(--color-sunken);
     text-align: left;
   }
 

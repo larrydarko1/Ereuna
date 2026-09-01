@@ -1194,12 +1194,12 @@ async function setTheme(newTheme: string) {
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
   padding: 20px;
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   border-radius: 12px;
 }
 
 .theme-card {
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   border-radius: 12px;
   padding: 20px;
   cursor: pointer;
@@ -1215,18 +1215,18 @@ async function setTheme(newTheme: string) {
 .theme-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
-  background-color: var(--base3);
+  background-color: var(--color-elevated);
 }
 
 .theme-card.active {
-  border-color: var(--accent1);
-  box-shadow: 0 0 20px rgba(var(--accent1), 0.3);
+  border-color: var(--color-accent-1);
+  box-shadow: 0 0 20px rgba(var(--color-accent-1), 0.3);
 }
 
 .theme-name {
   font-size: 1.2rem;
   font-weight: 600;
-  color: var(--text1);
+  color: var(--color-text);
   margin-bottom: 8px;
   text-transform: capitalize;
 }
@@ -1243,7 +1243,7 @@ async function setTheme(newTheme: string) {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--color-elevated);
   transition: transform 0.2s ease;
   flex-shrink: 0;
 }

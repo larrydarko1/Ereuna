@@ -219,14 +219,14 @@ async function resetColumns() {
 <style scoped>
 .modal-content {
   position: relative;
-  background: var(--base2);
-  color: var(--text1);
+  background: var(--color-surface);
+  color: var(--color-text);
   border-radius: 18px;
   padding: 36px 32px 28px 32px;
   min-width: 340px;
   max-width: 800px;
   width: 100%;
-  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--accent4);
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--color-accent-4);
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -249,19 +249,19 @@ async function resetColumns() {
   top: 16px;
   right: 16px;
   background: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
   transition: color 0.18s;
 }
 .close-x:hover {
-  color: var(--accent1);
+  color: var(--color-accent-1);
 }
 h2 {
   font-size: 1.4rem;
   font-weight: 700;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   margin: 0 0 18px 0;
   text-align: center;
 }
@@ -288,7 +288,7 @@ h2 {
 .section-label {
   font-size: 1.08rem;
   font-weight: 600;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   margin-bottom: 8px;
 }
 .chips {
@@ -297,20 +297,20 @@ h2 {
   gap: 8px;
 }
 .chip {
-  background: var(--base3);
-  color: var(--text2);
+  background: var(--color-elevated);
+  color: var(--color-text-muted);
   border-radius: 16px;
   padding: 7px 16px;
   font-size: 1rem;
   cursor: pointer;
-  border: 1.5px solid var(--base4);
+  border: 1.5px solid var(--color-sunken);
   transition: background 0.18s, color 0.18s, border-color 0.18s;
   user-select: none;
 }
 .chip.selected {
-  background: var(--accent1);
-  color: var(--base1);
-  border-color: var(--accent1);
+  background: var(--color-accent-1);
+  color: var(--color-bg);
+  border-color: var(--color-accent-1);
   cursor: not-allowed;
   opacity: 0.6;
 }
@@ -322,19 +322,19 @@ h2 {
   overflow-y: scroll;
 }
 .selected-chip {
-  background: var(--base4);
-  color: var(--text1);
+  background: var(--color-sunken);
+  color: var(--color-text);
   border-radius: 10px;
   padding: 7px 12px;
   font-size: 1rem;
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1.5px solid var(--accent1);
+  border: 1.5px solid var(--color-accent-1);
 }
 .move-btn {
-  background: var(--base2);
-  color: var(--accent1);
+  background: var(--color-surface);
+  color: var(--color-accent-1);
   border: none;
   border-radius: 4px;
   padding: 2px 7px;
@@ -348,7 +348,7 @@ h2 {
 }
 .remove-btn {
   background: none;
-  color: var(--accent2);
+  color: var(--color-accent-2);
   border: none;
   font-size: 1.1rem;
   cursor: pointer;
@@ -356,18 +356,18 @@ h2 {
   transition: color 0.18s;
 }
 .remove-btn:hover {
-  color: var(--accent1);
+  color: var(--color-accent-1);
 }
 .empty-selected {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 0.98rem;
   padding: 8px 0;
 }
 
 .trade-btn {
-  background: var(--accent1);
+  background: var(--color-accent-1);
   margin-right: 7px;
-  color: var(--text3);
+  color: var(--color-text-inverted);
   border: none;
   border-radius: 7px;
   padding: 10px 24px;
@@ -377,12 +377,12 @@ h2 {
   transition: background 0.18s;
 }
 .trade-btn:hover {
-  background: var(--accent2);
+  background: var(--color-accent-2);
 }
 
 .reset-btn {
-  background: var(--accent2);
-  color: var(--text3);
+  background: var(--color-accent-2);
+  color: var(--color-text-inverted);
   border: none;
   border-radius: 7px;
   padding: 10px 24px;
@@ -393,13 +393,13 @@ h2 {
   transition: background 0.18s;
 }
 .reset-btn:hover {
-  background: var(--accent1);
+  background: var(--color-accent-1);
 }
 
 .cancel-btn {
   background: transparent;
-  color: var(--text2);
-  border: 1.5px solid var(--base3);
+  color: var(--color-text-muted);
+  border: 1.5px solid var(--color-elevated);
   border-radius: 7px;
   padding: 10px 24px;
   font-weight: 600;
@@ -408,8 +408,8 @@ h2 {
   transition: border-color 0.18s, color 0.18s;
 }
 .cancel-btn:hover {
-  border-color: var(--accent1);
-  color: var(--accent1);
+  border-color: var(--color-accent-1);
+  color: var(--color-accent-1);
 }
 
 </style>

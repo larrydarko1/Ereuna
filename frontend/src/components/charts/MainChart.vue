@@ -401,17 +401,8 @@ import { onMounted, ref, watch, computed, onUnmounted, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-import {
-  createChart,
-  ColorType,
-  CrosshairMode,
-  IChartApi,
-  Time,
-  IPriceLine,
-  MouseEventParams,
-  LogicalRange,
-  SeriesMarker
-} from '@/lib/lightweight-charts';
+import { createChart, ColorType, CrosshairMode } from '@/lib/lightweight-charts';
+import type { IChartApi, Time, IPriceLine, MouseEventParams, LogicalRange, SeriesMarker } from '@/lib/lightweight-charts';
 import { ChartRuler } from '@/lib/lightweight-charts/ruler';
 import { TrendLineManager } from '@/lib/lightweight-charts/trendline';
 import { BoxManager } from '@/lib/lightweight-charts/box';
@@ -1680,24 +1671,24 @@ async function fetchChartData(symbolParam?: string, timeframeParam?: string): Pr
 
 const defaultStyles = getComputedStyle(document.documentElement);
 const theme = {
-  accent1: defaultStyles.getPropertyValue('--accent1'),
-  accent2: defaultStyles.getPropertyValue('--accent2'),
-  accent3: defaultStyles.getPropertyValue('--accent3'),
-  accent4: defaultStyles.getPropertyValue('--accent4'),
-  text1: defaultStyles.getPropertyValue('--text1'),
-  text2: defaultStyles.getPropertyValue('--text2'),
-  text3: defaultStyles.getPropertyValue('--text3'),
-  base1: defaultStyles.getPropertyValue('--base1'),
-  base2: defaultStyles.getPropertyValue('--base2'),
-  base3: defaultStyles.getPropertyValue('--base3'),
-  base4: defaultStyles.getPropertyValue('--base4'),
-  positive: defaultStyles.getPropertyValue('--positive'),
-  negative: defaultStyles.getPropertyValue('--negative'),
-  volume: defaultStyles.getPropertyValue('--volume'),
-  ma1: defaultStyles.getPropertyValue('--ma1'),
-  ma2: defaultStyles.getPropertyValue('--ma2'),
-  ma3: defaultStyles.getPropertyValue('--ma3'),
-  ma4: defaultStyles.getPropertyValue('--ma4'),
+  accent1: defaultStyles.getPropertyValue('--color-accent-1'),
+  accent2: defaultStyles.getPropertyValue('--color-accent-2'),
+  accent3: defaultStyles.getPropertyValue('--color-accent-3'),
+  accent4: defaultStyles.getPropertyValue('--color-accent-4'),
+  text1: defaultStyles.getPropertyValue('--color-text'),
+  text2: defaultStyles.getPropertyValue('--color-text-muted'),
+  text3: defaultStyles.getPropertyValue('--color-text-inverted'),
+  base1: defaultStyles.getPropertyValue('--color-bg'),
+  base2: defaultStyles.getPropertyValue('--color-surface'),
+  base3: defaultStyles.getPropertyValue('--color-elevated'),
+  base4: defaultStyles.getPropertyValue('--color-sunken'),
+  positive: defaultStyles.getPropertyValue('--color-positive'),
+  negative: defaultStyles.getPropertyValue('--color-negative'),
+  volume: defaultStyles.getPropertyValue('--color-volume'),
+  ma1: defaultStyles.getPropertyValue('--color-ma-1'),
+  ma2: defaultStyles.getPropertyValue('--color-ma-2'),
+  ma3: defaultStyles.getPropertyValue('--color-ma-3'),
+  ma4: defaultStyles.getPropertyValue('--color-ma-4'),
 };
 
 const wkchart = ref(null);
@@ -3117,7 +3108,7 @@ defineExpose({
 <style scoped>
 
 .ohlc-line {
-  color: var(--text2);
+  color: var(--color-text-muted);
   display: flex;
   gap: 4px;
   align-items: center;
@@ -3128,15 +3119,15 @@ defineExpose({
 }
 
 .ohlc-line .pos {
-  color: var(--positive);
+  color: var(--color-positive);
 }
 .ohlc-line .neg {
-  color: var(--negative);
+  color: var(--color-negative);
 }
 
 h1 {
-  background-color: var(--base2);
-  color: var(--text2);
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
   text-align: center;
   padding: 3.5px;
   margin: 0;
@@ -3152,11 +3143,11 @@ h1 {
 .mainchart-dashboard {
   display: flex;
   flex-direction: column;
-  color: var(--text2);
+  color: var(--color-text-muted);
   border: none;
   border-radius: 6px;
   padding: 5px;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   width: calc(100% - 10px);
 }
 
@@ -3169,7 +3160,7 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   z-index: 10;
 }
 
@@ -3182,12 +3173,12 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   z-index: 10;
 }
 
 .no-data-container p {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 16px;
   font-weight: 500;
 }
@@ -3202,14 +3193,14 @@ h1 {
 }
 
 .ticker {
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 20px;
   font-weight: bold;
   opacity: 1;
 }
 
 .name {
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: bold;
   opacity: 1;
   max-width: 250px;
@@ -3235,7 +3226,7 @@ h1 {
 }
 
 .dash {
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: bold;
 }
 
@@ -3245,7 +3236,7 @@ h1 {
   left: 0;
   z-index: 1000;
   background-color: transparent;
-  color: var(--text2);
+  color: var(--color-text-muted);
   border: none;
   margin-top: 20px;
   margin-left: 12px;
@@ -3262,7 +3253,7 @@ h1 {
   right: 10%;
   z-index: 1000;
   background-color: transparent;
-  color: var(--text1);
+  color: var(--color-text);
   border: none;
   flex-direction: column;
   display: flex;
@@ -3274,21 +3265,21 @@ h1 {
   align-items: center;
   margin-left: 8px;
   padding: 2px 6px;
-  background-color: var(--text2);
+  background-color: var(--color-text-muted);
   border-radius: 3px;
   opacity: 0.85;
   gap: 4px;
 }
 
 .earnings-label {
-  color: var(--base1);
+  color: var(--color-bg);
   font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.3px;
 }
 
 .earnings-timer {
-  color: var(--base1);
+  color: var(--color-bg);
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.3px;
@@ -3308,7 +3299,7 @@ h1 {
   left: 0;
   z-index: 1000;
   background-color: transparent;
-  color: var(--text2);
+  color: var(--color-text-muted);
   border: none;
   margin-top: 20px;
   margin-left: 12px;
@@ -3325,7 +3316,7 @@ h1 {
   left: 0;
   z-index: 1000;
   background-color: transparent;
-  color: var(--text2);
+  color: var(--color-text-muted);
   border: none;
   margin-top: 20px;
   margin-left: 12px;
@@ -3340,7 +3331,7 @@ h1 {
   left: 0;
   z-index: 1000;
   background-color: transparent;
-  color: var(--text2);
+  color: var(--color-text-muted);
   border: none;
   margin-top: 20px;
   margin-left: 12px;
@@ -3353,9 +3344,9 @@ h1 {
 
 .badge-message {
   display: inline-block;
-  background-color: var(--text2);
-  color: var(--base2);
-  border: solid 1px var(--text2);
+  background-color: var(--color-text-muted);
+  color: var(--color-surface);
+  border: solid 1px var(--color-text-muted);
   border-radius: 2.5px;
   margin-left: 5px;
   opacity: 0.85;
@@ -3373,7 +3364,7 @@ font-weight: bold;
 .loader-line {
   width: 10px;
   height: 2px;
-  background: var(--text2);
+  background: var(--color-text-muted);
   border-radius: 2px;
   animation: spin 1s linear infinite;
 }
@@ -3407,47 +3398,47 @@ font-weight: bold;
 }
 
 .status-indicator.status-open {
-  background-color: var(--positive);
-  box-shadow: 0 0 4px var(--positive), 0 0 8px var(--positive);
+  background-color: var(--color-positive);
+  box-shadow: 0 0 4px var(--color-positive), 0 0 8px var(--color-positive);
   animation: pulse-open 2s ease-in-out infinite;
 }
 
 .status-indicator.status-closed {
-  background-color: var(--negative);
-  box-shadow: 0 0 3px var(--negative);
+  background-color: var(--color-negative);
+  box-shadow: 0 0 3px var(--color-negative);
   animation: fade-pulse 3s ease-in-out infinite;
 }
 
 .status-indicator.status-holiday {
-  background-color: var(--accent1);
-  box-shadow: 0 0 4px var(--accent1), 0 0 8px var(--accent1);
+  background-color: var(--color-accent-1);
+  box-shadow: 0 0 4px var(--color-accent-1), 0 0 8px var(--color-accent-1);
   animation: pulse-holiday 1.5s ease-in-out infinite;
 }
 
 .holiday-icon {
   width: 12px;
   height: 12px;
-  color: var(--text2);
+  color: var(--color-text-muted);
 }
 
 @keyframes pulse-open {
   0%, 100% {
-    box-shadow: 0 0 4px var(--positive), 0 0 8px var(--positive);
+    box-shadow: 0 0 4px var(--color-positive), 0 0 8px var(--color-positive);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 6px var(--positive), 0 0 12px var(--positive);
+    box-shadow: 0 0 6px var(--color-positive), 0 0 12px var(--color-positive);
     transform: scale(1.1);
   }
 }
 
 @keyframes pulse-holiday {
   0%, 100% {
-    box-shadow: 0 0 4px var(--accent1), 0 0 8px var(--accent1);
+    box-shadow: 0 0 4px var(--color-accent-1), 0 0 8px var(--color-accent-1);
     opacity: 1;
   }
   50% {
-    box-shadow: 0 0 6px var(--accent1), 0 0 14px var(--accent1);
+    box-shadow: 0 0 6px var(--color-accent-1), 0 0 14px var(--color-accent-1);
     opacity: 0.8;
   }
 }
@@ -3462,7 +3453,7 @@ font-weight: bold;
 }
 
 .status-text {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 1rem;
   font-weight: 600;
 }
@@ -3472,13 +3463,13 @@ font-weight: bold;
   align-items: center;
   margin-left: 8px;
   padding: 2px 6px;
-  background-color: var(--text2);
+  background-color: var(--color-text-muted);
   border-radius: 3px;
   opacity: 0.85;
 }
 
 .eod-text {
-  color: var(--base1);
+  color: var(--color-bg);
   font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.3px;
@@ -3489,7 +3480,7 @@ font-weight: bold;
   width: 20px;
   height: 20px;
   border-radius: 25%;
-  border: solid var(--text2) 1px;
+  border: solid var(--color-text-muted) 1px;
   margin-right: 5px;
   object-fit: cover;
   background: transparent;
@@ -3501,8 +3492,8 @@ font-weight: bold;
   left: 0;
   width: 20px;
   height: 20px;
-  background: var(--text2);
-  color: var(--base2);
+  background: var(--color-text-muted);
+  color: var(--color-surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3511,13 +3502,13 @@ font-weight: bold;
   border-radius: 25%;
   z-index: 2;
   pointer-events: none;
-  border: solid var(--text2) 1px;
+  border: solid var(--color-text-muted) 1px;
   margin-right: 5px;
 }
 
 .navbt {
   background-color: transparent;
-  color: var(--text2);
+  color: var(--color-text-muted);
   text-align: center;
   justify-content: center;
   cursor: pointer;
@@ -3547,19 +3538,19 @@ font-weight: bold;
 
 .navbt:hover {
   background-color: rgba(255, 255, 255, 0.05);
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .navbt.selected {
   background-color: transparent;
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: bold;
-  border-bottom: 1px solid var(--text1);
+  border-bottom: 1px solid var(--color-text);
 }
 
 .navbt2 {
   background-color: transparent;
-  color: var(--text2);
+  color: var(--color-text-muted);
   text-align: center;
   justify-content: center;
   cursor: pointer;
@@ -3576,63 +3567,63 @@ font-weight: bold;
 }
 
 .navbt2:hover {
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .navbt2.selected {
   background-color: transparent;
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: bold;
 }
 
 .navbt2.ruler-active {
-  background: color-mix(in srgb, var(--text2) 15%, transparent);
-  color: var(--text1);
+  background: color-mix(in srgb, var(--color-text-muted) 15%, transparent);
+  color: var(--color-text);
 }
 
 .navbt2.ruler-active:hover {
-  background: color-mix(in srgb, var(--text2) 25%, transparent);
-  color: var(--text1);
+  background: color-mix(in srgb, var(--color-text-muted) 25%, transparent);
+  color: var(--color-text);
 }
 
 .navbt2.trendline-active {
-  background: color-mix(in srgb, var(--text2) 15%, transparent);
-  color: var(--text1);
+  background: color-mix(in srgb, var(--color-text-muted) 15%, transparent);
+  color: var(--color-text);
 }
 
 .navbt2.trendline-active:hover {
-  background: color-mix(in srgb, var(--text2) 25%, transparent);
-  color: var(--text1);
+  background: color-mix(in srgb, var(--color-text-muted) 25%, transparent);
+  color: var(--color-text);
 }
 
 .navbt2.box-active {
-  background: color-mix(in srgb, var(--text2) 15%, transparent);
-  color: var(--text1);
+  background: color-mix(in srgb, var(--color-text-muted) 15%, transparent);
+  color: var(--color-text);
 }
 
 .navbt2.box-active:hover {
-  background: color-mix(in srgb, var(--text2) 25%, transparent);
-  color: var(--text1);
+  background: color-mix(in srgb, var(--color-text-muted) 25%, transparent);
+  color: var(--color-text);
 }
 
 .navbt2.text-active {
-  background: color-mix(in srgb, var(--text2) 15%, transparent);
-  color: var(--text1);
+  background: color-mix(in srgb, var(--color-text-muted) 15%, transparent);
+  color: var(--color-text);
 }
 
 .navbt2.text-active:hover {
-  background: color-mix(in srgb, var(--text2) 25%, transparent);
-  color: var(--text1);
+  background: color-mix(in srgb, var(--color-text-muted) 25%, transparent);
+  color: var(--color-text);
 }
 
 .navbt2.freehand-active {
-  background: color-mix(in srgb, var(--text2) 15%, transparent);
-  color: var(--text1);
+  background: color-mix(in srgb, var(--color-text-muted) 15%, transparent);
+  color: var(--color-text);
 }
 
 .navbt2.freehand-active:hover {
-  background: color-mix(in srgb, var(--text2) 25%, transparent);
-  color: var(--text1);
+  background: color-mix(in srgb, var(--color-text-muted) 25%, transparent);
+  color: var(--color-text);
 }
 
 /* Chart Tools Toolbar */
@@ -3642,8 +3633,8 @@ font-weight: bold;
   justify-content: space-between;
   gap: 16px;
   padding: 5px;
-  background: var(--base2);
-  border-top: 1px solid var(--base3);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-elevated);
 }
 
 .toolbar-section {
@@ -3654,18 +3645,18 @@ font-weight: bold;
 
 .toolbar-label {
   font-size: 11px;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding-right: 12px;
-  border-right: 1px solid var(--base3);
+  border-right: 1px solid var(--color-elevated);
 }
 
 .toolbar-divider {
   width: 1px;
   height: 24px;
-  background: var(--base3);
+  background: var(--color-elevated);
 }
 
 .toolbar-buttons {
@@ -3676,7 +3667,7 @@ font-weight: bold;
 
 .tool-btn {
   background-color: transparent;
-  color: var(--text2);
+  color: var(--color-text-muted);
   border: none;
   border-radius: 4px;
   width: 32px;
@@ -3690,13 +3681,13 @@ font-weight: bold;
 }
 
 .tool-btn:hover {
-  background: color-mix(in srgb, var(--text2) 10%, transparent);
-  color: var(--text1);
+  background: color-mix(in srgb, var(--color-text-muted) 10%, transparent);
+  color: var(--color-text);
 }
 
 .tool-btn.active {
-  background: color-mix(in srgb, var(--text2) 20%, transparent);
-  color: var(--text1);
+  background: color-mix(in srgb, var(--color-text-muted) 20%, transparent);
+  color: var(--color-text);
 }
 
 .tool-icon {
@@ -3707,8 +3698,8 @@ font-weight: bold;
 
 .marker-popup {
   position: fixed;
-  background: var(--base2);
-  border: 1px solid var(--base3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-elevated);
   border-radius: 8px;
   padding: 0;
   z-index: 99999;
@@ -3724,21 +3715,21 @@ font-weight: bold;
   justify-content: space-between;
   align-items: center;
   padding: 10px 12px;
-  border-bottom: 1px solid var(--base3);
-  background: var(--base1);
+  border-bottom: 1px solid var(--color-elevated);
+  background: var(--color-bg);
   border-radius: 8px 8px 0 0;
 }
 
 .marker-popup-title {
   font-weight: bold;
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 14px;
 }
 
 .marker-popup-close {
   background: none;
   border: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 20px;
   cursor: pointer;
   padding: 0;
@@ -3752,8 +3743,8 @@ font-weight: bold;
 }
 
 .marker-popup-close:hover {
-  background: var(--base3);
-  color: var(--text1);
+  background: var(--color-elevated);
+  color: var(--color-text);
 }
 
 .marker-popup-content {
@@ -3768,16 +3759,16 @@ font-weight: bold;
 }
 
 .marker-popup-row:not(:last-child) {
-  border-bottom: 1px solid color-mix(in srgb, var(--base3) 30%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-elevated) 30%, transparent);
 }
 
 .marker-popup-label {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-weight: 500;
 }
 
 .marker-popup-value {
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: 600;
   text-align: right;
 }
@@ -3788,9 +3779,9 @@ font-weight: bold;
   align-items: center;
   gap: 6px;
   padding: 4px 8px;
-  background: var(--base2);
-  border-top: 1px solid var(--base3);
-  border-bottom: 1px solid var(--base3);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-elevated);
+  border-bottom: 1px solid var(--color-elevated);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   position: relative;
   z-index: 10;
@@ -3809,17 +3800,17 @@ font-weight: bold;
   padding: 4px;
   min-width: 28px;
   height: 28px;
-  background: var(--base3);
-  border: 1px solid var(--base4);
+  background: var(--color-elevated);
+  border: 1px solid var(--color-sunken);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .replay-btn-compact:hover {
-  background: var(--accent2);
-  border-color: var(--accent1);
+  background: var(--color-accent-2);
+  border-color: var(--color-accent-1);
   transform: scale(1.05);
 }
 
@@ -3828,12 +3819,12 @@ font-weight: bold;
 }
 
 .replay-play-btn-compact {
-  background: color-mix(in srgb, var(--accent1) 15%, var(--base3));
-  border-color: var(--accent1);
+  background: color-mix(in srgb, var(--color-accent-1) 15%, var(--color-elevated));
+  border-color: var(--color-accent-1);
 }
 
 .replay-play-btn-compact:hover {
-  background: var(--accent1);
+  background: var(--color-accent-1);
 }
 
 .replay-icon-compact {
@@ -3843,10 +3834,10 @@ font-weight: bold;
 
 .replay-speed-compact {
   padding: 4px 6px;
-  background: var(--base3);
-  border: 1px solid var(--base4);
+  background: var(--color-elevated);
+  border: 1px solid var(--color-sunken);
   border-radius: 4px;
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
@@ -3856,13 +3847,13 @@ font-weight: bold;
 }
 
 .replay-speed-compact:hover {
-  background: var(--accent2);
-  border-color: var(--accent1);
+  background: var(--color-accent-2);
+  border-color: var(--color-accent-1);
 }
 
 .replay-speed-compact:focus {
   outline: none;
-  border-color: var(--accent1);
+  border-color: var(--color-accent-1);
 }
 
 .replay-progress-wrapper {
@@ -3878,7 +3869,7 @@ font-weight: bold;
   height: 4px;
   -webkit-appearance: none;
   appearance: none;
-  background: var(--base4);
+  background: var(--color-sunken);
   border-radius: 2px;
   outline: none;
   cursor: pointer;
@@ -3889,8 +3880,8 @@ font-weight: bold;
   appearance: none;
   width: 12px;
   height: 12px;
-  background: var(--accent1);
-  border: 1px solid var(--text1);
+  background: var(--color-accent-1);
+  border: 1px solid var(--color-text);
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -3899,14 +3890,14 @@ font-weight: bold;
 
 .replay-progress-compact::-webkit-slider-thumb:hover {
   transform: scale(1.15);
-  background: var(--positive);
+  background: var(--color-positive);
 }
 
 .replay-progress-compact::-moz-range-thumb {
   width: 12px;
   height: 12px;
-  background: var(--accent1);
-  border: 1px solid var(--text1);
+  background: var(--color-accent-1);
+  border: 1px solid var(--color-text);
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -3915,17 +3906,17 @@ font-weight: bold;
 
 .replay-progress-compact::-moz-range-thumb:hover {
   transform: scale(1.15);
-  background: var(--positive);
+  background: var(--color-positive);
 }
 
 .replay-date-compact {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text1);
-  background: var(--base3);
+  color: var(--color-text);
+  background: var(--color-elevated);
   padding: 4px 8px;
   border-radius: 4px;
-  border: 1px solid var(--base4);
+  border: 1px solid var(--color-sunken);
   min-width: 140px;
   text-align: center;
   white-space: nowrap;
@@ -3960,14 +3951,14 @@ font-weight: bold;
 }
 
 .replay-date-picker-popup {
-  background: var(--base2);
+  background: var(--color-surface);
   border-radius: 12px;
   width: 90%;
   max-width: 500px;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid var(--base3);
+  border: 1px solid var(--color-elevated);
 }
 
 .replay-date-picker-header {
@@ -3975,12 +3966,12 @@ font-weight: bold;
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid var(--base3);
+  border-bottom: 1px solid var(--color-elevated);
 }
 
 .replay-date-picker-header h3 {
   margin: 0;
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 18px;
   font-weight: 600;
 }
@@ -3988,7 +3979,7 @@ font-weight: bold;
 .replay-date-picker-close {
   background: none;
   border: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 32px;
   cursor: pointer;
   padding: 0;
@@ -4002,8 +3993,8 @@ font-weight: bold;
 }
 
 .replay-date-picker-close:hover {
-  background: var(--base3);
-  color: var(--text1);
+  background: var(--color-elevated);
+  color: var(--color-text);
 }
 
 .replay-loading {
@@ -4017,8 +4008,8 @@ font-weight: bold;
 .replay-loader {
   width: 40px;
   height: 40px;
-  border: 4px solid var(--base3);
-  border-top-color: var(--accent1);
+  border: 4px solid var(--color-elevated);
+  border-top-color: var(--color-accent-1);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -4028,7 +4019,7 @@ font-weight: bold;
 }
 
 .replay-loading p {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 14px;
   margin: 0;
 }
@@ -4042,14 +4033,14 @@ font-weight: bold;
 
 .replay-data-info {
   padding: 10px 14px;
-  background: var(--base1);
+  background: var(--color-bg);
   border-radius: 6px;
   text-align: center;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--color-elevated);
 }
 
 .replay-data-info span {
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 13px;
   font-weight: 500;
 }
@@ -4057,10 +4048,10 @@ font-weight: bold;
 .replay-date-input {
   width: 100%;
   padding: 10px 14px;
-  background: var(--base1);
-  border: 1px solid var(--base3);
+  background: var(--color-bg);
+  border: 1px solid var(--color-elevated);
   border-radius: 6px;
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -4069,13 +4060,13 @@ font-weight: bold;
 }
 
 .replay-date-input:hover {
-  border-color: var(--accent1);
+  border-color: var(--color-accent-1);
 }
 
 .replay-date-input:focus {
   outline: none;
-  border-color: var(--accent1);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent1) 20%, transparent);
+  border-color: var(--color-accent-1);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent-1) 20%, transparent);
 }
 
 .replay-date-presets {
@@ -4086,10 +4077,10 @@ font-weight: bold;
 
 .replay-preset-btn {
   padding: 8px 14px;
-  background: var(--base1);
-  border: 1px solid var(--base3);
+  background: var(--color-bg);
+  border: 1px solid var(--color-elevated);
   border-radius: 6px;
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -4097,8 +4088,8 @@ font-weight: bold;
 }
 
 .replay-preset-btn:hover {
-  background: var(--base3);
-  border-color: var(--accent1);
+  background: var(--color-elevated);
+  border-color: var(--color-accent-1);
   transform: translateY(-1px);
 }
 
@@ -4109,10 +4100,10 @@ font-weight: bold;
 .replay-start-confirm-btn {
   width: 100%;
   padding: 10px 20px;
-  background: var(--accent1);
+  background: var(--color-accent-1);
   border: none;
   border-radius: 6px;
-  color: var(--text3);
+  color: var(--color-text-inverted);
   font-size: 13px;
   font-weight: bold;
   cursor: pointer;

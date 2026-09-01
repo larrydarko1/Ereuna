@@ -67,7 +67,7 @@
         <template v-else>
           <div class="empty-state">
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 17H7V10H9V17ZM13 17H11V7H13V17ZM17 17H15V13H17V17ZM19.5 19.1H4.5V5H19.5V19.1ZM19.5 3H4.5C3.4 3 2.5 3.9 2.5 5V19C2.5 20.1 3.4 21 4.5 21H19.5C20.6 21 21.5 20.1 21.5 19V5C21.5 3.9 20.6 3 19.5 3Z" fill="var(--text1)" opacity="0.3"/>
+              <path d="M9 17H7V10H9V17ZM13 17H11V7H13V17ZM17 17H15V13H17V17ZM19.5 19.1H4.5V5H19.5V19.1ZM19.5 3H4.5C3.4 3 2.5 3.9 2.5 5V19C2.5 20.1 3.4 21 4.5 21H19.5C20.6 21 21.5 20.1 21.5 19V5C21.5 3.9 20.6 3 19.5 3Z" fill="var(--color-text)" opacity="0.3"/>
             </svg>
             <p>{{ t('financialsPopup.noData') }}</p>
           </div>
@@ -224,7 +224,7 @@ function handleMouseOut(): void {
   left: 0; 
   right: 0; 
   bottom: 0;
-  background: color-mix(in srgb, var(--base1) 85%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 85%, transparent);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -239,7 +239,7 @@ function handleMouseOut(): void {
 }
 
 .popup-content {
-  background: var(--base2);
+  background: var(--color-surface);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   width: 90%;
@@ -268,14 +268,14 @@ function handleMouseOut(): void {
   justify-content: space-between;
   align-items: center;
   padding: 24px 28px;
-  border-bottom: 1px solid color-mix(in srgb, var(--text1) 10%, transparent);
-  background: var(--base2);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
+  background: var(--color-surface);
 }
 
 .popup-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--text1);
+  color: var(--color-text);
   margin: 0;
 }
 
@@ -288,9 +288,9 @@ function handleMouseOut(): void {
 .toggle-button {
   padding: 8px 20px;
   border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--text1) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-text) 15%, transparent);
   background: transparent;
-  color: var(--text1);
+  color: var(--color-text);
   font-weight: 500;
   font-size: 0.95rem;
   cursor: pointer;
@@ -298,22 +298,22 @@ function handleMouseOut(): void {
 }
 
 .toggle-button:hover {
-  background: color-mix(in srgb, var(--accent1) 15%, transparent);
-  border-color: var(--accent1);
+  background: color-mix(in srgb, var(--color-accent-1) 15%, transparent);
+  border-color: var(--color-accent-1);
 }
 
 .toggle-button.active {
-  background: var(--accent1);
-  color: var(--text3);
-  border-color: var(--accent1);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
+  border-color: var(--color-accent-1);
 }
 
 .close-button {
   padding: 8px;
   border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--text1) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-text) 15%, transparent);
   background: transparent;
-  color: var(--text1);
+  color: var(--color-text);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -323,9 +323,9 @@ function handleMouseOut(): void {
 }
 
 .close-button:hover {
-  background: color-mix(in srgb, var(--negative) 15%, transparent);
-  border-color: var(--negative);
-  color: var(--negative);
+  background: color-mix(in srgb, var(--color-negative) 15%, transparent);
+  border-color: var(--color-negative);
+  color: var(--color-negative);
 }
 
 .financials-table-wrapper {
@@ -340,8 +340,8 @@ function handleMouseOut(): void {
   overflow: auto;
   flex: 1;
   border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--text1) 8%, transparent);
-  background: var(--base1);
+  border: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
+  background: var(--color-bg);
 }
 
 .financials-table {
@@ -358,12 +358,12 @@ function handleMouseOut(): void {
 }
 
 .financials-table thead th {
-  background: var(--base2);
-  color: var(--text1);
+  background: var(--color-surface);
+  color: var(--color-text);
   font-weight: 600;
   text-align: center;
   padding: 16px 12px;
-  border-bottom: 2px solid var(--accent1);
+  border-bottom: 2px solid var(--color-accent-1);
   white-space: nowrap;
   font-size: 0.95rem;
 }
@@ -374,7 +374,7 @@ function handleMouseOut(): void {
   z-index: 21;
   text-align: left;
   min-width: 280px;
-  background: linear-gradient(135deg, var(--base2) 0%, color-mix(in srgb, var(--base2) 95%, var(--accent1)) 100%);
+  background: linear-gradient(135deg, var(--color-surface) 0%, color-mix(in srgb, var(--color-surface) 95%, var(--color-accent-1)) 100%);
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
 }
 
@@ -383,27 +383,27 @@ function handleMouseOut(): void {
 }
 
 .financials-table tbody tr:hover {
-  background: color-mix(in srgb, var(--accent1) 5%, transparent);
+  background: color-mix(in srgb, var(--color-accent-1) 5%, transparent);
 }
 
 .financials-table tbody tr:nth-child(even) {
-  background: color-mix(in srgb, var(--text1) 2%, transparent);
+  background: color-mix(in srgb, var(--color-text) 2%, transparent);
 }
 
 .financials-table tbody tr:nth-child(even):hover {
-  background: color-mix(in srgb, var(--accent1) 8%, transparent);
+  background: color-mix(in srgb, var(--color-accent-1) 8%, transparent);
 }
 
 .financials-table td {
   padding: 14px 12px;
-  border-bottom: 1px solid color-mix(in srgb, var(--text1) 5%, transparent);
-  color: var(--text1);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 5%, transparent);
+  color: var(--color-text);
 }
 
 .sticky-col {
   position: sticky;
   left: 0;
-  background: linear-gradient(135deg, var(--base1) 0%, color-mix(in srgb, var(--base1) 95%, var(--accent1)) 100%);
+  background: linear-gradient(135deg, var(--color-bg) 0%, color-mix(in srgb, var(--color-bg) 95%, var(--color-accent-1)) 100%);
   z-index: 10;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
 }
@@ -426,13 +426,13 @@ function handleMouseOut(): void {
   width: 18px;
   height: 18px;
   cursor: pointer;
-  color: color-mix(in srgb, var(--text1) 50%, transparent);
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
   transition: color 0.2s ease;
   flex-shrink: 0;
 }
 
 .question-img:hover {
-  color: var(--accent1);
+  color: var(--color-accent-1);
 }
 
 .value-cell {
@@ -466,13 +466,13 @@ function handleMouseOut(): void {
 }
 
 .change-badge.positive {
-  background: color-mix(in srgb, var(--positive) 15%, transparent);
-  color: var(--positive);
+  background: color-mix(in srgb, var(--color-positive) 15%, transparent);
+  color: var(--color-positive);
 }
 
 .change-badge.negative {
-  background: color-mix(in srgb, var(--negative) 15%, transparent);
-  color: var(--negative);
+  background: color-mix(in srgb, var(--color-negative) 15%, transparent);
+  color: var(--color-negative);
 }
 
 .arrow-up {
@@ -516,7 +516,7 @@ function handleMouseOut(): void {
   justify-content: center;
   height: 100%;
   gap: 16px;
-  color: color-mix(in srgb, var(--text1) 50%, transparent);
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
 }
 
 .empty-state p {
@@ -526,8 +526,8 @@ function handleMouseOut(): void {
 
 .tooltip {
   position: fixed;
-  background: var(--base2);
-  border: 1px solid var(--accent1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent-1);
   padding: 12px 16px;
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
@@ -543,7 +543,7 @@ function handleMouseOut(): void {
 }
 
 .tooltip-text {
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 0.9rem;
   line-height: 1.5;
   display: block;
@@ -556,16 +556,16 @@ function handleMouseOut(): void {
 }
 
 .table-container::-webkit-scrollbar-track {
-  background: var(--base2);
+  background: var(--color-surface);
   border-radius: 5px;
 }
 
 .table-container::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--text1) 30%, transparent);
+  background: color-mix(in srgb, var(--color-text) 30%, transparent);
   border-radius: 5px;
 }
 
 .table-container::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--accent1) 50%, transparent);
+  background: color-mix(in srgb, var(--color-accent-1) 50%, transparent);
 }
 </style>

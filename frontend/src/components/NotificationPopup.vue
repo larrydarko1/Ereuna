@@ -85,19 +85,17 @@ defineExpose({ show });
 </script>
 
 <style lang="scss" scoped>
-@use '../style.scss' as *;
-
 .notification-popup {
   position: fixed;
   top: 20px;
   right: 20px;
-  background: var(--accent1); 
+  background: var(--color-accent-1); 
   border-radius: 5px;
   padding: 10px;
   z-index: 1000;
   transition: opacity 0.3s ease;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
-  color: var(--text3); 
+  color: var(--color-text-inverted); 
 }
 
 /* Public page theme overrides */
@@ -129,7 +127,7 @@ defineExpose({ show });
   width: 12px;
   height: 12px;
   border: none;
-  color: var(--text3);
+  color: var(--color-text-inverted);
 }
 
 .ntfbtn {
@@ -139,7 +137,7 @@ defineExpose({ show });
   border: none;
   background-color: transparent;
   opacity: 0.80;
-  color: var(--text3);
+  color: var(--color-text-inverted);
 }
 
 .ntfbtn:hover {
@@ -148,7 +146,7 @@ defineExpose({ show });
 }
 
 p{
-  color: var(--text3);
+  color: var(--color-text-inverted);
   font-weight: 600;
 }
 </style>

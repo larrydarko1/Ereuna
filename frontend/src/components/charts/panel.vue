@@ -241,7 +241,7 @@ function moveSectionDown(index: number) {
 .watch-panel-editor-backdrop {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: color-mix(in srgb, var(--base1) 70%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 70%, transparent);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -250,13 +250,13 @@ function moveSectionDown(index: number) {
 }
 
 .watch-panel-editor-modal {
-  background: color-mix(in srgb, var(--base2) 85%, transparent);
-  color: var(--text3);
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  color: var(--color-text-inverted);
   padding: 2.5rem 2rem 2rem 2rem;
   border-radius: 18px;
   min-width: 340px;
-  box-shadow: 0 8px 32px color-mix(in srgb, var(--base1) 35%, transparent);
-  border: 1.5px solid var(--base4);
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--color-bg) 35%, transparent);
+  border: 1.5px solid var(--color-sunken);
   backdrop-filter: blur(8px);
   transition: box-shadow 0.2s;
   display: flex;
@@ -269,7 +269,7 @@ function moveSectionDown(index: number) {
   font-weight: 700;
   margin-bottom: 1.5rem;
   letter-spacing: 0.02em;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   text-align: left;
 }
 
@@ -287,14 +287,14 @@ function moveSectionDown(index: number) {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: var(--base4);
+  background: var(--color-sunken);
   border-radius: 6px;
   padding: 0.5rem 0.8rem;
   transition: background 0.2s;
   font-size: 1.05rem;
   font-weight: 500;
   letter-spacing: 0.03em;
-  color: var(--accent3);
+  color: var(--color-accent-3);
   cursor: grab;
 }
 
@@ -304,12 +304,12 @@ function moveSectionDown(index: number) {
 
 .section-name {
   flex: 1;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .hidden-section {
   background-color: transparent;
-  color: var(--text3);
+  color: var(--color-text-inverted);
   border: none;
   opacity: 0.5;
   text-decoration: line-through;
@@ -317,8 +317,8 @@ function moveSectionDown(index: number) {
 
 .hide-button {
   background: transparent;
-  border: 1px solid var(--accent1);
-  color: var(--accent1);
+  border: 1px solid var(--color-accent-1);
+  color: var(--color-accent-1);
   border-radius: 5px;
   cursor: pointer;
   padding: 0.3rem 0.9rem;
@@ -328,13 +328,13 @@ function moveSectionDown(index: number) {
 }
 
 .hide-button:hover {
-  background-color: var(--accent1);
-  color: var(--base2);
+  background-color: var(--color-accent-1);
+  color: var(--color-surface);
 }
 
 .hidden-button {
-  background-color: var(--accent1);
-  color: var(--base2);
+  background-color: var(--color-accent-1);
+  color: var(--color-surface);
   border: none;
 }
 
@@ -343,15 +343,15 @@ function moveSectionDown(index: number) {
   padding: 0.3rem 0.9rem;
   border-radius: 6px;
   border: none;
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
   transition: background 0.2s, transform 0.1s;
 }
 .edit-summary-btn:hover {
-  background: var(--accent2);
+  background: var(--color-accent-2);
   transform: scale(1.05);
 }
 
@@ -363,9 +363,9 @@ function moveSectionDown(index: number) {
 }
 
 .arrow-btn {
-  background: var(--base2);
-  border: 1px solid var(--accent2);
-  color: var(--accent2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent-2);
+  color: var(--color-accent-2);
   border-radius: 3px;
   font-size: 1em;
   width: 24px;
@@ -391,16 +391,16 @@ function moveSectionDown(index: number) {
   padding: 0.7rem 0;
   border-radius: 8px;
   border: none;
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
   font-weight: 600;
   font-size: 1.05rem;
   cursor: pointer;
   transition: background 0.2s, transform 0.1s;
 }
 .nav-button:hover {
-  background: var(--accent2);
-  color: var(--text4);
+  background: var(--color-accent-2);
+  color: var(--color-text-muted);
   transform: scale(1.03);
 }
 

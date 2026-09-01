@@ -269,14 +269,14 @@ defineExpose({
   min-height: 250px;
   border-radius: 12px;
   overflow: hidden;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   margin-bottom: 10px;
 }
 
 .summary-header {
   width: 100%;
-  background-color: var(--base1);
-  border-bottom: 1px solid var(--base3);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid var(--color-elevated);
   padding: 6px;
 }
 
@@ -284,7 +284,7 @@ defineExpose({
   margin: 0;
   font-size: 14px;
   font-weight: bold;
-  color: var(--text1);
+  color: var(--color-text);
   text-align: center;
 }
 
@@ -293,7 +293,7 @@ defineExpose({
   height: 100%;
   overflow-y: auto;
   min-height: 260px; 
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   border-radius: 0 0 12px 12px;
 }
 
@@ -308,20 +308,20 @@ defineExpose({
   justify-content: space-between;
   align-items: center;
   padding: 6px 10px;
-  background-color: var(--base2);
+  background-color: var(--color-surface);
   border-radius: 6px;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--color-elevated);
 }
 
 .attribute {
   font-weight: 600;
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 12px;
   flex: 1;
 }
 
 .value {
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 12px;
   text-align: right;
   flex: 1;
@@ -332,7 +332,7 @@ defineExpose({
   justify-content: center;
   align-items: center;
   height: 100px;
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 14px;
 }
 
@@ -342,16 +342,16 @@ defineExpose({
 }
 
 .summary-content::-webkit-scrollbar-track {
-  background: var(--base2);
+  background: var(--color-surface);
   border-radius: 3px;
 }
 
 .summary-content::-webkit-scrollbar-thumb {
-  background: var(--base3);
+  background: var(--color-elevated);
   border-radius: 3px;
 }
 
 .summary-content::-webkit-scrollbar-thumb:hover {
-  background: var(--text3);
+  background: var(--color-text-inverted);
 }
 </style>

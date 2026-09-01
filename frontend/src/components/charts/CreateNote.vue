@@ -118,12 +118,12 @@ async function sendNote() {
 
 .modal-content {
   position: relative;
-  background: var(--base2);
-  color: var(--text1);
+  background: var(--color-surface);
+  color: var(--color-text);
   border-radius: 18px;
   padding: 36px 32px 28px 32px;
   min-width: 340px;
-  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--accent4);
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--color-accent-4);
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -141,7 +141,7 @@ async function sendNote() {
   right: 18px;
   background: none;
   border: none;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-size: 1.7rem;
   cursor: pointer;
   transition: color 0.15s;
@@ -149,14 +149,14 @@ async function sendNote() {
   padding: 0;
 }
 .close-x:hover {
-  color: var(--accent1);
+  color: var(--color-accent-1);
 }
 
 h2 {
   margin: 0 0 12px 0;
   font-size: 1.35rem;
   font-weight: 700;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   letter-spacing: 0.01em;
 }
 
@@ -174,7 +174,7 @@ form {
 
 label {
   font-size: 1rem;
-  color: var(--text2);
+  color: var(--color-text-muted);
   font-weight: 500;
   letter-spacing: 0.01em;
 }
@@ -182,9 +182,9 @@ label {
 textarea {
   padding: 12px 16px;
   border-radius: 10px;
-  border: 1.5px solid var(--base3);
-  background: var(--base1);
-  color: var(--text1);
+  border: 1.5px solid var(--color-elevated);
+  background: var(--color-bg);
+  color: var(--color-text);
   font-size: 1.08rem;
   outline: none;
   transition: all 0.2s ease;
@@ -193,11 +193,11 @@ textarea {
   line-height: 1.5;
 }
 textarea:focus {
-  border-color: var(--accent1);
-  background: var(--base4);
+  border-color: var(--color-accent-1);
+  background: var(--color-sunken);
 }
 textarea::placeholder {
-  color: var(--text2);
+  color: var(--color-text-muted);
   opacity: 0.7;
 }
 textarea.error,
@@ -211,12 +211,12 @@ textarea.error,
 
 .char-count {
   font-size: 0.85rem;
-  color: var(--text2);
+  color: var(--color-text-muted);
   align-self: flex-end;
   margin-top: 4px;
   padding: 2px 8px;
   border-radius: 6px;
-  background: var(--base1);
+  background: var(--color-bg);
   transition: all 0.2s ease;
   font-weight: 500;
 }
@@ -229,8 +229,8 @@ textarea.error,
 }
 
 .trade-btn {
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
   border: none;
   border-radius: 7px;
   padding: 10px 24px;
@@ -240,13 +240,13 @@ textarea.error,
   transition: background 0.18s;
 }
 .trade-btn:hover {
-  background: var(--accent2);
+  background: var(--color-accent-2);
 }
 
 .cancel-btn {
   background: transparent;
-  color: var(--text2);
-  border: 1.5px solid var(--base3);
+  color: var(--color-text-muted);
+  border: 1.5px solid var(--color-elevated);
   border-radius: 7px;
   padding: 10px 24px;
   font-weight: 600;
@@ -255,7 +255,7 @@ textarea.error,
   transition: border-color 0.18s, color 0.18s;
 }
 .cancel-btn:hover {
-  border-color: var(--accent1);
-  color: var(--accent1);
+  border-color: var(--color-accent-1);
+  color: var(--color-accent-1);
 }
 </style>

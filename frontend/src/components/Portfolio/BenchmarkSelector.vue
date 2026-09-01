@@ -184,14 +184,14 @@ async function saveBenchmarks() {
 
 .benchmark-selector-modal {
   position: relative;
-  background: var(--base2);
-  color: var(--text1);
+  background: var(--color-surface);
+  color: var(--color-text);
   border-radius: 18px;
   padding: 36px 32px 28px 32px;
   min-width: 340px;
   max-width: 600px;
   max-height: 80vh;
-  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--accent4);
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--color-accent-4);
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -212,7 +212,7 @@ async function saveBenchmarks() {
 
   h3 {
     margin: 0;
-    color: var(--accent1);
+    color: var(--color-accent-1);
     font-size: 1.35rem;
     font-weight: 700;
     letter-spacing: 0.01em;
@@ -224,7 +224,7 @@ async function saveBenchmarks() {
     right: 18px;
     background: none;
     border: none;
-    color: var(--text2);
+    color: var(--color-text-muted);
     font-size: 1.7rem;
     cursor: pointer;
     transition: color 0.15s;
@@ -233,7 +233,7 @@ async function saveBenchmarks() {
   }
 
   .close-btn:hover {
-    color: var(--accent1);
+    color: var(--color-accent-1);
   }
 }
 
@@ -242,7 +242,7 @@ async function saveBenchmarks() {
   overflow-y: auto;
 
   .info-text {
-    color: var(--text2);
+    color: var(--color-text-muted);
     margin-bottom: 16px;
     font-size: 0.9rem;
   }
@@ -260,27 +260,27 @@ async function saveBenchmarks() {
     flex: 1;
     padding: 10px 12px;
     border-radius: 7px;
-    border: 1.5px solid var(--base3);
-    background: var(--base1);
-    color: var(--text1);
+    border: 1.5px solid var(--color-elevated);
+    background: var(--color-bg);
+    color: var(--color-text);
     font-size: 1.08rem;
     outline: none;
     transition: border-color 0.18s;
 
     &:focus {
-      border-color: var(--accent1);
-      background: var(--base4);
+      border-color: var(--color-accent-1);
+      background: var(--color-sunken);
     }
 
     &::placeholder {
-      color: var(--text2);
+      color: var(--color-text-muted);
     }
   }
 
   .add-symbol-btn {
     padding: 10px 24px;
-    background: var(--accent1);
-    color: var(--text3);
+    background: var(--color-accent-1);
+    color: var(--color-text-inverted);
     border: none;
     border-radius: 7px;
     font-size: 1rem;
@@ -290,7 +290,7 @@ async function saveBenchmarks() {
     white-space: nowrap;
 
     &:hover:not(:disabled) {
-      background: var(--accent2);
+      background: var(--color-accent-2);
     }
 
     &:disabled {
@@ -300,7 +300,7 @@ async function saveBenchmarks() {
   }
 
   .hint-text {
-    color: var(--text2);
+    color: var(--color-text-muted);
     font-size: 0.85rem;
     margin-top: 6px;
     margin-bottom: 0;
@@ -311,7 +311,7 @@ async function saveBenchmarks() {
   margin-bottom: 20px;
 
   h4 {
-    color: var(--text2);
+    color: var(--color-text-muted);
     margin-bottom: 10px;
     font-size: 1rem;
     font-weight: 500;
@@ -319,7 +319,7 @@ async function saveBenchmarks() {
   }
 
   .empty-state {
-    color: var(--text2);
+    color: var(--color-text-muted);
     font-style: italic;
     padding: 12px;
     text-align: center;
@@ -335,8 +335,8 @@ async function saveBenchmarks() {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: var(--accent1);
-    color: var(--text3);
+    background: var(--color-accent-1);
+    color: var(--color-text-inverted);
     padding: 6px 12px;
     border-radius: 20px;
     font-weight: 500;
@@ -345,7 +345,7 @@ async function saveBenchmarks() {
     .remove-btn {
       background: none;
       border: none;
-      color: var(--text3);
+      color: var(--color-text-inverted);
       font-size: 1.2rem;
       cursor: pointer;
       padding: 0;
@@ -366,7 +366,7 @@ async function saveBenchmarks() {
 }
 
 .loading-indicator {
-  color: var(--text2);
+  color: var(--color-text-muted);
   text-align: center;
   padding: 12px;
   font-style: italic;
@@ -374,8 +374,8 @@ async function saveBenchmarks() {
 
 .error-message {
   background: rgba(255, 68, 68, 0.1);
-  border: 1px solid var(--negative);
-  color: var(--negative);
+  border: 1px solid var(--color-negative);
+  color: var(--color-negative);
   padding: 12px;
   border-radius: 7px;
   margin-top: 12px;
@@ -404,21 +404,21 @@ async function saveBenchmarks() {
 
   .cancel-btn {
     background: transparent;
-    color: var(--text2);
-    border: 1.5px solid var(--base3);
+    color: var(--color-text-muted);
+    border: 1.5px solid var(--color-elevated);
 
     &:hover:not(:disabled) {
-      border-color: var(--accent1);
-      color: var(--accent1);
+      border-color: var(--color-accent-1);
+      color: var(--color-accent-1);
     }
   }
 
   .save-btn {
-    background: var(--accent1);
-    color: var(--text3);
+    background: var(--color-accent-1);
+    color: var(--color-text-inverted);
 
     &:hover:not(:disabled) {
-      background: var(--accent2);
+      background: var(--color-accent-2);
     }
   }
 }

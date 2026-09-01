@@ -1,60 +1,44 @@
+/**
+ * MIGRATION SCAFFOLDING — delete when the last view below is migrated.
+ * The frontend is being rebuilt one domain at a time, and a dozen views still
+ * read the session, theme and language through this store. It now sits on the
+ * new foundation (api/client, useTheme, i18n) instead of decoding a JWT out of
+ * localStorage, so those views keep working while their batch is pending.
+ * Nothing new should import this. The replacements are:
+ *   user       → findSessionUser() / isAuthenticated() from @/api/client
+ *   theme      → useTheme() from @/composables/ui/useTheme
+ *   language   → changeLocale() from @/i18n
+ * Remaining consumers: App.vue, NotificationPopup, charts/panel, charts/panel2,
+ * sidebar/summary, User/Themes, User/AccountSettings, and the Login, Charts,
+ * Screener, Portfolio and User views.
+ */
 import { defineStore } from 'pinia';
-import i18n, { availableLocales } from '../i18n';
+import { findSessionUser, type SessionUser } from '@/api/client';
+import { useTheme } from '@/composables/ui/useTheme';
+import { isThemeId, DEFAULT_THEME } from '@/composables/ui/themes';
+import { changeLocale, isSupportedLocale, i18n } from '@/i18n';
 
 export const useUserStore = defineStore('user', {
     state: () => ({
-        user: null as null | { username: string; Language?: string;[key: string]: any },
-        theme: localStorage.getItem('user-theme') || 'default',
-        language: localStorage.getItem('user-language') || 'en',
+        user: findSessionUser(),
     }),
     actions: {
-        setUser(user: { username: string; Language?: string;[key: string]: any }) {
-            this.user = user;
-            // If user has a language preference, apply it
-            if (user.Language) {
-                this.setLanguage(user.Language.toLowerCase());
-            }
+        /** Re-read the session hint. The access token itself lives in memory in
+         *  api/client and is never decoded here. */
+        loadUserFromToken(): void {
+            this.user = findSessionUser();
         },
-        setTheme(theme: string) {
-            this.theme = theme;
-            localStorage.setItem('user-theme', theme);
+        setTheme(theme: string): void {
+            useTheme().applyTheme(isThemeId(theme) ? theme : DEFAULT_THEME);
         },
-        setLanguage(language: string) {
-            // Get available language codes from i18n config
-            const validLanguages = availableLocales.map(locale => locale.code);
-            const lang = validLanguages.includes(language.toLowerCase())
-                ? language.toLowerCase()
-                : 'en';
-
-            this.language = lang;
-            localStorage.setItem('user-language', lang);
-            // Update i18n locale
-            (i18n.global.locale as any).value = lang;
-        },
-        loadUserFromToken() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                this.user = null;
-                return;
-            }
-            const decodedToken = JSON.parse(atob(token.split('.')[1]));
-            if (decodedToken.exp < Date.now() / 1000) {
-                localStorage.removeItem('token');
-                this.user = null;
-                return;
-            }
-            this.user = decodedToken.user as { username: string; Language?: string;[key: string]: any };
-
-            // Load user's language preference
-            if (this.user?.Language) {
-                this.setLanguage(this.user.Language);
-            }
+        setLanguage(language: string): void {
+            if (isSupportedLocale(language)) void changeLocale(language);
         },
     },
     getters: {
-        getUser: (state): null | { username: string; Language?: string;[key: string]: any } => state.user,
-        currentTheme: (state): string => state.theme,
-        currentLanguage: (state): string => state.language,
+        getUser: (state): SessionUser | null => state.user,
         username: (state): string => state.user?.username ?? '',
+        currentTheme: (): string => useTheme().currentTheme.value,
+        currentLanguage: (): string => i18n.global.locale.value,
     },
 });

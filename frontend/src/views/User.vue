@@ -200,15 +200,13 @@ watchEffect(() => {
 </script>
 
 <style lang="scss" scoped>
-@use '../style.scss' as *;
-
 #main {
   display: flex;
   flex-direction: row;
   min-height: 100vh;
   width: 100vw;
   box-sizing: border-box;
-  background-color: var(--base1);
+  background-color: var(--color-bg);
   overflow-x: scroll;
   padding: 5px 10px 10px 10px;
   gap: 5px;
@@ -218,7 +216,7 @@ watchEffect(() => {
   display: flex;
   flex-direction: column;
   width: 15%;
-  background: var(--base2);
+  background: var(--color-surface);
   padding: 22px;
   border-radius: 12px;
   box-shadow: 0 6px 18px rgba(10, 20, 30, 0.08);
@@ -232,7 +230,7 @@ watchEffect(() => {
   position: relative;
   flex-direction: column;
   width: 100%;
-  background: var(--base2);
+  background: var(--color-surface);
   padding: 22px;
   border-radius: 12px;
   box-shadow: 0 6px 18px rgba(10, 20, 30, 0.08);
@@ -253,9 +251,9 @@ watchEffect(() => {
   display: flex;
   align-items: center;
   width: 90%;
-  background-color: rgba(var(--base4), 0.9);
+  background-color: rgba(var(--color-sunken), 0.9);
   padding: 10px;
-  color: var(--text1);
+  color: var(--color-text);
   font-size: 15px;
   cursor: pointer;
   border-radius: 5px;
@@ -265,17 +263,17 @@ watchEffect(() => {
 
 .menu:hover {
   cursor: pointer;
-  background-color: var(--accent1);
+  background-color: var(--color-accent-1);
   opacity: 1;
-  color: var(--text3);
+  color: var(--color-text-inverted);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(10, 20, 30, 0.06);
 }
 
 .menu.selected {
-  background-color: var(--accent1);
+  background-color: var(--color-accent-1);
   opacity: 1;
-  color: var(--text3);
+  color: var(--color-text-inverted);
   box-shadow: 0 4px 12px rgba(10, 20, 30, 0.06);
 }
 
@@ -293,13 +291,13 @@ watchEffect(() => {
 }
 
 p {
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 /* buttons for settings */
 .userbtn {
-  background-color: var(--accent1);
-  color: var(--text3);
+  background-color: var(--color-accent-1);
+  color: var(--color-text-inverted);
   border-radius: 5px;
   border: none;
   outline: none;
@@ -313,13 +311,13 @@ p {
 
 .userbtn:disabled , .userbtn:disabled:hover {
   cursor: not-allowed;
-  background-color: var(--base3);
+  background-color: var(--color-elevated);
   transform: none;
   box-shadow: none;
 }
 
 .userbtn:hover {
-  background-color: var(--accent2);
+  background-color: var(--color-accent-2);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(10, 20, 30, 0.06);
 }
@@ -331,15 +329,15 @@ p {
   margin: 7px;
   width: 160px;
   outline: none;
-  color: var(--base3);
+  color: var(--color-elevated);
   transition: border-color 0.3s, box-shadow 0.3s;
-  border: solid 1px var(--base4);
-  background-color: var(--base4);
+  border: solid 1px var(--color-sunken);
+  background-color: var(--color-sunken);
   box-shadow: 0 2px 8px rgba(10, 20, 30, 0.04);
 }
 
 .userinput:focus {
-  border-color: var(--accent1);
+  border-color: var(--color-accent-1);
   outline: none;
   box-shadow: 0 4px 12px rgba(10, 20, 30, 0.06);
 }

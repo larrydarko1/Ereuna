@@ -245,8 +245,6 @@ const changePassword = async (): Promise<void> => {
 </script>
 
 <style scoped lang="scss">
-@use '../style.scss' as *;
-
 .disclaimer {
   margin-top: 30px;
   font-size: 1rem;

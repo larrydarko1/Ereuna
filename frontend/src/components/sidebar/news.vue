@@ -7,9 +7,9 @@
         :key="news.publishedDate"
       >
         <div class="inline-note">
-          <svg class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M3 5a1 1 0 0 0 0 2h18a1 1 0 1 0 0-2H3ZM6 9a1 1 0 0 0 0 2h12a1 1 0 1 0 0-2H6ZM2 14a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1ZM6 17a1 1 0 1 0 0 2h12a1 1 0 1 0 0-2H6Z" fill="var(--text1)"></path></g></svg>
+          <svg class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M3 5a1 1 0 0 0 0 2h18a1 1 0 1 0 0-2H3ZM6 9a1 1 0 0 0 0 2h12a1 1 0 1 0 0-2H6ZM2 14a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1ZM6 17a1 1 0 1 0 0 2h12a1 1 0 1 0 0-2H6Z" fill="var(--color-text)"></path></g></svg>
         </div>
-        <p class="news-msg-date" style="color: var(--text1); opacity: 0.60;">
+        <p class="news-msg-date" style="color: var(--color-text); opacity: 0.60;">
           {{ formatDate(news.publishedDate) }}
         </p>
         <h3 class="news-msg-title">{{ news.title }}</h3>
@@ -94,28 +94,28 @@ watch(() => props.symbol, fetchNews);
 .no-data {
   text-align: center;
   font-size: 1rem;
-  color: var(--text2);
+  color: var(--color-text-muted);
   background-color: transparent;
 }
 
 .news-container{
     display: flex;
     flex-direction: column;
-    color: var(--text2);
+    color: var(--color-text-muted);
     border: none;
     border-radius: 6px;
     margin: 5px;
     padding: 5px;
-    background-color: var(--base2);
+    background-color: var(--color-surface);
 }
 
 .news {
-  background: var(--base1);
+  background: var(--color-bg);
   width: 100%;
   display: flex;
   flex-direction: column;
   position: relative;
-  border: 1px solid var(--base4);
+  border: 1px solid var(--color-sunken);
   padding: 1.5rem 1.5rem 1rem 1.5rem;
   box-sizing: border-box; // ensures padding doesn't cause overflow
   overflow-wrap: break-word; // prevents text overflow
@@ -140,25 +140,25 @@ watch(() => props.symbol, fetchNews);
 .news-msg-title {
   font-size: 1.3rem;
   font-weight: 700;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   margin: 0.2rem 0 0.5rem 0;
 }
 
 .news-msg {
   font-size: 1rem;
-  color: var(--text2);
+  color: var(--color-text-muted);
   margin: 0.1rem 0;
 }
 
 a {
-  color: var(--accent2);
+  color: var(--color-accent-2);
   text-decoration: underline;
   font-weight: 500;
   margin-top: 0.5rem;
   align-self: flex-start;
   transition: color 0.2s;
   &:hover {
-    color: var(--accent1);
+    color: var(--color-accent-1);
   }
 }
 </style>

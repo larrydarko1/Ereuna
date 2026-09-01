@@ -134,12 +134,12 @@ function close() {
 
 .modal-content {
   position: relative;
-  background: var(--base2);
-  color: var(--text1);
+  background: var(--color-surface);
+  color: var(--color-text);
   border-radius: 18px;
   padding: 36px 32px 28px 32px;
   min-width: 340px;
-  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--accent4);
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--color-accent-4);
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -155,7 +155,7 @@ function close() {
   margin: 0 0 12px 0;
   font-size: 1.35rem;
   font-weight: 700;
-  color: var(--accent1);
+  color: var(--color-accent-1);
   letter-spacing: 0.01em;
 }
 
@@ -170,36 +170,36 @@ function close() {
   padding: 0.6rem 1rem;
   border-radius: 5px;
   border: none;
-  background: var(--base4);
-  color: var(--text1);
+  background: var(--color-sunken);
+  color: var(--color-text);
   font-size: 1rem;
   outline: none;
   transition: background 0.2s;
 }
 .symbol-input-row input:focus {
-  background: var(--base1);
-  color: var(--text1);
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 .symbol-input-row button {
   padding: 0.6rem 1.2rem;
   border-radius: 5px;
   border: none;
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
   transition: background 0.2s, transform 0.1s;
 }
 .symbol-input-row button:disabled {
-  background: var(--base3);
+  background: var(--color-elevated);
   cursor: not-allowed;
   opacity: 0.7;
-  color: var(--text1);
+  color: var(--color-text);
 }
 .symbol-input-row button:not(:disabled):hover {
-  background: var(--accent2);
+  background: var(--color-accent-2);
 }
 
 .symbols-list {
@@ -214,7 +214,7 @@ function close() {
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.4rem;
-  background: var(--base4);
+  background: var(--color-sunken);
   border-radius: 6px;
   padding: 0.5rem 0.8rem;
   transition: background 0.2s;
@@ -224,7 +224,7 @@ function close() {
   font-size: 1.05rem;
   font-weight: 500;
   letter-spacing: 0.03em;
-  color: var(--text1);
+  color: var(--color-text);
 }
 
 .symbol-item button {
@@ -232,15 +232,15 @@ function close() {
   padding: 0.3rem 0.9rem;
   border-radius: 6px;
   border: none;
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
   transition: background 0.2s, transform 0.1s;
 }
 .symbol-item button:hover {
-  background: var(--accent2);
+  background: var(--color-accent-2);
   transform: scale(1.05);
 }
 
@@ -250,16 +250,16 @@ function close() {
   padding: 0.7rem 0;
   border-radius: 8px;
   border: none;
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--color-accent-1);
+  color: var(--color-text-inverted);
   font-weight: 600;
   font-size: 1.05rem;
   cursor: pointer;
   transition: background 0.2s, transform 0.1s;
 }
 .modal-content > button:last-of-type:hover {
-  background: var(--accent2);
-  color: var(--text3);
+  background: var(--color-accent-2);
+  color: var(--color-text-inverted);
   transform: scale(1.03);
 }
 </style>

@@ -1,0 +1,149 @@
+// Design tokens — the only file every SFC sees.
+// Vite injects this into every <style> block (css.preprocessorOptions.scss.
+// additionalData), so it must EMIT NOTHING: no rules, no custom properties, no
+// @use of a partial that emits. Anything that emits would be duplicated once
+// per component. Themes therefore live in _themes.scss, which index.scss uses
+// exactly once.
+// ── Two kinds of token, and the split is load-bearing ─────────────────────────
+// Non-colour (spacing, type, radii, breakpoints) → plain SCSS variables. They
+//   never change at runtime, so compile-time substitution is correct and free.
+// Colour → CSS custom properties, reached through $color-* aliases. They must
+//   swap when the user picks a theme, which a compiled-away SCSS variable
+//   cannot do.
+// ⚠ Never pass a $color-* alias to a SCSS colour function (rgba, darken,
+//   lighten): it resolves to var(--color-…) at runtime, which SCSS cannot
+//   compute at build time. Use CSS color-mix() instead:
+//     background: color-mix(in srgb, $color-accent-1 12%, transparent);
+
+// –– Emitting a theme ––––––––––––––––––––––––––
+
+// Turn a theme map into custom properties on whatever selector it is used in.
+// `color-scheme` rides along so native scrollbars, form controls and the UA's
+// own surfaces follow the theme rather than fighting it.
+@mixin emit-theme($map, $scheme: dark) {
+    color-scheme: $scheme;
+
+    @each $key, $value in $map {
+        --color-#{$key}: #{$value};
+    }
+}
+
+// –– Colour aliases ––––––––––––––––––––––––––––
+// Components write $color-*; nothing outside this file writes var(--color-*).
+
+$color-bg: var(--color-bg); // Page ground
+$color-surface: var(--color-surface); // Cards, panels, table rows
+$color-elevated: var(--color-elevated); // Borders, dividers, raised chrome
+$color-sunken: var(--color-sunken); // Wells, insets, the area behind a chart
+
+$color-text: var(--color-text);
+$color-text-muted: var(--color-text-muted);
+$color-text-inverted: var(--color-text-inverted); // On an accent-filled surface
+
+// Four accents rather than one: the palettes genuinely carry four, with no
+// stable role per index across themes, so numbering them is the honest name.
+$color-accent-1: var(--color-accent-1);
+$color-accent-2: var(--color-accent-2);
+$color-accent-3: var(--color-accent-3);
+$color-accent-4: var(--color-accent-4);
+
+// Market direction. Not "green/red": three of the 52 themes are light, one is
+// built for colour blindness, and none of them may be assumed.
+$color-positive: var(--color-positive);
+$color-negative: var(--color-negative);
+$color-volume: var(--color-volume);
+
+// Moving-average series, read by the chart through getComputedStyle as well as
+// by CSS, which is why they are real custom properties and not SCSS constants.
+$color-ma-1: var(--color-ma-1);
+$color-ma-2: var(--color-ma-2);
+$color-ma-3: var(--color-ma-3);
+$color-ma-4: var(--color-ma-4);
+
+// –– Spacing –––––––––––––––––––––––––––––––––––
+// A 4px base. `em` for padding and margins so a component scales with its own
+// type size; these are the rungs, not a licence to write raw px.
+
+$space-0: 0;
+$space-1: 0.25rem;
+$space-2: 0.5rem;
+$space-3: 0.75rem;
+$space-4: 1rem;
+$space-5: 1.5rem;
+$space-6: 2rem;
+$space-7: 3rem;
+$space-8: 4rem;
+
+// –– Typography ––––––––––––––––––––––––––––––––
+// No webfont is loaded: the app uses the system stack, so there is no
+// third-party request and no flash of unstyled text to design around.
+
+$font-sans: 'Helvetica Neue', avenir, helvetica, arial, sans-serif;
+$font-mono: ui-monospace, 'SF Mono', menlo, monaco, 'Cascadia Code', monospace;
+
+$font-size-xs: 0.6875rem; // 11px — dense table figures
+$font-size-sm: 0.8125rem; // 13px
+$font-size-base: 0.875rem; // 14px — the app's body size, not 16px: this is a data tool
+$font-size-md: 1rem;
+$font-size-lg: 1.25rem;
+$font-size-xl: 1.5rem;
+$font-size-2xl: 2rem;
+$font-size-3xl: 2.75rem;
+
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+
+$line-height-tight: 1.2; // Headings and single-line figures
+$line-height-body: 1.45; // Paragraphs, per the 40–50% rule
+
+// –– Radii and borders –––––––––––––––––––––––––
+
+$radius-sm: 0.25em;
+$radius-md: 0.5em;
+$radius-lg: 0.75em;
+$radius-pill: 999em;
+
+$border-width: 1px;
+
+// –– Elevation –––––––––––––––––––––––––––––––––
+// Shadows are neutral black at low alpha rather than a theme colour, so they
+// read the same under all 52 palettes.
+
+$shadow-sm: 0 1px 2px rgb(0 0 0 / 20%);
+$shadow-md: 0 4px 12px rgb(0 0 0 / 25%);
+$shadow-lg: 0 12px 32px rgb(0 0 0 / 35%);
+
+// –– Motion –––––––––––––––––––––––––––––––––––
+
+$duration-fast: 120ms;
+$duration-base: 200ms;
+$duration-slow: 320ms;
+$ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+// –– Layering ––––––––––––––––––––––––––––––––––
+// Every stacking value in the app comes from this ladder. A z-index written
+// inline is how the old chart popups ended up at 99999.
+
+$z-base: 0;
+$z-sticky: 100;
+$z-dropdown: 200;
+$z-overlay: 300;
+$z-modal: 400;
+$z-toast: 500;
+
+// –– Breakpoints –––––––––––––––––––––––––––––––
+// Mobile-first: these are `min-width` floors, layered upward. The values are
+// the ones the app already broke at, rounded to a scale.
+
+$bp-sm: 600px;
+$bp-md: 768px;
+$bp-lg: 900px;
+$bp-xl: 1200px;
+
+/** Mobile-first media query: `@include above($bp-lg) { … }`. */
+@mixin above($breakpoint) {
+    @media (min-width: $breakpoint) {
+        @content;
+    }
+}
