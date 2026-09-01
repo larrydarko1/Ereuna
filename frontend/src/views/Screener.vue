@@ -1,6 +1,5 @@
 <template>
   <body>
-    <Header />
     <div class="mobilenav">
       <button class="mnavbtn" :class="{ selected: selected === 'filters' }" @click="select('filters')" :aria-label="t('screener.showFiltersPanel')">
         {{ t('screener.mobileFilters') }}
@@ -822,7 +821,6 @@
 
 <script setup lang="ts">
 // @ is an alias to /src
-import Header from '@/components/Header.vue'
 import Selector from '@/components/Screener/Selector.vue';
 import { computed, onMounted, ref, watch, nextTick, reactive, toRef } from 'vue';
 import { useUserStore } from '@/store/store';

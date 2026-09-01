@@ -32,8 +32,6 @@ import { sanitizeRequest } from '@/middleware/sanitizer.js';
 import { chartsRouter } from '@/routes/chart/index.js';
 import { marketRouter } from '@/routes/market/index.js';
 import { notesRouter } from '@/routes/note/index.js';
-import { systemRouter } from '@/routes/system/index.js';
-import { maintenanceGate } from '@/middleware/maintenance.js';
 import { accountRouter, authRouter, preferencesRouter } from '@/routes/identity/index.js';
 import { portfoliosRouter, tradesRouter } from '@/routes/portfolio/index.js';
 import { screenersRouter } from '@/routes/screener/index.js';
@@ -103,8 +101,6 @@ app.use(sanitizeRequest);
 app.use(optionalAuth);
 
 app.use('/api/auth', strictLimiter, authRouter);
-app.use('/api/system', relaxedLimiter, systemRouter);
-app.use('/api', maintenanceGate);
 app.use('/api/account', standardLimiter, requireAuth, accountRouter);
 app.use('/api/preferences', standardLimiter, requireAuth, preferencesRouter);
 app.use('/api/screeners', relaxedLimiter, requireAuth, screenersRouter);

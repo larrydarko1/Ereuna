@@ -1,98 +1,91 @@
-import { createRouter, createWebHistory } from 'vue-router'
 
-const routes = [
-  {
-    path: '/',
-    name: 'Home',
-    component: () => import('../views/HomeB.vue')
-  },
-  /* 
-  {
-    path: '/careers',
-    name: 'Careers',
-    component: () => import('../views/Careers.vue')
-  },
-  {
-    path: '/blog',
-    name: 'Blog',
-    component: () => import('../views/Blog.vue')
-  },
-   */
-  {
-    path: '/communications',
-    name: 'Communications',
-    component: () => import('../views/Communications.vue')
-  },
-  {
-    path: '/about',
-    name: 'About',
-    component: () => import('../views/AboutB.vue')
-  },
-  {
-    path: '/quiz',
-    name: 'Quiz',
-    component: () => import('../views/Quiz.vue')
-  },
-  {
-    path: '/charts',
-    name: 'Charts',
-    component: () => import('../views/Charts.vue')
-  },
-  {
-    path: '/screener',
-    name: 'Screener',
-    component: () => import('../views/Screener.vue')
-  },
-  {
-    path: '/portfolio',
-    name: 'Portfolio',
-    component: () => import('../views/Portfolio.vue')
-  },
-  {
-    path: '/login',
-    name: 'Login',
-    component: () => import('../views/Login.vue')
-  },
-  {
-    path: '/account',
-    name: 'Account',
-    component: () => import('../views/User.vue')
-  },
-  {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: () => import('../views/Dashboard.vue')
-  },
-  {
-    path: '/signup',
-    name: 'SignUp',
-    component: () => import('../views/SignUpB.vue')
-  },
-  {
-    path: '/maintenance',
-    name: 'Maintenance',
-    component: () => import('../views/maintenance.vue')
-  },
-  {
-    path: '/:catchAll(.*)', // Catch-all route
-    name: 'NotFound',
-    component: () => import('../views/HomeB.vue')
-  },
-  {
-    path: '/recovery',
-    name: 'Recovery',
-    component: () => import('../views/Recovery.vue')
-  },
-  {
-    path: '/documentation',
-    name: 'Documentation',
-    component: () => import('../views/Documentation.vue')
-  },
-]
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
+import { isAuthenticated } from '@/api/client';
+
+declare module 'vue-router' {
+    interface RouteMeta {
+        public?: boolean;
+        guestOnly?: boolean;
+    }
+}
+
+const routes: RouteRecordRaw[] = [
+    {
+        path: '/',
+        redirect: { name: 'Dashboard' },
+    },
+    {
+        path: '/login',
+        name: 'Login',
+        component: async () => import('@/views/Login.vue'),
+        meta: { public: true, guestOnly: true },
+    },
+    {
+        path: '/signup',
+        name: 'SignUp',
+        component: async () => import('@/views/SignUp.vue'),
+        meta: { public: true, guestOnly: true },
+    },
+    {
+        path: '/recovery',
+        name: 'Recovery',
+        component: async () => import('@/views/Recovery.vue'),
+        meta: { public: true, guestOnly: true },
+    },
+    {
+        path: '/documentation',
+        name: 'Documentation',
+        component: async () => import('@/views/Documentation.vue'),
+        meta: { public: true },
+    },
+    {
+        path: '/dashboard',
+        name: 'Dashboard',
+        component: async () => import('@/views/Dashboard.vue'),
+    },
+    {
+        path: '/charts',
+        name: 'Charts',
+        component: async () => import('@/views/Charts.vue'),
+    },
+    {
+        path: '/screener',
+        name: 'Screener',
+        component: async () => import('@/views/Screener.vue'),
+    },
+    {
+        path: '/portfolio',
+        name: 'Portfolio',
+        component: async () => import('@/views/Portfolio.vue'),
+    },
+    {
+        path: '/account',
+        name: 'Account',
+        component: async () => import('@/views/User.vue'),
+    },
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'NotFound',
+        redirect: { name: 'Dashboard' },
+    },
+];
 
 const router = createRouter({
-  history: createWebHistory(),
-  routes
-})
+    history: createWebHistory(),
+    routes,
+    // Every navigation is to a different view, so the top is always the right
+    // place to be — except when the browser is restoring a back/forward entry.
+    scrollBehavior: (_to, _from, saved) => saved ?? { top: 0 },
+});
 
-export default router
+router.beforeEach((to) => {
+    const signedIn = isAuthenticated();
+
+    if (signedIn && to.meta.guestOnly === true) return { name: 'Dashboard' };
+    if (!signedIn && to.meta.public !== true) {
+        return { name: 'Login', query: to.fullPath === '/' ? {} : { redirect: to.fullPath } };
+    }
+    return true;
+});
+
+export default router;

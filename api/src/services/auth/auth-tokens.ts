@@ -19,7 +19,6 @@ import {
 export type AuthUser = {
     id: string;
     username: string;
-    role: UserDoc['role'];
     language: string;
     twoFactorEnabled: boolean;
 };
@@ -47,7 +46,6 @@ export function toAuthUser(user: WithId<UserDoc>): AuthUser {
     return {
         id: user._id.toHexString(),
         username: user.username,
-        role: user.role,
         language: user.language,
         twoFactorEnabled: user.totpEnabled,
     };
@@ -99,7 +97,6 @@ export async function registerUser(username: string, password: string): Promise<
         username,
         usernameLower,
         passwordHash: await argon2.hash(password, config.argon2),
-        role: 'user',
         totpSecretEncrypted: null,
         pendingTotpSecretEncrypted: null,
         totpEnabled: false,
@@ -127,7 +124,6 @@ export async function registerUser(username: string, password: string): Promise<
         user: {
             id: userId,
             username,
-            role: 'user',
             language: 'en',
             twoFactorEnabled: false,
         },

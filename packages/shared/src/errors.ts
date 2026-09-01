@@ -76,8 +76,6 @@ export const ERROR_CODES = [
     // Market data
     'ASSET_NOT_FOUND',
 
-    // Maintenance
-    'MAINTENANCE_MODE',
 ] as const;
 
 /** Runtime guard — true when `value` is a known error code. */

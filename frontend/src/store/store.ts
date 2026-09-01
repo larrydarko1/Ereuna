@@ -8,9 +8,9 @@
  *   user       → findSessionUser() / isAuthenticated() from @/api/client
  *   theme      → useTheme() from @/composables/ui/useTheme
  *   language   → changeLocale() from @/i18n
- * Remaining consumers: App.vue, NotificationPopup, charts/panel, charts/panel2,
- * sidebar/summary, User/Themes, User/AccountSettings, and the Login, Charts,
- * Screener, Portfolio and User views.
+ * Remaining consumers: charts/panel, charts/panel2, sidebar/summary,
+ * User/Themes, User/AccountSettings, and the Charts, Screener, Portfolio and
+ * User views. App.vue, NotificationPopup and Login dropped it in batch 2.
  */
 import { defineStore } from 'pinia';
 import { findSessionUser, type SessionUser } from '@/api/client';

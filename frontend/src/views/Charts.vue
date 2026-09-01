@@ -1,6 +1,5 @@
 <template>
   <body>
-    <Header />
   <WatchPanel
   :user="user?.Username ?? ''"
   :apiKey="apiKey"
@@ -128,7 +127,6 @@ import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 
 // upper components
-import Header from '@/components/Header.vue'
 import WatchPanel from '@/components/charts/WatchPanel.vue';
 
 // left panel components

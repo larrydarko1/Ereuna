@@ -1,6 +1,11 @@
 {
     "compilerOptions": {
-        "target": "ES2025",
+        // ES2024, not ES2025: esbuild — which vitest uses to transform, and
+        // which reads this file — does not recognise ES2025 and warned on every
+        // run. `lib` stays ES2025 so the Node 22 runtime's newer built-ins are
+        // still typed; only the downlevel target moved, and nothing in the API
+        // needed the difference.
+        "target": "ES2024",
         "module": "NodeNext",
         "moduleResolution": "NodeNext",
         "lib": ["ES2025"],

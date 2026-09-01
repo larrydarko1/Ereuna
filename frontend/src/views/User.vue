@@ -1,5 +1,4 @@
 <template>
-  <Header />
   <div id="main">
     <div class="sidebar">
       <div class="inner2">
@@ -118,7 +117,6 @@
 </template>
 
 <script setup lang="ts">
-import Header from '@/components/Header.vue'
 import { useUserStore } from '@/store/store';
 import { ref, computed, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';

@@ -29,7 +29,6 @@ export type FieldError = {
 export type SessionUser = {
     id: string;
     username: string;
-    role: 'user' | 'admin';
     language: string;
     twoFactorEnabled: boolean;
 };
@@ -70,10 +69,6 @@ export function findSessionUser(): SessionUser | null {
 
 export function isAuthenticated(): boolean {
     return findSessionUser() !== null;
-}
-
-export function isAdmin(): boolean {
-    return findSessionUser()?.role === 'admin';
 }
 
 export function clearAuth(): void {

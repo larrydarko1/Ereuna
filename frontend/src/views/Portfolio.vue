@@ -1,5 +1,4 @@
 <template>
-    <Header />
   <div class="portfolio" :style="{ '--buy-bg': buyBg, '--buy-border': buyBorder, '--sell-bg': sellBg, '--sell-border': sellBorder, '--long-bg': longBg, '--long-border': longBorder, '--short-bg': shortBg, '--short-border': shortBorder, '--cash-bg': cashBg, '--cash-border': cashBorder, '--leverage-bg': leverageBg, '--leverage-border': leverageBorder }">
     <div class="portfolio-menu card">
       <div style="display: flex; margin-left: 10px;">
@@ -730,7 +729,6 @@
 </template>
 
 <script setup lang="ts">
-import Header from '@/components/Header.vue';
 import { ref, watch, onMounted, computed, onUnmounted, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 

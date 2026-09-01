@@ -1,11 +1,12 @@
-// Marketing palette — the public pages (landing, about, careers, quiz, signup).
-// A separate two-value axis from the 52 app themes: a signed-out visitor has no
-// account to carry a theme preference on, so these pages offer dark or light and
-// nothing else.
-// Carried over verbatim from the old stylesheet, `.light-mode` toggle included,
-// because the views that consume it have not been migrated yet. When they are,
-// this moves onto a data-attribute like the app themes and the tokens join the
-// $color-* aliases.
+// Documentation palette.
+// This was the marketing palette, a two-value dark/light axis for the public
+// pages. Those pages are gone; what still reads these tokens is the 46
+// components under components/Docs, every one of which hard-codes --brand-*
+// instead of the theme tokens. The `.light-mode` half went with the toggle that
+// set it — nothing adds that class any more, so it only shipped bytes.
+// This dies when the docs are retokenised onto $color-*, at which point they
+// follow all 52 themes like the rest of the app instead of being permanently
+// dark.
 :root {
     --brand-primary: #7aa2f7;
     --brand-secondary: #89ddff;
@@ -25,21 +26,3 @@
     --brand-sphere-opacity: 0.15;
 }
 
-.light-mode {
-    --brand-primary: #7aa2f7;
-    --brand-secondary: #85abfb;
-    --brand-accent: #7dcfff;
-    --brand-bg-primary: #fff;
-    --brand-bg-secondary: #f3f4f4;
-    --brand-bg-card: rgb(252 252 252 / 90%);
-    --brand-bg-card-hover: rgb(255 255 255 / 100%);
-    --brand-glass: rgb(248 250 252 / 75%);
-    --brand-glass-border: rgb(15 23 42 / 12%);
-    --brand-text-primary: #242424;
-    --brand-text-secondary: #292929;
-    --brand-text-tertiary: #898989;
-    --brand-text-muted: rgb(137 137 137 / 80%);
-    --brand-gradient-start: #7aa2f7;
-    --brand-gradient-end: #89ddff;
-    --brand-sphere-opacity: 0.06;
-}

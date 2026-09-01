@@ -33,7 +33,6 @@ export const COLLECTIONS = [
     'Trades',
     'Notes',
     'ChartDrawings',
-    'systemSettings',
 ] as const;
 
 export const INDEXES: IndexSpec[] = [
@@ -124,11 +123,5 @@ export const INDEXES: IndexSpec[] = [
         keys: { userId: 1, symbol: 1, timeframe: 1 },
         options: { unique: true },
         why: 'One drawing document per (owner, symbol, timeframe) — the upsert key when a chart saves.',
-    },
-    {
-        collection: 'systemSettings',
-        keys: { key: 1 },
-        options: { unique: true },
-        why: 'Settings are read by key; there is exactly one document per key.',
     },
 ];

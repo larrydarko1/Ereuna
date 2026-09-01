@@ -1,16 +1,10 @@
 /** MongoDB document types for EreunaDB. */
 import type { ObjectId } from 'mongodb';
 
-export type UserRole = 'user' | 'admin';
-
 export type UserDoc = {
     username: string;
-    /** Lowercased `username`, uniquely indexed. Exists so a case-insensitive
-     *  lookup is an equality match on an index instead of a `$regex` built from
-     *  request input (which was both a ReDoS vector and unindexable). */
     usernameLower: string;
     passwordHash: string;
-    role: UserRole;
     totpSecretEncrypted: string | null; // AES-256-GCM ciphertext of the TOTP secret. Never stored in plaintext
     pendingTotpSecretEncrypted: string | null; // A secret that has been generated but not yet confirmed with a valid code
     totpEnabled: boolean;
@@ -295,24 +289,3 @@ export type MarketStatsDoc = {
     [field: string]: unknown;
 };
 
-/** An operator announcement, shown to every user. */
-export type AnnouncementDoc = {
-    title: string;
-    body: string;
-    publishedDate: Date;
-    [field: string]: unknown;
-};
-
-/** A documented feature, ordered newest-first by insertion. */
-export type DocFeatureDoc = {
-    title: string;
-    body: string;
-    [field: string]: unknown;
-};
-
-export type SystemSettingsDoc = {
-    key: string;
-    maintenanceMode: boolean;
-    message: string | null;
-    updatedAt: Date;
-};

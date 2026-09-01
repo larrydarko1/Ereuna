@@ -17,8 +17,7 @@ import App from '@/App.vue';
 import router from '@/router/index';
 import { i18n, initLocale } from '@/i18n';
 import { initTheme, useTheme } from '@/composables/ui/useTheme';
-import { initAuth, isAuthenticated } from '@/api/client';
-import { useMaintenanceStore } from '@/store/maintenance';
+import { initAuth } from '@/api/client';
 import '@/styles/index.scss';
 
 initTheme();
@@ -29,39 +28,9 @@ app.use(createPinia());
 app.use(i18n);
 app.use(router);
 
-/** Routes a signed-out visitor may reach. Everything else needs a session. */
-const PUBLIC_ROUTES = new Set([
-    'Home',
-    'About',
-    'Blog',
-    'Careers',
-    'Communications',
-    'Documentation',
-    'Login',
-    'Maintenance',
-    'Quiz',
-    'Recovery',
-    'SignUp',
-]);
-
-/** Signing in again from inside a session just returns you to the app. */
-const AUTH_ROUTES = new Set(['Login', 'Recovery', 'SignUp']);
-
-/** Held back during maintenance; the rest of the app stays reachable. */
-const MAINTAINED_ROUTES = new Set(['Account', 'Charts', 'Dashboard', 'Portfolio', 'Screener']);
-
-router.beforeEach(async (to) => {
-    const name = String(to.name);
-
-    if (isAuthenticated() && AUTH_ROUTES.has(name)) return { name: 'Dashboard' };
-    if (!isAuthenticated() && !PUBLIC_ROUTES.has(name)) return { name: 'Login' };
-    if (!MAINTAINED_ROUTES.has(name)) return true;
-
-    const maintenance = useMaintenanceStore();
-    await maintenance.checkMaintenanceStatus();
-    return maintenance.isUnderMaintenance ? { name: 'Maintenance' } : true;
-});
-
 void initAuth()
-    .then(() => useTheme().syncTheme())
+    .then(async (signedIn) => {
+        // Only worth a round trip once there is a session to read a theme from.
+        if (signedIn) await useTheme().syncTheme();
+    })
     .finally(() => app.mount('#app'));

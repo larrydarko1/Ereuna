@@ -6,15 +6,20 @@
  * Each function returns a ready message or null, and the limits are
  * interpolated here rather than baked into 18 translation files, so changing a
  * constant changes every language at once.
+ * The username and password rules mirror `usernameSchema` and `passwordSchema`
+ * in api/src/lib/schemas.ts exactly. If they drift, this file is the one that
+ * is wrong — the server is the authority, and a client rule that is stricter
+ * than the server's only rejects passwords the server would have accepted.
  */
 import { i18n } from '@/i18n';
 
-const USERNAME_PATTERN = /^[a-zA-Z0-9_-]+$/;
+const USERNAME_PATTERN = /^[a-zA-Z0-9_]+$/;
 const SYMBOL_PATTERN = /^[A-Z0-9.\-^]+$/;
 
 export const USERNAME_MIN = 3;
 export const USERNAME_MAX = 30;
-export const PASSWORD_MIN = 12;
+export const PASSWORD_MIN = 8;
+export const PASSWORD_MAX = 128;
 
 export function validateUsername(value: string): string | null {
     const trimmed = value.trim();
@@ -26,15 +31,32 @@ export function validateUsername(value: string): string | null {
     return null;
 }
 
+/**
+ * Passwords are not trimmed, here or on the server. A leading or trailing space
+ * is a character the user chose, and silently removing it means the password
+ * that was accepted at registration is not the one that is checked at login.
+ */
 export function validatePassword(value: string): string | null {
     if (value === '') return t('passwordRequired');
-    if (value.length < PASSWORD_MIN) return t('passwordLength', { min: PASSWORD_MIN });
+    if (value.length < PASSWORD_MIN || value.length > PASSWORD_MAX) {
+        return t('passwordLength', { min: PASSWORD_MIN, max: PASSWORD_MAX });
+    }
+    if (!/[A-Z]/.test(value)) return t('passwordUppercase');
+    if (!/[a-z]/.test(value)) return t('passwordLowercase');
+    if (!/[0-9]/.test(value)) return t('passwordNumber');
+    if (!/[^A-Za-z0-9]/.test(value)) return t('passwordSpecial');
     return null;
 }
 
 export function validatePasswordConfirmation(password: string, confirmation: string): string | null {
     if (confirmation === '') return t('confirmationRequired');
     if (password !== confirmation) return t('passwordMismatch');
+    return null;
+}
+
+/** A recovery code as `auth-recovery` issues them: non-empty, and nothing else. */
+export function validateRecoveryCode(value: string): string | null {
+    if (value.trim() === '') return t('recoveryCodeRequired');
     return null;
 }
 

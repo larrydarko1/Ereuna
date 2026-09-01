@@ -131,7 +131,14 @@ export default {
         // –– GENERAL BEST PRACTICES –––––––––––––––––––––––––––––––––––––
         'color-no-invalid-hex': true,
         'declaration-no-important': true,
-        'declaration-block-no-duplicate-properties': true,
+        // Consecutive duplicates with DIFFERENT values are the CSS fallback
+        // idiom — `min-height: 100vh` then `100dvh`, so a browser that does not
+        // know the second keeps the first. Same-value duplicates are still an
+        // error, which is the case that is actually a mistake.
+        'declaration-block-no-duplicate-properties': [
+            true,
+            { ignore: ['consecutive-duplicates-with-different-values'] },
+        ],
         'no-descending-specificity': null,
         'selector-pseudo-element-no-unknown': true,
         'media-feature-name-no-unknown': true,

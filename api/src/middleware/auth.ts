@@ -10,10 +10,8 @@
 import type { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
-import type { UserDoc } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
-import { getDb } from '@/lib/db.js';
 
 export type AuthRequest = Request & {
     userId?: string;
@@ -52,32 +50,6 @@ export function requireAuth(req: AuthRequest, _res: Response, next: NextFunction
 
     req.userId = userId;
     next();
-}
-
-export function requireAdmin(req: AuthRequest, _res: Response, next: NextFunction): void {
-    void adminCheck(req)
-        .then(() => next())
-        .catch(next);
-}
-
-async function adminCheck(req: AuthRequest): Promise<void> {
-    if (!(await isAdmin(authedUserId(req).toHexString()))) {
-        throw new AppError(403, 'FORBIDDEN', 'admin role required', {
-            logContext: { op: 'auth.admin' },
-            securityEvent: true,
-        });
-    }
-}
-
-/** Whether a user id belongs to an admin. Read fresh, for the reason above. */
-export async function isAdmin(userId: string): Promise<boolean> {
-    if (!ObjectId.isValid(userId)) return false;
-
-    const user = await getDb()
-        .collection<UserDoc>('Users')
-        .findOne({ _id: new ObjectId(userId) }, { projection: { role: 1 } });
-
-    return user?.role === 'admin';
 }
 
 export function optionalAuth(req: AuthRequest, _res: Response, next: NextFunction): void {
