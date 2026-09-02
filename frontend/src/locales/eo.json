@@ -703,7 +703,6 @@
     "cagr": "CAGR",
     "cagrYears": "CAGR Jaroj",
     "intrinsicValue": "Interna Valoro (IA)",
-    "aiRecommendation": "IA Rekomendo",
     "fundFamily": "Fondusa Familio",
     "fundCategory": "Fondusa Kategorio",
     "netExpenseRatio": "Neta Elspezo-Proporcio",
@@ -1070,8 +1069,7 @@
     "tooltipRSI": "La relativa forta indekso (RSI) estas teknika indikilo kiu mezuras kompanian akcian prezan movimenton, variante de 0 al 100.",
     "tooltipGap": "Interspaco % estas mezuro de la procenta ŝanĝo en akcia prezo de la antaŭa taga fermo al la nuna taga malfermo. Ĝi estas kalkulita kiel (Nuna Malfermo - Antaŭa Fermo) / Antaŭa Fermo. Pozitiva interspaco % indikas supran prezan movon, dum negativa interspaco % indikas malsupran prezan movon.",
     "tooltipAssetType": "Kategorio de la aktivo, en ĉi tiu kazo ni subtenas Akciojn, ETF-ojn, Komunajn Fondojn, kaj Kriptovalŭtojn.",
-    "tooltipIV": "Interna Valoro (IV) taksas akcian veran valoron uzante Rabatitan Monfluan (DCF) modelon. Ni kalkulas IV per: 1. Sumante la lastajn 20 trimestroj de Libera Monfluo (FCF) por akiri jaran FCF por la pasintaj 5 jaroj. 2. Kalkulante la 5-jaran Kumulitan Jaran Kreskan Kurson (CAGR) de FCF. 3. Projekciante FCF por la sekvaj 5 jaroj uzante ĉi tiun CAGR. 4. Rabatante ĉi tiujn projekcitaj n FCF-ojn al nuna valoro je 10% kurso. 5. Aldonante terminan valoron (uzante la Gordon-Kreskan Modelon kun 2.5% kreska kurso) kaj rabatante ĝin. 6. Aldonante netan monon (mono minus ŝuldo) de la plej nova trimestro. 7. Dividante la totalon per elstaraj akcioj por akiri IV por akcio. Ĉi tiu aliro helpas taksi se akcio estas subvalorita aŭ supervalorita bazita sur ĝia estonta monflua ebleco.",
-    "tooltipAIRecommendation": "Ĉi tiu filtrilo montras aktivojn kun IA-generita j investajn rekomendojn, kiel Forta Vendi, Vendi, Teni, Aĉeti, aŭ Forta Aĉeti. Ĉi tiuj rekomendoj estas produktitaj de proprieta algoritmo kiu analizas kompaniajn financajn deklarojn. Bonvolu noti ke ĉi tio estas eksperimenta funkcio kaj ne devus esti rigardata kiel financa konsilo aŭ anstataŭaĵo por profesia analizo."
+    "tooltipIV": "Interna Valoro (IV) taksas akcian veran valoron uzante Rabatitan Monfluan (DCF) modelon. Ni kalkulas IV per: 1. Sumante la lastajn 20 trimestroj de Libera Monfluo (FCF) por akiri jaran FCF por la pasintaj 5 jaroj. 2. Kalkulante la 5-jaran Kumulitan Jaran Kreskan Kurson (CAGR) de FCF. 3. Projekciante FCF por la sekvaj 5 jaroj uzante ĉi tiun CAGR. 4. Rabatante ĉi tiujn projekcitaj n FCF-ojn al nuna valoro je 10% kurso. 5. Aldonante terminan valoron (uzante la Gordon-Kreskan Modelon kun 2.5% kreska kurso) kaj rabatante ĝin. 6. Aldonante netan monon (mono minus ŝuldo) de la plej nova trimestro. 7. Dividante la totalon per elstaraj akcioj por akiri IV por akcio. Ĉi tiu aliro helpas taksi se akcio estas subvalorita aŭ supervalorita bazita sur ĝia estonta monflua ebleco."
   },
   "screenerComponents": {
     "timeframe5m": "5m",
@@ -1148,7 +1146,6 @@
     "attrFundFamily": "Fondusa Familio",
     "attrFundCategory": "Fondusa Kategorio",
     "attrNetExpenseRatio": "Neta Elspeza Rilatumo",
-    "attrAIRecommendation": "AI-Rekomendo",
     "ticker": "Vendopunkto",
     "hideAsset": "Kaŝi Aktivon",
     "showAsset": "Montri Aktivon",
@@ -1157,7 +1154,6 @@
     "attrSectors": "Sektoroj",
     "attrExchanges": "Borsoj",
     "attrCountries": "Landoj",
-    "attrAIRecommendations": "AI-Rekomendoj",
     "attrForwardPE": "Antaŭa P/E",
     "attrDivYieldPercent": "Dividendrendimento (%)",
     "attrEPSQoQ": "EPS-Kresko KoK (%)",
@@ -1260,7 +1256,6 @@
     "fundFamily": "Fondusa Familio",
     "fundCategory": "Fondusa Kategorio",
     "netExpenseRatio": "Neta Elspeza Rilatumo",
-    "aiRecommendation": "AI-Rekomendo",
     "volume": "Volumeno",
     "adv": "Averaĝa Ĉiutaga Volumeno",
     "technicalScore": "Teknika Poentaro",

@@ -703,7 +703,6 @@
     "cagr": "CAGR",
     "cagrYears": "CAGR Years",
     "intrinsicValue": "Intrinsic Value (AI)",
-    "aiRecommendation": "AI Recommendation",
     "fundFamily": "Fund Family",
     "fundCategory": "Fund Category",
     "netExpenseRatio": "Net Expense Ratio",
@@ -1070,8 +1069,7 @@
     "tooltipRSI": "The relative strength index (RSI) is a technical indicator that measures a company's stock price momentum, ranging from 0 to 100.",
     "tooltipGap": "Gap % is a measure of the percentage change in a stock's price from the previous day's close to the current day's open. It is calculated as (Current Open - Previous Close) / Previous Close. A positive gap % indicates an upward price movement, while a negative gap % indicates a downward price movement.",
     "tooltipAssetType": "Category of the asset, in this case we support Stocks, ETFs, Mutual Funds, and Cryptocurrencies.",
-    "tooltipIV": "Intrinsic Value (IV) estimates a stock's true worth using a Discounted Cash Flow (DCF) model. We calculate IV by: 1. Summing the last 20 quarters of Free Cash Flow (FCF) to get annual FCF for the past 5 years. 2. Calculating the 5-year Compound Annual Growth Rate (CAGR) of FCF. 3. Projecting FCF for the next 5 years using this CAGR. 4. Discounting these projected FCFs to present value at a 10% rate. 5. Adding a terminal value (using the Gordon Growth Model with a 2.5% growth rate) and discounting it. 6. Adding net cash (cash minus debt) from the latest quarter. 7. Dividing the total by shares outstanding to get IV per share. This approach helps assess if a stock is undervalued or overvalued based on its future cash flow potential.",
-    "tooltipAIRecommendation": "This filter displays assets with AI-generated investment recommendations, such as Strong Sell, Sell, Hold, Buy, or Strong Buy. These recommendations are produced by a proprietary algorithm that analyzes company financial statements. Please note that this is an experimental feature and should not be regarded as financial advice or a substitute for professional analysis."
+    "tooltipIV": "Intrinsic Value (IV) estimates a stock's true worth using a Discounted Cash Flow (DCF) model. We calculate IV by: 1. Summing the last 20 quarters of Free Cash Flow (FCF) to get annual FCF for the past 5 years. 2. Calculating the 5-year Compound Annual Growth Rate (CAGR) of FCF. 3. Projecting FCF for the next 5 years using this CAGR. 4. Discounting these projected FCFs to present value at a 10% rate. 5. Adding a terminal value (using the Gordon Growth Model with a 2.5% growth rate) and discounting it. 6. Adding net cash (cash minus debt) from the latest quarter. 7. Dividing the total by shares outstanding to get IV per share. This approach helps assess if a stock is undervalued or overvalued based on its future cash flow potential."
   },
   "screenerComponents": {
     "timeframe5m": "5m",
@@ -1148,7 +1146,6 @@
     "attrFundFamily": "Fund Family",
     "attrFundCategory": "Fund Category",
     "attrNetExpenseRatio": "Net Expense Ratio",
-    "attrAIRecommendation": "AI Recommendation",
     "ticker": "Ticker",
     "hideAsset": "Hide Asset",
     "showAsset": "Show Asset",
@@ -1157,7 +1154,6 @@
     "attrSectors": "Sectors",
     "attrExchanges": "Exchanges",
     "attrCountries": "Countries",
-    "attrAIRecommendations": "AI Recommendations",
     "attrForwardPE": "Forward P/E",
     "attrDivYieldPercent": "Dividend Yield (%)",
     "attrEPSQoQ": "EPS Growth QoQ (%)",
@@ -1260,7 +1256,6 @@
     "fundFamily": "Fund Family",
     "fundCategory": "Fund Category",
     "netExpenseRatio": "Net Expense Ratio",
-    "aiRecommendation": "AI Recommendation",
     "volume": "Volume",
     "adv": "Average Daily Volume",
     "technicalScore": "Technical Score",

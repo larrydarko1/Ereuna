@@ -27,8 +27,8 @@ describe('buildQuery', () => {
         });
     });
 
-    it('maps AI recommendations to their nested query path, not the field name', () => {
-        expect(buildQuery({ AIRecommendations: ['Buy'] })).toEqual({ 'AI.Recommendation': { $in: ['Buy'] } });
+    it('maps a filter to its query path, not the field name it is stored under', () => {
+        expect(buildQuery({ FundFamilies: ['Vanguard'] })).toEqual({ fundFamily: { $in: ['Vanguard'] } });
     });
 
     it('converts a stored date range into BSON dates', () => {

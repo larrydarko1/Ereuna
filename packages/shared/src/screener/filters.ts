@@ -23,10 +23,12 @@ export type RangeFilterSpec = {
     bounds: FilterBoundsSource;
 };
 
-/** Where a categorical filter's selectable options come from. */
-export type FilterOptionsSource =
-    | { kind: 'distinct'; path: string } // `distinct()` over an AssetInfo field.
-    | { kind: 'literal'; values: readonly string[] }; // A closed set defined here, because the data has no column to enumerate.
+/**
+ * Where a categorical filter's selectable options come from: the distinct
+ * values of one AssetInfo field. Every categorical filter enumerates its own
+ * column, so there is no second source to distinguish.
+ */
+export type FilterOptionsSource = { path: string };
 
 export type EnumFilterSpec = {
     key: string;
@@ -124,19 +126,12 @@ export const RANGE_FILTERS = [
  * sector cannot be written into a screener and then silently match nothing.
  */
 export const ENUM_FILTERS = [
-    { key: 'asset-types', field: 'AssetTypes', queryPath: 'AssetType', label: 'Asset type', options: { kind: 'distinct', path: 'AssetType' } },
-    { key: 'sectors', field: 'Sectors', queryPath: 'Sector', label: 'Sector', options: { kind: 'distinct', path: 'Sector' } },
-    { key: 'exchanges', field: 'Exchanges', queryPath: 'Exchange', label: 'Exchange', options: { kind: 'distinct', path: 'Exchange' } },
-    { key: 'countries', field: 'Countries', queryPath: 'Country', label: 'Country', options: { kind: 'distinct', path: 'Country' } },
-    { key: 'fund-families', field: 'FundFamilies', queryPath: 'fundFamily', label: 'Fund family', options: { kind: 'distinct', path: 'fundFamily' } },
-    { key: 'fund-categories', field: 'FundCategories', queryPath: 'FundCategory', label: 'Fund category', options: { kind: 'distinct', path: 'FundCategory' } },
-    {
-        key: 'ai-recommendations',
-        field: 'AIRecommendations',
-        queryPath: 'AI.Recommendation',
-        label: 'AI recommendation',
-        options: { kind: 'literal', values: ['Strong Buy', 'Buy', 'Hold', 'Sell', 'Strong Sell'] },
-    },
+    { key: 'asset-types', field: 'AssetTypes', queryPath: 'AssetType', label: 'Asset type', options: { path: 'AssetType' } },
+    { key: 'sectors', field: 'Sectors', queryPath: 'Sector', label: 'Sector', options: { path: 'Sector' } },
+    { key: 'exchanges', field: 'Exchanges', queryPath: 'Exchange', label: 'Exchange', options: { path: 'Exchange' } },
+    { key: 'countries', field: 'Countries', queryPath: 'Country', label: 'Country', options: { path: 'Country' } },
+    { key: 'fund-families', field: 'FundFamilies', queryPath: 'fundFamily', label: 'Fund family', options: { path: 'fundFamily' } },
+    { key: 'fund-categories', field: 'FundCategories', queryPath: 'FundCategory', label: 'Fund category', options: { path: 'FundCategory' } },
 ] as const satisfies readonly EnumFilterSpec[];
 
 /**

@@ -33,8 +33,6 @@ export async function getRangeBounds(spec: RangeFilterSpec): Promise<FilterBound
 
 /** The option set for a categorical filter, sorted for stable display. */
 export async function getEnumOptions(spec: EnumFilterSpec): Promise<string[]> {
-    if (spec.options.kind === 'literal') return [...spec.options.values];
-
     const path = spec.options.path;
     return withCache(
         marketKey('options', spec.key),

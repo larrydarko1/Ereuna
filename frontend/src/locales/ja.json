@@ -703,7 +703,6 @@
     "cagr": "CAGR",
     "cagrYears": "CAGR年数",
     "intrinsicValue": "本質的価値 (AI)",
-    "aiRecommendation": "AIレコメンデーション",
     "fundFamily": "ファンドファミリー",
     "fundCategory": "ファンドカテゴリー",
     "netExpenseRatio": "純経費率",
@@ -1070,8 +1069,7 @@
     "tooltipRSI": "相対力指数（RSI）は0から100の範囲で株価モメンタムを計測するテクニカル指標です。",
     "tooltipGap": "ギャップ%は前日終値から当日始値への変化率です。",
     "tooltipAssetType": "資産タイプのカテゴリーで、株式、ETF、投資信託、暗号資産に対応しています。",
-    "tooltipIV": "本質的価値（IV）は割引キャッシュフロー（DCF）モデルを使用して株式の真の価値を推定します。",
-    "tooltipAIRecommendation": "このフィルターは財務諸表を分析したAI生成の投資推奨を表示します。実験的機能であり、投資助言ではありません。"
+    "tooltipIV": "本質的価値（IV）は割引キャッシュフロー（DCF）モデルを使用して株式の真の価値を推定します。"
   },
   "screenerComponents": {
     "timeframe5m": "5分",
@@ -1148,7 +1146,6 @@
     "attrFundFamily": "ファンドファミリー",
     "attrFundCategory": "ファンドカテゴリー",
     "attrNetExpenseRatio": "純経費率",
-    "attrAIRecommendation": "AIレコメンデーション",
     "ticker": "ティッカー",
     "hideAsset": "資産を非表示",
     "showAsset": "資産を表示",
@@ -1157,7 +1154,6 @@
     "attrSectors": "セクター",
     "attrExchanges": "取引所",
     "attrCountries": "国",
-    "attrAIRecommendations": "AIレコメンデーション",
     "attrForwardPE": "予想P/E",
     "attrDivYieldPercent": "配当利回り (%)",
     "attrEPSQoQ": "EPS成長率 QoQ (%)",
@@ -1260,7 +1256,6 @@
     "fundFamily": "ファンドファミリー",
     "fundCategory": "ファンドカテゴリー",
     "netExpenseRatio": "純経費率",
-    "aiRecommendation": "AIレコメンデーション",
     "volume": "出来高",
     "adv": "平均日次出来高",
     "technicalScore": "テクニカルスコア",

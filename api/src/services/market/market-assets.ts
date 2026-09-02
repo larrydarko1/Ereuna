@@ -143,7 +143,6 @@ export type AssetProfile = {
     fundCategory: string | null;
     fundFamily: string | null;
     netExpenseRatio: number | null;
-    aiRecommendation: string | null;
     signals: TradeSignal[];
 };
 
@@ -219,7 +218,6 @@ export async function assetProfile(symbol: string): Promise<AssetProfile> {
         fundCategory: text(doc.FundCategory),
         fundFamily: text(doc.fundFamily),
         netExpenseRatio: numeric(doc.netExpenseRatio),
-        aiRecommendation: latestRecommendation(doc.AI),
         signals: tradeSignals(doc.Signals),
     };
 }
@@ -295,19 +293,6 @@ function isoDate(value: unknown): string | null {
     if (raw === null) return null;
     const parsed = new Date(raw);
     return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().slice(0, 10);
-}
-
-/**
- * The most recent AI recommendation, or null.
- * The feature was halted, so most documents have no `AI` array at all; the ones
- * that do keep newest last.
- */
-function latestRecommendation(value: unknown): string | null {
-    if (!Array.isArray(value) || value.length === 0) return null;
-    const latest = value.at(-1);
-    return typeof latest === 'object' && latest !== null
-        ? text((latest as Record<string, unknown>).Recommendation)
-        : null;
 }
 
 /**

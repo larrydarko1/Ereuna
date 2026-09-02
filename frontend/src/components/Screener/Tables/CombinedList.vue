@@ -188,7 +188,6 @@ const attributes = [
   { label: 'Fund Family', value: 'fund_family', backend: 'fundFamily' },
   { label: 'Fund Category', value: 'fund_category', backend: 'FundCategory' },
   { label: 'Net Expense Ratio', value: 'net_expense_ratio', backend: 'netExpenseRatio' },
-  { label: 'AI Recommendation', value: 'ai_recommendation', backend: 'AI' },
 ];
 
 function getColumnLabel(col: string): string {
@@ -242,7 +241,6 @@ function getColumnLabel(col: string): string {
     fund_family: t('screenerComponents.attrFundFamily'),
     fund_category: t('screenerComponents.attrFundCategory'),
     net_expense_ratio: t('screenerComponents.attrNetExpenseRatio'),
-    ai_recommendation: t('screenerComponents.attrAIRecommendation'),
   };
   return labelMap[col] || col;
 }
@@ -353,7 +351,6 @@ const styleMap: { [key: string]: number } = {
   fund_family: 250,
   fund_category: 250,
   net_expense_ratio: 120,
-  ai_recommendation: 130,
 };
 
 function getColumnStyle(col: string): string {

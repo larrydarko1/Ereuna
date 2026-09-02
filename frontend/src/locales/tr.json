@@ -703,7 +703,6 @@
     "cagr": "CAGR",
     "cagrYears": "CAGR Yılları",
     "intrinsicValue": "İçsel Değer (AI)",
-    "aiRecommendation": "AI Önerisi",
     "fundFamily": "Fon Ailesi",
     "fundCategory": "Fon Kategorisi",
     "netExpenseRatio": "Net Gider Oranı",
@@ -1070,8 +1069,7 @@
     "tooltipRSI": "Göreceli güç endeksi (RSI), bir şirketin hisse senedi fiyat momentumunu ölçen teknik bir göstergedir ve 0 ile 100 arasında değişir.",
     "tooltipGap": "Boşluk %, bir hisse senedinin fiyatının önceki günün kapanışından mevcut günün açılışına yüzdesel değişiminin bir ölçüsüdür. (Mevcut Açılış - Önceki Kapanış) / Önceki Kapanış olarak hesaplanır. Pozitif bir boşluk % yukarı yönlü bir fiyat hareketini, negatif bir boşluk % ise aşağı yönlü bir fiyat hareketini gösterir.",
     "tooltipAssetType": "Varlığın kategorisi, bu durumda Hisse Senetleri, ETF'ler, Yatırım Fonları ve Kripto Para Birimlerini destekliyoruz.",
-    "tooltipIV": "İçsel Değer (IV), İndirimli Nakit Akışı (DCF) modeli kullanarak bir hisse senedinin gerçek değerini tahmin eder. IV'yi şu şekilde hesaplıyoruz: 1. Son 5 yıl için yıllık FCF elde etmek üzere son 20 çeyreğin Serbest Nakit Akışını (FCF) toplama. 2. FCF'nin 5 yıllık Bileşik Yıllık Büyüme Oranını (CAGR) hesaplama. 3. Bu CAGR kullanarak önümüzdeki 5 yıl için FCF'yi tahmin etme. 4. Bu tahmin edilen FCF'leri %10 oranında bugünkü değere indirgeme. 5. Bir terminal değeri ekleme (Gordon Büyüme Modeli kullanarak %2,5 büyüme oranıyla) ve indirgeme. 6. En son çeyrekten net nakit (nakit eksi borç) ekleme. 7. Toplamı dolaşımdaki hisselere bölerek hisse başına IV elde etme. Bu yaklaşım, bir hisse senedinin gelecekteki nakit akışı potansiyeline dayalı olarak düşük değerli mi yoksa aşırı değerli mi olduğunu değerlendirmeye yardımcı olur.",
-    "tooltipAIRecommendation": "Bu filtre, Güçlü Sat, Sat, Tut, Al veya Güçlü Al gibi AI tarafından oluşturulan yatırım önerileriyle varlıkları görüntüler. Bu öneriler, şirket mali tablolarını analiz eden özel bir algoritma tarafından üretilir. Lütfen bunun deneysel bir özellik olduğunu ve finansal tavsiye veya profesyonel analiz yerine geçmeyeceğini unutmayın."
+    "tooltipIV": "İçsel Değer (IV), İndirimli Nakit Akışı (DCF) modeli kullanarak bir hisse senedinin gerçek değerini tahmin eder. IV'yi şu şekilde hesaplıyoruz: 1. Son 5 yıl için yıllık FCF elde etmek üzere son 20 çeyreğin Serbest Nakit Akışını (FCF) toplama. 2. FCF'nin 5 yıllık Bileşik Yıllık Büyüme Oranını (CAGR) hesaplama. 3. Bu CAGR kullanarak önümüzdeki 5 yıl için FCF'yi tahmin etme. 4. Bu tahmin edilen FCF'leri %10 oranında bugünkü değere indirgeme. 5. Bir terminal değeri ekleme (Gordon Büyüme Modeli kullanarak %2,5 büyüme oranıyla) ve indirgeme. 6. En son çeyrekten net nakit (nakit eksi borç) ekleme. 7. Toplamı dolaşımdaki hisselere bölerek hisse başına IV elde etme. Bu yaklaşım, bir hisse senedinin gelecekteki nakit akışı potansiyeline dayalı olarak düşük değerli mi yoksa aşırı değerli mi olduğunu değerlendirmeye yardımcı olur."
   },
   "screenerComponents": {
     "timeframe5m": "5d",
@@ -1148,7 +1146,6 @@
     "attrFundFamily": "Fon Ailesi",
     "attrFundCategory": "Fon Kategorisi",
     "attrNetExpenseRatio": "Net Gider Oranı",
-    "attrAIRecommendation": "AI Önerisi",
     "ticker": "Sembol",
     "hideAsset": "Varlığı Gizle",
     "showAsset": "Varlığı Göster",
@@ -1157,7 +1154,6 @@
     "attrSectors": "Sektörler",
     "attrExchanges": "Borsalar",
     "attrCountries": "Ülkeler",
-    "attrAIRecommendations": "AI Önerileri",
     "attrForwardPE": "İleri F/K",
     "attrDivYieldPercent": "Temettü Getirisi (%)",
     "attrEPSQoQ": "EPS Büyümesi ÇbÇ (%)",
@@ -1260,7 +1256,6 @@
     "fundFamily": "Fon Ailesi",
     "fundCategory": "Fon Kategorisi",
     "netExpenseRatio": "Net Gider Oranı",
-    "aiRecommendation": "Yapay Zeka Önerisi",
     "volume": "Hacim",
     "adv": "Ortalama Günlük Hacim",
     "technicalScore": "Teknik Skor",

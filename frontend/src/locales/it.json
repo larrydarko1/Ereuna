@@ -703,7 +703,6 @@
     "cagr": "CAGR",
     "cagrYears": "Anni CAGR",
     "intrinsicValue": "Valore Intrinseco (AI)",
-    "aiRecommendation": "Raccomandazione AI",
     "fundFamily": "Famiglia Fondo",
     "fundCategory": "Categoria Fondo",
     "netExpenseRatio": "Rapporto Spese Nette",
@@ -1070,8 +1069,7 @@
     "tooltipRSI": "L'indice di forza relativa (RSI) è un indicatore tecnico che misura il momentum del prezzo delle azioni di un'azienda, con un intervallo da 0 a 100.",
     "tooltipGap": "Gap % è una misura della variazione percentuale del prezzo di un'azione dalla chiusura del giorno precedente all'apertura del giorno corrente. Si calcola come (Apertura Corrente - Chiusura Precedente) / Chiusura Precedente. Un gap % positivo indica un movimento di prezzo al rialzo, mentre un gap % negativo indica un movimento di prezzo al ribasso.",
     "tooltipAssetType": "Categoria dell'asset, in questo caso supportiamo Azioni, ETF, Fondi Comuni e Criptovalute.",
-    "tooltipIV": "Il Valore Intrinseco (IV) stima il vero valore di un'azione utilizzando un modello di Flusso di Cassa Scontato (DCF). Calcoliamo l'IV: 1. Sommando gli ultimi 20 trimestri di Flusso di Cassa Libero (FCF) per ottenere l'FCF annuale degli ultimi 5 anni. 2. Calcolando il Tasso di Crescita Annuale Composto (CAGR) a 5 anni dell'FCF. 3. Proiettando l'FCF per i prossimi 5 anni usando questo CAGR. 4. Scontando questi FCF proiettati al valore attuale con un tasso del 10%. 5. Aggiungendo un valore terminale (usando il Modello di Crescita di Gordon con un tasso di crescita del 2,5%) e scontandolo. 6. Aggiungendo la liquidità netta (liquidità meno debito) dall'ultimo trimestre. 7. Dividendo il totale per le azioni in circolazione per ottenere l'IV per azione. Questo approccio aiuta a valutare se un'azione è sottovalutata o sopravvalutata in base al suo potenziale di flusso di cassa futuro.",
-    "tooltipAIRecommendation": "Questo filtro mostra asset con raccomandazioni di investimento generate dall'IA, come Vendita Forte, Vendita, Mantieni, Acquista o Acquista Forte. Queste raccomandazioni sono prodotte da un algoritmo proprietario che analizza i bilanci aziendali. Si prega di notare che questa è una funzionalità sperimentale e non deve essere considerata come consulenza finanziaria o sostituto di un'analisi professionale."
+    "tooltipIV": "Il Valore Intrinseco (IV) stima il vero valore di un'azione utilizzando un modello di Flusso di Cassa Scontato (DCF). Calcoliamo l'IV: 1. Sommando gli ultimi 20 trimestri di Flusso di Cassa Libero (FCF) per ottenere l'FCF annuale degli ultimi 5 anni. 2. Calcolando il Tasso di Crescita Annuale Composto (CAGR) a 5 anni dell'FCF. 3. Proiettando l'FCF per i prossimi 5 anni usando questo CAGR. 4. Scontando questi FCF proiettati al valore attuale con un tasso del 10%. 5. Aggiungendo un valore terminale (usando il Modello di Crescita di Gordon con un tasso di crescita del 2,5%) e scontandolo. 6. Aggiungendo la liquidità netta (liquidità meno debito) dall'ultimo trimestre. 7. Dividendo il totale per le azioni in circolazione per ottenere l'IV per azione. Questo approccio aiuta a valutare se un'azione è sottovalutata o sopravvalutata in base al suo potenziale di flusso di cassa futuro."
   },
   "screenerComponents": {
     "timeframe5m": "5m",
@@ -1148,7 +1146,6 @@
     "attrFundFamily": "Famiglia Fondo",
     "attrFundCategory": "Categoria Fondo",
     "attrNetExpenseRatio": "Rapporto Spese Nette",
-    "attrAIRecommendation": "Raccomandazione IA",
     "ticker": "Ticker",
     "hideAsset": "Nascondi Asset",
     "showAsset": "Mostra Asset",
@@ -1157,7 +1154,6 @@
     "attrSectors": "Settori",
     "attrExchanges": "Borse",
     "attrCountries": "Paesi",
-    "attrAIRecommendations": "Raccomandazioni IA",
     "attrForwardPE": "P/E Prospettico",
     "attrDivYieldPercent": "Rendimento Dividendo (%)",
     "attrEPSQoQ": "Crescita EPS QoQ (%)",
@@ -1260,7 +1256,6 @@
     "fundFamily": "Famiglia Fondo",
     "fundCategory": "Categoria Fondo",
     "netExpenseRatio": "Rapporto Spese Nette",
-    "aiRecommendation": "Raccomandazione IA",
     "volume": "Volume",
     "adv": "Volume Giornaliero Medio",
     "technicalScore": "Punteggio Tecnico",

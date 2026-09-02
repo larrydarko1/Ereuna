@@ -703,7 +703,6 @@
     "cagr": "CAGR",
     "cagrYears": "CAGR-Jahre",
     "intrinsicValue": "Innerer Wert (KI)",
-    "aiRecommendation": "KI-Empfehlung",
     "fundFamily": "Fondsfamilie",
     "fundCategory": "Fondskategorie",
     "netExpenseRatio": "Nettokostenquote",
@@ -1070,8 +1069,7 @@
     "tooltipRSI": "Der Relative-Stärke-Index (RSI) ist ein technischer Indikator, der die Kursdynamik einer Aktie misst und von 0 bis 100 reicht.",
     "tooltipGap": "Gap % ist ein Maß für die prozentuale Veränderung des Aktienkurses vom Schlusskurs des Vortages bis zur Eröffnung des aktuellen Tages. Es wird berechnet als (Aktuelle Eröffnung - Vorheriger Schluss) / Vorheriger Schluss. Ein positiver Gap % zeigt eine Aufwärtsbewegung an, während ein negativer Gap % eine Abwärtsbewegung anzeigt.",
     "tooltipAssetType": "Kategorie des Vermögenswerts, in diesem Fall unterstützen wir Aktien, ETFs, Investmentfonds und Kryptowährungen.",
-    "tooltipIV": "Der Innere Wert (IV) schätzt den wahren Wert einer Aktie mithilfe eines Discounted Cash Flow (DCF)-Modells. Wir berechnen IV wie folgt: 1. Summierung der letzten 20 Quartale des Free Cash Flow (FCF) für den jährlichen FCF der letzten 5 Jahre. 2. Berechnung der 5-Jahres-CAGR des FCF. 3. Projektion des FCF für die nächsten 5 Jahre unter Verwendung dieser CAGR. 4. Diskontierung dieser projizierten FCFs auf den Barwert mit einer Rate von 10%. 5. Hinzufügen eines Endwerts (unter Verwendung des Gordon Growth Model mit einer Wachstumsrate von 2,5%) und dessen Diskontierung. 6. Hinzufügen des Nettobargeld (Bargeld minus Schulden) aus dem letzten Quartal. 7. Division der Gesamtsumme durch die ausstehenden Aktien, um IV pro Aktie zu erhalten. Dieser Ansatz hilft bei der Beurteilung, ob eine Aktie unter- oder überbewertet ist, basierend auf ihrem zukünftigen Cashflow-Potenzial.",
-    "tooltipAIRecommendation": "Dieser Filter zeigt Assets mit KI-generierten Anlageempfehlungen an, wie Starker Verkauf, Verkauf, Halten, Kauf oder Starker Kauf. Diese Empfehlungen werden von einem proprietären Algorithmus erstellt, der Unternehmensfinanzberichte analysiert. Bitte beachten Sie, dass dies eine experimentelle Funktion ist und nicht als Finanzberatung oder Ersatz für professionelle Analysen betrachtet werden sollte."
+    "tooltipIV": "Der Innere Wert (IV) schätzt den wahren Wert einer Aktie mithilfe eines Discounted Cash Flow (DCF)-Modells. Wir berechnen IV wie folgt: 1. Summierung der letzten 20 Quartale des Free Cash Flow (FCF) für den jährlichen FCF der letzten 5 Jahre. 2. Berechnung der 5-Jahres-CAGR des FCF. 3. Projektion des FCF für die nächsten 5 Jahre unter Verwendung dieser CAGR. 4. Diskontierung dieser projizierten FCFs auf den Barwert mit einer Rate von 10%. 5. Hinzufügen eines Endwerts (unter Verwendung des Gordon Growth Model mit einer Wachstumsrate von 2,5%) und dessen Diskontierung. 6. Hinzufügen des Nettobargeld (Bargeld minus Schulden) aus dem letzten Quartal. 7. Division der Gesamtsumme durch die ausstehenden Aktien, um IV pro Aktie zu erhalten. Dieser Ansatz hilft bei der Beurteilung, ob eine Aktie unter- oder überbewertet ist, basierend auf ihrem zukünftigen Cashflow-Potenzial."
   },
   "screenerComponents": {
     "timeframe5m": "5m",
@@ -1148,7 +1146,6 @@
     "attrFundFamily": "Fondsfamilie",
     "attrFundCategory": "Fondskategorie",
     "attrNetExpenseRatio": "Nettokostenquote",
-    "attrAIRecommendation": "KI-Empfehlung",
     "ticker": "Ticker",
     "hideAsset": "Asset ausblenden",
     "showAsset": "Asset anzeigen",
@@ -1157,7 +1154,6 @@
     "attrSectors": "Sektoren",
     "attrExchanges": "Börsen",
     "attrCountries": "Länder",
-    "attrAIRecommendations": "KI-Empfehlungen",
     "attrForwardPE": "Forward-KGV",
     "attrDivYieldPercent": "Dividendenrendite (%)",
     "attrEPSQoQ": "EPS-Wachstum QoQ (%)",
@@ -1260,7 +1256,6 @@
     "fundFamily": "Fondsfamilie",
     "fundCategory": "Fondskategorie",
     "netExpenseRatio": "Nettokostenquote",
-    "aiRecommendation": "KI-Empfehlung",
     "volume": "Volumen",
     "adv": "Durchschnittliches Tagesvolumen",
     "technicalScore": "Technischer Score",

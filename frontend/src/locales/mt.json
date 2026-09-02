@@ -703,7 +703,6 @@
     "cagr": "CAGR",
     "cagrYears": "Snin CAGR",
     "intrinsicValue": "Valur Intrinziku (AI)",
-    "aiRecommendation": "Rakkomandazzjoni AI",
     "fundFamily": "Familja tal-Fond",
     "fundCategory": "Kategorija tal-Fond",
     "netExpenseRatio": "Proporzjon ta' Spej jeż Nett",
@@ -1070,8 +1069,7 @@
     "tooltipRSI": "L-indiċi ta' qawwa relattiva (RSI) huwa indikatur tekniku li jkejjel il-momentum tal-prezz tal-azzjonijiet ta' kumpanija, li jivarja minn 0 għal 100.",
     "tooltipGap": "Gap % huwa kejl tal-bidla fil-perċentwal fil-prezz ta' stock mill-għeluq tal-ġurnata ta' qabel għall-ftuħ tal-ġurnata kurrenti. Huwa kkalkulat bħala (Ftuħ Kurrenti - Għeluq ta' Qabel) / Għeluq ta' Qabel. Gap % pożittiv jindika moviment tal-prezz 'l fuq, filwaqt li gap % negattiv jindika moviment tal-prezz 'l isfel.",
     "tooltipAssetType": "Kategorija tal-assi, f'dan il-każ aħna nappoġġjaw Stocks, ETFs, Fondi Komuni, u Cryptocurrencies.",
-    "tooltipIV": "Valur Intrinziku (IV) jistma l-valur veru ta' stock bl-użu ta' mudell ta' Fluss ta' Flus Skontati (DCF). Aħna nikkalklaw IV billi: 1. Nġibu s-somma tal-aħħar 20 trimestru ta' Fluss ta' Flus Ħieles (FCF) biex niksbu FCF annwali għall-aħħar 5 snin. 2. Nikkalklaw ir-Rata ta' Tkabbir Annwali Komposta (CAGR) ta' 5 snin ta' FCF. 3. Nipproġettaw FCF għall-5 snin li ġejjin bl-użu ta' dan il-CAGR. 4. Niskontaw dawn il-FCFs ipproġettati għall-valur preżenti b'rata ta' 10%. 5. Iżżid valur terminali (bl-użu tal-Mudell ta' Tkabbir Gordon b'rata ta' tkabbir ta' 2.5%) u niskontawh. 6. Iżżid flus netti (flus nieqes dejn) mill-aħħar trimestru. 7. Naqsmu t-totali bl-azzjonijiet stabbiliti biex niksbu IV għal kull sehem. Dan l-approċċ jgħin biex tivvaluta jekk stock hijiex sottovalutata jew sopravalutata bbażata fuq il-potenzjal tal-fluss ta' flus futur tagħha.",
-    "tooltipAIRecommendation": "Dan il-filtru juri assi b'rakkomandazzjonijiet ta' investiment iġġenerati mill-AI, bħal Biegħ Qawwi, Biegħ, Żomm, Ixtri, jew Ixtri Qawwi. Dawn ir-rakkomandazzjonijiet huma prodotti minn algoritmu proprjetarju li janalizza dikjarazzjonijiet finanzjarji tal-kumpanija. Jekk jogħġbok innota li din hija karatteristika sperimentali u m'għandhiex titqies bħala parir finanzjarju jew sostitut għal analiżi professjonali."
+    "tooltipIV": "Valur Intrinziku (IV) jistma l-valur veru ta' stock bl-użu ta' mudell ta' Fluss ta' Flus Skontati (DCF). Aħna nikkalklaw IV billi: 1. Nġibu s-somma tal-aħħar 20 trimestru ta' Fluss ta' Flus Ħieles (FCF) biex niksbu FCF annwali għall-aħħar 5 snin. 2. Nikkalklaw ir-Rata ta' Tkabbir Annwali Komposta (CAGR) ta' 5 snin ta' FCF. 3. Nipproġettaw FCF għall-5 snin li ġejjin bl-użu ta' dan il-CAGR. 4. Niskontaw dawn il-FCFs ipproġettati għall-valur preżenti b'rata ta' 10%. 5. Iżżid valur terminali (bl-użu tal-Mudell ta' Tkabbir Gordon b'rata ta' tkabbir ta' 2.5%) u niskontawh. 6. Iżżid flus netti (flus nieqes dejn) mill-aħħar trimestru. 7. Naqsmu t-totali bl-azzjonijiet stabbiliti biex niksbu IV għal kull sehem. Dan l-approċċ jgħin biex tivvaluta jekk stock hijiex sottovalutata jew sopravalutata bbażata fuq il-potenzjal tal-fluss ta' flus futur tagħha."
   },
   "screenerComponents": {
     "timeframe5m": "5m",
@@ -1148,7 +1146,6 @@
     "attrFundFamily": "Familja tal-Fond",
     "attrFundCategory": "Kategorija tal-Fond",
     "attrNetExpenseRatio": "Proporzjon ta' Spejjeż Nett",
-    "attrAIRecommendation": "Rakkomandazzjoni AI",
     "ticker": "Ticker",
     "hideAsset": "Aħbi Assi",
     "showAsset": "Uri Assi",
@@ -1157,7 +1154,6 @@
     "attrSectors": "Setturi",
     "attrExchanges": "Skambji",
     "attrCountries": "Pajjiżi",
-    "attrAIRecommendations": "Rakkomandazzjonijiet AI",
     "attrForwardPE": "P/E Futur",
     "attrDivYieldPercent": "Rendiment tad-Dividend (%)",
     "attrEPSQoQ": "Tkabbir EPS QoQ (%)",
@@ -1260,7 +1256,6 @@
     "fundFamily": "Familja tal-Fond",
     "fundCategory": "Kategorija tal-Fond",
     "netExpenseRatio": "Proporzjon ta' Spejjeż Nett",
-    "aiRecommendation": "Rakkomandazzjoni AI",
     "volume": "Volum",
     "adv": "Volum Medju ta' Kuljum",
     "technicalScore": "Punteġġ Tekniku",

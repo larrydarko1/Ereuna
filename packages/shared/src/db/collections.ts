@@ -118,7 +118,6 @@ export const SUMMARY_FIELDS = [
     'cagr',
     'cagrYears',
     'website',
-    'aiRecommendation',
     'description',
 ] as const;
 

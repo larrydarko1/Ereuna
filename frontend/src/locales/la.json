@@ -703,7 +703,6 @@
     "cagr": "CAGR",
     "cagrYears": "Anni CAGR",
     "intrinsicValue": "Valor Intrinsecus (AI)",
-    "aiRecommendation": "Commendatio AI",
     "fundFamily": "Familia Fundi",
     "fundCategory": "Categoria Fundi",
     "netExpenseRatio": "Ratio Expensae Nettae",
@@ -1070,8 +1069,7 @@
     "tooltipRSI": "Index fortitudinis relativae (RSI) est indicator technicus qui metitur momentum pretii partis societatis, variando ab 0 ad 100.",
     "tooltipGap": "Gap % est mensura mutationis percentagii in pretio partis a clausura diei praecedentis ad aperturam diei praesentis. Calculatur ut (Apertura Praesens - Clausura Praecedenta) / Clausura Praecedenta. Gap % positivum indicat motum pretii sursum, dum gap % negativum indicat motum pretii deorsum.",
     "tooltipAssetType": "Categoria boni, in hoc casu sustinemus Partes, ETFs, Fundos Mutuos, et Cryptomonetam.",
-    "tooltipIV": "Valor Intrinsecus (IV) aestimat verum valorem partis utendo modellum Fluxus Pecuniae Discount (DCF). Calculamus IV: 1. Summando ultimos 20 trimestres Fluxus Pecuniae Liberi (FCF) ad obtinendum FCF annuum pro 5 annis praeteritis. 2. Calculando Indicem Incrementi Annui Compositi (CAGR) 5 annorum FCF. 3. Proiciendo FCF pro proximis 5 annis utendo hunc CAGR. 4. Discountando hos FCFs proiectos ad valorem praesentem cum indice 10%. 5. Addendo valorem terminalem (utendo Modellum Incrementi Gordon cum indice incrementi 2.5%) et discountando eum. 6. Addendo pecuniam nettam (pecunia minus debitum) ex trimestre ultimo. 7. Dividendo totale per partes existentes ad obtinendum IV per partem. Haec accessio adiuvat aestimare utrum pars parum aestimata vel nimis aestimata sit secundum potentiale fluxus pecuniae futuri eius.",
-    "tooltipAIRecommendation": "Hic filtrum monstrat bona cum commendationibus investimenti ab AI generatis, ut Vendere Fortiter, Vendere, Tenere, Emere, vel Emere Fortiter. Hae commendationes producuntur ab algorithmo proprietario qui rationes pecuniarias societatis analysit. Nota quod haec est proprietas experimentalis et non debet haberi ut consilium pecuniarium vel substitutum analyseos professionalis."
+    "tooltipIV": "Valor Intrinsecus (IV) aestimat verum valorem partis utendo modellum Fluxus Pecuniae Discount (DCF). Calculamus IV: 1. Summando ultimos 20 trimestres Fluxus Pecuniae Liberi (FCF) ad obtinendum FCF annuum pro 5 annis praeteritis. 2. Calculando Indicem Incrementi Annui Compositi (CAGR) 5 annorum FCF. 3. Proiciendo FCF pro proximis 5 annis utendo hunc CAGR. 4. Discountando hos FCFs proiectos ad valorem praesentem cum indice 10%. 5. Addendo valorem terminalem (utendo Modellum Incrementi Gordon cum indice incrementi 2.5%) et discountando eum. 6. Addendo pecuniam nettam (pecunia minus debitum) ex trimestre ultimo. 7. Dividendo totale per partes existentes ad obtinendum IV per partem. Haec accessio adiuvat aestimare utrum pars parum aestimata vel nimis aestimata sit secundum potentiale fluxus pecuniae futuri eius."
   },
   "screenerComponents": {
     "timeframe5m": "5m",
@@ -1148,7 +1146,6 @@
     "attrFundFamily": "Familia Fundi",
     "attrFundCategory": "Categoria Fundi",
     "attrNetExpenseRatio": "Ratio Expensae Nettae",
-    "attrAIRecommendation": "Commendatio AI",
     "ticker": "Symbolum",
     "hideAsset": "Celare Bonum",
     "showAsset": "Monstrare Bonum",
@@ -1157,7 +1154,6 @@
     "attrSectors": "Sectores",
     "attrExchanges": "Cambia",
     "attrCountries": "Patriae",
-    "attrAIRecommendations": "Commendationes AI",
     "attrForwardPE": "P/L Futurus",
     "attrDivYieldPercent": "Reditus Dividendi (%)",
     "attrEPSQoQ": "Crescentia LpP TaT (%)",
@@ -1260,7 +1256,6 @@
     "fundFamily": "Familia Fundi",
     "fundCategory": "Categoria Fundi",
     "netExpenseRatio": "Ratio Impensae Nettae",
-    "aiRecommendation": "Commendatio AI",
     "volume": "Volumen",
     "adv": "Volumen Diurnum Medium",
     "technicalScore": "Punctus Technicus",

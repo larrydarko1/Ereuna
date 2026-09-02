@@ -703,7 +703,6 @@
     "cagr": "TCAC",
     "cagrYears": "Années TCAC",
     "intrinsicValue": "Valeur intrinsèque (IA)",
-    "aiRecommendation": "Recommandation IA",
     "fundFamily": "Famille de fonds",
     "fundCategory": "Catégorie de fonds",
     "netExpenseRatio": "Ratio de frais net",
@@ -1070,8 +1069,7 @@
     "tooltipRSI": "L'indice de force relative (RSI) est un indicateur technique qui mesure la dynamique du prix de l'action d'une entreprise, allant de 0 à 100.",
     "tooltipGap": "L'écart % est une mesure de la variation en pourcentage du prix d'une action entre la clôture de la veille et l'ouverture du jour. Il est calculé comme (Ouverture actuelle - Clôture précédente) / Clôture précédente. Un écart % positif indique un mouvement de prix à la hausse, tandis qu'un écart % négatif indique un mouvement à la baisse.",
     "tooltipAssetType": "Catégorie de l'actif, dans ce cas nous supportons les Actions, ETF, Fonds communs de placement et Cryptomonnaies.",
-    "tooltipIV": "La Valeur Intrinsèque (VI) estime la vraie valeur d'une action en utilisant un modèle de Flux de Trésorerie Actualisé (DCF). Nous calculons la VI en : 1. Additionnant les 20 derniers trimestres de Flux de Trésorerie Libre (FCF) pour obtenir le FCF annuel des 5 dernières années. 2. Calculant le Taux de Croissance Annuel Composé (TCAC) sur 5 ans du FCF. 3. Projetant le FCF pour les 5 prochaines années en utilisant ce TCAC. 4. Actualisant ces FCF projetés à la valeur actuelle à un taux de 10%. 5. Ajoutant une valeur terminale (en utilisant le Modèle de Croissance de Gordon avec un taux de croissance de 2,5%) et en l'actualisant. 6. Ajoutant la trésorerie nette (trésorerie moins dette) du dernier trimestre. 7. Divisant le total par les actions en circulation pour obtenir la VI par action. Cette approche aide à évaluer si une action est sous-évaluée ou surévaluée en fonction de son potentiel de flux de trésorerie futur.",
-    "tooltipAIRecommendation": "Ce filtre affiche les actifs avec des recommandations d'investissement générées par IA, telles que Vendre Fortement, Vendre, Conserver, Acheter ou Acheter Fortement. Ces recommandations sont produites par un algorithme propriétaire qui analyse les états financiers des entreprises. Veuillez noter qu'il s'agit d'une fonctionnalité expérimentale et ne doit pas être considérée comme un conseil financier ou un substitut à l'analyse professionnelle."
+    "tooltipIV": "La Valeur Intrinsèque (VI) estime la vraie valeur d'une action en utilisant un modèle de Flux de Trésorerie Actualisé (DCF). Nous calculons la VI en : 1. Additionnant les 20 derniers trimestres de Flux de Trésorerie Libre (FCF) pour obtenir le FCF annuel des 5 dernières années. 2. Calculant le Taux de Croissance Annuel Composé (TCAC) sur 5 ans du FCF. 3. Projetant le FCF pour les 5 prochaines années en utilisant ce TCAC. 4. Actualisant ces FCF projetés à la valeur actuelle à un taux de 10%. 5. Ajoutant une valeur terminale (en utilisant le Modèle de Croissance de Gordon avec un taux de croissance de 2,5%) et en l'actualisant. 6. Ajoutant la trésorerie nette (trésorerie moins dette) du dernier trimestre. 7. Divisant le total par les actions en circulation pour obtenir la VI par action. Cette approche aide à évaluer si une action est sous-évaluée ou surévaluée en fonction de son potentiel de flux de trésorerie futur."
   },
   "screenerComponents": {
     "timeframe5m": "5m",
@@ -1148,7 +1146,6 @@
     "attrFundFamily": "Famille de fonds",
     "attrFundCategory": "Catégorie de fonds",
     "attrNetExpenseRatio": "Ratio de frais net",
-    "attrAIRecommendation": "Recommandation IA",
     "ticker": "Ticker",
     "hideAsset": "Masquer l'actif",
     "showAsset": "Afficher l'actif",
@@ -1157,7 +1154,6 @@
     "attrSectors": "Secteurs",
     "attrExchanges": "Bourses",
     "attrCountries": "Pays",
-    "attrAIRecommendations": "Recommandations IA",
     "attrForwardPE": "C/B prévisionnel",
     "attrDivYieldPercent": "Rendement du dividende (%)",
     "attrEPSQoQ": "Croissance BPA TàT (%)",
@@ -1260,7 +1256,6 @@
     "fundFamily": "Famille de fonds",
     "fundCategory": "Catégorie de fonds",
     "netExpenseRatio": "Ratio de frais net",
-    "aiRecommendation": "Recommandation IA",
     "volume": "Volume",
     "adv": "Volume quotidien moyen",
     "technicalScore": "Score technique",

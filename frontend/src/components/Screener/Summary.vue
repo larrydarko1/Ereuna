@@ -146,7 +146,7 @@ async function loadSummary(): Promise<void> {
     const screenerSettings = await response.json();
 
     const attributes = [
-      'Price', 'MarketCap', 'Sectors', 'Exchanges', 'Countries', 'AIRecommendations', 'PE', 'PS', 'ForwardPE', 'PEG', 'EPS', 'PB', 'DivYield',
+      'Price', 'MarketCap', 'Sectors', 'Exchanges', 'Countries', 'PE', 'PS', 'ForwardPE', 'PEG', 'EPS', 'PB', 'DivYield',
       'EPSQoQ', 'EPSYoY', 'EarningsQoQ', 'EarningsYoY', 'RevQoQ', 'RevYoY', 'AvgVolume1W', 'AvgVolume1M', 'AvgVolume6M', 'AvgVolume1Y',
       'RelVolume1W', 'RelVolume1M', 'RelVolume6M', 'RelVolume1Y', 'RSScore1W', 'RSScore1M', 'RSScore4M', 'MA10', 'MA20', 'MA50', 'MA200', 'CurrentPrice', 'NewHigh',
       'NewLow', 'PercOffWeekHigh', 'PercOffWeekLow', 'changePerc', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y', 'ROE', 'ROA', 'currentRatio',
@@ -160,7 +160,6 @@ async function loadSummary(): Promise<void> {
       'Sectors': t('screenerComponents.attrSectors'),
       'Exchanges': t('screenerComponents.attrExchanges'),
       'Countries': t('screenerComponents.attrCountries'),
-      'AIRecommendations': t('screenerComponents.attrAIRecommendations'),
       'PE': t('screenerComponents.attrPE'),
       'PS': t('screenerComponents.attrPS'),
       'ForwardPE': t('screenerComponents.attrForwardPE'),

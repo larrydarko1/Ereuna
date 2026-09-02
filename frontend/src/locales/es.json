@@ -703,7 +703,6 @@
     "cagr": "CAGR",
     "cagrYears": "Años CAGR",
     "intrinsicValue": "Valor Intrínseco (IA)",
-    "aiRecommendation": "Recomendación IA",
     "fundFamily": "Familia del Fondo",
     "fundCategory": "Categoría del Fondo",
     "netExpenseRatio": "Ratio de Gastos Netos",
@@ -1070,8 +1069,7 @@
     "tooltipRSI": "El índice de fuerza relativa (RSI) es un indicador técnico que mide el impulso del precio de las acciones de una empresa, que varía de 0 a 100.",
     "tooltipGap": "El Gap % es una medida del cambio porcentual en el precio de una acción desde el cierre del día anterior hasta la apertura del día actual. Se calcula como (Apertura Actual - Cierre Anterior) / Cierre Anterior. Un gap % positivo indica un movimiento de precio ascendente, mientras que un gap % negativo indica un movimiento de precio descendente.",
     "tooltipAssetType": "Categoría del activo, en este caso soportamos Acciones, ETFs, Fondos Mutuos y Criptomonedas.",
-    "tooltipIV": "El Valor Intrínseco (IV) estima el valor real de una acción utilizando un modelo de Flujo de Caja Descontado (DCF). Calculamos el IV mediante: 1. Sumar los últimos 20 trimestres de Flujo de Caja Libre (FCF) para obtener el FCF anual de los últimos 5 años. 2. Calcular la Tasa de Crecimiento Anual Compuesta (CAGR) de 5 años del FCF. 3. Proyectar el FCF para los próximos 5 años usando este CAGR. 4. Descontar estos FCF proyectados a valor presente a una tasa del 10%. 5. Agregar un valor terminal (usando el Modelo de Crecimiento de Gordon con una tasa de crecimiento del 2.5%) y descontarlo. 6. Agregar el efectivo neto (efectivo menos deuda) del último trimestre. 7. Dividir el total por las acciones en circulación para obtener el IV por acción. Este enfoque ayuda a evaluar si una acción está subvaluada o sobrevaluada según su potencial de flujo de caja futuro.",
-    "tooltipAIRecommendation": "Este filtro muestra activos con recomendaciones de inversión generadas por IA, como Venta Fuerte, Venta, Mantener, Compra o Compra Fuerte. Estas recomendaciones son producidas por un algoritmo propietario que analiza los estados financieros de la empresa. Tenga en cuenta que esta es una característica experimental y no debe considerarse como asesoramiento financiero o un sustituto del análisis profesional."
+    "tooltipIV": "El Valor Intrínseco (IV) estima el valor real de una acción utilizando un modelo de Flujo de Caja Descontado (DCF). Calculamos el IV mediante: 1. Sumar los últimos 20 trimestres de Flujo de Caja Libre (FCF) para obtener el FCF anual de los últimos 5 años. 2. Calcular la Tasa de Crecimiento Anual Compuesta (CAGR) de 5 años del FCF. 3. Proyectar el FCF para los próximos 5 años usando este CAGR. 4. Descontar estos FCF proyectados a valor presente a una tasa del 10%. 5. Agregar un valor terminal (usando el Modelo de Crecimiento de Gordon con una tasa de crecimiento del 2.5%) y descontarlo. 6. Agregar el efectivo neto (efectivo menos deuda) del último trimestre. 7. Dividir el total por las acciones en circulación para obtener el IV por acción. Este enfoque ayuda a evaluar si una acción está subvaluada o sobrevaluada según su potencial de flujo de caja futuro."
   },
   "screenerComponents": {
     "timeframe5m": "5m",
@@ -1148,7 +1146,6 @@
     "attrFundFamily": "Fam Fondo",
     "attrFundCategory": "Cat Fondo",
     "attrNetExpenseRatio": "Ratio Gastos",
-    "attrAIRecommendation": "IA",
     "ticker": "Símbolo",
     "hideAsset": "Ocultar Activo",
     "showAsset": "Mostrar Activo",
@@ -1157,7 +1154,6 @@
     "attrSectors": "Sectores",
     "attrExchanges": "Bolsas",
     "attrCountries": "Países",
-    "attrAIRecommendations": "Recomendaciones IA",
     "attrForwardPE": "P/E Futuro",
     "attrDivYieldPercent": "Rendimiento de Dividendos (%)",
     "attrEPSQoQ": "Crecimiento BPA TaT (%)",
@@ -1260,7 +1256,6 @@
     "fundFamily": "Familia de Fondos",
     "fundCategory": "Categoría de Fondos",
     "netExpenseRatio": "Ratio de Gastos Netos",
-    "aiRecommendation": "Recomendación de IA",
     "volume": "Volumen",
     "adv": "Volumen Diario Promedio",
     "technicalScore": "Puntuación Técnica",

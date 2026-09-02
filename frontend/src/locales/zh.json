@@ -703,7 +703,6 @@
     "cagr": "复合年增长率",
     "cagrYears": "复合年增长率年数",
     "intrinsicValue": "内在价值（AI）",
-    "aiRecommendation": "AI推荐",
     "fundFamily": "基金家族",
     "fundCategory": "基金类别",
     "netExpenseRatio": "净费用率",
@@ -1070,8 +1069,7 @@
     "tooltipRSI": "相对强弱指数（RSI）是一项技术指标，衡量公司股价动量，范围从0刺100。",
     "tooltipGap": "跳空%是衡量股票价格从前一天收盘价到当天开盘价的百分比变化。它的计算方式为：（当前开盘 - 前一收盘）/ 前一收盘。正数跳空%表示价格上涨，负数跳空%表示价格下跌。",
     "tooltipAssetType": "资产类别，我们支持股票、ETF、共同基金和加密货币。",
-    "tooltipIV": "内在价值（IV）使用折现现金流（DCF）模型估算股票的真实价值。我们通过以下步骤计算IV：1. 汇总最后20个季度的自由现金流（FCF）以获得过去5年的年度FCF。2. 计算FCF的5年复合年增长率（CAGR）。3. 使用此CAGR预测未来5年的FCF。4. 以10%的率将这些预测FCF折现为现值。5. 添加终值（使用增长率2.5%的戈登增长模型）并进行折现。6. 添加最新季度的净现金（现金减债务）。7. 将总数除以流通股以获得每股IV。此方法有助于根据股票的未来现金流潜力评估其是被低估还是被高估。",
-    "tooltipAIRecommendation": "此筛选器显示具有AI生成的投资建议的资产，如强烈卖出、卖出、持有、买入或强烈买入。这些建议由分析公司财务报表的专有算法生成。请注意，这是实验性功能，不应被视为财务建议或专业分析的替代品。"
+    "tooltipIV": "内在价值（IV）使用折现现金流（DCF）模型估算股票的真实价值。我们通过以下步骤计算IV：1. 汇总最后20个季度的自由现金流（FCF）以获得过去5年的年度FCF。2. 计算FCF的5年复合年增长率（CAGR）。3. 使用此CAGR预测未来5年的FCF。4. 以10%的率将这些预测FCF折现为现值。5. 添加终值（使用增长率2.5%的戈登增长模型）并进行折现。6. 添加最新季度的净现金（现金减债务）。7. 将总数除以流通股以获得每股IV。此方法有助于根据股票的未来现金流潜力评估其是被低估还是被高估。"
   },
   "screenerComponents": {
     "timeframe5m": "5分钟",
@@ -1148,7 +1146,6 @@
     "attrFundFamily": "基金家族",
     "attrFundCategory": "基金类别",
     "attrNetExpenseRatio": "净费用率",
-    "attrAIRecommendation": "AI推荐",
     "ticker": "代码",
     "hideAsset": "隐藏资产",
     "showAsset": "显示资产",
@@ -1157,7 +1154,6 @@
     "attrSectors": "板块",
     "attrExchanges": "交易所",
     "attrCountries": "国家",
-    "attrAIRecommendations": "AI推荐",
     "attrForwardPE": "预期市盈率",
     "attrDivYieldPercent": "股息收益率（%）",
     "attrEPSQoQ": "每股收益环比增长（%）",
@@ -1260,7 +1256,6 @@
     "fundFamily": "基金家族",
     "fundCategory": "基金类别",
     "netExpenseRatio": "净费用率",
-    "aiRecommendation": "AI推荐",
     "volume": "成交量",
     "adv": "平均日成交量",
     "technicalScore": "技术评分",

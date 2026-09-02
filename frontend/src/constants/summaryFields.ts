@@ -78,6 +78,5 @@ export const SUMMARY_FIELD_SPECS: Record<SummaryField, SummaryFieldSpec> = {
     cagr: { labelKey: 'cagr', format: 'ratio' },
     cagrYears: { labelKey: 'cagrYears', format: 'integer' },
     website: { labelKey: 'companyWebsite', format: 'link' },
-    aiRecommendation: { labelKey: 'aiRecommendation', format: 'text' },
     description: { labelKey: 'description', format: 'prose' },
 };

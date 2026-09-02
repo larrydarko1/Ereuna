@@ -118,7 +118,6 @@ const attributes = computed(() => [
   { label: t('screenerComponents.attrFundFamily'), value: 'fund_family' },
   { label: t('screenerComponents.attrFundCategory'), value: 'fund_category' },
   { label: t('screenerComponents.attrNetExpenseRatio'), value: 'net_expense_ratio' },
-  { label: t('screenerComponents.attrAIRecommendation'), value: 'ai_recommendation' },
 ])
 // Close the modal
 function close() {
