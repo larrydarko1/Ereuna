@@ -42,6 +42,7 @@ export const api = axios.create({
 
 let accessToken: string | null = null;
 let refreshPromise: Promise<string | null> | null = null;
+const sessionListeners = new Set<() => void>();
 
 export function findAccessToken(): string | null {
     return accessToken;
@@ -71,9 +72,19 @@ export function isAuthenticated(): boolean {
     return findSessionUser() !== null;
 }
 
+/**
+ * Run when the session ends, so module-scoped caches can drop what they hold.
+ * Anything cached for "the user" outlives a sign-out otherwise, and the next
+ * person to sign in on this browser inherits it.
+ */
+export function onSessionCleared(listener: () => void): void {
+    sessionListeners.add(listener);
+}
+
 export function clearAuth(): void {
     accessToken = null;
     localStorage.removeItem(USER_KEY);
+    for (const listener of sessionListeners) listener();
 }
 
 /**

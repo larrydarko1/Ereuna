@@ -1,5 +1,5 @@
 /** market-assets — reads of the AssetInfo reference collection. */
-import type { AssetInfoDoc, CorporateAction } from '@ereuna/shared';
+import type { AssetInfoDoc, CorporateAction, SummaryField } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { marketKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
@@ -91,6 +91,128 @@ export async function searchAssets(term: string, limit: number): Promise<AssetSu
     );
 }
 
+export type AssetProfile = {
+    symbol: string;
+    name: string | null;
+    assetType: string | null;
+    exchange: string | null;
+    isin: string | null;
+    ipo: string | null; // ISO date
+    sector: string | null;
+    industry: string | null;
+    currency: string | null;
+    location: string | null;
+    website: string | null;
+    description: string | null;
+    delisted: boolean;
+    marketCap: number | null;
+    sharesOutstanding: number | null;
+    intrinsicValue: number | null;
+    bookValue: number | null;
+    pe: number | null;
+    peg: number | null;
+    ps: number | null;
+    pb: number | null;
+    cagr: number | null;
+    cagrYears: number | null;
+    dividendYield: number | null;
+    dividendDate: string | null;
+    rsi: number | null;
+    gap: number | null;
+    rsScore1W: number | null;
+    rsScore1M: number | null;
+    rsScore4M: number | null;
+    allTimeHigh: number | null;
+    allTimeLow: number | null;
+    week52High: number | null;
+    week52Low: number | null;
+    offWeek52High: number | null;
+    offWeek52Low: number | null;
+    avgVolume1W: number | null;
+    avgVolume1M: number | null;
+    avgVolume6M: number | null;
+    avgVolume1Y: number | null;
+    relVolume1W: number | null;
+    relVolume1M: number | null;
+    relVolume6M: number | null;
+    relVolume1Y: number | null;
+    adv1W: number | null;
+    adv1M: number | null;
+    adv4M: number | null;
+    adv1Y: number | null;
+    fundCategory: string | null;
+    fundFamily: string | null;
+    netExpenseRatio: number | null;
+    aiRecommendation: string | null;
+};
+
+/**
+ * Compile-time proof that every summary row the client can order has a field
+ * to read. `SUMMARY_FIELDS` is the shared list the layout stores; if a key is
+ * added there without a field here, this assignment stops type-checking.
+ */
+export type SummaryFieldsCovered = SummaryField extends keyof AssetProfile ? true : never;
+
+/** The reference data for one asset, shaped for display. */
+export async function assetProfile(symbol: string): Promise<AssetProfile> {
+    const doc = await requireAsset(symbol);
+
+    return {
+        symbol: doc.Symbol,
+        name: text(doc.Name),
+        assetType: text(doc.AssetType),
+        exchange: text(doc.Exchange),
+        isin: text(doc.ISIN),
+        ipo: isoDate(doc.IPO),
+        sector: text(doc.Sector),
+        industry: text(doc.Industry),
+        currency: text(doc.Currency),
+        location: text(doc.Country),
+        website: text(doc.companyWebsite),
+        description: text(doc.Description),
+        delisted: doc.Delisted === true,
+        marketCap: numeric(doc.MarketCapitalization),
+        sharesOutstanding: numeric(doc.SharesOutstanding),
+        intrinsicValue: numeric(doc.IntrinsicValue),
+        bookValue: numeric(doc.BookValue),
+        pe: numeric(doc.PERatio),
+        peg: numeric(doc.PEGRatio),
+        ps: numeric(doc.PriceToSalesRatioTTM),
+        pb: numeric(doc.PriceToBookRatio),
+        cagr: numeric(doc.CAGR),
+        cagrYears: numeric(doc.CAGRYears),
+        dividendYield: numeric(doc.DividendYield),
+        dividendDate: isoDate(doc.DividendDate),
+        rsi: numeric(doc.RSI),
+        gap: numeric(doc.Gap),
+        rsScore1W: numeric(doc.RSScore1W),
+        rsScore1M: numeric(doc.RSScore1M),
+        rsScore4M: numeric(doc.RSScore4M),
+        allTimeHigh: numeric(doc.AlltimeHigh),
+        allTimeLow: numeric(doc.AlltimeLow),
+        week52High: numeric(doc.fiftytwoWeekHigh),
+        week52Low: numeric(doc.fiftytwoWeekLow),
+        offWeek52High: numeric(doc.percoff52WeekHigh),
+        offWeek52Low: numeric(doc.percoff52WeekLow),
+        avgVolume1W: numeric(doc.AvgVolume1W),
+        avgVolume1M: numeric(doc.AvgVolume1M),
+        avgVolume6M: numeric(doc.AvgVolume6M),
+        avgVolume1Y: numeric(doc.AvgVolume1Y),
+        relVolume1W: numeric(doc.RelVolume1W),
+        relVolume1M: numeric(doc.RelVolume1M),
+        relVolume6M: numeric(doc.RelVolume6M),
+        relVolume1Y: numeric(doc.RelVolume1Y),
+        adv1W: numeric(doc.ADV1W),
+        adv1M: numeric(doc.ADV1M),
+        adv4M: numeric(doc.ADV4M),
+        adv1Y: numeric(doc.ADV1Y),
+        fundCategory: text(doc.FundCategory),
+        fundFamily: text(doc.fundFamily),
+        netExpenseRatio: numeric(doc.netExpenseRatio),
+        aiRecommendation: latestRecommendation(doc.AI),
+    };
+}
+
 /** Dividend payment schedules for a set of symbols, keyed by symbol. */
 export async function dividendSchedules(symbols: readonly string[]): Promise<Map<string, DividendPayment[]>> {
     const schedules = new Map<string, DividendPayment[]>();
@@ -132,6 +254,49 @@ export async function earningsDates(symbol: string): Promise<string[]> {
         .map((quarter) => (quarter.fiscalDateEnding === undefined ? null : new Date(quarter.fiscalDateEnding)))
         .filter((date): date is Date => date !== null && !Number.isNaN(date.getTime()))
         .map((date) => date.toISOString().slice(0, 10));
+}
+
+
+/**
+ * A finite number, or null.
+ * The documents carry missing numerics as null, as the empty string, and as
+ * the literal string "NaN" — the ingestor wrote whatever the upstream feed
+ * gave it. All three mean the same thing here.
+ */
+function numeric(value: unknown): number | null {
+    if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+    if (typeof value !== 'string' || value.trim() === '') return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+}
+
+/** A non-empty string, or null. "-" counts as empty: it is the old client's placeholder. */
+function text(value: unknown): string | null {
+    if (typeof value !== 'string') return null;
+    const trimmed = value.trim();
+    return trimmed === '' || trimmed === '-' ? null : trimmed;
+}
+
+/** A date as `YYYY-MM-DD`, or null when it will not parse. */
+function isoDate(value: unknown): string | null {
+    if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value.toISOString().slice(0, 10);
+    const raw = text(value);
+    if (raw === null) return null;
+    const parsed = new Date(raw);
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().slice(0, 10);
+}
+
+/**
+ * The most recent AI recommendation, or null.
+ * The feature was halted, so most documents have no `AI` array at all; the ones
+ * that do keep newest last.
+ */
+function latestRecommendation(value: unknown): string | null {
+    if (!Array.isArray(value) || value.length === 0) return null;
+    const latest = value.at(-1);
+    return typeof latest === 'object' && latest !== null
+        ? text((latest as Record<string, unknown>).Recommendation)
+        : null;
 }
 
 function toDividendPayment(action: CorporateAction): DividendPayment[] {

@@ -3,7 +3,7 @@
  * Chart settings live here rather than under /api/charts: which overlays a user
  * wants is a property of the user, not of any one chart.
  */
-import type { ChartSettings } from '@ereuna/shared';
+import type { ChartSettings, PanelLayout } from '@ereuna/shared';
 import { api, type ApiResult } from '@/api/client';
 
 export type Preferences = {
@@ -12,7 +12,7 @@ export type Preferences = {
     defaultSymbol: string;
     hiddenSymbols: string[];
     chartSettings: ChartSettings | null;
-    panels: Record<string, unknown> | null;
+    panels: PanelLayout | null;
     screenerColumns: string[];
 };
 

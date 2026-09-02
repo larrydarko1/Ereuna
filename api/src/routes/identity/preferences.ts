@@ -7,7 +7,7 @@
  */
 import { Router } from 'express';
 import { z } from 'zod';
-import { chartSettingsSchema, symbolSchema } from '@/lib/schemas.js';
+import { chartSettingsSchema, panelLayoutSchema, symbolSchema } from '@/lib/schemas.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';
 import * as userService from '@/services/user/index.js';
@@ -18,7 +18,7 @@ const updatePreferencesBody = z
         theme: z.string().trim().max(40).nullable(),
         defaultSymbol: symbolSchema,
         chartSettings: chartSettingsSchema.nullable(),
-        panels: z.record(z.string(), z.unknown()).nullable(),
+        panels: panelLayoutSchema.nullable(),
         screenerColumns: z.array(z.string().trim().min(1).max(60)).max(100),
     })
     .partial()

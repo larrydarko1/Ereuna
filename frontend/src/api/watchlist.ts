@@ -59,8 +59,8 @@ export function deleteWatchlist(name: string): ApiResult<{ ok: true }> {
     return api.delete<{ ok: true }>(`/watchlists/${encodeURIComponent(name)}`);
 }
 
-export function reorderTickers(name: string, tickers: readonly string[]): ApiResult<{ list: WatchlistEntry[] }> {
-    return api.put<{ list: WatchlistEntry[] }>(`/watchlists/${encodeURIComponent(name)}/tickers`, { tickers });
+export function reorderTickers(name: string, symbols: readonly string[]): ApiResult<{ list: WatchlistEntry[] }> {
+    return api.put<{ list: WatchlistEntry[] }>(`/watchlists/${encodeURIComponent(name)}/tickers`, { symbols });
 }
 
 export function addTicker(name: string, symbol: string): ApiResult<{ list: WatchlistEntry[] }> {

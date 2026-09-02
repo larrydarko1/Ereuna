@@ -44,7 +44,7 @@ const routes: RouteRecordRaw[] = [
         component: async () => import('@/views/Dashboard.vue'),
     },
     {
-        path: '/charts',
+        path: '/charts/:symbol?',
         name: 'Charts',
         component: async () => import('@/views/Charts.vue'),
     },

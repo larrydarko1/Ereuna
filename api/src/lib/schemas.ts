@@ -1,5 +1,6 @@
 /** Shared Zod schemas for request validation — the vocabulary route schemas are built from. */
 import { z } from 'zod';
+import { PANEL_SECTIONS, SUMMARY_FIELDS } from '@ereuna/shared';
 import { config } from '@/lib/config.js';
 
 export type PaginationQuerySchema = z.ZodObject<{
@@ -71,6 +72,20 @@ export const makePaginationQuery = ({ defaultLimit = 24, maxLimit = 100 } = {}):
 
 /** Default pagination: page 1, limit 24, cap 100. */
 export const paginationQuery = makePaginationQuery();
+
+/** A key listed twice would render one row in two places. */
+const noDuplicates = {
+    check: (keys: readonly string[]): boolean => new Set(keys).size === keys.length,
+    message: 'Each key may appear only once',
+};
+
+export const panelLayoutSchema = z.object({
+    sections: z.array(z.enum(PANEL_SECTIONS)).max(PANEL_SECTIONS.length).refine(noDuplicates.check, noDuplicates.message),
+    summaryFields: z
+        .array(z.enum(SUMMARY_FIELDS))
+        .max(SUMMARY_FIELDS.length)
+        .refine(noDuplicates.check, noDuplicates.message),
+});
 
 export const chartSettingsSchema = z.object({
     indicators: z

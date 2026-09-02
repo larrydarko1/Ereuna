@@ -10,10 +10,12 @@
  *     which is what makes a theme follow a user to another device.
  * `initTheme` is deliberately split from `syncTheme`: the first must run before
  * paint and cannot await anything; the second needs a session and can.
+ * The account read goes through the shared preferences cache rather than a
+ * direct GET, so the theme sync and the chart view's first load are one request.
  */
 import { readonly, ref, type Ref } from 'vue';
 import { isAuthenticated } from '@/api/client';
-import { getPreferences, updatePreferences } from '@/api/preferences';
+import { loadPreferences, patchPreferences } from '@/composables/data/usePreferences';
 import { DEFAULT_THEME, isThemeId, THEMES, type ThemeId } from '@/composables/ui/themes';
 
 export type UseThemeReturn = {
@@ -44,7 +46,7 @@ export function useTheme(): UseThemeReturn {
         setTheme(id);
         localStorage.setItem(STORAGE_KEY, id);
         if (!isAuthenticated()) return;
-        updatePreferences({ theme: id }).catch(() => {
+        patchPreferences({ theme: id }).catch(() => {
             // Fire and forget: the theme is already applied and stored locally,
             // and the next successful read reconciles it.
         });
@@ -58,10 +60,10 @@ export function useTheme(): UseThemeReturn {
     async function syncTheme(): Promise<void> {
         if (!isAuthenticated()) return;
         try {
-            const { data } = await getPreferences();
-            if (isThemeId(data.theme) && data.theme !== currentTheme.value) {
-                setTheme(data.theme);
-                localStorage.setItem(STORAGE_KEY, data.theme);
+            const { theme } = await loadPreferences();
+            if (isThemeId(theme) && theme !== currentTheme.value) {
+                setTheme(theme);
+                localStorage.setItem(STORAGE_KEY, theme);
             }
         } catch {
             // Offline or unauthorised — the local theme already applies.

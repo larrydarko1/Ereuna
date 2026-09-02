@@ -14,7 +14,7 @@ export type UserDoc = {
     defaultSymbol: string;
     hiddenSymbols: string[]; // Symbols the user has hidden from screener results
     chartSettings: ChartSettings | null; // Null until the user first configures the chart
-    panels: Record<string, unknown> | null; // Saved layouts for the two chart side panels and the watchlist panel
+    panels: PanelLayout | null; // The chart view's saved sidebar layout. Null until the user reorders something
     screenerColumns: string[];
     createdAt: Date;
     updatedAt: Date;
@@ -32,6 +32,80 @@ export type ChartIndicator = {
     period: number; // Number of bars averaged
     visible: boolean;
 };
+
+export type PanelLayout = {
+    sections: PanelSection[]; // Left-sidebar sections, in render order
+    summaryFields: SummaryField[]; // Rows inside the summary section, in render order
+};
+
+export const PANEL_SECTIONS = [
+    'summary',
+    'eps',
+    'earnings',
+    'sales',
+    'dividends',
+    'splits',
+    'financials',
+    'notes',
+    'news',
+] as const;
+
+export type PanelSection = (typeof PANEL_SECTIONS)[number];
+
+export const SUMMARY_FIELDS = [
+    'symbol',
+    'name',
+    'assetType',
+    'exchange',
+    'isin',
+    'ipo',
+    'sector',
+    'industry',
+    'currency',
+    'rsScore1W',
+    'rsScore1M',
+    'rsScore4M',
+    'marketCap',
+    'sharesOutstanding',
+    'location',
+    'dividendDate',
+    'dividendYield',
+    'bookValue',
+    'peg',
+    'pe',
+    'ps',
+    'allTimeHigh',
+    'allTimeLow',
+    'week52High',
+    'week52Low',
+    'offWeek52High',
+    'offWeek52Low',
+    'rsi',
+    'gap',
+    'adv1W',
+    'adv1M',
+    'adv4M',
+    'adv1Y',
+    'relVolume1W',
+    'relVolume1M',
+    'relVolume6M',
+    'relVolume1Y',
+    'avgVolume1W',
+    'avgVolume1M',
+    'avgVolume6M',
+    'avgVolume1Y',
+    'fundCategory',
+    'fundFamily',
+    'netExpenseRatio',
+    'intrinsicValue',
+    'cagr',
+    'cagrYears',
+    'website',
+    'aiRecommendation',
+    'description',
+] as const;
+
+export type SummaryField = (typeof SUMMARY_FIELDS)[number];
 
 export type RefreshTokenDoc = {
     tokenHash: string; // SHA-256 of the raw token. The client holds the only plaintext copy

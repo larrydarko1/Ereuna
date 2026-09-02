@@ -2,6 +2,7 @@
  * Chart routes — mounted at /api/charts (all require authentication)
  * GET    /api/charts/search                    — asset search for the symbol picker
  * GET    /api/charts/:symbol                   — bars, volume and the user's overlays
+ * GET    /api/charts/:symbol/profile           — the reference data the summary sidebar shows
  * GET    /api/charts/:symbol/events            — earnings, split and dividend markers
  * GET    /api/charts/:symbol/drawings          — saved annotations for one timeframe
  * PUT    /api/charts/:symbol/drawings          — save annotations for one timeframe
@@ -71,6 +72,13 @@ router.get(
                 ...(before !== undefined ? { before: new Date(before) } : {}),
             }),
         );
+    }),
+);
+
+router.get(
+    '/:symbol/profile',
+    ...validated({ params: symbolParam }, async (req, res): Promise<void> => {
+        res.json(await marketService.assetProfile(req.params.symbol));
     }),
 );
 
