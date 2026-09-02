@@ -229,3 +229,22 @@ export const ALL_FILTER_FIELDS: readonly string[] = [
     ...MA_FILTERS.map((f) => f.field),
     ...FLAG_FILTERS.map((f) => f.field),
 ];
+
+/**
+ * Filter key → the field it is stored under.
+ * Routes address a filter by `key`, but a screener document records it under
+ * `field`, so a client that writes `pe` reads back `PE`. The two names diverge
+ * deliberately — the field names are the database's, the keys are the API's —
+ * which means reading a stored screener needs this map rather than a guess.
+ */
+const FIELD_BY_KEY = new Map<string, string>([
+    ...RANGE_FILTERS.map((f) => [f.key, f.field] as const),
+    ...ENUM_FILTERS.map((f) => [f.key, f.field] as const),
+    ...DATE_FILTERS.map((f) => [f.key, f.field] as const),
+    ...MA_FILTERS.map((f) => [f.key, f.field] as const),
+    ...FLAG_FILTERS.map((f) => [f.key, f.field] as const),
+]);
+
+export function filterField(key: string): string | undefined {
+    return FIELD_BY_KEY.get(key);
+}

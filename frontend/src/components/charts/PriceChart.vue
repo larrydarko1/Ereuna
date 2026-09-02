@@ -42,6 +42,7 @@ import { useChartReplay } from '@/composables/charts/useChartReplay';
 import { useChartSeries, type ChartBar } from '@/composables/charts/useChartSeries';
 import { useChartSettings } from '@/composables/charts/useChartSettings';
 import { useChartTheme, withAlpha } from '@/composables/charts/useChartTheme';
+import { useLiveCandle } from '@/composables/charts/useLiveCandle';
 import { useMarketStatus } from '@/composables/charts/useMarketStatus';
 import { usePreferences } from '@/composables/data/usePreferences';
 import { useNotifications } from '@/composables/ui/useNotifications';
@@ -56,7 +57,7 @@ import {
     type OverlayLabel,
 } from '@/constants/chart';
 import { closes, heikinAshi, relativeVolume } from '@/utils/candles';
-import { timeToIsoDate } from '@/utils/chartTime';
+import { timeToIsoDate, timeValue } from '@/utils/chartTime';
 
 const { symbol, profile = null, events = null } = defineProps<{
     symbol: string;
@@ -75,6 +76,18 @@ const series = useChartSeries(() => ({ symbol, timeframe: timeframe.value }));
 const replay = useChartReplay(series.bars, series.volume, series.overlays);
 const drawings = useChartDrawings();
 const market = useMarketStatus(() => profile?.exchange === 'CRYPTO');
+
+/**
+ * The live feed, subscribed only while it can say anything.
+ * A closed market publishes nothing, and a listing the ingestor covers
+ * end-of-day only has no intraday stream at all, so neither is worth holding a
+ * socket open for. Replay is a deliberate walk through history: a candle
+ * arriving from today would contradict the bar under the cursor.
+ */
+const live = useLiveCandle(
+    () => ({ symbol, timeframe: timeframe.value }),
+    () => market.status.value === 'open' && !isEodOnly.value && !replay.active.value,
+);
 
 const container = useTemplateRef<HTMLElement>('container');
 
@@ -246,6 +259,8 @@ function buildMainSeries(): void {
         chart.removeSeries(mainSeries);
         intrinsicLine = null;
     }
+    // A new series holds no data, so the next apply has to be a full one.
+    applied = null;
 
     const colors = palette.value;
     const body = {
@@ -293,10 +308,33 @@ function buildMainSeries(): void {
     rebuildManagers();
 }
 
+/**
+ * What the price series was last given, so a live tick can be applied as one
+ * point instead of as a fresh copy of the window. A live candle only ever
+ * rewrites the final bar or adds one after it; anything else — a timeframe
+ * change, a page of older bars, a replay step — replaces the series.
+ */
+let applied: { length: number; last: number } | null = null;
+
 function applyBars(): void {
     if (mainSeries === null) return;
     const bars = shapedBars.value;
-    mainSeries.setData(priceOnly.value ? [...closes(bars)] : [...bars]);
+    const last = bars[bars.length - 1];
+
+    const tail =
+        applied !== null &&
+        last !== undefined &&
+        (bars.length === applied.length
+            ? timeValue(last.time) === applied.last
+            : bars.length === applied.length + 1 && timeValue(last.time) > applied.last);
+
+    if (tail && last !== undefined) {
+        mainSeries.update(priceOnly.value ? { time: last.time, value: last.close } : last);
+    } else {
+        mainSeries.setData(priceOnly.value ? [...closes(bars)] : [...bars]);
+    }
+
+    applied = last === undefined ? null : { length: bars.length, last: timeValue(last.time) };
     applyMarkers();
 
     // Price levels are absolutely-positioned DOM, not canvas: they only know
@@ -631,6 +669,12 @@ watch(shapedBars, applyBars);
 watch(replay.visibleVolume, applyVolume);
 watch([() => series.overlays.value, replay.visibleOverlays], syncOverlays);
 watch(series.intrinsicValue, applyIntrinsicLine);
+watch(
+    () => live.candle.value,
+    (candle) => {
+        if (candle !== null) series.applyLive(candle);
+    },
+);
 watch([() => events, () => settings.value.markers, timeframe], applyMarkers, { deep: true });
 watch(tool, applyTool);
 

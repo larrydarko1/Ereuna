@@ -44,6 +44,13 @@ export default defineConfig({
                 target: 'http://localhost:5500',
                 changeOrigin: true,
             },
+            // The live candle feed is served by the Python aggregator, not by
+            // the Node API: it is the only process holding the trade stream.
+            '/ws': {
+                target: 'ws://localhost:8000',
+                ws: true,
+                changeOrigin: true,
+            },
         },
     },
 });

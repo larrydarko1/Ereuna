@@ -6,6 +6,7 @@ import type { Time } from '@/lib/lightweight-charts';
 import { getSeries, type Candle, type ChartOverlay } from '@/api/chart';
 import { apiErrorMessage } from '@/api/client';
 import { i18n } from '@/i18n';
+import { timeValue } from '@/utils/chartTime';
 
 export type ChartBar = {
     time: Time;
@@ -41,6 +42,17 @@ export type UseChartSeriesReturn = {
     exhausted: Readonly<Ref<boolean>>; // True once a page comes back empty: there is nothing older to ask for.
     loadOlder: () => Promise<void>;
     reload: () => Promise<void>;
+    applyLive: (candle: LiveBar) => void; // Fold the in-progress candle into the series
+};
+
+/** One candle from the live feed, in the API's time format. */
+export type LiveBar = {
+    time: string;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
 };
 
 export function useChartSeries(key: () => ChartSeriesKey): UseChartSeriesReturn {
@@ -143,6 +155,37 @@ export function useChartSeries(key: () => ChartSeriesKey): UseChartSeriesReturn 
         cursor = null;
     }
 
+    function applyLive(candle: LiveBar): void {
+        const { symbol, timeframe } = key();
+        if (symbol === '' || bars.value.length === 0) return;
+
+        const time = toTime(candle.time, timeframe);
+        const last = bars.value[bars.value.length - 1];
+        if (last === undefined) return;
+
+        const incoming = timeValue(time);
+        const current = timeValue(last.time);
+        if (incoming < current) return;
+
+        const bar: ChartBar = {
+            time,
+            open: candle.open,
+            high: candle.high,
+            low: candle.low,
+            close: candle.close,
+        };
+        const point: ChartPoint = { time, value: candle.volume };
+
+        if (incoming === current) {
+            bars.value = [...bars.value.slice(0, -1), bar];
+            volume.value = [...volume.value.slice(0, -1), point];
+            return;
+        }
+
+        bars.value = [...bars.value, bar];
+        volume.value = [...volume.value, point];
+    }
+
     watch(key, load, { immediate: true, deep: true });
 
     return {
@@ -155,6 +198,7 @@ export function useChartSeries(key: () => ChartSeriesKey): UseChartSeriesReturn 
         exhausted: readonly(exhausted),
         loadOlder,
         reload: load,
+        applyLive,
     };
 }
 

@@ -33,12 +33,6 @@ const routes: RouteRecordRaw[] = [
         meta: { public: true, guestOnly: true },
     },
     {
-        path: '/documentation',
-        name: 'Documentation',
-        component: async () => import('@/views/Documentation.vue'),
-        meta: { public: true },
-    },
-    {
         path: '/dashboard',
         name: 'Dashboard',
         component: async () => import('@/views/Dashboard.vue'),
