@@ -1,0 +1,140 @@
+// Forms and buttons — the controls every dialog in the app is built from.
+// Promoted here once the portfolio's five dialogs wanted the same field, the
+// same numeric input and the same footer buttons that the screener's already
+// had. `@extend` cannot cross the SFC boundary, so these are real global
+// classes rather than placeholders: an SFC writes `class="form-input"` and adds
+// only what is specific to it in its own scoped block.
+@use '@/styles/variables' as *;
+
+// –– Fields ––––––––––––––––––––––––––––––––––––
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+}
+
+.form-label {
+    font-size: $font-size-xs;
+    color: $color-text-muted;
+}
+
+.form-input {
+    padding: 0.5em 0.6em;
+    border: $border-width solid $color-elevated;
+    border-radius: $radius-sm;
+    background: $color-sunken;
+    color: $color-text;
+
+    // Monospace because these are almost all figures, and proportional digits
+    // make two prices of the same magnitude look like different lengths.
+    font-family: $font-mono;
+    font-size: $font-size-sm;
+
+    &:focus {
+        border-color: $color-accent-1;
+        outline: none;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+// A read-only computed figure sitting where an input would be — same metrics,
+// no box, so it reads as an answer rather than something to fill in.
+.form-output {
+    padding: 0.5em 0.6em;
+    font-family: $font-mono;
+    font-size: $font-size-sm;
+    color: $color-text;
+}
+
+.form-hint {
+    margin: 0;
+    font-size: $font-size-xs;
+    color: $color-text-muted;
+}
+
+.form-error {
+    margin: 0;
+    font-size: $font-size-sm;
+    color: $color-negative;
+}
+
+// A group of radio options laid out inline. `fieldset` carries the browser's
+// own border and padding, which is never what is wanted here.
+.form-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-4;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.form-legend {
+    width: 100%;
+    margin-bottom: 0.35em;
+    padding: 0;
+    font-size: $font-size-xs;
+    color: $color-text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.form-option {
+    display: flex;
+    align-items: center;
+    gap: 0.35em;
+    font-size: $font-size-sm;
+    cursor: pointer;
+}
+
+// –– Buttons –––––––––––––––––––––––––––––––––––
+
+.btn {
+    padding: 0.5em 1.1em;
+    border: $border-width solid $color-elevated;
+    border-radius: $radius-sm;
+    background: $color-surface;
+    color: $color-text;
+    font-size: $font-size-sm;
+    cursor: pointer;
+    transition: all $duration-fast $ease-out;
+
+    &:hover:not(:disabled) {
+        border-color: $color-accent-1;
+        color: $color-accent-1;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    &--primary {
+        border-color: $color-accent-1;
+        background: $color-accent-1;
+        color: $color-text-inverted;
+
+        &:hover:not(:disabled) {
+            color: $color-text-inverted;
+            opacity: 0.9;
+        }
+    }
+
+    &--danger:hover:not(:disabled) {
+        border-color: $color-negative;
+        color: $color-negative;
+    }
+
+    // Table-row scale: the same button an eighth of the size.
+    &--small {
+        padding: 0.2em 0.6em;
+        background: transparent;
+        color: $color-text-muted;
+        font-size: $font-size-xs;
+    }
+}

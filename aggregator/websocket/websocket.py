@@ -2,11 +2,10 @@ import sys
 sys.path.append('.')
 import os
 import json
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, Request, status, Body, Response
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import asyncio
-import motor.motor_asyncio
 import logging
 from aggregator.aggregator import pubsub_channels, get_latest_in_progress_candle
 import redis.asyncio as aioredis
@@ -41,11 +40,11 @@ class HealthCheckFilter(logging.Filter):
 
 logging.getLogger("uvicorn.access").addFilter(HealthCheckFilter())
 
-# Config / DB
-API_KEY = os.getenv('VITE_EREUNA_KEY')
-MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
-mongo_client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URI)
-db = mongo_client.get_database('EreunaDB')
+# This service reads Redis and nothing else. Both endpoints serve the candle
+# the aggregator is currently building, which lives in Redis by the time it is
+# worth sending; the durable history is the Node API's to serve, from Mongo,
+# over an authenticated connection. So there is no database client here, and no
+# API key: what is served is public market data the client already named.
 
 # Local cache for latest in-progress candles (updated from Redis pubsub)
 latest_cache: dict[tuple[str, str], dict] = {}
@@ -189,56 +188,20 @@ app.add_middleware(
 
 @app.on_event('startup')
 async def websocket_startup():
-    global redis_client, redis_listener_task, mongo_client, db
-    REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-    MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
-    logger.info(f"websocket startup: MONGO_URI={MONGO_URI}, REDIS_URL={REDIS_URL}")
-    
-    # Test Redis connection
+    global redis_client, redis_listener_task
+    redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+    logger.info(f"websocket startup: REDIS_URL={redis_url}")
     try:
-        logger.info(f"Connecting to Redis at {REDIS_URL}")
-        redis_client = aioredis.from_url(REDIS_URL)
-        try:
-            pong = await redis_client.ping()
-            logger.info(f"Redis ping successful: {pong}")
-        except Exception as e:
-            logger.warning(f"Redis ping failed during websocket startup: {e}")
-            # If configured host is 'redis' (docker), try localhost fallback for local dev
-            try:
-                if 'redis://redis' in REDIS_URL:
-                    alt = REDIS_URL.replace('redis://redis', 'redis://localhost')
-                    logger.info(f"Attempting Redis fallback to {alt}")
-                    redis_client = aioredis.from_url(alt)
-                    pong2 = await redis_client.ping()
-                    logger.info(f"Redis fallback ping successful: {pong2}")
-            except Exception as e2:
-                logger.warning(f"Redis fallback also failed: {e2}")
-        # start listener task (listener will early-return if redis_client is None)
+        redis_client = aioredis.from_url(redis_url)
+        await redis_client.ping()
         redis_listener_task = asyncio.create_task(_redis_aggregated_listener())
-    except Exception as e:
-        logger.exception(f'Failed to start Redis aggregated listener: {e}')
-
-    # Test MongoDB connection
-    try:
-        try:
-            await mongo_client.admin.command('ping')
-            logger.info('Mongo ping successful')
-        except Exception as me:
-            logger.warning(f"Mongo ping failed in websocket startup: {me}")
-            # If we're in Docker (mongodb host), don't try localhost fallback
-            # If we're in local dev (localhost), try the mongodb service name
-            if 'localhost' in MONGO_URI:
-                try:
-                    alt_m = MONGO_URI.replace('mongodb://localhost', 'mongodb://mongodb')
-                    logger.info(f"Attempting MongoDB fallback to {alt_m}")
-                    mongo_client = motor.motor_asyncio.AsyncIOMotorClient(alt_m)
-                    db = mongo_client.get_database('EreunaDB')
-                    await mongo_client.admin.command('ping')
-                    logger.info('Mongo fallback ping successful')
-                except Exception as me2:
-                    logger.warning(f"Mongo fallback also failed: {me2}")
-    except Exception:
-        logger.exception('Error during websocket mongo fallback check')
+        logger.info('Redis connected; aggregated listener started')
+    except Exception as exc:
+        # Redis is the only source this service has. Without it every endpoint
+        # would accept connections and then sit silent, which reads as a broken
+        # feed rather than a broken service, so fail loudly instead.
+        logger.exception(f'Failed to connect to Redis: {exc}')
+        raise
 
 
 @app.on_event('shutdown')
@@ -447,449 +410,126 @@ async def websocket_candles(
             pass
 
 
-# --- GET latest quotes for active portfolio ---
-def sanitize_input(val):
-    # Basic sanitization: strip and uppercase
-    if not isinstance(val, str):
-        return None
-    return val.strip().upper()
+# --- WebSocket endpoint for live position quotes ---
+#
+# One price per symbol, pushed when it changes.
+#
+# Its predecessor polled MongoDB once per symbol per second, per connected
+# client: a portfolio of twenty positions was twenty queries a second, and ten
+# open tabs were two hundred. It also authenticated with `VITE_EREUNA_KEY`
+# passed through `Sec-WebSocket-Protocol` — a build-time constant compiled into
+# the browser bundle, so every visitor already had it. That was not
+# authentication, and removing it costs nothing: a last-traded price is public
+# market data, and the client names the symbols it wants anyway.
+#
+# The aggregator already publishes every 1-minute bucket to Redis, so the price
+# is there to be read. This subscribes once, filters to the requested symbols,
+# and sends only what moved.
+QUOTE_TIMEFRAME = '1m'
+MAX_QUOTE_SYMBOLS = 250
 
-@app.websocket("/ws/quotes")
-async def websocket_quotes(
-    websocket: WebSocket,
-    symbols: str = Query(...)
-):
-    # Get API key from Sec-WebSocket-Protocol header
-    api_key = websocket.headers.get('sec-websocket-protocol')
-    if api_key != API_KEY:
-        await websocket.accept()
-        try:
-            await websocket.send_text(json.dumps({"error": "Invalid API key"}))
-        except WebSocketDisconnect:
-            logger.info("Client disconnected before error could be sent.")
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return
 
-    await websocket.accept(subprotocol=api_key)
-    symbol_list = [sanitize_input(s) for s in symbols.split(',') if s.strip()]
+def parse_symbols(raw: str) -> list[str]:
+    """The requested symbols, upper-cased, de-duplicated, order preserved."""
+    seen: dict[str, None] = {}
+    for part in raw.split(','):
+        symbol = part.strip().upper()
+        if symbol and len(symbol) <= 32:
+            seen.setdefault(symbol)
+    return list(seen)[:MAX_QUOTE_SYMBOLS]
 
-    async def fetch_best_close(sym: str):
-        try:
-            if is_market_hours():
-                # prefer in-progress cached candle (if exists) for more real-time accuracy
-                # Try Redis first, then local cache
-                cached = await get_in_progress_from_redis(sym, '1m')
-                if not cached:
-                    cached = get_in_progress_cached(sym, '1m')
-                if cached and 'close' in cached:
-                    return float(cached['close'])
-                # fall back to DB latest 1m
-                doc = await db['OHCLVData1m'].find({'tickerID': sym}).sort('timestamp', -1).limit(1).to_list(length=1)
-                if doc and len(doc) > 0 and 'close' in doc[0]:
-                    return float(doc[0]['close'])
-                return None
-            else:
-                # outside market hours prefer daily close (more precise final close)
-                doc = await db['OHCLVData'].find({'tickerID': sym}).sort('timestamp', -1).limit(1).to_list(length=1)
-                if doc and len(doc) > 0 and 'close' in doc[0]:
-                    return float(doc[0]['close'])
-                # fallback to cached in-progress daily if available
-                # Try Redis first, then local cache
-                cached_daily = await get_in_progress_from_redis(sym, '1d')
-                if not cached_daily:
-                    cached_daily = get_in_progress_cached(sym, '1d')
-                if cached_daily and 'close' in cached_daily:
-                    return float(cached_daily['close'])
-                # finally fallback to latest 1m if nothing else
-                doc1m = await db['OHCLVData1m'].find({'tickerID': sym}).sort('timestamp', -1).limit(1).to_list(length=1)
-                if doc1m and len(doc1m) > 0 and 'close' in doc1m[0]:
-                    return float(doc1m[0]['close'])
-                return None
-        except Exception as e:
-            logger.exception(f"Error fetching best close for {sym}: {e}")
-            return None
 
-    try:
-        while True:
-            result = {}
-            for sym in symbol_list:
-                val = await fetch_best_close(sym)
-                result[sym] = val
-            try:
-                await websocket.send_text(json.dumps(result))
-            except WebSocketDisconnect:
-                logger.info("Client disconnected during send_text in /ws/quotes.")
-                break
-            # send updates more frequently during market hours
-            await asyncio.sleep(1 if is_market_hours() else 5)
-    except WebSocketDisconnect:
-        logger.info("Client disconnected from /ws/quotes.")
-    except Exception as e:
-        logger.error(f"Exception in /ws/quotes: {e}")
-        try:
-            await websocket.send_text(json.dumps({"error": str(e)}))
-        except WebSocketDisconnect:
-            logger.info("Client disconnected during error send in /ws/quotes.")
-        except Exception:
-            pass
-        await websocket.close()
+async def opening_quotes(symbols: list[str]) -> dict[str, float]:
+    """The current price of each symbol, so a fresh client is not blank until
+    the next trade. Read from the aggregator's last-bucket keys, never Mongo."""
+    quotes: dict[str, float] = {}
+    for symbol in symbols:
+        candle = await get_in_progress_from_redis(symbol, QUOTE_TIMEFRAME)
+        if candle is None:
+            candle = get_in_progress_cached(symbol, QUOTE_TIMEFRAME)
+        if candle is not None and candle.get('close') is not None:
+            quotes[symbol] = float(candle['close'])
+    return quotes
 
-# --- WebSocket endpoint for user's WatchPanel ---
-@app.websocket("/ws/watchpanel")
-async def websocket_watchpanel(
-    websocket: WebSocket,
-    user: str = Query(...)
-):
-    # Get API key from Sec-WebSocket-Protocol header
-    api_key = websocket.headers.get('sec-websocket-protocol')
-    if api_key != API_KEY:
-        logger.warning(f"[WatchPanel WS] Invalid API key: {api_key}")
-        await websocket.accept()
-        await websocket.send_text(json.dumps({"error": "Invalid API key"}))
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return
 
-    # Accept with correct subprotocol for handshake
-    await websocket.accept(subprotocol=api_key)
-    # Fetch user's WatchPanel symbols (max 20)
-    user_doc = await db.Users.find_one({'Username': user})
-    if not user_doc or not isinstance(user_doc.get('WatchPanel'), list):
-        logger.warning(f"[WatchPanel WS] WatchPanel not found for user: {user}")
-        await websocket.send_text(json.dumps({"error": "WatchPanel not found"}))
+@app.websocket('/ws/quotes')
+async def websocket_quotes(websocket: WebSocket, symbols: str = Query(...)):
+    await websocket.accept()
+
+    watched = parse_symbols(symbols)
+    if not watched:
+        await websocket.send_text(json.dumps({'type': 'error', 'error': 'no symbols'}))
         await websocket.close()
         return
 
-    tickers = user_doc['WatchPanel'][:20]
-    # In-memory cache for last two closes per ticker for this client
-    last_two_closes = {}
-    watch_panel_data = []
-    for ticker in tickers:
-        docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).limit(2).to_list(length=2)
-        # Only use cached candle during market hours for initial load
-        cached_candle = None
-        if is_market_hours():
-            # Try Redis first, then local cache
-            cached_candle = await get_in_progress_from_redis(ticker, '1d')
-            if not cached_candle:
-                cached_candle = get_in_progress_cached(ticker, '1d')
-        def get_ts(doc):
-            return doc.get('timestamp', doc.get('start'))
-        if cached_candle and docs:
-            latest = cached_candle
-            cached_ts = get_ts(cached_candle)
-            doc0_ts = get_ts(docs[0]) if docs else None
-            previous = docs[0] if docs and doc0_ts != cached_ts else (docs[1] if len(docs) > 1 else None)
-        elif docs:
-            latest = docs[0]
-            previous = docs[1] if len(docs) > 1 else None
-        else:
-            continue
-        last_two_closes[ticker] = [latest, previous] if previous else [latest]
-        latest_close = float(str(latest['close'])[:8])
-        previous_close = float(str(previous['close'])[:8]) if previous else None
-        if previous_close is not None:
-            percentage_change = ((latest_close - previous_close) / previous_close) * 100
-            watch_panel_data.append({
-                "Symbol": ticker,
-                "percentageReturn": f"{percentage_change:.2f}%"
-            })
-    try:
-        await websocket.send_text(json.dumps({"type": "init", "data": watch_panel_data}))
-    except Exception as e:
-        logger.error(f"[WatchPanel WS] Error sending initial data: {e}")
-        await websocket.close()
-        return
+    logger.info(f"Client connected to /ws/quotes: {len(watched)} symbols")
+    websocket_connections.inc()
 
-    # --- Per-client queue and pubsub subscription with dynamic market hours ---
-    client_queue = make_bounded_queue()
-    pubsub_refs = []
-    listener_tasks = []  # Track tasks for cleanup
+    last: dict[str, float] = await opening_quotes(watched)
+    if last:
+        await websocket.send_text(json.dumps({'type': 'quotes', 'quotes': last}))
+
+    q = make_bounded_queue()
     monitor = market_hours_monitor()
-    subscribed = False
+    subscribed: list[str] = []
     monitor_task = None
-    
-    async def check_market_transition_watchpanel():
-        nonlocal subscribed
-        async for market_open in monitor:
-            if market_open and not subscribed:
-                for ticker in tickers:
-                    async def pubsub_listener(q, t):
-                        while True:
-                            cndl = await q.get()
-                            await client_queue.put((t, cndl))
-                    q = make_bounded_queue()
-                    pubsub_channels[(ticker, '1d')].append(q)
-                    pubsub_refs.append((ticker, q))
-                    task = asyncio.create_task(pubsub_listener(q, ticker))
-                    listener_tasks.append(task)
-                subscribed = True
-                logger.info(f"[Market OPEN] Subscribed to watchpanel pubsub for {len(tickers)} tickers")
-            elif not market_open and subscribed:
-                for task in listener_tasks:
-                    if not task.done():
-                        task.cancel()
-                listener_tasks.clear()
-                for ticker, q in pubsub_refs:
-                    try:
-                        pubsub_channels[(ticker, '1d')].remove(q)
-                    except (KeyError, ValueError):
-                        pass
-                pubsub_refs.clear()
-                subscribed = False
-                logger.info(f"[Market CLOSED] Unsubscribed from watchpanel pubsub")
-    
-    try:
-        monitor_task = asyncio.create_task(check_market_transition_watchpanel())
-        while True:
+
+    def subscribe() -> None:
+        for symbol in watched:
+            pubsub_channels[(symbol, QUOTE_TIMEFRAME)].append(q)
+            subscribed.append(symbol)
+
+    def unsubscribe() -> None:
+        while subscribed:
+            symbol = subscribed.pop()
             try:
-                ticker, cndl = await asyncio.wait_for(client_queue.get(), timeout=1.0)
-            except asyncio.TimeoutError:
-                continue
-            prevs = last_two_closes.get(ticker, [])
-            # If the update is for a new timestamp, shift previous
-            if prevs and prevs[0].get('timestamp', prevs[0].get('start')) != cndl['timestamp']:
-                previous = prevs[0]
-                latest = cndl
-                last_two_closes[ticker] = [latest, previous]
-            else:
-                latest = cndl
-                previous = prevs[1] if len(prevs) > 1 else None
-                last_two_closes[ticker] = [latest] + ([previous] if previous else [])
-            latest_close = float(str(latest['close'])[:8])
-            previous_close = float(str(previous['close'])[:8]) if previous else None
-            if previous_close is not None:
-                percentage_change = ((latest_close - previous_close) / previous_close) * 100
-                update = {
-                    "Symbol": ticker,
-                    "percentageReturn": f"{percentage_change:.2f}%"
-                }
-                try:
-                    await websocket.send_text(json.dumps({"type": "update", "data": [update]}))
-                except Exception as e:
-                    logger.error(f"[WatchPanel WS] Error sending update: {e}")
-                    break
-    except WebSocketDisconnect:
-        logger.info(f"[WatchPanel WS] Client disconnected: user={user}")
-    except Exception as e:
-        logger.error(f"[WatchPanel WS] Exception: {e}")
-        try:
-            await websocket.send_text(json.dumps({"error": str(e)}))
-        except Exception:
-            pass
-    finally:
-        # Cancel all listener tasks
-        for task in listener_tasks:
-            if not task.done():
-                task.cancel()
-                try:
-                    await task
-                except asyncio.CancelledError:
-                    pass
-                except Exception as e:
-                    logger.debug(f"Error awaiting cancelled listener task: {e}")
-        
-        # Remove from pubsub channels
-        for ticker, q in pubsub_refs:
-            try:
-                pubsub_channels[(ticker, '1d')].remove(q)
+                pubsub_channels[(symbol, QUOTE_TIMEFRAME)].remove(q)
             except (KeyError, ValueError):
                 pass
-        try:
-            await websocket.close()
-        except Exception:
-            pass
 
-# --- WebSocket endpoint for data values (latest close, change, %change) ---
-@app.websocket("/ws/data-values")
-async def websocket_data_values(
-    websocket: WebSocket,
-    tickers: str = Query(...),
-):
-    # Authenticate using sec-websocket-protocol header
-    api_key = websocket.headers.get('sec-websocket-protocol')
-    if api_key != API_KEY:
-        await websocket.accept()
-        try:
-            await websocket.send_text(json.dumps({"error": "Invalid API key"}))
-        except WebSocketDisconnect:
-            logger.info("Client disconnected before error could be sent.")
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return
-
-    await websocket.accept(subprotocol=api_key)
-    ticker_list = [sanitize_input(t) for t in tickers.split(',') if t.strip()]
-    if not ticker_list:
-        try:
-            await websocket.send_text(json.dumps({"error": "No tickers provided"}))
-        except WebSocketDisconnect:
-            logger.info("Client disconnected before error could be sent.")
-        await websocket.close()
-        return
-
-    # In-memory cache for last two closes per ticker for this client
-    last_two_closes = {}
-    results = {}
-    for ticker in ticker_list:
-        # Only use cached candle during market hours for initial load
-        cached_candle = None
-        if is_market_hours():
-            # Try Redis first, then local cache
-            cached_candle = await get_in_progress_from_redis(ticker, '1d')
-            if not cached_candle:
-                cached_candle = get_in_progress_cached(ticker, '1d')
-        docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).limit(2).to_list(length=2)
-        def get_ts(doc):
-            return doc.get('timestamp', doc.get('start'))
-        if cached_candle and docs:
-            latest = cached_candle
-            cached_ts = get_ts(cached_candle)
-            doc0_ts = get_ts(docs[0]) if docs else None
-            previous = docs[0] if docs and doc0_ts != cached_ts else (docs[1] if len(docs) > 1 else None)
-        elif docs:
-            latest = docs[0]
-            previous = docs[1] if len(docs) > 1 else None
-        else:
-            continue
-        # Store in-memory for fast update lookup
-        last_two_closes[ticker] = [latest, previous] if previous else [latest]
-        responseData = {
-            "close": float(latest['close']),
-            "timestamp": str(latest.get('timestamp', latest.get('start'))),
-        }
-        if previous:
-            closeDiff = float(latest['close']) - float(previous['close'])
-            percentChange = ((closeDiff / float(previous['close'])) * 100) if float(previous['close']) != 0 else 0
-            responseData["closeDiff"] = round(closeDiff, 2)
-            responseData["percentChange"] = round(percentChange, 2)
-            responseData["latestClose"] = float(latest['close'])
-            responseData["previousClose"] = float(previous['close'])
-            responseData["timestampPrevious"] = str(previous.get('timestamp', previous.get('start')))
-        else:
-            responseData["closeDiff"] = 0
-            responseData["percentChange"] = 0
-            responseData["message"] = "Insufficient historical data for comparison"
-        results[ticker] = responseData
-
-    # Send initial data
-    try:
-        await websocket.send_text(json.dumps({"type": "init", "data": results}))
-    except WebSocketDisconnect:
-        return
-
-    # --- Per-client queue and pubsub subscription with dynamic market hours ---
-    client_queue = make_bounded_queue()
-    pubsub_refs = []
-    listener_tasks = []  # Track tasks for cleanup
-    monitor = market_hours_monitor()
-    subscribed = False
-    monitor_task = None
-    
-    async def check_market_transition_data_values():
-        nonlocal subscribed
+    async def follow_market_hours():
+        # Nothing is published outside market hours, so the subscriptions are
+        # dropped rather than held open against silent channels overnight.
         async for market_open in monitor:
             if market_open and not subscribed:
-                for ticker in ticker_list:
-                    async def pubsub_listener(q, t):
-                        while True:
-                            cndl = await q.get()
-                            await client_queue.put((t, cndl))
-                    q = make_bounded_queue()
-                    pubsub_channels[(ticker, '1d')].append(q)
-                    pubsub_refs.append((ticker, q))
-                    task = asyncio.create_task(pubsub_listener(q, ticker))
-                    listener_tasks.append(task)
-                subscribed = True
-                logger.info(f"[Market OPEN] Subscribed to data-values pubsub for {len(ticker_list)} tickers")
+                subscribe()
             elif not market_open and subscribed:
-                for task in listener_tasks:
-                    if not task.done():
-                        task.cancel()
-                listener_tasks.clear()
-                for ticker, q in pubsub_refs:
-                    try:
-                        pubsub_channels[(ticker, '1d')].remove(q)
-                    except (KeyError, ValueError):
-                        pass
-                pubsub_refs.clear()
-                subscribed = False
-                logger.info(f"[Market CLOSED] Unsubscribed from data-values pubsub")
-    
+                unsubscribe()
+
     try:
-        monitor_task = asyncio.create_task(check_market_transition_data_values())
+        monitor_task = asyncio.create_task(follow_market_hours())
         while True:
-            # Wait for any update from any ticker
             try:
-                ticker, cndl = await asyncio.wait_for(client_queue.get(), timeout=1.0)
+                candle = await asyncio.wait_for(q.get(), timeout=1.0)
             except asyncio.TimeoutError:
+                # The timeout is the disconnect check: without it a client that
+                # went away during a quiet market would be noticed only on the
+                # next trade.
                 continue
-            # Use in-memory cache for last two closes, update it
-            prevs = last_two_closes.get(ticker, [])
-            # If the update is for a new timestamp, shift previous
-            if prevs and prevs[0].get('timestamp', prevs[0].get('start')) != cndl['timestamp']:
-                previous = prevs[0]
-                latest = cndl
-                last_two_closes[ticker] = [latest, previous]
-            else:
-                # If same timestamp, just update latest
-                latest = cndl
-                previous = prevs[1] if len(prevs) > 1 else None
-                last_two_closes[ticker] = [latest] + ([previous] if previous else [])
-            responseData = {
-                "close": float(latest['close']),
-                "timestamp": str(latest.get('timestamp', latest.get('start'))),
-            }
-            if previous:
-                closeDiff = float(latest['close']) - float(previous['close'])
-                percentChange = ((closeDiff / float(previous['close'])) * 100) if float(previous['close']) != 0 else 0
-                responseData["closeDiff"] = round(closeDiff, 2)
-                responseData["percentChange"] = round(percentChange, 2)
-                responseData["latestClose"] = float(latest['close'])
-                responseData["previousClose"] = float(previous['close'])
-                responseData["timestampPrevious"] = str(previous.get('timestamp', previous.get('start')))
-            else:
-                responseData["closeDiff"] = 0
-                responseData["percentChange"] = 0
-                responseData["message"] = "Insufficient historical data for comparison"
-            # Send only the updated ticker
-            try:
-                await websocket.send_text(json.dumps({"type": "update", "data": {ticker: responseData}}))
-            except WebSocketDisconnect:
-                break
+
+            symbol = str(candle.get('ticker') or candle.get('tickerID') or '').upper()
+            close = candle.get('close')
+            if symbol not in watched or close is None:
+                continue
+
+            price = float(close)
+            if last.get(symbol) == price:
+                continue
+            last[symbol] = price
+            await websocket.send_text(json.dumps({'type': 'quotes', 'quotes': {symbol: price}}))
     except WebSocketDisconnect:
-        logger.info(f"[ws/data-values] Client disconnected: tickers={ticker_list}")
-    except Exception as e:
-        logger.error(f"[ws/data-values] Exception: {e}")
-        try:
-            await websocket.send_text(json.dumps({"error": str(e)}))
-        except WebSocketDisconnect:
-            logger.info("Client disconnected during error send.")
-        except Exception:
-            pass
+        logger.info('[ws/quotes] Client disconnected')
+    except Exception as exc:
+        logger.error(f"Exception in /ws/quotes: {exc}")
     finally:
-        # Cancel monitor task
-        if monitor_task and not monitor_task.done():
+        websocket_connections.dec()
+        if monitor_task is not None and not monitor_task.done():
             monitor_task.cancel()
             try:
                 await monitor_task
             except asyncio.CancelledError:
                 pass
-        # Cancel all listener tasks
-        for task in listener_tasks:
-            if not task.done():
-                task.cancel()
-                try:
-                    await task
-                except asyncio.CancelledError:
-                    pass
-                except Exception as e:
-                    logger.debug(f"Error awaiting cancelled listener task: {e}")
-        
-        # Remove from pubsub channels
-        for ticker, q in pubsub_refs:
-            try:
-                pubsub_channels[(ticker, '1d')].remove(q)
-            except (KeyError, ValueError):
-                pass
+        unsubscribe()
         try:
             await websocket.close()
         except Exception:

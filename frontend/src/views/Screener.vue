@@ -19,7 +19,8 @@ import { useScreenerResults, type ResultsSource } from '@/composables/screener/u
 import { useScreeners } from '@/composables/screener/useScreeners';
 import { notifyError, notifySuccess } from '@/composables/ui/useNotifications';
 import { DEFAULT_COLUMNS, findColumn, readColumn } from '@/constants/screener';
-import { downloadCsv, toCsv } from '@/utils/csv';
+import { CSV_TYPE, toCsv } from '@/utils/csv';
+import { downloadFile } from '@/utils/download';
 
 type Pane = 'filters' | 'results' | 'chart';
 type ListMode = 'screener' | 'combined' | 'hidden';
@@ -194,7 +195,11 @@ async function collectForExport(): Promise<ScreenerResult[]> {
 
 async function exportCsv(): Promise<void> {
     if (mode.value === 'hidden') {
-        downloadCsv('hidden.csv', toCsv([t('screener.symbol')], hiddenSymbols.value.map((symbol) => [symbol])));
+        downloadFile(
+            'hidden.csv',
+            toCsv([t('screener.symbol')], hiddenSymbols.value.map((symbol) => [symbol])),
+            CSV_TYPE,
+        );
         return;
     }
 
@@ -216,7 +221,7 @@ async function exportCsv(): Promise<void> {
         ]);
 
         const name = mode.value === 'combined' ? t('screener.modes.combined') : selected.value;
-        downloadCsv(`${name}.csv`, toCsv(headers, body));
+        downloadFile(`${name}.csv`, toCsv(headers, body), CSV_TYPE);
     } catch {
         notifyError(t('screener.exportFailed'));
     } finally {
@@ -368,7 +373,7 @@ onUnmounted(() => {
                         {{ t('common.previous') }}
                     </button>
                     <span class="screener__page">
-                        {{ t('screener.pageOf', { page: results.page.value, pages: results.pages.value }) }}
+                        {{ t('common.pageOf', { page: results.page.value, pages: results.pages.value }) }}
                     </span>
                     <button
                         type="button"

@@ -6,3 +6,5 @@
 // early is how a global stylesheet fills with rules only one view ever wanted.
 // Ereuna's old stylesheet held nothing but themes and everything else lived
 // inline, so these fill up as each domain is migrated rather than all at once.
+
+@forward '@/styles/components/forms';
