@@ -228,8 +228,8 @@ export class TextAnnotationManager {
             this.promptForText((text) => {
                 if (text && text.trim()) {
                     const styles = getComputedStyle(document.documentElement);
-                    const textColor = styles.getPropertyValue('--text1').trim() || '#ffffff';
-                    const bgColor = styles.getPropertyValue('--base3').trim() || '#414868';
+                    const textColor = styles.getPropertyValue('--color-text').trim() || '#ffffff';
+                    const bgColor = styles.getPropertyValue('--color-elevated').trim() || '#414868';
 
                     const newAnnotation: TextAnnotation = {
                         id: this.generateId(),
@@ -357,8 +357,8 @@ export class TextAnnotationManager {
 
         // Style the input
         const styles = getComputedStyle(document.documentElement);
-        const textColor = styles.getPropertyValue('--text1').trim() || '#ffffff';
-        const bgColor = styles.getPropertyValue('--base3').trim() || '#414868';
+        const textColor = styles.getPropertyValue('--color-text').trim() || '#ffffff';
+        const bgColor = styles.getPropertyValue('--color-elevated').trim() || '#414868';
 
         Object.assign(this.textInput.style, {
             position: 'absolute',
@@ -437,7 +437,7 @@ export class TextAnnotationManager {
 
         const ctx = this.ctx;
         const styles = getComputedStyle(document.documentElement);
-        const textColor = styles.getPropertyValue('--text1').trim() || annotation.textColor;
+        const textColor = styles.getPropertyValue('--color-text').trim() || annotation.textColor;
 
         ctx.font = `${annotation.fontSize}px Arial`;
         const metrics = ctx.measureText(annotation.text);
@@ -485,8 +485,8 @@ export class TextAnnotationManager {
 
         const ctx = this.ctx;
         const styles = getComputedStyle(document.documentElement);
-        const textColor = styles.getPropertyValue('--text1').trim() || annotation.textColor;
-        const bgColor = styles.getPropertyValue('--base3').trim() || annotation.backgroundColor;
+        const textColor = styles.getPropertyValue('--color-text').trim() || annotation.textColor;
+        const bgColor = styles.getPropertyValue('--color-elevated').trim() || annotation.backgroundColor;
 
         ctx.font = `${annotation.fontSize}px Arial`;
         const metrics = ctx.measureText(annotation.text);

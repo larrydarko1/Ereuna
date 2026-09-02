@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { getEvents, type AssetProfile } from '@/api/chart';
+import type { AssetProfile, ChartEvents } from '@/api/chart';
 import { getFinancials } from '@/api/market';
 import ActionsPanel from '@/components/charts/ActionsPanel.vue';
 import FinancialsDialog from '@/components/charts/FinancialsDialog.vue';
@@ -13,9 +13,10 @@ import SummaryPanel from '@/components/charts/SummaryPanel.vue';
 import { usePanelLayout } from '@/composables/charts/usePanelLayout';
 import { useResource } from '@/composables/data/useResource';
 
-const { symbol, profile = null } = defineProps<{
+const { symbol, profile = null, events = null } = defineProps<{
     symbol: string;
     profile?: AssetProfile | null;
+    events?: ChartEvents | null;
 }>();
 
 const { t } = useI18n();
@@ -25,11 +26,16 @@ const { sections, summaryFields } = usePanelLayout();
 const allEvents = ref(false);
 const showFinancials = ref(false);
 
-const events = useResource(
-    () => ({ symbol, all: allEvents.value }),
-    async ({ symbol: current, all }) => (await getEvents(current, all)).data,
-    { enabled: ({ symbol: current }) => current !== '' },
-);
+/** How many of each action are shown before "show all". The API sends newest first. */
+const DEFAULT_ACTIONS = 4;
+
+const dividends = computed(() => visible(events?.dividends));
+const splits = computed(() => visible(events?.splits));
+
+function visible<T>(actions: readonly T[] | undefined): readonly T[] {
+    const all = actions ?? [];
+    return allEvents.value ? all : all.slice(0, DEFAULT_ACTIONS);
+}
 
 const financials = useResource(
     () => symbol,
@@ -39,12 +45,13 @@ const financials = useResource(
 
 const quarterly = computed<readonly Record<string, unknown>[]>(() => financials.data.value?.quarterly ?? []);
 
-/** Both action panels offer "show all" until the full history is loaded. */
-const expandable = computed(() => !allEvents.value);
+/** Both action panels offer "show all" until the history is already on screen. */
+const expandable = computed(
+    () => !allEvents.value && (dividends.value.length > 0 || splits.value.length > 0),
+);
 
-// "Show all" was asked of one instrument, not of every instrument after it: a
-// new symbol starts back at the four most recent, and its full history is a
-// read the user has to ask for again.
+// "Show all" was asked of one instrument, not of every instrument after it:
+// a new symbol starts back at the four most recent.
 watch(
     () => symbol,
     () => {
@@ -67,7 +74,7 @@ watch(
 
                 <ActionsPanel
                     v-else-if="section === 'dividends'"
-                    :actions="events.data.value?.dividends ?? []"
+                    :actions="dividends"
                     kind="dividends"
                     :expandable="expandable"
                     @expand="allEvents = true"
@@ -75,7 +82,7 @@ watch(
 
                 <ActionsPanel
                     v-else-if="section === 'splits'"
-                    :actions="events.data.value?.splits ?? []"
+                    :actions="splits"
                     kind="splits"
                     :expandable="expandable"
                     @expand="allEvents = true"

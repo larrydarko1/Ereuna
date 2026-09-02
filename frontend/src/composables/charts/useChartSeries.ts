@@ -1,0 +1,210 @@
+/** useChartSeries — the bars, volume and overlays behind one chart. */
+import { onScopeDispose, readonly, ref, watch, type Ref } from 'vue';
+import type { ChartTimeframe } from '@ereuna/shared';
+import { isIntraday } from '@ereuna/shared';
+import type { Time } from '@/lib/lightweight-charts';
+import { getSeries, type Candle, type ChartOverlay } from '@/api/chart';
+import { apiErrorMessage } from '@/api/client';
+import { i18n } from '@/i18n';
+
+export type ChartBar = {
+    time: Time;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+};
+
+export type ChartPoint = {
+    time: Time;
+    value: number;
+};
+
+export type OverlaySeries = {
+    type: ChartOverlay['type'];
+    period: number;
+    points: ChartPoint[];
+};
+
+export type ChartSeriesKey = {
+    symbol: string;
+    timeframe: ChartTimeframe;
+};
+
+export type UseChartSeriesReturn = {
+    bars: Readonly<Ref<readonly ChartBar[]>>;
+    volume: Readonly<Ref<readonly ChartPoint[]>>;
+    overlays: Readonly<Ref<readonly OverlaySeries[]>>;
+    intrinsicValue: Readonly<Ref<number | null>>;
+    pending: Readonly<Ref<boolean>>;
+    error: Readonly<Ref<string | null>>;
+    exhausted: Readonly<Ref<boolean>>; // True once a page comes back empty: there is nothing older to ask for.
+    loadOlder: () => Promise<void>;
+    reload: () => Promise<void>;
+};
+
+export function useChartSeries(key: () => ChartSeriesKey): UseChartSeriesReturn {
+    const bars = ref<ChartBar[]>([]);
+    const volume = ref<ChartPoint[]>([]);
+    const overlays = ref<OverlaySeries[]>([]);
+    const intrinsicValue = ref<number | null>(null);
+    const pending = ref(false);
+    const error = ref<string | null>(null);
+    const exhausted = ref(false);
+
+    let cursor: string | null = null;
+    let paging = false;
+
+    // Bumped on every request and on every reset. A response whose sequence is
+    // no longer current belongs to a symbol the user has already left.
+    let sequence = 0;
+    onScopeDispose(() => {
+        sequence += 1;
+    });
+
+    async function load(): Promise<void> {
+        const { symbol, timeframe } = key();
+        const ticket = (sequence += 1);
+
+        reset();
+        if (symbol === '') return;
+
+        pending.value = true;
+        try {
+            const { data } = await getSeries(symbol, { timeframe });
+            if (ticket !== sequence) return;
+
+            bars.value = data.candles.map((candle) => toBar(candle, timeframe));
+            volume.value = data.volume.map((point) => ({ time: toTime(point.time, timeframe), value: point.value }));
+            overlays.value = data.overlays.map((overlay) => toOverlay(overlay, timeframe));
+            intrinsicValue.value = data.intrinsicValue;
+            cursor = data.candles[0]?.time ?? null;
+            exhausted.value = data.candles.length === 0;
+            error.value = null;
+        } catch (cause) {
+            if (ticket !== sequence) return;
+            error.value = apiErrorMessage(cause, i18n.global.t('errors.INTERNAL'));
+        } finally {
+            if (ticket === sequence) pending.value = false;
+        }
+    }
+
+    /**
+     * Prepend the page before the oldest bar held.
+     * Overlays are not extended: the API computes each average over the window
+     * it was asked for, so an older page's averages are the same function of
+     * the same prices and simply continue the line leftwards.
+     */
+    async function loadOlder(): Promise<void> {
+        if (paging || exhausted.value || cursor === null) return;
+        const { symbol, timeframe } = key();
+        if (symbol === '') return;
+
+        const ticket = sequence;
+        paging = true;
+        try {
+            const { data } = await getSeries(symbol, { timeframe, before: cursor });
+            if (ticket !== sequence) return;
+
+            if (data.candles.length === 0) {
+                exhausted.value = true;
+                return;
+            }
+
+            const known = new Set(bars.value.map((bar) => String(bar.time)));
+            const older = data.candles
+                .map((candle) => toBar(candle, timeframe))
+                .filter((bar) => !known.has(String(bar.time)));
+
+            const knownVolume = new Set(volume.value.map((point) => String(point.time)));
+            const olderVolume = data.volume
+                .map((point) => ({ time: toTime(point.time, timeframe), value: point.value }))
+                .filter((point) => !knownVolume.has(String(point.time)));
+
+            bars.value = [...older, ...bars.value];
+            volume.value = [...olderVolume, ...volume.value];
+            overlays.value = mergeOverlays(overlays.value, data.overlays, timeframe);
+            cursor = data.candles[0]?.time ?? cursor;
+        } catch {
+            // Scrolling further left than the data goes is not an error worth
+            // showing: the chart already has bars on it and keeps them.
+        } finally {
+            paging = false;
+        }
+    }
+
+    function reset(): void {
+        bars.value = [];
+        volume.value = [];
+        overlays.value = [];
+        intrinsicValue.value = null;
+        error.value = null;
+        exhausted.value = false;
+        cursor = null;
+    }
+
+    watch(key, load, { immediate: true, deep: true });
+
+    return {
+        bars: readonly(bars) as Readonly<Ref<readonly ChartBar[]>>,
+        volume: readonly(volume) as Readonly<Ref<readonly ChartPoint[]>>,
+        overlays: readonly(overlays) as Readonly<Ref<readonly OverlaySeries[]>>,
+        intrinsicValue: readonly(intrinsicValue),
+        pending: readonly(pending),
+        error: readonly(error),
+        exhausted: readonly(exhausted),
+        loadOlder,
+        reload: load,
+    };
+}
+
+function toBar(candle: Candle, timeframe: ChartTimeframe): ChartBar {
+    return {
+        time: toTime(candle.time, timeframe),
+        open: candle.open,
+        high: candle.high,
+        low: candle.low,
+        close: candle.close,
+    };
+}
+
+function toOverlay(overlay: ChartOverlay, timeframe: ChartTimeframe): OverlaySeries {
+    return {
+        type: overlay.type,
+        period: overlay.period,
+        points: overlay.points.map((point) => ({ time: toTime(point.time, timeframe), value: point.value })),
+    };
+}
+
+/** Merge an older page's overlay points in front of the ones already plotted. */
+function mergeOverlays(
+    current: readonly OverlaySeries[],
+    incoming: readonly ChartOverlay[],
+    timeframe: ChartTimeframe,
+): OverlaySeries[] {
+    return current.map((series) => {
+        const match = incoming.find((overlay) => overlay.type === series.type && overlay.period === series.period);
+        if (match === undefined) return series;
+
+        const known = new Set(series.points.map((point) => String(point.time)));
+        const older = match.points
+            .map((point) => ({ time: toTime(point.time, timeframe), value: point.value }))
+            .filter((point) => !known.has(String(point.time)));
+
+        return { ...series, points: [...older, ...series.points] };
+    });
+}
+
+/**
+ * The renderer's time for one API timestamp.
+ * Daily and weekly bars are business days and pass through as `YYYY-MM-DD`.
+ * Intraday bars arrive as `YYYY-MM-DDTHH:mm:ss` with the trailing `Z` trimmed
+ * off, and a date-time with no offset is parsed as *local* time — so reading it
+ * with a bare `new Date(...)` shifted every intraday bar by the viewer's offset
+ * from UTC, which is what the previous chart did. The `Z` goes back on.
+ */
+function toTime(raw: string, timeframe: ChartTimeframe): Time {
+    if (!isIntraday(timeframe)) return raw as Time;
+    const parsed = Date.parse(raw.endsWith('Z') ? raw : `${raw}Z`);
+    return (Number.isNaN(parsed) ? 0 : Math.floor(parsed / 1000)) as Time;
+}

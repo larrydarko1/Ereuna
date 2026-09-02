@@ -26,8 +26,6 @@ export class FreehandManager {
     private isDrawing: boolean = false;
     private isDragging: boolean = false;
     private currentPath: FreehandPath | null = null;
-    private dragOffset: { x: number; y: number } | null = null;
-    private clickHandler: ((param: MouseEventParams<Time>) => void) | null = null;
     private moveHandler: ((param: MouseEventParams<Time>) => void) | null = null;
     private mouseDownHandler: ((param: MouseEventParams<Time>) => void) | null = null;
     private mouseUpHandler: (() => void) | null = null;
@@ -233,7 +231,7 @@ export class FreehandManager {
             this.selectedPathId = null;
 
             const styles = getComputedStyle(document.documentElement);
-            const color = styles.getPropertyValue('--text2').trim() || '#ffffff';
+            const color = styles.getPropertyValue('--color-text-muted').trim() || '#ffffff';
 
             this.currentPath = {
                 id: this.generateId(),
@@ -508,7 +506,7 @@ export class FreehandManager {
 
         const ctx = this.ctx;
         const styles = getComputedStyle(document.documentElement);
-        const color = styles.getPropertyValue('--text2').trim() || path.color;
+        const color = styles.getPropertyValue('--color-text-muted').trim() || path.color;
 
         ctx.beginPath();
         ctx.strokeStyle = color;

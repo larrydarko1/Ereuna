@@ -215,9 +215,9 @@ export class ChartRuler {
 
         // Get CSS variables for theming
         const styles = getComputedStyle(document.documentElement);
-        const accentColor = styles.getPropertyValue('--accent2').trim() || '#2962FF';
-        const positiveColor = styles.getPropertyValue('--positive').trim() || '#089981';
-        const negativeColor = styles.getPropertyValue('--negative').trim() || '#F23645';
+        const accentColor = styles.getPropertyValue('--color-accent-2').trim() || '#2962FF';
+        const positiveColor = styles.getPropertyValue('--color-positive').trim() || '#089981';
+        const negativeColor = styles.getPropertyValue('--color-negative').trim() || '#F23645';
 
         // Draw line
         ctx.beginPath();
@@ -285,11 +285,11 @@ export class ChartRuler {
 
         // Get CSS variables for theming
         const styles = getComputedStyle(document.documentElement);
-        const base2 = styles.getPropertyValue('--base2').trim() || '#1a1a1a';
-        const text1 = styles.getPropertyValue('--text1').trim() || '#ffffff';
-        const text2 = styles.getPropertyValue('--text2').trim() || '#b0b0b0';
-        const positiveColor = styles.getPropertyValue('--positive').trim() || '#089981';
-        const negativeColor = styles.getPropertyValue('--negative').trim() || '#F23645';
+        const base2 = styles.getPropertyValue('--color-surface').trim() || '#1a1a1a';
+        const text1 = styles.getPropertyValue('--color-text').trim() || '#ffffff';
+        const text2 = styles.getPropertyValue('--color-text-muted').trim() || '#b0b0b0';
+        const positiveColor = styles.getPropertyValue('--color-positive').trim() || '#089981';
+        const negativeColor = styles.getPropertyValue('--color-negative').trim() || '#F23645';
         const accentColor = isPositive ? positiveColor : negativeColor;
 
         // Set font

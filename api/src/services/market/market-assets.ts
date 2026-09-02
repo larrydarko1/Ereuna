@@ -144,6 +144,16 @@ export type AssetProfile = {
     fundFamily: string | null;
     netExpenseRatio: number | null;
     aiRecommendation: string | null;
+    signals: TradeSignal[];
+};
+
+export type TradeSignal = {
+    date: string; // ISO date
+    direction: 'BUY' | 'SELL';
+    strategy: string; // e.g. RSI_Oversold, MACD_Bullish_Cross
+    description: string;
+    price: number | null;
+    indicatorValue: number | null;
 };
 
 /**
@@ -210,6 +220,7 @@ export async function assetProfile(symbol: string): Promise<AssetProfile> {
         fundFamily: text(doc.fundFamily),
         netExpenseRatio: numeric(doc.netExpenseRatio),
         aiRecommendation: latestRecommendation(doc.AI),
+        signals: tradeSignals(doc.Signals),
     };
 }
 
@@ -297,6 +308,38 @@ function latestRecommendation(value: unknown): string | null {
     return typeof latest === 'object' && latest !== null
         ? text((latest as Record<string, unknown>).Recommendation)
         : null;
+}
+
+/**
+ * Today's signals, keeping only the entries that are actually usable.
+ * The analyzer writes `type` as BUY or SELL; anything else is a row from an
+ * older run of a strategy that no longer exists, and a signal with no direction
+ * is not a signal.
+ */
+function tradeSignals(value: unknown): TradeSignal[] {
+    if (!Array.isArray(value)) return [];
+
+    return value.flatMap((entry): TradeSignal[] => {
+        if (typeof entry !== 'object' || entry === null) return [];
+        const row = entry as Record<string, unknown>;
+        const direction = row.type;
+        if (direction !== 'BUY' && direction !== 'SELL') return [];
+
+        const date = isoDate(row.date);
+        const strategy = text(row.strategy);
+        if (date === null || strategy === null) return [];
+
+        return [
+            {
+                date,
+                direction,
+                strategy,
+                description: text(row.description) ?? '',
+                price: numeric(row.price),
+                indicatorValue: numeric(row.indicator_value),
+            },
+        ];
+    });
 }
 
 function toDividendPayment(action: CorporateAction): DividendPayment[] {

@@ -1,4 +1,4 @@
-import { IChartApi, MouseEventParams, Time } from './index';
+import { IChartApi, MouseEventParams } from './index';
 
 export interface PriceLevelData {
     id: string;
@@ -310,20 +310,20 @@ export class PriceLevelManager {
         dialog.style.top = '50%';
         dialog.style.left = '50%';
         dialog.style.transform = 'translate(-50%, -50%)';
-        dialog.style.backgroundColor = 'var(--base2)';
+        dialog.style.backgroundColor = 'var(--color-surface)';
         dialog.style.border = 'none';
         dialog.style.borderRadius = '12px';
         dialog.style.padding = '20px';
         dialog.style.zIndex = '10000';
         dialog.style.width = '300px';
-        dialog.style.boxShadow = '0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--accent4)';
+        dialog.style.boxShadow = '0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--color-accent-4)';
         dialog.style.animation = 'popup-in 0.18s cubic-bezier(.4,1.4,.6,1) backwards';
 
         // Title
         const title = document.createElement('h3');
         title.textContent = 'Price Level';
         title.style.margin = '0 0 14px 0';
-        title.style.color = 'var(--accent1)';
+        title.style.color = 'var(--color-accent-1)';
         title.style.fontSize = '1.1rem';
         title.style.fontWeight = '700';
         title.style.letterSpacing = '0.01em';
@@ -341,7 +341,7 @@ export class PriceLevelManager {
         const priceLabel = document.createElement('label');
         priceLabel.textContent = 'Price';
         priceLabel.style.display = 'block';
-        priceLabel.style.color = 'var(--text2)';
+        priceLabel.style.color = 'var(--color-text-muted)';
         priceLabel.style.fontSize = '0.8rem';
         priceLabel.style.fontWeight = '500';
         priceLabel.style.marginBottom = '4px';
@@ -354,20 +354,20 @@ export class PriceLevelManager {
         priceInput.style.width = '100%';
         priceInput.style.boxSizing = 'border-box';
         priceInput.style.padding = '7px 8px';
-        priceInput.style.backgroundColor = 'var(--base1)';
-        priceInput.style.border = '1.5px solid var(--base3)';
+        priceInput.style.backgroundColor = 'var(--color-bg)';
+        priceInput.style.border = '1.5px solid var(--color-elevated)';
         priceInput.style.borderRadius = '6px';
-        priceInput.style.color = 'var(--text1)';
+        priceInput.style.color = 'var(--color-text)';
         priceInput.style.fontSize = '0.9rem';
         priceInput.style.outline = 'none';
         priceInput.style.transition = 'border-color 0.18s, background 0.18s';
         priceInput.addEventListener('focus', () => {
-            priceInput.style.borderColor = 'var(--accent1)';
-            priceInput.style.backgroundColor = 'var(--base4)';
+            priceInput.style.borderColor = 'var(--color-accent-1)';
+            priceInput.style.backgroundColor = 'var(--color-sunken)';
         });
         priceInput.addEventListener('blur', () => {
-            priceInput.style.borderColor = 'var(--base3)';
-            priceInput.style.backgroundColor = 'var(--base1)';
+            priceInput.style.borderColor = 'var(--color-elevated)';
+            priceInput.style.backgroundColor = 'var(--color-bg)';
         });
         priceContainer.appendChild(priceInput);
         inputsGrid.appendChild(priceContainer);
@@ -377,7 +377,7 @@ export class PriceLevelManager {
         const lineStyleLabel = document.createElement('label');
         lineStyleLabel.textContent = 'Style';
         lineStyleLabel.style.display = 'block';
-        lineStyleLabel.style.color = 'var(--text2)';
+        lineStyleLabel.style.color = 'var(--color-text-muted)';
         lineStyleLabel.style.fontSize = '0.8rem';
         lineStyleLabel.style.fontWeight = '500';
         lineStyleLabel.style.marginBottom = '4px';
@@ -387,21 +387,21 @@ export class PriceLevelManager {
         lineStyleSelect.style.width = '100%';
         lineStyleSelect.style.boxSizing = 'border-box';
         lineStyleSelect.style.padding = '7px 8px';
-        lineStyleSelect.style.backgroundColor = 'var(--base1)';
-        lineStyleSelect.style.border = '1.5px solid var(--base3)';
+        lineStyleSelect.style.backgroundColor = 'var(--color-bg)';
+        lineStyleSelect.style.border = '1.5px solid var(--color-elevated)';
         lineStyleSelect.style.borderRadius = '6px';
-        lineStyleSelect.style.color = 'var(--text1)';
+        lineStyleSelect.style.color = 'var(--color-text)';
         lineStyleSelect.style.fontSize = '0.9rem';
         lineStyleSelect.style.outline = 'none';
         lineStyleSelect.style.cursor = 'pointer';
         lineStyleSelect.style.transition = 'border-color 0.18s, background 0.18s';
         lineStyleSelect.addEventListener('focus', () => {
-            lineStyleSelect.style.borderColor = 'var(--accent1)';
-            lineStyleSelect.style.backgroundColor = 'var(--base4)';
+            lineStyleSelect.style.borderColor = 'var(--color-accent-1)';
+            lineStyleSelect.style.backgroundColor = 'var(--color-sunken)';
         });
         lineStyleSelect.addEventListener('blur', () => {
-            lineStyleSelect.style.borderColor = 'var(--base3)';
-            lineStyleSelect.style.backgroundColor = 'var(--base1)';
+            lineStyleSelect.style.borderColor = 'var(--color-elevated)';
+            lineStyleSelect.style.backgroundColor = 'var(--color-bg)';
         });
 
         const solidOption = document.createElement('option');
@@ -429,7 +429,7 @@ export class PriceLevelManager {
         const textLabel = document.createElement('label');
         textLabel.textContent = 'Label';
         textLabel.style.display = 'block';
-        textLabel.style.color = 'var(--text2)';
+        textLabel.style.color = 'var(--color-text-muted)';
         textLabel.style.fontSize = '0.8rem';
         textLabel.style.fontWeight = '500';
         textLabel.style.marginBottom = '4px';
@@ -442,20 +442,20 @@ export class PriceLevelManager {
         textInput.style.width = '100%';
         textInput.style.boxSizing = 'border-box';
         textInput.style.padding = '7px 8px';
-        textInput.style.backgroundColor = 'var(--base1)';
-        textInput.style.border = '1.5px solid var(--base3)';
+        textInput.style.backgroundColor = 'var(--color-bg)';
+        textInput.style.border = '1.5px solid var(--color-elevated)';
         textInput.style.borderRadius = '6px';
-        textInput.style.color = 'var(--text1)';
+        textInput.style.color = 'var(--color-text)';
         textInput.style.fontSize = '0.9rem';
         textInput.style.outline = 'none';
         textInput.style.transition = 'border-color 0.18s, background 0.18s';
         textInput.addEventListener('focus', () => {
-            textInput.style.borderColor = 'var(--accent1)';
-            textInput.style.backgroundColor = 'var(--base4)';
+            textInput.style.borderColor = 'var(--color-accent-1)';
+            textInput.style.backgroundColor = 'var(--color-sunken)';
         });
         textInput.addEventListener('blur', () => {
-            textInput.style.borderColor = 'var(--base3)';
-            textInput.style.backgroundColor = 'var(--base1)';
+            textInput.style.borderColor = 'var(--color-elevated)';
+            textInput.style.backgroundColor = 'var(--color-bg)';
         });
         textContainer.appendChild(textInput);
         inputsGrid.appendChild(textContainer);
@@ -466,7 +466,7 @@ export class PriceLevelManager {
         const colorLabel = document.createElement('label');
         colorLabel.textContent = 'Color';
         colorLabel.style.display = 'block';
-        colorLabel.style.color = 'var(--text2)';
+        colorLabel.style.color = 'var(--color-text-muted)';
         colorLabel.style.fontSize = '0.8rem';
         colorLabel.style.fontWeight = '500';
         colorLabel.style.marginBottom = '4px';
@@ -478,18 +478,18 @@ export class PriceLevelManager {
         colorInput.style.width = '100%';
         colorInput.style.boxSizing = 'border-box';
         colorInput.style.padding = '6px';
-        colorInput.style.backgroundColor = 'var(--base1)';
-        colorInput.style.border = '1.5px solid var(--base3)';
+        colorInput.style.backgroundColor = 'var(--color-bg)';
+        colorInput.style.border = '1.5px solid var(--color-elevated)';
         colorInput.style.borderRadius = '6px';
         colorInput.style.cursor = 'pointer';
         colorInput.style.height = '36px';
         colorInput.style.outline = 'none';
         colorInput.style.transition = 'border-color 0.18s';
         colorInput.addEventListener('focus', () => {
-            colorInput.style.borderColor = 'var(--accent1)';
+            colorInput.style.borderColor = 'var(--color-accent-1)';
         });
         colorInput.addEventListener('blur', () => {
-            colorInput.style.borderColor = 'var(--base3)';
+            colorInput.style.borderColor = 'var(--color-elevated)';
         });
         colorContainer.appendChild(colorInput);
         inputsGrid.appendChild(colorContainer);
@@ -509,20 +509,20 @@ export class PriceLevelManager {
         cancelButton.style.flex = '1';
         cancelButton.style.padding = '7px 14px';
         cancelButton.style.backgroundColor = 'transparent';
-        cancelButton.style.color = 'var(--text2)';
-        cancelButton.style.border = '1.5px solid var(--base3)';
+        cancelButton.style.color = 'var(--color-text-muted)';
+        cancelButton.style.border = '1.5px solid var(--color-elevated)';
         cancelButton.style.borderRadius = '6px';
         cancelButton.style.cursor = 'pointer';
         cancelButton.style.fontSize = '0.85rem';
         cancelButton.style.fontWeight = '600';
         cancelButton.style.transition = 'border-color 0.18s, color 0.18s';
         cancelButton.addEventListener('mouseenter', () => {
-            cancelButton.style.borderColor = 'var(--accent1)';
-            cancelButton.style.color = 'var(--accent1)';
+            cancelButton.style.borderColor = 'var(--color-accent-1)';
+            cancelButton.style.color = 'var(--color-accent-1)';
         });
         cancelButton.addEventListener('mouseleave', () => {
-            cancelButton.style.borderColor = 'var(--base3)';
-            cancelButton.style.color = 'var(--text2)';
+            cancelButton.style.borderColor = 'var(--color-elevated)';
+            cancelButton.style.color = 'var(--color-text-muted)';
         });
         cancelButton.addEventListener('click', () => {
             this.closeInputDialog();
@@ -561,8 +561,8 @@ export class PriceLevelManager {
         saveButton.textContent = 'Save';
         saveButton.style.flex = '1';
         saveButton.style.padding = '7px 14px';
-        saveButton.style.backgroundColor = 'var(--accent1)';
-        saveButton.style.color = 'var(--text3)';
+        saveButton.style.backgroundColor = 'var(--color-accent-1)';
+        saveButton.style.color = 'var(--color-text-inverted)';
         saveButton.style.border = 'none';
         saveButton.style.borderRadius = '6px';
         saveButton.style.cursor = 'pointer';
@@ -570,10 +570,10 @@ export class PriceLevelManager {
         saveButton.style.fontWeight = '600';
         saveButton.style.transition = 'background 0.18s';
         saveButton.addEventListener('mouseenter', () => {
-            saveButton.style.backgroundColor = 'var(--accent2)';
+            saveButton.style.backgroundColor = 'var(--color-accent-2)';
         });
         saveButton.addEventListener('mouseleave', () => {
-            saveButton.style.backgroundColor = 'var(--accent1)';
+            saveButton.style.backgroundColor = 'var(--color-accent-1)';
         });
         saveButton.addEventListener('click', () => {
             const isNewLevel = !this.levels.has(levelId);

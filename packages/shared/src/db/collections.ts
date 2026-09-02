@@ -23,8 +23,25 @@ export type UserDoc = {
 };
 
 export type ChartSettings = {
+    style: ChartStyle; // How a bar is drawn
     indicators: ChartIndicator[];
     intrinsicValue: boolean; // Whether to plot the asset's intrinsic value line
+    markers: ChartMarkers; // Which corporate actions are flagged on the time axis
+};
+
+/**
+ * How the price series is drawn.
+ * `heikinAshi` is a candlestick whose bodies are smoothed across neighbours, so
+ * it is a rendering of the same bars rather than a different series.
+ */
+export const CHART_STYLES = ['candlestick', 'bar', 'heikinAshi', 'line', 'area', 'baseline'] as const;
+
+export type ChartStyle = (typeof CHART_STYLES)[number];
+
+export type ChartMarkers = {
+    earnings: boolean;
+    dividends: boolean;
+    splits: boolean;
 };
 
 export type ChartIndicator = {

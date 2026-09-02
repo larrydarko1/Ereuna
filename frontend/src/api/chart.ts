@@ -106,6 +106,16 @@ export type AssetProfile = {
     fundFamily: string | null;
     netExpenseRatio: number | null;
     aiRecommendation: string | null;
+    signals: TradeSignal[];
+};
+
+export type TradeSignal = {
+    date: string;
+    direction: 'BUY' | 'SELL';
+    strategy: string;
+    description: string;
+    price: number | null;
+    indicatorValue: number | null;
 };
 
 export type ChartEvents = {

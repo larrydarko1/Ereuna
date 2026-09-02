@@ -261,7 +261,7 @@ export class BoxManager {
 
                 // Get theme colors
                 const styles = getComputedStyle(document.documentElement);
-                const themeColor = styles.getPropertyValue('--text2').trim() || '#a9b1d6';
+                const themeColor = styles.getPropertyValue('--color-text-muted').trim() || '#a9b1d6';
 
                 const newBox: Box = {
                     id: this.generateId(),
@@ -500,7 +500,7 @@ export class BoxManager {
         // Draw the box being created
         if (this.currentBox.point1 && this.currentBox.point2) {
             const styles = getComputedStyle(document.documentElement);
-            const themeColor = styles.getPropertyValue('--text2').trim() || '#a9b1d6';
+            const themeColor = styles.getPropertyValue('--color-text-muted').trim() || '#a9b1d6';
 
             const tempBox: Box = {
                 id: 'temp',
@@ -520,11 +520,11 @@ export class BoxManager {
         if (!this.ctx) return;
 
         const ctx = this.ctx;
-        const { point1, point2, fillColor, borderColor, fillOpacity, borderWidth } = box;
+        const { point1, point2, fillColor, fillOpacity, borderWidth } = box;
 
         // Get theme color
         const styles = getComputedStyle(document.documentElement);
-        const themeColor = styles.getPropertyValue('--text2').trim() || fillColor;
+        const themeColor = styles.getPropertyValue('--color-text-muted').trim() || fillColor;
 
         // Calculate rectangle bounds
         const x = Math.min(point1.x, point2.x);

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { getProfile } from '@/api/chart';
+import { getEvents, getProfile } from '@/api/chart';
 import ChartSidebar from '@/components/charts/ChartSidebar.vue';
 import PanelLayoutDialog from '@/components/charts/PanelLayoutDialog.vue';
+import PriceChart from '@/components/charts/PriceChart.vue';
 import SymbolSearch from '@/components/charts/SymbolSearch.vue';
 import WatchlistPanel from '@/components/charts/WatchlistPanel.vue';
 import AssetLogo from '@/components/ui/AssetLogo.vue';
@@ -23,6 +24,18 @@ const editingLayout = ref(false);
 const profile = useResource(
     () => symbol.value,
     async (current) => (await getProfile(current)).data,
+    { enabled: (current) => current !== '' },
+);
+
+/**
+ * The corporate-action history, read once for the whole view.
+ * The chart marks every dividend and split on the time axis and the sidebar
+ * lists the most recent of each, so they share one request rather than asking
+ * for the same history twice with different limits.
+ */
+const events = useResource(
+    () => symbol.value,
+    async (current) => (await getEvents(current, true)).data,
     { enabled: (current) => current !== '' },
 );
 
@@ -57,7 +70,7 @@ onMounted(async () => {
                 <button type="button" class="charts__edit" @click="editingLayout = true">
                     {{ t('panels.title') }}
                 </button>
-                <ChartSidebar :symbol="symbol" :profile="profile.data.value" />
+                <ChartSidebar :symbol="symbol" :profile="profile.data.value" :events="events.data.value" />
             </aside>
 
             <main class="charts__column charts__column--chart" :class="{ 'charts__column--hidden': pane !== 'chart' }">
@@ -74,13 +87,12 @@ onMounted(async () => {
                     {{ profile.error.value }}
                 </p>
 
-                <!--
-                    The price chart mounts here. It is the one piece of this view
-                    still on the old data path — a WebSocket and an API key that
-                    the new API does not have — and is rewritten next, on its own,
-                    because it is four thousand lines of renderer wiring.
-                -->
-                <div class="charts__canvas"></div>
+                <PriceChart
+                    :symbol="symbol"
+                    :profile="profile.data.value"
+                    :events="events.data.value"
+                    class="charts__canvas"
+                />
             </main>
 
             <aside
@@ -202,8 +214,7 @@ onMounted(async () => {
 }
 
 .charts__canvas {
+    flex: 1;
     min-height: 384px;
-    border-radius: $radius-md;
-    background: $color-surface;
 }
 </style>

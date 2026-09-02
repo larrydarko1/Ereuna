@@ -1,6 +1,6 @@
 /** Shared Zod schemas for request validation — the vocabulary route schemas are built from. */
 import { z } from 'zod';
-import { PANEL_SECTIONS, SUMMARY_FIELDS } from '@ereuna/shared';
+import { CHART_STYLES, PANEL_SECTIONS, SUMMARY_FIELDS } from '@ereuna/shared';
 import { config } from '@/lib/config.js';
 
 export type PaginationQuerySchema = z.ZodObject<{
@@ -88,6 +88,7 @@ export const panelLayoutSchema = z.object({
 });
 
 export const chartSettingsSchema = z.object({
+    style: z.enum(CHART_STYLES),
     indicators: z
         .array(
             z.object({
@@ -98,4 +99,5 @@ export const chartSettingsSchema = z.object({
         )
         .max(config.limits.indicatorsPerChart),
     intrinsicValue: z.boolean(),
+    markers: z.object({ earnings: z.boolean(), dividends: z.boolean(), splits: z.boolean() }),
 });

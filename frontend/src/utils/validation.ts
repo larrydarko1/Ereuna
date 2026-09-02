@@ -23,11 +23,11 @@ export const PASSWORD_MAX = 128;
 
 export function validateUsername(value: string): string | null {
     const trimmed = value.trim();
-    if (trimmed === '') return t('usernameRequired');
+    if (trimmed === '') return t('validation.usernameRequired');
     if (trimmed.length < USERNAME_MIN || trimmed.length > USERNAME_MAX) {
-        return t('usernameLength', { min: USERNAME_MIN, max: USERNAME_MAX });
+        return t('validation.usernameLength', { min: USERNAME_MIN, max: USERNAME_MAX });
     }
-    if (!USERNAME_PATTERN.test(trimmed)) return t('usernameCharacters');
+    if (!USERNAME_PATTERN.test(trimmed)) return t('validation.usernameCharacters');
     return null;
 }
 
@@ -37,49 +37,49 @@ export function validateUsername(value: string): string | null {
  * that was accepted at registration is not the one that is checked at login.
  */
 export function validatePassword(value: string): string | null {
-    if (value === '') return t('passwordRequired');
+    if (value === '') return t('validation.passwordRequired');
     if (value.length < PASSWORD_MIN || value.length > PASSWORD_MAX) {
-        return t('passwordLength', { min: PASSWORD_MIN, max: PASSWORD_MAX });
+        return t('validation.passwordLength', { min: PASSWORD_MIN, max: PASSWORD_MAX });
     }
-    if (!/[A-Z]/.test(value)) return t('passwordUppercase');
-    if (!/[a-z]/.test(value)) return t('passwordLowercase');
-    if (!/[0-9]/.test(value)) return t('passwordNumber');
-    if (!/[^A-Za-z0-9]/.test(value)) return t('passwordSpecial');
+    if (!/[A-Z]/.test(value)) return t('validation.passwordUppercase');
+    if (!/[a-z]/.test(value)) return t('validation.passwordLowercase');
+    if (!/[0-9]/.test(value)) return t('validation.passwordNumber');
+    if (!/[^A-Za-z0-9]/.test(value)) return t('validation.passwordSpecial');
     return null;
 }
 
 export function validatePasswordConfirmation(password: string, confirmation: string): string | null {
-    if (confirmation === '') return t('confirmationRequired');
-    if (password !== confirmation) return t('passwordMismatch');
+    if (confirmation === '') return t('validation.confirmationRequired');
+    if (password !== confirmation) return t('validation.passwordMismatch');
     return null;
 }
 
 /** A recovery code as `auth-recovery` issues them: non-empty, and nothing else. */
 export function validateRecoveryCode(value: string): string | null {
-    if (value.trim() === '') return t('recoveryCodeRequired');
+    if (value.trim() === '') return t('validation.recoveryCodeRequired');
     return null;
 }
 
 export function validateSymbol(value: string): string | null {
     const trimmed = value.trim().toUpperCase();
-    if (trimmed === '') return t('symbolRequired');
-    if (!SYMBOL_PATTERN.test(trimmed)) return t('symbolInvalid');
+    if (trimmed === '') return t('validation.symbolRequired');
+    if (!SYMBOL_PATTERN.test(trimmed)) return t('validation.symbolInvalid');
     return null;
 }
 
 /** A quantity that must be a real, positive, finite number. */
 export function validatePositiveNumber(value: number | null | undefined): string | null {
-    if (value == null || Number.isNaN(value)) return t('numberRequired');
-    if (!Number.isFinite(value)) return t('numberInvalid');
-    if (value <= 0) return t('numberPositive');
+    if (value == null || Number.isNaN(value)) return t('validation.numberRequired');
+    if (!Number.isFinite(value)) return t('validation.numberInvalid');
+    if (value <= 0) return t('validation.numberPositive');
     return null;
 }
 
 /** A figure that may be zero but not negative — a commission, for instance. */
 export function validateNonNegativeNumber(value: number | null | undefined): string | null {
-    if (value == null || Number.isNaN(value)) return t('numberRequired');
-    if (!Number.isFinite(value)) return t('numberInvalid');
-    if (value < 0) return t('numberNonNegative');
+    if (value == null || Number.isNaN(value)) return t('validation.numberRequired');
+    if (!Number.isFinite(value)) return t('validation.numberInvalid');
+    if (value < 0) return t('validation.numberNonNegative');
     return null;
 }
 

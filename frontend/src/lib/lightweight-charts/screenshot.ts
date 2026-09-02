@@ -107,7 +107,7 @@ export class ChartScreenshot {
 
         // Draw background
         const styles = getComputedStyle(document.documentElement);
-        const bgColor = styles.getPropertyValue('--base1').trim() || '#1a1b26';
+        const bgColor = styles.getPropertyValue('--color-bg').trim() || '#1a1b26';
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, width, height);
 
@@ -165,7 +165,7 @@ export class ChartScreenshot {
 
         // Draw chart background box with rounded corners - same color as inner canvas
         const styles = getComputedStyle(document.documentElement);
-        const bgColor = styles.getPropertyValue('--base1').trim() || '#1a1b26';
+        const bgColor = styles.getPropertyValue('--color-bg').trim() || '#1a1b26';
         ctx.fillStyle = bgColor;
         this.roundRect(ctx, chartBoxX, chartBoxY, chartBoxWidth, chartBoxHeight, borderRadius);
         ctx.fill();
@@ -303,7 +303,7 @@ export class ChartScreenshot {
         dpr: number = 1
     ): void {
         const styles = getComputedStyle(document.documentElement);
-        const textColorSecondary = styles.getPropertyValue('--text2').trim() || '#9ca3af';
+        const textColorSecondary = styles.getPropertyValue('--color-text-muted').trim() || '#9ca3af';
 
         ctx.globalAlpha = 0.5; // Lighter opacity
         ctx.fillStyle = textColorSecondary;
@@ -327,7 +327,7 @@ export class ChartScreenshot {
         dpr: number = 1
     ): void {
         const styles = getComputedStyle(document.documentElement);
-        const textColorSecondary = styles.getPropertyValue('--text2').trim() || '#9ca3af';
+        const textColorSecondary = styles.getPropertyValue('--color-text-muted').trim() || '#9ca3af';
 
         ctx.globalAlpha = 0.7;
         ctx.fillStyle = textColorSecondary;

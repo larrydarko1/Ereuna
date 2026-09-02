@@ -53,8 +53,13 @@ export function getMarketStats(): ApiResult<MarketStatsDoc> {
     return api.get<MarketStatsDoc>('/market/stats');
 }
 
-export function getHolidays(): ApiResult<MarketStatsDoc> {
-    return api.get<MarketStatsDoc>('/market/holidays');
+export type MarketHoliday = {
+    date: string; // YYYY-MM-DD
+    name: string;
+};
+
+export function getHolidays(): ApiResult<MarketStatsDoc & { Holidays?: MarketHoliday[] }> {
+    return api.get<MarketStatsDoc & { Holidays?: MarketHoliday[] }>('/market/holidays');
 }
 
 /** Every symbol and its exchange. A whole-universe read, cached for a day. */

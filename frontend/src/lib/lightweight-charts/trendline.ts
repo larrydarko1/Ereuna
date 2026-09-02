@@ -249,7 +249,7 @@ export class TrendLineManager {
 
                 // Create the trendline with theme-aware color
                 const styles = getComputedStyle(document.documentElement);
-                const themeColor = styles.getPropertyValue('--text2').trim() || this.defaultColor;
+                const themeColor = styles.getPropertyValue('--color-text-muted').trim() || this.defaultColor;
 
                 const newLine: TrendLine = {
                     id: this.generateId(),
@@ -506,7 +506,7 @@ export class TrendLineManager {
         if (this.currentLine.point1 && this.currentLine.point2) {
             // Get theme color for temporary line
             const styles = getComputedStyle(document.documentElement);
-            const themeColor = styles.getPropertyValue('--text2').trim() || this.defaultColor;
+            const themeColor = styles.getPropertyValue('--color-text-muted').trim() || this.defaultColor;
 
             const tempLine: TrendLine = {
                 id: 'temp',
@@ -530,7 +530,7 @@ export class TrendLineManager {
 
         // Get CSS variable for theming (use --text2 as neutral color)
         const styles = getComputedStyle(document.documentElement);
-        const themeColor = styles.getPropertyValue('--text2').trim() || color;
+        const themeColor = styles.getPropertyValue('--color-text-muted').trim() || color;
 
         // Set line style
         ctx.strokeStyle = themeColor;
@@ -597,7 +597,7 @@ export class TrendLineManager {
 
         // Get CSS variable for theming
         const styles = getComputedStyle(document.documentElement);
-        const themeColor = styles.getPropertyValue('--text2').trim() || color;
+        const themeColor = styles.getPropertyValue('--color-text-muted').trim() || color;
 
         // Outer circle
         ctx.beginPath();
