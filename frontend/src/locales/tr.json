@@ -113,66 +113,54 @@
         "lastUpdate": "Son güncelleme:",
         "loading": "Yükleniyor...",
         "noData": "Veri yok",
-        "noDataAvailable": "Veri mevcut değil",
+        "never": "Hiç",
         "outlook": {
             "shortTerm": "Kısa Vade",
             "midTerm": "Orta Vade",
             "longTerm": "Uzun Vade",
-            "shortTermTooltipTitle": "Kısa Vadeli Görünüm (1-3 Ay)",
-            "shortTermTooltipDesc": "Son piyasa momentumu, teknik göstergeler ve kısa vadeli trendlere dayanır.",
-            "midTermTooltipTitle": "Orta Vadeli Görünüm (3-6 Ay)",
-            "midTermTooltipDesc": "Çeyreklik performans trendlerini ve orta vadeli piyasa döngülerini yansıtır.",
-            "longTermTooltipTitle": "Uzun Vadeli Görünüm (6-12 Ay)",
-            "longTermTooltipDesc": "Yıllık trendleri, temel güçlülüğü ve sürdürülebilir piyasa yönünü gösterir.",
-            "assetsUp": "varlık yükseliş trendinde"
+            "bullish": "Yükseliş",
+            "neutral": "Nötr",
+            "bearish": "Düşüş",
+            "assetsUp": "{percent}% varlık yükseliş trendinde"
         },
         "breadth": {
             "advanceDecline": "Yükselen/Düşen",
+            "advanceDeclineReading": "{positive}% yükselen, {neutral}% değişmeyen, {negative}% düşen",
             "newHighsLows": "Yeni Zirveler/Dipler",
-            "advanceDeclineTitle": "Yükselen/Düşen Oranı",
-            "advanceDeclineDesc": "Bugün fiyatı yükselen (yeşil), düşen (kırmızı) veya değişmeyen (gri) varlıkların oranını ölçer.",
-            "advancing": "Yükselenler: Önceki kapanıştan daha yüksek kapanan varlıklar",
-            "declining": "Düşenler: Önceki kapanıştan daha düşük kapanan varlıklar",
-            "unchanged": "Değişmeyenler: Fiyat değişikliği olmayan varlıklar",
-            "newHighsLowsTitle": "Yeni Zirveler/Dipler",
-            "newHighsLowsDesc": "Bugün 52 haftalık yeni zirve veya dibe ulaşan varlıkların yüzdesini gösterir.",
-            "newHighs": "Yeni Zirveler: 52 haftalık en yüksek fiyatlarında olan varlıklar",
-            "newLows": "Yeni Dipler: 52 haftalık en düşük fiyatlarında olan varlıklar",
-            "neutral": "Nötr: Uç noktalarda olmayan varlıklar"
-        },
-        "archie": {
-            "meet": "Tanışın",
-            "name": "Archie",
-            "tagline": "Uyarlanabilir AI Ticaret Asistanınız",
-            "training": "Archie eğitim aşamasında...",
-            "description": "Archie, derin öğrenme ile desteklenmekte ve milyonlarca finansal belge ile eğitilmektedir.",
-            "description2": "Desenleri tanır, sizin tarzınıza uyum sağlar ve sizin için en iyi ticaret stratejilerini önerir.",
-            "comingSoon": "Yakında: AI tarafından oluşturulan işlemler, piyasa içgörüleri ve kişiselleştirilmiş stratejiler.",
-            "disclaimer": "Feragatname:",
-            "disclaimerText": "Archie deneysel bir AI asistanıdır. Tüm öneriler yalnızca bilgilendirme amaçlıdır ve yasal finansal tavsiye niteliği taşımaz. Archie kullanımı isteğe bağlıdır; Ereuna ticaret sonuçlarından sorumluluk kabul etmez."
+            "newHighsLowsReading": "{positive}% yeni zirvede, {neutral}% arada, {negative}% yeni dipte"
         },
         "indexes": {
             "title": "Piyasa Endeksleri",
             "etf": "ETF",
             "price": "Fiyat",
-            "change": "% Değişim",
+            "oneDay": "1G",
             "oneMonth": "1A",
-            "oneQuarter": "1Ç",
+            "fourMonth": "4A",
             "oneYear": "1Y",
-            "ytd": "YBB"
+            "yearToDate": "YBB"
         },
         "sma": {
             "title": "SMA Dağılımı",
-            "sma": "SMA",
-            "above": "üstünde",
-            "below": "altında"
+            "universe": "Varlık türü",
+            "period": "{period} SMA",
+            "reading": "{above}% üstünde, {below}% altında"
+        },
+        "universe": {
+            "all": "Tüm varlıklar",
+            "stock": "Hisseler",
+            "etf": "ETF’ler",
+            "fund": "Yatırım fonları",
+            "otc": "Tezgâh üstü",
+            "pink": "Pink sheets",
+            "crypto": "Kripto"
         },
         "sectors": {
-            "title": "Çeyreklik Sektör / Endüstri Gücü",
-            "strongestSectors": "En Güçlü Sektörler",
-            "weakestSectors": "En Zayıf Sektörler",
-            "strongestIndustries": "En Güçlü Endüstriler",
-            "weakestIndustries": "En Zayıf Endüstriler"
+            "title": "Sektör",
+            "strongest": "En Güçlü Sektörler",
+            "weakest": "En Zayıf Sektörler"
+        },
+        "industries": {
+            "title": "Endüstri"
         },
         "movers": {
             "title": "Günlük En Çok Hareket Edenler",
@@ -181,13 +169,20 @@
         },
         "valuation": {
             "title": "İçsel Değer Analizi",
-            "beta": "BETA",
             "undervalued": "İlk 10 Düşük Değerli",
             "overvalued": "İlk 10 Yüksek Değerli",
-            "current": "Mevcut:",
-            "intrinsic": "İçsel:",
-            "note": "Not:",
-            "disclaimer": "İçsel değerler gelişmiş AI algoritmaları kullanılarak hesaplanır. Bunlar tahminlerdir ve yatırım tavsiyesi olarak kabul edilmemelidir."
+            "disclaimer": "İçsel değerler, son açıklanan finansal tablolar üzerinde çalıştırılan indirgenmiş nakit akışı modelinden gelir. Bunlar tahmindir, yatırım tavsiyesi değildir."
+        },
+        "calendar": {
+            "title": "Piyasa takvimi",
+            "date": "Tarih",
+            "empty": "Planlanmış bir şey yok",
+            "earnings": "Kazançlar",
+            "dividends": "Temettüler",
+            "splits": "Bölünme"
+        },
+        "news": {
+            "title": "Haberler"
         }
     },
     "user": {

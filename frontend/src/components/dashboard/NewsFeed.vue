@@ -6,20 +6,17 @@ import { useResource } from '@/composables/data/useResource';
 import { timeAgo } from '@/utils/formatters';
 import { externalUrl } from '@/utils/url';
 
-const { symbol, limit = 6 } = defineProps<{
-    symbol: string;
-    limit?: number;
-}>();
+const { limit = 12 } = defineProps<{ limit?: number }>();
 
 const { t } = useI18n();
 
-const { data, pending, error } = useResource(
-    () => symbol,
-    async (current) => (await getNews({ symbols: [current], limit })).data.items,
-    { enabled: (current) => current !== '' },
-);
-
 type Headline = NewsRow & { href: string };
+
+// Market-wide rather than per symbol: this is the whole feed, not a chart's
+const { data, pending, error } = useResource(
+    () => limit,
+    async (count) => (await getNews({ limit: count })).data.items,
+);
 
 const headlines = computed<Headline[]>(() =>
     (data.value ?? []).flatMap((row) => {
@@ -30,9 +27,9 @@ const headlines = computed<Headline[]>(() =>
 </script>
 
 <template>
-    <p v-if="pending" class="news__note">{{ t('sidebar.loading') }}</p>
-    <p v-else-if="error !== null" class="news__note">{{ error }}</p>
-    <p v-else-if="headlines.length === 0" class="news__note">{{ t('sidebar.noNewsAvailable') }}</p>
+    <p v-if="pending" class="news__note">{{ t('dashboard.loading') }}</p>
+    <p v-else-if="error !== null" class="news__note" role="alert">{{ error }}</p>
+    <p v-else-if="headlines.length === 0" class="news__note">{{ t('dashboard.noData') }}</p>
 
     <ul v-else class="news">
         <li v-for="headline in headlines" :key="headline.href" class="news__item">
@@ -42,6 +39,9 @@ const headlines = computed<Headline[]>(() =>
             <p class="news__meta">
                 <span v-if="headline.source !== null">{{ headline.source }}</span>
                 <time :datetime="headline.publishedDate">{{ timeAgo(headline.publishedDate) }}</time>
+                <span v-if="headline.tickers.length > 0" class="news__tickers">
+                    {{ headline.tickers.slice(0, 4).join(' · ') }}
+                </span>
             </p>
         </li>
     </ul>
@@ -49,15 +49,19 @@ const headlines = computed<Headline[]>(() =>
 
 <style lang="scss" scoped>
 .news {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    gap: 0.75em;
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
-.news__item + .news__item {
-    margin-top: $space-2;
-    padding-top: $space-2;
-    border-top: $border-width solid $color-elevated;
+.news__item {
+    padding: 0.6em 0.8em;
+    border: $border-width solid $color-elevated;
+    border-radius: $radius-md;
+    background: $color-surface;
 }
 
 .news__link {
@@ -72,10 +76,15 @@ const headlines = computed<Headline[]>(() =>
 
 .news__meta {
     display: flex;
-    gap: $space-2;
-    margin: $space-1 0 0;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    margin: 0.35em 0 0;
     color: $color-text-muted;
     font-size: $font-size-xs;
+}
+
+.news__tickers {
+    font-family: $font-mono;
 }
 
 .news__note {

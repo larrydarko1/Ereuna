@@ -1,15 +1,20 @@
 /**
  * market-overview — the ingestor's singleton documents and the reference index.
  * Everything here is written by the Python ingestor and only read by the API,
- * so all of it is cached hard: the shapes are the ingestor's, passed through
- * rather than re-modelled, because inventing a schema for a document this API
- * does not own would only go stale.
+ * so all of it is cached hard.
+ * The market summary is translated into the MarketOverview contract before it
+ * leaves (utils/market-overview.ts) rather than passed through. Passing the
+ * raw document through only moved the ingestor's vocabulary into the browser,
+ * where a renamed field showed up as a blank panel instead of a failing test.
+ * The holiday document is still passed through: it is one array of dates with
+ * nothing to model.
  */
-import type { AssetInfoDoc, MarketStatsDoc } from '@ereuna/shared';
+import type { AssetInfoDoc, MarketOverview, StatsDoc } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { marketKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
 import { requireAsset } from '@/services/market/market-assets.js';
+import { toMarketOverview } from '@/utils/market-overview.js';
 
 /** One day. Holidays and the symbol index change on the ingestor's schedule, not ours. */
 const DAY_SECONDS = 86_400;
@@ -30,11 +35,11 @@ export type Financials = {
  * ingested — which is why there is no separate "last update" endpoint: the
  * timestamp belongs to the document it describes.
  */
-export async function marketStats(): Promise<MarketStatsDoc> {
-    return statsDocument('marketStats');
+export async function marketStats(): Promise<MarketOverview> {
+    return toMarketOverview(await statsDocument('marketStats'));
 }
 
-export async function holidays(): Promise<MarketStatsDoc> {
+export async function holidays(): Promise<StatsDoc> {
     return statsDocument('Holidays');
 }
 
@@ -75,10 +80,10 @@ export async function financials(symbol: string): Promise<Financials> {
     };
 }
 
-async function statsDocument(id: string): Promise<MarketStatsDoc> {
+async function statsDocument(id: string): Promise<StatsDoc> {
     const doc = await withCache(
         marketKey('stats', id),
-        async () => getDb().collection<MarketStatsDoc>('Stats').findOne({ _id: id }),
+        async () => getDb().collection<StatsDoc>('Stats').findOne({ _id: id }),
         { ttl: id === 'Holidays' ? DAY_SECONDS : undefined, dataType: id === 'Holidays' ? 'static' : 'price' },
     );
 

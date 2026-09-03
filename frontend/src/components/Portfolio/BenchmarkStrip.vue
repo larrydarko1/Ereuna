@@ -62,100 +62,100 @@ const { t } = useI18n();
     display: flex;
     flex-direction: column;
     gap: 0.5em;
+}
 
-    &__header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1em;
+.benchmark-strip__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1em;
+}
+
+.benchmark-strip__title {
+    margin: 0;
+    font-size: $font-size-md;
+    color: $color-text;
+}
+
+.benchmark-strip__cards {
+    display: flex;
+    gap: 0.75em;
+
+    // Benchmarks are capped at five, so a row that scrolls beats a grid
+    // that reflows one card onto a line of its own.
+    overflow-x: auto;
+}
+
+.benchmark-strip__card {
+    min-width: 200px;
+    flex: 1 0 auto;
+    padding: 0.6em 0.8em;
+    border: $border-width solid $color-elevated;
+    border-radius: $radius-md;
+    background: $color-surface;
+}
+
+.benchmark-strip__card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5em;
+    margin-bottom: 0.4em;
+}
+
+.benchmark-strip__symbol {
+    font-weight: $font-weight-medium;
+    color: $color-text;
+}
+
+.benchmark-strip__badge {
+    padding: 0.1em 0.5em;
+    border-radius: $radius-pill;
+    font-size: $font-size-xs;
+
+    &--up {
+        background: color-mix(in srgb, $color-positive 15%, transparent);
+        color: $color-positive;
     }
 
-    &__title {
+    &--down,
+    &--flat {
+        background: color-mix(in srgb, $color-negative 15%, transparent);
+        color: $color-negative;
+    }
+}
+
+.benchmark-strip__stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15em;
+    margin: 0;
+}
+
+.benchmark-strip__stat {
+    display: flex;
+    justify-content: space-between;
+    gap: 1em;
+    font-size: $font-size-xs;
+
+    dt {
+        color: $color-text-muted;
+    }
+
+    dd {
         margin: 0;
-        font-size: $font-size-md;
+        font-family: $font-mono;
         color: $color-text;
     }
+}
 
-    &__cards {
-        display: flex;
-        gap: 0.75em;
-
-        // Benchmarks are capped at five, so a row that scrolls beats a grid
-        // that reflows one card onto a line of its own.
-        overflow-x: auto;
+.benchmark-strip__value {
+    &--up {
+        color: $color-positive;
     }
 
-    &__card {
-        min-width: 200px;
-        flex: 1 0 auto;
-        padding: 0.6em 0.8em;
-        border: $border-width solid $color-elevated;
-        border-radius: $radius-md;
-        background: $color-surface;
-    }
-
-    &__card-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.5em;
-        margin-bottom: 0.4em;
-    }
-
-    &__symbol {
-        font-weight: $font-weight-medium;
-        color: $color-text;
-    }
-
-    &__badge {
-        padding: 0.1em 0.5em;
-        border-radius: $radius-pill;
-        font-size: $font-size-xs;
-
-        &--up {
-            background: color-mix(in srgb, $color-positive 15%, transparent);
-            color: $color-positive;
-        }
-
-        &--down,
-        &--flat {
-            background: color-mix(in srgb, $color-negative 15%, transparent);
-            color: $color-negative;
-        }
-    }
-
-    &__stats {
-        display: flex;
-        flex-direction: column;
-        gap: 0.15em;
-        margin: 0;
-    }
-
-    &__stat {
-        display: flex;
-        justify-content: space-between;
-        gap: 1em;
-        font-size: $font-size-xs;
-
-        dt {
-            color: $color-text-muted;
-        }
-
-        dd {
-            margin: 0;
-            font-family: $font-mono;
-            color: $color-text;
-        }
-    }
-
-    &__value {
-        &--up {
-            color: $color-positive;
-        }
-
-        &--down {
-            color: $color-negative;
-        }
+    &--down {
+        color: $color-negative;
     }
 }
 </style>

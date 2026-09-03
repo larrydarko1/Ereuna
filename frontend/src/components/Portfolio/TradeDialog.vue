@@ -135,22 +135,23 @@ function submit(): void {
 
     // The four actions are colour-coded by what they do to the book: opening or
     // adding is one direction, closing or reducing the other.
-    &__action-label {
-        &--buy,
-        &--cover {
-            color: $color-positive;
-        }
+}
 
-        &--sell,
-        &--short {
-            color: $color-negative;
-        }
+.trade-dialog__action-label {
+    &--buy,
+    &--cover {
+        color: $color-positive;
     }
 
-    &__grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-        gap: 0.75em;
+    &--sell,
+    &--short {
+        color: $color-negative;
     }
+}
+
+.trade-dialog__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: 0.75em;
 }
 </style>

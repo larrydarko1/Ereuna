@@ -175,47 +175,6 @@ const returnBars = computed<Bar[]>(() =>
     flex-direction: column;
     gap: 0.75em;
 
-    &__header {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.5em;
-    }
-
-    &__title {
-        margin: 0;
-        font-size: $font-size-md;
-        color: $color-text;
-    }
-
-    &__tally {
-        display: flex;
-        gap: 0.75em;
-        font-size: $font-size-xs;
-    }
-
-    &__tally-item {
-        &--up {
-            color: $color-positive;
-        }
-
-        &--down {
-            color: $color-negative;
-        }
-    }
-
-    &__scroll {
-        overflow-x: auto;
-    }
-
-    &__table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: $font-size-sm;
-        white-space: nowrap;
-    }
-
     th,
     td {
         padding: 0.45em 0.75em;
@@ -230,18 +189,59 @@ const returnBars = computed<Bar[]>(() =>
         text-transform: uppercase;
         letter-spacing: 0.04em;
     }
+}
 
-    &__num {
-        font-family: $font-mono;
-        text-align: right;
+.monthly-panel__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5em;
+}
 
-        &--up {
-            color: $color-positive;
-        }
+.monthly-panel__title {
+    margin: 0;
+    font-size: $font-size-md;
+    color: $color-text;
+}
 
-        &--down {
-            color: $color-negative;
-        }
+.monthly-panel__tally {
+    display: flex;
+    gap: 0.75em;
+    font-size: $font-size-xs;
+}
+
+.monthly-panel__tally-item {
+    &--up {
+        color: $color-positive;
+    }
+
+    &--down {
+        color: $color-negative;
+    }
+}
+
+.monthly-panel__scroll {
+    overflow-x: auto;
+}
+
+.monthly-panel__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: $font-size-sm;
+    white-space: nowrap;
+}
+
+.monthly-panel__num {
+    font-family: $font-mono;
+    text-align: right;
+
+    &--up {
+        color: $color-positive;
+    }
+
+    &--down {
+        color: $color-negative;
     }
 }
 </style>

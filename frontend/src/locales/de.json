@@ -113,66 +113,54 @@
         "lastUpdate": "Letzte Aktualisierung:",
         "loading": "Lädt...",
         "noData": "Keine Daten",
-        "noDataAvailable": "Keine Daten verfügbar",
+        "never": "Nie",
         "outlook": {
             "shortTerm": "Kurzfristig",
             "midTerm": "Mittelfristig",
             "longTerm": "Langfristig",
-            "shortTermTooltipTitle": "Kurzfristiger Ausblick (1-3 Monate)",
-            "shortTermTooltipDesc": "Basierend auf jüngster Marktdynamik, technischen Indikatoren und kurzfristigen Trends.",
-            "midTermTooltipTitle": "Mittelfristiger Ausblick (3-6 Monate)",
-            "midTermTooltipDesc": "Spiegelt vierteljährliche Performance-Trends und mittelfristige Marktzyklen wider.",
-            "longTermTooltipTitle": "Langfristiger Ausblick (6-12 Monate)",
-            "longTermTooltipDesc": "Zeigt Jahrestrends, fundamentale Stärke und anhaltende Marktrichtung an.",
-            "assetsUp": "der Assets im Aufwärtstrend"
+            "bullish": "Bullisch",
+            "neutral": "Neutral",
+            "bearish": "Bärisch",
+            "assetsUp": "{percent}% der Assets im Aufwärtstrend"
         },
         "breadth": {
             "advanceDecline": "Gewinner/Verlierer",
+            "advanceDeclineReading": "{positive} % steigend, {neutral} % unverändert, {negative} % fallend",
             "newHighsLows": "Neue Hochs/Tiefs",
-            "advanceDeclineTitle": "Gewinner/Verlierer-Verhältnis",
-            "advanceDeclineDesc": "Misst den Anteil der Assets, die heute im Preis steigen (grün), fallen (rot) oder unverändert (grau) bleiben.",
-            "advancing": "Steigend: Assets mit höherem Schlusskurs als zuvor",
-            "declining": "Fallend: Assets mit niedrigerem Schlusskurs als zuvor",
-            "unchanged": "Unverändert: Assets ohne Preisänderung",
-            "newHighsLowsTitle": "Neue Hochs/Tiefs",
-            "newHighsLowsDesc": "Zeigt den Prozentsatz der Assets, die heute neue 52-Wochen-Hochs oder -Tiefs erreichen.",
-            "newHighs": "Neue Hochs: Assets auf höchstem Preis in 52 Wochen",
-            "newLows": "Neue Tiefs: Assets auf niedrigstem Preis in 52 Wochen",
-            "neutral": "Neutral: Assets nicht an Extremen"
-        },
-        "archie": {
-            "meet": "Lernen Sie",
-            "name": "Archie",
-            "tagline": "Ihr adaptiver KI-Trading-Agent",
-            "training": "Archie ist im Training...",
-            "description": "Archie nutzt Deep Learning und wurde mit Millionen von Finanzdokumenten trainiert.",
-            "description2": "Er erkennt Muster, passt sich Ihrem Stil an und schlägt die besten Handelsstrategien für Sie vor.",
-            "comingSoon": "Demnächst: KI-generierte Trades, Markteinblicke und personalisierte Strategien.",
-            "disclaimer": "Haftungsausschluss:",
-            "disclaimerText": "Archie ist ein experimenteller KI-Agent. Alle Vorschläge dienen nur zu Informationszwecken und stellen keine rechtsverbindliche Finanzberatung dar. Die Nutzung von Archie ist optional; Ereuna übernimmt keine Verantwortung für Handelsergebnisse."
+            "newHighsLowsReading": "{positive} % auf neuen Hochs, {neutral} % dazwischen, {negative} % auf neuen Tiefs"
         },
         "indexes": {
             "title": "Marktindizes",
             "etf": "ETF",
             "price": "Kurs",
-            "change": "% Änderung",
+            "oneDay": "1T",
             "oneMonth": "1M",
-            "oneQuarter": "1Q",
+            "fourMonth": "4M",
             "oneYear": "1J",
-            "ytd": "JTD"
+            "yearToDate": "JTD"
         },
         "sma": {
             "title": "SMA-Verteilung",
-            "sma": "SMA",
-            "above": "über",
-            "below": "unter"
+            "universe": "Anlageklasse",
+            "period": "{period}-GD",
+            "reading": "{above} % darüber, {below} % darunter"
+        },
+        "universe": {
+            "all": "Alle Werte",
+            "stock": "Aktien",
+            "etf": "ETFs",
+            "fund": "Investmentfonds",
+            "otc": "OTC",
+            "pink": "Pink Sheets",
+            "crypto": "Krypto"
         },
         "sectors": {
-            "title": "Quartals-Sektor- / Branchenstärke",
-            "strongestSectors": "Stärkste Sektoren",
-            "weakestSectors": "Schwächste Sektoren",
-            "strongestIndustries": "Stärkste Branchen",
-            "weakestIndustries": "Schwächste Branchen"
+            "title": "Sektor",
+            "strongest": "Stärkste Sektoren",
+            "weakest": "Schwächste Sektoren"
+        },
+        "industries": {
+            "title": "Branche"
         },
         "movers": {
             "title": "Tägliche Top-Mover",
@@ -181,13 +169,20 @@
         },
         "valuation": {
             "title": "Analyse des inneren Werts",
-            "beta": "BETA",
             "undervalued": "Top 10 Unterbewertet",
             "overvalued": "Top 10 Überbewertet",
-            "current": "Aktuell:",
-            "intrinsic": "Innerer Wert:",
-            "note": "Hinweis:",
-            "disclaimer": "Innere Werte werden mit fortgeschrittenen KI-Algorithmen berechnet. Diese sind Schätzungen und sollten nicht als Anlageberatung betrachtet werden."
+            "disclaimer": "Innere Werte stammen aus einem Discounted-Cashflow-Modell auf Basis der zuletzt gemeldeten Geschäftszahlen. Es sind Schätzungen, keine Anlageberatung."
+        },
+        "calendar": {
+            "title": "Marktkalender",
+            "date": "Datum",
+            "empty": "Nichts geplant",
+            "earnings": "Gewinne",
+            "dividends": "Dividenden",
+            "splits": "Split"
+        },
+        "news": {
+            "title": "Nachrichten"
         }
     },
     "user": {

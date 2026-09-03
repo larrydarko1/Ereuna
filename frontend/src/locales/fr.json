@@ -113,66 +113,54 @@
         "lastUpdate": "Dernière mise à jour :",
         "loading": "Chargement...",
         "noData": "Aucune donnée",
-        "noDataAvailable": "Aucune donnée disponible",
+        "never": "Jamais",
         "outlook": {
             "shortTerm": "Court terme",
             "midTerm": "Moyen terme",
             "longTerm": "Long terme",
-            "shortTermTooltipTitle": "Perspectives à court terme (1-3 mois)",
-            "shortTermTooltipDesc": "Basé sur la dynamique récente du marché, les indicateurs techniques et les tendances à court terme.",
-            "midTermTooltipTitle": "Perspectives à moyen terme (3-6 mois)",
-            "midTermTooltipDesc": "Reflète les tendances de performance trimestrielles et les cycles de marché à moyen terme.",
-            "longTermTooltipTitle": "Perspectives à long terme (6-12 mois)",
-            "longTermTooltipDesc": "Indique les tendances annuelles, la solidité fondamentale et la direction soutenue du marché.",
-            "assetsUp": "des actifs en hausse"
+            "bullish": "Haussier",
+            "neutral": "Neutre",
+            "bearish": "Baissier",
+            "assetsUp": "{percent}% des actifs en hausse"
         },
         "breadth": {
             "advanceDecline": "Hausse/Baisse",
+            "advanceDeclineReading": "{positive} % en hausse, {neutral} % inchangés, {negative} % en baisse",
             "newHighsLows": "Nouveaux plus hauts/bas",
-            "advanceDeclineTitle": "Ratio Hausse/Baisse",
-            "advanceDeclineDesc": "Mesure la proportion d'actifs en hausse (vert), en baisse (rouge) ou inchangés (gris) aujourd'hui.",
-            "advancing": "En hausse : Actifs clôturant plus haut que la veille",
-            "declining": "En baisse : Actifs clôturant plus bas que la veille",
-            "unchanged": "Inchangés : Actifs sans changement de prix",
-            "newHighsLowsTitle": "Nouveaux plus hauts/bas",
-            "newHighsLowsDesc": "Affiche le pourcentage d'actifs atteignant de nouveaux plus hauts ou bas sur 52 semaines aujourd'hui.",
-            "newHighs": "Nouveaux plus hauts : Actifs au prix le plus élevé en 52 semaines",
-            "newLows": "Nouveaux plus bas : Actifs au prix le plus bas en 52 semaines",
-            "neutral": "Neutre : Actifs non extrêmes"
-        },
-        "archie": {
-            "meet": "Rencontrez",
-            "name": "Archie",
-            "tagline": "Votre agent de trading IA adaptatif",
-            "training": "Archie est en formation...",
-            "description": "Archie est alimenté par l'apprentissage profond et formé sur des millions de documents financiers.",
-            "description2": "Il reconnaît les motifs, s'adapte à votre style et suggère les meilleures stratégies de trading pour vous.",
-            "comingSoon": "À venir : Transactions générées par IA, analyses de marché et stratégies personnalisées.",
-            "disclaimer": "Avertissement :",
-            "disclaimerText": "Archie est un agent IA expérimental. Toutes les suggestions sont à titre informatif uniquement et ne constituent pas un conseil financier légal. L'utilisation d'Archie est facultative ; Ereuna n'assume aucune responsabilité pour les résultats de trading."
+            "newHighsLowsReading": "{positive} % sur de nouveaux sommets, {neutral} % entre les deux, {negative} % sur de nouveaux creux"
         },
         "indexes": {
             "title": "Indices de marché",
             "etf": "ETF",
             "price": "Prix",
-            "change": "% Variation",
+            "oneDay": "1J",
             "oneMonth": "1M",
-            "oneQuarter": "1T",
+            "fourMonth": "4M",
             "oneYear": "1A",
-            "ytd": "YTD"
+            "yearToDate": "YTD"
         },
         "sma": {
             "title": "Distribution SMA",
-            "sma": "SMA",
-            "above": "au-dessus",
-            "below": "en dessous"
+            "universe": "Type d’actif",
+            "period": "MM {period}",
+            "reading": "{above} % au-dessus, {below} % en dessous"
+        },
+        "universe": {
+            "all": "Tous les actifs",
+            "stock": "Actions",
+            "etf": "ETF",
+            "fund": "Fonds communs",
+            "otc": "OTC",
+            "pink": "Pink sheets",
+            "crypto": "Crypto"
         },
         "sectors": {
-            "title": "Force sectorielle / industrielle trimestrielle",
-            "strongestSectors": "Secteurs les plus forts",
-            "weakestSectors": "Secteurs les plus faibles",
-            "strongestIndustries": "Industries les plus fortes",
-            "weakestIndustries": "Industries les plus faibles"
+            "title": "Secteur",
+            "strongest": "Secteurs les plus forts",
+            "weakest": "Secteurs les plus faibles"
+        },
+        "industries": {
+            "title": "Industrie"
         },
         "movers": {
             "title": "Principaux mouvements du jour",
@@ -181,13 +169,20 @@
         },
         "valuation": {
             "title": "Analyse de valeur intrinsèque",
-            "beta": "BÉTA",
             "undervalued": "Top 10 sous-évalués",
             "overvalued": "Top 10 surévalués",
-            "current": "Actuel :",
-            "intrinsic": "Intrinsèque :",
-            "note": "Note :",
-            "disclaimer": "Les valeurs intrinsèques sont calculées avec des algorithmes IA avancés. Ce sont des estimations et ne doivent pas être considérées comme des conseils d'investissement."
+            "disclaimer": "Les valeurs intrinsèques proviennent d’un modèle d’actualisation des flux de trésorerie appliqué aux derniers états financiers publiés. Ce sont des estimations, pas un conseil en investissement."
+        },
+        "calendar": {
+            "title": "Calendrier du marché",
+            "date": "Date",
+            "empty": "Rien de prévu",
+            "earnings": "Bénéfices",
+            "dividends": "Dividendes",
+            "splits": "Division"
+        },
+        "news": {
+            "title": "Actualités"
         }
     },
     "user": {

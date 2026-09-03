@@ -81,26 +81,26 @@ function remove(symbol: string): void {
     display: flex;
     flex-direction: column;
     gap: 0.75em;
+}
 
-    &__list {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
+.benchmarks-dialog__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
 
-    &__item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0.35em 0;
-        border-bottom: $border-width solid $color-elevated;
-        font-family: $font-mono;
-        font-size: $font-size-sm;
-    }
+.benchmarks-dialog__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.35em 0;
+    border-bottom: $border-width solid $color-elevated;
+    font-family: $font-mono;
+    font-size: $font-size-sm;
+}
 
-    &__add {
-        display: flex;
-        gap: 0.5em;
-    }
+.benchmarks-dialog__add {
+    display: flex;
+    gap: 0.5em;
 }
 </style>

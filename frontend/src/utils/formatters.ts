@@ -40,6 +40,11 @@ export function formatPercent(value: number, decimals = 2): string {
     return `${value > 0 ? '+' : ''}${formatted}%`;
 }
 
+/** A fraction that means a percentage: 0.0125 → "+1.25%". */
+export function formatRatio(value: number, decimals = 2): string {
+    return formatPercent(value * 100, decimals);
+}
+
 /** A signed figure that should read as a gain or a loss. */
 export function formatSigned(value: number, decimals = 2): string {
     return `${value > 0 ? '+' : ''}${formatNumber(value, decimals)}`;

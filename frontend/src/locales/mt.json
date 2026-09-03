@@ -113,66 +113,54 @@
         "lastUpdate": "Aġġornament tal-aħħar:",
         "loading": "Qed jitgħabba...",
         "noData": "Ebda data",
-        "noDataAvailable": "Ebda data disponibbli",
+        "never": "Qatt",
         "outlook": {
             "shortTerm": "Żmien Qasir",
             "midTerm": "Żmien Medju",
             "longTerm": "Żmien Twil",
-            "shortTermTooltipTitle": "Prospett għal Żmien Qasir (1-3 Xhur)",
-            "shortTermTooltipDesc": "Ibbażat fuq momentum reċenti tas-suq, indikaturi tekniċi, u tendenzi ta' żmien qasir.",
-            "midTermTooltipTitle": "Prospett għal Żmien Medju (3-6 Xhur)",
-            "midTermTooltipDesc": "Jirrifletti tendenzi tal-prestazzjoni ta' kull trimestru u ċikli tas-suq ta' żmien medju.",
-            "longTermTooltipTitle": "Prospett għal Żmien Twil (6-12-il Xahar)",
-            "longTermTooltipDesc": "Jindika tendenzi annwali, saħħa fundamentali, u direzzjoni sostennuta tas-suq.",
-            "assetsUp": "tal-assi fi trendni 'l fuq"
+            "bullish": "Rialzist",
+            "neutral": "Newtrali",
+            "bearish": "Ribassist",
+            "assetsUp": "{percent}% tal-assi fi trendni 'l fuq"
         },
         "breadth": {
             "advanceDecline": "Żieda/Tnaqqis",
+            "advanceDeclineReading": "{positive}% tielgħin, {neutral}% l-istess, {negative}% neżlin",
             "newHighsLows": "Għola/Baxx Ġodda",
-            "advanceDeclineTitle": "Proporzjon ta' Żieda/Tnaqqis",
-            "advanceDeclineDesc": "Tkejjel il-proporzjon ta' assi li qed jiżdiedu (aħdar), inaqqsu (aħmar), jew ma nbidlux (griż) fil-prezz illum.",
-            "advancing": "Jiżdiedu: Assi li jagħlqu ogħla mill-għeluq ta' qabel",
-            "declining": "Inaqqsu: Assi li jagħlqu inqas mill-għeluq ta' qabel",
-            "unchanged": "Ma nbidlux: Assi mingħajr bidla fil-prezz",
-            "newHighsLowsTitle": "Għola/Baxx Ġodda",
-            "newHighsLowsDesc": "Juri l-perċentwal ta' assi li qed jilħqu għola jew baxx ġodda ta' 52 ġimgħa llum.",
-            "newHighs": "Għola Ġodda: Assi fl-ogħla prezz tagħhom fi 52 ġimgħa",
-            "newLows": "Baxx Ġodda: Assi fl-inqas prezz tagħhom fi 52 ġimgħa",
-            "neutral": "Newtrali: Assi mhux f'estremi"
-        },
-        "archie": {
-            "meet": "Iltaqa'",
-            "name": "Archie",
-            "tagline": "L-Aġent Adattiv tiegħek tal-AI għan-Negozju",
-            "training": "Archie qed jiġi mħarreġ...",
-            "description": "Archie huwa mħaddem minn tagħlim fond u mħarreġ fuq miljuni ta' dokumenti finanzjarji.",
-            "description2": "Huwa jagħraf mudelli, jadatta għall-istil tiegħek, u jissuġġerixxi l-aħjar strateġiji ta' negozju għalik.",
-            "comingSoon": "Dalwaqt jiġi: negozji ġġenerati mill-AI, għarfien tas-suq, u strateġiji personalizzati.",
-            "disclaimer": "Disclaimer:",
-            "disclaimerText": "Archie huwa aġent sperimentali tal-AI. Is-suġġerimenti kollha huma għal skopijiet informattivi biss u ma jikkostitwixxu parir finanzjarju legali. L-użu ta' Archie huwa fakultattiv; Ereuna ma taħtix responsabbiltà għar-riżultati tan-negozju."
+            "newHighsLowsReading": "{positive}% f’ogħla ġodda, {neutral}% fin-nofs, {negative}% f’inqas ġodda"
         },
         "indexes": {
             "title": "Indiċijiet tas-Suq",
             "etf": "ETF",
             "price": "Prezz",
-            "change": "% Bidla",
+            "oneDay": "1J",
             "oneMonth": "1X",
-            "oneQuarter": "1T",
+            "fourMonth": "4X",
             "oneYear": "1S",
-            "ytd": "SAS"
+            "yearToDate": "SAS"
         },
         "sma": {
             "title": "Distribuzzjoni SMA",
-            "sma": "SMA",
-            "above": "fuq",
-            "below": "taħt"
+            "universe": "Tip ta’ assi",
+            "period": "SMA {period}",
+            "reading": "{above}% fuq, {below}% taħt"
+        },
+        "universe": {
+            "all": "L-assi kollha",
+            "stock": "Ishma",
+            "etf": "ETFs",
+            "fund": "Fondi mutwi",
+            "otc": "OTC",
+            "pink": "Pink sheets",
+            "crypto": "Kripto"
         },
         "sectors": {
-            "title": "Saħħa tas-Settur / Industrija għat-Trimestru",
-            "strongestSectors": "L-Aqwa Setturi",
-            "weakestSectors": "L-Idgħaf Setturi",
-            "strongestIndustries": "L-Aqwa Industriji",
-            "weakestIndustries": "L-Idgħaf Industriji"
+            "title": "Settur",
+            "strongest": "L-Aqwa Setturi",
+            "weakest": "L-Idgħaf Setturi"
+        },
+        "industries": {
+            "title": "Industrija"
         },
         "movers": {
             "title": "L-Aqwa Movers tal-Jum",
@@ -181,13 +169,20 @@
         },
         "valuation": {
             "title": "Analiżi tal-Valur Intrinziku",
-            "beta": "BETA",
             "undervalued": "Top 10 Sottovalutati",
             "overvalued": "Top 10 Sopravalutati",
-            "current": "Attwali:",
-            "intrinsic": "Intrinziku:",
-            "note": "Nota:",
-            "disclaimer": "Il-valuri intrinziċi huma kkalkulati bl-użu ta' algoritmi avvanzati tal-AI. Dawn huma stimi u m'għandhomx jitqiesu bħala parir ta' investiment."
+            "disclaimer": "Il-valuri intrinsiċi ġejjin minn mudell ta’ fluss ta’ flus skontat fuq l-aħħar rendikonti finanzjarji ppubblikati. Huma stimi, mhux parir ta’ investiment."
+        },
+        "calendar": {
+            "title": "Kalendarju tas-suq",
+            "date": "Data",
+            "empty": "Xejn skedat",
+            "earnings": "Qligħ",
+            "dividends": "Dividendi",
+            "splits": "Split"
+        },
+        "news": {
+            "title": "Aħbarijiet"
         }
     },
     "user": {

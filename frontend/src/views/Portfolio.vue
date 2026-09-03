@@ -405,62 +405,62 @@ onMounted(async () => {
     flex-direction: column;
     gap: 1em;
     padding: 1em;
+}
 
-    &__error {
-        margin: 0;
-        padding: 0.6em 0.9em;
-        border: $border-width solid $color-negative;
-        border-radius: $radius-sm;
-        color: $color-negative;
-        font-size: $font-size-sm;
-    }
+.portfolio__error {
+    margin: 0;
+    padding: 0.6em 0.9em;
+    border: $border-width solid $color-negative;
+    border-radius: $radius-sm;
+    color: $color-negative;
+    font-size: $font-size-sm;
+}
 
-    &__empty {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5em;
-        padding: 4em 1em;
-        border: $border-width dashed $color-elevated;
-        border-radius: $radius-md;
-        text-align: center;
-    }
+.portfolio__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+    padding: 4em 1em;
+    border: $border-width dashed $color-elevated;
+    border-radius: $radius-md;
+    text-align: center;
+}
 
-    &__empty-title {
-        margin: 0;
-        font-size: $font-size-md;
-        color: $color-text;
-    }
+.portfolio__empty-title {
+    margin: 0;
+    font-size: $font-size-md;
+    color: $color-text;
+}
 
-    &__empty-body {
-        margin: 0;
-        font-size: $font-size-sm;
-        color: $color-text-muted;
-    }
+.portfolio__empty-body {
+    margin: 0;
+    font-size: $font-size-sm;
+    color: $color-text-muted;
+}
 
-    &__empty-actions {
-        display: flex;
-        gap: 0.5em;
-        margin-top: 0.5em;
-    }
+.portfolio__empty-actions {
+    display: flex;
+    gap: 0.5em;
+    margin-top: 0.5em;
+}
 
-    &__charts {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
-        gap: 1em;
-    }
+.portfolio__charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    gap: 1em;
+}
 
-    &__panel {
-        padding: 0.9em 1em;
-        border: $border-width solid $color-elevated;
-        border-radius: $radius-md;
-        background: $color-surface;
-    }
+.portfolio__panel {
+    padding: 0.9em 1em;
+    border: $border-width solid $color-elevated;
+    border-radius: $radius-md;
+    background: $color-surface;
+}
 
-    &__panel-title {
-        margin: 0 0 0.6em;
-        font-size: $font-size-md;
-        color: $color-text;
-    }
+.portfolio__panel-title {
+    margin: 0 0 0.6em;
+    font-size: $font-size-md;
+    color: $color-text;
 }
 </style>

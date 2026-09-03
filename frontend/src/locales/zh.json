@@ -113,66 +113,54 @@
         "lastUpdate": "最后更新：",
         "loading": "加载中...",
         "noData": "无数据",
-        "noDataAvailable": "无可用数据",
+        "never": "从未",
         "outlook": {
             "shortTerm": "短期",
             "midTerm": "中期",
             "longTerm": "长期",
-            "shortTermTooltipTitle": "短期展望（1-3个月）",
-            "shortTermTooltipDesc": "基于近期市场动能、技术指标和短期趋势。",
-            "midTermTooltipTitle": "中期展望（3-6个月）",
-            "midTermTooltipDesc": "反映季度表现趋势和中期市场周期。",
-            "longTermTooltipTitle": "长期展望（6-12个月）",
-            "longTermTooltipDesc": "表明年度趋势、基本面强度和持续市场方向。",
-            "assetsUp": "的资产呈上升趋势"
+            "bullish": "看涨",
+            "neutral": "中性",
+            "bearish": "看跌",
+            "assetsUp": "{percent}% 的资产呈上升趋势"
         },
         "breadth": {
             "advanceDecline": "涨跌比",
+            "advanceDeclineReading": "上涨 {positive}%，持平 {neutral}%，下跌 {negative}%",
             "newHighsLows": "新高/新低",
-            "advanceDeclineTitle": "涨跌比率",
-            "advanceDeclineDesc": "衡量今日价格上涨（绿色）、下跌（红色）或不变（灰色）的资产比例。",
-            "advancing": "上涨：收盘价高于前一收盘价的资产",
-            "declining": "下跌：收盘价低于前一收盘价的资产",
-            "unchanged": "不变：价格无变化的资产",
-            "newHighsLowsTitle": "新高/新低",
-            "newHighsLowsDesc": "显示今日达到52周新高或新低的资产百分比。",
-            "newHighs": "新高：达到52周最高价的资产",
-            "newLows": "新低：达到52周最低价的资产",
-            "neutral": "中性：未处于极端的资产"
-        },
-        "archie": {
-            "meet": "认识",
-            "name": "Archie",
-            "tagline": "您的自适应AI交易助手",
-            "training": "Archie正在训练中...",
-            "description": "Archie由深度学习驱动，基于数百万份金融文档训练而成。",
-            "description2": "他能识别模式、适应您的风格，并为您推荐最佳交易策略。",
-            "comingSoon": "即将推出：AI生成交易、市场洞察和个性化策略。",
-            "disclaimer": "免责声明：",
-            "disclaimerText": "Archie是实验性AI助手。所有建议仅供参考，不构成法律金融建议。使用Archie是可选的；Ereuna对交易结果不承担责任。"
+            "newHighsLowsReading": "创新高 {positive}%，居中 {neutral}%，创新低 {negative}%"
         },
         "indexes": {
             "title": "市场指数",
             "etf": "ETF",
             "price": "价格",
-            "change": "涨跌幅",
+            "oneDay": "1日",
             "oneMonth": "1个月",
-            "oneQuarter": "1季度",
+            "fourMonth": "4个月",
             "oneYear": "1年",
-            "ytd": "年初至今"
+            "yearToDate": "年初至今"
         },
         "sma": {
             "title": "SMA分布",
-            "sma": "SMA",
-            "above": "高于",
-            "below": "低于"
+            "universe": "资产类型",
+            "period": "{period} 日均线",
+            "reading": "上方 {above}%，下方 {below}%"
+        },
+        "universe": {
+            "all": "全部资产",
+            "stock": "股票",
+            "etf": "ETF",
+            "fund": "共同基金",
+            "otc": "场外",
+            "pink": "粉单市场",
+            "crypto": "加密货币"
         },
         "sectors": {
-            "title": "季度板块/行业强度",
-            "strongestSectors": "最强板块",
-            "weakestSectors": "最弱板块",
-            "strongestIndustries": "最强行业",
-            "weakestIndustries": "最弱行业"
+            "title": "板块",
+            "strongest": "最强板块",
+            "weakest": "最弱板块"
+        },
+        "industries": {
+            "title": "行业"
         },
         "movers": {
             "title": "每日最大波动",
@@ -181,13 +169,20 @@
         },
         "valuation": {
             "title": "内在价值分析",
-            "beta": "贝塔值",
             "undervalued": "最被低估前10",
             "overvalued": "最被高估前10",
-            "current": "当前：",
-            "intrinsic": "内在：",
-            "note": "注：",
-            "disclaimer": "内在价值使用先进AI算法计算。这些是估计值，不应视为投资建议。"
+            "disclaimer": "内在价值由现金流折现模型基于最近一期公布的财务数据计算得出。仅为估算，不构成投资建议。"
+        },
+        "calendar": {
+            "title": "市场日历",
+            "date": "日期",
+            "empty": "暂无安排",
+            "earnings": "收益",
+            "dividends": "股息",
+            "splits": "拆股"
+        },
+        "news": {
+            "title": "新闻"
         }
     },
     "user": {

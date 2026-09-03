@@ -119,57 +119,57 @@ function onPointerMove(event: PointerEvent): void {
     flex-direction: column;
     gap: 0.5em;
     margin: 0;
+}
 
-    &__svg {
-        // The viewBox scales uniformly rather than stretching, so the aspect
-        // ratio is fixed at 10:3 and a plotted dot stays a circle.
-        width: 100%;
-        height: auto;
-        overflow: visible;
-    }
+.line-chart__svg {
+    // The viewBox scales uniformly rather than stretching, so the aspect
+    // ratio is fixed at 10:3 and a plotted dot stays a circle.
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
 
-    &__area {
-        fill: color-mix(in srgb, $color-accent-1 18%, transparent);
-        stroke: none;
-    }
+.line-chart__area {
+    fill: color-mix(in srgb, $color-accent-1 18%, transparent);
+    stroke: none;
+}
 
-    &__line {
-        fill: none;
-        stroke: $color-accent-1;
-        stroke-width: 2;
+.line-chart__line {
+    fill: none;
+    stroke: $color-accent-1;
+    stroke-width: 2;
 
-        // The viewBox scales with the container, and so would the stroke —
-        // this keeps the line the same weight on a phone and on a wide monitor.
-        vector-effect: non-scaling-stroke;
-        stroke-linejoin: round;
-        stroke-linecap: round;
-    }
+    // The viewBox scales with the container, and so would the stroke —
+    // this keeps the line the same weight on a phone and on a wide monitor.
+    vector-effect: non-scaling-stroke;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
 
-    &__crosshair {
-        stroke: $color-text-muted;
-        stroke-width: 1;
-        stroke-dasharray: 3 3;
-        vector-effect: non-scaling-stroke;
-    }
+.line-chart__crosshair {
+    stroke: $color-text-muted;
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+    vector-effect: non-scaling-stroke;
+}
 
-    &__dot {
-        fill: $color-accent-1;
-        stroke: $color-surface;
-        stroke-width: 2;
-        vector-effect: non-scaling-stroke;
-    }
+.line-chart__dot {
+    fill: $color-accent-1;
+    stroke: $color-surface;
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+}
 
-    &__readout {
-        display: flex;
-        justify-content: space-between;
-        gap: 1em;
-        font-size: $font-size-xs;
-        color: $color-text-muted;
-    }
+.line-chart__readout {
+    display: flex;
+    justify-content: space-between;
+    gap: 1em;
+    font-size: $font-size-xs;
+    color: $color-text-muted;
+}
 
-    &__readout-value {
-        font-family: $font-mono;
-        color: $color-text;
-    }
+.line-chart__readout-value {
+    font-family: $font-mono;
+    color: $color-text;
 }
 </style>

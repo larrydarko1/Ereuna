@@ -113,66 +113,54 @@
         "lastUpdate": "Lasta ĝisdatigo:",
         "loading": "Ŝarĝante...",
         "noData": "Neniuj datumoj",
-        "noDataAvailable": "Neniuj datumoj disponeblas",
+        "never": "Neniam",
         "outlook": {
             "shortTerm": "Mallonga Termino",
             "midTerm": "Meza Termino",
             "longTerm": "Longa Termino",
-            "shortTermTooltipTitle": "Mallongtermina Perspektivo (1-3 Monatoj)",
-            "shortTermTooltipDesc": "Bazita sur la lasta merkato-movado, teknikaj indikatoroj, kaj mallongtempaj tendencoj.",
-            "midTermTooltipTitle": "Mezatermina Perspektivo (3-6 Monatoj)",
-            "midTermTooltipDesc": "Reflektas trimestrona rendimenta tendencoj kaj mezterminaj merkataj cikloj.",
-            "longTermTooltipTitle": "Longtermina Perspektivo (6-12 Monatoj)",
-            "longTermTooltipDesc": "Indikas jarajn tendencojn, fundamentan forton, kaj daŭran merkatan direkton.",
-            "assetsUp": "de aktivoj kreskantaj"
+            "bullish": "Taŭra",
+            "neutral": "Neŭtrala",
+            "bearish": "Ursa",
+            "assetsUp": "{percent}% de aktivoj kreskantaj"
         },
         "breadth": {
             "advanceDecline": "Altirado/Malpliirado",
+            "advanceDeclineReading": "{positive}% altiĝantaj, {neutral}% senŝanĝaj, {negative}% malaltiĝantaj",
             "newHighsLows": "Novaj Altoj/Malaltoj",
-            "advanceDeclineTitle": "Proporci de Altirado/Malpliirado",
-            "advanceDeclineDesc": "Mezuras la proporcion de aktivoj kiuj altiradas (verda), malpliiradas (ruĝa), aŭ neŝanĝitaj (griza) en prezo hodiaŭ.",
-            "advancing": "Altiradantaj: Aktivoj fermantaj pli alte ol antaŭa fermo",
-            "declining": "Malpliiradantaj: Aktivoj fermantaj pli malalte ol antaŭa fermo",
-            "unchanged": "Neŝanĝitaj: Aktivoj sen preza ŝanĝo",
-            "newHighsLowsTitle": "Novaj Altoj/Malaltoj",
-            "newHighsLowsDesc": "Montras la procenton de aktivoj atingantaj novajn 52-semajnajn altojn aŭ malaltojn hodiaŭ.",
-            "newHighs": "Novaj Altoj: Aktivoj ĉe sia plej alta prezo en 52 semajnoj",
-            "newLows": "Novaj Malaltoj: Aktivoj ĉe sia plej malalta prezo en 52 semajnoj",
-            "neutral": "Neŭtrala: Aktivoj ne ĉe ekstremoj"
-        },
-        "archie": {
-            "meet": "Renkontu",
-            "name": "Archie",
-            "tagline": "Via Adaptiĝema IA Komerca Agento",
-            "training": "Archie trejniĝas...",
-            "description": "Archie estas povigita per profunda lernado kaj trejnita sur milionoj da financaj dokumentoj.",
-            "description2": "Li rekonas ŝablonojn, adaptiĝas al via stilo, kaj sugestas la plej bonajn komercajn strategiojn por vi.",
-            "comingSoon": "Baldau venos: IA-generitaj komercoj, merkataj komprenojn, kaj personecigitajn strategiojn.",
-            "disclaimer": "Malkonfirmacio:",
-            "disclaimerText": "Archie estas eksperimenta IA agento. Ĉiuj sugestoj estas nur por informa celo kaj ne konsistigas leĝan financan konsilon. Uzo de Archie estas laŭvola; Ereuna prenas neniun respondecon pri komercaj rezultoj."
+            "newHighsLowsReading": "{positive}% ĉe novaj pintoj, {neutral}% intere, {negative}% ĉe novaj malpintoj"
         },
         "indexes": {
             "title": "Merkataj Indeksoj",
             "etf": "ETF",
             "price": "Prezo",
-            "change": "% Ŝanĝo",
+            "oneDay": "1T",
             "oneMonth": "1M",
-            "oneQuarter": "1T",
+            "fourMonth": "4M",
             "oneYear": "1J",
-            "ytd": "JTN"
+            "yearToDate": "JTN"
         },
         "sma": {
             "title": "SMA Distribuo",
-            "sma": "SMA",
-            "above": "super",
-            "below": "sub"
+            "universe": "Tipo de aktivo",
+            "period": "SMA {period}",
+            "reading": "{above}% super, {below}% sub"
+        },
+        "universe": {
+            "all": "Ĉiuj aktivoj",
+            "stock": "Akcioj",
+            "etf": "ETF-oj",
+            "fund": "Investfonduso",
+            "otc": "OTC",
+            "pink": "Rozaj folioj",
+            "crypto": "Kripto"
         },
         "sectors": {
-            "title": "Trimestra Sektora / Industria Forto",
-            "strongestSectors": "Plej Fortaj Sektoroj",
-            "weakestSectors": "Plej Malfortaj Sektoroj",
-            "strongestIndustries": "Plej Fortaj Industrioj",
-            "weakestIndustries": "Plej Malfortaj Industrioj"
+            "title": "Sektoro",
+            "strongest": "Plej Fortaj Sektoroj",
+            "weakest": "Plej Malfortaj Sektoroj"
+        },
+        "industries": {
+            "title": "Industrio"
         },
         "movers": {
             "title": "Ĉiutagaj Plej Bonaj Movetoj",
@@ -181,13 +169,20 @@
         },
         "valuation": {
             "title": "Interna Valora Analizo",
-            "beta": "BETA",
             "undervalued": "Plej Bonaj 10 Subvaloraj",
             "overvalued": "Plej Bonaj 10 Supervaloraj",
-            "current": "Nuna:",
-            "intrinsic": "Interna:",
-            "note": "Noto:",
-            "disclaimer": "Internaj valoroj estas kalkulitaj uzante altnivelajn IA algoritmojn. Ĉi tiuj estas taksoj kaj ne devas esti konsiderataj kiel investa konsilo."
+            "disclaimer": "Enaj valoroj venas de modelo de rabatita monfluo aplikita al la lastaj raportitaj financaj datumoj. Ili estas taksoj, ne investa konsilo."
+        },
+        "calendar": {
+            "title": "Merkata kalendaro",
+            "date": "Dato",
+            "empty": "Nenio planita",
+            "earnings": "Gajnoj",
+            "dividends": "Dividendoj",
+            "splits": "Fendo"
+        },
+        "news": {
+            "title": "Novaĵoj"
         }
     },
     "user": {

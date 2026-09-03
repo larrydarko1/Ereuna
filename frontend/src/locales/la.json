@@ -113,66 +113,54 @@
         "lastUpdate": "Ultimum aggiornamentum:",
         "loading": "Onerante...",
         "noData": "Nulla data",
-        "noDataAvailable": "Nulla data disponibilia",
+        "never": "Numquam",
         "outlook": {
             "shortTerm": "Terminus Brevis",
             "midTerm": "Terminus Medius",
             "longTerm": "Terminus Longus",
-            "shortTermTooltipTitle": "Prospectus Termini Brevis (1-3 Menses)",
-            "shortTermTooltipDesc": "Fundatum in recenti momentum mercatus, indicibus technicis, et tendentiis brevibus.",
-            "midTermTooltipTitle": "Prospectus Termini Medii (3-6 Menses)",
-            "midTermTooltipDesc": "Reflectit tendentias efficientiae trimestris et cyclos mercatus medii termini.",
-            "longTermTooltipTitle": "Prospectus Termini Longi (6-12 Menses)",
-            "longTermTooltipDesc": "Indicat tendentias annuas, fortitudinem fundamentalem, et directionem mercatus constantem.",
-            "assetsUp": "bonorum crescentium"
+            "bullish": "Ascendens",
+            "neutral": "Neutrum",
+            "bearish": "Descendens",
+            "assetsUp": "{percent}% bonorum crescentium"
         },
         "breadth": {
             "advanceDecline": "Progressus/Declinatio",
+            "advanceDeclineReading": "{positive}% ascendentia, {neutral}% immutata, {negative}% descendentia",
             "newHighsLows": "Nova Alta/Ima",
-            "advanceDeclineTitle": "Ratio Progressus/Declinatio",
-            "advanceDeclineDesc": "Metitur proportionem bonorum quae progrediuntur (viridis), declinant (ruber), vel immutata (canus) pretio hodie.",
-            "advancing": "Progrediens: Bona claudentia altius quam clausura prior",
-            "declining": "Declinans: Bona claudentia inferius quam clausura prior",
-            "unchanged": "Immutatum: Bona sine mutatione pretii",
-            "newHighsLowsTitle": "Nova Alta/Ima",
-            "newHighsLowsDesc": "Monstrat percentaginem bonorum attingentium nova alta vel ima 52 hebdomadum hodie.",
-            "newHighs": "Nova Alta: Bona ad pretium summum in 52 hebdomadis",
-            "newLows": "Nova Ima: Bona ad pretium infimum in 52 hebdomadis",
-            "neutral": "Neutrale: Bona non in extremis"
-        },
-        "archie": {
-            "meet": "Cognosce",
-            "name": "Archie",
-            "tagline": "Tuus Agens AI Mercaturae Adaptivus",
-            "training": "Archie in disciplina est...",
-            "description": "Archie potentia instructus est profunda eruditione et doctus in millionibus documentorum pecuniariorum.",
-            "description2": "Formas cognoscit, ad stilum tuum se adaptat, et optimas strategias mercaturae tibi suggerit.",
-            "comingSoon": "Mox veniens: Mercaturae ab AI generatae, perspectus mercatus, et strategiae personales.",
-            "disclaimer": "Monitum:",
-            "disclaimerText": "Archie est agens AI experimentalis. Omnes suggestiones solum pro informatione sunt nec constituunt consilium legale pecuniarium. Usus Archie est optio; Ereuna nullam responsabilitatem pro exitu mercaturae assumit."
+            "newHighsLowsReading": "{positive}% in novis summis, {neutral}% media, {negative}% in novis imis"
         },
         "indexes": {
             "title": "Indices Mercatus",
             "etf": "ETF",
             "price": "Pretium",
-            "change": "% Mutatio",
+            "oneDay": "1D",
             "oneMonth": "1M",
-            "oneQuarter": "1Q",
+            "fourMonth": "4M",
             "oneYear": "1A",
-            "ytd": "HAD"
+            "yearToDate": "HAD"
         },
         "sma": {
             "title": "Distributio SMA",
-            "sma": "SMA",
-            "above": "supra",
-            "below": "infra"
+            "universe": "Genus rei",
+            "period": "Media {period}",
+            "reading": "{above}% supra, {below}% infra"
+        },
+        "universe": {
+            "all": "Omnes res",
+            "stock": "Partes",
+            "etf": "ETF",
+            "fund": "Fundi communes",
+            "otc": "OTC",
+            "pink": "Chartae roseae",
+            "crypto": "Crypto"
         },
         "sectors": {
-            "title": "Fortitudo Sectoris / Industriae Trimestris",
-            "strongestSectors": "Sectores Fortissimi",
-            "weakestSectors": "Sectores Debilissimi",
-            "strongestIndustries": "Industriae Fortissimae",
-            "weakestIndustries": "Industriae Debilissimae"
+            "title": "Sector",
+            "strongest": "Sectores Fortissimi",
+            "weakest": "Sectores Debilissimi"
+        },
+        "industries": {
+            "title": "Industria"
         },
         "movers": {
             "title": "Summi Motores Diurni",
@@ -181,13 +169,20 @@
         },
         "valuation": {
             "title": "Analysio Valoris Intrinseci",
-            "beta": "BETA",
             "undervalued": "10 Summi Subvaluati",
             "overvalued": "10 Summi Supervaluati",
-            "current": "Praesens:",
-            "intrinsic": "Intrinsecus:",
-            "note": "Nota:",
-            "disclaimer": "Valores intrinseci calculantur algorithmis AI provectis. Haec sunt aestimationes nec considerari debent ut consilium investimenti."
+            "disclaimer": "Valores intrinseci ex exemplari fluxus pecuniae deminuti ducuntur, rationibus nuper editis adhibitis. Aestimationes sunt, non consilium collocandi."
+        },
+        "calendar": {
+            "title": "Calendarium fori",
+            "date": "Dies",
+            "empty": "Nihil constitutum",
+            "earnings": "Lucra",
+            "dividends": "Dividenda",
+            "splits": "Fissio"
+        },
+        "news": {
+            "title": "Nuntii"
         }
     },
     "user": {

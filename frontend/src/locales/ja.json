@@ -113,66 +113,54 @@
         "lastUpdate": "最終更新:",
         "loading": "読み込み中...",
         "noData": "データなし",
-        "noDataAvailable": "利用可能なデータがありません",
+        "never": "なし",
         "outlook": {
             "shortTerm": "短期",
             "midTerm": "中期",
             "longTerm": "長期",
-            "shortTermTooltipTitle": "短期見通し（1～3ヶ月）",
-            "shortTermTooltipDesc": "最近の市場の勢い、テクニカル指標、短期トレンドに基づいています。",
-            "midTermTooltipTitle": "中期見通し（3～6ヶ月）",
-            "midTermTooltipDesc": "四半期のパフォーマンストレンドと中期市場サイクルを反映します。",
-            "longTermTooltipTitle": "長期見通し（6～12ヶ月）",
-            "longTermTooltipDesc": "年間トレンド、ファンダメンタルの強さ、持続的な市場の方向性を示します。",
-            "assetsUp": "の資産が上昇トレンド"
+            "bullish": "強気",
+            "neutral": "中立",
+            "bearish": "弱気",
+            "assetsUp": "{percent}% の資産が上昇トレンド"
         },
         "breadth": {
             "advanceDecline": "騰落率",
+            "advanceDeclineReading": "上昇 {positive}%、変わらず {neutral}%、下落 {negative}%",
             "newHighsLows": "新高値/新安値",
-            "advanceDeclineTitle": "騰落比率",
-            "advanceDeclineDesc": "今日価格が上昇（緑）、下落（赤）、変わらず（灰色）の資産の割合を測定します。",
-            "advancing": "上昇：前日終値より高く終わった資産",
-            "declining": "下落：前日終値より低く終わった資産",
-            "unchanged": "変わらず：価格変動がない資産",
-            "newHighsLowsTitle": "新高値/新安値",
-            "newHighsLowsDesc": "今日52週間の新高値または新安値に達した資産の割合を示します。",
-            "newHighs": "新高値：52週間で最高価格の資産",
-            "newLows": "新安値：52週間で最低価格の資産",
-            "neutral": "中立：極端ではない資産"
-        },
-        "archie": {
-            "meet": "紹介",
-            "name": "Archie",
-            "tagline": "あなたの適応型AIトレーディングエージェント",
-            "training": "Archieはトレーニング中...",
-            "description": "Archieはディープラーニングで駆動され、数百万の金融文書でトレーニングされています。",
-            "description2": "パターンを認識し、あなたのスタイルに適応し、最適な取引戦略を提案します。",
-            "comingSoon": "近日公開：AIが生成する取引、市場の洞察、個人化された戦略。",
-            "disclaimer": "免責事項：",
-            "disclaimerText": "Archieは実験的なAIエージェントです。すべての提案は情報提供のみを目的とし、法的な金融アドバイスを構成するものではありません。Archieの使用は任意であり、Ereunaは取引結果に対して責任を負いません。"
+            "newHighsLowsReading": "新高値 {positive}%、中間 {neutral}%、新安値 {negative}%"
         },
         "indexes": {
             "title": "市場指数",
             "etf": "ETF",
             "price": "価格",
-            "change": "% 変動",
+            "oneDay": "1日",
             "oneMonth": "1ヶ月",
-            "oneQuarter": "1Q",
+            "fourMonth": "4ヶ月",
             "oneYear": "1年",
-            "ytd": "年初来"
+            "yearToDate": "年初来"
         },
         "sma": {
             "title": "SMA分布",
-            "sma": "SMA",
-            "above": "以上",
-            "below": "以下"
+            "universe": "資産タイプ",
+            "period": "{period}日移動平均",
+            "reading": "上 {above}%、下 {below}%"
+        },
+        "universe": {
+            "all": "すべての資産",
+            "stock": "株式",
+            "etf": "ETF",
+            "fund": "投資信託",
+            "otc": "店頭市場",
+            "pink": "ピンクシート",
+            "crypto": "暗号資産"
         },
         "sectors": {
-            "title": "四半期セクター/業界強度",
-            "strongestSectors": "最強セクター",
-            "weakestSectors": "最弱セクター",
-            "strongestIndustries": "最強業界",
-            "weakestIndustries": "最弱業界"
+            "title": "セクター",
+            "strongest": "最強セクター",
+            "weakest": "最弱セクター"
+        },
+        "industries": {
+            "title": "業種"
         },
         "movers": {
             "title": "日次トップ動き",
@@ -181,13 +169,20 @@
         },
         "valuation": {
             "title": "本質価値分析",
-            "beta": "ベータ版",
             "undervalued": "トップ10割安",
             "overvalued": "トップ10割高",
-            "current": "現在:",
-            "intrinsic": "本質価値:",
-            "note": "注意:",
-            "disclaimer": "本質価値は高度なAIアルゴリズムを使用して計算されています。これらは推定値であり、投資アドバイスとして考慮すべきではありません。"
+            "disclaimer": "本質的価値は、直近の公表財務データにディスカウンテッド・キャッシュフロー・モデルを適用して算出したものです。推定値であり、投資助言ではありません。"
+        },
+        "calendar": {
+            "title": "マーケットカレンダー",
+            "date": "日付",
+            "empty": "予定はありません",
+            "earnings": "利益",
+            "dividends": "配当金",
+            "splits": "分割"
+        },
+        "news": {
+            "title": "ニュース"
         }
     },
     "user": {

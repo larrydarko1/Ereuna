@@ -82,11 +82,11 @@ async function onFile(event: Event): Promise<void> {
     display: flex;
     flex-direction: column;
     gap: 0.75em;
+}
 
-    &__summary {
-        margin: 0;
-        font-size: $font-size-sm;
-        color: $color-text;
-    }
+.import-dialog__summary {
+    margin: 0;
+    font-size: $font-size-sm;
+    color: $color-text;
 }
 </style>

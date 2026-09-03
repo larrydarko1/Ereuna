@@ -76,44 +76,44 @@ const { t } = useI18n();
     align-items: center;
     justify-content: space-between;
     gap: 0.75em;
+}
 
-    &__slots {
-        display: flex;
-        gap: 0.25em;
+.portfolio-tabs__slots {
+    display: flex;
+    gap: 0.25em;
+}
+
+.portfolio-tabs__slot {
+    width: 32px;
+    height: 32px;
+    border: $border-width solid $color-elevated;
+    border-radius: $radius-sm;
+    background: $color-surface;
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+    cursor: pointer;
+    transition: all $duration-fast $ease-out;
+
+    &:hover {
+        border-color: $color-accent-1;
     }
 
-    &__slot {
-        width: 32px;
-        height: 32px;
-        border: $border-width solid $color-elevated;
-        border-radius: $radius-sm;
-        background: $color-surface;
-        color: $color-text-muted;
-        font-size: $font-size-sm;
-        cursor: pointer;
-        transition: all $duration-fast $ease-out;
-
-        &:hover {
-            border-color: $color-accent-1;
-        }
-
-        // An opened slot is marked, so the ten buttons say which hold something.
-        &--opened {
-            color: $color-text;
-            font-weight: $font-weight-medium;
-        }
-
-        &--active {
-            border-color: $color-accent-1;
-            background: $color-accent-1;
-            color: $color-text-inverted;
-        }
+    // An opened slot is marked, so the ten buttons say which hold something.
+    &--opened {
+        color: $color-text;
+        font-weight: $font-weight-medium;
     }
 
-    &__actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5em;
+    &--active {
+        border-color: $color-accent-1;
+        background: $color-accent-1;
+        color: $color-text-inverted;
     }
+}
+
+.portfolio-tabs__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
 }
 </style>

@@ -72,34 +72,34 @@ const stats = computed(() => {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
     gap: 0.4em 1em;
+}
 
-    &__item {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 0.5em;
-        padding: 0.3em 0;
-        border-bottom: $border-width solid $color-elevated;
+.stats-grid__item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5em;
+    padding: 0.3em 0;
+    border-bottom: $border-width solid $color-elevated;
+}
+
+.stats-grid__label {
+    font-size: $font-size-xs;
+    color: $color-text-muted;
+}
+
+.stats-grid__value {
+    font-family: $font-mono;
+    font-size: $font-size-sm;
+    color: $color-text;
+    white-space: nowrap;
+
+    &--up {
+        color: $color-positive;
     }
 
-    &__label {
-        font-size: $font-size-xs;
-        color: $color-text-muted;
-    }
-
-    &__value {
-        font-family: $font-mono;
-        font-size: $font-size-sm;
-        color: $color-text;
-        white-space: nowrap;
-
-        &--up {
-            color: $color-positive;
-        }
-
-        &--down {
-            color: $color-negative;
-        }
+    &--down {
+        color: $color-negative;
     }
 }
 </style>

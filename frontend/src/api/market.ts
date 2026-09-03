@@ -5,7 +5,7 @@
  * to the document it describes, and formatting it for display is this layer's
  * job rather than a route's.
  */
-import type { CalendarEventType, MarketStatsDoc } from '@ereuna/shared';
+import type { CalendarEventType, MarketOverview, StatsDoc } from '@ereuna/shared';
 import { api, type ApiResult } from '@/api/client';
 
 export type SymbolExchange = {
@@ -49,8 +49,8 @@ export type NewsQuery = {
     limit?: number;
 };
 
-export function getMarketStats(): ApiResult<MarketStatsDoc> {
-    return api.get<MarketStatsDoc>('/market/stats');
+export function getMarketStats(): ApiResult<MarketOverview> {
+    return api.get<MarketOverview>('/market/stats');
 }
 
 export type MarketHoliday = {
@@ -58,8 +58,8 @@ export type MarketHoliday = {
     name: string;
 };
 
-export function getHolidays(): ApiResult<MarketStatsDoc & { Holidays?: MarketHoliday[] }> {
-    return api.get<MarketStatsDoc & { Holidays?: MarketHoliday[] }>('/market/holidays');
+export function getHolidays(): ApiResult<StatsDoc & { Holidays?: MarketHoliday[] }> {
+    return api.get<StatsDoc & { Holidays?: MarketHoliday[] }>('/market/holidays');
 }
 
 /** Every symbol and its exchange. A whole-universe read, cached for a day. */

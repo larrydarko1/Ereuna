@@ -100,41 +100,6 @@ const { t } = useI18n();
     flex-direction: column;
     gap: 0.5em;
 
-    &__header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    &__title {
-        display: flex;
-        align-items: center;
-        gap: 0.5em;
-        margin: 0;
-        font-size: $font-size-md;
-        color: $color-text;
-    }
-
-    &__count {
-        padding: 0.1em 0.5em;
-        border-radius: $radius-pill;
-        background: $color-sunken;
-        font-family: $font-mono;
-        font-size: $font-size-xs;
-        color: $color-text-muted;
-    }
-
-    &__scroll {
-        overflow-x: auto;
-    }
-
-    &__table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: $font-size-sm;
-        white-space: nowrap;
-    }
-
     th,
     td {
         padding: 0.45em 0.75em;
@@ -149,68 +114,103 @@ const { t } = useI18n();
         text-transform: uppercase;
         letter-spacing: 0.04em;
     }
+}
 
-    &__symbol {
-        font-weight: $font-weight-medium;
+.trade-history__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.trade-history__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin: 0;
+    font-size: $font-size-md;
+    color: $color-text;
+}
+
+.trade-history__count {
+    padding: 0.1em 0.5em;
+    border-radius: $radius-pill;
+    background: $color-sunken;
+    font-family: $font-mono;
+    font-size: $font-size-xs;
+    color: $color-text-muted;
+}
+
+.trade-history__scroll {
+    overflow-x: auto;
+}
+
+.trade-history__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: $font-size-sm;
+    white-space: nowrap;
+}
+
+.trade-history__symbol {
+    font-weight: $font-weight-medium;
+}
+
+.trade-history__num {
+    font-family: $font-mono;
+    text-align: right;
+}
+
+.trade-history__action {
+    padding: 0.1em 0.5em;
+    border-radius: $radius-pill;
+    font-size: $font-size-xs;
+
+    // Colour says what the action did to the book, not whether it made
+    // money — an exit is neither good nor bad until the log is replayed.
+    &--buy,
+    &--cover,
+    &--deposit {
+        background: color-mix(in srgb, $color-positive 15%, transparent);
+        color: $color-positive;
     }
 
-    &__num {
-        font-family: $font-mono;
-        text-align: right;
+    &--sell,
+    &--short,
+    &--withdrawal {
+        background: color-mix(in srgb, $color-negative 15%, transparent);
+        color: $color-negative;
     }
+}
 
-    &__action {
-        padding: 0.1em 0.5em;
-        border-radius: $radius-pill;
-        font-size: $font-size-xs;
+.trade-history__row-actions {
+    display: flex;
+    gap: 0.35em;
+}
 
-        // Colour says what the action did to the book, not whether it made
-        // money — an exit is neither good nor bad until the log is replayed.
-        &--buy,
-        &--cover,
-        &--deposit {
-            background: color-mix(in srgb, $color-positive 15%, transparent);
-            color: $color-positive;
-        }
+.trade-history__empty {
+    padding: 2em;
+    color: $color-text-muted;
+    text-align: center;
+}
 
-        &--sell,
-        &--short,
-        &--withdrawal {
-            background: color-mix(in srgb, $color-negative 15%, transparent);
-            color: $color-negative;
-        }
-    }
+.trade-history__pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75em;
+}
 
-    &__row-actions {
-        display: flex;
-        gap: 0.35em;
-    }
+.trade-history__page {
+    font-size: $font-size-xs;
+    color: $color-text-muted;
+}
 
-    &__empty {
-        padding: 2em;
-        color: $color-text-muted;
-        text-align: center;
-    }
-
-    &__pager {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.75em;
-    }
-
-    &__page {
-        font-size: $font-size-xs;
-        color: $color-text-muted;
-    }
-
-    &__sr {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip-path: inset(50%);
-        white-space: nowrap;
-    }
+.trade-history__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
 }
 </style>

@@ -113,66 +113,54 @@
         "lastUpdate": "Last update:",
         "loading": "Loading...",
         "noData": "No data",
-        "noDataAvailable": "No data available",
+        "never": "Never",
         "outlook": {
             "shortTerm": "Short Term",
             "midTerm": "Mid Term",
             "longTerm": "Long Term",
-            "shortTermTooltipTitle": "Short Term Outlook (1-3 Months)",
-            "shortTermTooltipDesc": "Based on recent market momentum, technical indicators, and short-term trends.",
-            "midTermTooltipTitle": "Mid Term Outlook (3-6 Months)",
-            "midTermTooltipDesc": "Reflects quarterly performance trends and medium-term market cycles.",
-            "longTermTooltipTitle": "Long Term Outlook (6-12 Months)",
-            "longTermTooltipDesc": "Indicates annual trends, fundamental strength, and sustained market direction.",
-            "assetsUp": "of assets trending up"
+            "bullish": "Bullish",
+            "neutral": "Neutral",
+            "bearish": "Bearish",
+            "assetsUp": "{percent}% of assets trending up"
         },
         "breadth": {
             "advanceDecline": "Advance/Decline",
+            "advanceDeclineReading": "{positive}% advancing, {neutral}% unchanged, {negative}% declining",
             "newHighsLows": "New Highs/Lows",
-            "advanceDeclineTitle": "Advance/Decline Ratio",
-            "advanceDeclineDesc": "Measures the proportion of assets that are advancing (green), declining (red), or unchanged (gray) in price today.",
-            "advancing": "Advancing: Assets closing higher than previous close",
-            "declining": "Declining: Assets closing lower than previous close",
-            "unchanged": "Unchanged: Assets with no price change",
-            "newHighsLowsTitle": "New Highs/Lows",
-            "newHighsLowsDesc": "Shows the percentage of assets reaching new 52-week highs or lows today.",
-            "newHighs": "New Highs: Assets at their highest price in 52 weeks",
-            "newLows": "New Lows: Assets at their lowest price in 52 weeks",
-            "neutral": "Neutral: Assets not at extremes"
-        },
-        "archie": {
-            "meet": "Meet",
-            "name": "Archie",
-            "tagline": "Your Adaptive AI Trading Agent",
-            "training": "Archie is in training...",
-            "description": "Archie is powered by deep learning and trained on millions of financial documents.",
-            "description2": "He recognizes patterns, adapts to your style, and suggests the best trading strategies for you.",
-            "comingSoon": "Coming soon: AI-generated trades, market insights, and personalized strategies.",
-            "disclaimer": "Disclaimer:",
-            "disclaimerText": "Archie is an experimental AI agent. All suggestions are for informational purposes only and do not constitute legal financial advice. Use of Archie is optional; Ereuna assumes no responsibility for trading outcomes."
+            "newHighsLowsReading": "{positive}% at new highs, {neutral}% neither, {negative}% at new lows"
         },
         "indexes": {
             "title": "Market Indexes",
             "etf": "ETF",
             "price": "Price",
-            "change": "% Change",
+            "oneDay": "1D",
             "oneMonth": "1M",
-            "oneQuarter": "1Q",
+            "fourMonth": "4M",
             "oneYear": "1Y",
-            "ytd": "YTD"
+            "yearToDate": "YTD"
         },
         "sma": {
             "title": "SMA Distribution",
-            "sma": "SMA",
-            "above": "above",
-            "below": "below"
+            "universe": "Asset type",
+            "period": "{period} SMA",
+            "reading": "{above}% above, {below}% below"
+        },
+        "universe": {
+            "all": "All assets",
+            "stock": "Stocks",
+            "etf": "ETFs",
+            "fund": "Mutual funds",
+            "otc": "OTC",
+            "pink": "Pink sheets",
+            "crypto": "Crypto"
         },
         "sectors": {
-            "title": "Quarter Sector / Industry Strength",
-            "strongestSectors": "Strongest Sectors",
-            "weakestSectors": "Weakest Sectors",
-            "strongestIndustries": "Strongest Industries",
-            "weakestIndustries": "Weakest Industries"
+            "title": "Sector",
+            "strongest": "Strongest Sectors",
+            "weakest": "Weakest Sectors"
+        },
+        "industries": {
+            "title": "Industry"
         },
         "movers": {
             "title": "Daily Top Movers",
@@ -181,13 +169,20 @@
         },
         "valuation": {
             "title": "Intrinsic Value Analysis",
-            "beta": "BETA",
             "undervalued": "Top 10 Undervalued",
             "overvalued": "Top 10 Overvalued",
-            "current": "Current:",
-            "intrinsic": "Intrinsic:",
-            "note": "Note:",
-            "disclaimer": "Intrinsic values are calculated using advanced AI algorithms. These are estimates and should not be considered as investment advice."
+            "disclaimer": "Intrinsic values come from a discounted cash flow model run on the last reported financials. They are estimates, not investment advice."
+        },
+        "calendar": {
+            "title": "Market calendar",
+            "date": "Date",
+            "empty": "Nothing scheduled",
+            "earnings": "Earnings",
+            "dividends": "Dividends",
+            "splits": "Split"
+        },
+        "news": {
+            "title": "News"
         }
     },
     "user": {

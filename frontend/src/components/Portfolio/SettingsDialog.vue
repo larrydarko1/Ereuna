@@ -72,15 +72,15 @@ const commission = ref(String(summary.defaultCommission));
     display: flex;
     flex-direction: column;
     gap: 1.5em;
+}
 
-    &__row {
-        display: flex;
-        flex-direction: column;
+.settings-dialog__row {
+    display: flex;
+    flex-direction: column;
 
-        // Each setting saves on its own, so each gets its own button rather
-        // than one that would send three writes the user did not all make.
-        align-items: flex-start;
-        gap: 0.4em;
-    }
+    // Each setting saves on its own, so each gets its own button rather
+    // than one that would send three writes the user did not all make.
+    align-items: flex-start;
+    gap: 0.4em;
 }
 </style>

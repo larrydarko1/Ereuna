@@ -133,13 +133,6 @@ const rows = computed(() =>
 .positions-table {
     overflow-x: auto;
 
-    &__table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: $font-size-sm;
-        white-space: nowrap;
-    }
-
     th,
     td {
         padding: 0.5em 0.75em;
@@ -161,59 +154,67 @@ const rows = computed(() =>
         font-weight: $font-weight-medium;
     }
 
-    &__symbol {
-        font-weight: $font-weight-medium;
-        color: $color-text;
-    }
-
-    &__num {
-        font-family: $font-mono;
-        text-align: right;
-
-        &--up {
-            color: $color-positive;
-        }
-
-        &--down {
-            color: $color-negative;
-        }
-    }
-
-    &__side {
-        padding: 0.1em 0.5em;
-        border-radius: $radius-pill;
-        font-size: $font-size-xs;
-
-        &--long {
-            background: color-mix(in srgb, $color-positive 15%, transparent);
-            color: $color-positive;
-        }
-
-        &--short {
-            background: color-mix(in srgb, $color-negative 15%, transparent);
-            color: $color-negative;
-        }
-    }
-
     // A price arriving from the live feed is marked, so a stale close and a
     // moving quote are not read as the same number.
-    &__live {
-        color: $color-accent-1;
+}
+
+.positions-table__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: $font-size-sm;
+    white-space: nowrap;
+}
+
+.positions-table__symbol {
+    font-weight: $font-weight-medium;
+    color: $color-text;
+}
+
+.positions-table__num {
+    font-family: $font-mono;
+    text-align: right;
+
+    &--up {
+        color: $color-positive;
     }
 
-    &__empty {
-        padding: 2em;
-        color: $color-text-muted;
-        text-align: center;
+    &--down {
+        color: $color-negative;
+    }
+}
+
+.positions-table__side {
+    padding: 0.1em 0.5em;
+    border-radius: $radius-pill;
+    font-size: $font-size-xs;
+
+    &--long {
+        background: color-mix(in srgb, $color-positive 15%, transparent);
+        color: $color-positive;
     }
 
-    &__sr {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip-path: inset(50%);
-        white-space: nowrap;
+    &--short {
+        background: color-mix(in srgb, $color-negative 15%, transparent);
+        color: $color-negative;
     }
+}
+
+.positions-table__live {
+    color: $color-accent-1;
+}
+
+.positions-table__empty {
+    padding: 2em;
+    color: $color-text-muted;
+    text-align: center;
+}
+
+.positions-table__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
 }
 </style>

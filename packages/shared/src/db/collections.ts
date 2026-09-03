@@ -373,7 +373,7 @@ export type CalendarEventDoc = {
     [field: string]: unknown; // Per-type payload the ingestor attaches (estimate, amount, ratio)
 };
 
-export type MarketStatsDoc = {
+export type StatsDoc = {
     _id: string;
     updatedAt?: Date;
     [field: string]: unknown;

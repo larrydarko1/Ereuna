@@ -113,66 +113,54 @@
         "lastUpdate": "Ultimo aggiornamento:",
         "loading": "Caricamento...",
         "noData": "Nessun dato",
-        "noDataAvailable": "Nessun dato disponibile",
+        "never": "Mai",
         "outlook": {
             "shortTerm": "Breve Termine",
             "midTerm": "Medio Termine",
             "longTerm": "Lungo Termine",
-            "shortTermTooltipTitle": "Prospettive a Breve Termine (1-3 Mesi)",
-            "shortTermTooltipDesc": "Basato sul momentum recente del mercato, indicatori tecnici e tendenze a breve termine.",
-            "midTermTooltipTitle": "Prospettive a Medio Termine (3-6 Mesi)",
-            "midTermTooltipDesc": "Riflette le tendenze di performance trimestrale e i cicli di mercato a medio termine.",
-            "longTermTooltipTitle": "Prospettive a Lungo Termine (6-12 Mesi)",
-            "longTermTooltipDesc": "Indica tendenze annuali, forza fondamentale e direzione del mercato sostenuta.",
-            "assetsUp": "degli asset in tendenza rialzista"
+            "bullish": "Rialzista",
+            "neutral": "Neutrale",
+            "bearish": "Ribassista",
+            "assetsUp": "{percent}% degli asset in tendenza rialzista"
         },
         "breadth": {
             "advanceDecline": "Avanzamento/Declino",
+            "advanceDeclineReading": "{positive}% in rialzo, {neutral}% invariati, {negative}% in ribasso",
             "newHighsLows": "Nuovi Massimi/Minimi",
-            "advanceDeclineTitle": "Rapporto Avanzamento/Declino",
-            "advanceDeclineDesc": "Misura la proporzione di asset in avanzamento (verde), in declino (rosso) o invariati (grigio) nel prezzo oggi.",
-            "advancing": "In Avanzamento: Asset che chiudono più in alto rispetto alla chiusura precedente",
-            "declining": "In Declino: Asset che chiudono più in basso rispetto alla chiusura precedente",
-            "unchanged": "Invariati: Asset senza cambiamenti di prezzo",
-            "newHighsLowsTitle": "Nuovi Massimi/Minimi",
-            "newHighsLowsDesc": "Mostra la percentuale di asset che raggiungono nuovi massimi o minimi a 52 settimane oggi.",
-            "newHighs": "Nuovi Massimi: Asset al loro prezzo più alto in 52 settimane",
-            "newLows": "Nuovi Minimi: Asset al loro prezzo più basso in 52 settimane",
-            "neutral": "Neutrale: Asset non agli estremi"
-        },
-        "archie": {
-            "meet": "Incontra",
-            "name": "Archie",
-            "tagline": "Il Tuo Agente di Trading AI Adattivo",
-            "training": "Archie è in formazione...",
-            "description": "Archie è alimentato dal deep learning ed è addestrato su milioni di documenti finanziari.",
-            "description2": "Riconosce pattern, si adatta al tuo stile e suggerisce le migliori strategie di trading per te.",
-            "comingSoon": "Prossimamente: trade generati dall'AI, approfondimenti di mercato e strategie personalizzate.",
-            "disclaimer": "Disclaimer:",
-            "disclaimerText": "Archie è un agente AI sperimentale. Tutti i suggerimenti sono solo a scopo informativo e non costituiscono consulenza finanziaria legale. L'uso di Archie è facoltativo; Ereuna non si assume alcuna responsabilità per i risultati di trading."
+            "newHighsLowsReading": "{positive}% su nuovi massimi, {neutral}% nel mezzo, {negative}% su nuovi minimi"
         },
         "indexes": {
             "title": "Indici di Mercato",
             "etf": "ETF",
             "price": "Prezzo",
-            "change": "% Variazione",
+            "oneDay": "1G",
             "oneMonth": "1M",
-            "oneQuarter": "1Q",
+            "fourMonth": "4M",
             "oneYear": "1A",
-            "ytd": "YTD"
+            "yearToDate": "YTD"
         },
         "sma": {
             "title": "Distribuzione SMA",
-            "sma": "SMA",
-            "above": "sopra",
-            "below": "sotto"
+            "universe": "Tipo di strumento",
+            "period": "SMA {period}",
+            "reading": "{above}% sopra, {below}% sotto"
+        },
+        "universe": {
+            "all": "Tutti gli strumenti",
+            "stock": "Azioni",
+            "etf": "ETF",
+            "fund": "Fondi comuni",
+            "otc": "OTC",
+            "pink": "Pink sheets",
+            "crypto": "Cripto"
         },
         "sectors": {
-            "title": "Forza Settori / Industrie Trimestre",
-            "strongestSectors": "Settori Più Forti",
-            "weakestSectors": "Settori Più Deboli",
-            "strongestIndustries": "Industrie Più Forti",
-            "weakestIndustries": "Industrie Più Deboli"
+            "title": "Settore",
+            "strongest": "Settori Più Forti",
+            "weakest": "Settori Più Deboli"
+        },
+        "industries": {
+            "title": "Industria"
         },
         "movers": {
             "title": "Top Movers Giornalieri",
@@ -181,13 +169,20 @@
         },
         "valuation": {
             "title": "Analisi del Valore Intrinseco",
-            "beta": "BETA",
             "undervalued": "Top 10 Sottovalutati",
             "overvalued": "Top 10 Sopravvalutati",
-            "current": "Attuale:",
-            "intrinsic": "Intrinseco:",
-            "note": "Nota:",
-            "disclaimer": "I valori intrinseci sono calcolati utilizzando algoritmi AI avanzati. Queste sono stime e non devono essere considerate come consigli di investimento."
+            "disclaimer": "I valori intrinseci derivano da un modello di flussi di cassa scontati applicato agli ultimi bilanci pubblicati. Sono stime, non consulenza finanziaria."
+        },
+        "calendar": {
+            "title": "Calendario di mercato",
+            "date": "Data",
+            "empty": "Nulla in programma",
+            "earnings": "Utili",
+            "dividends": "Dividendi",
+            "splits": "Frazionamento"
+        },
+        "news": {
+            "title": "Notizie"
         }
     },
     "user": {

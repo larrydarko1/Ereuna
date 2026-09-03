@@ -115,54 +115,54 @@ const active = computed(() => (hovered.value === null ? null : (bars[hovered.val
     flex-direction: column;
     gap: 0.5em;
     margin: 0;
+}
 
-    &__svg {
-        // Scales uniformly rather than stretching, so the gaps stay even.
-        width: 100%;
-        height: auto;
-        overflow: visible;
+.bar-chart__svg {
+    // Scales uniformly rather than stretching, so the gaps stay even.
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.bar-chart__baseline {
+    stroke: $color-elevated;
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+.bar-chart__bar {
+    transition: opacity $duration-fast $ease-out;
+
+    &:hover {
+        opacity: 0.75;
     }
 
-    &__baseline {
-        stroke: $color-elevated;
-        stroke-width: 1;
-        vector-effect: non-scaling-stroke;
+    &--up {
+        fill: $color-positive;
     }
 
-    &__bar {
-        transition: opacity $duration-fast $ease-out;
-
-        &:hover {
-            opacity: 0.75;
-        }
-
-        &--up {
-            fill: $color-positive;
-        }
-
-        &--down {
-            fill: $color-negative;
-        }
+    &--down {
+        fill: $color-negative;
     }
+}
 
-    &__marker {
-        stroke: $color-accent-1;
-        stroke-width: 1;
-        stroke-dasharray: 4 4;
-        vector-effect: non-scaling-stroke;
-    }
+.bar-chart__marker {
+    stroke: $color-accent-1;
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+    vector-effect: non-scaling-stroke;
+}
 
-    &__readout {
-        display: flex;
-        justify-content: space-between;
-        gap: 1em;
-        font-size: $font-size-xs;
-        color: $color-text-muted;
-    }
+.bar-chart__readout {
+    display: flex;
+    justify-content: space-between;
+    gap: 1em;
+    font-size: $font-size-xs;
+    color: $color-text-muted;
+}
 
-    &__readout-value {
-        font-family: $font-mono;
-        color: $color-text;
-    }
+.bar-chart__readout-value {
+    font-family: $font-mono;
+    color: $color-text;
 }
 </style>

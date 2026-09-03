@@ -94,83 +94,83 @@ $slice-colors: (
     align-items: center;
     gap: 1em;
     margin: 0;
+}
 
-    &__svg {
-        width: 160px;
-        height: 160px;
-        flex-shrink: 0;
+.donut-chart__svg {
+    width: 160px;
+    height: 160px;
+    flex-shrink: 0;
+}
+
+.donut-chart__track {
+    fill: none;
+    stroke: $color-sunken;
+    stroke-width: 5;
+}
+
+.donut-chart__slice {
+    fill: none;
+    stroke-width: 5;
+    transition: stroke-width $duration-fast $ease-out;
+
+    &:hover {
+        stroke-width: 6.5;
     }
 
-    &__track {
-        fill: none;
-        stroke: $color-sunken;
-        stroke-width: 5;
-    }
-
-    &__slice {
-        fill: none;
-        stroke-width: 5;
-        transition: stroke-width $duration-fast $ease-out;
-
-        &:hover {
-            stroke-width: 6.5;
-        }
-
-        @each $index, $color in $slice-colors {
-            &--#{$index} {
-                stroke: $color;
-            }
-        }
-    }
-
-    &__legend {
-        flex: 1 1 12ch;
-        min-width: 12ch;
-        max-height: 160px;
-        overflow-y: auto;
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
-
-    &__legend-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5em;
-        padding: 0.15em 0.25em;
-        border-radius: $radius-sm;
-        font-size: $font-size-xs;
-        color: $color-text-muted;
-
-        &--active {
-            background: $color-sunken;
-            color: $color-text;
+    @each $index, $color in $slice-colors {
+        &--#{$index} {
+            stroke: $color;
         }
     }
+}
 
-    &__swatch {
-        width: 8px;
-        height: 8px;
-        flex-shrink: 0;
-        border-radius: $radius-pill;
+.donut-chart__legend {
+    flex: 1 1 12ch;
+    min-width: 12ch;
+    max-height: 160px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
 
-        @each $index, $color in $slice-colors {
-            &--#{$index} {
-                background: $color;
-            }
-        }
-    }
+.donut-chart__legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.15em 0.25em;
+    border-radius: $radius-sm;
+    font-size: $font-size-xs;
+    color: $color-text-muted;
 
-    &__legend-label {
-        flex: 1 1 auto;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    &__legend-value {
-        font-family: $font-mono;
+    &--active {
+        background: $color-sunken;
         color: $color-text;
     }
+}
+
+.donut-chart__swatch {
+    width: 8px;
+    height: 8px;
+    flex-shrink: 0;
+    border-radius: $radius-pill;
+
+    @each $index, $color in $slice-colors {
+        &--#{$index} {
+            background: $color;
+        }
+    }
+}
+
+.donut-chart__legend-label {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.donut-chart__legend-value {
+    font-family: $font-mono;
+    color: $color-text;
 }
 </style>

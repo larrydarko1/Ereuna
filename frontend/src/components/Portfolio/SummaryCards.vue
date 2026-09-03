@@ -88,42 +88,42 @@ const cards = computed<Card[]>(() => {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
     gap: 0.75em;
+}
 
-    &__card {
-        padding: 0.75em 1em;
-        border: $border-width solid $color-elevated;
-        border-radius: $radius-md;
-        background: $color-surface;
+.summary-cards__card {
+    padding: 0.75em 1em;
+    border: $border-width solid $color-elevated;
+    border-radius: $radius-md;
+    background: $color-surface;
+}
+
+.summary-cards__label {
+    margin: 0;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-regular;
+    color: $color-text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.summary-cards__value {
+    margin: 0.25em 0 0;
+    font-family: $font-mono;
+    font-size: $font-size-lg;
+    color: $color-text;
+
+    &--up {
+        color: $color-positive;
     }
 
-    &__label {
-        margin: 0;
-        font-size: $font-size-xs;
-        font-weight: $font-weight-regular;
-        color: $color-text-muted;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
+    &--down {
+        color: $color-negative;
     }
+}
 
-    &__value {
-        margin: 0.25em 0 0;
-        font-family: $font-mono;
-        font-size: $font-size-lg;
-        color: $color-text;
-
-        &--up {
-            color: $color-positive;
-        }
-
-        &--down {
-            color: $color-negative;
-        }
-    }
-
-    &__note {
-        margin: 0.15em 0 0;
-        font-size: $font-size-xs;
-        color: $color-text-muted;
-    }
+.summary-cards__note {
+    margin: 0.15em 0 0;
+    font-size: $font-size-xs;
+    color: $color-text-muted;
 }
 </style>
