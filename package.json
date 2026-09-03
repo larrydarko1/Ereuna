@@ -25,13 +25,16 @@
         "dev": "concurrently -n front,api -c blue,green \"npm run dev:frontend\" \"npm run dev:api\"",
         "dev:frontend": "npm -w frontend run dev",
         "dev:api": "npm -w api run dev",
-        "dev:aggregator": "npm -w aggregator run dev",
+        "dev:worker": "npm -w worker run dev",
         "dev:ingestor": "npm -w ingestor run dev",
-        "build:all": "npm -w frontend run build && npm -w api run build && npm -w ingestor run build && npm -w aggregator run build",
-        "typecheck": "npm -w packages/shared run typecheck && npm -w api run typecheck && npm -w ingestor run typecheck && npm -w aggregator run typecheck",
+        "build:all": "npm -w frontend run build && npm -w api run build && npm -w ingestor run build && npm -w worker run build",
+        "typecheck": "npm -w packages/shared run typecheck && npm -w api run typecheck && npm -w ingestor run typecheck && npm -w worker run typecheck",
         "test": "vitest run",
+        "test:coverage": "vitest run --coverage",
         "preview": "npm -w frontend run preview",
-        "aggregator": "npm -w aggregator run start",
+        "worker": "npm -w worker run start",
+        "worker:aggregate": "npm -w worker run start:aggregate",
+        "worker:organize": "npm -w worker run start:organize",
         "ingestor": "npm -w ingestor run start",
         "dbstart": "brew services start mongodb-community",
         "dbstop": "brew services stop mongodb-community",
@@ -39,8 +42,7 @@
         "dbdump": "npm -w db run dump",
         "redisstart": "brew services start redis",
         "redisstop": "brew services stop redis",
-        "redis": "redis-server",
-        "test:coverage": "vitest run --coverage"
+        "redis": "redis-server"
     },
     "devDependencies": {
         "concurrently": "^10.0.5",
@@ -56,7 +58,7 @@
         "packages/shared",
         "frontend",
         "api",
-        "aggregator",
+        "worker",
         "ingestor",
         "db"
     ]

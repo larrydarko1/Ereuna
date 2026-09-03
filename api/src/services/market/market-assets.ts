@@ -328,10 +328,9 @@ function tradeSignals(value: unknown): TradeSignal[] {
 }
 
 function toDividendPayment(action: CorporateAction): DividendPayment[] {
-    const raw = action.payment_date ?? action.date;
-    if (raw === undefined || typeof action.amount !== 'number' || action.amount <= 0) return [];
+    if (typeof action.amount !== 'number' || action.amount <= 0) return [];
 
-    const paymentDate = new Date(raw);
+    const paymentDate = new Date(action.date);
     return Number.isNaN(paymentDate.getTime()) ? [] : [{ paymentDate, amount: action.amount }];
 }
 

@@ -315,11 +315,26 @@ export function isIntraday(timeframe: ChartTimeframe): boolean {
     return timeframe !== 'daily' && timeframe !== 'weekly';
 }
 
+/**
+ * The bar collections that carry a time-of-day.
+ * Derived rather than listed, so a new intraday timeframe reaches the retention
+ * sweep and the split adjustment without either of them being edited.
+ */
+export const INTRADAY_COLLECTIONS = CHART_TIMEFRAMES.filter(isIntraday).map(
+    (timeframe) => OHLCV_COLLECTIONS[timeframe],
+);
+
+/**
+ * A dividend or a split, as stored on the asset and as served to the chart.
+ * One shape for both: `date` is the payment date of a dividend and the
+ * effective date of a split, and exactly one of `amount` and `ratio` is set.
+ * `date` is `YYYY-MM-DD` rather than a Date because nothing queries these by
+ * range — they are read as a whole array and drawn on a time axis.
+ */
 export type CorporateAction = {
-    payment_date?: string;
-    date?: string;
-    amount?: number;
-    ratio?: number;
+    date: string;
+    amount?: number; // Dividend cash per share
+    ratio?: number; // Split factor: above one is a forward split, below one a reverse
 };
 
 export type AssetInfoDoc = {

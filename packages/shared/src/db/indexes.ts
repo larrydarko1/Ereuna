@@ -5,14 +5,17 @@
  * harmless. Adding an index means adding an entry here; it is created on the
  * next boot in every environment. Dropping one is a migration, never a change
  * here — a drop applied at boot re-runs on every restart.
- * Two manifests, because two services own them. `INDEXES` is applied by the API
- * at startup and covers the collections the API writes. `OHLCV_INDEXES` is
- * applied by the aggregator, which is the only writer of the candle
- * collections; the API only reads them.
- * Neither candle index is unique. The aggregator is a singleton and upserts on
+ * Three manifests, because three writers own them. `INDEXES` is applied by the
+ * API at startup and covers the collections the API writes. `OHLCV_INDEXES` and
+ * `REFERENCE_INDEXES` are applied by the worker, which is the only writer of
+ * the candle, reference and derived collections; the API only reads them.
+ * No candle index is unique. The aggregator role is a singleton and upserts on
  * exactly this key, so it cannot produce a duplicate — while the existing
  * collections predate the constraint, and a `createIndex` that failed on old
- * data would stop the service booting rather than surface as a warning.
+ * data would stop the service booting rather than surface as a warning. The
+ * reference indexes that ARE unique are applied the same way: the worker logs
+ * the one that would not build and carries on, because a night of prices is
+ * worth more than a constraint that can be added once the data is cleaned.
  */
 import { OHLCV_COLLECTIONS } from '#db/collections.js';
 
@@ -143,3 +146,43 @@ export const OHLCV_INDEXES: IndexSpec[] = Object.values(OHLCV_COLLECTIONS).map((
     keys: { tickerID: 1, timestamp: -1 },
     why: 'Aggregator upserts by (tickerID, timestamp); chart reads walk it backwards for the last N bars',
 }));
+
+/**
+ * The reference and derived collections, applied by the worker's nightly run.
+ * `AssetInfo.Symbol` is unique because every job in that run addresses a symbol
+ * by it and a duplicate would mean half the night's figures landing on one copy
+ * and half on the other. `News.url` is unique because it is the upsert key that
+ * makes re-running a night idempotent — the old code checked for the article
+ * with a query per headline instead, then inserted anyway when two batches
+ * returned the same story.
+ */
+export const REFERENCE_INDEXES: IndexSpec[] = [
+    {
+        collection: 'AssetInfo',
+        keys: { Symbol: 1 },
+        options: { unique: true },
+        why: 'Every nightly job and every market read addresses an asset by symbol.',
+    },
+    {
+        collection: 'News',
+        keys: { url: 1 },
+        options: { unique: true },
+        why: 'The upsert key for a headline, so the same story arriving twice updates one row.',
+    },
+    {
+        collection: 'News',
+        keys: { publishedDate: -1 },
+        why: 'Headline reads are "the newest N", optionally since a date.',
+    },
+    {
+        collection: 'News',
+        keys: { tickers: 1, publishedDate: -1 },
+        why: 'The per-symbol headline panel filters on tickers before taking the newest N.',
+    },
+    {
+        collection: 'Calendar',
+        keys: { reportDate: 1, type: 1, symbol: 1 },
+        options: { unique: true },
+        why: 'One row per (date, type, symbol) — the upsert key when the calendar is rebuilt.',
+    },
+];

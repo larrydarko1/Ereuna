@@ -450,8 +450,8 @@ function applyMarkers(): void {
     };
 
     if (earnings) for (const date of events?.earnings ?? []) add(date, colors.accent, 'E');
-    if (dividends) for (const action of events?.dividends ?? []) add(action.payment_date ?? action.date, colors.dividend, 'D');
-    if (splits) for (const action of events?.splits ?? []) add(action.date ?? action.payment_date, colors.split, 'S');
+    if (dividends) for (const action of events?.dividends ?? []) add(action.date, colors.dividend, 'D');
+    if (splits) for (const action of events?.splits ?? []) add(action.date, colors.split, 'S');
 
     markers.sort((a, b) => String(a.time).localeCompare(String(b.time)));
     volumeSeries.setMarkers(markers);

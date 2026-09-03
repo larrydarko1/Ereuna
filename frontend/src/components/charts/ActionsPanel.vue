@@ -18,16 +18,11 @@ type Row = { key: string; date: string; value: string };
 
 const rows = computed<Row[]>(() =>
     actions.flatMap((action, index) => {
-        // Dividends carry `payment_date`, splits carry `date`; either may be
-        // missing, and a row with no date has nothing to sort or show.
-        const raw = action.payment_date ?? action.date;
-        if (raw === undefined) return [];
-
         const amount = kind === 'dividends' ? action.amount : action.ratio;
         return [
             {
-                key: `${raw}-${index}`,
-                date: formatDate(raw),
+                key: `${action.date}-${index}`,
+                date: formatDate(action.date),
                 value: typeof amount === 'number' ? formatNumber(amount, kind === 'dividends' ? 4 : 2) : '—',
             },
         ];
