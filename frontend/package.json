@@ -9,33 +9,32 @@
         "build": "vite build",
         "preview": "vite preview",
         "typecheck": "vue-tsc --noEmit -p tsconfig.app.json",
-        "stylelint": "stylelint \"src/styles/**/*.scss\"",
-        "stylelint:fix": "stylelint \"src/styles/**/*.scss\" --fix"
+        "stylelint": "stylelint \"src/**/*.scss\" \"src/**/*.vue\" --ignore-pattern \"src/components/charts/**\"",
+        "stylelint:fix": "stylelint \"src/**/*.scss\" \"src/**/*.vue\" --ignore-pattern \"src/components/charts/**\" --fix"
     },
     "dependencies": {
         "@ereuna/shared": "*",
-        "axios": "^1.18.1",
+        "axios": "^1.20.0",
         "fancy-canvas": "^2.1.0",
-        "pinia": "^2.2.5",
-        "qrcode.vue": "^3.6.0",
-        "vue": "^3.5.25",
-        "vue-i18n": "^11.3.2",
-        "vue-router": "^4.6.3"
+        "qrcode.vue": "^3.10.0",
+        "vue": "^3.5.42",
+        "vue-i18n": "^11.4.10",
+        "vue-router": "^5.3.1"
     },
     "devDependencies": {
-        "@types/node": "^26.1.2",
-        "@vitejs/plugin-vue": "^5.2.4",
-        "@vue/tsconfig": "^0.8.1",
-        "autoprefixer": "^10.5.2",
-        "postcss-html": "^1.8.1",
-        "sass-embedded": "^1.100.0",
-        "stylelint": "^17.13.0",
+        "@types/node": "^26.4.1",
+        "@vitejs/plugin-vue": "^6.0.8",
+        "@vue/tsconfig": "^0.9.1",
+        "autoprefixer": "^10.5.4",
+        "postcss-html": "^2.0.0",
+        "sass-embedded": "^1.103.1",
+        "stylelint": "^17.14.1",
         "stylelint-config-standard-scss": "^17.0.0",
-        "stylelint-declaration-strict-value": "^1.11.1",
+        "stylelint-declaration-strict-value": "^1.12.1",
         "stylelint-scss": "^7.2.0",
         "typescript": "~6.0.2",
-        "vite": "^6.4.3",
-        "vue-tsc": "^3.3.5"
+        "vite": "^8.2.2",
+        "vue-tsc": "^3.3.11"
     },
     "private": true,
     "browserslist": [

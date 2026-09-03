@@ -5,6 +5,10 @@
  * authenticator or password is lost. That makes them a credential in their own
  * right, and they are treated like one — Argon2id-hashed at rest, single-use,
  * and shown exactly once at generation.
+ * Issuing a set is not here: it is only allowed while two-factor is on, so it
+ * sits in `auth-totp.ts` with the state that decides it.
+ * A code spent here signs the user in with no password, so it also marks the
+ * account `passwordResetRequired` — see `setPasswordAfterRecovery`.
  */
 import crypto from 'crypto';
 import argon2 from 'argon2';
@@ -33,19 +37,6 @@ export async function generateRecoveryCodes(): Promise<RecoveryCodeSet> {
     return { plaintext, hashes };
 }
 
-/** Replace a user's codes, invalidating every previously issued one. */
-export async function regenerateRecoveryCodes(userId: ObjectId): Promise<string[]> {
-    const { plaintext, hashes } = await generateRecoveryCodes();
-    const result = await getDb()
-        .collection<UserDoc>('Users')
-        .updateOne({ _id: userId }, { $set: { recoveryCodeHashes: hashes, updatedAt: new Date() } });
-
-    if (result.matchedCount === 0) {
-        throw new AppError(404, 'USER_NOT_FOUND', `user ${userId.toHexString()} not found`);
-    }
-    return plaintext;
-}
-
 export async function loginWithRecoveryCode(
     username: string,
     code: string,
@@ -70,10 +61,14 @@ export async function loginWithRecoveryCode(
     }
 
     // Consume the code first: $pull on the specific hash is atomic, so a
-    // concurrent replay finds nothing left to match.
+    // concurrent replay finds nothing left to match. The same write raises
+    // `passwordResetRequired`, because this session was opened without one
     const consumed = await users.updateOne(
         { _id: user._id, recoveryCodeHashes: matchedHash },
-        { $pull: { recoveryCodeHashes: matchedHash }, $set: { updatedAt: new Date() } },
+        {
+            $pull: { recoveryCodeHashes: matchedHash },
+            $set: { passwordResetRequired: true, updatedAt: new Date() },
+        },
     );
 
     if (consumed.modifiedCount === 0) {
@@ -84,7 +79,9 @@ export async function loginWithRecoveryCode(
     }
 
     await clearLoginFailures(key);
-    return issueSession(user, options);
+    // `user` predates the write above; issue the session from the state the
+    // client has to act on, not the one that was read
+    return issueSession({ ...user, passwordResetRequired: true }, options);
 }
 
 /** How many codes the user has left, for the account security screen. */

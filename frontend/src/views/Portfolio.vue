@@ -1,200 +1,3 @@
-<!--
-  Portfolio — ten slots, one open at a time.
-
-  A portfolio is event-sourced: the trade log is the only thing stored, and
-  cash, positions, value history and every statistic are replayed from it on
-  the server after each write. That single fact removes most of what the view
-  this replaces was doing. It recomputed profit, total value, allocation and
-  the monthly breakdown in the browser from a position list it had fetched
-  separately, which is how it came to show a total value that disagreed with
-  its own profit figure: the two were derived by different code from different
-  snapshots. Here every number is read, not computed — the only exception is a
-  live price arriving mid-session, which the holdings table folds in until the
-  next read settles it.
--->
-<template>
-    <div class="portfolio">
-        <PortfolioTabs
-            :selected="selected"
-            :opened="openedSlots"
-            :blank="isBlank"
-            @select="selectSlot"
-            @trade="openTrade(null)"
-            @cash="dialog = 'cash'"
-            @settings="dialog = 'settings'"
-            @import="dialog = 'import'"
-            @export="dialog = 'export'"
-            @reset="dialog = 'reset'"
-        />
-
-        <p v-if="error !== null" class="portfolio__error" role="alert">{{ error }}</p>
-
-        <AppSpinner v-if="pending && summary === null" />
-
-        <section v-else-if="summary === null" class="portfolio__empty">
-            <h2 class="portfolio__empty-title">{{ t('portfolio.emptySlot') }}</h2>
-            <p class="portfolio__empty-body">{{ t('portfolio.emptySlotHint') }}</p>
-            <div class="portfolio__empty-actions">
-                <button type="button" class="btn btn--primary" @click="dialog = 'cash'">
-                    {{ t('portfolio.actions.deposit') }}
-                </button>
-                <button type="button" class="btn" @click="dialog = 'import'">{{ t('portfolio.import') }}</button>
-            </div>
-        </section>
-
-        <template v-else>
-            <SummaryCards :summary="summary" />
-
-            <BenchmarkStrip :benchmarks="summary.benchmarks" @edit="dialog = 'benchmarks'" />
-
-            <div class="portfolio__charts">
-                <section class="portfolio__panel">
-                    <h2 class="portfolio__panel-title">{{ t('portfolio.portfolioValue') }}</h2>
-                    <LineChart
-                        v-if="valuePoints.length > 0"
-                        :points="valuePoints"
-                        :label="t('portfolio.portfolioValue')"
-                        :format="formatCurrency"
-                    />
-                    <p v-else class="form-hint">{{ t('portfolio.noActivity') }}</p>
-                </section>
-
-                <section class="portfolio__panel">
-                    <h2 class="portfolio__panel-title">{{ t('portfolio.tradeReturns') }}</h2>
-                    <BarChart
-                        v-if="returnBins.length > 0"
-                        :bars="returnBins"
-                        :marker="summary.stats?.tradeReturnsChart.medianBinIndex ?? null"
-                        :label="t('portfolio.tradeReturns')"
-                        :format="(value) => formatNumber(value, 0)"
-                    />
-                    <p v-else class="form-hint">{{ t('portfolio.noClosedTrades') }}</p>
-                </section>
-
-                <section class="portfolio__panel">
-                    <h2 class="portfolio__panel-title">{{ t('portfolio.diversification') }}</h2>
-                    <DonutChart
-                        v-if="allocation.length > 0"
-                        :slices="allocation"
-                        :label="t('portfolio.diversification')"
-                    />
-                    <p v-else class="form-hint">{{ t('portfolio.noPositionsAvailable') }}</p>
-                </section>
-            </div>
-
-            <section class="portfolio__panel">
-                <h2 class="portfolio__panel-title">{{ t('portfolio.positions') }}</h2>
-                <PositionsTable
-                    :positions="summary.positions"
-                    :cash="summary.cash"
-                    :quotes="quotes"
-                    @close="closePosition"
-                />
-            </section>
-
-            <section v-if="summary.stats !== null" class="portfolio__panel">
-                <h2 class="portfolio__panel-title">{{ t('portfolio.performance') }}</h2>
-                <StatsGrid :snapshot="summary.stats" />
-            </section>
-
-            <section class="portfolio__panel">
-                <MonthlyPanel v-if="fullLog !== null" :value-history="summary.valueHistory" :trades="fullLog" />
-                <button v-else type="button" class="btn" :disabled="loadingLog" @click="loadMonthly">
-                    {{ loadingLog ? t('common.loading') : t('portfolio.monthlyPerformanceAnalysis') }}
-                </button>
-            </section>
-
-            <section class="portfolio__panel">
-                <TradeHistory
-                    :trades="trades.items.value"
-                    :total="trades.total.value"
-                    :page="trades.page.value"
-                    :page-count="trades.pageCount.value"
-                    @edit="openTrade($event)"
-                    @delete="tradeToDelete = $event"
-                    @page="trades.goToPage($event)"
-                />
-            </section>
-        </template>
-
-        <TradeDialog
-            v-if="dialog === 'trade'"
-            :editing="tradeToEdit"
-            :preset="tradePreset"
-            :default-commission="summary?.defaultCommission ?? 0"
-            :error="trades.error.value"
-            :saving="saving"
-            @close="dialog = null"
-            @submit="submitTrade"
-        />
-
-        <CashDialog
-            v-if="dialog === 'cash'"
-            :error="trades.error.value"
-            :saving="saving"
-            @close="dialog = null"
-            @submit="submitTrade"
-        />
-
-        <SettingsDialog
-            v-if="dialog === 'settings' && summary !== null"
-            :summary="summary"
-            :error="error"
-            :saving="saving"
-            @close="dialog = null"
-            @save-base-value="run(() => saveBaseValue($event))"
-            @save-leverage="run(() => saveLeverage($event))"
-            @save-commission="run(() => saveCommission($event))"
-        />
-
-        <BenchmarksDialog
-            v-if="dialog === 'benchmarks' && summary !== null"
-            :current="summary.benchmarks.map((entry) => entry.symbol)"
-            :error="error"
-            :saving="saving"
-            @close="dialog = null"
-            @save="run(async () => { await saveBenchmarks($event); dialog = null; })"
-        />
-
-        <ImportDialog
-            v-if="dialog === 'import'"
-            :error="error"
-            :saving="saving"
-            @close="dialog = null"
-            @submit="submitImport"
-        />
-
-        <ExportDialog
-            v-if="dialog === 'export'"
-            :slot-number="selected"
-            :load="exportCurrent"
-            @close="dialog = null"
-        />
-
-        <ConfirmDialog
-            v-if="dialog === 'reset'"
-            :title="t('portfolio.resetPortfolio')"
-            :message="t('portfolio.resetConfirmation')"
-            :confirm-label="t('portfolio.yesReset')"
-            :error="error"
-            :pending="saving"
-            @close="dialog = null"
-            @confirm="confirmReset"
-        />
-
-        <ConfirmDialog
-            v-if="tradeToDelete !== null"
-            :title="t('portfolio.deleteTrade')"
-            :message="t('portfolio.deleteTradeConfirmation')"
-            :confirm-label="t('common.delete')"
-            :error="trades.error.value"
-            :pending="saving"
-            @close="tradeToDelete = null"
-            @confirm="confirmDeleteTrade"
-        />
-    </div>
-</template>
-
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -398,6 +201,189 @@ onMounted(async () => {
     await Promise.all([load(), reload(), trades.load()]);
 });
 </script>
+
+<template>
+    <div class="portfolio">
+        <PortfolioTabs
+            :selected="selected"
+            :opened="openedSlots"
+            :blank="isBlank"
+            @select="selectSlot"
+            @trade="openTrade(null)"
+            @cash="dialog = 'cash'"
+            @settings="dialog = 'settings'"
+            @import="dialog = 'import'"
+            @export="dialog = 'export'"
+            @reset="dialog = 'reset'"
+        />
+
+        <p v-if="error !== null" class="portfolio__error" role="alert">{{ error }}</p>
+
+        <AppSpinner v-if="pending && summary === null" />
+
+        <section v-else-if="summary === null" class="portfolio__empty">
+            <h2 class="portfolio__empty-title">{{ t('portfolio.emptySlot') }}</h2>
+            <p class="portfolio__empty-body">{{ t('portfolio.emptySlotHint') }}</p>
+            <div class="portfolio__empty-actions">
+                <button type="button" class="btn btn--primary" @click="dialog = 'cash'">
+                    {{ t('portfolio.actions.deposit') }}
+                </button>
+                <button type="button" class="btn" @click="dialog = 'import'">{{ t('portfolio.import') }}</button>
+            </div>
+        </section>
+
+        <template v-else>
+            <SummaryCards :summary="summary" />
+
+            <BenchmarkStrip :benchmarks="summary.benchmarks" @edit="dialog = 'benchmarks'" />
+
+            <div class="portfolio__charts">
+                <section class="portfolio__panel">
+                    <h2 class="portfolio__panel-title">{{ t('portfolio.portfolioValue') }}</h2>
+                    <LineChart
+                        v-if="valuePoints.length > 0"
+                        :points="valuePoints"
+                        :label="t('portfolio.portfolioValue')"
+                        :format="formatCurrency"
+                    />
+                    <p v-else class="form-hint">{{ t('portfolio.noActivity') }}</p>
+                </section>
+
+                <section class="portfolio__panel">
+                    <h2 class="portfolio__panel-title">{{ t('portfolio.tradeReturns') }}</h2>
+                    <BarChart
+                        v-if="returnBins.length > 0"
+                        :bars="returnBins"
+                        :marker="summary.stats?.tradeReturnsChart.medianBinIndex ?? null"
+                        :label="t('portfolio.tradeReturns')"
+                        :format="(value) => formatNumber(value, 0)"
+                    />
+                    <p v-else class="form-hint">{{ t('portfolio.noClosedTrades') }}</p>
+                </section>
+
+                <section class="portfolio__panel">
+                    <h2 class="portfolio__panel-title">{{ t('portfolio.diversification') }}</h2>
+                    <DonutChart
+                        v-if="allocation.length > 0"
+                        :slices="allocation"
+                        :label="t('portfolio.diversification')"
+                    />
+                    <p v-else class="form-hint">{{ t('portfolio.noPositionsAvailable') }}</p>
+                </section>
+            </div>
+
+            <section class="portfolio__panel">
+                <h2 class="portfolio__panel-title">{{ t('portfolio.positions') }}</h2>
+                <PositionsTable
+                    :positions="summary.positions"
+                    :cash="summary.cash"
+                    :quotes="quotes"
+                    @close="closePosition"
+                />
+            </section>
+
+            <section v-if="summary.stats !== null" class="portfolio__panel">
+                <h2 class="portfolio__panel-title">{{ t('portfolio.performance') }}</h2>
+                <StatsGrid :snapshot="summary.stats" />
+            </section>
+
+            <section class="portfolio__panel">
+                <MonthlyPanel v-if="fullLog !== null" :value-history="summary.valueHistory" :trades="fullLog" />
+                <button v-else type="button" class="btn" :disabled="loadingLog" @click="loadMonthly">
+                    {{ loadingLog ? t('common.loading') : t('portfolio.monthlyPerformanceAnalysis') }}
+                </button>
+            </section>
+
+            <section class="portfolio__panel">
+                <TradeHistory
+                    :trades="trades.items.value"
+                    :total="trades.total.value"
+                    :page="trades.page.value"
+                    :page-count="trades.pageCount.value"
+                    @edit="openTrade($event)"
+                    @delete="tradeToDelete = $event"
+                    @page="trades.goToPage($event)"
+                />
+            </section>
+        </template>
+
+        <TradeDialog
+            v-if="dialog === 'trade'"
+            :editing="tradeToEdit"
+            :preset="tradePreset"
+            :default-commission="summary?.defaultCommission ?? 0"
+            :error="trades.error.value"
+            :saving="saving"
+            @close="dialog = null"
+            @submit="submitTrade"
+        />
+
+        <CashDialog
+            v-if="dialog === 'cash'"
+            :error="trades.error.value"
+            :saving="saving"
+            @close="dialog = null"
+            @submit="submitTrade"
+        />
+
+        <SettingsDialog
+            v-if="dialog === 'settings' && summary !== null"
+            :summary="summary"
+            :error="error"
+            :saving="saving"
+            @close="dialog = null"
+            @save-base-value="run(() => saveBaseValue($event))"
+            @save-leverage="run(() => saveLeverage($event))"
+            @save-commission="run(() => saveCommission($event))"
+        />
+
+        <BenchmarksDialog
+            v-if="dialog === 'benchmarks' && summary !== null"
+            :current="summary.benchmarks.map((entry) => entry.symbol)"
+            :error="error"
+            :saving="saving"
+            @close="dialog = null"
+            @save="run(async () => { await saveBenchmarks($event); dialog = null; })"
+        />
+
+        <ImportDialog
+            v-if="dialog === 'import'"
+            :error="error"
+            :saving="saving"
+            @close="dialog = null"
+            @submit="submitImport"
+        />
+
+        <ExportDialog
+            v-if="dialog === 'export'"
+            :slot-number="selected"
+            :load="exportCurrent"
+            @close="dialog = null"
+        />
+
+        <ConfirmDialog
+            v-if="dialog === 'reset'"
+            :title="t('portfolio.resetPortfolio')"
+            :message="t('portfolio.resetConfirmation')"
+            :confirm-label="t('portfolio.yesReset')"
+            :error="error"
+            :pending="saving"
+            @close="dialog = null"
+            @confirm="confirmReset"
+        />
+
+        <ConfirmDialog
+            v-if="tradeToDelete !== null"
+            :title="t('portfolio.deleteTrade')"
+            :message="t('portfolio.deleteTradeConfirmation')"
+            :confirm-label="t('common.delete')"
+            :error="trades.error.value"
+            :pending="saving"
+            @close="tradeToDelete = null"
+            @confirm="confirmDeleteTrade"
+        />
+    </div>
+</template>
 
 <style lang="scss" scoped>
 .portfolio {

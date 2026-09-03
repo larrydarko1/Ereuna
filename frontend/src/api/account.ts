@@ -30,14 +30,22 @@ export function confirmTwoFactor(code: string): ApiResult<{ recoveryCodes: strin
     return api.post<{ recoveryCodes: string[] }>('/account/2fa/confirm', { code });
 }
 
-/** Disabling 2FA is confirmed with a live TOTP code, not the password:
- *  the point of the second factor is that the first one alone is not enough. */
-export function disableTwoFactor(code: string): ApiResult<{ ok: true }> {
-    return api.delete<{ ok: true }>('/account/2fa', { data: { code } });
+/** Both factors, not just the second: dropping 2FA must not be possible for
+ *  someone holding only the authenticator, or only a live session. */
+export function disableTwoFactor(password: string, code: string): ApiResult<{ ok: true }> {
+    return api.delete<{ ok: true }>('/account/2fa', { data: { password, code } });
 }
 
-export function regenerateRecoveryCodes(): ApiResult<{ recoveryCodes: string[] }> {
-    return api.post<{ recoveryCodes: string[] }>('/account/recovery-codes');
+/** Re-authenticated: a fresh set voids the old one, and each code it issues
+ *  signs in on its own. */
+export function regenerateRecoveryCodes(password: string): ApiResult<{ recoveryCodes: string[] }> {
+    return api.post<{ recoveryCodes: string[] }>('/account/recovery-codes', { password });
+}
+
+/** Only accepted on a session opened with a recovery code — there is no
+ *  current password to re-authenticate with, which is why it was used. */
+export function setPasswordAfterRecovery(newPassword: string): ApiResult<{ ok: true }> {
+    return api.post<{ ok: true }>('/account/recovery-password', { newPassword });
 }
 
 export function countRecoveryCodes(): ApiResult<{ remaining: number }> {

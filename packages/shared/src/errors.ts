@@ -40,6 +40,7 @@ export const ERROR_CODES = [
     'TWO_FA_NOT_PENDING',
     'INVALID_TWO_FA_CODE',
     'INVALID_RECOVERY_CODE',
+    'PASSWORD_RESET_NOT_ALLOWED',
 
     // Screeners
     'SCREENER_NOT_FOUND',

@@ -1,4 +1,10 @@
-/** user-account — password, username, and account deletion. */
+/**
+ * user-account — password, username, and account deletion.
+ * Two ways to set a password: `changePassword`, which re-authenticates with
+ * the current one, and `setPasswordAfterRecovery`, which cannot — a recovery
+ * login happens precisely because the password is gone. The second is allowed
+ * only while `passwordResetRequired` is up, and both clear it.
+ */
 import argon2 from 'argon2';
 import { ObjectId, type WithId } from 'mongodb';
 import type {
@@ -39,6 +45,38 @@ export async function changePassword(userId: ObjectId, currentPassword: string, 
             {
                 $set: {
                     passwordHash: await argon2.hash(newPassword, config.argon2),
+                    passwordResetRequired: false,
+                    passwordChangedAt: now,
+                    updatedAt: now,
+                },
+            },
+        );
+
+    await revokeAllUserTokens(userId);
+}
+
+/**
+ * Set a password without knowing the old one, for a session opened with a
+ * recovery code. Gated on the flag that login raised and nothing else can:
+ * without it this would be a password change that skips re-authentication,
+ * which is the whole point of `changePassword` asking for one.
+ */
+export async function setPasswordAfterRecovery(userId: ObjectId, newPassword: string): Promise<void> {
+    const user = await requireUser(userId);
+
+    if (!user.passwordResetRequired) {
+        throw new AppError(403, 'PASSWORD_RESET_NOT_ALLOWED', 'No password reset is pending for this account');
+    }
+
+    const now = new Date();
+    await getDb()
+        .collection<UserDoc>('Users')
+        .updateOne(
+            { _id: userId },
+            {
+                $set: {
+                    passwordHash: await argon2.hash(newPassword, config.argon2),
+                    passwordResetRequired: false,
                     passwordChangedAt: now,
                     updatedAt: now,
                 },

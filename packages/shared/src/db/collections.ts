@@ -9,6 +9,7 @@ export type UserDoc = {
     pendingTotpSecretEncrypted: string | null; // A secret that has been generated but not yet confirmed with a valid code
     totpEnabled: boolean;
     recoveryCodeHashes: string[]; // Argon2id hashes of single-use recovery codes. The plaintext is shown once
+    passwordResetRequired: boolean; // Set when a recovery code signed the user in; cleared by the next password change
     language: string;
     theme: string | null;
     defaultSymbol: string;

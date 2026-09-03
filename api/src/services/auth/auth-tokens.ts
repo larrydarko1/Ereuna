@@ -21,6 +21,7 @@ export type AuthUser = {
     username: string;
     language: string;
     twoFactorEnabled: boolean;
+    passwordResetRequired: boolean;
 };
 
 export type AuthResult = {
@@ -48,6 +49,7 @@ export function toAuthUser(user: WithId<UserDoc>): AuthUser {
         username: user.username,
         language: user.language,
         twoFactorEnabled: user.totpEnabled,
+        passwordResetRequired: user.passwordResetRequired,
     };
 }
 
@@ -101,6 +103,7 @@ export async function registerUser(username: string, password: string): Promise<
         pendingTotpSecretEncrypted: null,
         totpEnabled: false,
         recoveryCodeHashes: [],
+        passwordResetRequired: false,
         language: 'en',
         theme: null,
         defaultSymbol: 'AAPL',
@@ -126,6 +129,7 @@ export async function registerUser(username: string, password: string): Promise<
             username,
             language: 'en',
             twoFactorEnabled: false,
+            passwordResetRequired: false,
         },
     };
 }

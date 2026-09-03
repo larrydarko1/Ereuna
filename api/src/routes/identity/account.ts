@@ -6,9 +6,10 @@
  * DELETE /api/account                  — delete the account and everything it owns
  * POST   /api/account/2fa              — begin TOTP enrolment, return secret + URI
  * POST   /api/account/2fa/confirm      — confirm enrolment, return recovery codes
- * DELETE /api/account/2fa              — disable TOTP
- * POST   /api/account/recovery-codes   — regenerate recovery codes
+ * DELETE /api/account/2fa              — disable TOTP, on the password and a live code
+ * POST   /api/account/recovery-codes   — regenerate recovery codes, on the password
  * GET    /api/account/recovery-codes   — how many codes remain
+ * POST   /api/account/recovery-password — set a password after a recovery-code login
  */
 import { Router } from 'express';
 import { z } from 'zod';
@@ -30,6 +31,11 @@ const changeUsernameBody = z.object({
 
 const confirmPasswordBody = z.object({ password: requiredString('Password is required') });
 const totpCodeBody = z.object({ code: requiredString('Two-factor code is required') });
+const disableTotpBody = z.object({
+    password: requiredString('Password is required'),
+    code: requiredString('Two-factor code is required'),
+});
+const newPasswordBody = z.object({ newPassword: passwordSchema });
 
 export const router = Router();
 
@@ -79,16 +85,17 @@ router.post(
 
 router.delete(
     '/2fa',
-    ...validated({ body: totpCodeBody }, async (req, res): Promise<void> => {
-        await authService.disableTotp(authedUserId(req), req.body.code);
+    ...validated({ body: disableTotpBody }, async (req, res): Promise<void> => {
+        await authService.disableTotp(authedUserId(req), req.body.password, req.body.code);
         res.json({ ok: true });
     }),
 );
 
 router.post(
     '/recovery-codes',
-    ...validated({}, async (req, res): Promise<void> => {
-        res.json({ recoveryCodes: await authService.regenerateRecoveryCodes(authedUserId(req)) });
+    ...validated({ body: confirmPasswordBody }, async (req, res): Promise<void> => {
+        const recoveryCodes = await authService.regenerateRecoveryCodes(authedUserId(req), req.body.password);
+        res.json({ recoveryCodes });
     }),
 );
 
@@ -96,5 +103,15 @@ router.get(
     '/recovery-codes',
     ...validated({}, async (req, res): Promise<void> => {
         res.json({ remaining: await authService.countRemainingCodes(authedUserId(req)) });
+    }),
+);
+
+// No current password: the session that reaches this was opened with a
+// recovery code, and the service refuses unless that is what happened
+router.post(
+    '/recovery-password',
+    ...validated({ body: newPasswordBody }, async (req, res): Promise<void> => {
+        await userService.setPasswordAfterRecovery(authedUserId(req), req.body.newPassword);
+        res.json({ ok: true });
     }),
 );

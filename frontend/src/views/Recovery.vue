@@ -30,7 +30,8 @@ async function submit(): Promise<void> {
         await recover(username.value.trim(), code.value.trim(), false);
         await syncTheme();
         notify(t('auth.recoverySpent'));
-        await router.push({ name: 'Account' });
+        // The session has no password behind it until this is done
+        await router.push({ name: 'SetPassword' });
     } catch (err) {
         notifyError(apiErrorMessage(err, t('auth.invalidCredentials')));
     } finally {

@@ -31,6 +31,8 @@ export type SessionUser = {
     username: string;
     language: string;
     twoFactorEnabled: boolean;
+    /** Raised by a recovery-code login, which opens a session with no password. */
+    passwordResetRequired: boolean;
 };
 
 const USER_KEY = 'ereuna-user';

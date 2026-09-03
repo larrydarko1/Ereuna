@@ -57,7 +57,7 @@ async function verify(code: string): Promise<void> {
         await validateTwoFactor(tempToken.value, code, rememberMe.value);
         await enter();
     } catch (err) {
-        notifyError(apiErrorMessage(err, t('twoFactor.verificationFailed')));
+        notifyError(apiErrorMessage(err, t('errors.INVALID_TWO_FA_CODE')));
         twoFactor.value?.reset();
     } finally {
         pending.value = false;

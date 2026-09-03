@@ -89,5 +89,5 @@ export function allValid(results: readonly (string | null)[]): boolean {
 }
 
 function t(key: string, params?: Record<string, number>): string {
-    return i18n.global.t(`validation.${key}`, params ?? {});
+    return i18n.global.t(key, params ?? {});
 }
