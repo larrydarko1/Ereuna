@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        // ES2024, not ES2025: esbuild — which vitest uses to transform, and
+        // which reads this file — does not recognise ES2025 and warns on every
+        // run. `lib` stays ES2025 so the runtime's newer built-ins are still
+        // typed; only the downlevel target moved.
+        "target": "ES2024",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "lib": ["ES2025"],
+        "types": ["node"],
+        "outDir": "dist",
+        "rootDir": "src",
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+        "paths": {
+            "@/*": ["./src/*"]
+        }
+    },
+    "include": ["src"],
+    "exclude": ["node_modules", "dist"]
+}

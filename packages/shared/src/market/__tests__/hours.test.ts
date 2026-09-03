@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isMarketHours, lastTradingDay } from '@/utils/market-hours.js';
+import { isMarketHours, lastTradingDay } from '#market/hours.js';
 
 /**
  * The dates below straddle a US daylight-saving change on purpose: the previous

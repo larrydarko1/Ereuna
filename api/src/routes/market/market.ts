@@ -12,11 +12,11 @@
  */
 import { Router } from 'express';
 import { z } from 'zod';
+import { lastTradingDay } from '@ereuna/shared';
 import { config } from '@/lib/config.js';
 import { symbolSchema } from '@/lib/schemas.js';
 import { validated } from '@/middleware/validate.js';
 import * as marketService from '@/services/market/index.js';
-import { lastTradingDay } from '@/utils/market-hours.js';
 
 const symbolListSchema = z
     .string()

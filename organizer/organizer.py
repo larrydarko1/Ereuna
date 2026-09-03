@@ -49,19 +49,19 @@ def async_retry_on_disconnect(max_retries=3, delay=2):
 
 # Local imports
 try:
-    from aggregator.delist import scanDelisted
-    from aggregator.signal_analyzer import run_signal_analysis
-    from aggregator.helper import maintenanceMode, remove_documents_with_timestamp
+    from organizer.delist import scanDelisted
+    from organizer.signal_analyzer import run_signal_analysis
+    from organizer.helper import maintenanceMode, remove_documents_with_timestamp
 except ImportError:
     workspace_root = Path(__file__).resolve().parents[1]
     if str(workspace_root) not in sys.path:
         sys.path.insert(0, str(workspace_root))
-    from aggregator.delist import scanDelisted
-    from aggregator.signal_analyzer import run_signal_analysis
-    from aggregator.helper import maintenanceMode, remove_documents_with_timestamp
+    from organizer.delist import scanDelisted
+    from organizer.signal_analyzer import run_signal_analysis
+    from organizer.helper import maintenanceMode, remove_documents_with_timestamp
 
 load_dotenv()
-mongo_uri = os.getenv('MONGODB_URI')
+mongo_uri = os.getenv('MONGO_URI', 'mongodb://localhost:27017')
 api_key = os.getenv('TIINGO_KEY')
 
 # Configure MongoDB client with proper timeouts and pool settings

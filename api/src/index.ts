@@ -12,7 +12,8 @@
  *       optionalAuth — resolves the token BEFORE the limiters, so they key by user
  *       rate limits  — applied per route group below
  *  3. Connect to MongoDB and apply the index manifest.
- *  4. Bind the port only once the database is up.
+ *  4. Attach the Socket.IO gateway to the same HTTP server — one port, not two.
+ *  5. Bind the port only once the database and the gateway are up.
  */
 import 'dotenv/config';
 import cookieParser from 'cookie-parser';
@@ -20,6 +21,7 @@ import cors from 'cors';
 import express from 'express';
 import { createServer } from 'http';
 import helmet from 'helmet';
+import { closeSocket, initSocket } from '@/gateway/index.js';
 import { config } from '@/lib/config.js';
 import { closeDb, connectDb, getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
@@ -134,9 +136,11 @@ app.use(errorHandler);
  * database behind it fails every one of them with a 500 that says nothing about
  * the cause, so a failure here kills the process with a logged reason instead.
  */
-const startup = connectDb().then(() => {
-    server.listen(config.port, () => logger.info({ port: config.port }, 'API listening'));
-});
+const startup = connectDb()
+    .then(() => initSocket(server))
+    .then(() => {
+        server.listen(config.port, () => logger.info({ port: config.port }, 'API listening'));
+    });
 
 startup.catch((err: Error) => {
     logger.fatal({ err }, 'API startup failed');
@@ -144,17 +148,28 @@ startup.catch((err: Error) => {
 });
 
 /**
- * Graceful shutdown: stop accepting connections, then close Mongo and Redis so
- * in-flight queries drain rather than being severed mid-write.
+ * Graceful shutdown: close the gateway first, then stop accepting connections,
+ * then close Mongo and Redis so in-flight queries drain rather than being
+ * severed mid-write.
+ * The gateway goes first because `server.close` waits for open connections to
+ * end, and a WebSocket never ends on its own — leaving it until afterwards is a
+ * shutdown that hangs until the platform loses patience and sends SIGKILL.
+ * `io.close()` takes the HTTP server with it, so the `server.close` below is
+ * only load-bearing when the gateway never came up in the first place.
  */
 for (const signal of ['SIGTERM', 'SIGINT'] as const) {
     process.on(signal, () => {
         logger.info({ signal }, 'Shutting down');
-        server.close(() => {
-            Promise.allSettled([closeDb(), closeRedis()])
-                .then(() => process.exit(0))
-                .catch(() => process.exit(1));
-        });
+        closeSocket()
+            .catch((err: Error) => logger.error({ err }, 'Gateway shutdown failed'))
+            .then(() => {
+                server.close(() => {
+                    Promise.allSettled([closeDb(), closeRedis()])
+                        .then(() => process.exit(0))
+                        .catch(() => process.exit(1));
+                });
+            })
+            .catch(() => process.exit(1));
     });
 }
 

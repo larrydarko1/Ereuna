@@ -5,7 +5,7 @@ import motor.motor_asyncio
 from dotenv import load_dotenv
 
 load_dotenv()
-mongo_uri = os.getenv('MONGODB_URI')
+mongo_uri = os.getenv('MONGO_URI', 'mongodb://localhost:27017')
 mongo_client = motor.motor_asyncio.AsyncIOMotorClient(mongo_uri)
 db = mongo_client['EreunaDB']
 

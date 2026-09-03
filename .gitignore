@@ -38,3 +38,5 @@ docker/certs/
 acme.json
 todo.md
 CLAUDE.md
+coverage
+

@@ -44,10 +44,10 @@ export default defineConfig({
                 target: 'http://localhost:5500',
                 changeOrigin: true,
             },
-            // The live candle feed is served by the Python aggregator, not by
-            // the Node API: it is the only process holding the trade stream.
-            '/ws': {
-                target: 'ws://localhost:8000',
+            // The live market feed rides the API's own HTTP server, so it is
+            // the same target as /api — `ws` is what carries the upgrade.
+            '/socket.io': {
+                target: 'http://localhost:5500',
                 ws: true,
                 changeOrigin: true,
             },

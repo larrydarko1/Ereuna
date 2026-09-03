@@ -1,15 +1,13 @@
-import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
+import { fileURLToPath } from 'url';
 import { sharedEsbuild, sharedTest } from '../vitest.shared.mts';
 
 export default defineConfig({
     test: {
         ...sharedTest,
-        name: 'api',
+        name: 'aggregator',
         environment: 'node',
         include: ['src/**/*.test.ts'],
-        // Seeds the secrets lib/config.ts requires, before it is first imported.
-        setupFiles: ['./vitest.setup.ts'],
     },
     esbuild: sharedEsbuild,
     resolve: {

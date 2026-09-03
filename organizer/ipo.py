@@ -5,10 +5,10 @@ import datetime as dt
 import pandas as pd
 import motor.motor_asyncio
 from dotenv import load_dotenv
-from aggregator.organizer import getHistoricalPrice2
+from organizer.organizer import getHistoricalPrice2
 
 load_dotenv()
-mongo_uri = os.getenv('MONGODB_URI')
+mongo_uri = os.getenv('MONGO_URI', 'mongodb://localhost:27017')
 api_key = os.getenv('TIINGO_KEY')
 mongo_client = motor.motor_asyncio.AsyncIOMotorClient(mongo_uri)
 db = mongo_client['EreunaDB']
@@ -241,3 +241,21 @@ async def IPO(tickers):
         await getSplitsSingle(ticker)
         await getDividendsSingle(ticker)
         await getFinancialsSingle(ticker)
+
+if __name__ == '__main__':
+    import asyncio
+    import re
+    import sys
+
+    # Validated here rather than trusted: every symbol reaches a vendor URL and
+    # a Mongo query, and this is the only boundary between the two.
+    symbols = [s.strip().upper() for s in sys.argv[1:] if s.strip()]
+    invalid = [s for s in symbols if not re.fullmatch(r'[A-Z0-9.]{1,8}', s)]
+
+    if not symbols or invalid:
+        print(f"usage: python -m organizer.ipo SYMBOL [SYMBOL ...]")
+        if invalid:
+            print(f"rejected: {', '.join(invalid)}")
+        sys.exit(1)
+
+    asyncio.run(IPO(symbols))

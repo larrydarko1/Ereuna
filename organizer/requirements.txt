@@ -1,0 +1,8 @@
+motor
+numpy
+pandas
+pymongo
+python-dateutil
+python-dotenv
+pytz
+requests

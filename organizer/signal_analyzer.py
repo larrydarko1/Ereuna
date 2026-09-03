@@ -419,10 +419,10 @@ if __name__ == '__main__':
     )
     
     load_dotenv()
-    mongo_uri = os.getenv('MONGODB_URI')
+    mongo_uri = os.getenv('MONGO_URI', 'mongodb://localhost:27017')
     
     if not mongo_uri:
-        print("ERROR: MONGODB_URI not found in environment variables")
+        print("ERROR: MONGO_URI not found in environment variables")
         sys.exit(1)
     
     print("=" * 80)

@@ -1,8 +1,0 @@
-fastapi
-uvicorn
-websockets
-python-dotenv
-motor
-redis
-prometheus-client
-pytz

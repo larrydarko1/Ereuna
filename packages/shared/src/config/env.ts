@@ -33,6 +33,15 @@ export const redisEnv = {
     REDIS_URL: z.string().min(1).default('redis://localhost:6379'),
 };
 
+/**
+ * The upstream market-data vendor. Both the ingestor (its trade websocket) and
+ * the aggregator (its REST endpoints) authenticate with the same key, which is
+ * why it is declared once here rather than in each service's own schema.
+ */
+export const tiingoEnv = {
+    TIINGO_KEY: z.string().min(1),
+};
+
 /** A required secret: at least `min` chars, and in prod not a recognisable dev placeholder. */
 export function requiredSecret(min = 32): z.ZodString {
     return z

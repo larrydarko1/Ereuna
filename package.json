@@ -27,26 +27,25 @@
         "dev:api": "npm -w api run dev",
         "dev:aggregator": "npm -w aggregator run dev",
         "dev:ingestor": "npm -w ingestor run dev",
-        "dev:websocket": "npm -w aggregator run dev:websocket",
-        "build:all": "npm -w frontend run build && npm -w api run build",
-        "typecheck": "npm -w packages/shared run typecheck && npm -w api run typecheck",
-        "test": "npm -w api run test",
+        "build:all": "npm -w frontend run build && npm -w api run build && npm -w ingestor run build && npm -w aggregator run build",
+        "typecheck": "npm -w packages/shared run typecheck && npm -w api run typecheck && npm -w ingestor run typecheck && npm -w aggregator run typecheck",
+        "test": "vitest run",
         "preview": "npm -w frontend run preview",
         "aggregator": "npm -w aggregator run start",
         "ingestor": "npm -w ingestor run start",
-        "websocket": "npm -w aggregator run start:websocket",
-        "py:install": "npm -w aggregator run py:install && npm -w ingestor run py:install",
         "dbstart": "brew services start mongodb-community",
         "dbstop": "brew services stop mongodb-community",
         "dbup": "npm -w db run restore",
         "dbdump": "npm -w db run dump",
         "redisstart": "brew services start redis",
         "redisstop": "brew services stop redis",
-        "redis": "redis-server"
+        "redis": "redis-server",
+        "test:coverage": "vitest run --coverage"
     },
     "devDependencies": {
         "concurrently": "^10.0.5",
-        "typescript": "~6.0.2"
+        "typescript": "~6.0.2",
+        "vitest": "^4.1.11"
     },
     "packageManager": "npm@11.16.0",
     "engines": {

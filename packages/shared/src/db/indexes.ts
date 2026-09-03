@@ -5,10 +5,16 @@
  * harmless. Adding an index means adding an entry here; it is created on the
  * next boot in every environment. Dropping one is a migration, never a change
  * here — a drop applied at boot re-runs on every restart.
- * Market-data collections (AssetInfo, OHCLVData*, News, Calendar) are owned by
- * the Python ingestor and aggregator and index themselves. Only the read paths
- * the API depends on appear below.
+ * Two manifests, because two services own them. `INDEXES` is applied by the API
+ * at startup and covers the collections the API writes. `OHLCV_INDEXES` is
+ * applied by the aggregator, which is the only writer of the candle
+ * collections; the API only reads them.
+ * Neither candle index is unique. The aggregator is a singleton and upserts on
+ * exactly this key, so it cannot produce a duplicate — while the existing
+ * collections predate the constraint, and a `createIndex` that failed on old
+ * data would stop the service booting rather than surface as a warning.
  */
+import { OHLCV_COLLECTIONS } from '#db/collections.js';
 
 export type IndexSpec = {
     collection: string;
@@ -125,3 +131,15 @@ export const INDEXES: IndexSpec[] = [
         why: 'One drawing document per (owner, symbol, timeframe) — the upsert key when a chart saves.',
     },
 ];
+
+/**
+ * The candle collections, applied by the aggregator.
+ * One compound index per timeframe serves both writers and readers: the
+ * aggregator's upsert filters on exactly this key, and every chart read is
+ * "the last N bars of one symbol", which is this key walked backwards.
+ */
+export const OHLCV_INDEXES: IndexSpec[] = Object.values(OHLCV_COLLECTIONS).map((collection) => ({
+    collection,
+    keys: { tickerID: 1, timestamp: -1 },
+    why: 'Aggregator upserts by (tickerID, timestamp); chart reads walk it backwards for the last N bars',
+}));
