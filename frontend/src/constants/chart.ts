@@ -8,8 +8,6 @@
 /** The drawing tool in use, or null when the pointer pans and zooms the chart. */
 export type ChartTool = 'ruler' | 'trendline' | 'box' | 'text' | 'freehand' | 'priceLevel';
 
-export const CHART_TOOLS = ['ruler', 'trendline', 'box', 'text', 'freehand', 'priceLevel'] as const satisfies readonly ChartTool[];
-
 /** One bar, with its move against the bar before it, as the legend reads it. */
 export type ChartQuote = {
     open: number;
@@ -25,6 +23,8 @@ export type OverlayLabel = {
     label: string;
     color: string;
 };
+
+export const CHART_TOOLS = ['ruler', 'trendline', 'box', 'text', 'freehand', 'priceLevel'] as const satisfies readonly ChartTool[];
 
 /** How many bars the volume colouring averages over before calling one heavy. */
 export const VOLUME_WINDOW = 250;

@@ -20,6 +20,8 @@ const FIXED = [
     { month: 11, day: 25, name: 'Christmas Day' },
 ] as const;
 
+const DAY = 86_400_000;
+
 /** Every exchange holiday in `year`, in date order. */
 export function holidaysFor(year: number): Holiday[] {
     const holidays: Holiday[] = [
@@ -36,8 +38,6 @@ export function holidaysFor(year: number): Holiday[] {
 export function holidayCalendar(from: number, years = 2): Holiday[] {
     return Array.from({ length: years }, (_, offset) => holidaysFor(from + offset)).flat();
 }
-
-const DAY = 86_400_000;
 
 /**
  * A fixed-date holiday moved off the weekend.

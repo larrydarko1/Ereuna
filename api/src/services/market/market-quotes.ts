@@ -4,13 +4,6 @@ import { marketKey, withCache } from '@/lib/cache.js';
 import { sha256 } from '@/lib/crypto.js';
 import { getDb } from '@/lib/db.js';
 
-/**
- * Symbols per aggregation. The pipeline sorts before grouping, so an unbounded
- * `$in` is an unbounded sort — batching keeps each one inside the server's
- * memory limit no matter how large a watchlist or portfolio gets.
- */
-const BATCH_SIZE = 500;
-
 export type Quote = {
     symbol: string;
     close: number;
@@ -19,6 +12,13 @@ export type Quote = {
     change: number | null;
     changePercent: number | null;
 };
+
+/**
+ * Symbols per aggregation. The pipeline sorts before grouping, so an unbounded
+ * `$in` is an unbounded sort — batching keeps each one inside the server's
+ * memory limit no matter how large a watchlist or portfolio gets.
+ */
+const BATCH_SIZE = 500;
 
 /**
  * The latest close for each symbol, as a map.
@@ -87,6 +87,18 @@ export async function quotes(symbols: readonly string[]): Promise<Quote[]> {
     );
 }
 
+/**
+ * The first close at or after `from`, used as a benchmark's inception price.
+ * Returns null when the instrument has no bar in that range — a benchmark added
+ * for a symbol the ingestor does not carry back that far has no return to show.
+ */
+export async function closeOnOrAfter(symbol: string, from: Date): Promise<number | null> {
+    const bar = await getDb()
+        .collection<OhlcvDoc>('OHCLVData')
+        .findOne({ tickerID: symbol, timestamp: { $gte: from } }, { sort: { timestamp: 1 }, projection: { close: 1 } });
+    return bar?.close ?? null;
+}
+
 function toQuote(symbol: string, bars: { close: number; timestamp: Date }[]): Quote {
     const latest = bars[0];
     const previous = bars[1];
@@ -124,18 +136,6 @@ function toQuote(symbol: string, bars: { close: number; timestamp: Date }[]): Qu
         change: round2(change),
         changePercent: round2((change / previous.close) * 100),
     };
-}
-
-/**
- * The first close at or after `from`, used as a benchmark's inception price.
- * Returns null when the instrument has no bar in that range — a benchmark added
- * for a symbol the ingestor does not carry back that far has no return to show.
- */
-export async function closeOnOrAfter(symbol: string, from: Date): Promise<number | null> {
-    const bar = await getDb()
-        .collection<OhlcvDoc>('OHCLVData')
-        .findOne({ tickerID: symbol, timestamp: { $gte: from } }, { sort: { timestamp: 1 }, projection: { close: 1 } });
-    return bar?.close ?? null;
 }
 
 function chunk<T>(values: readonly T[], size: number): T[][] {

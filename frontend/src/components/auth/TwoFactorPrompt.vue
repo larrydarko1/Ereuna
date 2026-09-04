@@ -11,17 +11,13 @@ const emit = defineEmits<{
     cancel: [];
 }>();
 
+defineExpose({ reset });
+
 const LENGTH = 6;
 
 const { t } = useI18n();
 const digits = ref<string[]>(Array.from({ length: LENGTH }, () => ''));
 const inputs = ref<HTMLInputElement[]>([]);
-
-useEscapeToClose(() => emit('cancel'));
-
-onMounted(() => {
-    void nextTick(() => inputs.value[0]?.focus());
-});
 
 function focusAt(index: number): void {
     inputs.value[Math.min(Math.max(index, 0), LENGTH - 1)]?.focus();
@@ -70,7 +66,11 @@ function reset(): void {
     void nextTick(() => focusAt(0));
 }
 
-defineExpose({ reset });
+useEscapeToClose(() => emit('cancel'));
+
+onMounted(() => {
+    void nextTick(() => inputs.value[0]?.focus());
+});
 </script>
 
 <template>

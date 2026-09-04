@@ -9,6 +9,14 @@ const { symbol, exchange = null, size = 'md' } = defineProps<{
 
 const failed = ref(false);
 
+// Served by the API off disk, not shipped in the build — a relative path so
+// the reverse proxy that fronts both is the only thing that knows where.
+const source = computed(() =>
+    exchange === null || exchange === '' ? null : `/api/logos/${exchange}/${encodeURIComponent(symbol)}.svg`,
+);
+
+const initials = computed(() => symbol.slice(0, 2).toUpperCase());
+
 // A new symbol deserves a fresh attempt: the previous one's 404 says nothing
 // about this one.
 watch(
@@ -17,14 +25,6 @@ watch(
         failed.value = false;
     },
 );
-
-// Served by the API off disk, not shipped in the build — a relative path so
-// the reverse proxy that fronts both is the only thing that knows where.
-const source = computed(() =>
-    exchange === null || exchange === '' ? null : `/api/logos/${exchange}/${encodeURIComponent(symbol)}.svg`,
-);
-
-const initials = computed(() => symbol.slice(0, 2).toUpperCase());
 </script>
 
 <template>

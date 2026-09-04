@@ -15,13 +15,13 @@ const { slotNumber, load } = defineProps<{
 
 const emit = defineEmits<{ close: [] }>();
 
+const CSV_COLUMNS = ['tradeDate', 'action', 'symbol', 'shares', 'price', 'commission', 'total'] as const;
+
 const { t } = useI18n();
 
 const format = ref<'json' | 'csv'>('json');
 const busy = ref(false);
 const problem = ref<string | null>(null);
-
-const CSV_COLUMNS = ['tradeDate', 'action', 'symbol', 'shares', 'price', 'commission', 'total'] as const;
 
 async function download(): Promise<void> {
     busy.value = true;

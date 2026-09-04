@@ -4,6 +4,13 @@
  * newest last — and every caller sorts that way. 
  */
 
+export type MacdSeries = {
+    macd: number[];
+    signal: number[];
+};
+
+export const MIN_CAGR_YEARS = 0.25;
+
 export function sma(values: readonly number[], period: number): number | null {
     if (period <= 0 || values.length < period) return null;
     const window = values.slice(values.length - period);
@@ -46,11 +53,6 @@ export function rsi(closes: readonly number[], period = 14): number | null {
     return 100 - 100 / (1 + averageGain / averageLoss);
 }
 
-export type MacdSeries = {
-    macd: number[];
-    signal: number[];
-};
-
 export function macd(closes: readonly number[], fast = 12, slow = 26, signalPeriod = 9): MacdSeries | null {
     if (closes.length < slow) return null;
 
@@ -92,8 +94,6 @@ export function changeOver(closes: readonly number[], bars: number): number | nu
     if (latest === undefined || earlier === undefined || earlier === 0) return null;
     return (latest - earlier) / earlier;
 }
-
-export const MIN_CAGR_YEARS = 0.25;
 
 export function cagr(startPrice: number, endPrice: number, years: number): number | null {
     if (startPrice <= 0 || endPrice <= 0 || years < MIN_CAGR_YEARS) return null;

@@ -13,12 +13,12 @@ import {
 
 const emit = defineEmits<{ close: [] }>();
 
+const MARKERS = ['earnings', 'dividends', 'splits'] as const;
+const OVERLAY_TYPES = ['SMA', 'EMA'] as const;
+
 const { t } = useI18n();
 const { settings, save } = useChartSettings();
 const { palette } = useChartTheme();
-
-const MARKERS = ['earnings', 'dividends', 'splits'] as const;
-const OVERLAY_TYPES = ['SMA', 'EMA'] as const;
 
 // A working copy: nothing reaches the account until Save, so Escape is a real
 // cancel rather than an undo of writes already made.

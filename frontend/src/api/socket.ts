@@ -25,7 +25,7 @@ export function useSocket(): UseSocketReturn {
     return { socket: active, connected: readonly(connected) };
 }
 
-export function disconnectSocket(): void {
+function disconnectSocket(): void {
     if (socket === null) return;
     socket.disconnect();
     socket = null;

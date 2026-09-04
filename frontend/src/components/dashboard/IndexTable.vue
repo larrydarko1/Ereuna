@@ -6,12 +6,12 @@ import { direction, formatCurrency, formatRatio } from '@/utils/formatters';
 
 const { indexes } = defineProps<{ indexes: IndexPerformance[] }>();
 
-const { t } = useI18n();
-
 /** The order they are shown in: broad market first, then size, then abroad. */
 const ORDER = ['SPY', 'QQQ', 'DIA', 'IWM', 'EFA', 'EEM'];
 
 const PERIODS = ['oneDay', 'oneMonth', 'fourMonth', 'oneYear', 'yearToDate'] as const;
+
+const { t } = useI18n();
 
 const rows = computed(() =>
     [...indexes].sort((left, right) => rank(left.symbol) - rank(right.symbol)),

@@ -4,6 +4,8 @@ import { useI18n } from 'vue-i18n';
 import type { CorporateAction } from '@ereuna/shared';
 import { formatDate, formatNumber } from '@/utils/formatters';
 
+type Row = { key: string; date: string; value: string };
+
 const { actions, kind, expandable = false } = defineProps<{
     actions: readonly CorporateAction[];
     kind: 'dividends' | 'splits';
@@ -13,8 +15,6 @@ const { actions, kind, expandable = false } = defineProps<{
 const emit = defineEmits<{ expand: [] }>();
 
 const { t } = useI18n();
-
-type Row = { key: string; date: string; value: string };
 
 const rows = computed<Row[]>(() =>
     actions.flatMap((action, index) => {

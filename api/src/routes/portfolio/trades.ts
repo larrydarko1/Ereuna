@@ -49,6 +49,8 @@ const listQuery = makePaginationQuery({ defaultLimit: 50, maxLimit: 200 }).exten
     symbol: symbolSchema.optional(),
 });
 
+export const router = Router({ mergeParams: true });
+
 /** Normalise a validated body into the service's input shape. */
 export function toTradeInput(body: z.output<typeof tradeInputSchema>): TradeInput {
     return {
@@ -61,8 +63,6 @@ export function toTradeInput(body: z.output<typeof tradeInputSchema>): TradeInpu
         tradeDate: new Date(body.tradeDate),
     };
 }
-
-export const router = Router({ mergeParams: true });
 
 router.get(
     '/',

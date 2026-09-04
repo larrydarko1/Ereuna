@@ -31,13 +31,6 @@ export type ChartSettings = {
     markers: ChartMarkers; // Which corporate actions are flagged on the time axis
 };
 
-/**
- * How the price series is drawn.
- * `heikinAshi` is a candlestick whose bodies are smoothed across neighbours, so
- * it is a rendering of the same bars rather than a different series.
- */
-export const CHART_STYLES = ['candlestick', 'bar', 'heikinAshi', 'line', 'area', 'baseline'] as const;
-
 export type ChartStyle = (typeof CHART_STYLES)[number];
 
 export type ChartMarkers = {
@@ -57,71 +50,7 @@ export type PanelLayout = {
     summaryFields: SummaryField[]; // Rows inside the summary section, in render order
 };
 
-export const PANEL_SECTIONS = [
-    'summary',
-    'eps',
-    'earnings',
-    'sales',
-    'dividends',
-    'splits',
-    'financials',
-    'notes',
-    'news',
-] as const;
-
 export type PanelSection = (typeof PANEL_SECTIONS)[number];
-
-export const SUMMARY_FIELDS = [
-    'symbol',
-    'name',
-    'assetType',
-    'exchange',
-    'isin',
-    'ipo',
-    'sector',
-    'industry',
-    'currency',
-    'rsScore1W',
-    'rsScore1M',
-    'rsScore4M',
-    'marketCap',
-    'sharesOutstanding',
-    'location',
-    'dividendDate',
-    'dividendYield',
-    'bookValue',
-    'peg',
-    'pe',
-    'ps',
-    'allTimeHigh',
-    'allTimeLow',
-    'week52High',
-    'week52Low',
-    'offWeek52High',
-    'offWeek52Low',
-    'rsi',
-    'gap',
-    'adv1W',
-    'adv1M',
-    'adv4M',
-    'adv1Y',
-    'relVolume1W',
-    'relVolume1M',
-    'relVolume6M',
-    'relVolume1Y',
-    'avgVolume1W',
-    'avgVolume1M',
-    'avgVolume6M',
-    'avgVolume1Y',
-    'fundCategory',
-    'fundFamily',
-    'netExpenseRatio',
-    'intrinsicValue',
-    'cagr',
-    'cagrYears',
-    'website',
-    'description',
-] as const;
 
 export type SummaryField = (typeof SUMMARY_FIELDS)[number];
 
@@ -272,14 +201,6 @@ export type ChartDrawings = {
     priceLevels: unknown[];
 };
 
-export const DRAWING_KINDS = [
-    'trendLines',
-    'boxes',
-    'textAnnotations',
-    'freehandPaths',
-    'priceLevels',
-] as const satisfies readonly (keyof ChartDrawings)[];
-
 export type ChartDrawingDoc = {
     userId: ObjectId;
     symbol: string;
@@ -289,31 +210,7 @@ export type ChartDrawingDoc = {
     updatedAt: Date;
 };
 
-export const CHART_TIMEFRAMES = [
-    'daily',
-    'weekly',
-    'intraday1m',
-    'intraday5m',
-    'intraday15m',
-    'intraday30m',
-    'intraday1hr',
-] as const;
-
 export type ChartTimeframe = (typeof CHART_TIMEFRAMES)[number];
-
-/** Intraday bars carry a time-of-day; daily and weekly bars are dated only. */
-export function isIntraday(timeframe: ChartTimeframe): boolean {
-    return timeframe !== 'daily' && timeframe !== 'weekly';
-}
-
-/**
- * The bar collections that carry a time-of-day.
- * Derived rather than listed, so a new intraday timeframe reaches the retention
- * sweep and the split adjustment without either of them being edited.
- */
-export const INTRADAY_COLLECTIONS = CHART_TIMEFRAMES.filter(isIntraday).map(
-    (timeframe) => OHLCV_COLLECTIONS[timeframe],
-);
 
 /**
  * A dividend or a split, as stored on the asset and as served to the chart.
@@ -369,8 +266,6 @@ export type NewsDoc = {
     publishedDate: Date;
 };
 
-export const CALENDAR_EVENT_TYPES = ['Earnings', 'Dividend', 'Split'] as const;
-
 export type CalendarEventType = (typeof CALENDAR_EVENT_TYPES)[number];
 
 export type CalendarEventDoc = {
@@ -386,3 +281,107 @@ export type StatsDoc = {
     [field: string]: unknown;
 };
 
+/**
+ * How the price series is drawn.
+ * `heikinAshi` is a candlestick whose bodies are smoothed across neighbours, so
+ * it is a rendering of the same bars rather than a different series.
+ */
+export const CHART_STYLES = ['candlestick', 'bar', 'heikinAshi', 'line', 'area', 'baseline'] as const;
+
+export const PANEL_SECTIONS = [
+    'summary',
+    'eps',
+    'earnings',
+    'sales',
+    'dividends',
+    'splits',
+    'financials',
+    'notes',
+    'news',
+] as const;
+
+export const SUMMARY_FIELDS = [
+    'symbol',
+    'name',
+    'assetType',
+    'exchange',
+    'isin',
+    'ipo',
+    'sector',
+    'industry',
+    'currency',
+    'rsScore1W',
+    'rsScore1M',
+    'rsScore4M',
+    'marketCap',
+    'sharesOutstanding',
+    'location',
+    'dividendDate',
+    'dividendYield',
+    'bookValue',
+    'peg',
+    'pe',
+    'ps',
+    'allTimeHigh',
+    'allTimeLow',
+    'week52High',
+    'week52Low',
+    'offWeek52High',
+    'offWeek52Low',
+    'rsi',
+    'gap',
+    'adv1W',
+    'adv1M',
+    'adv4M',
+    'adv1Y',
+    'relVolume1W',
+    'relVolume1M',
+    'relVolume6M',
+    'relVolume1Y',
+    'avgVolume1W',
+    'avgVolume1M',
+    'avgVolume6M',
+    'avgVolume1Y',
+    'fundCategory',
+    'fundFamily',
+    'netExpenseRatio',
+    'intrinsicValue',
+    'cagr',
+    'cagrYears',
+    'website',
+    'description',
+] as const;
+
+export const DRAWING_KINDS = [
+    'trendLines',
+    'boxes',
+    'textAnnotations',
+    'freehandPaths',
+    'priceLevels',
+] as const satisfies readonly (keyof ChartDrawings)[];
+
+export const CHART_TIMEFRAMES = [
+    'daily',
+    'weekly',
+    'intraday1m',
+    'intraday5m',
+    'intraday15m',
+    'intraday30m',
+    'intraday1hr',
+] as const;
+
+/**
+ * The bar collections that carry a time-of-day.
+ * Derived rather than listed, so a new intraday timeframe reaches the retention
+ * sweep and the split adjustment without either of them being edited.
+ */
+export const INTRADAY_COLLECTIONS = CHART_TIMEFRAMES.filter(isIntraday).map(
+    (timeframe) => OHLCV_COLLECTIONS[timeframe],
+);
+
+export const CALENDAR_EVENT_TYPES = ['Earnings', 'Dividend', 'Split'] as const;
+
+/** Intraday bars carry a time-of-day; daily and weekly bars are dated only. */
+export function isIntraday(timeframe: ChartTimeframe): boolean {
+    return timeframe !== 'daily' && timeframe !== 'weekly';
+}

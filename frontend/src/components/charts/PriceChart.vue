@@ -65,6 +65,9 @@ const { symbol, profile = null, events = null } = defineProps<{
     events?: ChartEvents | null;
 }>();
 
+/** The screenshot manager finds the canvas layers by the container's id. */
+const CANVAS_ID = 'price-chart-canvas';
+
 const { t } = useI18n();
 const { notify } = useNotifications();
 const { palette } = useChartTheme();
@@ -90,9 +93,6 @@ const live = useLiveCandle(
 );
 
 const container = useTemplateRef<HTMLElement>('container');
-
-/** The screenshot manager finds the canvas layers by the container's id. */
-const CANVAS_ID = 'price-chart-canvas';
 
 const tool = ref<ChartTool | null>(null);
 const crosshairIndex = ref<number | null>(null);
@@ -183,53 +183,13 @@ const isEodOnly = computed(() => {
 
 const timeframes = computed(() => (isEodOnly.value ? EOD_TIMEFRAMES : CHART_TIMEFRAMES));
 
-// Lifecycle
-
-onMounted(() => {
-    const element = container.value;
-    if (element === null) return;
-
-    chart = createChart(element, chartOptions());
-    volumeSeries = chart.addHistogramSeries({
-        priceFormat: { type: 'volume' },
-        priceScaleId: '',
-        lastValueVisible: false,
-        priceLineVisible: false,
-    });
-    volumeSeries.priceScale().applyOptions({ scaleMargins: { top: 0.9, bottom: 0 } });
-
-    screenshotManager = new ChartScreenshot(chart, CANVAS_ID);
-
-    buildMainSeries();
-    syncOverlays();
-    resize();
-
-    chart.subscribeCrosshairMove(onCrosshair);
-    chart.timeScale().subscribeVisibleLogicalRangeChange(onRangeChange);
-
-    resizeObserver = new ResizeObserver(() => {
-        resize();
-        priceLevels?.updatePositions();
-    });
-    resizeObserver.observe(element);
-
-    window.addEventListener('keydown', onKeydown);
-});
-
-onUnmounted(() => {
-    window.removeEventListener('keydown', onKeydown);
-    resizeObserver?.disconnect();
-
-    // Last chance to persist: a pending debounce would fire into a component
-    // that no longer exists, so the queued save is taken now instead.
-    void drawings.save(drawingKey.value);
-
-    destroyManagers();
-    patternOverlay = null;
-    screenshotManager = null;
-    chart?.remove();
-    chart = null;
-});
+/**
+ * What the price series was last given, so a live tick can be applied as one
+ * point instead of as a fresh copy of the window. A live candle only ever
+ * rewrites the final bar or adds one after it; anything else — a timeframe
+ * change, a page of older bars, a replay step — replaces the series.
+ */
+let applied: { length: number; last: number } | null = null;
 
 // Series
 
@@ -307,14 +267,6 @@ function buildMainSeries(): void {
     applyIntrinsicLine();
     rebuildManagers();
 }
-
-/**
- * What the price series was last given, so a live tick can be applied as one
- * point instead of as a fresh copy of the window. A live candle only ever
- * rewrites the final bar or adds one after it; anything else — a timeframe
- * change, a page of older bars, a replay step — replaces the series.
- */
-let applied: { length: number; last: number } | null = null;
 
 function applyBars(): void {
     if (mainSeries === null) return;
@@ -655,6 +607,54 @@ function resize(): void {
     chart.applyOptions({ width: Math.floor(rect.width), height: Math.floor(rect.height) });
 }
 
+// Lifecycle
+
+onMounted(() => {
+    const element = container.value;
+    if (element === null) return;
+
+    chart = createChart(element, chartOptions());
+    volumeSeries = chart.addHistogramSeries({
+        priceFormat: { type: 'volume' },
+        priceScaleId: '',
+        lastValueVisible: false,
+        priceLineVisible: false,
+    });
+    volumeSeries.priceScale().applyOptions({ scaleMargins: { top: 0.9, bottom: 0 } });
+
+    screenshotManager = new ChartScreenshot(chart, CANVAS_ID);
+
+    buildMainSeries();
+    syncOverlays();
+    resize();
+
+    chart.subscribeCrosshairMove(onCrosshair);
+    chart.timeScale().subscribeVisibleLogicalRangeChange(onRangeChange);
+
+    resizeObserver = new ResizeObserver(() => {
+        resize();
+        priceLevels?.updatePositions();
+    });
+    resizeObserver.observe(element);
+
+    window.addEventListener('keydown', onKeydown);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', onKeydown);
+    resizeObserver?.disconnect();
+
+    // Last chance to persist: a pending debounce would fire into a component
+    // that no longer exists, so the queued save is taken now instead.
+    void drawings.save(drawingKey.value);
+
+    destroyManagers();
+    patternOverlay = null;
+    screenshotManager = null;
+    chart?.remove();
+    chart = null;
+});
+
 // Reactive wiring
 
 watch(palette, () => {
@@ -696,7 +696,6 @@ watch(drawingKey, async (next, previous) => {
 watch(isEodOnly, (eodOnly) => {
     if (eodOnly && timeframe.value !== 'daily' && timeframe.value !== 'weekly') timeframe.value = 'daily';
 });
-
 </script>
 
 <template>

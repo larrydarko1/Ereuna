@@ -4,7 +4,7 @@ import type { ChartDrawingDoc, ChartDrawings, ChartTimeframe } from '@ereuna/sha
 import { DRAWING_KINDS } from '@ereuna/shared';
 import { getDb } from '@/lib/db.js';
 
-export const EMPTY_DRAWINGS: ChartDrawings = {
+const EMPTY_DRAWINGS: ChartDrawings = {
     trendLines: [],
     boxes: [],
     textAnnotations: [],

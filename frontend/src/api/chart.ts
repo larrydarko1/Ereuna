@@ -32,11 +32,6 @@ export type Candle = {
     close: number;
 };
 
-export type VolumePoint = {
-    time: string;
-    value: number;
-};
-
 export type ChartOverlay = {
     type: 'SMA' | 'EMA';
     period: number;
@@ -126,8 +121,12 @@ export type ChartEvents = {
 
 export type SeriesOptions = {
     timeframe?: ChartTimeframe;
-    /** Cursor for paging backwards: the newest bars strictly older than this. */
-    before?: string;
+    before?: string; // Cursor for paging backwards: the newest bars strictly older than this
+};
+
+type VolumePoint = {
+    time: string;
+    value: number;
 };
 
 export function searchAssets(q: string, limit?: number): ApiResult<{ items: AssetSummary[] }> {

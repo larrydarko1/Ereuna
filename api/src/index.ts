@@ -118,7 +118,6 @@ app.use('/api/market', relaxedLimiter, requireAuth, marketRouter);
 // See routes/asset/logos.ts for what stands in for auth here.
 app.use('/api/logos', assetLimiter, logosRouter);
 
-
 app.get('/healthz', async (_req: express.Request, res: express.Response) => {
     try {
         await getDb().command({ ping: 1 });
@@ -136,6 +135,7 @@ app.get('/livez', (_req: express.Request, res: express.Response) => {
 // Must be registered after every route: Express finds it by its 4-arg signature.
 app.use(errorHandler);
 
+
 /**
  * Startup is all-or-nothing. A half-booted server that accepts requests with no
  * database behind it fails every one of them with a 500 that says nothing about
@@ -146,7 +146,7 @@ const startup = connectDb()
     .then(() => {
         server.listen(config.port, () => logger.info({ port: config.port }, 'API listening'));
     });
-
+    
 startup.catch((err: Error) => {
     logger.fatal({ err }, 'API startup failed');
     process.exit(1);

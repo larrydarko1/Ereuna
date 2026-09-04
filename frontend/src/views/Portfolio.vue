@@ -29,6 +29,8 @@ import { useMarketStatus } from '@/composables/charts/useMarketStatus';
 import { notifySuccess } from '@/composables/ui/useNotifications';
 import { formatCurrency, formatDate, formatNumber } from '@/utils/formatters';
 
+type Dialog = 'trade' | 'cash' | 'settings' | 'benchmarks' | 'import' | 'export' | 'reset';
+
 const { t } = useI18n();
 
 const {
@@ -64,8 +66,6 @@ const { quotes } = useLiveQuotes(
     () => heldSymbols.value,
     () => market.status.value === 'open' && heldSymbols.value.length > 0,
 );
-
-type Dialog = 'trade' | 'cash' | 'settings' | 'benchmarks' | 'import' | 'export' | 'reset';
 
 const dialog = ref<Dialog | null>(null);
 const saving = ref(false);

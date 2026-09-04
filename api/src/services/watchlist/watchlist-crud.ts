@@ -13,16 +13,6 @@ export type WatchlistSummary = {
     updatedAt: Date;
 };
 
-export function toSummary(doc: WithId<WatchlistDoc>): WatchlistSummary {
-    return {
-        id: doc._id.toHexString(),
-        name: doc.name,
-        position: doc.position,
-        tickerCount: doc.list.length,
-        updatedAt: doc.updatedAt,
-    };
-}
-
 export async function listWatchlists(userId: ObjectId): Promise<WatchlistSummary[]> {
     const docs = await collection().find({ userId }).sort({ position: 1 }).toArray();
     return docs.map(toSummary);
@@ -103,6 +93,16 @@ export async function reorderWatchlists(userId: ObjectId, names: readonly string
 
     await writeOrder(userId, ordered);
     return listWatchlists(userId);
+}
+
+function toSummary(doc: WithId<WatchlistDoc>): WatchlistSummary {
+    return {
+        id: doc._id.toHexString(),
+        name: doc.name,
+        position: doc.position,
+        tickerCount: doc.list.length,
+        updatedAt: doc.updatedAt,
+    };
 }
 
 /** Close the gap a delete leaves, so `position` stays a dense 0..n-1 range. */

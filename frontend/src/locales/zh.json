@@ -1058,7 +1058,6 @@
         "INCORRECT_PASSWORD": "密码不正确。",
         "USERNAME_TAKEN": "该用户名已被占用。",
         "USER_NOT_FOUND": "该账户不存在。",
-        "TWO_FA_REQUIRED": "请输入双重验证码以继续。",
         "TWO_FA_TOKEN_INVALID": "该双重验证会话已过期，请重新登录。",
         "TWO_FA_ALREADY_ENABLED": "双重验证已经启用。",
         "TWO_FA_NOT_ENABLED": "尚未启用双重验证。",
@@ -1107,16 +1106,9 @@
         "usernameCharacters": "用户名只能包含字母、数字和下划线。",
         "passwordLength": "密码必须为 {min}–{max} 个字符。",
         "confirmationRequired": "请确认密码。",
-        "symbolRequired": "请输入代码。",
-        "symbolInvalid": "代码无效。",
-        "numberRequired": "请输入数字。",
-        "numberInvalid": "数字无效。",
-        "numberPositive": "必须大于零。",
-        "numberNonNegative": "不能为负数。",
         "passwordUppercase": "密码必须包含一个大写字母。",
         "passwordLowercase": "密码必须包含一个小写字母。",
         "passwordNumber": "密码必须包含一个数字。",
-        "passwordSpecial": "密码必须包含一个特殊字符。",
-        "recoveryCodeRequired": "需要恢复码。"
+        "passwordSpecial": "密码必须包含一个特殊字符。"
     }
 }

@@ -2,16 +2,6 @@
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 
-export class TiingoError extends Error {
-    constructor(
-        readonly status: number,
-        readonly path: string,
-    ) {
-        super(`Tiingo ${path} responded ${status}`);
-        this.name = 'TiingoError';
-    }
-}
-
 /** A daily bar as the vendor sends it. Adjusted and raw fields both arrive. */
 export type VendorDailyBar = {
     date: string;
@@ -31,23 +21,6 @@ export type VendorDailyBar = {
 
 /** One row of the whole-market end-of-day endpoint. */
 export type VendorMarketBar = VendorDailyBar & { ticker: string };
-
-export type VendorMeta = {
-    ticker?: string;
-    name?: string;
-    description?: string;
-    startDate?: string | null;
-    endDate?: string | null;
-    exchangeCode?: string;
-};
-
-export type VendorFundamentalsMeta = {
-    ticker?: string;
-    sector?: string;
-    industry?: string;
-    reportingCurrency?: string;
-    location?: string;
-};
 
 export type VendorStatementItem = { dataCode?: string; value?: number | null };
 
@@ -72,8 +45,45 @@ export type VendorNewsItem = {
     tickers?: string[];
 };
 
-let inFlight = 0;
 const waiting: (() => void)[] = [];
+
+class TiingoError extends Error {
+    constructor(
+        readonly status: number,
+        readonly path: string,
+    ) {
+        super(`Tiingo ${path} responded ${status}`);
+        this.name = 'TiingoError';
+    }
+}
+
+let inFlight = 0;
+
+/** Every listed symbol's end-of-day bar for the latest session, in one call. */
+export function marketPrices(): Promise<VendorMarketBar[]> {
+    return request<VendorMarketBar[]>('/tiingo/daily/prices');
+}
+
+/** The full daily history for one symbol. */
+export function dailyHistory(symbol: string, startDate = '1960-01-01'): Promise<VendorDailyBar[]> {
+    return request<VendorDailyBar[]>(`/tiingo/daily/${encodeURIComponent(symbol)}/prices`, {
+        startDate,
+        endDate: new Date().toISOString().slice(0, 10),
+    });
+}
+
+/** Quarterly and annual financial statements for one symbol. */
+export function statements(symbol: string): Promise<VendorStatement[]> {
+    return request<VendorStatement[]>(`/tiingo/fundamentals/${encodeURIComponent(symbol)}/statements`);
+}
+
+/** Headlines mentioning any of `symbols`. */
+export function news(symbols: readonly string[], limit: number): Promise<VendorNewsItem[]> {
+    return request<VendorNewsItem[]>('/tiingo/news', {
+        tickers: symbols.map((symbol) => symbol.toLowerCase()).join(','),
+        limit: String(limit),
+    });
+}
 
 /**
  * Hold the caller until a request slot frees up.
@@ -133,40 +143,4 @@ async function request<T>(path: string, query: Record<string, string> = {}): Pro
     } finally {
         release();
     }
-}
-
-/** Every listed symbol's end-of-day bar for the latest session, in one call. */
-export function marketPrices(): Promise<VendorMarketBar[]> {
-    return request<VendorMarketBar[]>('/tiingo/daily/prices');
-}
-
-/** The full daily history for one symbol. */
-export function dailyHistory(symbol: string, startDate = '1960-01-01'): Promise<VendorDailyBar[]> {
-    return request<VendorDailyBar[]>(`/tiingo/daily/${encodeURIComponent(symbol)}/prices`, {
-        startDate,
-        endDate: new Date().toISOString().slice(0, 10),
-    });
-}
-
-/** Name, description, listing date and exchange for one symbol. */
-export function assetMeta(symbol: string): Promise<VendorMeta> {
-    return request<VendorMeta>(`/tiingo/daily/${encodeURIComponent(symbol)}`);
-}
-
-/** Sector, industry, currency and location for the whole universe, in one call. */
-export function fundamentalsMeta(): Promise<VendorFundamentalsMeta[]> {
-    return request<VendorFundamentalsMeta[]>('/tiingo/fundamentals/meta');
-}
-
-/** Quarterly and annual financial statements for one symbol. */
-export function statements(symbol: string): Promise<VendorStatement[]> {
-    return request<VendorStatement[]>(`/tiingo/fundamentals/${encodeURIComponent(symbol)}/statements`);
-}
-
-/** Headlines mentioning any of `symbols`. */
-export function news(symbols: readonly string[], limit: number): Promise<VendorNewsItem[]> {
-    return request<VendorNewsItem[]>('/tiingo/news', {
-        tickers: symbols.map((symbol) => symbol.toLowerCase()).join(','),
-        limit: String(limit),
-    });
 }

@@ -24,9 +24,9 @@ const emit = defineEmits<{
     toggleHidden: [symbol: string];
 }>();
 
-const { t } = useI18n();
-
 const PLACEHOLDER = '—';
+
+const { t } = useI18n();
 
 /** Only columns the catalogue knows how to label and format are rendered. */
 const resolved = computed(() => columns.map((path) => findColumn(path)).filter((column) => column !== undefined));

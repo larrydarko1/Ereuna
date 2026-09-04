@@ -15,9 +15,9 @@ const emit = defineEmits<{
 
 const speed = defineModel<number>('speed', { required: true });
 
-const { t } = useI18n();
-
 const SPEEDS = [0.5, 1, 2, 5, 10] as const;
+
+const { t } = useI18n();
 
 function onSeek(event: Event): void {
     emit('seek', Number((event.target as HTMLInputElement).value));

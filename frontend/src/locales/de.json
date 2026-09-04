@@ -1058,7 +1058,6 @@
         "INCORRECT_PASSWORD": "Dieses Passwort ist falsch.",
         "USERNAME_TAKEN": "Dieser Benutzername ist bereits vergeben.",
         "USER_NOT_FOUND": "Dieses Konto existiert nicht.",
-        "TWO_FA_REQUIRED": "Gib deinen Zwei-Faktor-Code ein, um fortzufahren.",
         "TWO_FA_TOKEN_INVALID": "Diese Zwei-Faktor-Sitzung ist abgelaufen. Bitte melde dich erneut an.",
         "TWO_FA_ALREADY_ENABLED": "Die Zwei-Faktor-Authentifizierung ist bereits aktiviert.",
         "TWO_FA_NOT_ENABLED": "Die Zwei-Faktor-Authentifizierung ist nicht aktiviert.",
@@ -1107,16 +1106,9 @@
         "usernameCharacters": "Der Benutzername darf nur Buchstaben, Ziffern und Unterstriche enthalten.",
         "passwordLength": "Das Passwort muss {min}–{max} Zeichen lang sein.",
         "confirmationRequired": "Bestätige dein Passwort.",
-        "symbolRequired": "Ein Symbol ist erforderlich.",
-        "symbolInvalid": "Das ist kein gültiges Symbol.",
-        "numberRequired": "Eine Zahl ist erforderlich.",
-        "numberInvalid": "Das ist keine gültige Zahl.",
-        "numberPositive": "Muss größer als null sein.",
-        "numberNonNegative": "Darf nicht negativ sein.",
         "passwordUppercase": "Das Passwort muss einen Großbuchstaben enthalten.",
         "passwordLowercase": "Das Passwort muss einen Kleinbuchstaben enthalten.",
         "passwordNumber": "Das Passwort muss eine Ziffer enthalten.",
-        "passwordSpecial": "Das Passwort muss ein Sonderzeichen enthalten.",
-        "recoveryCodeRequired": "Ein Wiederherstellungscode ist erforderlich."
+        "passwordSpecial": "Das Passwort muss ein Sonderzeichen enthalten."
     }
 }

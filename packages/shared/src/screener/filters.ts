@@ -13,7 +13,7 @@
 export type FilterBoundsSource =
     | { kind: 'fixed'; min: number; max: number } // Constant bounds — the metric has a defined domain (RSI is 1–100)
     | { kind: 'derived' } // `$min`/`$max` over the queried AssetInfo path
-    | { kind: 'latestClose' }; // Latest close across OHCLVData — price has no scalar AssetInfo column
+    | { kind: 'latestClose' };
 
 export type RangeFilterSpec = {
     key: string; // URL slug — `PATCH /api/screeners/:name/filters/pe`
@@ -37,6 +37,23 @@ export type EnumFilterSpec = {
     label: string;
     options: FilterOptionsSource;
 };
+
+export type DateFilterSpec = {
+    key: string;
+    field: string;
+    queryPath: string;
+    label: string;
+};
+
+export type RangeFilterKey = (typeof RANGE_FILTERS)[number]['key'];
+export type EnumFilterKey = (typeof ENUM_FILTERS)[number]['key'];
+export type DateFilterKey = (typeof DATE_FILTERS)[number]['key'];
+export type MaFilterKey = (typeof MA_FILTERS)[number]['key'];
+export type FlagFilterKey = (typeof FLAG_FILTERS)[number]['key'];
+export type ScreenerFilterKey = RangeFilterKey | EnumFilterKey | DateFilterKey | MaFilterKey | FlagFilterKey;
+
+export type MaTarget = (typeof MA_TARGETS)[number];
+export type MaDirection = (typeof MA_DIRECTIONS)[number];
 
 /**
  * Numeric range filters. Each writes `[min, max]` to its `field` and
@@ -143,13 +160,6 @@ export const DATE_FILTERS = [
     { key: 'ipo-date', field: 'IPO', queryPath: 'IPO', label: 'IPO date' },
 ] as const satisfies readonly DateFilterSpec[];
 
-export type DateFilterSpec = {
-    key: string;
-    field: string;
-    queryPath: string;
-    label: string;
-};
-
 /**
  * Moving-average relation filters. Each compares one MA against another MA or
  * against the latest close, so they cannot be expressed as a value range —
@@ -172,41 +182,11 @@ export const FLAG_FILTERS = [
     { key: 'new-low', field: 'NewLow', label: 'At a new 52-week low' },
 ] as const;
 
-export type RangeFilterKey = (typeof RANGE_FILTERS)[number]['key'];
-export type EnumFilterKey = (typeof ENUM_FILTERS)[number]['key'];
-export type DateFilterKey = (typeof DATE_FILTERS)[number]['key'];
-export type MaFilterKey = (typeof MA_FILTERS)[number]['key'];
-export type FlagFilterKey = (typeof FLAG_FILTERS)[number]['key'];
-export type ScreenerFilterKey = RangeFilterKey | EnumFilterKey | DateFilterKey | MaFilterKey | FlagFilterKey;
-
-export type MaTarget = (typeof MA_TARGETS)[number];
-export type MaDirection = (typeof MA_DIRECTIONS)[number];
-
 const RANGE_BY_KEY = new Map<string, RangeFilterSpec>(RANGE_FILTERS.map((f) => [f.key, f]));
 const ENUM_BY_KEY = new Map<string, EnumFilterSpec>(ENUM_FILTERS.map((f) => [f.key, f]));
 const DATE_BY_KEY = new Map<string, DateFilterSpec>(DATE_FILTERS.map((f) => [f.key, f]));
 const MA_BY_KEY = new Map<string, (typeof MA_FILTERS)[number]>(MA_FILTERS.map((f) => [f.key, f]));
 const FLAG_BY_KEY = new Map<string, (typeof FLAG_FILTERS)[number]>(FLAG_FILTERS.map((f) => [f.key, f]));
-
-export function findRangeFilter(key: string): RangeFilterSpec | undefined {
-    return RANGE_BY_KEY.get(key);
-}
-
-export function findEnumFilter(key: string): EnumFilterSpec | undefined {
-    return ENUM_BY_KEY.get(key);
-}
-
-export function findDateFilter(key: string): DateFilterSpec | undefined {
-    return DATE_BY_KEY.get(key);
-}
-
-export function findMaFilter(key: string): (typeof MA_FILTERS)[number] | undefined {
-    return MA_BY_KEY.get(key);
-}
-
-export function findFlagFilter(key: string): (typeof FLAG_FILTERS)[number] | undefined {
-    return FLAG_BY_KEY.get(key);
-}
 
 /** Every filter key the API accepts, for error messages and frontend enumeration. */
 export const ALL_FILTER_KEYS: readonly string[] = [
@@ -244,6 +224,26 @@ const FIELD_BY_KEY = new Map<string, string>([
     ...MA_FILTERS.map((f) => [f.key, f.field] as const),
     ...FLAG_FILTERS.map((f) => [f.key, f.field] as const),
 ]);
+
+export function findRangeFilter(key: string): RangeFilterSpec | undefined {
+    return RANGE_BY_KEY.get(key);
+}
+
+export function findEnumFilter(key: string): EnumFilterSpec | undefined {
+    return ENUM_BY_KEY.get(key);
+}
+
+export function findDateFilter(key: string): DateFilterSpec | undefined {
+    return DATE_BY_KEY.get(key);
+}
+
+export function findMaFilter(key: string): (typeof MA_FILTERS)[number] | undefined {
+    return MA_BY_KEY.get(key);
+}
+
+export function findFlagFilter(key: string): (typeof FLAG_FILTERS)[number] | undefined {
+    return FLAG_BY_KEY.get(key);
+}
 
 export function filterField(key: string): string | undefined {
     return FIELD_BY_KEY.get(key);

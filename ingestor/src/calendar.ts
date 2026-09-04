@@ -18,8 +18,6 @@ const NY_DATE = new Intl.DateTimeFormat('en-CA', {
     day: '2-digit',
 });
 
-export { isMarketHours };
-
 /** True when today is an exchange holiday, in the exchange's own timezone. */
 export async function isHoliday(now: Date = new Date()): Promise<boolean> {
     const today = NY_DATE.format(now);
@@ -37,3 +35,5 @@ export async function isHoliday(now: Date = new Date()): Promise<boolean> {
         return false;
     }
 }
+
+export { isMarketHours };

@@ -46,7 +46,7 @@ export type UseChartSeriesReturn = {
 };
 
 /** One candle from the live feed, in the API's time format. */
-export type LiveBar = {
+type LiveBar = {
     time: string;
     open: number;
     high: number;

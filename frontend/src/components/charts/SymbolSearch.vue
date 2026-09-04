@@ -9,10 +9,10 @@ import { useDebounceFn } from '@/composables/ui/useDebounce';
 
 const emit = defineEmits<{ select: [symbol: string] }>();
 
-const { t } = useI18n();
-
 const MIN_TERM = 1;
 const DEBOUNCE_MS = 220;
+
+const { t } = useI18n();
 
 const term = ref('');
 const results = ref<AssetSummary[]>([]);
@@ -23,12 +23,15 @@ const open = ref(false);
 
 const input = useTemplateRef<HTMLInputElement>('input');
 const listboxId = useId();
-const optionId = (index: number): string => `${listboxId}-${index}`;
 
 const hasResults = computed(() => results.value.length > 0);
 const expanded = computed(() => open.value && (hasResults.value || pending.value || error.value !== null));
 
 let sequence = 0;
+
+const search = useDebounceFn((query: string) => void run(query), DEBOUNCE_MS, { maxWait: 1000 });
+
+const optionId = (index: number): string => `${listboxId}-${index}`;
 
 async function run(query: string): Promise<void> {
     const ticket = (sequence += 1);
@@ -49,25 +52,6 @@ async function run(query: string): Promise<void> {
         if (ticket === sequence) pending.value = false;
     }
 }
-
-const search = useDebounceFn((query: string) => void run(query), DEBOUNCE_MS, { maxWait: 1000 });
-
-watch(term, (value) => {
-    const query = value.trim();
-    open.value = true;
-
-    if (query.length < MIN_TERM) {
-        search.cancel();
-        sequence += 1; // Drop whatever is in flight; there is nothing to show it against.
-        results.value = [];
-        active.value = -1;
-        pending.value = false;
-        error.value = null;
-        return;
-    }
-
-    search(query);
-});
 
 function move(delta: number): void {
     if (!hasResults.value) return;
@@ -109,6 +93,23 @@ function onFocusOut(event: FocusEvent): void {
     if (container instanceof HTMLElement && destination instanceof Node && container.contains(destination)) return;
     dismiss();
 }
+
+watch(term, (value) => {
+    const query = value.trim();
+    open.value = true;
+
+    if (query.length < MIN_TERM) {
+        search.cancel();
+        sequence += 1; // Drop whatever is in flight; there is nothing to show it against.
+        results.value = [];
+        active.value = -1;
+        pending.value = false;
+        error.value = null;
+        return;
+    }
+
+    search(query);
+});
 </script>
 
 <template>

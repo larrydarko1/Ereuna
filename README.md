@@ -152,7 +152,6 @@ GF_SECURITY_ADMIN_PASSWORD=grafana_password_here
 CLOUDFLARE_EMAIL=email@example.com
 CF_DNS_API_TOKEN=your_key_here
 
-REDIS_URL=redis://localhost:6379
 ```
 
 **Cloudflare Setup for SSL/TLS:**

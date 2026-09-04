@@ -6,6 +6,8 @@ import { useResource } from '@/composables/data/useResource';
 import { timeAgo } from '@/utils/formatters';
 import { externalUrl } from '@/utils/url';
 
+type Headline = NewsRow & { href: string };
+
 const { symbol, limit = 6 } = defineProps<{
     symbol: string;
     limit?: number;
@@ -18,8 +20,6 @@ const { data, pending, error } = useResource(
     async (current) => (await getNews({ symbols: [current], limit })).data.items,
     { enabled: (current) => current !== '' },
 );
-
-type Headline = NewsRow & { href: string };
 
 const headlines = computed<Headline[]>(() =>
     (data.value ?? []).flatMap((row) => {

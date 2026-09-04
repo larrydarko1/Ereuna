@@ -10,21 +10,13 @@ const { options, value = null, busy = false } = defineProps<{
 
 const emit = defineEmits<{ apply: [{ values: string[] }] }>();
 
-const { t } = useI18n();
-
 /** Below this a search box is more chrome than help. */
 const SEARCHABLE_FROM = 12;
 
+const { t } = useI18n();
+
 const selected = ref<string[]>([]);
 const query = ref('');
-
-watch(
-    () => value,
-    (current) => {
-        selected.value = current === null ? [] : [...current.values];
-    },
-    { immediate: true },
-);
 
 const searchable = computed(() => options.length >= SEARCHABLE_FROM);
 
@@ -38,6 +30,14 @@ const dirty = computed(() => {
     const before = value?.values ?? [];
     return before.length !== selected.value.length || before.some((entry) => !selected.value.includes(entry));
 });
+
+watch(
+    () => value,
+    (current) => {
+        selected.value = current === null ? [] : [...current.values];
+    },
+    { immediate: true },
+);
 </script>
 
 <template>

@@ -20,22 +20,17 @@ import { i18n } from '@/i18n';
 
 export type ApiResult<T> = Promise<AxiosResponse<T>>;
 
-/** One failed field, as the validate middleware reports it. */
-export type FieldError = {
-    field: string;
-    message: string;
-};
-
 export type SessionUser = {
     id: string;
     username: string;
     language: string;
     twoFactorEnabled: boolean;
-    /** Raised by a recovery-code login, which opens a session with no password. */
-    passwordResetRequired: boolean;
+    passwordResetRequired: boolean; // Raised by a recovery-code login, which opens a session with no password
 };
 
 const USER_KEY = 'ereuna-user';
+
+const sessionListeners = new Set<() => void>();
 
 export const api = axios.create({
     baseURL: '/api',
@@ -44,7 +39,6 @@ export const api = axios.create({
 
 let accessToken: string | null = null;
 let refreshPromise: Promise<string | null> | null = null;
-const sessionListeners = new Set<() => void>();
 
 export function findAccessToken(): string | null {
     return accessToken;
@@ -103,13 +97,6 @@ export async function initAuth(): Promise<boolean> {
 export function apiErrorMessage(err: unknown, fallback: string): string {
     const message = (err as { response?: { data?: { error?: unknown } } }).response?.data?.error;
     return typeof message === 'string' && message !== '' ? message : fallback;
-}
-
-/** The per-field messages behind a VALIDATION_FAILED, keyed by field path. */
-export function apiFieldErrors(err: unknown): Record<string, string> {
-    const errors = (err as { response?: { data?: { errors?: FieldError[] } } }).response?.data?.errors;
-    if (!Array.isArray(errors)) return {};
-    return Object.fromEntries(errors.map((entry) => [entry.field, entry.message]));
 }
 
 /** The raw error code, for the rare caller that must branch on which failure it was. */

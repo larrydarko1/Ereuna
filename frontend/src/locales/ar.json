@@ -1058,7 +1058,6 @@
         "INCORRECT_PASSWORD": "كلمة المرور غير صحيحة.",
         "USERNAME_TAKEN": "اسم المستخدم هذا مستخدم بالفعل.",
         "USER_NOT_FOUND": "لا يوجد حساب بهذا الاسم.",
-        "TWO_FA_REQUIRED": "أدخل رمز المصادقة الثنائية للمتابعة.",
         "TWO_FA_TOKEN_INVALID": "انتهت صلاحية جلسة المصادقة الثنائية. يرجى تسجيل الدخول مرة أخرى.",
         "TWO_FA_ALREADY_ENABLED": "المصادقة الثنائية مفعّلة بالفعل.",
         "TWO_FA_NOT_ENABLED": "المصادقة الثنائية غير مفعّلة.",
@@ -1107,16 +1106,9 @@
         "usernameCharacters": "يمكن أن يحتوي اسم المستخدم على أحرف وأرقام وشرطات سفلية فقط.",
         "passwordLength": "يجب أن تتكوّن كلمة المرور من {min}–{max} حرفًا.",
         "confirmationRequired": "أكّد كلمة المرور.",
-        "symbolRequired": "الرمز مطلوب.",
-        "symbolInvalid": "هذا ليس رمزًا صالحًا.",
-        "numberRequired": "الرقم مطلوب.",
-        "numberInvalid": "هذا ليس رقمًا صالحًا.",
-        "numberPositive": "يجب أن يكون أكبر من صفر.",
-        "numberNonNegative": "لا يمكن أن يكون سالبًا.",
         "passwordUppercase": "يجب أن تحتوي كلمة المرور على حرف كبير.",
         "passwordLowercase": "يجب أن تحتوي كلمة المرور على حرف صغير.",
         "passwordNumber": "يجب أن تحتوي كلمة المرور على رقم.",
-        "passwordSpecial": "يجب أن تحتوي كلمة المرور على رمز خاص.",
-        "recoveryCodeRequired": "رمز الاسترداد مطلوب."
+        "passwordSpecial": "يجب أن تحتوي كلمة المرور على رمز خاص."
     }
 }

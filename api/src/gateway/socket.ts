@@ -47,6 +47,17 @@ type FeedSocket = Socket & {
     quoteRooms: string[]; // The quote rooms this socket is in, so a new watchlist can leave them all
 };
 
+const candleWatchSchema = z.object({
+    symbol: symbolSchema,
+    timeframe: z.enum(CHART_TIMEFRAMES),
+});
+
+const quoteWatchSchema = z.object({
+    // Capped at what one portfolio can hold: the caller is a positions table,
+    // and silently truncating its list would leave rows that never tick.
+    symbols: z.array(symbolSchema).max(config.limits.positionsPerPortfolio),
+});
+
 /**
  * Connection-time rate limit per client IP — 10 attempts burst, then one every
  * 6 seconds. Blocks handshake floods before any JWT verification happens.
@@ -59,17 +70,6 @@ const CONN_BUCKET: TokenBucketOptions = { capacity: 10, refillPerMs: 1 / 6_000 }
  * not a person clicking.
  */
 const WATCH_BUCKET: TokenBucketOptions = { capacity: 30, refillPerMs: 1 / 1_000 };
-
-const candleWatchSchema = z.object({
-    symbol: symbolSchema,
-    timeframe: z.enum(CHART_TIMEFRAMES),
-});
-
-const quoteWatchSchema = z.object({
-    // Capped at what one portfolio can hold: the caller is a positions table,
-    // and silently truncating its list would leave rows that never tick.
-    symbols: z.array(symbolSchema).max(config.limits.positionsPerPortfolio),
-});
 
 /** The last price emitted per symbol, so an unchanged bucket is not re-sent. */
 const lastPrices = new Map<string, number>();

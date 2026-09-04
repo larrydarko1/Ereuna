@@ -10,15 +10,6 @@
  */
 import type { PortfolioValuePoint, PositionSide, TradeAction } from '@ereuna/shared';
 
-/** Share counts below this are treated as zero — floating-point residue from partial exits. */
-const SHARE_EPSILON = 1e-9;
-
-/** Currency amounts within this of the limit are on the right side of it. */
-const CASH_EPSILON = 0.005;
-
-/** A cash account: gross exposure may not exceed equity. */
-export const DEFAULT_LEVERAGE = 1;
-
 export type ReplayTrade = {
     symbol: string | null;
     action: TradeAction;
@@ -35,13 +26,6 @@ export type CashFlow = {
     symbol: string;
     date: Date;
     amount: number; // Negative when the holding is short: a short seller owes the dividend
-};
-
-export type ReplayPosition = {
-    symbol: string;
-    side: PositionSide;
-    shares: number;
-    avgPrice: number;
 };
 
 /**
@@ -71,6 +55,26 @@ export type ReplayResult = {
 export type ReplayOptions = {
     leverage?: number;
 };
+
+type ReplayPosition = {
+    symbol: string;
+    side: PositionSide;
+    shares: number;
+    avgPrice: number;
+};
+
+type ReplayEvent =
+    | { kind: 'trade'; date: Date; order: number; trade: ReplayTrade }
+    | { kind: 'cashFlow'; date: Date; order: number; amount: number };
+
+/** Share counts below this are treated as zero — floating-point residue from partial exits. */
+const SHARE_EPSILON = 1e-9;
+
+/** Currency amounts within this of the limit are on the right side of it. */
+const CASH_EPSILON = 0.005;
+
+/** A cash account: gross exposure may not exceed equity. */
+export const DEFAULT_LEVERAGE = 1;
 
 /**
  * Chronological order, with `createdAt` breaking ties.
@@ -119,7 +123,7 @@ export function replayTrades(
 }
 
 /** The signed effect of a trade on cash, commission included. */
-export function cashEffect(trade: ReplayTrade): number {
+function cashEffect(trade: ReplayTrade): number {
     const inflow = trade.action === 'sell' || trade.action === 'short' || trade.action === 'deposit';
     return (inflow ? trade.total : -trade.total) - trade.commission;
 }
@@ -273,10 +277,6 @@ function onePointPerDay(points: readonly PortfolioValuePoint[]): PortfolioValueP
     }
     return history;
 }
-
-type ReplayEvent =
-    | { kind: 'trade'; date: Date; order: number; trade: ReplayTrade }
-    | { kind: 'cashFlow'; date: Date; order: number; amount: number };
 
 /**
  * Interleave trades and derived cash flows into one chronological stream.

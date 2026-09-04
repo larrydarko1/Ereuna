@@ -4,6 +4,24 @@ import { OHLCV_COLLECTIONS, isIntraday } from '@ereuna/shared';
 import { marketKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
 
+type Candle = {
+    time: string;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+};
+
+type VolumePoint = {
+    time: string;
+    value: number;
+};
+
+export type BarSeries = {
+    candles: Candle[];
+    volume: VolumePoint[];
+};
+
 const PAGE_SIZE: Record<ChartTimeframe, number> = {
     daily: 1250,
     weekly: 260,
@@ -12,24 +30,6 @@ const PAGE_SIZE: Record<ChartTimeframe, number> = {
     intraday15m: 2000,
     intraday30m: 2000,
     intraday1hr: 2000,
-};
-
-export type Candle = {
-    time: string;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-};
-
-export type VolumePoint = {
-    time: string;
-    value: number;
-};
-
-export type BarSeries = {
-    candles: Candle[];
-    volume: VolumePoint[];
 };
 
 /**

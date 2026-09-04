@@ -9,15 +9,6 @@
 import type { WatchlistEntry } from '@ereuna/shared';
 import { api, type ApiResult } from '@/api/client';
 
-export type Quote = {
-    symbol: string;
-    close: number;
-    timestamp: string;
-    previousClose: number | null;
-    change: number | null;
-    changePercent: number | null;
-};
-
 export type WatchlistSummary = {
     id: string;
     name: string;
@@ -33,6 +24,15 @@ export type WatchlistRow = WatchlistEntry & {
 export type WatchlistDetail = {
     name: string;
     rows: WatchlistRow[];
+};
+
+type Quote = {
+    symbol: string;
+    close: number;
+    timestamp: string;
+    previousClose: number | null;
+    change: number | null;
+    changePercent: number | null;
 };
 
 export function listWatchlists(): ApiResult<{ items: WatchlistSummary[] }> {

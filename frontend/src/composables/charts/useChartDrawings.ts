@@ -13,18 +13,6 @@ import type { TextAnnotationManager } from '@/lib/lightweight-charts/text-annota
 import type { TrendLineManager } from '@/lib/lightweight-charts/trendline';
 import { clearDrawings, getDrawings, saveDrawings } from '@/api/chart';
 
-export type DrawingManagers = {
-    trendLines: TrendLineManager;
-    boxes: BoxManager;
-    textAnnotations: TextAnnotationManager;
-    freehandPaths: FreehandManager;
-    priceLevels: PriceLevelManager;
-};
-
-export type ChartKey = {
-    symbol: string;
-    timeframe: ChartTimeframe;
-};
 
 export type UseChartDrawingsReturn = {
     hasDrawings: Ref<boolean>; //  True while the chart holds at least one annotation, so "clear all" can hide itself
@@ -38,6 +26,19 @@ export type UseChartDrawingsReturn = {
     reset: () => void; // Wipe the canvas without touching what is stored — used when switching charts.
 };
 
+type DrawingManagers = {
+    trendLines: TrendLineManager;
+    boxes: BoxManager;
+    textAnnotations: TextAnnotationManager;
+    freehandPaths: FreehandManager;
+    priceLevels: PriceLevelManager;
+};
+
+type ChartKey = {
+    symbol: string;
+    timeframe: ChartTimeframe;
+};
+
 /**
  * How long a burst of edits is allowed to settle before it is written.
  * Dragging one endpoint of a trendline fires a change per frame; the old
@@ -45,6 +46,14 @@ export type UseChartDrawingsReturn = {
  * drawing made and navigated away from within half a minute was simply lost.
  */
 const SETTLE_MS = 1500;
+
+const EMPTY: ChartDrawings = {
+    trendLines: [],
+    boxes: [],
+    textAnnotations: [],
+    freehandPaths: [],
+    priceLevels: [],
+};
 
 export function useChartDrawings(): UseChartDrawingsReturn {
     const hasDrawings = ref(false);
@@ -171,14 +180,6 @@ export function useChartDrawings(): UseChartDrawingsReturn {
 
     return { hasDrawings, attach, snapshot, restore, load, save, touch, clear, reset };
 }
-
-const EMPTY: ChartDrawings = {
-    trendLines: [],
-    boxes: [],
-    textAnnotations: [],
-    freehandPaths: [],
-    priceLevels: [],
-};
 
 function isEmpty(drawings: ChartDrawings): boolean {
     return Object.values(drawings).every((items) => items.length === 0);

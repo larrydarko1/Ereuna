@@ -7,15 +7,6 @@ import BarChart, { type Bar } from '@/components/viz/BarChart.vue';
 import { direction, formatCurrency, formatPercent } from '@/utils/formatters';
 import { i18n } from '@/i18n';
 
-const { valueHistory, trades } = defineProps<{
-    valueHistory: readonly PortfolioValuePoint[];
-    /** The whole log, not a page of it: a month's cash flow is wrong if any
-     *  deposit inside it is missing. */
-    trades: readonly TradeRow[];
-}>();
-
-const { t } = useI18n();
-
 type Month = {
     key: string;
     label: string;
@@ -27,18 +18,14 @@ type Month = {
     trades: number;
 };
 
-/** `2026-09-02` → `2026-09`, taken off the string rather than through a Date:
- *  the API's dates are already UTC calendar days, and parsing them into a local
- *  Date moves the early hours of a month into the one before. */
-function monthKey(iso: string): string {
-    return iso.slice(0, 7);
-}
+const { valueHistory, trades } = defineProps<{
+    valueHistory: readonly PortfolioValuePoint[];
+    /** The whole log, not a page of it: a month's cash flow is wrong if any
+     *  deposit inside it is missing. */
+    trades: readonly TradeRow[];
+}>();
 
-function monthLabel(key: string): string {
-    const [year, month] = key.split('-');
-    const date = new Date(Number(year), Number(month) - 1, 1);
-    return date.toLocaleDateString(i18n.global.locale.value, { year: 'numeric', month: 'short' });
-}
+const { t } = useI18n();
 
 const months = computed<Month[]>(() => {
     if (valueHistory.length === 0) return [];
@@ -105,6 +92,19 @@ const returnBars = computed<Bar[]>(() =>
         .reverse()
         .map((month) => ({ label: month.label, value: month.returnPercent ?? 0 })),
 );
+
+/** `2026-09-02` → `2026-09`, taken off the string rather than through a Date:
+ *  the API's dates are already UTC calendar days, and parsing them into a local
+ *  Date moves the early hours of a month into the one before. */
+function monthKey(iso: string): string {
+    return iso.slice(0, 7);
+}
+
+function monthLabel(key: string): string {
+    const [year, month] = key.split('-');
+    const date = new Date(Number(year), Number(month) - 1, 1);
+    return date.toLocaleDateString(i18n.global.locale.value, { year: 'numeric', month: 'short' });
+}
 </script>
 
 <template>

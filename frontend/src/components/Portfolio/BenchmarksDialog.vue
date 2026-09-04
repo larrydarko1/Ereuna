@@ -11,10 +11,10 @@ const { current, error = null, saving = false } = defineProps<{
 
 const emit = defineEmits<{ close: []; save: [symbols: string[]] }>();
 
-const { t } = useI18n();
-
 /** The API's own cap. */
 const MAX_BENCHMARKS = 5;
+
+const { t } = useI18n();
 
 const symbols = ref<string[]>([...current]);
 const draft = ref('');

@@ -5,32 +5,8 @@
 import type { AssetInfoDoc, StatsDoc } from '@ereuna/shared';
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
+import { PRIMARY_EXCHANGES } from '@/organize/universe.js';
 import { numeric, round } from '@/utils/indicators.js';
-
-/** The moving-average periods the breadth panel reports. */
-const MA_PERIODS = [5, 10, 20, 50, 100, 150, 200] as const;
-
-/** The asset classes breadth is broken down by, and what puts a symbol in one. */
-const UNIVERSES = ['ALL', 'Stock', 'ETF', 'Mutual Fund', 'OTC', 'PINK', 'Crypto'] as const;
-
-const PRIMARY = ['NYSE', 'NASDAQ'];
-
-/** The benchmarks whose performance the dashboard header shows. */
-const INDEXES = ['SPY', 'QQQ', 'DIA', 'IWM', 'EFA', 'EEM'];
-
-const MOVERS = 10;
-
-/** A single-day move beyond this is a data error, not a market event. */
-const MAX_DAILY_MOVE = 2;
-
-/** Fewer members than this and a sector's average is one company's news. */
-const MIN_TIER_MEMBERS = 2;
-
-const OUTLOOK_TERMS = [
-    { key: 'shortTerm', periods: [5, 10, 20] },
-    { key: 'midTerm', periods: [50, 100] },
-    { key: 'longTerm', periods: [150, 200] },
-] as const;
 
 type Row = {
     symbol: string;
@@ -49,6 +25,29 @@ type Row = {
     performance: Record<string, number | null>;
     updatedAt: Date | null;
 };
+
+/** The moving-average periods the breadth panel reports. */
+const MA_PERIODS = [5, 10, 20, 50, 100, 150, 200] as const;
+
+/** The asset classes breadth is broken down by, and what puts a symbol in one. */
+const UNIVERSES = ['ALL', 'Stock', 'ETF', 'Mutual Fund', 'OTC', 'PINK', 'Crypto'] as const;
+
+/** The benchmarks whose performance the dashboard header shows. */
+const INDEXES = ['SPY', 'QQQ', 'DIA', 'IWM', 'EFA', 'EEM'];
+
+const MOVERS = 10;
+
+/** A single-day move beyond this is a data error, not a market event. */
+const MAX_DAILY_MOVE = 2;
+
+/** Fewer members than this and a sector's average is one company's news. */
+const MIN_TIER_MEMBERS = 2;
+
+const OUTLOOK_TERMS = [
+    { key: 'shortTerm', periods: [5, 10, 20] },
+    { key: 'midTerm', periods: [50, 100] },
+    { key: 'longTerm', periods: [150, 200] },
+] as const;
 
 export async function updateMarketStats(): Promise<void> {
     const rows = await load();
@@ -148,9 +147,9 @@ function inUniverse(row: Row, universe: (typeof UNIVERSES)[number]): boolean {
         case 'ALL':
             return true;
         case 'Stock':
-            return row.assetType === 'Stock' && PRIMARY.includes(row.exchange);
+            return row.assetType === 'Stock' && PRIMARY_EXCHANGES.includes(row.exchange);
         case 'OTC':
-            return row.assetType === 'Stock' && !PRIMARY.includes(row.exchange) && row.exchange !== 'PINK';
+            return row.assetType === 'Stock' && !PRIMARY_EXCHANGES.includes(row.exchange) && row.exchange !== 'PINK';
         case 'PINK':
             return row.assetType === 'Stock' && row.exchange === 'PINK';
         default:
@@ -253,7 +252,7 @@ function tiers(
     reduce: (members: Row[]) => number | null,
 ): Record<string, unknown>[] {
     const eligible = rows.filter(
-        (row) => row[field] !== '' && row.quarterChange !== null && (row.marketCap ?? 0) > 0 && PRIMARY.includes(row.exchange),
+        (row) => row[field] !== '' && row.quarterChange !== null && (row.marketCap ?? 0) > 0 && PRIMARY_EXCHANGES.includes(row.exchange),
     );
 
     const groups = new Map<string, Row[]>();
@@ -286,7 +285,7 @@ function indexPerformance(rows: readonly Row[]): Record<string, unknown> {
 /** The day's biggest moves on the primary exchanges, as percentages. */
 function movers(rows: readonly Row[], direction: 'asc' | 'desc'): Record<string, unknown>[] {
     const eligible = rows.filter(
-        (row) => PRIMARY.includes(row.exchange) && row.todayChange !== null && Math.abs(row.todayChange) <= MAX_DAILY_MOVE,
+        (row) => PRIMARY_EXCHANGES.includes(row.exchange) && row.todayChange !== null && Math.abs(row.todayChange) <= MAX_DAILY_MOVE,
     );
 
     return sortBy(eligible, (row) => row.todayChange ?? 0, direction)
@@ -299,7 +298,7 @@ function valuations(rows: readonly Row[], direction: 'asc' | 'desc'): Record<str
     const eligible = rows.filter(
         (row) =>
             row.assetType === 'Stock' &&
-            PRIMARY.includes(row.exchange) &&
+            PRIMARY_EXCHANGES.includes(row.exchange) &&
             row.intrinsicValue !== null &&
             row.intrinsicValue > 0 &&
             (row.close ?? 0) > 0,

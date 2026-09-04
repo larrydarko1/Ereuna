@@ -33,11 +33,3 @@ onUnmounted(() => window.removeEventListener('resize', measure));
     <RouterView />
     <AppToasts />
 </template>
-
-<style lang="scss">
-body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-</style>

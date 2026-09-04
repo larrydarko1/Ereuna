@@ -13,9 +13,9 @@ const emit = defineEmits<{
     start: [from: Date];
 }>();
 
-const { t } = useI18n();
-
 const MONTH_PRESETS = [1, 3, 6] as const;
+
+const { t } = useI18n();
 
 const date = ref(defaultStart());
 

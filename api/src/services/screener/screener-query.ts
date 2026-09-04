@@ -19,20 +19,21 @@ import { userKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
 import { getScreener } from '@/services/screener/screener-crud.js';
 
-export type ScreenerResult = {
-    symbol: string;
-    name: string | null;
-    assetType: string | null;
-    sector: string | null;
-    exchange: string | null;
-    [column: string]: unknown;
-};
 
 export type ScreenerResultPage = {
     items: ScreenerResult[];
     total: number;
     page: number;
     pages: number;
+};
+
+type ScreenerResult = {
+    symbol: string;
+    name: string | null;
+    assetType: string | null;
+    sector: string | null;
+    exchange: string | null;
+    [column: string]: unknown;
 };
 
 /** Columns every result carries, on top of whatever the user has selected. */

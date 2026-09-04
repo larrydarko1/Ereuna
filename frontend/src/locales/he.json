@@ -1058,7 +1058,6 @@
         "INCORRECT_PASSWORD": "הסיסמה שגויה.",
         "USERNAME_TAKEN": "שם המשתמש הזה כבר תפוס.",
         "USER_NOT_FOUND": "החשבון אינו קיים.",
-        "TWO_FA_REQUIRED": "הזן את קוד האימות הדו-שלבי כדי להמשיך.",
         "TWO_FA_TOKEN_INVALID": "תוקף הפעלת האימות הדו-שלבי פג. התחבר שוב.",
         "TWO_FA_ALREADY_ENABLED": "האימות הדו-שלבי כבר מופעל.",
         "TWO_FA_NOT_ENABLED": "האימות הדו-שלבי אינו מופעל.",
@@ -1107,16 +1106,9 @@
         "usernameCharacters": "שם המשתמש יכול להכיל רק אותיות, ספרות וקווים תחתונים.",
         "passwordLength": "הסיסמה חייבת להכיל {min}–{max} תווים.",
         "confirmationRequired": "אשר את הסיסמה.",
-        "symbolRequired": "נדרש סימול.",
-        "symbolInvalid": "הסימול אינו תקין.",
-        "numberRequired": "נדרש מספר.",
-        "numberInvalid": "המספר אינו תקין.",
-        "numberPositive": "חייב להיות גדול מאפס.",
-        "numberNonNegative": "לא יכול להיות שלילי.",
         "passwordUppercase": "הסיסמה חייבת להכיל אות גדולה.",
         "passwordLowercase": "הסיסמה חייבת להכיל אות קטנה.",
         "passwordNumber": "הסיסמה חייבת להכיל ספרה.",
-        "passwordSpecial": "הסיסמה חייבת להכיל תו מיוחד.",
-        "recoveryCodeRequired": "נדרש קוד שחזור."
+        "passwordSpecial": "הסיסמה חייבת להכיל תו מיוחד."
     }
 }

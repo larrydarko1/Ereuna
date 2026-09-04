@@ -20,16 +20,16 @@ import { getDb } from '@/lib/db.js';
 import { issueSession, type AuthResult } from '@/services/auth/auth-tokens.js';
 import { throttleKey, assertLoginAllowed, clearLoginFailures, recordLoginFailure } from '@/services/auth/login-throttle.js';
 
+export type RecoveryCodeSet = {
+    plaintext: string[];
+    hashes: string[];
+};
+
 /** Codes are grouped for legibility when written down; the groups are cosmetic. */
 const GROUPS = 3;
 const GROUP_CHARS = 4;
 /** Crockford base32 minus the characters that misread when transcribed by hand. */
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-
-export type RecoveryCodeSet = {
-    plaintext: string[];
-    hashes: string[];
-};
 
 export async function generateRecoveryCodes(): Promise<RecoveryCodeSet> {
     const plaintext = Array.from({ length: config.totp.recoveryCodeCount }, generateCode);

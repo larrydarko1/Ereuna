@@ -19,8 +19,10 @@ const DURATION: Record<ToastTone, number> = {
 /** Beyond this the stack covers the page it is describing. Oldest goes first. */
 const MAX_VISIBLE = 4;
 
-const items = ref<Toast[]>([]);
 const timers = new Map<number, ReturnType<typeof setTimeout>>();
+
+const items = ref<Toast[]>([]);
+
 let nextId = 0;
 
 export function notify(message: string, tone: ToastTone = 'info'): number {
@@ -50,12 +52,6 @@ export function dismiss(id: number): void {
     items.value = items.value.filter((toast) => toast.id !== id);
 }
 
-export function dismissAll(): void {
-    for (const timer of timers.values()) clearTimeout(timer);
-    timers.clear();
-    items.value = [];
-}
-
 /**
  * The queue, for the host component. Read-only on purpose: a toast is added
  * through `notify` so its dismissal timer is always registered with it, and a
@@ -74,4 +70,10 @@ export function useNotifications(): {
 /** Clear the queue when the owning scope goes away — used by the host only. */
 export function useNotificationCleanup(): void {
     onScopeDispose(dismissAll);
+}
+
+function dismissAll(): void {
+    for (const timer of timers.values()) clearTimeout(timer);
+    timers.clear();
+    items.value = [];
 }

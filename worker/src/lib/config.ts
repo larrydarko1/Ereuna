@@ -7,9 +7,7 @@
 import { z } from 'zod';
 import { loggerEnv, mongoEnv, nodeEnv, redisEnv } from '@ereuna/shared';
 
-export const WORKER_ROLES = ['all', 'aggregate', 'organize'] as const;
-
-export type WorkerRole = (typeof WORKER_ROLES)[number];
+const WORKER_ROLES = ['all', 'aggregate', 'organize'] as const;
 
 const Env = z
     .object({
@@ -32,9 +30,17 @@ const Env = z
             .default('false')
             .transform((value) => value === 'true'),
     })
-    .refine((env) => env.WORKER_ROLE === 'aggregate' || env.TIINGO_KEY !== '', {
-        message: 'TIINGO_KEY is required unless WORKER_ROLE is "aggregate": the nightly run has nothing to fetch without it',
-        path: ['TIINGO_KEY'],
+    // superRefine rather than refine: the key is required for two of the three
+    // roles and absent for the third, so it cannot be declared required in the
+    // schema, and a defaulted secret is otherwise exempt from fail-fast forever
+    .superRefine((env, ctx) => {
+        if (env.WORKER_ROLE !== 'aggregate' && env.TIINGO_KEY === '') {
+            ctx.addIssue({
+                code: 'custom',
+                path: ['TIINGO_KEY'],
+                message: 'TIINGO_KEY is required unless WORKER_ROLE is "aggregate": the nightly run has nothing to fetch without it',
+            });
+        }
     });
 
 const parsed = Env.parse(process.env);

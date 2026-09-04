@@ -16,6 +16,10 @@ const { t } = useI18n();
 const direction = ref(directions[0] ?? 'abv');
 const target = ref(targets[0] ?? 'price');
 
+function targetLabel(option: string): string {
+    return option === 'price' ? t('screener.maPrice') : t('screener.maDays', { days: option });
+}
+
 watch(
     () => value,
     (current) => {
@@ -24,10 +28,6 @@ watch(
     },
     { immediate: true },
 );
-
-function targetLabel(option: string): string {
-    return option === 'price' ? t('screener.maPrice') : t('screener.maDays', { days: option });
-}
 </script>
 
 <template>

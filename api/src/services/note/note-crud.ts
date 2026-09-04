@@ -27,16 +27,6 @@ export type NotePage = {
     limit: number;
 };
 
-function toRow(doc: WithId<NoteDoc>): NoteRow {
-    return {
-        id: doc._id.toHexString(),
-        symbol: doc.symbol,
-        message: doc.message,
-        createdAt: doc.createdAt,
-        updatedAt: doc.updatedAt,
-    };
-}
-
 /**
  * Notes, newest first, optionally narrowed to one symbol.
  * The unfiltered listing is the "everything I have written" view; the filtered
@@ -91,6 +81,16 @@ export async function deleteNote(userId: ObjectId, noteId: ObjectId): Promise<vo
     if (result.deletedCount === 0) {
         throw new AppError(404, 'NOTE_NOT_FOUND', `note ${noteId.toHexString()} not found`);
     }
+}
+
+function toRow(doc: WithId<NoteDoc>): NoteRow {
+    return {
+        id: doc._id.toHexString(),
+        symbol: doc.symbol,
+        message: doc.message,
+        createdAt: doc.createdAt,
+        updatedAt: doc.updatedAt,
+    };
 }
 
 function collection(): Collection<NoteDoc> {

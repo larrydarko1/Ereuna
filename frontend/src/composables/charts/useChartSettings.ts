@@ -36,15 +36,16 @@ export const DEFAULT_CHART_SETTINGS: ChartSettings = {
     markers: { earnings: true, dividends: true, splits: true },
 };
 
+
+/** `config.limits.maxIndicatorPeriod` on the API side. */
+export const MAX_INDICATOR_PERIOD = 400;
+
 /**
  * The API accepts twelve overlays; the palette defines four colours. Four is
  * the honest limit, because a fifth line would have to borrow a colour already
  * in use and the legend would name two different averages the same.
  */
-export const MAX_INDICATORS = 4;
-
-/** `config.limits.maxIndicatorPeriod` on the API side. */
-export const MAX_INDICATOR_PERIOD = 400;
+const MAX_INDICATORS = 4;
 
 export function useChartSettings(): UseChartSettingsReturn {
     const { preferences } = usePreferences();

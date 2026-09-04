@@ -28,11 +28,6 @@ import {
     type WatchlistSummary,
 } from '@/api/watchlist';
 
-/** What an import did: how many symbols went in, and which the API refused. */
-export type ImportResult = {
-    added: number;
-    rejected: string[];
-};
 
 export type UseWatchlistsReturn = {
     lists: DeepReadonly<Ref<WatchlistSummary[]>>;
@@ -54,6 +49,12 @@ export type UseWatchlistsReturn = {
     reorderTickers: (tickers: readonly string[]) => Promise<void>;
 };
 
+/** What an import did: how many symbols went in, and which the API refused. */
+type ImportResult = {
+    added: number;
+    rejected: string[];
+};
+
 /** Which list was open last, per browser. Not account state: it is a convenience. */
 const ACTIVE_KEY = 'ereuna-watchlist';
 
@@ -62,13 +63,6 @@ const activeName = ref<string | null>(null);
 const rows = ref<WatchlistRow[]>([]);
 const pending = ref(false);
 const loaded = ref(false);
-
-onSessionCleared(() => {
-    lists.value = [];
-    rows.value = [];
-    activeName.value = null;
-    loaded.value = false;
-});
 
 export function useWatchlists(): UseWatchlistsReturn {
     const isEmpty = computed(() => loaded.value && lists.value.length === 0);
@@ -263,3 +257,10 @@ function rememberActive(name: string | null): void {
         // Nothing to do: the panel still works, it just opens on the first list next time.
     }
 }
+
+onSessionCleared(() => {
+    lists.value = [];
+    rows.value = [];
+    activeName.value = null;
+    loaded.value = false;
+});

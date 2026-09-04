@@ -36,8 +36,15 @@ const Env = z
         /** Where the ticker logos live. The default sits two levels above this
          *  module, which resolves to `api/assets/logos` from `src/` and from
          *  `dist/` alike; an override is for the day the directory becomes a
-         *  mounted volume instead of part of the image. */
-        LOGO_DIR: z.string().min(1).default(path.resolve(import.meta.dirname, '../../assets/logos')),
+         *  mounted volume instead of part of the image.
+         *  Blank counts as absent. `.default()` only fires when the key is
+         *  MISSING, and a `.env` copied from the example carries every key with
+         *  an empty value — so a bare `.min(1)` here refuses to boot on the one
+         *  file the README tells you to copy. */
+        LOGO_DIR: z
+            .string()
+            .default('')
+            .transform((value) => (value === '' ? path.resolve(import.meta.dirname, '../../assets/logos') : value)),
     });
 
 const parsed = Env.parse(process.env);
@@ -115,7 +122,6 @@ export const config = {
     redis: {
         host: parsed.REDIS_HOST,
         port: parsed.REDIS_PORT,
-        url: parsed.REDIS_URL,
     },
 
     logger: {

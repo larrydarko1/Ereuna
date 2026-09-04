@@ -24,11 +24,6 @@ export type UsePreferencesReturn = {
 const preferences = ref<Preferences | null>(null);
 let inflight: Promise<Preferences> | null = null;
 
-onSessionCleared(() => {
-    preferences.value = null;
-    inflight = null;
-});
-
 /**
  * The preferences, fetching them if this is the first ask.
  * Concurrent callers share one request: the chart view, the sidebar and the
@@ -72,3 +67,8 @@ export async function patchPreferences(patch: Partial<Preferences>): Promise<voi
 export function usePreferences(): UsePreferencesReturn {
     return { preferences: readonly(preferences), load: loadPreferences, patch: patchPreferences };
 }
+
+onSessionCleared(() => {
+    preferences.value = null;
+    inflight = null;
+});

@@ -6,11 +6,11 @@ import { useResource } from '@/composables/data/useResource';
 import { timeAgo } from '@/utils/formatters';
 import { externalUrl } from '@/utils/url';
 
+type Headline = NewsRow & { href: string };
+
 const { limit = 12 } = defineProps<{ limit?: number }>();
 
 const { t } = useI18n();
-
-type Headline = NewsRow & { href: string };
 
 // Market-wide rather than per symbol: this is the whole feed, not a chart's
 const { data, pending, error } = useResource(

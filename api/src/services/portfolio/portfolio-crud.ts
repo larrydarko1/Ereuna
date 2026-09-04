@@ -30,6 +30,18 @@ export type PortfolioSummaryRow = {
     updatedAt: Date;
 };
 
+export type PortfolioSettings = {
+    baseValue?: number;
+    leverage?: number;
+    defaultCommission?: number;
+    benchmarks?: readonly string[];
+};
+
+export type DeclaredState = {
+    stats?: PortfolioStatsSnapshot;
+    valueHistory?: PortfolioValuePoint[];
+};
+
 /**
  * Every slot the user has actually used.
  * Slots are created on first write, not up front: a user with one portfolio has
@@ -175,18 +187,6 @@ export async function applyDeclaredState(userId: ObjectId, number: number, decla
 
     await collection().updateOne({ userId, number }, { $set: { ...set, updatedAt: new Date() } });
 }
-
-export type PortfolioSettings = {
-    baseValue?: number;
-    leverage?: number;
-    defaultCommission?: number;
-    benchmarks?: readonly string[];
-};
-
-export type DeclaredState = {
-    stats?: PortfolioStatsSnapshot;
-    valueHistory?: PortfolioValuePoint[];
-};
 
 export async function setBenchmarks(userId: ObjectId, number: number, symbols: readonly string[]): Promise<string[]> {
     if (symbols.length > config.limits.benchmarksPerPortfolio) {

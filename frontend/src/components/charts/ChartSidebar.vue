@@ -19,6 +19,9 @@ const { symbol, profile = null, events = null } = defineProps<{
     events?: ChartEvents | null;
 }>();
 
+/** How many of each action are shown before "show all". The API sends newest first. */
+const DEFAULT_ACTIONS = 4;
+
 const { t } = useI18n();
 const { sections, summaryFields } = usePanelLayout();
 
@@ -26,16 +29,8 @@ const { sections, summaryFields } = usePanelLayout();
 const allEvents = ref(false);
 const showFinancials = ref(false);
 
-/** How many of each action are shown before "show all". The API sends newest first. */
-const DEFAULT_ACTIONS = 4;
-
 const dividends = computed(() => visible(events?.dividends));
 const splits = computed(() => visible(events?.splits));
-
-function visible<T>(actions: readonly T[] | undefined): readonly T[] {
-    const all = actions ?? [];
-    return allEvents.value ? all : all.slice(0, DEFAULT_ACTIONS);
-}
 
 const financials = useResource(
     () => symbol,
@@ -49,6 +44,11 @@ const quarterly = computed<readonly Record<string, unknown>[]>(() => financials.
 const expandable = computed(
     () => !allEvents.value && (dividends.value.length > 0 || splits.value.length > 0),
 );
+
+function visible<T>(actions: readonly T[] | undefined): readonly T[] {
+    const all = actions ?? [];
+    return allEvents.value ? all : all.slice(0, DEFAULT_ACTIONS);
+}
 
 // "Show all" was asked of one instrument, not of every instrument after it:
 // a new symbol starts back at the four most recent.

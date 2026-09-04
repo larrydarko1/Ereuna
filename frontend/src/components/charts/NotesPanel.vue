@@ -6,10 +6,10 @@ import { createNote, deleteNote, listNotes, type NoteRow } from '@/api/note';
 import { useResource } from '@/composables/data/useResource';
 import { formatDate } from '@/utils/formatters';
 
+const { symbol } = defineProps<{ symbol: string }>();
+
 /** The API's own ceiling. Enforcing it here keeps a rejected write out of the round trip. */
 const MAX_LENGTH = 5000;
-
-const { symbol } = defineProps<{ symbol: string }>();
 
 const { t } = useI18n();
 

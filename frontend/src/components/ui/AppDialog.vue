@@ -10,14 +10,14 @@ const { title, size = 'md', dismissible = true } = defineProps<{
 
 const emit = defineEmits<{ close: [] }>();
 
+const FOCUSABLE =
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 const { t } = useI18n();
 
 const panel = useTemplateRef<HTMLElement>('panel');
 const titleId = useId();
 const previouslyFocused = ref<HTMLElement | null>(null);
-
-const FOCUSABLE =
-    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 function focusable(): HTMLElement[] {
     if (panel.value === null) return [];

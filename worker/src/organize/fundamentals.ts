@@ -7,9 +7,6 @@ import { chunk, type Asset } from '@/organize/universe.js';
 import { setOn, writeAssetInfo } from '@/organize/write.js';
 import { numeric, round } from '@/utils/indicators.js';
 
-/** Symbols whose statements are fetched and written before the next batch starts. */
-const BATCH_SIZE = 200;
-
 /** One period's figures: the three headline numbers plus every code the vendor sent. */
 export type Statement = {
     fiscalDateEnding: Date;
@@ -18,6 +15,9 @@ export type Statement = {
     netIncome: number;
     [dataCode: string]: unknown;
 };
+
+/** Symbols whose statements are fetched and written before the next batch starts. */
+const BATCH_SIZE = 200;
 
 /**
  * Refresh statements for the whole universe.

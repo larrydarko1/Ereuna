@@ -16,17 +16,6 @@ import { logger } from '@/lib/logger.js';
  */
 export type CachedDataType = 'price' | 'static' | 'user';
 
-export function getSmartTtl(dataType: CachedDataType): number {
-    switch (dataType) {
-        case 'price':
-            return isMarketHours() ? config.cache.priceMarketOpen : config.cache.priceMarketClosed;
-        case 'static':
-            return config.cache.staticData;
-        case 'user':
-            return config.cache.userData;
-    }
-}
-
 /**
  * Read `key` from the cache, or run `fetcher` and store the result.
  * A Redis failure is logged and swallowed: the fetcher still runs, so the
@@ -58,15 +47,6 @@ export async function withCache<T>(
     return data;
 }
 
-/** Drop a single key. */
-export async function invalidate(key: string): Promise<void> {
-    try {
-        await getRedis().del(key);
-    } catch (err) {
-        logger.warn({ err, key }, 'Cache invalidation failed');
-    }
-}
-
 /**
  * Drop every key under a prefix.
  * Uses SCAN rather than KEYS: `KEYS` walks the entire keyspace in one blocking
@@ -94,4 +74,15 @@ export function userKey(userId: string, ...parts: string[]): string {
 /** Cache key for shared market data. */
 export function marketKey(...parts: string[]): string {
     return `m:${parts.join(':')}`;
+}
+
+function getSmartTtl(dataType: CachedDataType): number {
+    switch (dataType) {
+        case 'price':
+            return isMarketHours() ? config.cache.priceMarketOpen : config.cache.priceMarketClosed;
+        case 'static':
+            return config.cache.staticData;
+        case 'user':
+            return config.cache.userData;
+    }
 }

@@ -1058,7 +1058,6 @@
         "INCORRECT_PASSWORD": "Ce mot de passe est incorrect.",
         "USERNAME_TAKEN": "Ce nom d’utilisateur est déjà pris.",
         "USER_NOT_FOUND": "Ce compte n’existe pas.",
-        "TWO_FA_REQUIRED": "Saisissez votre code à deux facteurs pour continuer.",
         "TWO_FA_TOKEN_INVALID": "Cette session à deux facteurs a expiré. Veuillez vous reconnecter.",
         "TWO_FA_ALREADY_ENABLED": "L'authentification à deux facteurs est déjà activée.",
         "TWO_FA_NOT_ENABLED": "L'authentification à deux facteurs n'est pas activée.",
@@ -1107,16 +1106,9 @@
         "usernameCharacters": "Le nom d'utilisateur ne peut contenir que des lettres, des chiffres et des tirets bas.",
         "passwordLength": "Le mot de passe doit comporter entre {min} et {max} caractères.",
         "confirmationRequired": "Confirmez votre mot de passe.",
-        "symbolRequired": "Le symbole est obligatoire.",
-        "symbolInvalid": "Ce n'est pas un symbole valide.",
-        "numberRequired": "Le nombre est obligatoire.",
-        "numberInvalid": "Ce n'est pas un nombre valide.",
-        "numberPositive": "Doit être supérieur à zéro.",
-        "numberNonNegative": "Ne peut pas être négatif.",
         "passwordUppercase": "Le mot de passe doit contenir une majuscule.",
         "passwordLowercase": "Le mot de passe doit contenir une minuscule.",
         "passwordNumber": "Le mot de passe doit contenir un chiffre.",
-        "passwordSpecial": "Le mot de passe doit contenir un caractère spécial.",
-        "recoveryCodeRequired": "Un code de récupération est requis."
+        "passwordSpecial": "Le mot de passe doit contenir un caractère spécial."
     }
 }

@@ -16,10 +16,10 @@ const emit = defineEmits<{
     'save-commission': [value: number];
 }>();
 
-const { t } = useI18n();
-
 /** Mirrors the API's own ceiling; the server refuses anything above it. */
 const MAX_LEVERAGE = 10;
+
+const { t } = useI18n();
 
 const baseValue = ref(String(summary.baseValue));
 const leverage = ref(String(summary.leverage));

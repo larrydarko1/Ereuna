@@ -46,6 +46,43 @@ export async function getEnumOptions(spec: EnumFilterSpec): Promise<string[]> {
     );
 }
 
+/** The full selectable span for a date filter, as ISO-8601 strings. */
+export async function getDateBounds(spec: DateFilterSpec): Promise<DateBounds> {
+    return withCache(
+        marketKey('bounds', spec.key),
+        async () => {
+            const [result] = await getDb()
+                .collection<AssetInfoDoc>('AssetInfo')
+                .aggregate<{ min: Date | null; max: Date | null }>([
+                    { $match: { [spec.queryPath]: { $type: 'date' } } },
+                    { $group: { _id: null, min: { $min: `$${spec.queryPath}` }, max: { $max: `$${spec.queryPath}` } } },
+                ])
+                .toArray();
+
+            if (result === undefined || result.min === null || result.max === null) {
+                throw new AppError(422, 'FILTER_BOUND_UNAVAILABLE', `no dates at AssetInfo.${spec.queryPath}`);
+            }
+            return { min: result.min.toISOString(), max: result.max.toISOString() };
+        },
+        { dataType: 'static' },
+    );
+}
+
+/**
+ * Resolve bounds without throwing, for the filter catalogue.
+ * A filter whose column the ingestor has not populated yet is reported as
+ * unavailable rather than failing the whole request — one absent metric must
+ * not blank out every other filter panel in the UI.
+ */
+export async function tryGetBounds<T>(resolve: () => Promise<T>): Promise<T | null> {
+    try {
+        return await resolve();
+    } catch (err) {
+        if (err instanceof AppError && err.code === 'FILTER_BOUND_UNAVAILABLE') return null;
+        throw err;
+    }
+}
+
 /**
  * `$min`/`$max` over one AssetInfo path.
  * The `$match` restricts to documents where the path actually holds a number:
@@ -102,40 +139,3 @@ async function fetchPriceBounds(): Promise<FilterBounds> {
 
 const roundDown = (n: number): number => Math.floor(n * 100) / 100;
 const roundUp = (n: number): number => Math.ceil(n * 100) / 100;
-
-/** The full selectable span for a date filter, as ISO-8601 strings. */
-export async function getDateBounds(spec: DateFilterSpec): Promise<DateBounds> {
-    return withCache(
-        marketKey('bounds', spec.key),
-        async () => {
-            const [result] = await getDb()
-                .collection<AssetInfoDoc>('AssetInfo')
-                .aggregate<{ min: Date | null; max: Date | null }>([
-                    { $match: { [spec.queryPath]: { $type: 'date' } } },
-                    { $group: { _id: null, min: { $min: `$${spec.queryPath}` }, max: { $max: `$${spec.queryPath}` } } },
-                ])
-                .toArray();
-
-            if (result === undefined || result.min === null || result.max === null) {
-                throw new AppError(422, 'FILTER_BOUND_UNAVAILABLE', `no dates at AssetInfo.${spec.queryPath}`);
-            }
-            return { min: result.min.toISOString(), max: result.max.toISOString() };
-        },
-        { dataType: 'static' },
-    );
-}
-
-/**
- * Resolve bounds without throwing, for the filter catalogue.
- * A filter whose column the ingestor has not populated yet is reported as
- * unavailable rather than failing the whole request — one absent metric must
- * not blank out every other filter panel in the UI.
- */
-export async function tryGetBounds<T>(resolve: () => Promise<T>): Promise<T | null> {
-    try {
-        return await resolve();
-    } catch (err) {
-        if (err instanceof AppError && err.code === 'FILTER_BOUND_UNAVAILABLE') return null;
-        throw err;
-    }
-}

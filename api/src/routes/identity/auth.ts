@@ -16,9 +16,6 @@ import { passwordSchema, requiredString, usernameSchema } from '@/lib/schemas.js
 import { validated } from '@/middleware/validate.js';
 import * as authService from '@/services/auth/index.js';
 
-const REFRESH_COOKIE = 'refreshToken';
-const REFRESH_COOKIE_PATH = '/api/auth';
-
 const registerBody = z.object({
     username: usernameSchema,
     password: passwordSchema,
@@ -42,7 +39,41 @@ const recoverBody = z.object({
     rememberMe: z.boolean().optional(),
 });
 
+const REFRESH_COOKIE = 'refreshToken';
+const REFRESH_COOKIE_PATH = '/api/auth';
+
 export const router = Router();
+
+function readRefreshCookie(req: Request): string | null {
+    const raw = (req.cookies as Record<string, unknown> | undefined)?.[REFRESH_COOKIE];
+    return typeof raw === 'string' && raw !== '' ? raw : null;
+}
+
+/**
+ * `maxAge` is omitted when the user did not ask to be remembered, making this a
+ * session cookie that dies with the browser. The server-side record still
+ * carries its own 24-hour ceiling, so a cookie that outlives the browser by any
+ * means is not a longer session.
+ */
+function setRefreshCookie(res: Response, token: string, maxAge?: number): void {
+    const options: CookieOptions = {
+        httpOnly: true,
+        secure: !config.isDev,
+        sameSite: 'strict',
+        path: REFRESH_COOKIE_PATH,
+        ...(maxAge !== undefined ? { maxAge } : {}),
+    };
+    res.cookie(REFRESH_COOKIE, token, options);
+}
+
+function clearRefreshCookie(res: Response): void {
+    res.clearCookie(REFRESH_COOKIE, {
+        httpOnly: true,
+        secure: !config.isDev,
+        sameSite: 'strict',
+        path: REFRESH_COOKIE_PATH,
+    });
+}
 
 router.post(
     '/register',
@@ -116,34 +147,3 @@ router.post('/logout', async (req: Request, res: Response): Promise<void> => {
     clearRefreshCookie(res);
     res.json({ ok: true });
 });
-
-function readRefreshCookie(req: Request): string | null {
-    const raw = (req.cookies as Record<string, unknown> | undefined)?.[REFRESH_COOKIE];
-    return typeof raw === 'string' && raw !== '' ? raw : null;
-}
-
-/**
- * `maxAge` is omitted when the user did not ask to be remembered, making this a
- * session cookie that dies with the browser. The server-side record still
- * carries its own 24-hour ceiling, so a cookie that outlives the browser by any
- * means is not a longer session.
- */
-function setRefreshCookie(res: Response, token: string, maxAge?: number): void {
-    const options: CookieOptions = {
-        httpOnly: true,
-        secure: !config.isDev,
-        sameSite: 'strict',
-        path: REFRESH_COOKIE_PATH,
-        ...(maxAge !== undefined ? { maxAge } : {}),
-    };
-    res.cookie(REFRESH_COOKIE, token, options);
-}
-
-function clearRefreshCookie(res: Response): void {
-    res.clearCookie(REFRESH_COOKIE, {
-        httpOnly: true,
-        secure: !config.isDev,
-        sameSite: 'strict',
-        path: REFRESH_COOKIE_PATH,
-    });
-}

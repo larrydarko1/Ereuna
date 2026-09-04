@@ -10,9 +10,37 @@
  */
 
 /** Timeframes the aggregator buckets into. These are the Redis channel suffixes. */
-export const AGGREGATOR_TIMEFRAMES = ['1m', '5m', '15m', '30m', '1hr', '1d', '1w'] as const;
-
 export type AggregatorTimeframe = (typeof AGGREGATOR_TIMEFRAMES)[number];
+
+/** One bucket as it crosses Redis. Timestamps are ISO 8601 strings. */
+export type AggregateMessage = {
+    tickerID: string;
+    timeframe: AggregatorTimeframe;
+    timestamp: string;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume?: number;
+    final?: boolean;
+};
+
+/**
+ * One bucket as it reaches the browser. `time` matches the REST series exactly
+ * or the client cannot address the same bar: an intraday bar is the UTC instant
+ * to the second, a daily or weekly bar is the calendar date alone.
+ */
+export type LiveCandle = {
+    time: string;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+    final: boolean; // True once the bucket has closed and will not change again
+};
+
+export const AGGREGATOR_TIMEFRAMES = ['1m', '5m', '15m', '30m', '1hr', '1d', '1w'] as const;
 
 /** The chart timeframe a client asks for, mapped to the bucket that feeds it. */
 export const CHART_TO_AGGREGATOR = {
@@ -71,31 +99,3 @@ export function aggregateChannel(timeframe: AggregatorTimeframe): string {
 export function lastCandleKey(symbol: string, timeframe: AggregatorTimeframe): string {
     return `aggr:last:${symbol.toUpperCase()}:${timeframe}`;
 }
-
-/** One bucket as it crosses Redis. Timestamps are ISO 8601 strings. */
-export type AggregateMessage = {
-    tickerID: string;
-    timeframe: AggregatorTimeframe;
-    timestamp: string;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-    volume?: number;
-    final?: boolean;
-};
-
-/**
- * One bucket as it reaches the browser. `time` matches the REST series exactly
- * or the client cannot address the same bar: an intraday bar is the UTC instant
- * to the second, a daily or weekly bar is the calendar date alone.
- */
-export type LiveCandle = {
-    time: string;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-    volume: number;
-    final: boolean; // True once the bucket has closed and will not change again
-};

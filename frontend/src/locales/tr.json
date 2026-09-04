@@ -1058,7 +1058,6 @@
         "INCORRECT_PASSWORD": "Bu parola hatalı.",
         "USERNAME_TAKEN": "Bu kullanıcı adı zaten alınmış.",
         "USER_NOT_FOUND": "Böyle bir hesap yok.",
-        "TWO_FA_REQUIRED": "Devam etmek için iki adımlı doğrulama kodunuzu girin.",
         "TWO_FA_TOKEN_INVALID": "Bu iki adımlı doğrulama oturumunun süresi doldu. Lütfen tekrar oturum açın.",
         "TWO_FA_ALREADY_ENABLED": "İki adımlı doğrulama zaten açık.",
         "TWO_FA_NOT_ENABLED": "İki adımlı doğrulama açık değil.",
@@ -1107,16 +1106,9 @@
         "usernameCharacters": "Kullanıcı adı yalnızca harf, rakam ve alt çizgi içerebilir.",
         "passwordLength": "Parola {min}–{max} karakter olmalıdır.",
         "confirmationRequired": "Parolanızı doğrulayın.",
-        "symbolRequired": "Sembol gerekli.",
-        "symbolInvalid": "Bu geçerli bir sembol değil.",
-        "numberRequired": "Sayı gerekli.",
-        "numberInvalid": "Bu geçerli bir sayı değil.",
-        "numberPositive": "Sıfırdan büyük olmalı.",
-        "numberNonNegative": "Negatif olamaz.",
         "passwordUppercase": "Parola bir büyük harf içermelidir.",
         "passwordLowercase": "Parola bir küçük harf içermelidir.",
         "passwordNumber": "Parola bir rakam içermelidir.",
-        "passwordSpecial": "Parola bir özel karakter içermelidir.",
-        "recoveryCodeRequired": "Bir kurtarma kodu gerekli."
+        "passwordSpecial": "Parola bir özel karakter içermelidir."
     }
 }

@@ -2,16 +2,7 @@
 import type { Series } from '@/organize/bars.js';
 import { macd, numeric, rsi, sma } from '@/utils/indicators.js';
 
-/** How much history a signal needs. The moving-average cross is the long pole. */
-export const SIGNAL_MIN_BARS = 200;
-
-const RSI_OVERSOLD = 30;
-const RSI_OVERBOUGHT = 70;
-const VOLUME_SPIKE_MULTIPLE = 2;
-const VOLUME_SPIKE_LOOKBACK = 20;
-const BREAKOUT_MOVE_PERCENT = 3;
-
-export type SignalDirection = 'BUY' | 'SELL';
+type SignalDirection = 'BUY' | 'SELL';
 
 export type Signal = {
     date: string; // ISO date of the bar that triggered it, not of the run
@@ -21,6 +12,15 @@ export type Signal = {
     price: number;
     description: string;
 };
+
+/** How much history a signal needs. The moving-average cross is the long pole. */
+export const SIGNAL_MIN_BARS = 200;
+
+const RSI_OVERSOLD = 30;
+const RSI_OVERBOUGHT = 70;
+const VOLUME_SPIKE_MULTIPLE = 2;
+const VOLUME_SPIKE_LOOKBACK = 20;
+const BREAKOUT_MOVE_PERCENT = 3;
 
 /**
  * The signals firing on the last bar of `series`.

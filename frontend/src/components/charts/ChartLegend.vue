@@ -22,9 +22,9 @@ const {
     badges?: readonly string[]; // Short flags about the instrument itself — delisted, hidden, EOD only.
 }>();
 
-const { t } = useI18n();
-
 const FIELDS = ['open', 'high', 'low', 'close'] as const;
+
+const { t } = useI18n();
 </script>
 
 <template>

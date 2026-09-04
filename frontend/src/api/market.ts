@@ -8,11 +8,6 @@
 import type { CalendarEventType, MarketOverview, StatsDoc } from '@ereuna/shared';
 import { api, type ApiResult } from '@/api/client';
 
-export type SymbolExchange = {
-    symbol: string;
-    exchange: string | null;
-};
-
 export type NewsRow = {
     title: string;
     url: string;
@@ -49,22 +44,17 @@ export type NewsQuery = {
     limit?: number;
 };
 
-export function getMarketStats(): ApiResult<MarketOverview> {
-    return api.get<MarketOverview>('/market/stats');
-}
-
 export type MarketHoliday = {
     date: string; // YYYY-MM-DD
     name: string;
 };
 
-export function getHolidays(): ApiResult<StatsDoc & { Holidays?: MarketHoliday[] }> {
-    return api.get<StatsDoc & { Holidays?: MarketHoliday[] }>('/market/holidays');
+export function getMarketStats(): ApiResult<MarketOverview> {
+    return api.get<MarketOverview>('/market/stats');
 }
 
-/** Every symbol and its exchange. A whole-universe read, cached for a day. */
-export function getSymbolIndex(): ApiResult<{ items: SymbolExchange[] }> {
-    return api.get<{ items: SymbolExchange[] }>('/market/symbols');
+export function getHolidays(): ApiResult<StatsDoc & { Holidays?: MarketHoliday[] }> {
+    return api.get<StatsDoc & { Holidays?: MarketHoliday[] }>('/market/holidays');
 }
 
 export function getNews(query: NewsQuery = {}): ApiResult<{ items: NewsRow[] }> {

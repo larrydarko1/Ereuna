@@ -13,27 +13,6 @@ import { getPortfolio } from '@/services/portfolio/portfolio-crud.js';
 import { readTrades } from '@/services/portfolio/portfolio-rebuild.js';
 import { toTradeRow, type TradeRow } from '@/services/portfolio/portfolio-trades.js';
 
-export type ValuedPosition = {
-    symbol: string;
-    side: PositionSide;
-    shares: number;
-    avgPrice: number;
-    lastClose: number | null; // Null when the ingestor has no bar for the symbol yet
-    marketValue: number | null; // Absolute value of the position — a short's is what it would cost to buy back
-    exposure: number | null; // Signed contribution to equity: negative for a short
-    unrealizedPL: number | null;
-    unrealizedPLPercent: number | null;
-    weight: number | null; // Share of gross exposure, in percent
-};
-
-export type BenchmarkResult = {
-    symbol: string;
-    inceptionPrice: number;
-    currentPrice: number;
-    returnPercent: number;
-    portfolioReturnPercent: number;
-    outperformance: number;
-};
 
 export type PortfolioSummary = {
     number: number;
@@ -55,6 +34,40 @@ export type PortfolioSummary = {
     stats: PortfolioStatsSnapshot | null;
     valueHistory: PortfolioValuePoint[];
     benchmarks: BenchmarkResult[];
+};
+
+export type PortfolioExport = {
+    portfolio: {
+        baseValue: number;
+        leverage: number;
+        defaultCommission: number;
+        benchmarks: string[];
+        stats: PortfolioStatsSnapshot | null;
+        valueHistory: PortfolioValuePoint[];
+    };
+    trades: TradeRow[];
+};
+
+type ValuedPosition = {
+    symbol: string;
+    side: PositionSide;
+    shares: number;
+    avgPrice: number;
+    lastClose: number | null; // Null when the ingestor has no bar for the symbol yet
+    marketValue: number | null; // Absolute value of the position — a short's is what it would cost to buy back
+    exposure: number | null; // Signed contribution to equity: negative for a short
+    unrealizedPL: number | null;
+    unrealizedPLPercent: number | null;
+    weight: number | null; // Share of gross exposure, in percent
+};
+
+type BenchmarkResult = {
+    symbol: string;
+    inceptionPrice: number;
+    currentPrice: number;
+    returnPercent: number;
+    portfolioReturnPercent: number;
+    outperformance: number;
 };
 
 export async function getSummary(userId: ObjectId, number: number): Promise<PortfolioSummary> {
@@ -106,18 +119,6 @@ export async function getSummary(userId: ObjectId, number: number): Promise<Port
         benchmarks: await benchmarkResults(userId, number, portfolio.benchmarks, totalPLPercent),
     };
 }
-
-export type PortfolioExport = {
-    portfolio: {
-        baseValue: number;
-        leverage: number;
-        defaultCommission: number;
-        benchmarks: string[];
-        stats: PortfolioStatsSnapshot | null;
-        valueHistory: PortfolioValuePoint[];
-    };
-    trades: TradeRow[];
-};
 
 export async function exportPortfolio(userId: ObjectId, number: number): Promise<PortfolioExport> {
     const [portfolio, trades] = await Promise.all([getPortfolio(userId, number), readTrades(userId, number)]);

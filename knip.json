@@ -1,0 +1,20 @@
+{
+    "$schema": "./node_modules/knip/schema.json",
+    "workspaces": {
+        ".": {
+            "entry": ["scripts/**/*.mjs!"],
+            "project": ["scripts/**/*.{js,mjs,cjs}!", "*.{ts,mts,js}"]
+        },
+        "frontend": { "entry": ["index.html!"], "project": ["src/**/*.{ts,vue}!", "*.ts"] },
+        "api": { "project": ["src/**/*.ts!", "*.ts"] },
+        "worker": { "project": ["src/**/*.ts!"] },
+        "ingestor": { "project": ["src/**/*.ts!"] },
+        "db": { "entry": ["migrate-mongo-config.js!", "migrations/*.js!"], "project": ["**/*.{js,ts}"] },
+        "packages/shared": {
+            "project": ["src/**/*.ts!"],
+            "ignoreDependencies": ["pino-pretty"]
+        }
+    },
+    "ignore": ["frontend/src/lib/lightweight-charts/**"],
+    "tags": ["-public"]
+}

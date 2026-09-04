@@ -171,10 +171,6 @@ export async function resetFilters(userId: ObjectId, screenerName: string): Prom
     return updated;
 }
 
-export async function listFilters(userId: ObjectId, screenerName: string): Promise<Record<string, ScreenerFilterValue>> {
-    return (await getScreener(userId, screenerName)).filters;
-}
-
 async function writeFilter(
     userId: ObjectId,
     screenerName: string,

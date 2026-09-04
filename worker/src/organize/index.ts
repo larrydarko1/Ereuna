@@ -15,19 +15,63 @@ import { activeUniverse } from '@/organize/universe.js';
 import { updateValuations } from '@/organize/valuation.js';
 import { updateCurrentWeek } from '@/organize/weekly.js';
 
-let timer: NodeJS.Timeout | undefined;
-let stopping = false;
-
-/** What the price step yields when it fails: no bars, and so no actions to apply. */
-const NO_PRICES: PriceUpdate = { written: 0, splits: [], dividends: [] };
-
-export type RunSummary = {
+type RunSummary = {
     steps: number;
     failed: string[];
     durationMs: number;
 };
 
-export async function runNightly(): Promise<RunSummary> {
+/** What the price step yields when it fails: no bars, and so no actions to apply. */
+const NO_PRICES: PriceUpdate = { written: 0, splits: [], dividends: [] };
+
+let timer: NodeJS.Timeout | undefined;
+let stopping = false;
+
+/**
+ * The organize role: wait for the run hour, run, wait again.
+ * A timer per run rather than one interval, because the wait is recomputed from
+ * the exchange's clock each time and a daylight-saving change moves it by an
+ * hour. Resolves only when the role is stopped.
+ */
+export async function startOrganizer(): Promise<void> {
+    if (config.organize.runOnStart) {
+        logger.warn('ORGANIZE_ON_START is set — running immediately');
+        await runNightly();
+    }
+
+    return new Promise<void>((resolve) => {
+        const schedule = (): void => {
+            if (stopping) {
+                resolve();
+                return;
+            }
+
+            const wait = msUntilNextRun();
+            logger.info({ hours: (wait / 3_600_000).toFixed(2) }, 'Waiting for the next nightly run');
+
+            timer = setTimeout(() => {
+                runNightly()
+                    .catch((err: Error) => logger.error({ err }, 'Nightly run threw'))
+                    .finally(schedule);
+            }, wait);
+        };
+
+        schedule();
+    });
+}
+
+/**
+ * Stop scheduling.
+ * A run already under way is left to finish — it holds partially written
+ * derived fields, and killing it mid-pass leaves the collection in a state no
+ * step is responsible for repairing. The process exits when it returns.
+ */
+export function stopOrganizer(): void {
+    stopping = true;
+    if (timer !== undefined) clearTimeout(timer);
+}
+
+async function runNightly(): Promise<RunSummary> {
     const startedAt = Date.now();
     const failed: string[] = [];
     let steps = 0;
@@ -82,48 +126,4 @@ export async function runNightly(): Promise<RunSummary> {
     else logger.error(summary, 'Nightly run finished with failures');
 
     return summary;
-}
-
-/**
- * The organize role: wait for the run hour, run, wait again.
- * A timer per run rather than one interval, because the wait is recomputed from
- * the exchange's clock each time and a daylight-saving change moves it by an
- * hour. Resolves only when the role is stopped.
- */
-export async function startOrganizer(): Promise<void> {
-    if (config.organize.runOnStart) {
-        logger.warn('ORGANIZE_ON_START is set — running immediately');
-        await runNightly();
-    }
-
-    return new Promise<void>((resolve) => {
-        const schedule = (): void => {
-            if (stopping) {
-                resolve();
-                return;
-            }
-
-            const wait = msUntilNextRun();
-            logger.info({ hours: (wait / 3_600_000).toFixed(2) }, 'Waiting for the next nightly run');
-
-            timer = setTimeout(() => {
-                runNightly()
-                    .catch((err: Error) => logger.error({ err }, 'Nightly run threw'))
-                    .finally(schedule);
-            }, wait);
-        };
-
-        schedule();
-    });
-}
-
-/**
- * Stop scheduling.
- * A run already under way is left to finish — it holds partially written
- * derived fields, and killing it mid-pass leaves the collection in a state no
- * step is responsible for repairing. The process exits when it returns.
- */
-export function stopOrganizer(): void {
-    stopping = true;
-    if (timer !== undefined) clearTimeout(timer);
 }

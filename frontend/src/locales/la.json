@@ -1058,7 +1058,6 @@
         "INCORRECT_PASSWORD": "Illa tessera falsa est.",
         "USERNAME_TAKEN": "Illud nomen usoris iam occupatum est.",
         "USER_NOT_FOUND": "Talis ratio non exstat.",
-        "TWO_FA_REQUIRED": "Codicem duplicis factoris insere ut pergas.",
         "TWO_FA_TOKEN_INVALID": "Illa sessio duplicis factoris exspiravit. Quaeso iterum ingredere.",
         "TWO_FA_ALREADY_ENABLED": "Authenticatio duplicis factoris iam accensa est.",
         "TWO_FA_NOT_ENABLED": "Authenticatio duplicis factoris accensa non est.",
@@ -1107,16 +1106,9 @@
         "usernameCharacters": "Nomen usoris solum litteras, numeros et lineolas subscriptas habere potest.",
         "passwordLength": "Tessera {min}–{max} litteras habere debet.",
         "confirmationRequired": "Tesseram tuam confirma.",
-        "symbolRequired": "Signum requiritur.",
-        "symbolInvalid": "Illud signum non valet.",
-        "numberRequired": "Numerus requiritur.",
-        "numberInvalid": "Ille numerus non valet.",
-        "numberPositive": "Maior nihilo esse debet.",
-        "numberNonNegative": "Negativus esse non potest.",
         "passwordUppercase": "Tessera litteram maiusculam habere debet.",
         "passwordLowercase": "Tessera litteram minusculam habere debet.",
         "passwordNumber": "Tessera numerum habere debet.",
-        "passwordSpecial": "Tessera signum speciale habere debet.",
-        "recoveryCodeRequired": "Codex recuperationis requiritur."
+        "passwordSpecial": "Tessera signum speciale habere debet."
     }
 }

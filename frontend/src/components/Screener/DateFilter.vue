@@ -17,16 +17,6 @@ const from = ref('');
 const to = ref('');
 const error = ref<string | null>(null);
 
-watch(
-    () => value,
-    (current) => {
-        from.value = current === null ? '' : toDateInput(current.from);
-        to.value = current === null ? '' : toDateInput(current.to);
-        error.value = null;
-    },
-    { immediate: true },
-);
-
 function submit(): void {
     const start = from.value.trim();
     const end = to.value.trim();
@@ -43,6 +33,16 @@ function submit(): void {
     error.value = null;
     emit('apply', { from: start === '' ? undefined : start, to: end === '' ? undefined : end });
 }
+
+watch(
+    () => value,
+    (current) => {
+        from.value = current === null ? '' : toDateInput(current.from);
+        to.value = current === null ? '' : toDateInput(current.to);
+        error.value = null;
+    },
+    { immediate: true },
+);
 </script>
 
 <template>

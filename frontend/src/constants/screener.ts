@@ -8,7 +8,18 @@
  * A filter added to the shared registry without a group here lands in the
  * catch-all group rather than disappearing, and the audit test names it.
  */
-import { ENUM_FILTERS, MA_FILTERS, RANGE_FILTERS, DATE_FILTERS } from '@ereuna/shared';
+import { ENUM_FILTERS, MA_FILTERS, RANGE_FILTERS } from '@ereuna/shared';
+
+export type FilterGroup = (typeof FILTER_GROUPS)[number];
+
+/** How a result column reads once it is in a cell. */
+export type ColumnFormat = 'text' | 'number' | 'compact' | 'percent' | 'date';
+
+export type ColumnSpec = {
+    path: string; // The AssetInfo path the API projects and keys the row by
+    filterKey: string; // The filter this column came from — and so its label
+    format: ColumnFormat;
+};
 
 /** Headings, in the order they are rendered. */
 export const FILTER_GROUPS = [
@@ -23,8 +34,6 @@ export const FILTER_GROUPS = [
     'performance',
     'funds',
 ] as const;
-
-export type FilterGroup = (typeof FILTER_GROUPS)[number];
 
 /**
  * Filter key → heading. Kept as one literal table rather than derived from the
@@ -124,35 +133,6 @@ const GROUP_BY_KEY: Readonly<Record<string, FilterGroup>> = {
 };
 
 /**
- * Which heading a filter belongs under.
- * An unmapped filter is grouped rather than dropped: a filter the API has
- * started serving is still usable while this table catches up.
- */
-export function filterGroup(key: string): FilterGroup {
-    return GROUP_BY_KEY[key] ?? 'classification';
-}
-
-/**
- * A few filters mean nothing outside a narrow slice of the universe. Marking
- * them keeps the panel honest — a net expense ratio on a common stock is not a
- * blank value, it is a question that does not apply.
- */
-const FUND_ONLY = new Set(['net-expense-ratio', 'fund-families', 'fund-categories']);
-
-export function isFundOnly(key: string): boolean {
-    return FUND_ONLY.has(key);
-}
-
-/** How a result column reads once it is in a cell. */
-export type ColumnFormat = 'text' | 'number' | 'compact' | 'percent' | 'date';
-
-export type ColumnSpec = {
-    path: string; // The AssetInfo path the API projects and keys the row by
-    filterKey: string; // The filter this column came from — and so its label
-    format: ColumnFormat;
-};
-
-/**
  * Percentages come out of the ingestor already scaled (12.5 meaning 12.5%),
  * so they format as `percent` rather than `ratio`. Anything measured in money
  * or shares is compacted; everything else is a plain two-decimal number.
@@ -216,17 +196,25 @@ export const COLUMNS: readonly ColumnSpec[] = [
     ...MA_FILTERS.map((spec) => ({ path: spec.path, filterKey: spec.key, format: 'number' as const })),
 ];
 
-/**
- * `ipo-date` is a filter but not a column: the API's projection allowlist is
- * built from the range, enum and MA registries only, so asking for it would
- * produce a column the server never fills.
- */
-export const DATE_FILTER_KEYS: readonly string[] = DATE_FILTERS.map((spec) => spec.key);
 
-function columnFormat(key: string, path: string): ColumnFormat {
-    if (PERCENT_KEYS.has(key)) return 'percent';
-    if (COMPACT_PATHS.has(path)) return 'compact';
-    return 'number';
+/** Shown when a user has never chosen columns of their own. */
+export const DEFAULT_COLUMNS: readonly string[] = [
+    'TimeSeries.close',
+    'MarketCapitalization',
+    'PERatio',
+    'todaychange',
+    'AvgVolume1M',
+];
+
+const COLUMN_BY_PATH = new Map(COLUMNS.map((column) => [column.path, column]));
+
+/**
+ * Which heading a filter belongs under.
+ * An unmapped filter is grouped rather than dropped: a filter the API has
+ * started serving is still usable while this table catches up.
+ */
+export function filterGroup(key: string): FilterGroup {
+    return GROUP_BY_KEY[key] ?? 'classification';
 }
 
 /**
@@ -244,17 +232,12 @@ export function readColumn(row: Record<string, unknown>, path: string): unknown 
     return cursor ?? null;
 }
 
-const COLUMN_BY_PATH = new Map(COLUMNS.map((column) => [column.path, column]));
-
 export function findColumn(path: string): ColumnSpec | undefined {
     return COLUMN_BY_PATH.get(path);
 }
 
-/** Shown when a user has never chosen columns of their own. */
-export const DEFAULT_COLUMNS: readonly string[] = [
-    'TimeSeries.close',
-    'MarketCapitalization',
-    'PERatio',
-    'todaychange',
-    'AvgVolume1M',
-];
+function columnFormat(key: string, path: string): ColumnFormat {
+    if (PERCENT_KEYS.has(key)) return 'percent';
+    if (COMPACT_PATHS.has(path)) return 'compact';
+    return 'number';
+}

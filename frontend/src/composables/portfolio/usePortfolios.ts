@@ -18,9 +18,6 @@ import {
 } from '@/api/portfolio';
 import { i18n } from '@/i18n';
 
-/** Slots are 0-based and the count is fixed by the API. */
-export const PORTFOLIO_SLOTS = 10;
-
 export type UsePortfoliosReturn = {
     slots: Ref<PortfolioRow[]>;
     selected: Ref<number>;
@@ -42,6 +39,9 @@ export type UsePortfoliosReturn = {
     exportCurrent: () => Promise<PortfolioExport>;
     importInto: (payload: PortfolioImport) => Promise<number>;
 };
+
+/** Slots are 0-based and the count is fixed by the API. */
+export const PORTFOLIO_SLOTS = 10;
 
 export function usePortfolios(): UsePortfoliosReturn {
     const slots = ref<PortfolioRow[]>([]);

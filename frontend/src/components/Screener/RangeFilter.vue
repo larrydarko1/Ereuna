@@ -17,16 +17,6 @@ const min = ref('');
 const max = ref('');
 const error = ref<string | null>(null);
 
-watch(
-    () => value,
-    (current) => {
-        min.value = current === null ? '' : String(current.min);
-        max.value = current === null ? '' : String(current.max);
-        error.value = null;
-    },
-    { immediate: true },
-);
-
 /** A blank field means "no limit on this side", not zero. */
 function parse(raw: string): number | undefined {
     const trimmed = raw.trim();
@@ -60,6 +50,16 @@ function placeholder(side: 'min' | 'max'): string {
     if (bounds === null) return side === 'min' ? t('screener.min') : t('screener.max');
     return formatNumber(side === 'min' ? bounds.min : bounds.max, 2);
 }
+
+watch(
+    () => value,
+    (current) => {
+        min.value = current === null ? '' : String(current.min);
+        max.value = current === null ? '' : String(current.max);
+        error.value = null;
+    },
+    { immediate: true },
+);
 </script>
 
 <template>

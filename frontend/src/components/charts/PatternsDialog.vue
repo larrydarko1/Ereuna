@@ -11,8 +11,6 @@ const { symbol, patterns } = defineProps<{
 
 const emit = defineEmits<{ close: [] }>();
 
-const { t, te } = useI18n();
-
 /** Which way a pattern reads, for the colour it is given. */
 const BIAS: Record<string, 'bullish' | 'bearish' | 'neutral'> = {
     doubleTop: 'bearish',
@@ -25,6 +23,8 @@ const BIAS: Record<string, 'bullish' | 'bearish' | 'neutral'> = {
     bullishFlag: 'bullish',
     bearishFlag: 'bearish',
 };
+
+const { t, te } = useI18n();
 
 function patternName(type: string): string {
     const key = `charts.patterns.types.${type}`;

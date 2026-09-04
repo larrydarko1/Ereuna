@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-export type Slice = {
+type Slice = {
     label: string;
     value: number;
 };

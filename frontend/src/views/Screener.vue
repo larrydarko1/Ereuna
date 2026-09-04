@@ -26,6 +26,23 @@ type Pane = 'filters' | 'results' | 'chart';
 type ListMode = 'screener' | 'combined' | 'hidden';
 type Dialog = 'create' | 'rename' | 'delete' | 'reset' | 'columns' | null;
 
+/**
+ * Export as far as the cap allows.
+ * A loose screener matches tens of thousands of symbols, and walking every page
+ * of that is a denial of service pointed at the user's own API. The cap is
+ * stated on the button, so a truncated file is not a surprise.
+ */
+const EXPORT_LIMIT = 5000;
+const EXPORT_PAGE = 200;
+
+/**
+ * Autoplay walks the selection down the list so charts can be reviewed without
+ * a hand on the keyboard. It stops at the end of the page rather than paging on:
+ * a request on a timer nobody is watching is how the old view kept a tab busy
+ * overnight.
+ */
+const AUTOPLAY_MS = 4000;
+
 const { t } = useI18n();
 const { preferences } = usePreferences();
 
@@ -89,21 +106,10 @@ const profile = useResource(
     { enabled: (symbol) => symbol !== '' },
 );
 
-// The chart follows the list: a screener whose first row was never selected
-// left the chart pane empty, which was the old view's usual first impression.
-watch(rows, (current) => {
-    if (current.length === 0) {
-        selectedSymbol.value = '';
-        return;
-    }
-    if (!current.some((row) => row.symbol === selectedSymbol.value)) {
-        selectedSymbol.value = current[0]?.symbol ?? '';
-    }
-});
+const exporting = ref(false);
 
-onMounted(async () => {
-    await Promise.all([loadPreferences(), registry.load(), loadScreeners()]);
-});
+const autoplay = ref(false);
+let timer: ReturnType<typeof setInterval> | undefined;
 
 /** A filter write changes both the matches and the picker's per-screener count. */
 async function afterFilterChange(): Promise<void> {
@@ -166,16 +172,6 @@ async function saveColumns(next: string[]): Promise<void> {
     }
 }
 
-/**
- * Export as far as the cap allows.
- * A loose screener matches tens of thousands of symbols, and walking every page
- * of that is a denial of service pointed at the user's own API. The cap is
- * stated on the button, so a truncated file is not a surprise.
- */
-const EXPORT_LIMIT = 5000;
-const EXPORT_PAGE = 200;
-const exporting = ref(false);
-
 async function collectForExport(): Promise<ScreenerResult[]> {
     const collected: ScreenerResult[] = [];
 
@@ -229,15 +225,21 @@ async function exportCsv(): Promise<void> {
     }
 }
 
-/**
- * Autoplay walks the selection down the list so charts can be reviewed without
- * a hand on the keyboard. It stops at the end of the page rather than paging on:
- * a request on a timer nobody is watching is how the old view kept a tab busy
- * overnight.
- */
-const AUTOPLAY_MS = 4000;
-const autoplay = ref(false);
-let timer: ReturnType<typeof setInterval> | undefined;
+// The chart follows the list: a screener whose first row was never selected
+// left the chart pane empty, which was the old view's usual first impression.
+watch(rows, (current) => {
+    if (current.length === 0) {
+        selectedSymbol.value = '';
+        return;
+    }
+    if (!current.some((row) => row.symbol === selectedSymbol.value)) {
+        selectedSymbol.value = current[0]?.symbol ?? '';
+    }
+});
+
+onMounted(async () => {
+    await Promise.all([loadPreferences(), registry.load(), loadScreeners()]);
+});
 
 watch(autoplay, (on) => {
     if (timer !== undefined) clearInterval(timer);

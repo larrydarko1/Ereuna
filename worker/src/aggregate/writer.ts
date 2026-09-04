@@ -24,6 +24,8 @@ export type CandleDoc = {
     volume: number;
 };
 
+const pending = new Map<string, CandleDoc[]>();
+
 const written = new Counter({
     name: 'aggregator_candles_written_total',
     help: 'Candles upserted into MongoDB',
@@ -42,8 +44,6 @@ const writeDuration = new Histogram({
     labelNames: ['collection'],
     buckets: [0.01, 0.05, 0.1, 0.5, 1, 5],
 });
-
-const pending = new Map<string, CandleDoc[]>();
 
 let timer: NodeJS.Timeout | undefined;
 

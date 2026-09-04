@@ -16,9 +16,6 @@ import { getDb } from '@/lib/db.js';
 import { requireAsset } from '@/services/market/market-assets.js';
 import { toMarketOverview } from '@/utils/market-overview.js';
 
-/** One day. Holidays and the symbol index change on the ingestor's schedule, not ours. */
-const DAY_SECONDS = 86_400;
-
 export type SymbolExchange = {
     symbol: string;
     exchange: string | null;
@@ -29,6 +26,9 @@ export type Financials = {
     annual: Record<string, unknown>[];
     quarterly: Record<string, unknown>[];
 };
+
+/** One day. Holidays and the symbol index change on the ingestor's schedule, not ours. */
+const DAY_SECONDS = 86_400;
 
 /**
  * The market summary the dashboard opens with, including when it was last

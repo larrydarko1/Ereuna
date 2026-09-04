@@ -2,13 +2,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import { findSessionUser, isAuthenticated } from '@/api/client';
 
-declare module 'vue-router' {
-    interface RouteMeta {
-        public?: boolean;
-        guestOnly?: boolean;
-    }
-}
-
 const routes: RouteRecordRaw[] = [
     {
         path: '/',
@@ -78,6 +71,13 @@ const router = createRouter({
     // place to be — except when the browser is restoring a back/forward entry.
     scrollBehavior: (_to, _from, saved) => saved ?? { top: 0 },
 });
+
+declare module 'vue-router' {
+    interface RouteMeta {
+        public?: boolean;
+        guestOnly?: boolean;
+    }
+}
 
 router.beforeEach((to) => {
     const signedIn = isAuthenticated();

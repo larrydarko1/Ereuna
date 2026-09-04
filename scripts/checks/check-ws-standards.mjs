@@ -253,8 +253,14 @@ const gwBody = gw.slice(header.length);
         if (!/autoConnect:\s*false/.test(client)) {
             fail(CLIENT, 'the socket connects before authentication', 'Set `autoConnect: false` and connect once authenticated — an anonymous handshake just burns a connection-bucket token.');
         }
-        if (!/export function disconnectSocket/.test(client)) {
-            fail(CLIENT, 'no disconnectSocket()', 'Expose one so the session teardown can drop the connection and discard the singleton.');
+        // Deliberately not `export function`: what the standard asks for is that
+        // the teardown exists and is REGISTERED, which the next rule checks.
+        // Exporting it as well is worse, not better — it hands any caller the
+        // ability to drop a socket the rest of the app is still reading from,
+        // and the dead-code gate correctly reports it as an export nobody
+        // imports. `onSessionCleared` is the only caller there should ever be.
+        if (!/function disconnectSocket/.test(client)) {
+            fail(CLIENT, 'no disconnectSocket()', 'Define one so the session teardown can drop the connection and discard the singleton.');
         } else if (!/onSessionCleared\(disconnectSocket\)/.test(client)) {
             fail(
                 CLIENT,

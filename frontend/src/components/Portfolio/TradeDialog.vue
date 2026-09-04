@@ -25,11 +25,11 @@ const {
 
 const emit = defineEmits<{ close: []; submit: [trade: TradeInput] }>();
 
-const { t } = useI18n();
-
 /** Cash movements are recorded in their own dialog, so only the four equity
  *  actions are offered here. */
 const ACTIONS: readonly TradeAction[] = ['buy', 'sell', 'short', 'cover'];
+
+const { t } = useI18n();
 
 const action = ref<TradeAction>(editing?.action ?? preset?.action ?? 'buy');
 const symbol = ref(editing?.symbol ?? preset?.symbol ?? '');

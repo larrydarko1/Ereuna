@@ -7,12 +7,14 @@ import PromptDialog from '@/components/ui/PromptDialog.vue';
 import { useWatchlists } from '@/composables/charts/useWatchlists';
 import { formatNumber, formatPercent } from '@/utils/formatters';
 
-/** The API's per-list ceiling, so a file with more is refused before any write. */
-const MAX_IMPORT = 100;
+type Prompt = 'create' | 'rename' | null;
 
 const { symbol = '' } = defineProps<{ symbol?: string }>();
 
 const emit = defineEmits<{ select: [symbol: string] }>();
+
+/** The API's per-list ceiling, so a file with more is refused before any write. */
+const MAX_IMPORT = 100;
 
 const { t } = useI18n();
 const {
@@ -32,8 +34,6 @@ const {
     reorderTickers,
 } = useWatchlists();
 
-type Prompt = 'create' | 'rename' | null;
-
 const prompt = ref<Prompt>(null);
 const confirmingDelete = ref(false);
 const draftSymbol = ref('');
@@ -43,10 +43,6 @@ const notice = ref<string | null>(null);
 const fileInput = useTemplateRef<HTMLInputElement>('fileInput');
 
 const tickers = computed(() => rows.value.map((row) => row.ticker));
-
-onMounted(() => {
-    void run(() => load());
-});
 
 /** Every write goes through here, so one place reports failure and clears it. */
 async function run(action: () => Promise<void>): Promise<void> {
@@ -138,6 +134,10 @@ function exportList(): void {
 
 const changeTone = (value: number | null): string =>
     value === null || value === 0 ? '' : value > 0 ? 'watchlist__change--up' : 'watchlist__change--down';
+
+onMounted(() => {
+    void run(() => load());
+});
 </script>
 
 <template>

@@ -5,6 +5,14 @@
 import type { Statement } from '@/organize/fundamentals.js';
 import { numeric, round, standardDeviation } from '@/utils/indicators.js';
 
+export type ValuationInput = {
+    quarterly: readonly Statement[];
+    sharesOutstanding: number | null;
+    splits: readonly { ratio?: number }[];
+    price: number | null;
+    now?: Date;
+};
+
 /** Quarters of free cash flow needed: five years, so the growth rate spans four. */
 const REQUIRED_QUARTERS = 20;
 const FORECAST_YEARS = 5;
@@ -17,14 +25,6 @@ const MAX_EPS_VARIATION = 3;
 const MAX_DEBT_TO_EQUITY = 10;
 const MAX_REVERSE_SPLITS = 5;
 const MAX_STALENESS_DAYS = 365;
-
-export type ValuationInput = {
-    quarterly: readonly Statement[];
-    sharesOutstanding: number | null;
-    splits: readonly { ratio?: number }[];
-    price: number | null;
-    now?: Date;
-};
 
 export function intrinsicValue(input: ValuationInput): number | null {
     const { quarterly, sharesOutstanding, splits, price } = input;

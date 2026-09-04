@@ -139,7 +139,7 @@ export async function deleteAccount(userId: ObjectId, password: string): Promise
     await invalidatePrefix(`u:${userId.toHexString()}:`);
 }
 
-export async function requireUser(userId: ObjectId): Promise<WithId<UserDoc>> {
+async function requireUser(userId: ObjectId): Promise<WithId<UserDoc>> {
     const user = await getDb().collection<UserDoc>('Users').findOne({ _id: userId });
     if (user === null) throw new AppError(404, 'USER_NOT_FOUND', `user ${userId.toHexString()} not found`);
     return user;

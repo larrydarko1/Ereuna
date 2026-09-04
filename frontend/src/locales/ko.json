@@ -1058,7 +1058,6 @@
         "INCORRECT_PASSWORD": "비밀번호가 올바르지 않습니다.",
         "USERNAME_TAKEN": "이미 사용 중인 사용자 이름입니다.",
         "USER_NOT_FOUND": "해당 계정이 없습니다.",
-        "TWO_FA_REQUIRED": "계속하려면 2단계 인증 코드를 입력하세요.",
         "TWO_FA_TOKEN_INVALID": "2단계 인증 세션이 만료되었습니다. 다시 로그인해 주세요.",
         "TWO_FA_ALREADY_ENABLED": "2단계 인증이 이미 켜져 있습니다.",
         "TWO_FA_NOT_ENABLED": "2단계 인증이 켜져 있지 않습니다.",
@@ -1107,16 +1106,9 @@
         "usernameCharacters": "사용자 이름에는 문자, 숫자, 밑줄만 사용할 수 있습니다.",
         "passwordLength": "비밀번호는 {min}~{max}자여야 합니다.",
         "confirmationRequired": "비밀번호를 확인하세요.",
-        "symbolRequired": "종목 코드를 입력하세요.",
-        "symbolInvalid": "올바른 종목 코드가 아닙니다.",
-        "numberRequired": "숫자를 입력하세요.",
-        "numberInvalid": "올바른 숫자가 아닙니다.",
-        "numberPositive": "0보다 커야 합니다.",
-        "numberNonNegative": "음수일 수 없습니다.",
         "passwordUppercase": "비밀번호에 대문자를 포함해야 합니다.",
         "passwordLowercase": "비밀번호에 소문자를 포함해야 합니다.",
         "passwordNumber": "비밀번호에 숫자를 포함해야 합니다.",
-        "passwordSpecial": "비밀번호에 특수 문자를 포함해야 합니다.",
-        "recoveryCodeRequired": "복구 코드가 필요합니다."
+        "passwordSpecial": "비밀번호에 특수 문자를 포함해야 합니다."
     }
 }

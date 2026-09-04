@@ -1058,7 +1058,6 @@
         "INCORRECT_PASSWORD": "Password errata.",
         "USERNAME_TAKEN": "Questo nome utente è già in uso.",
         "USER_NOT_FOUND": "Account inesistente.",
-        "TWO_FA_REQUIRED": "Inserisci il codice a due fattori per continuare.",
         "TWO_FA_TOKEN_INVALID": "La sessione a due fattori è scaduta. Accedi di nuovo.",
         "TWO_FA_ALREADY_ENABLED": "L'autenticazione a due fattori è già attiva.",
         "TWO_FA_NOT_ENABLED": "L'autenticazione a due fattori non è attiva.",
@@ -1107,16 +1106,9 @@
         "usernameCharacters": "Il nome utente può contenere solo lettere, numeri e trattini bassi.",
         "passwordLength": "La password deve avere da {min} a {max} caratteri.",
         "confirmationRequired": "Conferma la password.",
-        "symbolRequired": "Il simbolo è obbligatorio.",
-        "symbolInvalid": "Simbolo non valido.",
-        "numberRequired": "Il numero è obbligatorio.",
-        "numberInvalid": "Numero non valido.",
-        "numberPositive": "Deve essere maggiore di zero.",
-        "numberNonNegative": "Non può essere negativo.",
         "passwordUppercase": "La password deve contenere una lettera maiuscola.",
         "passwordLowercase": "La password deve contenere una lettera minuscola.",
         "passwordNumber": "La password deve contenere un numero.",
-        "passwordSpecial": "La password deve contenere un carattere speciale.",
-        "recoveryCodeRequired": "È richiesto un codice di recupero."
+        "passwordSpecial": "La password deve contenere un carattere speciale."
     }
 }

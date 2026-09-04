@@ -35,6 +35,23 @@ const SVG_SANDBOX = "default-src 'none'; style-src 'unsafe-inline'; sandbox";
 
 export const router = Router();
 
+/** True when the request came from the app, or carries no hint either way —
+ *  an `<img>` sends no Origin, and a browser set to withhold the referrer
+ *  sends neither. Failing open on absence keeps those users' logos loading;
+ *  a header that IS present and belongs to someone else is refused. */
+function isSameOrigin(req: Request): boolean {
+    const { origin, referer } = req.headers;
+    if (origin !== undefined && origin !== '') return origin === config.corsOrigin;
+    if (referer !== undefined && referer !== '') {
+        try {
+            return new URL(referer).origin === config.corsOrigin;
+        } catch {
+            return false;
+        }
+    }
+    return true;
+}
+
 router.get(
     '/:exchange/:file',
     ...validated({ params: logoParams }, (req, res): void => {
@@ -66,20 +83,3 @@ router.get(
         );
     }),
 );
-
-/** True when the request came from the app, or carries no hint either way —
- *  an `<img>` sends no Origin, and a browser set to withhold the referrer
- *  sends neither. Failing open on absence keeps those users' logos loading;
- *  a header that IS present and belongs to someone else is refused. */
-function isSameOrigin(req: Request): boolean {
-    const { origin, referer } = req.headers;
-    if (origin !== undefined && origin !== '') return origin === config.corsOrigin;
-    if (referer !== undefined && referer !== '') {
-        try {
-            return new URL(referer).origin === config.corsOrigin;
-        } catch {
-            return false;
-        }
-    }
-    return true;
-}

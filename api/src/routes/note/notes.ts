@@ -15,12 +15,12 @@ import * as noteService from '@/services/note/index.js';
 
 const messageSchema = z.string().trim().min(1, 'Note cannot be empty').max(5000);
 
+const createBody = z.object({ symbol: symbolSchema, message: messageSchema });
+const updateBody = z.object({ message: messageSchema });
+
 const listQuery = makePaginationQuery({ defaultLimit: 50, maxLimit: 200 }).extend({
     symbol: symbolSchema.optional(),
 });
-
-const createBody = z.object({ symbol: symbolSchema, message: messageSchema });
-const updateBody = z.object({ message: messageSchema });
 
 export const router = Router();
 

@@ -79,7 +79,7 @@ export async function rebuild(userId: ObjectId, portfolioNumber: number): Promis
 }
 
 /** Map a replay violation onto the wire contract. */
-export function toAppError(violation: LogViolation): AppError {
+function toAppError(violation: LogViolation): AppError {
     const on = violation.tradeDate.toISOString().slice(0, 10);
     const params = {
         action: violation.action,

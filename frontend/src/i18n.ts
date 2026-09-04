@@ -69,7 +69,7 @@ export const SUPPORTED_LOCALES = [
     { code: 'la', label: 'Latina' },
 ] as const satisfies readonly LocaleMeta[];
 
-export const DEFAULT_LOCALE = 'en';
+const DEFAULT_LOCALE = 'en';
 
 const STORAGE_KEY = 'ereuna-locale';
 
@@ -88,19 +88,6 @@ export const i18n = createI18n<[MessageSchema], AppLocale, false>({
 
 export function isSupportedLocale(code: unknown): code is AppLocale {
     return typeof code === 'string' && SUPPORTED_LOCALES.some((locale) => locale.code === code);
-}
-
-/**
- * Apply a locale to the running app and to the document.
- * `lang` drives screen-reader pronunciation and `dir` drives the whole layout
- * mirror, so both belong here rather than at the call sites.
- */
-export function setAppLocale(locale: AppLocale): void {
-    i18n.global.locale.value = locale;
-    const meta = SUPPORTED_LOCALES.find((entry) => entry.code === locale);
-    const root = document.documentElement;
-    root.setAttribute('lang', locale);
-    root.setAttribute('dir', meta !== undefined && 'rtl' in meta ? 'rtl' : 'ltr');
 }
 
 /** The locale to paint with before the session has resolved. */
@@ -130,4 +117,17 @@ export async function changeLocale(locale: AppLocale): Promise<void> {
         // Non-critical: the local choice already applies, and the next read of
         // the account reconciles it.
     }
+}
+
+/**
+ * Apply a locale to the running app and to the document.
+ * `lang` drives screen-reader pronunciation and `dir` drives the whole layout
+ * mirror, so both belong here rather than at the call sites.
+ */
+function setAppLocale(locale: AppLocale): void {
+    i18n.global.locale.value = locale;
+    const meta = SUPPORTED_LOCALES.find((entry) => entry.code === locale);
+    const root = document.documentElement;
+    root.setAttribute('lang', locale);
+    root.setAttribute('dir', meta !== undefined && 'rtl' in meta ? 'rtl' : 'ltr');
 }

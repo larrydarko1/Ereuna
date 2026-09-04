@@ -201,10 +201,10 @@ function loadTimeRefs(stmt) {
  * statement in the wrong place is reported as one problem, not as every statement
  * after it having shifted.
  */
-export function analyze(code, filename) {
+export function canonicalOrder(code, filename) {
     const sf = ts.createSourceFile(filename, code, ts.ScriptTarget.ESNext, true, ts.ScriptKind.TS);
     const stmts = [...sf.statements];
-    if (stmts.length < 2) return { misplaced: [], count: stmts.length };
+    if (stmts.length < 2) return { sf, items: [], ideal: [], cycle: false };
 
     const rank = (c) => CATEGORIES.indexOf(c);
     const items = stmts.map((s, i) => ({
@@ -246,7 +246,13 @@ export function analyze(code, filename) {
         }
     }
     // A cycle cannot be ordered; leave the module alone rather than guess.
-    if (ideal.length !== items.length) return { misplaced: [], count: items.length, cycle: true };
+    return { sf, items, ideal, cycle: ideal.length !== items.length };
+}
+
+export function analyze(code, filename) {
+    const { items, ideal, cycle } = canonicalOrder(code, filename);
+    if (items.length === 0) return { misplaced: [], count: ts.createSourceFile(filename, code, ts.ScriptTarget.ESNext, true, ts.ScriptKind.TS).statements.length };
+    if (cycle) return { misplaced: [], count: items.length, cycle: true };
 
     // Longest common subsequence of actual (0..n-1) and ideal, by original index.
     const a = items.map((it) => it.i);

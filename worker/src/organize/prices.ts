@@ -7,14 +7,14 @@ import { logger } from '@/lib/logger.js';
 import { marketPrices, type VendorDailyBar, type VendorMarketBar } from '@/lib/tiingo.js';
 import { chunk, type Asset } from '@/organize/universe.js';
 
-/** The minute the synthetic closing bar is stamped with: 16:00 New York, in UTC. */
-const CLOSING_MINUTE_UTC = 20;
-
 export type PriceUpdate = {
     written: number;
     splits: { symbol: string; at: Date; factor: number }[];
     dividends: { symbol: string; at: Date; amount: number }[];
 };
+
+/** The minute the synthetic closing bar is stamped with: 16:00 New York, in UTC. */
+const CLOSING_MINUTE_UTC = 20;
 
 /**
  * Fetch and store the latest session's bar for every symbol in the universe.

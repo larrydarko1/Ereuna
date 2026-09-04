@@ -1058,7 +1058,6 @@
         "INCORRECT_PASSWORD": "Tiu pasvorto estas malĝusta.",
         "USERNAME_TAKEN": "Tiu uzantnomo jam estas prenita.",
         "USER_NOT_FOUND": "Tia konto ne ekzistas.",
-        "TWO_FA_REQUIRED": "Enigu vian dufaktoran kodon por daŭrigi.",
         "TWO_FA_TOKEN_INVALID": "Tiu dufaktora seanco eksvalidiĝis. Bonvolu reensaluti.",
         "TWO_FA_ALREADY_ENABLED": "Dufaktora aŭtentigo jam estas ŝaltita.",
         "TWO_FA_NOT_ENABLED": "Dufaktora aŭtentigo ne estas ŝaltita.",
@@ -1107,16 +1106,9 @@
         "usernameCharacters": "La uzantnomo povas enhavi nur literojn, ciferojn kaj substrekojn.",
         "passwordLength": "La pasvorto devas havi {min}–{max} signojn.",
         "confirmationRequired": "Konfirmu vian pasvorton.",
-        "symbolRequired": "Simbolo estas bezonata.",
-        "symbolInvalid": "Tio ne estas valida simbolo.",
-        "numberRequired": "Nombro estas bezonata.",
-        "numberInvalid": "Tio ne estas valida nombro.",
-        "numberPositive": "Devas esti pli granda ol nulo.",
-        "numberNonNegative": "Ne povas esti negativa.",
         "passwordUppercase": "La pasvorto devas enhavi majusklan literon.",
         "passwordLowercase": "La pasvorto devas enhavi minusklan literon.",
         "passwordNumber": "La pasvorto devas enhavi ciferon.",
-        "passwordSpecial": "La pasvorto devas enhavi specialan signon.",
-        "recoveryCodeRequired": "Restariga kodo estas bezonata."
+        "passwordSpecial": "La pasvorto devas enhavi specialan signon."
     }
 }

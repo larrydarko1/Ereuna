@@ -33,7 +33,6 @@ export const ERROR_CODES = [
     'USER_NOT_FOUND',
 
     // Two-factor authentication
-    'TWO_FA_REQUIRED',
     'TWO_FA_TOKEN_INVALID',
     'TWO_FA_ALREADY_ENABLED',
     'TWO_FA_NOT_ENABLED',

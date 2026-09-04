@@ -29,11 +29,23 @@ const pending = ref(false);
 const error = ref<string | null>(null);
 let inflight: Promise<void> | null = null;
 
-onSessionCleared(() => {
-    descriptors.value = [];
-    error.value = null;
-    inflight = null;
-});
+const byKey = computed(() => new Map(descriptors.value.map((item) => [item.key, item])));
+
+/**
+ * The catalogue arranged into the panel's headings.
+ * A heading with nothing in it is dropped rather than rendered empty, which is
+ * what happens to the fund group when the dataset holds no funds.
+ */
+const grouped = computed<FilterGrouping[]>(() =>
+    FILTER_GROUPS.map((group) => ({
+        group,
+        filters: descriptors.value.filter((item) => filterGroup(item.key) === group),
+    })).filter((entry) => entry.filters.length > 0),
+);
+
+export function useFilterRegistry(): UseFilterRegistryReturn {
+    return { descriptors: readonly(descriptors), grouped, byKey, pending: readonly(pending), error: readonly(error), load };
+}
 
 async function load(): Promise<void> {
     if (descriptors.value.length > 0) return;
@@ -58,20 +70,8 @@ async function load(): Promise<void> {
     return request;
 }
 
-const byKey = computed(() => new Map(descriptors.value.map((item) => [item.key, item])));
-
-/**
- * The catalogue arranged into the panel's headings.
- * A heading with nothing in it is dropped rather than rendered empty, which is
- * what happens to the fund group when the dataset holds no funds.
- */
-const grouped = computed<FilterGrouping[]>(() =>
-    FILTER_GROUPS.map((group) => ({
-        group,
-        filters: descriptors.value.filter((item) => filterGroup(item.key) === group),
-    })).filter((entry) => entry.filters.length > 0),
-);
-
-export function useFilterRegistry(): UseFilterRegistryReturn {
-    return { descriptors: readonly(descriptors), grouped, byKey, pending: readonly(pending), error: readonly(error), load };
-}
+onSessionCleared(() => {
+    descriptors.value = [];
+    error.value = null;
+    inflight = null;
+});

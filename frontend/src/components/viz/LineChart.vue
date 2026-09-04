@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-export type LinePoint = {
+type LinePoint = {
     label: string;
     value: number;
 };

@@ -5,9 +5,6 @@
 import type { AssetInfoDoc } from '@ereuna/shared';
 import { getDb } from '@/lib/db.js';
 
-/** The exchanges treated as the primary US market throughout the statistics. */
-export const PRIMARY_EXCHANGES = ['NYSE', 'NASDAQ'] as const;
-
 export type Asset = {
     symbol: string;
     assetType: string;
@@ -18,6 +15,13 @@ export type Asset = {
     sharesOutstanding: number | null;
     ipo: Date | null;
 };
+
+/**
+ * The exchanges treated as the primary US market throughout the statistics.
+ * `readonly string[]` rather than a literal tuple because every caller asks it
+ * `.includes(someExchange)`, and a tuple of literals refuses a plain string.
+ */
+export const PRIMARY_EXCHANGES: readonly string[] = ['NYSE', 'NASDAQ'];
 
 /** Every symbol not marked delisted, with the reference fields the run reads. */
 export async function activeUniverse(): Promise<Asset[]> {

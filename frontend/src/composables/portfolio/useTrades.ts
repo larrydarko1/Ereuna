@@ -4,8 +4,6 @@ import { apiErrorMessage } from '@/api/client';
 import { addTrade, deleteTrade, listTrades, updateTrade, type TradeInput, type TradeRow } from '@/api/trades';
 import { i18n } from '@/i18n';
 
-const PAGE_SIZE = 50;
-
 export type UseTradesReturn = {
     items: Ref<TradeRow[]>;
     total: Ref<number>;
@@ -19,6 +17,8 @@ export type UseTradesReturn = {
     update: (id: string, trade: TradeInput) => Promise<void>;
     remove: (id: string) => Promise<void>;
 };
+
+const PAGE_SIZE = 50;
 
 export function useTrades(portfolio: () => number, onWrite: () => Promise<void> | void): UseTradesReturn {
     const items = ref<TradeRow[]>([]);

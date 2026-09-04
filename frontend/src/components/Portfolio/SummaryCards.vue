@@ -4,10 +4,6 @@ import { useI18n } from 'vue-i18n';
 import type { PortfolioSummary } from '@/api/portfolio';
 import { direction, formatCurrency, formatNumber, formatPercent } from '@/utils/formatters';
 
-const { summary } = defineProps<{ summary: PortfolioSummary }>();
-
-const { t } = useI18n();
-
 type Card = {
     key: string;
     label: string;
@@ -15,6 +11,10 @@ type Card = {
     note: string | null;
     tone: 'up' | 'down' | 'flat';
 };
+
+const { summary } = defineProps<{ summary: PortfolioSummary }>();
+
+const { t } = useI18n();
 
 const cards = computed<Card[]>(() => {
     const s = summary;

@@ -8,15 +8,6 @@ const { snapshot } = defineProps<{ snapshot: PortfolioStatsSnapshot }>();
 
 const { t } = useI18n();
 
-/** A ratio the server could not compute has no value, not a value of zero. */
-function ratio(value: number | null): string {
-    return value === null ? '—' : formatNumber(value, 2);
-}
-
-function days(value: number): string {
-    return `${formatNumber(value, 1)} ${t('portfolio.days')}`;
-}
-
 const stats = computed(() => {
     const s = snapshot;
 
@@ -56,6 +47,15 @@ const stats = computed(() => {
         },
     ];
 });
+
+/** A ratio the server could not compute has no value, not a value of zero. */
+function ratio(value: number | null): string {
+    return value === null ? '—' : formatNumber(value, 2);
+}
+
+function days(value: number): string {
+    return `${formatNumber(value, 1)} ${t('portfolio.days')}`;
+}
 </script>
 
 <template>

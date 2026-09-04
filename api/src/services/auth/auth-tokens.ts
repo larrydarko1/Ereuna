@@ -53,18 +53,6 @@ export function toAuthUser(user: WithId<UserDoc>): AuthUser {
     };
 }
 
-/** Sign a short-lived access token. The payload carries the user id and nothing else. */
-export function generateAccessToken(userId: string): string {
-    return jwt.sign({ sub: userId }, config.jwt.secret, { expiresIn: config.jwt.accessTokenExpiry });
-}
-
-/** Sign the temp token that carries a login across the 2FA challenge (5 min). */
-export function generate2FATempToken(userId: string): string {
-    return jwt.sign({ sub: userId, type: '2fa_pending' }, config.jwt.secret, {
-        expiresIn: config.jwt.twoFactorTempExpiry,
-    });
-}
-
 export function verify2FATempToken(token: string): string {
     let payload: { sub: string; type?: string };
     try {
@@ -188,17 +176,6 @@ export async function issueSession(user: WithId<UserDoc>, options: { rememberMe:
     };
 }
 
-export async function createRefreshToken(
-    userId: ObjectId,
-    options: { rememberMe: boolean },
-): Promise<{ rawToken: string; maxAge?: number }> {
-    const { rememberMe } = options;
-    const expiresAt = new Date(
-        Date.now() + (rememberMe ? config.jwt.refreshTokenExpiry : config.jwt.sessionTokenExpiry),
-    );
-    return issueRefreshToken(userId, { rememberMe, familyId: crypto.randomUUID(), expiresAt });
-}
-
 export async function rotateRefreshToken(
     rawToken: string,
 ): Promise<{ accessToken: string; refreshToken: string; refreshMaxAge?: number }> {
@@ -257,6 +234,29 @@ export async function revokeRefreshToken(rawToken: string): Promise<void> {
 /** Revoke every session for a user — password change, 2FA change, account deletion. */
 export async function revokeAllUserTokens(userId: ObjectId): Promise<void> {
     await getDb().collection<RefreshTokenDoc>('RefreshTokens').deleteMany({ userId });
+}
+
+/** Sign a short-lived access token. The payload carries the user id and nothing else. */
+function generateAccessToken(userId: string): string {
+    return jwt.sign({ sub: userId }, config.jwt.secret, { expiresIn: config.jwt.accessTokenExpiry });
+}
+
+/** Sign the temp token that carries a login across the 2FA challenge (5 min). */
+function generate2FATempToken(userId: string): string {
+    return jwt.sign({ sub: userId, type: '2fa_pending' }, config.jwt.secret, {
+        expiresIn: config.jwt.twoFactorTempExpiry,
+    });
+}
+
+async function createRefreshToken(
+    userId: ObjectId,
+    options: { rememberMe: boolean },
+): Promise<{ rawToken: string; maxAge?: number }> {
+    const { rememberMe } = options;
+    const expiresAt = new Date(
+        Date.now() + (rememberMe ? config.jwt.refreshTokenExpiry : config.jwt.sessionTokenExpiry),
+    );
+    return issueRefreshToken(userId, { rememberMe, familyId: crypto.randomUUID(), expiresAt });
 }
 
 async function issueRefreshToken(

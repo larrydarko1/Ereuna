@@ -1058,7 +1058,6 @@
         "INCORRECT_PASSWORD": "Dik il-password mhijiex korretta.",
         "USERNAME_TAKEN": "Dak l-isem tal-utent diġà qed jintuża.",
         "USER_NOT_FOUND": "M’hemm l-ebda kont bħal dan.",
-        "TWO_FA_REQUIRED": "Daħħal il-kodiċi ta’ żewġ fatturi biex tkompli.",
         "TWO_FA_TOKEN_INVALID": "Dik is-sessjoni ta’ żewġ fatturi skadiet. Jekk jogħġbok erġa’ idħol.",
         "TWO_FA_ALREADY_ENABLED": "L-awtentikazzjoni b’żewġ fatturi diġà hija mixgħula.",
         "TWO_FA_NOT_ENABLED": "L-awtentikazzjoni b’żewġ fatturi mhijiex mixgħula.",
@@ -1107,16 +1106,9 @@
         "usernameCharacters": "L-isem tal-utent jista' jkun fih biss ittri, numri u underscores.",
         "passwordLength": "Il-password trid tkun ta' {min}–{max} karattri.",
         "confirmationRequired": "Ikkonferma l-password tiegħek.",
-        "symbolRequired": "Is-simbolu huwa meħtieġ.",
-        "symbolInvalid": "Dan mhuwiex simbolu validu.",
-        "numberRequired": "In-numru huwa meħtieġ.",
-        "numberInvalid": "Dan mhuwiex numru validu.",
-        "numberPositive": "Irid ikun akbar minn żero.",
-        "numberNonNegative": "Ma jistax ikun negattiv.",
         "passwordUppercase": "Il-password trid ikun fiha ittra kbira.",
         "passwordLowercase": "Il-password trid ikun fiha ittra żgħira.",
         "passwordNumber": "Il-password trid ikun fiha numru.",
-        "passwordSpecial": "Il-password trid ikun fiha karattru speċjali.",
-        "recoveryCodeRequired": "Hemm bżonn kodiċi ta' rkupru."
+        "passwordSpecial": "Il-password trid ikun fiha karattru speċjali."
     }
 }

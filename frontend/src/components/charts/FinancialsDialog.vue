@@ -6,8 +6,7 @@ import AppDialog from '@/components/ui/AppDialog.vue';
 import { formatCompact, formatNumber } from '@/utils/formatters';
 import { growth, numeric } from '@/utils/numbers';
 
-/** Above this, a figure reads better abbreviated than written out in full. */
-const COMPACT_THRESHOLD = 100_000;
+type Column = { key: string; label: string };
 
 const { symbol, statements = null, pending = false } = defineProps<{
     symbol: string;
@@ -17,12 +16,13 @@ const { symbol, statements = null, pending = false } = defineProps<{
 
 const emit = defineEmits<{ close: [] }>();
 
+/** Above this, a figure reads better abbreviated than written out in full. */
+const COMPACT_THRESHOLD = 100_000;
+
 const { t, te } = useI18n();
 
 const period = ref<'annual' | 'quarterly'>('annual');
 const showDescriptions = ref(false);
-
-type Column = { key: string; label: string };
 
 const periods = computed<readonly Record<string, unknown>[]>(() => {
     if (statements === null) return [];

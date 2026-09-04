@@ -21,6 +21,14 @@ const OPEN_MINUTES = 9 * 60 + 30;
 const CLOSE_MINUTES = 16 * 60;
 const WEEKEND = new Set(['Sat', 'Sun']);
 
+const NY_DATE = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    weekday: 'short',
+});
+
 /** True during regular US trading hours on a weekday. */
 export function isMarketHours(now: Date = new Date()): boolean {
     const parts = NY_PARTS.formatToParts(now);
@@ -51,11 +59,3 @@ export function lastTradingDay(now: Date = new Date()): Date {
 
     return day;
 }
-
-const NY_DATE = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/New_York',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    weekday: 'short',
-});

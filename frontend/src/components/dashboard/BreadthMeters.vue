@@ -4,16 +4,16 @@ import { useI18n } from 'vue-i18n';
 import type { BreadthSplit } from '@ereuna/shared';
 import { formatNumber } from '@/utils/formatters';
 
-const { breadth } = defineProps<{ breadth: BreadthSplit }>();
-
-const { t } = useI18n();
-
 type Meter = {
     key: string;
     positive: number;
     negative: number;
     neutral: number;
 };
+
+const { breadth } = defineProps<{ breadth: BreadthSplit }>();
+
+const { t } = useI18n();
 
 /**
  * Both readings are three-way splits of the same universe, so they render as

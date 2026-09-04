@@ -8,6 +8,8 @@ import { chunk, type Asset } from '@/organize/universe.js';
 import { setOn, writeAssetInfo } from '@/organize/write.js';
 import { averageDailyVolatility, cagr, changeOver, extremes, MIN_CAGR_YEARS, round, rsi, sma } from '@/utils/indicators.js';
 
+type Ranking = { symbol: string; change: number };
+
 /** Symbols loaded per batch. Bounds how many series are held at once. */
 const BATCH_SIZE = 400;
 
@@ -26,8 +28,6 @@ const RS_WINDOWS = [
     { bars: MONTH, field: 'RSScore1M' },
     { bars: FOUR_MONTHS, field: 'RSScore4M' },
 ] as const;
-
-type Ranking = { symbol: string; change: number };
 
 /**
  * Recompute every per-symbol figure and write it back to `AssetInfo`.

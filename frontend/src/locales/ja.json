@@ -1058,7 +1058,6 @@
         "INCORRECT_PASSWORD": "パスワードが違います。",
         "USERNAME_TAKEN": "そのユーザー名はすでに使われています。",
         "USER_NOT_FOUND": "そのアカウントは存在しません。",
-        "TWO_FA_REQUIRED": "続行するには二段階認証コードを入力してください。",
         "TWO_FA_TOKEN_INVALID": "この二段階認証セッションは期限切れです。もう一度ログインしてください。",
         "TWO_FA_ALREADY_ENABLED": "二段階認証はすでに有効です。",
         "TWO_FA_NOT_ENABLED": "二段階認証は有効になっていません。",
@@ -1107,16 +1106,9 @@
         "usernameCharacters": "ユーザー名には英数字とアンダースコアのみ使用できます。",
         "passwordLength": "パスワードは {min}〜{max} 文字にしてください。",
         "confirmationRequired": "パスワードを確認してください。",
-        "symbolRequired": "銘柄コードを入力してください。",
-        "symbolInvalid": "銘柄コードが正しくありません。",
-        "numberRequired": "数値を入力してください。",
-        "numberInvalid": "数値が正しくありません。",
-        "numberPositive": "ゼロより大きい値にしてください。",
-        "numberNonNegative": "マイナスにはできません。",
         "passwordUppercase": "パスワードには大文字を含めてください。",
         "passwordLowercase": "パスワードには小文字を含めてください。",
         "passwordNumber": "パスワードには数字を含めてください。",
-        "passwordSpecial": "パスワードには特殊文字を含めてください。",
-        "recoveryCodeRequired": "リカバリコードが必要です。"
+        "passwordSpecial": "パスワードには特殊文字を含めてください。"
     }
 }

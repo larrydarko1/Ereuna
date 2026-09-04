@@ -19,10 +19,11 @@ import { initTheme, useTheme } from '@/composables/ui/useTheme';
 import { initAuth } from '@/api/client';
 import '@/styles/index.scss';
 
+const app = createApp(App);
+
 initTheme();
 initLocale();
 
-const app = createApp(App);
 app.use(i18n);
 app.use(router);
 

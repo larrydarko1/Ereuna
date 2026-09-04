@@ -2,17 +2,6 @@
     "name": "ereuna",
     "version": "2026.5",
     "description": "Web app for screening and researching financial markets",
-    "homepage": "https://github.com/larrydarko1/Ereuna#readme",
-    "license": "SEE LICENSE IN LICENSE.md",
-    "author": "Lorenzo Mazzola",
-    "type": "module",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/larrydarko1/Ereuna.git"
-    },
-    "bugs": {
-        "url": "https://github.com/larrydarko1/Ereuna/issues"
-    },
     "keywords": [
         "stock-market",
         "portfolio-simulation",
@@ -21,6 +10,17 @@
         "vue",
         "typescript"
     ],
+    "homepage": "https://github.com/larrydarko1/Ereuna#readme",
+    "bugs": {
+        "url": "https://github.com/larrydarko1/Ereuna/issues"
+    },
+    "license": "SEE LICENSE IN LICENSE.md",
+    "author": "Lorenzo Mazzola",
+    "type": "module",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/larrydarko1/Ereuna.git"
+    },
     "scripts": {
         "dev": "concurrently -n front,api -c blue,green \"npm run dev:frontend\" \"npm run dev:api\"",
         "dev:frontend": "npm -w frontend run dev",
@@ -45,7 +45,11 @@
         "err:check": "node scripts/checks/check-error-handling.mjs",
         "sec:check": "node scripts/checks/check-security-drift.mjs",
         "db:check": "node scripts/checks/check-db-drift.mjs",
-        "ci:check": "npm run audit:check && npm run pkg:check && npm run env:check && npm run style:check && npm run declorder:check && npm run refactor:check && npm run i18n:check && npm run html:check && npm run scss:check && npm run api:check && npm run ws:check && npm run err:check && npm run sec:check && npm run db:check && npm -w frontend run stylelint && npm run typecheck && npm run build:all && npm test",
+        "dead:check": "node scripts/checks/check-dead-code.mjs",
+        "dup:check": "node scripts/checks/check-duplication.mjs",
+        "lint:dead": "knip --no-progress --tags=-public --include files,exports,types,nsExports,nsTypes,namespaceMembers,enumMembers,duplicates,dependencies,devDependencies,optionalPeerDependencies",
+        "lint:dup": "jscpd frontend/src api/src worker/src ingestor/src packages/shared/src --config .jscpd.json --absolute --reporters console",
+        "ci:check": "npm run audit:check && npm run pkg:check && npm run env:check && npm run style:check && npm run declorder:check && npm run refactor:check && npm run i18n:check && npm run html:check && npm run scss:check && npm run api:check && npm run ws:check && npm run err:check && npm run sec:check && npm run db:check && npm run dead:check && npm run dup:check && npm -w frontend run stylelint && npm run typecheck && npm run build:all && npm test",
         "preview": "npm -w frontend run preview",
         "worker": "npm -w worker run start",
         "worker:aggregate": "npm -w worker run start:aggregate",
@@ -64,11 +68,13 @@
     "devDependencies": {
         "concurrently": "^10.0.5",
         "typescript": "~6.0.2",
-        "vitest": "^4.1.11"
+        "vitest": "^4.1.11",
+        "knip": "^6.34.0",
+        "jscpd": "^5.1.2"
     },
     "packageManager": "npm@11.16.0",
     "engines": {
-        "node": ">=26"
+        "node": ">=24"
     },
     "private": true,
     "workspaces": [

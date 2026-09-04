@@ -8,9 +8,7 @@ import type { CalendarEventDoc, CalendarEventType } from '@ereuna/shared';
 import { marketKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
 
-const MAX_EVENTS = 2000;
-
-export type CalendarEvent = {
+type CalendarEvent = {
     symbol: string;
     type: CalendarEventType;
     reportDate: string; // ISO 8601
@@ -23,6 +21,8 @@ export type DayCalendar = {
     dividends: CalendarEvent[];
     splits: CalendarEvent[];
 };
+
+const MAX_EVENTS = 2000;
 
 /** Every event dated on `day`, measured in UTC, grouped by type. */
 export async function dayCalendar(day: Date): Promise<DayCalendar> {

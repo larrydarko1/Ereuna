@@ -50,6 +50,22 @@ export function useChartTheme(): { palette: ComputedRef<ChartPalette> } {
     return { palette };
 }
 
+/**
+ * `color` at `alpha`, as `rgba(...)`.
+ * Area and baseline series want a translucent fill of their line colour. The
+ * chart this replaces built one by concatenating `'80'` onto the token string,
+ * which is a valid colour only when the value is a 6-digit hex and silently
+ * produces garbage — `#abc80` — when a theme writes the short form.
+ * `color-mix` would express this in one line but lands in Safari 16.2, and the
+ * browsers this app targets go back to 14, so the parse is done here.
+ */
+export function withAlpha(color: string, alpha: number): string {
+    const rgb = toRgb(color);
+    if (rgb === null) return color;
+    const clamped = Math.min(1, Math.max(0, alpha));
+    return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${clamped})`;
+}
+
 function readPalette(): ChartPalette {
     const styles = getComputedStyle(document.documentElement);
     const read = (token: string): string => styles.getPropertyValue(token).trim();
@@ -69,22 +85,6 @@ function readPalette(): ChartPalette {
         split: read(TOKENS.split),
         overlays: OVERLAY_TOKENS.map(read),
     };
-}
-
-/**
- * `color` at `alpha`, as `rgba(...)`.
- * Area and baseline series want a translucent fill of their line colour. The
- * chart this replaces built one by concatenating `'80'` onto the token string,
- * which is a valid colour only when the value is a 6-digit hex and silently
- * produces garbage — `#abc80` — when a theme writes the short form.
- * `color-mix` would express this in one line but lands in Safari 16.2, and the
- * browsers this app targets go back to 14, so the parse is done here.
- */
-export function withAlpha(color: string, alpha: number): string {
-    const rgb = toRgb(color);
-    if (rgb === null) return color;
-    const clamped = Math.min(1, Math.max(0, alpha));
-    return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${clamped})`;
 }
 
 /** The red, green and blue of a hex colour, or null if it is written some other way. */

@@ -1,0 +1,10 @@
+{
+    "minTokens": 50,
+    "ignore": [
+        "**/__tests__/**",
+        "**/dist/**",
+        "**/node_modules/**",
+        "**/lib/lightweight-charts/**"
+    ],
+    "format": ["vue", "typescript", "scss", "html"]
+}

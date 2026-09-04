@@ -6,8 +6,6 @@ import { getDb } from '@/lib/db.js';
 import type { DividendPayment } from '@/utils/dividends.js';
 import { escapeRegex } from '@/utils/regex.js';
 
-const MAX_SEARCH_RESULTS = 50;
-
 export type AssetSummary = {
     symbol: string;
     name: string | null;
@@ -18,6 +16,83 @@ export type AssetSummary = {
     sector: string | null;
     marketCap: number | null;
 };
+
+export type AssetProfile = {
+    symbol: string;
+    name: string | null;
+    assetType: string | null;
+    exchange: string | null;
+    isin: string | null;
+    ipo: string | null; // ISO date
+    sector: string | null;
+    industry: string | null;
+    currency: string | null;
+    location: string | null;
+    website: string | null;
+    description: string | null;
+    delisted: boolean;
+    marketCap: number | null;
+    sharesOutstanding: number | null;
+    intrinsicValue: number | null;
+    bookValue: number | null;
+    pe: number | null;
+    peg: number | null;
+    ps: number | null;
+    pb: number | null;
+    cagr: number | null;
+    cagrYears: number | null;
+    dividendYield: number | null;
+    dividendDate: string | null;
+    rsi: number | null;
+    gap: number | null;
+    rsScore1W: number | null;
+    rsScore1M: number | null;
+    rsScore4M: number | null;
+    allTimeHigh: number | null;
+    allTimeLow: number | null;
+    week52High: number | null;
+    week52Low: number | null;
+    offWeek52High: number | null;
+    offWeek52Low: number | null;
+    avgVolume1W: number | null;
+    avgVolume1M: number | null;
+    avgVolume6M: number | null;
+    avgVolume1Y: number | null;
+    relVolume1W: number | null;
+    relVolume1M: number | null;
+    relVolume6M: number | null;
+    relVolume1Y: number | null;
+    adv1W: number | null;
+    adv1M: number | null;
+    adv4M: number | null;
+    adv1Y: number | null;
+    fundCategory: string | null;
+    fundFamily: string | null;
+    netExpenseRatio: number | null;
+    signals: TradeSignal[];
+};
+
+type TradeSignal = {
+    date: string; // ISO date
+    direction: 'BUY' | 'SELL';
+    strategy: string; // e.g. RSI_Oversold, MACD_Bullish_Cross
+    description: string;
+    price: number | null;
+    indicatorValue: number | null;
+};
+
+const MAX_SEARCH_RESULTS = 50;
+
+/**
+ * Compile-time proof that every summary row the client can order has a field to
+ * read. `SUMMARY_FIELDS` is the shared list the layout stores; add a key there
+ * without a field here and the conditional resolves to `never`, which this
+ * assignment then refuses.
+ * The ASSIGNMENT is the proof, which is why nothing reads the constant and the
+ * `void` is here to say so. As a bare exported type this asserted nothing — it
+ * named a `never` nobody instantiated — and the dead-code gate is what found it.
+ */
+const summaryFieldsCovered: SummaryField extends keyof AssetProfile ? true : never = true;
 
 /**
  * Assert a symbol exists in the reference data.
@@ -90,77 +165,6 @@ export async function searchAssets(term: string, limit: number): Promise<AssetSu
         { dataType: 'static' },
     );
 }
-
-export type AssetProfile = {
-    symbol: string;
-    name: string | null;
-    assetType: string | null;
-    exchange: string | null;
-    isin: string | null;
-    ipo: string | null; // ISO date
-    sector: string | null;
-    industry: string | null;
-    currency: string | null;
-    location: string | null;
-    website: string | null;
-    description: string | null;
-    delisted: boolean;
-    marketCap: number | null;
-    sharesOutstanding: number | null;
-    intrinsicValue: number | null;
-    bookValue: number | null;
-    pe: number | null;
-    peg: number | null;
-    ps: number | null;
-    pb: number | null;
-    cagr: number | null;
-    cagrYears: number | null;
-    dividendYield: number | null;
-    dividendDate: string | null;
-    rsi: number | null;
-    gap: number | null;
-    rsScore1W: number | null;
-    rsScore1M: number | null;
-    rsScore4M: number | null;
-    allTimeHigh: number | null;
-    allTimeLow: number | null;
-    week52High: number | null;
-    week52Low: number | null;
-    offWeek52High: number | null;
-    offWeek52Low: number | null;
-    avgVolume1W: number | null;
-    avgVolume1M: number | null;
-    avgVolume6M: number | null;
-    avgVolume1Y: number | null;
-    relVolume1W: number | null;
-    relVolume1M: number | null;
-    relVolume6M: number | null;
-    relVolume1Y: number | null;
-    adv1W: number | null;
-    adv1M: number | null;
-    adv4M: number | null;
-    adv1Y: number | null;
-    fundCategory: string | null;
-    fundFamily: string | null;
-    netExpenseRatio: number | null;
-    signals: TradeSignal[];
-};
-
-export type TradeSignal = {
-    date: string; // ISO date
-    direction: 'BUY' | 'SELL';
-    strategy: string; // e.g. RSI_Oversold, MACD_Bullish_Cross
-    description: string;
-    price: number | null;
-    indicatorValue: number | null;
-};
-
-/**
- * Compile-time proof that every summary row the client can order has a field
- * to read. `SUMMARY_FIELDS` is the shared list the layout stores; if a key is
- * added there without a field here, this assignment stops type-checking.
- */
-export type SummaryFieldsCovered = SummaryField extends keyof AssetProfile ? true : never;
 
 /** The reference data for one asset, shaped for display. */
 export async function assetProfile(symbol: string): Promise<AssetProfile> {
@@ -265,7 +269,6 @@ export async function earningsDates(symbol: string): Promise<string[]> {
         .map((date) => date.toISOString().slice(0, 10));
 }
 
-
 /**
  * A finite number, or null.
  * The documents carry missing numerics as null, as the empty string, and as
@@ -353,3 +356,5 @@ function toSummary(doc: AssetInfoDoc): AssetSummary {
         marketCap: doc.MarketCapitalization ?? null,
     };
 }
+
+void summaryFieldsCovered;

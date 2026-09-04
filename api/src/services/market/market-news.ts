@@ -11,8 +11,6 @@ import type { Filter } from 'mongodb';
 import { marketKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
 
-const MAX_HEADLINES = 100;
-
 export type NewsRow = {
     title: string;
     url: string;
@@ -28,6 +26,8 @@ export type NewsQuery = {
     since?: Date;
     limit: number;
 };
+
+const MAX_HEADLINES = 100;
 
 export async function news(query: NewsQuery): Promise<NewsRow[]> {
     const limit = Math.min(query.limit, MAX_HEADLINES);

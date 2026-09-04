@@ -1058,7 +1058,6 @@
         "INCORRECT_PASSWORD": "That password is incorrect.",
         "USERNAME_TAKEN": "That username is already taken.",
         "USER_NOT_FOUND": "No such account.",
-        "TWO_FA_REQUIRED": "Enter your two-factor code to continue.",
         "TWO_FA_TOKEN_INVALID": "That two-factor session has expired. Please sign in again.",
         "TWO_FA_ALREADY_ENABLED": "Two-factor authentication is already on.",
         "TWO_FA_NOT_ENABLED": "Two-factor authentication isn't on.",
@@ -1107,16 +1106,9 @@
         "usernameCharacters": "Username may only contain letters, numbers and underscores.",
         "passwordLength": "Password must be {min}–{max} characters.",
         "confirmationRequired": "Confirm your password.",
-        "symbolRequired": "A symbol is required.",
-        "symbolInvalid": "That is not a valid symbol.",
-        "numberRequired": "A number is required.",
-        "numberInvalid": "That is not a valid number.",
-        "numberPositive": "Must be greater than zero.",
-        "numberNonNegative": "Cannot be negative.",
         "passwordUppercase": "Password must contain an uppercase letter.",
         "passwordLowercase": "Password must contain a lowercase letter.",
         "passwordNumber": "Password must contain a number.",
-        "passwordSpecial": "Password must contain a special character.",
-        "recoveryCodeRequired": "A recovery code is required."
+        "passwordSpecial": "Password must contain a special character."
     }
 }

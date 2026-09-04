@@ -5,6 +5,11 @@ import { getCalendar, type CalendarEvent } from '@/api/market';
 import { useResource } from '@/composables/data/useResource';
 import { toDateInput } from '@/utils/formatters';
 
+type Group = {
+    key: 'earnings' | 'dividends' | 'splits';
+    events: CalendarEvent[];
+};
+
 const { t } = useI18n();
 
 const date = ref(toDateInput(new Date()));
@@ -13,11 +18,6 @@ const { data, pending, error } = useResource(
     () => date.value,
     async (day) => (await getCalendar(day)).data,
 );
-
-type Group = {
-    key: 'earnings' | 'dividends' | 'splits';
-    events: CalendarEvent[];
-};
 
 const groups = computed<Group[]>(() => [
     { key: 'earnings', events: data.value?.earnings ?? [] },

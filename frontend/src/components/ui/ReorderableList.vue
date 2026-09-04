@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-export type ReorderableItem = { key: string; label: string };
+type ReorderableItem = { key: string; label: string };
 
 const { items } = defineProps<{ items: readonly ReorderableItem[] }>();
 

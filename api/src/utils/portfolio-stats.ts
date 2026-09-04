@@ -14,12 +14,6 @@
 import type { PortfolioStatsSnapshot, PositionSide, TradeExtreme, TradeReturnsChart } from '@ereuna/shared';
 import { sortTrades, type ReplayTrade } from '@/utils/portfolio-replay.js';
 
-/** Annual risk-free rate used as the Sortino target return. */
-const RISK_FREE_RATE = 0.02;
-
-/** Width of one bucket in the return distribution, in percentage points. */
-const RETURN_BIN_WIDTH = 2;
-
 export type ClosedLot = {
     symbol: string;
     side: PositionSide;
@@ -33,6 +27,19 @@ export type ClosedLot = {
     profit: number;
     holdDays: number;
 };
+
+type OpenLot = {
+    shares: number;
+    price: number;
+    date: Date;
+    commissionPerShare: number;
+};
+
+/** Annual risk-free rate used as the Sortino target return. */
+const RISK_FREE_RATE = 0.02;
+
+/** Width of one bucket in the return distribution, in percentage points. */
+const RETURN_BIN_WIDTH = 2;
 
 export function computeStats(trades: readonly ReplayTrade[], baseValue: number): PortfolioStatsSnapshot {
     const lots = closedLots(trades);
@@ -148,13 +155,6 @@ export function closedLots(trades: readonly ReplayTrade[]): ClosedLot[] {
 
     return lots;
 }
-
-type OpenLot = {
-    shares: number;
-    price: number;
-    date: Date;
-    commissionPerShare: number;
-};
 
 /** Which book an action belongs to, or null for a cash movement. */
 function sideOf(action: ReplayTrade['action']): PositionSide | null {

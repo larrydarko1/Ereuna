@@ -1058,7 +1058,6 @@
         "INCORRECT_PASSWORD": "Essa palavra-passe está incorreta.",
         "USERNAME_TAKEN": "Esse nome de utilizador já está em uso.",
         "USER_NOT_FOUND": "Essa conta não existe.",
-        "TWO_FA_REQUIRED": "Introduz o teu código de dois fatores para continuar.",
         "TWO_FA_TOKEN_INVALID": "Essa sessão de dois fatores expirou. Inicia sessão novamente.",
         "TWO_FA_ALREADY_ENABLED": "A autenticação de dois fatores já está ativa.",
         "TWO_FA_NOT_ENABLED": "A autenticação de dois fatores não está ativa.",
@@ -1107,16 +1106,9 @@
         "usernameCharacters": "O nome de utilizador só pode conter letras, números e sublinhados.",
         "passwordLength": "A palavra-passe deve ter entre {min} e {max} caracteres.",
         "confirmationRequired": "Confirma a tua palavra-passe.",
-        "symbolRequired": "O símbolo é obrigatório.",
-        "symbolInvalid": "Símbolo inválido.",
-        "numberRequired": "O número é obrigatório.",
-        "numberInvalid": "Número inválido.",
-        "numberPositive": "Deve ser maior do que zero.",
-        "numberNonNegative": "Não pode ser negativo.",
         "passwordUppercase": "A palavra-passe deve conter uma letra maiúscula.",
         "passwordLowercase": "A palavra-passe deve conter uma letra minúscula.",
         "passwordNumber": "A palavra-passe deve conter um número.",
-        "passwordSpecial": "A palavra-passe deve conter um carácter especial.",
-        "recoveryCodeRequired": "É necessário um código de recuperação."
+        "passwordSpecial": "A palavra-passe deve conter um carácter especial."
     }
 }

@@ -1058,7 +1058,6 @@
         "INCORRECT_PASSWORD": "वह पासवर्ड गलत है।",
         "USERNAME_TAKEN": "यह उपयोगकर्ता नाम पहले से लिया जा चुका है।",
         "USER_NOT_FOUND": "ऐसा कोई खाता नहीं है।",
-        "TWO_FA_REQUIRED": "जारी रखने के लिए अपना दो-चरणीय कोड दर्ज करें।",
         "TWO_FA_TOKEN_INVALID": "वह दो-चरणीय सत्र समाप्त हो गया है। कृपया फिर से साइन इन करें।",
         "TWO_FA_ALREADY_ENABLED": "दो-चरणीय प्रमाणीकरण पहले से चालू है।",
         "TWO_FA_NOT_ENABLED": "दो-चरणीय प्रमाणीकरण चालू नहीं है।",
@@ -1107,16 +1106,9 @@
         "usernameCharacters": "उपयोगकर्ता नाम में केवल अक्षर, अंक और अंडरस्कोर हो सकते हैं।",
         "passwordLength": "पासवर्ड {min}–{max} वर्णों का होना चाहिए।",
         "confirmationRequired": "अपना पासवर्ड सत्यापित करें।",
-        "symbolRequired": "प्रतीक आवश्यक है।",
-        "symbolInvalid": "यह मान्य प्रतीक नहीं है।",
-        "numberRequired": "संख्या आवश्यक है।",
-        "numberInvalid": "यह मान्य संख्या नहीं है।",
-        "numberPositive": "शून्य से बड़ा होना चाहिए।",
-        "numberNonNegative": "ऋणात्मक नहीं हो सकता।",
         "passwordUppercase": "पासवर्ड में एक बड़ा अक्षर होना चाहिए।",
         "passwordLowercase": "पासवर्ड में एक छोटा अक्षर होना चाहिए।",
         "passwordNumber": "पासवर्ड में एक अंक होना चाहिए।",
-        "passwordSpecial": "पासवर्ड में एक विशेष वर्ण होना चाहिए।",
-        "recoveryCodeRequired": "रिकवरी कोड आवश्यक है।"
+        "passwordSpecial": "पासवर्ड में एक विशेष वर्ण होना चाहिए।"
     }
 }

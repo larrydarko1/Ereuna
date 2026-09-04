@@ -10,9 +10,9 @@ const { label, value, format } = defineProps<{
     format: SummaryFormat;
 }>();
 
-const { t } = useI18n();
-
 const PLACEHOLDER = '—';
+
+const { t } = useI18n();
 
 const copied = ref(false);
 const expanded = ref(false);

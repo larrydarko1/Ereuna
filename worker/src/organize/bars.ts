@@ -8,8 +8,6 @@
 import type { OhlcvDoc } from '@ereuna/shared';
 import { getDb } from '@/lib/db.js';
 
-export const DAILY_WINDOW = 400;
-
 export type Series = {
     timestamps: Date[];
     opens: number[];
@@ -18,6 +16,24 @@ export type Series = {
     closes: number[];
     volumes: number[];
 };
+
+/**
+ * All-time extremes and the first and last bar of every symbol's full history.
+ * Computed by the server over the whole collection, because these are the only
+ * figures that need more than the recent window and materialising decades of
+ * bars in the process to take a `Math.max` would be the one query that decides
+ * how much memory the run needs.
+ */
+export type LifetimeStats = {
+    high: number;
+    low: number;
+    firstClose: number;
+    firstTimestamp: Date;
+    lastClose: number;
+    lastTimestamp: Date;
+};
+
+const DAILY_WINDOW = 400;
 
 /**
  * The last `limit` daily bars for each symbol, ascending, keyed by symbol.
@@ -56,22 +72,6 @@ export async function dailySeries(symbols: readonly string[], limit = DAILY_WIND
     for (const row of rows) series.set(row._id, toSeries(row.bars));
     return series;
 }
-
-/**
- * All-time extremes and the first and last bar of every symbol's full history.
- * Computed by the server over the whole collection, because these are the only
- * figures that need more than the recent window and materialising decades of
- * bars in the process to take a `Math.max` would be the one query that decides
- * how much memory the run needs.
- */
-export type LifetimeStats = {
-    high: number;
-    low: number;
-    firstClose: number;
-    firstTimestamp: Date;
-    lastClose: number;
-    lastTimestamp: Date;
-};
 
 export async function lifetimeStats(): Promise<Map<string, LifetimeStats>> {
     const rows = await getDb()

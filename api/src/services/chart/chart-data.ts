@@ -10,15 +10,7 @@ import { barSeries, requireAsset, type BarSeries } from '@/services/market/index
 import { getPreferences } from '@/services/user/index.js';
 import { ema, sma, type SeriesPoint } from '@/utils/indicators.js';
 
-/** Overlays used until the user configures their own. */
-const DEFAULT_INDICATORS: ChartIndicator[] = [
-    { type: 'SMA', period: 10, visible: true },
-    { type: 'SMA', period: 20, visible: true },
-    { type: 'SMA', period: 50, visible: true },
-    { type: 'SMA', period: 200, visible: true },
-];
-
-export type ChartOverlay = {
+type ChartOverlay = {
     type: ChartIndicator['type'];
     period: number;
     points: SeriesPoint[];
@@ -30,6 +22,14 @@ export type ChartSeries = BarSeries & {
     overlays: ChartOverlay[];
     intrinsicValue: number | null;
 };
+
+/** Overlays used until the user configures their own. */
+const DEFAULT_INDICATORS: ChartIndicator[] = [
+    { type: 'SMA', period: 10, visible: true },
+    { type: 'SMA', period: 20, visible: true },
+    { type: 'SMA', period: 50, visible: true },
+    { type: 'SMA', period: 200, visible: true },
+];
 
 export async function getChartSeries(
     userId: ObjectId,

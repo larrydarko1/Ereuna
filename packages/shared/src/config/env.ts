@@ -30,7 +30,6 @@ export const mongoEnv = {
 export const redisEnv = {
     REDIS_HOST: z.string().min(1).default('localhost'),
     REDIS_PORT: z.coerce.number().int().positive().default(6379),
-    REDIS_URL: z.string().min(1).default('redis://localhost:6379'),
 };
 
 /**

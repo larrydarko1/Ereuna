@@ -66,6 +66,10 @@ const resultsQuery = makePaginationQuery({ defaultLimit: 50, maxLimit: 200 });
 
 export const router = Router();
 
+function missingField(filter: string, field: string): AppError {
+    return new AppError(422, 'FILTER_RANGE_INVALID', `filter ${filter} requires ${field}`, { params: { filter } });
+}
+
 router.get(
     '/',
     ...validated({}, async (req, res): Promise<void> => {
@@ -275,7 +279,3 @@ router.delete(
         res.json({ filters: screener.filters });
     }),
 );
-
-function missingField(filter: string, field: string): AppError {
-    return new AppError(422, 'FILTER_RANGE_INVALID', `filter ${filter} requires ${field}`, { params: { filter } });
-}

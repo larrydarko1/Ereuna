@@ -16,19 +16,6 @@ const code = ref('');
 const pending = ref(false);
 const error = ref<string | null>(null);
 
-// Enrolment is two-step server-side: this writes a pending secret that only
-// becomes the account's on a code proving the authenticator has it
-onMounted(async () => {
-    pending.value = true;
-    try {
-        enrolment.value = (await beginTwoFactor()).data;
-    } catch (err) {
-        error.value = apiErrorMessage(err, t('errors.INTERNAL'));
-    } finally {
-        pending.value = false;
-    }
-});
-
 async function confirm(): Promise<void> {
     if (pending.value || code.value.trim() === '') return;
     pending.value = true;
@@ -42,6 +29,19 @@ async function confirm(): Promise<void> {
         pending.value = false;
     }
 }
+
+// Enrolment is two-step server-side: this writes a pending secret that only
+// becomes the account's on a code proving the authenticator has it
+onMounted(async () => {
+    pending.value = true;
+    try {
+        enrolment.value = (await beginTwoFactor()).data;
+    } catch (err) {
+        error.value = apiErrorMessage(err, t('errors.INTERNAL'));
+    } finally {
+        pending.value = false;
+    }
+});
 </script>
 
 <template>

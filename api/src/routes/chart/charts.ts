@@ -20,18 +20,10 @@ import { validated } from '@/middleware/validate.js';
 import * as chartService from '@/services/chart/index.js';
 import * as marketService from '@/services/market/index.js';
 
-/** Corporate-action markers returned by default; `all=true` returns the full history. */
-const DEFAULT_EVENT_LIMIT = 4;
-const MAX_EVENT_LIMIT = 500;
-
 const symbolParam = z.object({ symbol: symbolSchema });
 
 const timeframeQuery = z.object({
     timeframe: z.enum(CHART_TIMEFRAMES).default('daily'),
-});
-
-const seriesQuery = timeframeQuery.extend({
-    before: z.iso.datetime({ offset: true }).or(z.iso.date()).optional(),
 });
 
 const eventsQuery = z.object({ all: z.stringbool().default(false) });
@@ -50,6 +42,14 @@ const drawingsBody = z.object({
     textAnnotations: drawingItems,
     freehandPaths: drawingItems,
     priceLevels: drawingItems,
+});
+
+/** Corporate-action markers returned by default; `all=true` returns the full history. */
+const DEFAULT_EVENT_LIMIT = 4;
+const MAX_EVENT_LIMIT = 500;
+
+const seriesQuery = timeframeQuery.extend({
+    before: z.iso.datetime({ offset: true }).or(z.iso.date()).optional(),
 });
 
 export const router = Router();

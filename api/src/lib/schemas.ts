@@ -44,48 +44,12 @@ export const resourceNameSchema = z
     .min(1, 'Name is required')
     .max(60, 'Name must be at most 60 characters');
 
-/** A MongoDB ObjectId string (24 hex chars). */
-export const mongoId = (name: string): z.ZodString =>
-    z.string().regex(/^[0-9a-fA-F]{24}$/, `${name} must be a valid MongoDB ObjectId`);
-
-export const idParam = z.object({ id: mongoId('id') });
-
-export const requiredString = (message: string): z.ZodString => z.string({ error: message }).min(1, message);
-
 /** 0-based portfolio slot. The upper bound comes from config, not from the caller. */
 export const portfolioNumberSchema = z.coerce
     .number('Portfolio must be a slot number')
     .int()
     .min(0, 'Portfolio must be a slot number')
     .max(config.limits.portfolioSlots - 1, 'Portfolio must be a slot number');
-
-export const makePaginationQuery = ({ defaultLimit = 24, maxLimit = 100 } = {}): PaginationQuerySchema =>
-    z.object({
-        page: z.coerce.number('page must be a positive integer').int().min(1, 'page must be a positive integer').default(1),
-        limit: z.coerce
-            .number(`limit must be 1–${maxLimit}`)
-            .int()
-            .min(1, `limit must be 1–${maxLimit}`)
-            .max(maxLimit, `limit must be 1–${maxLimit}`)
-            .default(defaultLimit),
-    });
-
-/** Default pagination: page 1, limit 24, cap 100. */
-export const paginationQuery = makePaginationQuery();
-
-/** A key listed twice would render one row in two places. */
-const noDuplicates = {
-    check: (keys: readonly string[]): boolean => new Set(keys).size === keys.length,
-    message: 'Each key may appear only once',
-};
-
-export const panelLayoutSchema = z.object({
-    sections: z.array(z.enum(PANEL_SECTIONS)).max(PANEL_SECTIONS.length).refine(noDuplicates.check, noDuplicates.message),
-    summaryFields: z
-        .array(z.enum(SUMMARY_FIELDS))
-        .max(SUMMARY_FIELDS.length)
-        .refine(noDuplicates.check, noDuplicates.message),
-});
 
 export const chartSettingsSchema = z.object({
     style: z.enum(CHART_STYLES),
@@ -101,3 +65,36 @@ export const chartSettingsSchema = z.object({
     intrinsicValue: z.boolean(),
     markers: z.object({ earnings: z.boolean(), dividends: z.boolean(), splits: z.boolean() }),
 });
+
+/** A key listed twice would render one row in two places. */
+const noDuplicates = {
+    check: (keys: readonly string[]): boolean => new Set(keys).size === keys.length,
+    message: 'Each key may appear only once',
+};
+
+export const panelLayoutSchema = z.object({
+    sections: z.array(z.enum(PANEL_SECTIONS)).max(PANEL_SECTIONS.length).refine(noDuplicates.check, noDuplicates.message),
+    summaryFields: z
+        .array(z.enum(SUMMARY_FIELDS))
+        .max(SUMMARY_FIELDS.length)
+        .refine(noDuplicates.check, noDuplicates.message),
+});
+
+export const requiredString = (message: string): z.ZodString => z.string({ error: message }).min(1, message);
+
+export const makePaginationQuery = ({ defaultLimit = 24, maxLimit = 100 } = {}): PaginationQuerySchema =>
+    z.object({
+        page: z.coerce.number('page must be a positive integer').int().min(1, 'page must be a positive integer').default(1),
+        limit: z.coerce
+            .number(`limit must be 1–${maxLimit}`)
+            .int()
+            .min(1, `limit must be 1–${maxLimit}`)
+            .max(maxLimit, `limit must be 1–${maxLimit}`)
+            .default(defaultLimit),
+    });
+
+/** A MongoDB ObjectId string (24 hex chars). */
+const mongoId = (name: string): z.ZodString =>
+    z.string().regex(/^[0-9a-fA-F]{24}$/, `${name} must be a valid MongoDB ObjectId`);
+
+export const idParam = z.object({ id: mongoId('id') });

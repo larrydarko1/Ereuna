@@ -4,12 +4,17 @@ import { useI18n } from 'vue-i18n';
 import { formatCompact, formatDate, formatNumber } from '@/utils/formatters';
 import { growth, numeric } from '@/utils/numbers';
 
+type Quarter = {
+    date: string;
+    value: number | null;
+    quarterOverQuarter: number | null;
+    yearOverYear: number | null;
+};
+
 const { rows, metric } = defineProps<{
     rows: readonly Record<string, unknown>[];
     metric: 'eps' | 'earnings' | 'sales';
 }>();
-
-const { t } = useI18n();
 
 const QUARTERS_IN_YEAR = 4;
 
@@ -19,12 +24,9 @@ const FIELDS = {
     sales: 'totalRevenue',
 } as const;
 
-type Quarter = {
-    date: string;
-    value: number | null;
-    quarterOverQuarter: number | null;
-    yearOverYear: number | null;
-};
+const EMPTY_KEYS = { eps: 'noEpsData', earnings: 'noEarningsData', sales: 'noSalesData' } as const;
+
+const { t } = useI18n();
 
 const quarters = computed<Quarter[]>(() => {
     const field = FIELDS[metric];
@@ -45,6 +47,8 @@ const quarters = computed<Quarter[]>(() => {
     });
 });
 
+const columnLabel = computed(() => t(`sidebar.${metric}Column`));
+
 /** EPS is a per-share figure with cents; revenue and net income are large. */
 const formatValue = (value: number | null): string =>
     value === null ? '—' : metric === 'eps' ? formatNumber(value, 2) : formatCompact(value);
@@ -53,10 +57,6 @@ const formatGrowth = (value: number | null): string => (value === null ? '—' :
 
 const tone = (value: number | null): string =>
     value === null ? '' : value > 0 ? 'financials__cell--up' : 'financials__cell--down';
-
-const columnLabel = computed(() => t(`sidebar.${metric}Column`));
-
-const EMPTY_KEYS = { eps: 'noEpsData', earnings: 'noEarningsData', sales: 'noSalesData' } as const;
 </script>
 
 <template>
