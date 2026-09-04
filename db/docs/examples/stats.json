@@ -1,0 +1,11 @@
+{
+    "_id": "marketStats",
+    "updatedAt": "2026-09-03T00:15:04.882Z",
+    "advancers": 1842,
+    "decliners": 1391,
+    "unchanged": 117,
+    "newHighs": 214,
+    "newLows": 63,
+    "aboveMA50": 0.612,
+    "aboveMA200": 0.548
+}

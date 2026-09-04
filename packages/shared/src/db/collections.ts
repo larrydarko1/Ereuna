@@ -1,5 +1,6 @@
 /** MongoDB document types for EreunaDB. */
 import type { ObjectId } from 'mongodb';
+import { OHLCV_COLLECTIONS } from '#db/indexes.js';
 
 export type UserDoc = {
     username: string;
@@ -299,16 +300,6 @@ export const CHART_TIMEFRAMES = [
 ] as const;
 
 export type ChartTimeframe = (typeof CHART_TIMEFRAMES)[number];
-
-export const OHLCV_COLLECTIONS = {
-    daily: 'OHCLVData',
-    weekly: 'OHCLVData2',
-    intraday1m: 'OHCLVData1m',
-    intraday5m: 'OHCLVData5m',
-    intraday15m: 'OHCLVData15m',
-    intraday30m: 'OHCLVData30m',
-    intraday1hr: 'OHCLVData1hr',
-} as const satisfies Record<ChartTimeframe, string>;
 
 /** Intraday bars carry a time-of-day; daily and weekly bars are dated only. */
 export function isIntraday(timeframe: ChartTimeframe): boolean {

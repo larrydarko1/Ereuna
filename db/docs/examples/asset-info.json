@@ -1,0 +1,50 @@
+{
+    "_id": "6650f1a2b3c4d5e6f7a8b9e0",
+    "Symbol": "NVDA",
+    "Name": "NVIDIA Corporation",
+    "ISIN": "US67066G1040",
+    "AssetType": "Stock",
+    "Sector": "Technology",
+    "Industry": "Semiconductors",
+    "Exchange": "NASDAQ",
+    "Country": "USA",
+    "Currency": "USD",
+    "Delisted": false,
+    "MarketCapitalization": 2984000000000,
+    "IntrinsicValue": 96.4,
+    "dividends": [
+        {
+            "date": "2026-06-05",
+            "amount": 0.01
+        }
+    ],
+    "splits": [
+        {
+            "date": "2024-06-10",
+            "ratio": 10
+        }
+    ],
+    "quarterlyIncome": [
+        {
+            "fiscalDateEnding": "2026-07-31"
+        }
+    ],
+    "quarterlyFinancials": [
+        {
+            "roe": 0.91,
+            "roa": 0.58
+        }
+    ],
+    "AnnualFinancials": [
+        {
+            "revenue": 130497000000
+        }
+    ],
+    "TimeSeries": {
+        "close": 121.6,
+        "volume": 41528300
+    },
+    "RSScore1M": 92,
+    "fiftytwoWeekHigh": 153.13,
+    "fiftytwoWeekLow": 86.62
+}

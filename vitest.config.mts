@@ -19,6 +19,6 @@ export default defineConfig({
             reporter: ['text-summary', 'html', 'json-summary'],
             reportsDirectory: './coverage',
         },
-        projects: ['packages/shared', 'api', 'worker'],
+        projects: ['packages/shared', 'api', 'worker', 'db'],
     },
 });

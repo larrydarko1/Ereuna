@@ -1,0 +1,38 @@
+{
+    "_id": "6650f1a2b3c4d5e6f7a8b9c8",
+    "userId": "6650f1a2b3c4d5e6f7a8b9c0",
+    "symbol": "NVDA",
+    "timeframe": "daily",
+    "drawings": {
+        "trendLines": [
+            {
+                "from": {
+                    "time": "2026-05-04",
+                    "price": 88.1
+                },
+                "to": {
+                    "time": "2026-08-29",
+                    "price": 121.6
+                },
+                "color": "accent"
+            }
+        ],
+        "boxes": [],
+        "textAnnotations": [
+            {
+                "time": "2026-08-28",
+                "price": 124.0,
+                "text": "earnings"
+            }
+        ],
+        "freehandPaths": [],
+        "priceLevels": [
+            {
+                "price": 100,
+                "label": "round number"
+            }
+        ]
+    },
+    "createdAt": "2026-08-29T09:14:37.220Z",
+    "updatedAt": "2026-08-30T11:41:02.918Z"
+}

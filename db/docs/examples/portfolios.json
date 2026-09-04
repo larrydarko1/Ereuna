@@ -1,0 +1,89 @@
+{
+    "_id": "6650f1a2b3c4d5e6f7a8b9c4",
+    "userId": "6650f1a2b3c4d5e6f7a8b9c0",
+    "number": 0,
+    "cash": 18420.55,
+    "baseValue": 50000,
+    "leverage": 2,
+    "defaultCommission": 1.5,
+    "benchmarks": [
+        "SPY",
+        "QQQ"
+    ],
+    "stats": {
+        "realizedPL": 6231.44,
+        "realizedPLPercent": 12.46,
+        "winnerCount": 14,
+        "loserCount": 9,
+        "breakevenCount": 1,
+        "winnerPercent": 58.33,
+        "loserPercent": 37.5,
+        "breakevenPercent": 4.17,
+        "avgGain": 8.91,
+        "avgLoss": -4.32,
+        "avgGainAbs": 802.13,
+        "avgLossAbs": -389.05,
+        "avgPositionSize": 8912.4,
+        "avgHoldTimeWinners": 21.4,
+        "avgHoldTimeLosers": 9.2,
+        "gainLossRatio": 2.06,
+        "profitFactor": 2.78,
+        "riskRewardRatio": 1.94,
+        "sortinoRatio": 1.42,
+        "totalCommission": 36,
+        "longCount": 20,
+        "shortCount": 4,
+        "biggestWinner": {
+            "ticker": "NVDA",
+            "amount": 2841.9,
+            "tradeCount": 3
+        },
+        "biggestLoser": {
+            "ticker": "PYPL",
+            "amount": -914.22,
+            "tradeCount": 2
+        },
+        "tradeReturnsChart": {
+            "bins": [
+                {
+                    "min": -6,
+                    "max": -4,
+                    "range": "-6% to -4%",
+                    "count": 3,
+                    "positive": false
+                },
+                {
+                    "min": 0,
+                    "max": 2,
+                    "range": "0% to 2%",
+                    "count": 5,
+                    "positive": true
+                },
+                {
+                    "min": 8,
+                    "max": 10,
+                    "range": "8% to 10%",
+                    "count": 4,
+                    "positive": true
+                }
+            ],
+            "medianBinIndex": 1
+        }
+    },
+    "valueHistory": [
+        {
+            "date": "2026-08-31",
+            "value": 55118.32
+        },
+        {
+            "date": "2026-09-01",
+            "value": 55940.07
+        },
+        {
+            "date": "2026-09-02",
+            "value": 56231.44
+        }
+    ],
+    "createdAt": "2026-01-20T13:44:02.005Z",
+    "updatedAt": "2026-09-02T21:00:11.489Z"
+}

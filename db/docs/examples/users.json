@@ -1,0 +1,67 @@
+{
+    "_id": "6650f1a2b3c4d5e6f7a8b9c0",
+    "username": "Kestrel",
+    "usernameLower": "kestrel",
+    "passwordHash": "$argon2id$v=19$m=65536,t=3,p=4$c29tZXNhbHR2YWx1ZQ$3Vp7Qm9uZUhhc2hWYWx1ZUdvZXNIZXJlAAAAAAAAAAA",
+    "totpSecretEncrypted": "9f2c1a4e8b30:1d4a7c9e2b608f35:5c8e1f0a9d7b3e6240a1c8f52b9d7e03",
+    "pendingTotpSecretEncrypted": null,
+    "totpEnabled": true,
+    "recoveryCodeHashes": [
+        "$argon2id$v=19$m=65536,t=3,p=4$cmVjb3Zlcnlzc2FsdA$Q29kZUhhc2hPbmVBQUFBQUFBQUFBQUFBQUFBQUFB",
+        "$argon2id$v=19$m=65536,t=3,p=4$cmVjb3Zlcnlzc2FsdA$Q29kZUhhc2hUd29BQUFBQUFBQUFBQUFBQUFBQUFB"
+    ],
+    "passwordResetRequired": false,
+    "language": "en",
+    "theme": "nord",
+    "defaultSymbol": "AAPL",
+    "hiddenSymbols": [
+        "GME",
+        "AMC"
+    ],
+    "chartSettings": {
+        "style": "candlestick",
+        "indicators": [
+            {
+                "type": "SMA",
+                "period": 50,
+                "visible": true
+            },
+            {
+                "type": "EMA",
+                "period": 200,
+                "visible": false
+            }
+        ],
+        "intrinsicValue": true,
+        "markers": {
+            "earnings": true,
+            "dividends": true,
+            "splits": false
+        }
+    },
+    "panels": {
+        "sections": [
+            "summary",
+            "eps",
+            "earnings",
+            "news"
+        ],
+        "summaryFields": [
+            "symbol",
+            "name",
+            "marketCap",
+            "pe",
+            "rsi"
+        ]
+    },
+    "screenerColumns": [
+        "Symbol",
+        "Name",
+        "MarketCapitalization",
+        "Sector"
+    ],
+    "createdAt": "2026-01-14T09:12:44.318Z",
+    "updatedAt": "2026-08-30T17:04:02.771Z",
+    "lastLoginAt": "2026-09-03T07:58:19.204Z",
+    "passwordChangedAt": "2026-06-02T11:31:07.556Z"
+}

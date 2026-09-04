@@ -1,11 +1,30 @@
 {
     "name": "db",
-    "version": "2026.6",
-    "description": "Ereuna MongoDB dump, restore/index bootstrap script, and per-collection schema docs.",
+    "version": "2026.7",
+    "description": "Ereuna database migrations, schema documentation and example documents. Indexes are not declared here — they live in the shared manifest.",
     "license": "UNLICENSED",
+    "author": "Lorenzo Mazzola",
+    "type": "module",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/larrydarko1/Ereuna.git"
+    },
     "scripts": {
-        "restore": "bash restore.sh",
-        "dump": "mongodump --db=EreunaDB --out=dump"
+        "migrate:up": "migrate-mongo up",
+        "migrate:status": "migrate-mongo status",
+        "migrate:create": "migrate-mongo create",
+        "test": "vitest run"
+    },
+    "dependencies": {
+        "@ereuna/shared": "*",
+        "migrate-mongo": "^14.0.7",
+        "mongodb": "^7.6.0"
+    },
+    "devDependencies": {
+        "vitest": "^4.1.11"
+    },
+    "engines": {
+        "node": ">=26"
     },
     "private": true
 }
