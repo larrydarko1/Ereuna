@@ -4,6 +4,10 @@
  *   strict   — auth endpoints.              burst 15,  refill 15 / 15 min
  *   standard — general reads and mutations. burst 100, refill 100 / min
  *   relaxed  — market data and other reads.  burst 300, refill 300 / min
+ *   asset    — logo files off disk.         burst 1500, refill 1500 / min
+ * The asset ceiling is high because one screener page paints fifty logos at
+ * once and a table scroll paints hundreds; it exists to bound a scraper, not
+ * to pace a browser.
  * Keyed by authenticated user id when present, else by `req.ip`: IP-only limits
  * are trivially bypassed and unfairly punish shared addresses (offices, NAT).
  * `optionalAuth` therefore has to run BEFORE these, or `req.userId` is unset
@@ -21,6 +25,7 @@ import type { AuthRequest } from '@/middleware/auth.js';
 export const strictLimiter = tier('rl:strict:', 15, 15 * 60 * 1000);
 export const standardLimiter = tier('rl:standard:', 100, 60 * 1000);
 export const relaxedLimiter = tier('rl:relaxed:', 300, 60 * 1000);
+export const assetLimiter = tier('rl:asset:', 1500, 60 * 1000);
 
 /** Build a token-bucket Express middleware for one tier. */
 function tier(prefix: string, capacity: number, windowMs: number): RequestHandler {

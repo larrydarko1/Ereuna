@@ -18,8 +18,10 @@ watch(
     },
 );
 
+// Served by the API off disk, not shipped in the build — a relative path so
+// the reverse proxy that fronts both is the only thing that knows where.
 const source = computed(() =>
-    exchange === null || exchange === '' ? null : `/${exchange}/${encodeURIComponent(symbol)}.svg`,
+    exchange === null || exchange === '' ? null : `/api/logos/${exchange}/${encodeURIComponent(symbol)}.svg`,
 );
 
 const initials = computed(() => symbol.slice(0, 2).toUpperCase());

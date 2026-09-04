@@ -10,6 +10,7 @@
  * dev convenience and are re-armed for production by the shared helpers.
  */
 import argon2 from 'argon2';
+import path from 'node:path';
 import { z } from 'zod';
 import { hexSecret, loggerEnv, mongoEnv, nodeEnv, redisEnv, requiredSecret } from '@ereuna/shared';
 
@@ -31,6 +32,12 @@ const Env = z
         TOTP_ISSUER: z.string().min(1).default('Ereuna'),
 
         METRICS_TOKEN: z.string().optional(),
+
+        /** Where the ticker logos live. The default sits two levels above this
+         *  module, which resolves to `api/assets/logos` from `src/` and from
+         *  `dist/` alike; an override is for the day the directory becomes a
+         *  mounted volume instead of part of the image. */
+        LOGO_DIR: z.string().min(1).default(path.resolve(import.meta.dirname, '../../assets/logos')),
     });
 
 const parsed = Env.parse(process.env);
@@ -91,6 +98,14 @@ export const config = {
         userData: 15 * 60,
     },
 
+
+    /** Ticker logos, served off disk. `maxAge` is the browser cache lifetime in
+     *  seconds — long, but deliberately not `immutable`, so a mark that gets
+     *  redrawn still reaches a client that already has the old one. */
+    logos: {
+        dir: parsed.LOGO_DIR,
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+    },
 
     mongo: {
         uri: parsed.MONGO_URI,

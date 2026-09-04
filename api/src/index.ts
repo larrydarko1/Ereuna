@@ -25,12 +25,13 @@ import { closeSocket, initSocket } from '@/gateway/index.js';
 import { config } from '@/lib/config.js';
 import { closeDb, connectDb, getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
-import { relaxedLimiter, standardLimiter, strictLimiter } from '@/lib/rate-limiters.js';
+import { assetLimiter, relaxedLimiter, standardLimiter, strictLimiter } from '@/lib/rate-limiters.js';
 import { closeRedis } from '@/lib/redis.js';
 import { optionalAuth, requireAuth } from '@/middleware/auth.js';
 import { errorHandler } from '@/middleware/error-handler.js';
 import { requestId } from '@/middleware/request-id.js';
 import { sanitizeRequest } from '@/middleware/sanitizer.js';
+import { logosRouter } from '@/routes/asset/index.js';
 import { chartsRouter } from '@/routes/chart/index.js';
 import { marketRouter } from '@/routes/market/index.js';
 import { notesRouter } from '@/routes/note/index.js';
@@ -112,6 +113,10 @@ app.use('/api/portfolios', standardLimiter, requireAuth, portfoliosRouter);
 app.use('/api/charts', relaxedLimiter, requireAuth, chartsRouter);
 app.use('/api/notes', standardLimiter, requireAuth, notesRouter);
 app.use('/api/market', relaxedLimiter, requireAuth, marketRouter);
+
+// The one unauthenticated route group: an `<img src>` cannot carry a token.
+// See routes/asset/logos.ts for what stands in for auth here.
+app.use('/api/logos', assetLimiter, logosRouter);
 
 
 app.get('/healthz', async (_req: express.Request, res: express.Response) => {
