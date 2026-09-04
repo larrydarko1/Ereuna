@@ -1,4 +1,3 @@
-
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import { findSessionUser, isAuthenticated } from '@/api/client';
 

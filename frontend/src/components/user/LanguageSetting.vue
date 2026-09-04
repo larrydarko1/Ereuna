@@ -15,11 +15,19 @@ async function select(event: Event): Promise<void> {
 </script>
 
 <template>
-    <SettingCard :title="t('user.language.title')" :description="t('user.language.description')">
+    <SettingCard
+        :title="t('user.language.title')"
+        :description="t('user.language.description')">
         <label class="form-field">
             <span class="form-label">{{ t('user.language.label') }}</span>
-            <select class="form-input" :value="locale" @change="select">
-                <option v-for="entry in SUPPORTED_LOCALES" :key="entry.code" :value="entry.code">
+            <select
+                class="form-input"
+                :value="locale"
+                @change="select">
+                <option
+                    v-for="entry in SUPPORTED_LOCALES"
+                    :key="entry.code"
+                    :value="entry.code">
                     {{ entry.label }}
                 </option>
             </select>

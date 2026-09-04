@@ -38,10 +38,7 @@ export async function getChartSeries(
     options: { before?: Date } = {},
 ): Promise<ChartSeries> {
     const asset = await requireAsset(symbol);
-    const [series, preferences] = await Promise.all([
-        barSeries(symbol, timeframe, options),
-        getPreferences(userId),
-    ]);
+    const [series, preferences] = await Promise.all([barSeries(symbol, timeframe, options), getPreferences(userId)]);
 
     const settings = preferences.chartSettings;
     const indicators = (settings?.indicators ?? DEFAULT_INDICATORS).filter((indicator) => indicator.visible);

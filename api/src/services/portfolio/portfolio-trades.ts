@@ -69,7 +69,12 @@ export async function listTrades(
     const filter = { userId, portfolioNumber, ...(symbol !== undefined ? { symbol } : {}) };
 
     const [items, total] = await Promise.all([
-        collection().find(filter).sort({ tradeDate: -1, createdAt: -1 }).skip((page - 1) * limit).limit(limit).toArray(),
+        collection()
+            .find(filter)
+            .sort({ tradeDate: -1, createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .toArray(),
         collection().countDocuments(filter),
     ]);
 

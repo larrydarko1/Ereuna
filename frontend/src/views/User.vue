@@ -20,7 +20,12 @@ const { t } = useI18n();
 
 const section = ref<Section>('account');
 
-const { data: account, pending, error, mutate } = useResource(
+const {
+    data: account,
+    pending,
+    error,
+    mutate,
+} = useResource(
     () => null,
     async () => (await getAccount()).data,
 );
@@ -47,7 +52,10 @@ function setTwoFactor(enabled: boolean): void {
         <h1 class="account__heading">{{ t('user.title') }}</h1>
 
         <!-- Tabs, not a menu: each one swaps the region below it -->
-        <div class="account__tabs" role="tablist" :aria-label="t('user.title')">
+        <div
+            class="account__tabs"
+            role="tablist"
+            :aria-label="t('user.title')">
             <button
                 v-for="entry in SECTIONS"
                 :id="`account-tab-${entry}`"
@@ -58,26 +66,31 @@ function setTwoFactor(enabled: boolean): void {
                 :class="{ 'account__tab--active': section === entry }"
                 :aria-selected="section === entry"
                 :aria-controls="`account-panel-${entry}`"
-                @click="section = entry"
-            >
+                @click="section = entry">
                 {{ t(`user.nav.${entry}`) }}
             </button>
         </div>
 
         <AppSpinner v-if="pending && account === null" />
 
-        <p v-else-if="error !== null" class="form-error" role="alert">{{ error }}</p>
+        <p
+            v-else-if="error !== null"
+            class="form-error"
+            role="alert"
+            >{{ error }}</p
+        >
 
         <div
             v-else-if="account !== null"
             :id="`account-panel-${section}`"
             class="stack"
             role="tabpanel"
-            :aria-labelledby="`account-tab-${section}`"
-        >
+            :aria-labelledby="`account-tab-${section}`">
             <template v-if="section === 'account'">
                 <LanguageSetting />
-                <UsernameForm :username="account.username" @renamed="adopt" />
+                <UsernameForm
+                    :username="account.username"
+                    @renamed="adopt" />
                 <PasswordForm />
                 <DeleteAccount />
             </template>
@@ -87,8 +100,7 @@ function setTwoFactor(enabled: boolean): void {
             <SecurityPanel
                 v-else
                 :enabled="account.twoFactorEnabled"
-                @changed="setTwoFactor"
-            />
+                @changed="setTwoFactor" />
         </div>
     </main>
 </template>

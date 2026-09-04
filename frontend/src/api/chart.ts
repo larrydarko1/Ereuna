@@ -47,7 +47,6 @@ export type ChartSeries = {
     intrinsicValue: number | null;
 };
 
-
 export type AssetProfile = {
     symbol: string;
     name: string | null;

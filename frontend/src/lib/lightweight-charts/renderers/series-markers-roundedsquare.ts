@@ -5,7 +5,7 @@ import { BitmapShapeItemCoordinates, shapeSize } from './series-markers-utils';
 export function drawRoundedSquare(
     ctx: CanvasRenderingContext2D,
     coords: BitmapShapeItemCoordinates,
-    size: number
+    size: number,
 ): void {
     const squareSize = shapeSize('square', size);
     const halfSize = ((squareSize - 1) * coords.pixelRatio) / 2;
@@ -34,13 +34,12 @@ export function hitTestRoundedSquare(
     centerY: Coordinate,
     size: number,
     x: Coordinate,
-    y: Coordinate
+    y: Coordinate,
 ): boolean {
     const squareSize = shapeSize('square', size);
     const halfSize = (squareSize - 1) / 2;
     const left = centerX - halfSize;
     const top = centerY - halfSize;
 
-    return x >= left && x <= left + squareSize &&
-        y >= top && y <= top + squareSize;
+    return x >= left && x <= left + squareSize && y >= top && y <= top + squareSize;
 }

@@ -586,6 +586,7 @@
         "noSplitsData": "无拆股数据",
         "noNewsAvailable": "无新闻",
         "created": "创建于：",
+        "edited": "编辑于：",
         "noNotesAvailable": "无笔记",
         "viewFinancialStatements": "查看财务报表",
         "showAll": "显示全部",
@@ -803,7 +804,9 @@
         "newNote": "新笔记",
         "placeholder": "在此处写笔记",
         "deleteNote": "删除笔记",
+        "editNote": "编辑笔记",
         "saveFailed": "创建笔记失败",
+        "updateFailed": "无法更新笔记",
         "deleteFailed": "无法删除笔记"
     },
     "watchlist": {

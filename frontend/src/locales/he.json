@@ -586,6 +586,7 @@
         "noSplitsData": "אין נתוני פיצולים זמינים",
         "noNewsAvailable": "אין חדשות זמינות.",
         "created": "נוצר:",
+        "edited": "נערך:",
         "noNotesAvailable": "אין הערות זמינות.",
         "viewFinancialStatements": "צפה בדוחות כספיים",
         "showAll": "הצג הכל",
@@ -803,7 +804,9 @@
         "newNote": "הערה חדשה",
         "placeholder": "כתוב הערות כאן",
         "deleteNote": "מחיקת פתק",
+        "editNote": "עריכת פתק",
         "saveFailed": "נכשלה יצירת הערה",
+        "updateFailed": "לא ניתן היה לעדכן את הפתק",
         "deleteFailed": "לא ניתן היה למחוק את הפתק"
     },
     "watchlist": {

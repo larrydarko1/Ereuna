@@ -13,19 +13,26 @@ const { t } = useI18n();
     <section class="benchmark-strip">
         <header class="benchmark-strip__header">
             <h2 class="benchmark-strip__title">{{ t('portfolio.benchmark') }}</h2>
-            <button type="button" class="btn btn--small" @click="emit('edit')">
+            <button
+                type="button"
+                class="btn btn--small"
+                @click="emit('edit')">
                 {{ t('portfolio.editBenchmarks') }}
             </button>
         </header>
 
-        <div v-if="benchmarks.length > 0" class="benchmark-strip__cards">
-            <article v-for="entry in benchmarks" :key="entry.symbol" class="benchmark-strip__card">
+        <div
+            v-if="benchmarks.length > 0"
+            class="benchmark-strip__cards">
+            <article
+                v-for="entry in benchmarks"
+                :key="entry.symbol"
+                class="benchmark-strip__card">
                 <header class="benchmark-strip__card-header">
                     <span class="benchmark-strip__symbol">{{ entry.symbol }}</span>
                     <span
                         class="benchmark-strip__badge"
-                        :class="`benchmark-strip__badge--${direction(entry.outperformance)}`"
-                    >
+                        :class="`benchmark-strip__badge--${direction(entry.outperformance)}`">
                         {{ entry.outperformance >= 0 ? t('portfolio.beating') : t('portfolio.lagging') }}
                     </span>
                 </header>
@@ -53,7 +60,11 @@ const { t } = useI18n();
             </article>
         </div>
 
-        <p v-else class="form-hint">{{ t('portfolio.noBenchmarkData') }}</p>
+        <p
+            v-else
+            class="form-hint"
+            >{{ t('portfolio.noBenchmarkData') }}</p
+        >
     </section>
 </template>
 

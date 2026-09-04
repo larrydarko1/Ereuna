@@ -1,7 +1,7 @@
 {
     "name": "@ereuna/shared",
     "version": "2026.7",
-    "description": "Cross-workspace contracts shared by the Ereuna api, ingestor, aggregator and frontend \u2014 error codes, env schema fragments, collection types, the realtime feed contract, and the screener filter registry.",
+    "description": "Cross-workspace contracts shared by the Ereuna api, ingestor, aggregator and frontend — error codes, env schema fragments, collection types, the realtime feed contract, and the screener filter registry.",
     "license": "UNLICENSED",
     "author": "Lorenzo Mazzola",
     "type": "module",
@@ -24,7 +24,6 @@
         "url": "git+https://github.com/larrydarko1/Ereuna.git"
     },
     "scripts": {
-        "build": "tsc",
         "typecheck": "tsc --noEmit",
         "test": "vitest run"
     },

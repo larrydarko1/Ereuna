@@ -54,14 +54,22 @@ describe('replayTrades', () => {
     });
 
     it('leaves the average cost alone on a sell — only realised P/L uses the exit price', () => {
-        const result = replayTrades([deposit(10_000, '2026-01-01'), buy(20, 100, '2026-01-05'), sell(5, 150, '2026-01-08')]);
+        const result = replayTrades([
+            deposit(10_000, '2026-01-01'),
+            buy(20, 100, '2026-01-05'),
+            sell(5, 150, '2026-01-08'),
+        ]);
 
         expect(result.positions).toEqual([{ symbol: 'AAPL', side: 'long', shares: 15, avgPrice: 100 }]);
         expect(result.cash).toBe(8750);
     });
 
     it('drops a position that is fully sold', () => {
-        const result = replayTrades([deposit(10_000, '2026-01-01'), buy(10, 100, '2026-01-05'), sell(10, 130, '2026-01-08')]);
+        const result = replayTrades([
+            deposit(10_000, '2026-01-01'),
+            buy(10, 100, '2026-01-05'),
+            sell(10, 130, '2026-01-08'),
+        ]);
 
         expect(result.positions).toEqual([]);
         expect(result.cash).toBe(10_300);
@@ -177,19 +185,31 @@ describe('replayTrades — short positions', () => {
     });
 
     it('refuses a cover larger than the position that is actually short', () => {
-        const result = replayTrades([deposit(10_000, '2026-01-01'), short(10, 100, '2026-01-05'), cover(15, 90, '2026-01-20')]);
+        const result = replayTrades([
+            deposit(10_000, '2026-01-01'),
+            short(10, 100, '2026-01-05'),
+            cover(15, 90, '2026-01-20'),
+        ]);
 
         expect(result.violation).toMatchObject({ kind: 'shares', action: 'cover', available: 10, required: 15 });
     });
 
     it('refuses a short on a symbol already held long, rather than netting it away', () => {
-        const result = replayTrades([deposit(10_000, '2026-01-01'), buy(10, 100, '2026-01-05'), short(5, 120, '2026-01-20')]);
+        const result = replayTrades([
+            deposit(10_000, '2026-01-01'),
+            buy(10, 100, '2026-01-05'),
+            short(5, 120, '2026-01-20'),
+        ]);
 
         expect(result.violation).toMatchObject({ kind: 'side', action: 'short', heldSide: 'long' });
     });
 
     it('refuses a sell against a short, which is a cover written the wrong way round', () => {
-        const result = replayTrades([deposit(10_000, '2026-01-01'), short(10, 100, '2026-01-05'), sell(5, 90, '2026-01-20')]);
+        const result = replayTrades([
+            deposit(10_000, '2026-01-01'),
+            short(10, 100, '2026-01-05'),
+            sell(5, 90, '2026-01-20'),
+        ]);
 
         expect(result.violation).toMatchObject({ kind: 'side', action: 'sell', heldSide: 'short' });
     });
@@ -223,11 +243,7 @@ describe('replayTrades — leverage', () => {
     });
 
     it('counts a long and a short together as gross exposure, not against each other', () => {
-        const log = [
-            deposit(1000, '2026-01-01'),
-            buy(10, 100, '2026-01-05'),
-            short(10, 100, '2026-01-06', 'MSFT'),
-        ];
+        const log = [deposit(1000, '2026-01-01'), buy(10, 100, '2026-01-05'), short(10, 100, '2026-01-06', 'MSFT')];
 
         // Net exposure is zero, but 2,000 of gross needs 2x on 1,000 of equity.
         expect(replayTrades(log, [], { leverage: 2 }).violation).toBeNull();

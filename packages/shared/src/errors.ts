@@ -75,7 +75,6 @@ export const ERROR_CODES = [
 
     // Market data
     'ASSET_NOT_FOUND',
-
 ] as const;
 
 /** Runtime guard — true when `value` is a known error code. */

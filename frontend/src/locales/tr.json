@@ -586,6 +586,7 @@
         "noSplitsData": "Bölünme verisi mevcut değil",
         "noNewsAvailable": "Haber mevcut değil.",
         "created": "Oluşturuldu:",
+        "edited": "Düzenlendi:",
         "noNotesAvailable": "Not mevcut değil.",
         "viewFinancialStatements": "Finansal Tabloları Görüntüle",
         "showAll": "Tümünü Göster",
@@ -803,7 +804,9 @@
         "newNote": "Yeni Not",
         "placeholder": "Notları buraya yazın",
         "deleteNote": "Notu sil",
+        "editNote": "Notu düzenle",
         "saveFailed": "Not oluşturulamadı",
+        "updateFailed": "Not güncellenemedi",
         "deleteFailed": "Not silinemedi"
     },
     "watchlist": {

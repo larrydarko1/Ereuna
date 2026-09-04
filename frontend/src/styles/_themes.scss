@@ -35,7 +35,7 @@ $ihatemyeyes: (
     'surface': #e9eaec,
     'elevated': #fff,
     'sunken': #f0f2f5,
-    'text': #36454F,
+    'text': #36454f,
     'text-muted': #24283b,
     'text-inverted': #fff,
     'accent-1': #5e7cbd,
@@ -44,7 +44,7 @@ $ihatemyeyes: (
     'accent-4': #7dcfff,
     'positive': #7ca254,
     'negative': #f7768e,
-    'volume': #E5E4E2,
+    'volume': #e5e4e2,
     'ma-1': #bb9af7,
     'ma-2': #7aa2f7,
     'ma-3': #e0af68,
@@ -56,20 +56,20 @@ $colorblind: (
     'surface': #23243a,
     'elevated': #313244,
     'sunken': #1e2030,
-    'text': #F7F7F7,
-    'text-muted': #BDBDBD,
+    'text': #f7f7f7,
+    'text-muted': #bdbdbd,
     'text-inverted': #222,
-    'accent-1': #0072B5,
-    'accent-2': #E69F00,
-    'accent-3': #009E73,
-    'accent-4': #56B4E950,
-    'positive': #009E73,
-    'negative': #E69F00,
-    'volume': #56B4E9,
-    'ma-1': #CC79A7,
-    'ma-2': #0072B5,
-    'ma-3': #E69F00,
-    'ma-4': #009E73,
+    'accent-1': #0072b5,
+    'accent-2': #e69f00,
+    'accent-3': #009e73,
+    'accent-4': #56b4e950,
+    'positive': #009e73,
+    'negative': #e69f00,
+    'volume': #56b4e9,
+    'ma-1': #cc79a7,
+    'ma-2': #0072b5,
+    'ma-3': #e69f00,
+    'ma-4': #009e73,
 );
 
 $catpuccin: (
@@ -95,7 +95,7 @@ $catpuccin: (
 
 $black: (
     'bg': #000,
-    'surface': #010B13,
+    'surface': #010b13,
     'elevated': #8a8a90,
     'sunken': #000,
     'text': #fff,
@@ -1108,58 +1108,214 @@ $light-owl: (
  * each component.
  */
 $themes: (
-    'default': ($default, dark),
-    'ihatemyeyes': ($ihatemyeyes, light),
-    'colorblind': ($colorblind, dark),
-    'catpuccin': ($catpuccin, dark),
-    'black': ($black, dark),
-    'nord': ($nord, dark),
-    'dracula': ($dracula, dark),
-    'gruvbox': ($gruvbox, dark),
-    'solarized': ($solarized, dark),
-    'synthwave': ($synthwave, dark),
-    'github-dark': ($github-dark, dark),
-    'everforest': ($everforest, dark),
-    'ayu-dark': ($ayu-dark, dark),
-    'rose-pine': ($rose-pine, dark),
-    'material': ($material, dark),
-    'one-dark': ($one-dark, dark),
-    'night-owl': ($night-owl, dark),
-    'panda': ($panda, dark),
-    'monokai-pro': ($monokai-pro, dark),
-    'tomorrow-night': ($tomorrow-night, dark),
-    'oceanic-next': ($oceanic-next, dark),
-    'palenight': ($palenight, dark),
-    'cobalt': ($cobalt, dark),
-    'poimandres': ($poimandres, dark),
-    'github-light': ($github-light, light),
-    'neon': ($neon, dark),
-    'moonlight': ($moonlight, dark),
-    'nightfox': ($nightfox, dark),
-    'spacemacs': ($spacemacs, dark),
-    'borland': ($borland, dark),
-    'amber': ($amber, dark),
-    'cyberpunk': ($cyberpunk, dark),
-    'matrix': ($matrix, dark),
-    'sunset': ($sunset, dark),
-    'deep-ocean': ($deep-ocean, dark),
-    'gotham': ($gotham, dark),
-    'retro': ($retro, dark),
-    'spotify': ($spotify, dark),
-    'autumn': ($autumn, dark),
-    'noctis': ($noctis, dark),
-    'iceberg': ($iceberg, dark),
-    'tango': ($tango, dark),
-    'horizon': ($horizon, dark),
-    'railscasts': ($railscasts, dark),
-    'vscode-dark': ($vscode-dark, dark),
-    'slack-dark': ($slack-dark, dark),
-    'mintty': ($mintty, dark),
-    'atom-one': ($atom-one, dark),
-    'jellybeans': ($jellybeans, dark),
-    'falcon': ($falcon, dark),
-    'forest-night': ($forest-night, dark),
-    'light-owl': ($light-owl, light),
+    'default': (
+        $default,
+        dark,
+    ),
+    'ihatemyeyes': (
+        $ihatemyeyes,
+        light,
+    ),
+    'colorblind': (
+        $colorblind,
+        dark,
+    ),
+    'catpuccin': (
+        $catpuccin,
+        dark,
+    ),
+    'black': (
+        $black,
+        dark,
+    ),
+    'nord': (
+        $nord,
+        dark,
+    ),
+    'dracula': (
+        $dracula,
+        dark,
+    ),
+    'gruvbox': (
+        $gruvbox,
+        dark,
+    ),
+    'solarized': (
+        $solarized,
+        dark,
+    ),
+    'synthwave': (
+        $synthwave,
+        dark,
+    ),
+    'github-dark': (
+        $github-dark,
+        dark,
+    ),
+    'everforest': (
+        $everforest,
+        dark,
+    ),
+    'ayu-dark': (
+        $ayu-dark,
+        dark,
+    ),
+    'rose-pine': (
+        $rose-pine,
+        dark,
+    ),
+    'material': (
+        $material,
+        dark,
+    ),
+    'one-dark': (
+        $one-dark,
+        dark,
+    ),
+    'night-owl': (
+        $night-owl,
+        dark,
+    ),
+    'panda': (
+        $panda,
+        dark,
+    ),
+    'monokai-pro': (
+        $monokai-pro,
+        dark,
+    ),
+    'tomorrow-night': (
+        $tomorrow-night,
+        dark,
+    ),
+    'oceanic-next': (
+        $oceanic-next,
+        dark,
+    ),
+    'palenight': (
+        $palenight,
+        dark,
+    ),
+    'cobalt': (
+        $cobalt,
+        dark,
+    ),
+    'poimandres': (
+        $poimandres,
+        dark,
+    ),
+    'github-light': (
+        $github-light,
+        light,
+    ),
+    'neon': (
+        $neon,
+        dark,
+    ),
+    'moonlight': (
+        $moonlight,
+        dark,
+    ),
+    'nightfox': (
+        $nightfox,
+        dark,
+    ),
+    'spacemacs': (
+        $spacemacs,
+        dark,
+    ),
+    'borland': (
+        $borland,
+        dark,
+    ),
+    'amber': (
+        $amber,
+        dark,
+    ),
+    'cyberpunk': (
+        $cyberpunk,
+        dark,
+    ),
+    'matrix': (
+        $matrix,
+        dark,
+    ),
+    'sunset': (
+        $sunset,
+        dark,
+    ),
+    'deep-ocean': (
+        $deep-ocean,
+        dark,
+    ),
+    'gotham': (
+        $gotham,
+        dark,
+    ),
+    'retro': (
+        $retro,
+        dark,
+    ),
+    'spotify': (
+        $spotify,
+        dark,
+    ),
+    'autumn': (
+        $autumn,
+        dark,
+    ),
+    'noctis': (
+        $noctis,
+        dark,
+    ),
+    'iceberg': (
+        $iceberg,
+        dark,
+    ),
+    'tango': (
+        $tango,
+        dark,
+    ),
+    'horizon': (
+        $horizon,
+        dark,
+    ),
+    'railscasts': (
+        $railscasts,
+        dark,
+    ),
+    'vscode-dark': (
+        $vscode-dark,
+        dark,
+    ),
+    'slack-dark': (
+        $slack-dark,
+        dark,
+    ),
+    'mintty': (
+        $mintty,
+        dark,
+    ),
+    'atom-one': (
+        $atom-one,
+        dark,
+    ),
+    'jellybeans': (
+        $jellybeans,
+        dark,
+    ),
+    'falcon': (
+        $falcon,
+        dark,
+    ),
+    'forest-night': (
+        $forest-night,
+        dark,
+    ),
+    'light-owl': (
+        $light-owl,
+        light,
+    ),
 );
 
 @each $name, $spec in $themes {

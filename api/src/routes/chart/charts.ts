@@ -112,15 +112,18 @@ router.get(
 
 router.put(
     '/:symbol/drawings',
-    ...validated({ params: symbolParam, query: timeframeQuery, body: drawingsBody }, async (req, res): Promise<void> => {
-        const drawings = await chartService.saveDrawings(
-            authedUserId(req),
-            req.params.symbol,
-            req.validatedQuery.timeframe,
-            req.body,
-        );
-        res.json(drawings);
-    }),
+    ...validated(
+        { params: symbolParam, query: timeframeQuery, body: drawingsBody },
+        async (req, res): Promise<void> => {
+            const drawings = await chartService.saveDrawings(
+                authedUserId(req),
+                req.params.symbol,
+                req.validatedQuery.timeframe,
+                req.body,
+            );
+            res.json(drawings);
+        },
+    ),
 );
 
 router.delete(

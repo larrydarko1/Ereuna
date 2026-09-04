@@ -26,13 +26,31 @@ function save(): void {
 </script>
 
 <template>
-    <AppDialog :title="t('screener.columnsTitle')" size="lg" @close="emit('close')">
-        <ReorderableList v-model="selected" :items="items" />
-        <p v-if="error !== null" class="columns-dialog__error" role="alert">{{ error }}</p>
+    <AppDialog
+        :title="t('screener.columnsTitle')"
+        size="lg"
+        @close="emit('close')">
+        <ReorderableList
+            v-model="selected"
+            :items="items" />
+        <p
+            v-if="error !== null"
+            class="columns-dialog__error"
+            role="alert"
+            >{{ error }}</p
+        >
 
         <template #footer>
-            <button type="button" class="columns-dialog__button" @click="emit('close')">{{ t('common.cancel') }}</button>
-            <button type="button" class="columns-dialog__button columns-dialog__button--primary" @click="save">
+            <button
+                type="button"
+                class="columns-dialog__button"
+                @click="emit('close')"
+                >{{ t('common.cancel') }}</button
+            >
+            <button
+                type="button"
+                class="columns-dialog__button columns-dialog__button--primary"
+                @click="save">
                 {{ t('common.save') }}
             </button>
         </template>

@@ -214,28 +214,44 @@ onMounted(async () => {
             @settings="dialog = 'settings'"
             @import="dialog = 'import'"
             @export="dialog = 'export'"
-            @reset="dialog = 'reset'"
-        />
+            @reset="dialog = 'reset'" />
 
-        <p v-if="error !== null" class="portfolio__error" role="alert">{{ error }}</p>
+        <p
+            v-if="error !== null"
+            class="portfolio__error"
+            role="alert"
+            >{{ error }}</p
+        >
 
         <AppSpinner v-if="pending && summary === null" />
 
-        <section v-else-if="summary === null" class="portfolio__empty">
+        <section
+            v-else-if="summary === null"
+            class="portfolio__empty">
             <h2 class="portfolio__empty-title">{{ t('portfolio.emptySlot') }}</h2>
             <p class="portfolio__empty-body">{{ t('portfolio.emptySlotHint') }}</p>
             <div class="portfolio__empty-actions">
-                <button type="button" class="btn btn--primary" @click="dialog = 'cash'">
+                <button
+                    type="button"
+                    class="btn btn--primary"
+                    @click="dialog = 'cash'">
                     {{ t('portfolio.actions.deposit') }}
                 </button>
-                <button type="button" class="btn" @click="dialog = 'import'">{{ t('portfolio.import') }}</button>
+                <button
+                    type="button"
+                    class="btn"
+                    @click="dialog = 'import'"
+                    >{{ t('portfolio.import') }}</button
+                >
             </div>
         </section>
 
         <template v-else>
             <SummaryCards :summary="summary" />
 
-            <BenchmarkStrip :benchmarks="summary.benchmarks" @edit="dialog = 'benchmarks'" />
+            <BenchmarkStrip
+                :benchmarks="summary.benchmarks"
+                @edit="dialog = 'benchmarks'" />
 
             <div class="portfolio__charts">
                 <section class="portfolio__panel">
@@ -244,9 +260,12 @@ onMounted(async () => {
                         v-if="valuePoints.length > 0"
                         :points="valuePoints"
                         :label="t('portfolio.portfolioValue')"
-                        :format="formatCurrency"
-                    />
-                    <p v-else class="form-hint">{{ t('portfolio.noActivity') }}</p>
+                        :format="formatCurrency" />
+                    <p
+                        v-else
+                        class="form-hint"
+                        >{{ t('portfolio.noActivity') }}</p
+                    >
                 </section>
 
                 <section class="portfolio__panel">
@@ -256,9 +275,12 @@ onMounted(async () => {
                         :bars="returnBins"
                         :marker="summary.stats?.tradeReturnsChart.medianBinIndex ?? null"
                         :label="t('portfolio.tradeReturns')"
-                        :format="(value) => formatNumber(value, 0)"
-                    />
-                    <p v-else class="form-hint">{{ t('portfolio.noClosedTrades') }}</p>
+                        :format="(value) => formatNumber(value, 0)" />
+                    <p
+                        v-else
+                        class="form-hint"
+                        >{{ t('portfolio.noClosedTrades') }}</p
+                    >
                 </section>
 
                 <section class="portfolio__panel">
@@ -266,9 +288,12 @@ onMounted(async () => {
                     <DonutChart
                         v-if="allocation.length > 0"
                         :slices="allocation"
-                        :label="t('portfolio.diversification')"
-                    />
-                    <p v-else class="form-hint">{{ t('portfolio.noPositionsAvailable') }}</p>
+                        :label="t('portfolio.diversification')" />
+                    <p
+                        v-else
+                        class="form-hint"
+                        >{{ t('portfolio.noPositionsAvailable') }}</p
+                    >
                 </section>
             </div>
 
@@ -278,18 +303,27 @@ onMounted(async () => {
                     :positions="summary.positions"
                     :cash="summary.cash"
                     :quotes="quotes"
-                    @close="closePosition"
-                />
+                    @close="closePosition" />
             </section>
 
-            <section v-if="summary.stats !== null" class="portfolio__panel">
+            <section
+                v-if="summary.stats !== null"
+                class="portfolio__panel">
                 <h2 class="portfolio__panel-title">{{ t('portfolio.performance') }}</h2>
                 <StatsGrid :snapshot="summary.stats" />
             </section>
 
             <section class="portfolio__panel">
-                <MonthlyPanel v-if="fullLog !== null" :value-history="summary.valueHistory" :trades="fullLog" />
-                <button v-else type="button" class="btn" :disabled="loadingLog" @click="loadMonthly">
+                <MonthlyPanel
+                    v-if="fullLog !== null"
+                    :value-history="summary.valueHistory"
+                    :trades="fullLog" />
+                <button
+                    v-else
+                    type="button"
+                    class="btn"
+                    :disabled="loadingLog"
+                    @click="loadMonthly">
                     {{ loadingLog ? t('common.loading') : t('portfolio.monthlyPerformanceAnalysis') }}
                 </button>
             </section>
@@ -302,8 +336,7 @@ onMounted(async () => {
                     :page-count="trades.pageCount.value"
                     @edit="openTrade($event)"
                     @delete="tradeToDelete = $event"
-                    @page="trades.goToPage($event)"
-                />
+                    @page="trades.goToPage($event)" />
             </section>
         </template>
 
@@ -315,16 +348,14 @@ onMounted(async () => {
             :error="trades.error.value"
             :saving="saving"
             @close="dialog = null"
-            @submit="submitTrade"
-        />
+            @submit="submitTrade" />
 
         <CashDialog
             v-if="dialog === 'cash'"
             :error="trades.error.value"
             :saving="saving"
             @close="dialog = null"
-            @submit="submitTrade"
-        />
+            @submit="submitTrade" />
 
         <SettingsDialog
             v-if="dialog === 'settings' && summary !== null"
@@ -334,8 +365,7 @@ onMounted(async () => {
             @close="dialog = null"
             @save-base-value="run(() => saveBaseValue($event))"
             @save-leverage="run(() => saveLeverage($event))"
-            @save-commission="run(() => saveCommission($event))"
-        />
+            @save-commission="run(() => saveCommission($event))" />
 
         <BenchmarksDialog
             v-if="dialog === 'benchmarks' && summary !== null"
@@ -343,23 +373,25 @@ onMounted(async () => {
             :error="error"
             :saving="saving"
             @close="dialog = null"
-            @save="run(async () => { await saveBenchmarks($event); dialog = null; })"
-        />
+            @save="
+                run(async () => {
+                    await saveBenchmarks($event);
+                    dialog = null;
+                })
+            " />
 
         <ImportDialog
             v-if="dialog === 'import'"
             :error="error"
             :saving="saving"
             @close="dialog = null"
-            @submit="submitImport"
-        />
+            @submit="submitImport" />
 
         <ExportDialog
             v-if="dialog === 'export'"
             :slot-number="selected"
             :load="exportCurrent"
-            @close="dialog = null"
-        />
+            @close="dialog = null" />
 
         <ConfirmDialog
             v-if="dialog === 'reset'"
@@ -369,8 +401,7 @@ onMounted(async () => {
             :error="error"
             :pending="saving"
             @close="dialog = null"
-            @confirm="confirmReset"
-        />
+            @confirm="confirmReset" />
 
         <ConfirmDialog
             v-if="tradeToDelete !== null"
@@ -380,8 +411,7 @@ onMounted(async () => {
             :error="trades.error.value"
             :pending="saving"
             @close="tradeToDelete = null"
-            @confirm="confirmDeleteTrade"
-        />
+            @confirm="confirmDeleteTrade" />
     </div>
 </template>
 

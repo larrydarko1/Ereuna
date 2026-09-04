@@ -29,37 +29,58 @@ const { t } = useI18n();
 
 <template>
     <div class="legend">
-        <dl v-if="quote !== null" class="legend__quote">
+        <dl
+            v-if="quote !== null"
+            class="legend__quote">
             <template v-if="priceOnly">
                 <dt class="legend__term">{{ t('charts.quote.price') }}</dt>
                 <dd class="legend__value">{{ formatNumber(quote.close) }}</dd>
             </template>
             <template v-else>
-                <template v-for="field in FIELDS" :key="field">
+                <template
+                    v-for="field in FIELDS"
+                    :key="field">
                     <dt class="legend__term">{{ t(`charts.quote.${field}`) }}</dt>
                     <dd class="legend__value">{{ formatNumber(quote[field]) }}</dd>
                 </template>
             </template>
 
             <dt class="legend__term">{{ t('charts.quote.change') }}</dt>
-            <dd class="legend__value" :class="quote.change >= 0 ? 'legend__value--up' : 'legend__value--down'">
+            <dd
+                class="legend__value"
+                :class="quote.change >= 0 ? 'legend__value--up' : 'legend__value--down'">
                 {{ formatSigned(quote.change) }} ({{ formatPercent(quote.changePercent) }})
             </dd>
         </dl>
 
-        <ul v-if="overlays.length > 0" class="legend__overlays">
-            <li v-for="overlay in overlays" :key="overlay.label" :style="{ color: overlay.color }">
+        <ul
+            v-if="overlays.length > 0"
+            class="legend__overlays">
+            <li
+                v-for="overlay in overlays"
+                :key="overlay.label"
+                :style="{ color: overlay.color }">
                 {{ overlay.label }}
             </li>
         </ul>
 
         <div class="legend__flags">
-            <span v-for="badge in badges" :key="badge" class="legend__badge">{{ badge }}</span>
+            <span
+                v-for="badge in badges"
+                :key="badge"
+                class="legend__badge"
+                >{{ badge }}</span
+            >
 
-            <span v-if="!statusPending" class="legend__status" :class="`legend__status--${status}`">
-                {{ status === 'holiday' && holidayName !== null
-                    ? `${t('charts.market.holiday')} · ${holidayName}`
-                    : t(`charts.market.${status}`) }}
+            <span
+                v-if="!statusPending"
+                class="legend__status"
+                :class="`legend__status--${status}`">
+                {{
+                    status === 'holiday' && holidayName !== null
+                        ? `${t('charts.market.holiday')} · ${holidayName}`
+                        : t(`charts.market.${status}`)
+                }}
             </span>
         </div>
     </div>

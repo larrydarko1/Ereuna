@@ -10,9 +10,14 @@ const { t } = useI18n();
 
 <template>
     <ul class="outlook">
-        <li v-for="reading in readings" :key="reading.term" class="outlook__item">
+        <li
+            v-for="reading in readings"
+            :key="reading.term"
+            class="outlook__item">
             <span class="outlook__term">{{ t(`dashboard.outlook.${reading.term}Term`) }}</span>
-            <span class="outlook__verdict" :class="`outlook__verdict--${reading.verdict}`">
+            <span
+                class="outlook__verdict"
+                :class="`outlook__verdict--${reading.verdict}`">
                 {{ t(`dashboard.outlook.${reading.verdict}`) }}
             </span>
             <!-- The periods the verdict was taken from, so a reading can be argued with -->

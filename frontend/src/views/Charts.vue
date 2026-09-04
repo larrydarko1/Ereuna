@@ -51,39 +51,57 @@ onMounted(async () => {
 
 <template>
     <div class="charts">
-        <nav class="charts__tabs" :aria-label="t('charts.title')">
+        <nav
+            class="charts__tabs"
+            :aria-label="t('charts.title')">
             <button
-                v-for="option in (['info', 'chart', 'watchlist'] as const)"
+                v-for="option in ['info', 'chart', 'watchlist'] as const"
                 :key="option"
                 type="button"
                 class="charts__tab"
                 :class="{ 'charts__tab--active': pane === option }"
                 :aria-pressed="pane === option"
-                @click="pane = option"
-            >
+                @click="pane = option">
                 {{ t(`charts.panes.${option}`) }}
             </button>
         </nav>
 
         <div class="charts__grid">
-            <aside class="charts__column charts__column--info" :class="{ 'charts__column--hidden': pane !== 'info' }">
-                <button type="button" class="charts__edit" @click="editingLayout = true">
+            <aside
+                class="charts__column charts__column--info"
+                :class="{ 'charts__column--hidden': pane !== 'info' }">
+                <button
+                    type="button"
+                    class="charts__edit"
+                    @click="editingLayout = true">
                     {{ t('panels.title') }}
                 </button>
-                <ChartSidebar :symbol="symbol" :profile="profile.data.value" :events="events.data.value" />
+                <ChartSidebar
+                    :symbol="symbol"
+                    :profile="profile.data.value"
+                    :events="events.data.value" />
             </aside>
 
-            <main class="charts__column charts__column--chart" :class="{ 'charts__column--hidden': pane !== 'chart' }">
+            <main
+                class="charts__column charts__column--chart"
+                :class="{ 'charts__column--hidden': pane !== 'chart' }">
                 <header class="charts__header">
-                    <AssetLogo :symbol="symbol" :exchange="profile.data.value?.exchange ?? null" />
+                    <AssetLogo
+                        :symbol="symbol"
+                        :exchange="profile.data.value?.exchange ?? null" />
                     <div class="charts__identity">
                         <h1 class="charts__symbol">{{ symbol }}</h1>
                         <p class="charts__name">{{ title }}</p>
                     </div>
-                    <SymbolSearch class="charts__search" @select="select" />
+                    <SymbolSearch
+                        class="charts__search"
+                        @select="select" />
                 </header>
 
-                <p v-if="profile.error.value !== null" class="charts__error" role="alert">
+                <p
+                    v-if="profile.error.value !== null"
+                    class="charts__error"
+                    role="alert">
                     {{ profile.error.value }}
                 </p>
 
@@ -91,19 +109,21 @@ onMounted(async () => {
                     :symbol="symbol"
                     :profile="profile.data.value"
                     :events="events.data.value"
-                    class="charts__canvas"
-                />
+                    class="charts__canvas" />
             </main>
 
             <aside
                 class="charts__column charts__column--watchlist"
-                :class="{ 'charts__column--hidden': pane !== 'watchlist' }"
-            >
-                <WatchlistPanel :symbol="symbol" @select="select" />
+                :class="{ 'charts__column--hidden': pane !== 'watchlist' }">
+                <WatchlistPanel
+                    :symbol="symbol"
+                    @select="select" />
             </aside>
         </div>
 
-        <PanelLayoutDialog v-if="editingLayout" @close="editingLayout = false" />
+        <PanelLayoutDialog
+            v-if="editingLayout"
+            @close="editingLayout = false" />
     </div>
 </template>
 

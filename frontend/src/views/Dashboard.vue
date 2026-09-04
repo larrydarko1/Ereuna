@@ -17,23 +17,42 @@ const { t } = useI18n();
 
 // One read feeds every panel below the fold. The summary is a single ingested
 // document, so splitting it into per-panel requests would fetch it five times
-const { data: overview, pending, error } = useResource(
+const {
+    data: overview,
+    pending,
+    error,
+} = useResource(
     () => null,
     async () => (await getMarketStats()).data,
 );
 </script>
 
 <template>
-    <main class="dashboard" :aria-label="t('dashboard.title')">
+    <main
+        class="dashboard"
+        :aria-label="t('dashboard.title')">
         <!-- Header: the clock, the outlook and the breadth meters -->
         <header class="dashboard__header">
             <MarketClock :updated-at="overview?.updatedAt ?? null" />
-            <OutlookPills v-if="overview !== null" :readings="overview.outlook" />
-            <BreadthMeters v-if="overview !== null" :breadth="overview.breadth" />
+            <OutlookPills
+                v-if="overview !== null"
+                :readings="overview.outlook" />
+            <BreadthMeters
+                v-if="overview !== null"
+                :breadth="overview.breadth" />
         </header>
 
-        <p v-if="pending" class="dashboard__note">{{ t('dashboard.loading') }}</p>
-        <p v-else-if="error !== null" class="dashboard__note" role="alert">{{ error }}</p>
+        <p
+            v-if="pending"
+            class="dashboard__note"
+            >{{ t('dashboard.loading') }}</p
+        >
+        <p
+            v-else-if="error !== null"
+            class="dashboard__note"
+            role="alert"
+            >{{ error }}</p
+        >
 
         <template v-else-if="overview !== null">
             <div class="dashboard__grid">
@@ -49,7 +68,9 @@ const { data: overview, pending, error } = useResource(
 
                 <section class="dashboard__panel">
                     <h2 class="dashboard__title">{{ t('dashboard.movers.title') }}</h2>
-                    <MoversPanel :gainers="overview.gainers" :losers="overview.losers" />
+                    <MoversPanel
+                        :gainers="overview.gainers"
+                        :losers="overview.losers" />
                 </section>
 
                 <section class="dashboard__panel">
@@ -64,7 +85,9 @@ const { data: overview, pending, error } = useResource(
 
                 <section class="dashboard__panel dashboard__panel--wide">
                     <h2 class="dashboard__title">{{ t('dashboard.valuation.title') }}</h2>
-                    <ValuationPanel :undervalued="overview.undervalued" :overvalued="overview.overvalued" />
+                    <ValuationPanel
+                        :undervalued="overview.undervalued"
+                        :overvalued="overview.overvalued" />
                     <p class="dashboard__footnote">{{ t('dashboard.valuation.disclaimer') }}</p>
                 </section>
             </div>

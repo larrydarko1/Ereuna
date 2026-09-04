@@ -8,7 +8,11 @@ const { description = null } = defineProps<{
 <template>
     <section class="setting">
         <h2 class="setting__title">{{ title }}</h2>
-        <p v-if="description !== null" class="setting__description">{{ description }}</p>
+        <p
+            v-if="description !== null"
+            class="setting__description"
+            >{{ description }}</p
+        >
         <div class="setting__body">
             <slot />
         </div>

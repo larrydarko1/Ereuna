@@ -5,13 +5,7 @@
  * numbers are only ever a replay of its trades under the current settings.
  */
 import type { Collection, ObjectId, WithId } from 'mongodb';
-import type {
-    PortfolioDoc,
-    PortfolioStatsSnapshot,
-    PortfolioValuePoint,
-    PositionDoc,
-    TradeDoc,
-} from '@ereuna/shared';
+import type { PortfolioDoc, PortfolioStatsSnapshot, PortfolioValuePoint, PositionDoc, TradeDoc } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
@@ -143,7 +137,10 @@ export async function setLeverage(userId: ObjectId, number: number, leverage: nu
 
 export async function setDefaultCommission(userId: ObjectId, number: number, commission: number): Promise<number> {
     await ensurePortfolio(userId, number);
-    await collection().updateOne({ userId, number }, { $set: { defaultCommission: commission, updatedAt: new Date() } });
+    await collection().updateOne(
+        { userId, number },
+        { $set: { defaultCommission: commission, updatedAt: new Date() } },
+    );
     return commission;
 }
 

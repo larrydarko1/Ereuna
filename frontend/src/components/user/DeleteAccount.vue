@@ -34,27 +34,34 @@ async function confirm(): Promise<void> {
 </script>
 
 <template>
-    <SettingCard :title="t('user.delete.title')" :description="t('user.delete.description')">
+    <SettingCard
+        :title="t('user.delete.title')"
+        :description="t('user.delete.description')">
         <div class="delete__warning">
-            <p class="delete__lead"><strong>{{ t('user.delete.warning') }}</strong> {{ t('user.delete.warningDetails') }}</p>
+            <p class="delete__lead"
+                ><strong>{{ t('user.delete.warning') }}</strong> {{ t('user.delete.warningDetails') }}</p
+            >
             <p class="form-hint">{{ t('user.delete.exportFirst') }}</p>
         </div>
 
         <PasswordField
             v-model="password"
             :label="t('user.password.current')"
-            autocomplete="current-password"
-        />
+            autocomplete="current-password" />
 
-        <p v-if="error !== null" class="form-error" role="alert">{{ error }}</p>
+        <p
+            v-if="error !== null"
+            class="form-error"
+            role="alert"
+            >{{ error }}</p
+        >
 
         <div>
             <button
                 type="button"
                 class="btn btn--danger"
                 :disabled="password === '' || pending"
-                @click="confirming = true"
-            >
+                @click="confirming = true">
                 {{ t('user.delete.submit') }}
             </button>
         </div>
@@ -67,8 +74,7 @@ async function confirm(): Promise<void> {
             :confirm-label="t('user.delete.submit')"
             :pending="pending"
             @confirm="confirm"
-            @close="confirming = false"
-        />
+            @close="confirming = false" />
     </SettingCard>
 </template>
 

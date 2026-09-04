@@ -233,7 +233,10 @@ export async function dividendSchedules(symbols: readonly string[]): Promise<Map
 
     const assets = await getDb()
         .collection<AssetInfoDoc>('AssetInfo')
-        .find({ Symbol: { $in: [...symbols] }, dividends: { $exists: true, $ne: [] } }, { projection: { Symbol: 1, dividends: 1 } })
+        .find(
+            { Symbol: { $in: [...symbols] }, dividends: { $exists: true, $ne: [] } },
+            { projection: { Symbol: 1, dividends: 1 } },
+        )
         .toArray();
 
     for (const asset of assets) {

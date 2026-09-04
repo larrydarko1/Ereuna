@@ -30,13 +30,34 @@ const headlines = computed<Headline[]>(() =>
 </script>
 
 <template>
-    <p v-if="pending" class="news__note">{{ t('sidebar.loading') }}</p>
-    <p v-else-if="error !== null" class="news__note">{{ error }}</p>
-    <p v-else-if="headlines.length === 0" class="news__note">{{ t('sidebar.noNewsAvailable') }}</p>
+    <p
+        v-if="pending"
+        class="news__note"
+        >{{ t('sidebar.loading') }}</p
+    >
+    <p
+        v-else-if="error !== null"
+        class="news__note"
+        >{{ error }}</p
+    >
+    <p
+        v-else-if="headlines.length === 0"
+        class="news__note"
+        >{{ t('sidebar.noNewsAvailable') }}</p
+    >
 
-    <ul v-else class="news">
-        <li v-for="headline in headlines" :key="headline.href" class="news__item">
-            <a class="news__link" :href="headline.href" target="_blank" rel="noopener noreferrer">
+    <ul
+        v-else
+        class="news">
+        <li
+            v-for="headline in headlines"
+            :key="headline.href"
+            class="news__item">
+            <a
+                class="news__link"
+                :href="headline.href"
+                target="_blank"
+                rel="noopener noreferrer">
                 {{ headline.title }}
             </a>
             <p class="news__meta">

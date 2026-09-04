@@ -25,18 +25,28 @@ function onSeek(event: Event): void {
 </script>
 
 <template>
-    <div class="replay" role="group" :aria-label="t('charts.replay.title')">
+    <div
+        class="replay"
+        role="group"
+        :aria-label="t('charts.replay.title')">
         <div class="replay__transport">
             <button
                 type="button"
                 class="replay__button"
                 :title="t('charts.replay.stepBackward')"
                 :aria-label="t('charts.replay.stepBackward')"
-                @click="emit('step', -1)"
-            >
-                <svg class="replay__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                @click="emit('step', -1)">
+                <svg
+                    class="replay__icon"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true">
                     <polygon points="19 20 9 12 19 4" />
-                    <rect x="4" y="4" width="2" height="16" />
+                    <rect
+                        x="4"
+                        y="4"
+                        width="2"
+                        height="16" />
                 </svg>
             </button>
 
@@ -45,14 +55,27 @@ function onSeek(event: Event): void {
                 class="replay__button"
                 :title="playing ? t('charts.replay.pause') : t('charts.replay.play')"
                 :aria-label="playing ? t('charts.replay.pause') : t('charts.replay.play')"
-                @click="emit('toggle')"
-            >
-                <svg class="replay__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                @click="emit('toggle')">
+                <svg
+                    class="replay__icon"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true">
                     <template v-if="playing">
-                        <rect x="6" y="4" width="4" height="16" />
-                        <rect x="14" y="4" width="4" height="16" />
+                        <rect
+                            x="6"
+                            y="4"
+                            width="4"
+                            height="16" />
+                        <rect
+                            x="14"
+                            y="4"
+                            width="4"
+                            height="16" />
                     </template>
-                    <polygon v-else points="5 3 19 12 5 21" />
+                    <polygon
+                        v-else
+                        points="5 3 19 12 5 21" />
                 </svg>
             </button>
 
@@ -61,17 +84,32 @@ function onSeek(event: Event): void {
                 class="replay__button"
                 :title="t('charts.replay.stepForward')"
                 :aria-label="t('charts.replay.stepForward')"
-                @click="emit('step', 1)"
-            >
-                <svg class="replay__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                @click="emit('step', 1)">
+                <svg
+                    class="replay__icon"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true">
                     <polygon points="5 4 15 12 5 20" />
-                    <rect x="18" y="4" width="2" height="16" />
+                    <rect
+                        x="18"
+                        y="4"
+                        width="2"
+                        height="16" />
                 </svg>
             </button>
 
-            <select v-model.number="speed" class="replay__speed" :aria-label="t('charts.replay.speed')">
+            <select
+                v-model.number="speed"
+                class="replay__speed"
+                :aria-label="t('charts.replay.speed')">
                 <!-- "2×" is a multiplication sign and a number: not prose, so not a string. -->
-                <option v-for="option in SPEEDS" :key="option" :value="option">{{ option }}×</option>
+                <option
+                    v-for="option in SPEEDS"
+                    :key="option"
+                    :value="option"
+                    >{{ option }}×</option
+                >
             </select>
         </div>
 
@@ -84,8 +122,7 @@ function onSeek(event: Event): void {
             :value="progress"
             :aria-label="t('charts.replay.seek')"
             :aria-valuetext="label"
-            @input="onSeek"
-        />
+            @input="onSeek" />
 
         <span class="replay__date">{{ label }}</span>
     </div>

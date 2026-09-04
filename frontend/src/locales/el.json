@@ -586,6 +586,7 @@
         "noSplitsData": "Δεν υπάρχουν δεδομένα splits",
         "noNewsAvailable": "Δεν υπάρχουν ειδήσεις.",
         "created": "Δημιουργήθηκε:",
+        "edited": "Επεξεργάστηκε:",
         "noNotesAvailable": "Δεν υπάρχουν σημειώσεις.",
         "viewFinancialStatements": "Προβολή Οικονομικών Καταστάσεων",
         "showAll": "Όλα",
@@ -803,7 +804,9 @@
         "newNote": "Νέα Σημείωση",
         "placeholder": "Γράψτε σημειώσεις",
         "deleteNote": "Διαγραφή σημείωσης",
+        "editNote": "Επεξεργασία σημείωσης",
         "saveFailed": "Αποτυχία δημιουργίας",
+        "updateFailed": "Δεν ήταν δυνατή η ενημέρωση της σημείωσης",
         "deleteFailed": "Δεν ήταν δυνατή η διαγραφή της σημείωσης"
     },
     "watchlist": {

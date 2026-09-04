@@ -7,33 +7,34 @@ export type BoundComparatorType<TArrayElementType, TValueType> = (a: TArrayEleme
  */
 
 function boundCompare<TArrayElementType, TValueType>(
-	lower: boolean,
-	arr: readonly TArrayElementType[],
-	value: TValueType,
-	compare: BoundComparatorType<TArrayElementType, TValueType>,
-	start: number = 0,
-	to: number = arr.length): number {
-	let count: number = to - start;
-	while (0 < count) {
-		const count2: number = (count >> 1);
-		const mid: number = start + count2;
-		if (compare(arr[mid], value) === lower) {
-			start = mid + 1;
-			count -= count2 + 1;
-		} else {
-			count = count2;
-		}
-	}
+    lower: boolean,
+    arr: readonly TArrayElementType[],
+    value: TValueType,
+    compare: BoundComparatorType<TArrayElementType, TValueType>,
+    start: number = 0,
+    to: number = arr.length,
+): number {
+    let count: number = to - start;
+    while (0 < count) {
+        const count2: number = count >> 1;
+        const mid: number = start + count2;
+        if (compare(arr[mid], value) === lower) {
+            start = mid + 1;
+            count -= count2 + 1;
+        } else {
+            count = count2;
+        }
+    }
 
-	return start;
+    return start;
 }
 
 type BoundCompareFunctionDefinition = <TArrayElementType, TValueType>(
-	arr: readonly TArrayElementType[],
-	value: TValueType,
-	compare: BoundComparatorType<TArrayElementType, TValueType>,
-	start?: number,
-	to?: number
+    arr: readonly TArrayElementType[],
+    value: TValueType,
+    compare: BoundComparatorType<TArrayElementType, TValueType>,
+    start?: number,
+    to?: number,
 ) => number;
 
 export const lowerBound = boundCompare.bind(null, true) as BoundCompareFunctionDefinition;

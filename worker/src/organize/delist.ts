@@ -12,7 +12,10 @@ export async function markDelisted(universe: readonly Asset[]): Promise<string[]
     const active = await getDb()
         .collection<OhlcvDoc>('OHCLVData')
         .aggregate<{ _id: string; latest: Date }>(
-            [{ $group: { _id: '$tickerID', latest: { $max: '$timestamp' } } }, { $match: { latest: { $gte: cutoff } } }],
+            [
+                { $group: { _id: '$tickerID', latest: { $max: '$timestamp' } } },
+                { $match: { latest: { $gte: cutoff } } },
+            ],
             { allowDiskUse: true },
         )
         .toArray();

@@ -111,7 +111,7 @@ export class ChartRuler {
                     time: param.time,
                     price: price,
                     x: param.point.x,
-                    y: param.point.y
+                    y: param.point.y,
                 };
                 this.isLocked = false;
             } else if (!this.isLocked) {
@@ -120,7 +120,7 @@ export class ChartRuler {
                     time: param.time,
                     price: price,
                     x: param.point.x,
-                    y: param.point.y
+                    y: param.point.y,
                 };
                 this.isLocked = true;
             } else {
@@ -129,7 +129,7 @@ export class ChartRuler {
                     time: param.time,
                     price: price,
                     x: param.point.x,
-                    y: param.point.y
+                    y: param.point.y,
                 };
                 this.currentPoint = null;
                 this.isLocked = false;
@@ -152,7 +152,7 @@ export class ChartRuler {
                 time: param.time,
                 price: price,
                 x: param.point.x,
-                y: param.point.y
+                y: param.point.y,
             };
 
             this.draw();
@@ -275,7 +275,14 @@ export class ChartRuler {
         ctx.fill();
     }
 
-    private drawInfoBox(x: number, y: number, changeText: string, priceText: string, timeText: string, isPositive: boolean): void {
+    private drawInfoBox(
+        x: number,
+        y: number,
+        changeText: string,
+        priceText: string,
+        timeText: string,
+        isPositive: boolean,
+    ): void {
         if (!this.ctx) return;
 
         const ctx = this.ctx;
@@ -357,7 +364,14 @@ export class ChartRuler {
         ctx.fillText(timeText, boxX + padding, boxY + padding + lineHeight * 2);
     }
 
-    private roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number): void {
+    private roundRect(
+        ctx: CanvasRenderingContext2D,
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        radius: number,
+    ): void {
         ctx.beginPath();
         ctx.moveTo(x + radius, y);
         ctx.lineTo(x + width - radius, y);

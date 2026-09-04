@@ -40,7 +40,10 @@ const rows = computed(() =>
         const cost = source.avgPrice * source.shares;
         // A short profits as the price falls, so the difference is taken the
         // other way round. Everything else about the row is identical.
-        const pl = source.side === 'long' ? (price - source.avgPrice) * source.shares : (source.avgPrice - price) * source.shares;
+        const pl =
+            source.side === 'long'
+                ? (price - source.avgPrice) * source.shares
+                : (source.avgPrice - price) * source.shares;
 
         return {
             source,
@@ -66,22 +69,60 @@ const rows = computed(() =>
                 <tr>
                     <th scope="col">{{ t('portfolio.symbol') }}</th>
                     <th scope="col">{{ t('portfolio.type') }}</th>
-                    <th scope="col" class="positions-table__num">{{ t('portfolio.shares') }}</th>
-                    <th scope="col" class="positions-table__num">{{ t('portfolio.avgPrice') }}</th>
-                    <th scope="col" class="positions-table__num">{{ t('portfolio.currentPrice') }}</th>
-                    <th scope="col" class="positions-table__num">{{ t('portfolio.marketValue') }}</th>
-                    <th scope="col" class="positions-table__num">{{ t('portfolio.pnlDollar') }}</th>
-                    <th scope="col" class="positions-table__num">{{ t('portfolio.pnlPercent') }}</th>
-                    <th scope="col" class="positions-table__num">{{ t('portfolio.percPortfolio') }}</th>
-                    <th scope="col"><span class="positions-table__sr">{{ t('portfolio.rowActions') }}</span></th>
+                    <th
+                        scope="col"
+                        class="positions-table__num"
+                        >{{ t('portfolio.shares') }}</th
+                    >
+                    <th
+                        scope="col"
+                        class="positions-table__num"
+                        >{{ t('portfolio.avgPrice') }}</th
+                    >
+                    <th
+                        scope="col"
+                        class="positions-table__num"
+                        >{{ t('portfolio.currentPrice') }}</th
+                    >
+                    <th
+                        scope="col"
+                        class="positions-table__num"
+                        >{{ t('portfolio.marketValue') }}</th
+                    >
+                    <th
+                        scope="col"
+                        class="positions-table__num"
+                        >{{ t('portfolio.pnlDollar') }}</th
+                    >
+                    <th
+                        scope="col"
+                        class="positions-table__num"
+                        >{{ t('portfolio.pnlPercent') }}</th
+                    >
+                    <th
+                        scope="col"
+                        class="positions-table__num"
+                        >{{ t('portfolio.percPortfolio') }}</th
+                    >
+                    <th scope="col"
+                        ><span class="positions-table__sr">{{ t('portfolio.rowActions') }}</span></th
+                    >
                 </tr>
             </thead>
 
             <tbody>
-                <tr v-for="row in rows" :key="row.symbol">
-                    <th scope="row" class="positions-table__symbol">{{ row.symbol }}</th>
+                <tr
+                    v-for="row in rows"
+                    :key="row.symbol">
+                    <th
+                        scope="row"
+                        class="positions-table__symbol"
+                        >{{ row.symbol }}</th
+                    >
                     <td>
-                        <span class="positions-table__side" :class="`positions-table__side--${row.side}`">
+                        <span
+                            class="positions-table__side"
+                            :class="`positions-table__side--${row.side}`">
                             {{ row.side === 'long' ? t('portfolio.long') : t('portfolio.short') }}
                         </span>
                     </td>
@@ -95,31 +136,48 @@ const rows = computed(() =>
                     <td class="positions-table__num">
                         {{ row.marketValue === null ? '—' : formatCurrency(row.marketValue) }}
                     </td>
-                    <td class="positions-table__num" :class="`positions-table__num--${direction(row.pl)}`">
+                    <td
+                        class="positions-table__num"
+                        :class="`positions-table__num--${direction(row.pl)}`">
                         {{ row.pl === null ? '—' : formatCurrency(row.pl) }}
                     </td>
-                    <td class="positions-table__num" :class="`positions-table__num--${direction(row.plPercent)}`">
+                    <td
+                        class="positions-table__num"
+                        :class="`positions-table__num--${direction(row.plPercent)}`">
                         {{ row.plPercent === null ? '—' : formatPercent(row.plPercent) }}
                     </td>
                     <td class="positions-table__num">
                         {{ row.weight === null ? '—' : `${formatNumber(row.weight, 1)}%` }}
                     </td>
                     <td>
-                        <button type="button" class="btn btn--small" @click="emit('close', row.source)">
+                        <button
+                            type="button"
+                            class="btn btn--small"
+                            @click="emit('close', row.source)">
                             {{ t('portfolio.close') }}
                         </button>
                     </td>
                 </tr>
 
                 <tr v-if="rows.length === 0">
-                    <td class="positions-table__empty" colspan="10">{{ t('portfolio.noActivePositions') }}</td>
+                    <td
+                        class="positions-table__empty"
+                        colspan="10"
+                        >{{ t('portfolio.noActivePositions') }}</td
+                    >
                 </tr>
             </tbody>
 
             <tfoot>
                 <tr>
-                    <th scope="row" colspan="5">{{ t('portfolio.cash') }}</th>
-                    <td class="positions-table__num" :class="{ 'positions-table__num--down': cash < 0 }">
+                    <th
+                        scope="row"
+                        colspan="5"
+                        >{{ t('portfolio.cash') }}</th
+                    >
+                    <td
+                        class="positions-table__num"
+                        :class="{ 'positions-table__num--down': cash < 0 }">
                         {{ formatCurrency(cash) }}
                     </td>
                     <td colspan="4"></td>

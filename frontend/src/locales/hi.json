@@ -586,6 +586,7 @@
         "noSplitsData": "कोई विभाजन डेटा उपलब्ध नहीं",
         "noNewsAvailable": "कोई समाचार उपलब्ध नहीं।",
         "created": "बनाया गया:",
+        "edited": "संपादित:",
         "noNotesAvailable": "कोई नोट्स उपलब्ध नहीं।",
         "viewFinancialStatements": "वित्तीय विवरण देखें",
         "showAll": "सभी दिखाएं",
@@ -803,7 +804,9 @@
         "newNote": "नया नोट",
         "placeholder": "यहां नोट्स लिखें",
         "deleteNote": "नोट हटाएँ",
+        "editNote": "नोट संपादित करें",
         "saveFailed": "नोट बनाने में विफल",
+        "updateFailed": "नोट अपडेट नहीं किया जा सका",
         "deleteFailed": "नोट हटाया नहीं जा सका"
     },
     "watchlist": {

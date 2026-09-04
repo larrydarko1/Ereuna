@@ -22,10 +22,7 @@ export class PatternOverlayManager {
     private patternSeries: ISeriesApi<'Line'>[] = [];
     private markers: SeriesMarker<Time>[] = [];
 
-    constructor(
-        chart: IChartApi,
-        mainSeries: ISeriesApi<'Candlestick'> | ISeriesApi<'Line'>
-    ) {
+    constructor(chart: IChartApi, mainSeries: ISeriesApi<'Candlestick'> | ISeriesApi<'Line'>) {
         this.chart = chart;
         this.mainSeries = mainSeries;
     }
@@ -37,7 +34,7 @@ export class PatternOverlayManager {
         // Clear existing patterns first
         this.clearPatterns();
 
-        patterns.forEach(pattern => {
+        patterns.forEach((pattern) => {
             this.drawPattern(pattern);
         });
     }
@@ -48,7 +45,7 @@ export class PatternOverlayManager {
     private drawPattern(pattern: PatternMatch): void {
         const visual: PatternVisual = {
             pattern,
-            shapes: []
+            shapes: [],
         };
 
         // Draw based on pattern type
@@ -103,7 +100,7 @@ export class PatternOverlayManager {
         // Draw horizontal line connecting the two points
         const lineData = [
             { time: points[0].time as Time, value: points[0].price },
-            { time: points[1].time as Time, value: points[1].price }
+            { time: points[1].time as Time, value: points[1].price },
         ];
 
         lineSeries.setData(lineData);
@@ -131,7 +128,7 @@ export class PatternOverlayManager {
 
         const necklineData = [
             { time: leftShoulder.time as Time, value: (leftShoulder.price + rightShoulder.price) / 2 },
-            { time: rightShoulder.time as Time, value: (leftShoulder.price + rightShoulder.price) / 2 }
+            { time: rightShoulder.time as Time, value: (leftShoulder.price + rightShoulder.price) / 2 },
         ];
 
         necklineSeries.setData(necklineData);
@@ -150,7 +147,7 @@ export class PatternOverlayManager {
         const connectingData = [
             { time: leftShoulder.time as Time, value: leftShoulder.price },
             { time: head.time as Time, value: head.price },
-            { time: rightShoulder.time as Time, value: rightShoulder.price }
+            { time: rightShoulder.time as Time, value: rightShoulder.price },
         ];
 
         connectingSeries.setData(connectingData);
@@ -179,9 +176,9 @@ export class PatternOverlayManager {
                 priceLineVisible: false,
             });
 
-            const upperData = highs.map(p => ({
+            const upperData = highs.map((p) => ({
                 time: p.time as Time,
-                value: p.price
+                value: p.price,
             }));
 
             upperSeries.setData(upperData);
@@ -199,9 +196,9 @@ export class PatternOverlayManager {
                 priceLineVisible: false,
             });
 
-            const lowerData = lows.map(p => ({
+            const lowerData = lows.map((p) => ({
                 time: p.time as Time,
-                value: p.price
+                value: p.price,
             }));
 
             lowerSeries.setData(lowerData);
@@ -228,9 +225,9 @@ export class PatternOverlayManager {
                 priceLineVisible: false,
             });
 
-            const flagData = sortedPoints.map(p => ({
+            const flagData = sortedPoints.map((p) => ({
                 time: p.time as Time,
-                value: p.price
+                value: p.price,
             }));
 
             flagSeries.setData(flagData);
@@ -245,9 +242,8 @@ export class PatternOverlayManager {
         const lastPoint = pattern.points[pattern.points.length - 1];
         const marker: SeriesMarker<Time> = {
             time: lastPoint.time as Time,
-            position: pattern.type.includes('Top') || pattern.type.includes('headAndShoulders')
-                ? 'aboveBar'
-                : 'belowBar',
+            position:
+                pattern.type.includes('Top') || pattern.type.includes('headAndShoulders') ? 'aboveBar' : 'belowBar',
             color: this.getMarkerColor(pattern.type),
             shape: 'circle',
             text: this.getPatternLabel(pattern.type),
@@ -265,12 +261,20 @@ export class PatternOverlayManager {
         if (this.markers.length > 0) {
             // Sort markers by time in ascending order
             const sortedMarkers = [...this.markers].sort((a, b) => {
-                const timeA = typeof a.time === 'number' ? a.time :
-                    typeof a.time === 'string' ? new Date(a.time).getTime() / 1000 :
-                        new Date((a.time as any).year, (a.time as any).month - 1, (a.time as any).day).getTime() / 1000;
-                const timeB = typeof b.time === 'number' ? b.time :
-                    typeof b.time === 'string' ? new Date(b.time).getTime() / 1000 :
-                        new Date((b.time as any).year, (b.time as any).month - 1, (b.time as any).day).getTime() / 1000;
+                const timeA =
+                    typeof a.time === 'number'
+                        ? a.time
+                        : typeof a.time === 'string'
+                          ? new Date(a.time).getTime() / 1000
+                          : new Date((a.time as any).year, (a.time as any).month - 1, (a.time as any).day).getTime() /
+                            1000;
+                const timeB =
+                    typeof b.time === 'number'
+                        ? b.time
+                        : typeof b.time === 'string'
+                          ? new Date(b.time).getTime() / 1000
+                          : new Date((b.time as any).year, (b.time as any).month - 1, (b.time as any).day).getTime() /
+                            1000;
                 return timeA - timeB;
             });
 
@@ -284,7 +288,7 @@ export class PatternOverlayManager {
      */
     clearPatterns(): void {
         // Remove all pattern series
-        this.patternSeries.forEach(series => {
+        this.patternSeries.forEach((series) => {
             this.chart.removeSeries(series);
         });
 
@@ -313,11 +317,19 @@ export class PatternOverlayManager {
      * Get marker color based on pattern type
      */
     private getMarkerColor(type: string): string {
-        if (type.includes('Bottom') || type.includes('inverse') ||
-            type === 'ascendingTriangle' || type === 'bullishFlag') {
+        if (
+            type.includes('Bottom') ||
+            type.includes('inverse') ||
+            type === 'ascendingTriangle' ||
+            type === 'bullishFlag'
+        ) {
             return '#26a69a'; // Bullish patterns - green
-        } else if (type.includes('Top') || type === 'headAndShoulders' ||
-            type === 'descendingTriangle' || type === 'bearishFlag') {
+        } else if (
+            type.includes('Top') ||
+            type === 'headAndShoulders' ||
+            type === 'descendingTriangle' ||
+            type === 'bearishFlag'
+        ) {
             return '#ef5350'; // Bearish patterns - red
         } else {
             return '#ffa726'; // Neutral - orange
@@ -339,7 +351,7 @@ export class PatternOverlayManager {
             bullishFlag: '⚑↗',
             bearishFlag: '⚑↘',
             wedgeRising: '◇↗',
-            wedgeFalling: '◇↘'
+            wedgeFalling: '◇↘',
         };
 
         return labels[type] || '?';
@@ -349,7 +361,7 @@ export class PatternOverlayManager {
      * Get all currently displayed patterns
      */
     getPatterns(): PatternMatch[] {
-        return this.patterns.map(v => v.pattern);
+        return this.patterns.map((v) => v.pattern);
     }
 
     /**

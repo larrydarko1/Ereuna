@@ -28,19 +28,38 @@ function download(): void {
 </script>
 
 <template>
-    <AppDialog :title="t('user.security.codes.title')" :dismissible="false" @close="emit('close')">
+    <AppDialog
+        :title="t('user.security.codes.title')"
+        :dismissible="false"
+        @close="emit('close')">
         <p class="codes__lead">{{ t('user.security.codes.description') }}</p>
 
         <ul class="codes__list">
-            <li v-for="code in codes" :key="code" class="codes__item">{{ code }}</li>
+            <li
+                v-for="code in codes"
+                :key="code"
+                class="codes__item"
+                >{{ code }}</li
+            >
         </ul>
 
         <template #footer>
-            <button type="button" class="btn" @click="copy">
+            <button
+                type="button"
+                class="btn"
+                @click="copy">
                 {{ copied ? t('user.security.codes.copied') : t('user.security.codes.copy') }}
             </button>
-            <button type="button" class="btn" @click="download">{{ t('common.download') }}</button>
-            <button type="button" class="btn btn--primary" @click="emit('close')">
+            <button
+                type="button"
+                class="btn"
+                @click="download"
+                >{{ t('common.download') }}</button
+            >
+            <button
+                type="button"
+                class="btn btn--primary"
+                @click="emit('close')">
                 {{ t('user.security.codes.done') }}
             </button>
         </template>

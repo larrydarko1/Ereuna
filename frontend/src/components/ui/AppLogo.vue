@@ -11,8 +11,7 @@ const { width = 250, label = 'Ereuna' } = defineProps<{
         :style="{ width: `${width}px` }"
         :role="label === '' ? undefined : 'img'"
         :aria-label="label === '' ? undefined : label"
-        :aria-hidden="label === '' ? 'true' : undefined"
-    />
+        :aria-hidden="label === '' ? 'true' : undefined" />
 </template>
 
 <style lang="scss" scoped>

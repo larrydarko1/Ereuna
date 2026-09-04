@@ -35,6 +35,10 @@ export function createNote(symbol: string, message: string): ApiResult<NoteRow> 
     return api.post<NoteRow>('/notes', { symbol, message });
 }
 
+export function updateNote(id: string, message: string): ApiResult<NoteRow> {
+    return api.patch<NoteRow>(`/notes/${id}`, { message });
+}
+
 export function deleteNote(id: string): ApiResult<{ ok: true }> {
     return api.delete<{ ok: true }>(`/notes/${id}`);
 }

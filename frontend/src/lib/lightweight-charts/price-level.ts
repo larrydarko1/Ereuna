@@ -31,11 +31,7 @@ export class PriceLevelManager {
     private isDeserializing: boolean = false;
     private isClearing: boolean = false;
 
-    constructor(
-        chart: IChartApi,
-        series: any,
-        container: HTMLElement
-    ) {
+    constructor(chart: IChartApi, series: any, container: HTMLElement) {
         this.chart = chart;
         this.series = series;
         this.container = container;
@@ -586,7 +582,7 @@ export class PriceLevelManager {
                     text: textInput.value,
                     color: colorInput.value,
                     lineWidth: 2,
-                    lineStyle: parseInt(lineStyleSelect.value)
+                    lineStyle: parseInt(lineStyleSelect.value),
                 };
                 this.addPriceLevelToChart(newLevelData);
             } else {
@@ -596,7 +592,7 @@ export class PriceLevelManager {
                     parseFloat(priceInput.value),
                     textInput.value,
                     colorInput.value,
-                    parseInt(lineStyleSelect.value)
+                    parseInt(lineStyleSelect.value),
                 );
             }
             this.closeInputDialog();
@@ -643,7 +639,13 @@ export class PriceLevelManager {
         this.editingLevelId = null;
     }
 
-    private updatePriceLevel(id: string, newPrice: number, newText: string, newColor: string, newLineStyle: number): void {
+    private updatePriceLevel(
+        id: string,
+        newPrice: number,
+        newText: string,
+        newColor: string,
+        newLineStyle: number,
+    ): void {
         const level = this.levels.get(id);
         if (!level) return;
 

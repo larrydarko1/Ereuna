@@ -78,10 +78,14 @@ export function intrinsicValue(input: ValuationInput): number | null {
 
 function isProfitable(quarterly: readonly Statement[]): boolean {
     const recent = quarterly.slice(0, 12);
-    const earnings = recent.map((statement) => numeric(statement.netIncome)).filter((value): value is number => value !== null);
+    const earnings = recent
+        .map((statement) => numeric(statement.netIncome))
+        .filter((value): value is number => value !== null);
     if (earnings.length >= 12 && earnings.filter((value) => value > 0).length < 6) return false;
 
-    const eps = recent.map((statement) => numeric(statement.reportedEPS)).filter((value): value is number => value !== null);
+    const eps = recent
+        .map((statement) => numeric(statement.reportedEPS))
+        .filter((value): value is number => value !== null);
     if (eps.length < 8) return true;
     if (eps.filter((value) => value > 0).length < 4) return false;
 

@@ -3,7 +3,11 @@ import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toDateInput } from '@/utils/formatters';
 
-const { value = null, bounds = null, busy = false } = defineProps<{
+const {
+    value = null,
+    bounds = null,
+    busy = false,
+} = defineProps<{
     value?: { from: string; to: string } | null;
     bounds?: { min: string; max: string } | null;
     busy?: boolean;
@@ -46,7 +50,9 @@ watch(
 </script>
 
 <template>
-    <form class="date-filter" @submit.prevent="submit">
+    <form
+        class="date-filter"
+        @submit.prevent="submit">
         <label class="date-filter__field">
             <span class="date-filter__label">{{ t('screener.from') }}</span>
             <input
@@ -54,8 +60,7 @@ watch(
                 type="date"
                 class="date-filter__input"
                 :min="bounds?.min.slice(0, 10)"
-                :max="bounds?.max.slice(0, 10)"
-            >
+                :max="bounds?.max.slice(0, 10)" />
         </label>
 
         <label class="date-filter__field">
@@ -65,13 +70,22 @@ watch(
                 type="date"
                 class="date-filter__input"
                 :min="bounds?.min.slice(0, 10)"
-                :max="bounds?.max.slice(0, 10)"
-            >
+                :max="bounds?.max.slice(0, 10)" />
         </label>
 
-        <button type="submit" class="date-filter__apply" :disabled="busy">{{ t('common.apply') }}</button>
+        <button
+            type="submit"
+            class="date-filter__apply"
+            :disabled="busy"
+            >{{ t('common.apply') }}</button
+        >
 
-        <p v-if="error !== null" class="date-filter__error" role="alert">{{ error }}</p>
+        <p
+            v-if="error !== null"
+            class="date-filter__error"
+            role="alert"
+            >{{ error }}</p
+        >
     </form>
 </template>
 

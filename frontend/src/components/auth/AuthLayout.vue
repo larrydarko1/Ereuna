@@ -19,11 +19,17 @@ const quote = computed(() => INVESTING_QUOTES[Math.floor(Math.random() * INVESTI
 
 <template>
     <div class="auth">
-        <aside class="auth__aside" :aria-label="t('auth.quoteRegion')">
-            <RouterLink to="/login" class="auth__brand">
+        <aside
+            class="auth__aside"
+            :aria-label="t('auth.quoteRegion')">
+            <RouterLink
+                to="/login"
+                class="auth__brand">
                 <AppLogo :width="220" />
             </RouterLink>
-            <figure v-if="quote" class="auth__quote">
+            <figure
+                v-if="quote"
+                class="auth__quote">
                 <blockquote>{{ quote.text }}</blockquote>
                 <figcaption>— {{ quote.author }}</figcaption>
             </figure>
@@ -31,10 +37,16 @@ const quote = computed(() => INVESTING_QUOTES[Math.floor(Math.random() * INVESTI
 
         <main class="auth__main">
             <div class="auth__panel">
-                <AppLogo class="auth__brand-compact" :width="180" />
+                <AppLogo
+                    class="auth__brand-compact"
+                    :width="180" />
                 <header class="auth__header">
                     <h1 class="auth__title">{{ title }}</h1>
-                    <p v-if="subtitle !== null" class="auth__subtitle">{{ subtitle }}</p>
+                    <p
+                        v-if="subtitle !== null"
+                        class="auth__subtitle"
+                        >{{ subtitle }}</p
+                    >
                 </header>
                 <slot />
             </div>

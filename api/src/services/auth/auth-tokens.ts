@@ -266,14 +266,16 @@ async function issueRefreshToken(
     const { rememberMe, familyId, expiresAt } = options;
     const rawToken = crypto.randomBytes(40).toString('hex');
 
-    await getDb().collection<RefreshTokenDoc>('RefreshTokens').insertOne({
-        tokenHash: sha256(rawToken),
-        userId,
-        familyId,
-        rememberMe,
-        expiresAt,
-        createdAt: new Date(),
-    });
+    await getDb()
+        .collection<RefreshTokenDoc>('RefreshTokens')
+        .insertOne({
+            tokenHash: sha256(rawToken),
+            userId,
+            familyId,
+            rememberMe,
+            expiresAt,
+            createdAt: new Date(),
+        });
 
     return { rawToken, maxAge: rememberMe ? Math.max(0, expiresAt.getTime() - Date.now()) : undefined };
 }

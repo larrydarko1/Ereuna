@@ -2,7 +2,11 @@
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-const { options, value = null, busy = false } = defineProps<{
+const {
+    options,
+    value = null,
+    busy = false,
+} = defineProps<{
     options: string[];
     value?: { values: string[] } | null;
     busy?: boolean;
@@ -47,25 +51,33 @@ watch(
             v-model="query"
             type="search"
             class="enum-filter__search"
-            :placeholder="t('common.search')"
-        >
+            :placeholder="t('common.search')" />
 
         <ul class="enum-filter__list">
-            <li v-for="option in visible" :key="option" class="enum-filter__item">
+            <li
+                v-for="option in visible"
+                :key="option"
+                class="enum-filter__item">
                 <label class="enum-filter__option">
-                    <input v-model="selected" type="checkbox" :value="option">
+                    <input
+                        v-model="selected"
+                        type="checkbox"
+                        :value="option" />
                     <span>{{ option }}</span>
                 </label>
             </li>
-            <li v-if="visible.length === 0" class="enum-filter__empty">{{ t('screener.noOptions') }}</li>
+            <li
+                v-if="visible.length === 0"
+                class="enum-filter__empty"
+                >{{ t('screener.noOptions') }}</li
+            >
         </ul>
 
         <button
             type="button"
             class="enum-filter__apply"
             :disabled="busy || !dirty"
-            @click="emit('apply', { values: selected })"
-        >
+            @click="emit('apply', { values: selected })">
             {{ t('common.apply') }}
         </button>
     </div>

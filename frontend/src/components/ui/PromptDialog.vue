@@ -31,22 +31,45 @@ const canSubmit = computed(() => trimmed.value !== '' && trimmed.value.length <=
 </script>
 
 <template>
-    <AppDialog :title="title" size="sm" @close="emit('close')">
-        <form class="prompt" @submit.prevent="canSubmit && emit('submit', trimmed)">
-            <label class="prompt__label" :for="inputId">{{ label }}</label>
-            <input :id="inputId" v-model="value" class="prompt__input" type="text" :maxlength="maxLength" />
+    <AppDialog
+        :title="title"
+        size="sm"
+        @close="emit('close')">
+        <form
+            class="prompt"
+            @submit.prevent="canSubmit && emit('submit', trimmed)">
+            <label
+                class="prompt__label"
+                :for="inputId"
+                >{{ label }}</label
+            >
+            <input
+                :id="inputId"
+                v-model="value"
+                class="prompt__input"
+                type="text"
+                :maxlength="maxLength" />
             <p class="prompt__count">{{ value.length }}/{{ maxLength }}</p>
-            <p v-if="error !== null" class="prompt__error" role="alert">{{ error }}</p>
+            <p
+                v-if="error !== null"
+                class="prompt__error"
+                role="alert"
+                >{{ error }}</p
+            >
         </form>
 
         <template #footer>
-            <button type="button" class="prompt__cancel" @click="emit('close')">{{ t('common.cancel') }}</button>
+            <button
+                type="button"
+                class="prompt__cancel"
+                @click="emit('close')"
+                >{{ t('common.cancel') }}</button
+            >
             <button
                 type="button"
                 class="prompt__submit"
                 :disabled="!canSubmit"
-                @click="emit('submit', trimmed)"
-            >
+                @click="emit('submit', trimmed)">
                 {{ t('common.save') }}
             </button>
         </template>

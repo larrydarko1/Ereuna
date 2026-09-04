@@ -88,9 +88,7 @@ const losing = computed(() => months.value.filter((month) => month.profit < 0).l
 const returnBars = computed<Bar[]>(() =>
     // Oldest first: a chart reads left to right through time, while the table
     // above reads newest first because that is the row people want.
-    [...months.value]
-        .reverse()
-        .map((month) => ({ label: month.label, value: month.returnPercent ?? 0 })),
+    [...months.value].reverse().map((month) => ({ label: month.label, value: month.returnPercent ?? 0 })),
 );
 
 /** `2026-09-02` → `2026-09`, taken off the string rather than through a Date:
@@ -111,7 +109,9 @@ function monthLabel(key: string): string {
     <section class="monthly-panel">
         <header class="monthly-panel__header">
             <h2 class="monthly-panel__title">{{ t('portfolio.monthlyPerformanceAnalysis') }}</h2>
-            <div v-if="months.length > 0" class="monthly-panel__tally">
+            <div
+                v-if="months.length > 0"
+                class="monthly-panel__tally">
                 <span class="monthly-panel__tally-item monthly-panel__tally-item--up">
                     {{ t('portfolio.winning') }} {{ winning }}
                 </span>
@@ -125,37 +125,63 @@ function monthLabel(key: string): string {
             <BarChart
                 :bars="returnBars"
                 :label="t('portfolio.monthlyReturns')"
-                :format="(value) => formatPercent(value)"
-            />
+                :format="(value) => formatPercent(value)" />
 
             <div class="monthly-panel__scroll">
                 <table class="monthly-panel__table">
                     <thead>
                         <tr>
                             <th scope="col">{{ t('portfolio.date') }}</th>
-                            <th scope="col" class="monthly-panel__num">{{ t('portfolio.startingValue') }}</th>
-                            <th scope="col" class="monthly-panel__num">{{ t('portfolio.endingValue') }}</th>
-                            <th scope="col" class="monthly-panel__num">{{ t('portfolio.cashFlow') }}</th>
-                            <th scope="col" class="monthly-panel__num">{{ t('portfolio.pl') }}</th>
-                            <th scope="col" class="monthly-panel__num">{{ t('portfolio.return') }}</th>
-                            <th scope="col" class="monthly-panel__num">{{ t('portfolio.trades') }}</th>
+                            <th
+                                scope="col"
+                                class="monthly-panel__num"
+                                >{{ t('portfolio.startingValue') }}</th
+                            >
+                            <th
+                                scope="col"
+                                class="monthly-panel__num"
+                                >{{ t('portfolio.endingValue') }}</th
+                            >
+                            <th
+                                scope="col"
+                                class="monthly-panel__num"
+                                >{{ t('portfolio.cashFlow') }}</th
+                            >
+                            <th
+                                scope="col"
+                                class="monthly-panel__num"
+                                >{{ t('portfolio.pl') }}</th
+                            >
+                            <th
+                                scope="col"
+                                class="monthly-panel__num"
+                                >{{ t('portfolio.return') }}</th
+                            >
+                            <th
+                                scope="col"
+                                class="monthly-panel__num"
+                                >{{ t('portfolio.trades') }}</th
+                            >
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="month in months" :key="month.key">
+                        <tr
+                            v-for="month in months"
+                            :key="month.key">
                             <th scope="row">{{ month.label }}</th>
                             <td class="monthly-panel__num">{{ formatCurrency(month.start) }}</td>
                             <td class="monthly-panel__num">{{ formatCurrency(month.end) }}</td>
                             <td class="monthly-panel__num">
                                 {{ month.cashFlow === 0 ? '—' : formatCurrency(month.cashFlow) }}
                             </td>
-                            <td class="monthly-panel__num" :class="`monthly-panel__num--${direction(month.profit)}`">
+                            <td
+                                class="monthly-panel__num"
+                                :class="`monthly-panel__num--${direction(month.profit)}`">
                                 {{ formatCurrency(month.profit) }}
                             </td>
                             <td
                                 class="monthly-panel__num"
-                                :class="`monthly-panel__num--${direction(month.returnPercent)}`"
-                            >
+                                :class="`monthly-panel__num--${direction(month.returnPercent)}`">
                                 {{ month.returnPercent === null ? '—' : formatPercent(month.returnPercent) }}
                             </td>
                             <td class="monthly-panel__num">{{ month.trades }}</td>
@@ -165,7 +191,11 @@ function monthLabel(key: string): string {
             </div>
         </template>
 
-        <p v-else class="form-hint">{{ t('portfolio.noActivity') }}</p>
+        <p
+            v-else
+            class="form-hint"
+            >{{ t('portfolio.noActivity') }}</p
+        >
     </section>
 </template>
 

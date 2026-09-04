@@ -45,12 +45,24 @@ onMounted(async () => {
 </script>
 
 <template>
-    <AppDialog :title="t('user.security.enrol.title')" :dismissible="false" @close="emit('close')">
+    <AppDialog
+        :title="t('user.security.enrol.title')"
+        :dismissible="false"
+        @close="emit('close')">
         <AppSpinner v-if="enrolment === null && error === null" />
 
-        <p v-else-if="enrolment === null" class="form-error" role="alert">{{ error }}</p>
+        <p
+            v-else-if="enrolment === null"
+            class="form-error"
+            role="alert"
+            >{{ error }}</p
+        >
 
-        <form v-else class="enrol" novalidate @submit.prevent="confirm">
+        <form
+            v-else
+            class="enrol"
+            novalidate
+            @submit.prevent="confirm">
             <!-- Step one: put the secret into an authenticator -->
             <p class="enrol__step">{{ t('user.security.enrol.scan') }}</p>
 
@@ -64,8 +76,7 @@ onMounted(async () => {
                     :margin="2"
                     level="M"
                     background="#ffffff"
-                    foreground="#000000"
-                />
+                    foreground="#000000" />
             </div>
 
             <p class="form-hint">{{ t('user.security.enrol.manual') }}</p>
@@ -80,21 +91,29 @@ onMounted(async () => {
                     inputmode="numeric"
                     autocomplete="one-time-code"
                     maxlength="6"
-                    :placeholder="t('user.security.codePlaceholder')"
-                />
+                    :placeholder="t('user.security.codePlaceholder')" />
             </label>
 
-            <p v-if="error !== null" class="form-error" role="alert">{{ error }}</p>
+            <p
+                v-if="error !== null"
+                class="form-error"
+                role="alert"
+                >{{ error }}</p
+            >
         </form>
 
         <template #footer>
-            <button type="button" class="btn" @click="emit('close')">{{ t('common.cancel') }}</button>
+            <button
+                type="button"
+                class="btn"
+                @click="emit('close')"
+                >{{ t('common.cancel') }}</button
+            >
             <button
                 type="button"
                 class="btn btn--primary"
                 :disabled="enrolment === null || pending || code.trim() === ''"
-                @click="confirm"
-            >
+                @click="confirm">
                 {{ pending ? t('common.processing') : t('user.security.enrol.submit') }}
             </button>
         </template>

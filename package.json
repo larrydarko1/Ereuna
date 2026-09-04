@@ -28,6 +28,10 @@
         "dev:worker": "npm -w worker run dev",
         "dev:ingestor": "npm -w ingestor run dev",
         "build:all": "npm -w frontend run build && npm -w api run build && npm -w ingestor run build && npm -w worker run build",
+        "format": "prettier --write \"**/*.{ts,vue,scss,json,md}\"",
+        "format:check": "prettier --check \"**/*.{ts,vue,scss,json,md}\"",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
         "typecheck": "npm -w packages/shared run typecheck && npm -w api run typecheck && npm -w ingestor run typecheck && npm -w worker run typecheck",
         "test": "vitest run",
         "test:coverage": "vitest run --coverage",
@@ -70,7 +74,15 @@
         "typescript": "~6.0.2",
         "vitest": "^4.1.11",
         "knip": "^6.34.0",
-        "jscpd": "^5.1.2"
+        "jscpd": "^5.1.2",
+        "prettier": "^3.9.6",
+        "@eslint/js": "^10.0.1",
+        "@intlify/eslint-plugin-vue-i18n": "^4.5.1",
+        "eslint": "^10.6.0",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-vue": "^10.9.2",
+        "eslint-plugin-vuejs-accessibility": "^2.5.0",
+        "typescript-eslint": "^8.58.1"
     },
     "packageManager": "npm@11.16.0",
     "engines": {

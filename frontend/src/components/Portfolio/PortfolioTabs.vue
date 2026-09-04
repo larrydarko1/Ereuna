@@ -23,7 +23,10 @@ const { t } = useI18n();
 
 <template>
     <div class="portfolio-tabs">
-        <div class="portfolio-tabs__slots" role="tablist" :aria-label="t('portfolio.selectPortfolio')">
+        <div
+            class="portfolio-tabs__slots"
+            role="tablist"
+            :aria-label="t('portfolio.selectPortfolio')">
             <button
                 v-for="slot in PORTFOLIO_SLOTS"
                 :key="slot"
@@ -35,34 +38,49 @@ const { t } = useI18n();
                     'portfolio-tabs__slot--opened': opened.has(slot - 1),
                 }"
                 :aria-selected="selected === slot - 1"
-                @click="emit('select', slot - 1)"
-            >
+                @click="emit('select', slot - 1)">
                 {{ slot }}
             </button>
         </div>
 
         <div class="portfolio-tabs__actions">
-            <button type="button" class="btn" @click="emit('trade')">
+            <button
+                type="button"
+                class="btn"
+                @click="emit('trade')">
                 {{ t('portfolio.newTrade') }}
             </button>
-            <button type="button" class="btn" @click="emit('cash')">
+            <button
+                type="button"
+                class="btn"
+                @click="emit('cash')">
                 {{ t('portfolio.cash') }}
             </button>
-            <button type="button" class="btn" @click="emit('settings')">
+            <button
+                type="button"
+                class="btn"
+                @click="emit('settings')">
                 {{ t('portfolio.settings') }}
             </button>
-            <button type="button" class="btn" :disabled="!blank" @click="emit('import')">
+            <button
+                type="button"
+                class="btn"
+                :disabled="!blank"
+                @click="emit('import')">
                 {{ t('portfolio.import') }}
             </button>
-            <button type="button" class="btn" :disabled="blank" @click="emit('export')">
+            <button
+                type="button"
+                class="btn"
+                :disabled="blank"
+                @click="emit('export')">
                 {{ t('portfolio.export') }}
             </button>
             <button
                 type="button"
                 class="btn btn--danger"
                 :disabled="blank"
-                @click="emit('reset')"
-            >
+                @click="emit('reset')">
                 {{ t('portfolio.reset') }}
             </button>
         </div>

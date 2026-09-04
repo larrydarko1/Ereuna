@@ -141,33 +141,58 @@ onMounted(() => {
 </script>
 
 <template>
-    <section class="watchlist" :aria-label="t('watchlist.title')">
+    <section
+        class="watchlist"
+        :aria-label="t('watchlist.title')">
         <header class="watchlist__header">
-            <label class="watchlist__picker-label" for="watchlist-picker">{{ t('watchlist.myWatchlists') }}</label>
+            <label
+                class="watchlist__picker-label"
+                for="watchlist-picker"
+                >{{ t('watchlist.myWatchlists') }}</label
+            >
             <select
                 id="watchlist-picker"
                 class="watchlist__picker"
                 :value="activeName ?? ''"
                 :disabled="lists.length === 0"
-                @change="run(() => open(($event.target as HTMLSelectElement).value))"
-            >
-                <option v-for="list in lists" :key="list.id" :value="list.name">
+                @change="run(() => open(($event.target as HTMLSelectElement).value))">
+                <option
+                    v-for="list in lists"
+                    :key="list.id"
+                    :value="list.name">
                     {{ list.name }} ({{ list.tickerCount }})
                 </option>
             </select>
 
             <div class="watchlist__tools">
-                <button type="button" :disabled="busy" @click="prompt = 'create'">{{ t('watchlist.create') }}</button>
-                <button type="button" :disabled="busy || activeName === null" @click="prompt = 'rename'">
+                <button
+                    type="button"
+                    :disabled="busy"
+                    @click="prompt = 'create'"
+                    >{{ t('watchlist.create') }}</button
+                >
+                <button
+                    type="button"
+                    :disabled="busy || activeName === null"
+                    @click="prompt = 'rename'">
                     {{ t('watchlist.rename') }}
                 </button>
-                <button type="button" :disabled="busy || activeName === null" @click="confirmingDelete = true">
+                <button
+                    type="button"
+                    :disabled="busy || activeName === null"
+                    @click="confirmingDelete = true">
                     {{ t('common.delete') }}
                 </button>
-                <button type="button" :disabled="busy || activeName === null" @click="fileInput?.click()">
+                <button
+                    type="button"
+                    :disabled="busy || activeName === null"
+                    @click="fileInput?.click()">
                     {{ t('common.import') }}
                 </button>
-                <button type="button" :disabled="activeName === null || rows.length === 0" @click="exportList">
+                <button
+                    type="button"
+                    :disabled="activeName === null || rows.length === 0"
+                    @click="exportList">
                     {{ t('common.export') }}
                 </button>
                 <input
@@ -175,44 +200,81 @@ onMounted(() => {
                     class="watchlist__file"
                     type="file"
                     accept=".txt,text/plain"
-                    @change="importFile"
-                />
+                    @change="importFile" />
             </div>
         </header>
 
-        <form v-if="activeName !== null" class="watchlist__add" @submit.prevent="submitSymbol">
-            <label class="watchlist__add-label" for="watchlist-add">{{ t('watchlist.addSymbol') }}</label>
+        <form
+            v-if="activeName !== null"
+            class="watchlist__add"
+            @submit.prevent="submitSymbol">
+            <label
+                class="watchlist__add-label"
+                for="watchlist-add"
+                >{{ t('watchlist.addSymbol') }}</label
+            >
             <input
                 id="watchlist-add"
                 v-model="draftSymbol"
                 class="watchlist__add-input"
                 type="text"
                 autocapitalize="characters"
-                :placeholder="t('watchlist.symbolPlaceholder')"
-            />
-            <button type="submit" :disabled="busy || draftSymbol.trim() === ''">{{ t('common.add') }}</button>
+                :placeholder="t('watchlist.symbolPlaceholder')" />
+            <button
+                type="submit"
+                :disabled="busy || draftSymbol.trim() === ''"
+                >{{ t('common.add') }}</button
+            >
         </form>
 
-        <p v-if="error !== null" class="watchlist__message watchlist__message--error" role="alert">{{ error }}</p>
-        <p v-else-if="notice !== null" class="watchlist__message" role="status">{{ notice }}</p>
+        <p
+            v-if="error !== null"
+            class="watchlist__message watchlist__message--error"
+            role="alert"
+            >{{ error }}</p
+        >
+        <p
+            v-else-if="notice !== null"
+            class="watchlist__message"
+            role="status"
+            >{{ notice }}</p
+        >
 
-        <p v-if="pending && rows.length === 0" class="watchlist__message">{{ t('sidebar.loading') }}</p>
-        <p v-else-if="isEmpty" class="watchlist__message">{{ t('watchlist.noWatchlists') }}</p>
-        <p v-else-if="rows.length === 0" class="watchlist__message">{{ t('watchlist.noSymbols') }}</p>
+        <p
+            v-if="pending && rows.length === 0"
+            class="watchlist__message"
+            >{{ t('sidebar.loading') }}</p
+        >
+        <p
+            v-else-if="isEmpty"
+            class="watchlist__message"
+            >{{ t('watchlist.noWatchlists') }}</p
+        >
+        <p
+            v-else-if="rows.length === 0"
+            class="watchlist__message"
+            >{{ t('watchlist.noSymbols') }}</p
+        >
 
-        <ul v-else class="watchlist__rows">
+        <ul
+            v-else
+            class="watchlist__rows">
             <li
                 v-for="(row, index) in rows"
                 :key="row.ticker"
                 class="watchlist__row"
-                :class="{ 'watchlist__row--active': row.ticker === symbol }"
-            >
-                <button type="button" class="watchlist__symbol" @click="emit('select', row.ticker)">
+                :class="{ 'watchlist__row--active': row.ticker === symbol }">
+                <button
+                    type="button"
+                    class="watchlist__symbol"
+                    @click="emit('select', row.ticker)">
                     <span class="watchlist__ticker">{{ row.ticker }}</span>
                     <span class="watchlist__price">
                         {{ row.quote === null ? '—' : formatNumber(row.quote.close, 2) }}
                     </span>
-                    <span class="watchlist__change" :class="changeTone(row.quote?.changePercent ?? null)">
+                    <span
+                        class="watchlist__change"
+                        :class="changeTone(row.quote?.changePercent ?? null)">
                         {{ row.quote?.changePercent == null ? '' : formatPercent(row.quote.changePercent) }}
                     </span>
                 </button>
@@ -222,8 +284,7 @@ onMounted(() => {
                     class="watchlist__icon"
                     :aria-label="t('watchlist.moveUp', { symbol: row.ticker })"
                     :disabled="index === 0 || busy"
-                    @click="moveRow(index, -1)"
-                >
+                    @click="moveRow(index, -1)">
                     <span aria-hidden="true">↑</span>
                 </button>
                 <button
@@ -231,8 +292,7 @@ onMounted(() => {
                     class="watchlist__icon"
                     :aria-label="t('watchlist.moveDown', { symbol: row.ticker })"
                     :disabled="index === rows.length - 1 || busy"
-                    @click="moveRow(index, 1)"
-                >
+                    @click="moveRow(index, 1)">
                     <span aria-hidden="true">↓</span>
                 </button>
                 <button
@@ -240,8 +300,7 @@ onMounted(() => {
                     class="watchlist__icon"
                     :aria-label="t('watchlist.removeSymbol', { symbol: row.ticker })"
                     :disabled="busy"
-                    @click="run(() => removeTicker(row.ticker))"
-                >
+                    @click="run(() => removeTicker(row.ticker))">
                     <span aria-hidden="true">✕</span>
                 </button>
             </li>
@@ -255,14 +314,25 @@ onMounted(() => {
             :pending="busy"
             :error="error"
             @submit="submitPrompt"
-            @close="prompt = null"
-        />
+            @close="prompt = null" />
 
-        <AppDialog v-if="confirmingDelete" :title="t('watchlist.confirmDelete')" size="sm" @close="confirmingDelete = false">
+        <AppDialog
+            v-if="confirmingDelete"
+            :title="t('watchlist.confirmDelete')"
+            size="sm"
+            @close="confirmingDelete = false">
             <p class="watchlist__confirm">{{ t('watchlist.confirmDeleteBody', { name: activeName ?? '' }) }}</p>
             <template #footer>
-                <button type="button" @click="confirmingDelete = false">{{ t('common.cancel') }}</button>
-                <button type="button" class="watchlist__danger" :disabled="busy" @click="confirmDelete">
+                <button
+                    type="button"
+                    @click="confirmingDelete = false"
+                    >{{ t('common.cancel') }}</button
+                >
+                <button
+                    type="button"
+                    class="watchlist__danger"
+                    :disabled="busy"
+                    @click="confirmDelete">
                     {{ t('common.delete') }}
                 </button>
             </template>

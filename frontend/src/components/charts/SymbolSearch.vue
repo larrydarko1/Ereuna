@@ -113,8 +113,14 @@ watch(term, (value) => {
 </script>
 
 <template>
-    <div class="symbol-search" @focusout="onFocusOut">
-        <label class="symbol-search__label" :for="`${listboxId}-input`">{{ t('search.label') }}</label>
+    <div
+        class="symbol-search"
+        @focusout="onFocusOut">
+        <label
+            class="symbol-search__label"
+            :for="`${listboxId}-input`"
+            >{{ t('search.label') }}</label
+        >
 
         <div class="symbol-search__control">
             <input
@@ -134,16 +140,34 @@ watch(term, (value) => {
                 @keydown.down.prevent="move(1)"
                 @keydown.up.prevent="move(-1)"
                 @keydown.enter.prevent="onEnter"
-                @keydown.esc="dismiss"
-            />
-            <AppSpinner v-if="pending" class="symbol-search__spinner" size="sm" :label="t('search.searching')" />
+                @keydown.esc="dismiss" />
+            <AppSpinner
+                v-if="pending"
+                class="symbol-search__spinner"
+                size="sm"
+                :label="t('search.searching')" />
         </div>
 
-        <div v-if="expanded" class="symbol-search__popover">
-            <p v-if="error !== null" class="symbol-search__message" role="alert">{{ error }}</p>
-            <p v-else-if="!pending && !hasResults" class="symbol-search__message">{{ t('search.noResults') }}</p>
+        <div
+            v-if="expanded"
+            class="symbol-search__popover">
+            <p
+                v-if="error !== null"
+                class="symbol-search__message"
+                role="alert"
+                >{{ error }}</p
+            >
+            <p
+                v-else-if="!pending && !hasResults"
+                class="symbol-search__message"
+                >{{ t('search.noResults') }}</p
+            >
 
-            <ul :id="listboxId" class="symbol-search__list" role="listbox" :aria-label="t('search.resultsLabel')">
+            <ul
+                :id="listboxId"
+                class="symbol-search__list"
+                role="listbox"
+                :aria-label="t('search.resultsLabel')">
                 <li
                     v-for="(result, index) in results"
                     :id="optionId(index)"
@@ -153,9 +177,11 @@ watch(term, (value) => {
                     role="option"
                     :aria-selected="index === active"
                     @mousedown.prevent="choose(index)"
-                    @mouseenter="active = index"
-                >
-                    <AssetLogo :symbol="result.symbol" :exchange="result.exchange" size="sm" />
+                    @mouseenter="active = index">
+                    <AssetLogo
+                        :symbol="result.symbol"
+                        :exchange="result.exchange"
+                        size="sm" />
                     <span class="symbol-search__ticker">{{ result.symbol }}</span>
                     <span class="symbol-search__name">{{ result.name ?? '' }}</span>
                     <span class="symbol-search__exchange">{{ result.exchange ?? '' }}</span>

@@ -9,7 +9,9 @@ export async function pruneIntraday(now = Date.now()): Promise<number> {
     let removed = 0;
 
     for (const collection of INTRADAY_COLLECTIONS) {
-        const result = await getDb().collection<OhlcvDoc>(collection).deleteMany({ timestamp: { $lt: cutoff } });
+        const result = await getDb()
+            .collection<OhlcvDoc>(collection)
+            .deleteMany({ timestamp: { $lt: cutoff } });
         removed += result.deletedCount;
         logger.debug({ collection, removed: result.deletedCount }, 'Intraday bars pruned');
     }

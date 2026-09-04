@@ -13,7 +13,11 @@ import SummaryPanel from '@/components/charts/SummaryPanel.vue';
 import { usePanelLayout } from '@/composables/charts/usePanelLayout';
 import { useResource } from '@/composables/data/useResource';
 
-const { symbol, profile = null, events = null } = defineProps<{
+const {
+    symbol,
+    profile = null,
+    events = null,
+} = defineProps<{
     symbol: string;
     profile?: AssetProfile | null;
     events?: ChartEvents | null;
@@ -41,9 +45,7 @@ const financials = useResource(
 const quarterly = computed<readonly Record<string, unknown>[]>(() => financials.data.value?.quarterly ?? []);
 
 /** Both action panels offer "show all" until the history is already on screen. */
-const expandable = computed(
-    () => !allEvents.value && (dividends.value.length > 0 || splits.value.length > 0),
-);
+const expandable = computed(() => !allEvents.value && (dividends.value.length > 0 || splits.value.length > 0));
 
 function visible<T>(actions: readonly T[] | undefined): readonly T[] {
     const all = actions ?? [];
@@ -62,44 +64,49 @@ watch(
 
 <template>
     <div class="sidebar">
-        <template v-for="section in sections" :key="section">
+        <template
+            v-for="section in sections"
+            :key="section">
             <SidebarSection :title="t(`sidebar.sections.${section}`)">
-                <SummaryPanel v-if="section === 'summary'" :profile="profile" :fields="summaryFields" />
+                <SummaryPanel
+                    v-if="section === 'summary'"
+                    :profile="profile"
+                    :fields="summaryFields" />
 
                 <FinancialsPanel
                     v-else-if="section === 'eps' || section === 'earnings' || section === 'sales'"
                     :rows="quarterly"
-                    :metric="section"
-                />
+                    :metric="section" />
 
                 <ActionsPanel
                     v-else-if="section === 'dividends'"
                     :actions="dividends"
                     kind="dividends"
                     :expandable="expandable"
-                    @expand="allEvents = true"
-                />
+                    @expand="allEvents = true" />
 
                 <ActionsPanel
                     v-else-if="section === 'splits'"
                     :actions="splits"
                     kind="splits"
                     :expandable="expandable"
-                    @expand="allEvents = true"
-                />
+                    @expand="allEvents = true" />
 
                 <button
                     v-else-if="section === 'financials'"
                     type="button"
                     class="sidebar__financials"
-                    @click="showFinancials = true"
-                >
+                    @click="showFinancials = true">
                     {{ t('sidebar.viewFinancialStatements') }}
                 </button>
 
-                <NotesPanel v-else-if="section === 'notes'" :symbol="symbol" />
+                <NotesPanel
+                    v-else-if="section === 'notes'"
+                    :symbol="symbol" />
 
-                <NewsPanel v-else-if="section === 'news'" :symbol="symbol" />
+                <NewsPanel
+                    v-else-if="section === 'news'"
+                    :symbol="symbol" />
             </SidebarSection>
         </template>
 
@@ -108,8 +115,7 @@ watch(
             :symbol="symbol"
             :statements="financials.data.value"
             :pending="financials.pending.value"
-            @close="showFinancials = false"
-        />
+            @close="showFinancials = false" />
     </div>
 </template>
 

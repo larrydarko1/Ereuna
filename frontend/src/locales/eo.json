@@ -586,6 +586,7 @@
         "noSplitsData": "Neniuj fendaj datumoj disponeblas",
         "noNewsAvailable": "Neniuj novaĵoj disponeblas.",
         "created": "Kreita:",
+        "edited": "Redaktita:",
         "noNotesAvailable": "Neniuj notoj disponeblas.",
         "viewFinancialStatements": "Vidi Financajn Deklarojn",
         "showAll": "Montri Ĉion",
@@ -803,7 +804,9 @@
         "newNote": "Nova Noto",
         "placeholder": "Skribu notojn ĉi tie",
         "deleteNote": "Forigi noton",
+        "editNote": "Redakti noton",
         "saveFailed": "Malsukcesis krei noton",
+        "updateFailed": "Ne eblis ĝisdatigi la noton",
         "deleteFailed": "Ne eblis forigi la noton"
     },
     "watchlist": {

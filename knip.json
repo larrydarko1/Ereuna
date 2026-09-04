@@ -2,8 +2,8 @@
     "$schema": "./node_modules/knip/schema.json",
     "workspaces": {
         ".": {
-            "entry": ["scripts/**/*.mjs!"],
-            "project": ["scripts/**/*.{js,mjs,cjs}!", "*.{ts,mts,js}"]
+            "entry": ["scripts/**/*.mjs!", "eslint.config.js!"],
+            "project": ["scripts/**/*.{js,mjs,cjs}!", "eslint/*.js", "*.{ts,mts,js}"]
         },
         "frontend": { "entry": ["index.html!"], "project": ["src/**/*.{ts,vue}!", "*.ts"] },
         "api": { "project": ["src/**/*.ts!", "*.ts"] },

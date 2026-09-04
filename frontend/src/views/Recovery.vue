@@ -41,24 +41,33 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-    <AuthLayout :title="t('auth.recoverTitle')" :subtitle="t('auth.recoverSubtitle')">
-        <form class="recovery" novalidate @submit.prevent="submit">
+    <AuthLayout
+        :title="t('auth.recoverTitle')"
+        :subtitle="t('auth.recoverSubtitle')">
+        <form
+            class="recovery"
+            novalidate
+            @submit.prevent="submit">
             <AppField
                 v-model="username"
                 :label="t('auth.username')"
                 :placeholder="t('auth.usernamePlaceholder')"
                 autocomplete="username"
-                autofocus
-            />
+                autofocus />
             <AppField
                 v-model="code"
                 :label="t('auth.recoveryCode')"
                 :placeholder="t('auth.recoveryCodePlaceholder')"
-                autocomplete="one-time-code"
-            />
+                autocomplete="one-time-code" />
 
-            <button type="submit" class="recovery__submit" :disabled="!canSubmit">
-                <AppSpinner v-if="pending" size="sm" :label="t('auth.submitting')" />
+            <button
+                type="submit"
+                class="recovery__submit"
+                :disabled="!canSubmit">
+                <AppSpinner
+                    v-if="pending"
+                    size="sm"
+                    :label="t('auth.submitting')" />
                 <span v-else>{{ t('auth.signIn') }}</span>
             </button>
 

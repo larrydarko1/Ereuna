@@ -35,19 +35,41 @@ const { t } = useI18n();
                         <th scope="col">{{ t('portfolio.date') }}</th>
                         <th scope="col">{{ t('portfolio.action') }}</th>
                         <th scope="col">{{ t('portfolio.symbol') }}</th>
-                        <th scope="col" class="trade-history__num">{{ t('portfolio.shares') }}</th>
-                        <th scope="col" class="trade-history__num">{{ t('portfolio.price') }}</th>
-                        <th scope="col" class="trade-history__num">{{ t('portfolio.fees') }}</th>
-                        <th scope="col" class="trade-history__num">{{ t('portfolio.total') }}</th>
-                        <th scope="col"><span class="trade-history__sr">{{ t('portfolio.rowActions') }}</span></th>
+                        <th
+                            scope="col"
+                            class="trade-history__num"
+                            >{{ t('portfolio.shares') }}</th
+                        >
+                        <th
+                            scope="col"
+                            class="trade-history__num"
+                            >{{ t('portfolio.price') }}</th
+                        >
+                        <th
+                            scope="col"
+                            class="trade-history__num"
+                            >{{ t('portfolio.fees') }}</th
+                        >
+                        <th
+                            scope="col"
+                            class="trade-history__num"
+                            >{{ t('portfolio.total') }}</th
+                        >
+                        <th scope="col"
+                            ><span class="trade-history__sr">{{ t('portfolio.rowActions') }}</span></th
+                        >
                     </tr>
                 </thead>
 
                 <tbody>
-                    <tr v-for="trade in trades" :key="trade.id">
+                    <tr
+                        v-for="trade in trades"
+                        :key="trade.id">
                         <td>{{ formatDate(trade.tradeDate) }}</td>
                         <td>
-                            <span class="trade-history__action" :class="`trade-history__action--${trade.action}`">
+                            <span
+                                class="trade-history__action"
+                                :class="`trade-history__action--${trade.action}`">
                                 {{ t(`portfolio.actions.${trade.action}`) }}
                             </span>
                         </td>
@@ -61,24 +83,41 @@ const { t } = useI18n();
                         <td class="trade-history__num">{{ formatCurrency(trade.commission) }}</td>
                         <td class="trade-history__num">{{ formatCurrency(trade.total) }}</td>
                         <td class="trade-history__row-actions">
-                            <button type="button" class="btn btn--small" @click="emit('edit', trade)">
+                            <button
+                                type="button"
+                                class="btn btn--small"
+                                @click="emit('edit', trade)">
                                 {{ t('common.edit') }}
                             </button>
-                            <button type="button" class="btn btn--small btn--danger" @click="emit('delete', trade)">
+                            <button
+                                type="button"
+                                class="btn btn--small btn--danger"
+                                @click="emit('delete', trade)">
                                 {{ t('common.delete') }}
                             </button>
                         </td>
                     </tr>
 
                     <tr v-if="trades.length === 0">
-                        <td class="trade-history__empty" colspan="8">{{ t('portfolio.noTransactionHistory') }}</td>
+                        <td
+                            class="trade-history__empty"
+                            colspan="8"
+                            >{{ t('portfolio.noTransactionHistory') }}</td
+                        >
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <nav v-if="pageCount > 1" class="trade-history__pager" :aria-label="t('portfolio.transactionHistory')">
-            <button type="button" class="btn btn--small" :disabled="page <= 1" @click="emit('page', page - 1)">
+        <nav
+            v-if="pageCount > 1"
+            class="trade-history__pager"
+            :aria-label="t('portfolio.transactionHistory')">
+            <button
+                type="button"
+                class="btn btn--small"
+                :disabled="page <= 1"
+                @click="emit('page', page - 1)">
                 {{ t('common.previous') }}
             </button>
             <span class="trade-history__page">{{ t('common.pageOf', { page, pages: pageCount }) }}</span>
@@ -86,8 +125,7 @@ const { t } = useI18n();
                 type="button"
                 class="btn btn--small"
                 :disabled="page >= pageCount"
-                @click="emit('page', page + 1)"
-            >
+                @click="emit('page', page + 1)">
                 {{ t('common.next') }}
             </button>
         </nav>

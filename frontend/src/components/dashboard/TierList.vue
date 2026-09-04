@@ -30,7 +30,10 @@ const weakest = computed(() => sorted.value.slice(-strongest.value.length).rever
         <section class="tier__column">
             <h3 class="tier__title">{{ t('dashboard.sectors.strongest') }}</h3>
             <ol class="tier__list">
-                <li v-for="row in strongest" :key="row.name" class="tier__row">
+                <li
+                    v-for="row in strongest"
+                    :key="row.name"
+                    class="tier__row">
                     <span class="tier__name">{{ row.name }}</span>
                     <span class="tier__count">{{ row.count }}</span>
                     <span class="tier__return tier__return--positive">{{ formatRatio(row.averageReturn) }}</span>
@@ -41,7 +44,10 @@ const weakest = computed(() => sorted.value.slice(-strongest.value.length).rever
         <section class="tier__column">
             <h3 class="tier__title">{{ t('dashboard.sectors.weakest') }}</h3>
             <ol class="tier__list">
-                <li v-for="row in weakest" :key="row.name" class="tier__row">
+                <li
+                    v-for="row in weakest"
+                    :key="row.name"
+                    class="tier__row">
                     <span class="tier__name">{{ row.name }}</span>
                     <span class="tier__count">{{ row.count }}</span>
                     <span class="tier__return tier__return--negative">{{ formatRatio(row.averageReturn) }}</span>

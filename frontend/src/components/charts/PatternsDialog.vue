@@ -42,7 +42,10 @@ function span(pattern: PatternMatch): string {
 </script>
 
 <template>
-    <AppDialog :title="t('charts.patterns.title')" size="md" @close="emit('close')">
+    <AppDialog
+        :title="t('charts.patterns.title')"
+        size="md"
+        @close="emit('close')">
         <p class="patterns__subject">{{ symbol }}</p>
 
         <template v-if="patterns.length === 0">
@@ -50,10 +53,17 @@ function span(pattern: PatternMatch): string {
             <p class="patterns__hint">{{ t('charts.patterns.noneHint') }}</p>
         </template>
 
-        <ul v-else class="patterns__list">
-            <li v-for="(pattern, index) in patterns" :key="index" class="patterns__item">
+        <ul
+            v-else
+            class="patterns__list">
+            <li
+                v-for="(pattern, index) in patterns"
+                :key="index"
+                class="patterns__item">
                 <div class="patterns__head">
-                    <span class="patterns__name" :class="`patterns__name--${bias(pattern.type)}`">
+                    <span
+                        class="patterns__name"
+                        :class="`patterns__name--${bias(pattern.type)}`">
                         {{ patternName(pattern.type) }}
                     </span>
                     <span class="patterns__confidence">

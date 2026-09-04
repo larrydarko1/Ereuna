@@ -32,7 +32,9 @@ watch(
 </script>
 
 <template>
-    <section class="filter-card" :class="{ 'filter-card--active': summary !== null }">
+    <section
+        class="filter-card"
+        :class="{ 'filter-card--active': summary !== null }">
         <h3 class="filter-card__heading">
             <button
                 type="button"
@@ -40,12 +42,23 @@ watch(
                 :aria-expanded="open"
                 :aria-controls="bodyId"
                 :disabled="!available"
-                @click="open = !open"
-            >
-                <span class="filter-card__chevron" aria-hidden="true">{{ open ? '▾' : '▸' }}</span>
+                @click="open = !open">
+                <span
+                    class="filter-card__chevron"
+                    aria-hidden="true"
+                    >{{ open ? '▾' : '▸' }}</span
+                >
                 <span class="filter-card__label">{{ label }}</span>
-                <span v-if="summary !== null" class="filter-card__summary">{{ summary }}</span>
-                <span v-else-if="!available" class="filter-card__summary">{{ t('screener.noData') }}</span>
+                <span
+                    v-if="summary !== null"
+                    class="filter-card__summary"
+                    >{{ summary }}</span
+                >
+                <span
+                    v-else-if="!available"
+                    class="filter-card__summary"
+                    >{{ t('screener.noData') }}</span
+                >
             </button>
         </h3>
 
@@ -55,13 +68,19 @@ watch(
             class="filter-card__clear"
             :aria-label="t('screener.clearFilter', { name: label })"
             :disabled="busy"
-            @click="emit('clear')"
-        >
+            @click="emit('clear')">
             &times;
         </button>
 
-        <div v-show="open" :id="bodyId" class="filter-card__body">
-            <p v-if="tip !== null" class="filter-card__tip">{{ tip }}</p>
+        <div
+            v-show="open"
+            :id="bodyId"
+            class="filter-card__body">
+            <p
+                v-if="tip !== null"
+                class="filter-card__tip"
+                >{{ tip }}</p
+            >
             <slot />
         </div>
     </section>

@@ -586,6 +586,7 @@
         "noSplitsData": "لا توجد بيانات تجزئة متاحة",
         "noNewsAvailable": "لا توجد أخبار متاحة.",
         "created": "تم الإنشاء:",
+        "edited": "تم التعديل:",
         "noNotesAvailable": "لا توجد ملاحظات متاحة.",
         "viewFinancialStatements": "عرض البيانات المالية",
         "showAll": "عرض الكل",
@@ -803,7 +804,9 @@
         "newNote": "ملاحظة جديدة",
         "placeholder": "اكتب الملاحظات هنا",
         "deleteNote": "حذف الملاحظة",
+        "editNote": "تعديل الملاحظة",
         "saveFailed": "فشل في إنشاء الملاحظة",
+        "updateFailed": "تعذر تحديث الملاحظة",
         "deleteFailed": "تعذر حذف الملاحظة"
     },
     "watchlist": {

@@ -64,16 +64,27 @@ async function download(): Promise<void> {
 </script>
 
 <template>
-    <AppDialog :title="t('portfolio.export')" size="sm" @close="emit('close')">
+    <AppDialog
+        :title="t('portfolio.export')"
+        size="sm"
+        @close="emit('close')">
         <div class="export-dialog">
             <fieldset class="form-options">
                 <legend class="form-legend">{{ t('portfolio.exportFormat') }}</legend>
                 <label class="form-option">
-                    <input v-model="format" type="radio" value="json" name="export-format" />
+                    <input
+                        v-model="format"
+                        type="radio"
+                        value="json"
+                        name="export-format" />
                     <span>{{ t('portfolio.exportJson') }}</span>
                 </label>
                 <label class="form-option">
-                    <input v-model="format" type="radio" value="csv" name="export-format" />
+                    <input
+                        v-model="format"
+                        type="radio"
+                        value="csv"
+                        name="export-format" />
                     <span>{{ t('portfolio.exportCsv') }}</span>
                 </label>
             </fieldset>
@@ -82,12 +93,26 @@ async function download(): Promise<void> {
                 {{ format === 'json' ? t('portfolio.exportJsonHint') : t('portfolio.exportCsvHint') }}
             </p>
 
-            <p v-if="problem !== null" class="form-error" role="alert">{{ problem }}</p>
+            <p
+                v-if="problem !== null"
+                class="form-error"
+                role="alert"
+                >{{ problem }}</p
+            >
         </div>
 
         <template #footer>
-            <button type="button" class="btn" @click="emit('close')">{{ t('common.cancel') }}</button>
-            <button type="button" class="btn btn--primary" :disabled="busy" @click="download">
+            <button
+                type="button"
+                class="btn"
+                @click="emit('close')"
+                >{{ t('common.cancel') }}</button
+            >
+            <button
+                type="button"
+                class="btn btn--primary"
+                :disabled="busy"
+                @click="download">
                 {{ busy ? t('common.processing') : t('common.download') }}
             </button>
         </template>

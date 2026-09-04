@@ -7,10 +7,9 @@
     "type": "module",
     "scripts": {
         "dev": "tsx watch src/index.ts",
+        "dev:aggregate": "WORKER_ROLE=aggregate tsx watch src/index.ts",
+        "dev:organize": "WORKER_ROLE=organize tsx watch src/index.ts",
         "build": "tsc && tsc-alias",
-        "start": "node dist/index.js",
-        "start:aggregate": "WORKER_ROLE=aggregate node dist/index.js",
-        "start:organize": "WORKER_ROLE=organize node dist/index.js",
         "typecheck": "tsc --noEmit",
         "test": "vitest run"
     },

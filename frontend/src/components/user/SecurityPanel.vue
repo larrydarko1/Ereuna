@@ -79,17 +79,30 @@ async function regenerate({ password }: Credentials): Promise<void> {
 
 <template>
     <div class="stack">
-        <SettingCard :title="t('user.security.title')" :description="t('user.security.description')">
+        <SettingCard
+            :title="t('user.security.title')"
+            :description="t('user.security.description')">
             <p class="security__status">
-                <span class="security__dot" :class="{ 'security__dot--on': enabled }" aria-hidden="true"></span>
+                <span
+                    class="security__dot"
+                    :class="{ 'security__dot--on': enabled }"
+                    aria-hidden="true"></span>
                 {{ enabled ? t('user.security.statusOn') : t('user.security.statusOff') }}
             </p>
 
             <div class="cluster">
-                <button v-if="!enabled" type="button" class="btn btn--primary" @click="open('enrol')">
+                <button
+                    v-if="!enabled"
+                    type="button"
+                    class="btn btn--primary"
+                    @click="open('enrol')">
                     {{ t('user.security.enable') }}
                 </button>
-                <button v-else type="button" class="btn btn--danger" @click="open('disable')">
+                <button
+                    v-else
+                    type="button"
+                    class="btn btn--danger"
+                    @click="open('disable')">
                     {{ t('user.security.disable') }}
                 </button>
             </div>
@@ -99,20 +112,27 @@ async function regenerate({ password }: Credentials): Promise<void> {
         <SettingCard
             v-if="enabled"
             :title="t('user.security.codes.title')"
-            :description="t('user.security.codes.panelDescription')"
-        >
+            :description="t('user.security.codes.panelDescription')">
             <p class="form-hint">
-                {{ remaining === null ? t('common.loading') : t('user.security.codes.remaining', { count: remaining }) }}
+                {{
+                    remaining === null ? t('common.loading') : t('user.security.codes.remaining', { count: remaining })
+                }}
             </p>
 
             <div class="cluster">
-                <button type="button" class="btn" @click="open('regenerate')">
+                <button
+                    type="button"
+                    class="btn"
+                    @click="open('regenerate')">
                     {{ t('user.security.codes.regenerate') }}
                 </button>
             </div>
         </SettingCard>
 
-        <TwoFactorDialog v-if="dialog === 'enrol'" @enrolled="enrolled" @close="dialog = null" />
+        <TwoFactorDialog
+            v-if="dialog === 'enrol'"
+            @enrolled="enrolled"
+            @close="dialog = null" />
 
         <!-- Both factors to drop the second one, the password alone to reissue codes -->
         <ReauthDialog
@@ -126,8 +146,7 @@ async function regenerate({ password }: Credentials): Promise<void> {
             :error="error"
             danger
             @submit="disable"
-            @close="dialog = null"
-        />
+            @close="dialog = null" />
 
         <ReauthDialog
             v-if="dialog === 'regenerate'"
@@ -138,10 +157,12 @@ async function regenerate({ password }: Credentials): Promise<void> {
             :pending="pending"
             :error="error"
             @submit="regenerate"
-            @close="dialog = null"
-        />
+            @close="dialog = null" />
 
-        <RecoveryCodesDialog v-if="dialog === 'codes'" :codes="codes" @close="dialog = null" />
+        <RecoveryCodesDialog
+            v-if="dialog === 'codes'"
+            :codes="codes"
+            @close="dialog = null" />
     </div>
 </template>
 

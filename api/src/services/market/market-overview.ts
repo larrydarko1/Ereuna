@@ -9,17 +9,12 @@
  * The holiday document is still passed through: it is one array of dates with
  * nothing to model.
  */
-import type { AssetInfoDoc, MarketOverview, StatsDoc } from '@ereuna/shared';
+import type { MarketOverview, StatsDoc } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { marketKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
 import { requireAsset } from '@/services/market/market-assets.js';
 import { toMarketOverview } from '@/utils/market-overview.js';
-
-export type SymbolExchange = {
-    symbol: string;
-    exchange: string | null;
-};
 
 export type Financials = {
     symbol: string;
@@ -27,7 +22,7 @@ export type Financials = {
     quarterly: Record<string, unknown>[];
 };
 
-/** One day. Holidays and the symbol index change on the ingestor's schedule, not ours. */
+/** One day. Holidays change on the ingestor's schedule, not ours. */
 const DAY_SECONDS = 86_400;
 
 /**
@@ -41,28 +36,6 @@ export async function marketStats(): Promise<MarketOverview> {
 
 export async function holidays(): Promise<StatsDoc> {
     return statsDocument('Holidays');
-}
-
-/**
- * Every symbol and the exchange it trades on.
- * A full read of the reference collection, projected to two fields and cached
- * for a day: the client needs the whole map to label a symbol offline, and
- * fetching it per symbol would be thousands of round trips for static data.
- */
-export async function symbolIndex(): Promise<SymbolExchange[]> {
-    return withCache(
-        marketKey('symbol-index'),
-        async () => {
-            const docs = await getDb()
-                .collection<AssetInfoDoc>('AssetInfo')
-                .find({ Delisted: { $ne: true } }, { projection: { _id: 0, Symbol: 1, Exchange: 1 } })
-                .sort({ Symbol: 1 })
-                .toArray();
-
-            return docs.map((doc) => ({ symbol: doc.Symbol, exchange: doc.Exchange ?? null }));
-        },
-        { ttl: DAY_SECONDS, dataType: 'static' },
-    );
 }
 
 /**

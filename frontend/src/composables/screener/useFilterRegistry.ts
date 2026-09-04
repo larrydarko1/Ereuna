@@ -44,7 +44,14 @@ const grouped = computed<FilterGrouping[]>(() =>
 );
 
 export function useFilterRegistry(): UseFilterRegistryReturn {
-    return { descriptors: readonly(descriptors), grouped, byKey, pending: readonly(pending), error: readonly(error), load };
+    return {
+        descriptors: readonly(descriptors),
+        grouped,
+        byKey,
+        pending: readonly(pending),
+        error: readonly(error),
+        load,
+    };
 }
 
 async function load(): Promise<void> {

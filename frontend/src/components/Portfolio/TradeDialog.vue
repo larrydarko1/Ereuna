@@ -62,27 +62,53 @@ function submit(): void {
 </script>
 
 <template>
-    <AppDialog :title="editing === null ? t('portfolio.newTrade') : t('portfolio.editTrade')" @close="emit('close')">
-        <form class="trade-dialog" @submit.prevent="submit">
+    <AppDialog
+        :title="editing === null ? t('portfolio.newTrade') : t('portfolio.editTrade')"
+        @close="emit('close')">
+        <form
+            class="trade-dialog"
+            @submit.prevent="submit">
             <fieldset class="form-options">
                 <legend class="form-legend">{{ t('portfolio.action') }}</legend>
-                <label v-for="option in ACTIONS" :key="option" class="form-option">
-                    <input v-model="action" type="radio" :value="option" name="trade-action" />
+                <label
+                    v-for="option in ACTIONS"
+                    :key="option"
+                    class="form-option">
+                    <input
+                        v-model="action"
+                        type="radio"
+                        :value="option"
+                        name="trade-action" />
                     <span :class="`trade-dialog__action-label--${option}`">{{ t(`portfolio.actions.${option}`) }}</span>
                 </label>
             </fieldset>
 
             <div class="trade-dialog__grid">
-                <AppField v-model="symbol" :label="t('portfolio.symbol')" autofocus />
+                <AppField
+                    v-model="symbol"
+                    :label="t('portfolio.symbol')"
+                    autofocus />
 
                 <label class="form-field">
                     <span class="form-label">{{ t('portfolio.shares') }}</span>
-                    <input v-model="shares" class="form-input" type="number" min="0" step="any" required />
+                    <input
+                        v-model="shares"
+                        class="form-input"
+                        type="number"
+                        min="0"
+                        step="any"
+                        required />
                 </label>
 
                 <label class="form-field">
                     <span class="form-label">{{ t('portfolio.price') }}</span>
-                    <input v-model="price" class="form-input" type="number" min="0" step="any" required />
+                    <input
+                        v-model="price"
+                        class="form-input"
+                        type="number"
+                        min="0"
+                        step="any"
+                        required />
                 </label>
 
                 <label class="form-field">
@@ -93,13 +119,16 @@ function submit(): void {
                         type="number"
                         min="0"
                         step="any"
-                        :placeholder="formatNumber(defaultCommission, 2)"
-                    />
+                        :placeholder="formatNumber(defaultCommission, 2)" />
                 </label>
 
                 <label class="form-field">
                     <span class="form-label">{{ t('portfolio.date') }}</span>
-                    <input v-model="tradeDate" class="form-input" type="date" required />
+                    <input
+                        v-model="tradeDate"
+                        class="form-input"
+                        type="date"
+                        required />
                 </label>
 
                 <div class="form-field">
@@ -108,19 +137,26 @@ function submit(): void {
                 </div>
             </div>
 
-            <p v-if="error !== null" class="form-error" role="alert">{{ error }}</p>
+            <p
+                v-if="error !== null"
+                class="form-error"
+                role="alert"
+                >{{ error }}</p
+            >
         </form>
 
         <template #footer>
-            <button type="button" class="btn" @click="emit('close')">
+            <button
+                type="button"
+                class="btn"
+                @click="emit('close')">
                 {{ t('common.cancel') }}
             </button>
             <button
                 type="button"
                 class="btn btn--primary"
                 :disabled="!valid || saving"
-                @click="submit"
-            >
+                @click="submit">
                 {{ saving ? t('common.saving') : t('common.save') }}
             </button>
         </template>

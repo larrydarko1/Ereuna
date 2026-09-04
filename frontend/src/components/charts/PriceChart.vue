@@ -59,7 +59,11 @@ import {
 import { closes, heikinAshi, relativeVolume } from '@/utils/candles';
 import { timeToIsoDate, timeValue } from '@/utils/chartTime';
 
-const { symbol, profile = null, events = null } = defineProps<{
+const {
+    symbol,
+    profile = null,
+    events = null,
+} = defineProps<{
     symbol: string;
     profile?: AssetProfile | null;
     events?: ChartEvents | null;
@@ -316,7 +320,12 @@ function syncOverlays(): void {
     }
     while (overlaySeries.length < wanted.length) {
         overlaySeries.push(
-            chart.addLineSeries({ lineWidth: 1, lastValueVisible: false, priceLineVisible: false, crosshairMarkerVisible: false }),
+            chart.addLineSeries({
+                lineWidth: 1,
+                lastValueVisible: false,
+                priceLineVisible: false,
+                crosshairMarkerVisible: false,
+            }),
         );
     }
 
@@ -508,7 +517,10 @@ function togglePatterns(): void {
         })),
     );
 
-    patternOverlay ??= new PatternOverlayManager(chart, mainSeries as ConstructorParameters<typeof PatternOverlayManager>[1]);
+    patternOverlay ??= new PatternOverlayManager(
+        chart,
+        mainSeries as ConstructorParameters<typeof PatternOverlayManager>[1],
+    );
     patternOverlay.displayPatterns(detectedPatterns.value);
     patternOverlay.finalize();
     patternsShown.value = true;
@@ -701,7 +713,10 @@ watch(isEodOnly, (eodOnly) => {
 <template>
     <section class="price-chart">
         <div class="price-chart__controls">
-            <div class="price-chart__timeframes" role="group" :aria-label="t('charts.timeframeLabel')">
+            <div
+                class="price-chart__timeframes"
+                role="group"
+                :aria-label="t('charts.timeframeLabel')">
                 <button
                     v-for="option in timeframes"
                     :key="option"
@@ -710,8 +725,7 @@ watch(isEodOnly, (eodOnly) => {
                     :class="{ 'price-chart__timeframe--active': timeframe === option }"
                     :aria-pressed="timeframe === option"
                     :title="t(`charts.timeframes.${option}`)"
-                    @click="timeframe = option"
-                >
+                    @click="timeframe = option">
                     {{ TIMEFRAME_LABELS[option] }}
                 </button>
             </div>
@@ -727,8 +741,7 @@ watch(isEodOnly, (eodOnly) => {
                 @screenshot="dialog = 'screenshot'"
                 @clear="dialog = 'clear'"
                 @settings="dialog = 'settings'"
-                @replay="onReplayButton"
-            />
+                @replay="onReplayButton" />
         </div>
 
         <ChartLegend
@@ -738,21 +751,30 @@ watch(isEodOnly, (eodOnly) => {
             :holiday-name="market.holidayName.value"
             :status-pending="market.pending.value"
             :price-only="priceOnly"
-            :badges="badges"
-        />
+            :badges="badges" />
 
         <div class="price-chart__frame">
-            <div :id="CANVAS_ID" ref="container" class="price-chart__canvas"></div>
+            <div
+                :id="CANVAS_ID"
+                ref="container"
+                class="price-chart__canvas"></div>
 
-            <div v-if="series.pending.value" class="price-chart__overlay">
+            <div
+                v-if="series.pending.value"
+                class="price-chart__overlay">
                 <AppSpinner />
             </div>
 
-            <p v-else-if="series.error.value !== null" class="price-chart__overlay" role="alert">
+            <p
+                v-else-if="series.error.value !== null"
+                class="price-chart__overlay"
+                role="alert">
                 {{ series.error.value }}
             </p>
 
-            <p v-else-if="series.bars.value.length === 0" class="price-chart__overlay">
+            <p
+                v-else-if="series.bars.value.length === 0"
+                class="price-chart__overlay">
                 {{ t('charts.noData') }}
             </p>
         </div>
@@ -765,40 +787,52 @@ watch(isEodOnly, (eodOnly) => {
             :label="replay.label.value"
             @toggle="replay.toggle"
             @step="replay.step"
-            @seek="replay.seek"
-        />
+            @seek="replay.seek" />
 
-        <ChartSettingsDialog v-if="dialog === 'settings'" @close="dialog = null" />
+        <ChartSettingsDialog
+            v-if="dialog === 'settings'"
+            @close="dialog = null" />
 
         <PatternsDialog
             v-else-if="dialog === 'patterns'"
             :symbol="symbol"
             :patterns="detectedPatterns"
-            @close="dialog = null"
-        />
+            @close="dialog = null" />
 
         <SignalsDialog
             v-else-if="dialog === 'signals'"
             :symbol="symbol"
             :signals="profile?.signals ?? []"
-            @close="dialog = null"
-        />
+            @close="dialog = null" />
 
-        <ScreenshotDialog v-else-if="dialog === 'screenshot'" @close="dialog = null" @export="exportScreenshot" />
+        <ScreenshotDialog
+            v-else-if="dialog === 'screenshot'"
+            @close="dialog = null"
+            @export="exportScreenshot" />
 
         <ReplayStartDialog
             v-else-if="dialog === 'replay'"
             :min="replay.bounds.value.min"
             :max="replay.bounds.value.max"
             @close="dialog = null"
-            @start="startReplay"
-        />
+            @start="startReplay" />
 
-        <AppDialog v-else-if="dialog === 'clear'" :title="t('charts.tools.clear')" size="sm" @close="dialog = null">
+        <AppDialog
+            v-else-if="dialog === 'clear'"
+            :title="t('charts.tools.clear')"
+            size="sm"
+            @close="dialog = null">
             <p class="price-chart__confirm">{{ t('charts.clearDrawingsBody') }}</p>
             <template #footer>
-                <button type="button" @click="dialog = null">{{ t('common.cancel') }}</button>
-                <button type="button" class="price-chart__danger" @click="clearDrawings">
+                <button
+                    type="button"
+                    @click="dialog = null"
+                    >{{ t('common.cancel') }}</button
+                >
+                <button
+                    type="button"
+                    class="price-chart__danger"
+                    @click="clearDrawings">
                     {{ t('common.delete') }}
                 </button>
             </template>

@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { apiErrorMessage } from '@/api/client';
-import { createNote, deleteNote, listNotes, type NoteRow } from '@/api/note';
+import { createNote, deleteNote, listNotes, updateNote, type NoteRow } from '@/api/note';
 import { useResource } from '@/composables/data/useResource';
 import { formatDate } from '@/utils/formatters';
 
@@ -22,6 +22,8 @@ const { data, pending, error, mutate } = useResource(
 const draft = ref('');
 const saving = ref(false);
 const writeError = ref<string | null>(null);
+const editingId = ref<string | null>(null);
+const editDraft = ref('');
 
 const notes = computed<NoteRow[]>(() => data.value ?? []);
 const tooLong = computed(() => draft.value.length > MAX_LENGTH);
@@ -43,6 +45,37 @@ async function save(): Promise<void> {
     }
 }
 
+function startEdit(note: NoteRow): void {
+    editingId.value = note.id;
+    editDraft.value = note.message;
+    writeError.value = null;
+}
+
+function cancelEdit(): void {
+    editingId.value = null;
+    editDraft.value = '';
+}
+
+async function saveEdit(id: string): Promise<void> {
+    const message = editDraft.value.trim();
+    if (message === '' || message.length > MAX_LENGTH) return;
+
+    const previous = data.value;
+    if (previous === null) return;
+
+    saving.value = true;
+    writeError.value = null;
+    try {
+        const { data: note } = await updateNote(id, message);
+        mutate(previous.map((row) => (row.id === id ? note : row)));
+        cancelEdit();
+    } catch (err) {
+        writeError.value = apiErrorMessage(err, t('notes.updateFailed'));
+    } finally {
+        saving.value = false;
+    }
+}
+
 async function remove(id: string): Promise<void> {
     const previous = data.value;
     if (previous === null) return;
@@ -59,42 +92,126 @@ async function remove(id: string): Promise<void> {
 </script>
 
 <template>
-    <form class="notes__composer" @submit.prevent="save">
-        <label class="notes__label" :for="`note-${symbol}`">{{ t('notes.newNote') }}</label>
+    <form
+        class="notes__composer"
+        @submit.prevent="save">
+        <label
+            class="notes__label"
+            :for="`note-${symbol}`"
+            >{{ t('notes.newNote') }}</label
+        >
         <textarea
             :id="`note-${symbol}`"
             v-model="draft"
             class="notes__input"
             rows="3"
             :maxlength="MAX_LENGTH"
-            :placeholder="t('notes.placeholder')"
-        ></textarea>
+            :placeholder="t('notes.placeholder')"></textarea>
         <div class="notes__actions">
             <span class="notes__count">{{ draft.length }}/{{ MAX_LENGTH }}</span>
-            <button type="submit" class="notes__save" :disabled="!canSave">{{ t('common.save') }}</button>
+            <button
+                type="submit"
+                class="notes__save"
+                :disabled="!canSave"
+                >{{ t('common.save') }}</button
+            >
         </div>
     </form>
 
-    <p v-if="writeError !== null" class="notes__note notes__note--error" role="alert">{{ writeError }}</p>
+    <p
+        v-if="writeError !== null"
+        class="notes__note notes__note--error"
+        role="alert"
+        >{{ writeError }}</p
+    >
 
-    <p v-if="pending" class="notes__note">{{ t('sidebar.loading') }}</p>
-    <p v-else-if="error !== null" class="notes__note">{{ error }}</p>
-    <p v-else-if="notes.length === 0" class="notes__note">{{ t('sidebar.noNotesAvailable') }}</p>
+    <p
+        v-if="pending"
+        class="notes__note"
+        >{{ t('sidebar.loading') }}</p
+    >
+    <p
+        v-else-if="error !== null"
+        class="notes__note"
+        >{{ error }}</p
+    >
+    <p
+        v-else-if="notes.length === 0"
+        class="notes__note"
+        >{{ t('sidebar.noNotesAvailable') }}</p
+    >
 
-    <ul v-else class="notes">
-        <li v-for="note in notes" :key="note.id" class="notes__item">
+    <ul
+        v-else
+        class="notes">
+        <li
+            v-for="note in notes"
+            :key="note.id"
+            class="notes__item">
             <p class="notes__meta">
-                <time :datetime="note.createdAt">{{ t('sidebar.created') }} {{ formatDate(note.createdAt) }}</time>
-                <button
-                    type="button"
-                    class="notes__delete"
-                    :aria-label="t('notes.deleteNote')"
-                    @click="remove(note.id)"
-                >
-                    ✕
-                </button>
+                <time
+                    v-if="note.updatedAt === note.createdAt"
+                    :datetime="note.createdAt">
+                    {{ t('sidebar.created') }} {{ formatDate(note.createdAt) }}
+                </time>
+                <time
+                    v-else
+                    :datetime="note.updatedAt">
+                    {{ t('sidebar.edited') }} {{ formatDate(note.updatedAt) }}
+                </time>
+                <span class="notes__controls">
+                    <button
+                        v-if="editingId !== note.id"
+                        type="button"
+                        class="notes__control"
+                        :aria-label="t('notes.editNote')"
+                        @click="startEdit(note)">
+                        ✎
+                    </button>
+                    <button
+                        type="button"
+                        class="notes__control notes__control--delete"
+                        :aria-label="t('notes.deleteNote')"
+                        @click="remove(note.id)">
+                        ✕
+                    </button>
+                </span>
             </p>
-            <p class="notes__message">{{ note.message }}</p>
+
+            <!-- Editing one row swaps the message for the same textarea the composer uses -->
+            <form
+                v-if="editingId === note.id"
+                class="notes__composer"
+                @submit.prevent="saveEdit(note.id)">
+                <textarea
+                    v-model="editDraft"
+                    class="notes__input"
+                    rows="3"
+                    :maxlength="MAX_LENGTH"
+                    :aria-label="t('notes.editNote')"></textarea>
+                <div class="notes__actions">
+                    <span class="notes__count">{{ editDraft.length }}/{{ MAX_LENGTH }}</span>
+                    <span class="notes__buttons">
+                        <button
+                            type="button"
+                            class="notes__cancel"
+                            @click="cancelEdit">
+                            {{ t('common.cancel') }}
+                        </button>
+                        <button
+                            type="submit"
+                            class="notes__save"
+                            :disabled="editDraft.trim() === '' || saving">
+                            {{ t('common.save') }}
+                        </button>
+                    </span>
+                </div>
+            </form>
+            <p
+                v-else
+                class="notes__message"
+                >{{ note.message }}</p
+            >
         </li>
     </ul>
 </template>
@@ -105,6 +222,11 @@ async function remove(id: string): Promise<void> {
     flex-direction: column;
     gap: $space-1;
     margin-bottom: $space-3;
+}
+
+.notes__item .notes__composer {
+    margin-top: $space-1;
+    margin-bottom: 0;
 }
 
 .notes__label {
@@ -174,14 +296,39 @@ async function remove(id: string): Promise<void> {
     font-size: $font-size-xs;
 }
 
-.notes__delete {
+.notes__controls,
+.notes__buttons {
+    display: flex;
+    gap: $space-2;
+    align-items: center;
+}
+
+.notes__control {
     border: none;
     background: none;
     color: $color-text-muted;
     cursor: pointer;
 
     &:hover {
-        color: $color-negative;
+        color: $color-text;
+    }
+}
+
+.notes__control--delete:hover {
+    color: $color-negative;
+}
+
+.notes__cancel {
+    padding: $space-1 $space-3;
+    border: $border-width solid $color-elevated;
+    border-radius: $radius-sm;
+    background: none;
+    color: $color-text-muted;
+    font-size: $font-size-xs;
+    cursor: pointer;
+
+    &:hover {
+        color: $color-text;
     }
 }
 

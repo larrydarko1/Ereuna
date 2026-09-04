@@ -13,7 +13,6 @@ import type { TextAnnotationManager } from '@/lib/lightweight-charts/text-annota
 import type { TrendLineManager } from '@/lib/lightweight-charts/trendline';
 import { clearDrawings, getDrawings, saveDrawings } from '@/api/chart';
 
-
 export type UseChartDrawingsReturn = {
     hasDrawings: Ref<boolean>; //  True while the chart holds at least one annotation, so "clear all" can hide itself
     attach: (managers: DrawingManagers) => void; // Adopt a set of managers. Called once the series they attach to exists.

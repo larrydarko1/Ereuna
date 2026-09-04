@@ -28,7 +28,6 @@ import {
     type WatchlistSummary,
 } from '@/api/watchlist';
 
-
 export type UseWatchlistsReturn = {
     lists: DeepReadonly<Ref<WatchlistSummary[]>>;
     activeName: DeepReadonly<Ref<string | null>>;

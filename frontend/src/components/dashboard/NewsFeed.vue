@@ -27,19 +27,43 @@ const headlines = computed<Headline[]>(() =>
 </script>
 
 <template>
-    <p v-if="pending" class="news__note">{{ t('dashboard.loading') }}</p>
-    <p v-else-if="error !== null" class="news__note" role="alert">{{ error }}</p>
-    <p v-else-if="headlines.length === 0" class="news__note">{{ t('dashboard.noData') }}</p>
+    <p
+        v-if="pending"
+        class="news__note"
+        >{{ t('dashboard.loading') }}</p
+    >
+    <p
+        v-else-if="error !== null"
+        class="news__note"
+        role="alert"
+        >{{ error }}</p
+    >
+    <p
+        v-else-if="headlines.length === 0"
+        class="news__note"
+        >{{ t('dashboard.noData') }}</p
+    >
 
-    <ul v-else class="news">
-        <li v-for="headline in headlines" :key="headline.href" class="news__item">
-            <a class="news__link" :href="headline.href" target="_blank" rel="noopener noreferrer">
+    <ul
+        v-else
+        class="news">
+        <li
+            v-for="headline in headlines"
+            :key="headline.href"
+            class="news__item">
+            <a
+                class="news__link"
+                :href="headline.href"
+                target="_blank"
+                rel="noopener noreferrer">
                 {{ headline.title }}
             </a>
             <p class="news__meta">
                 <span v-if="headline.source !== null">{{ headline.source }}</span>
                 <time :datetime="headline.publishedDate">{{ timeAgo(headline.publishedDate) }}</time>
-                <span v-if="headline.tickers.length > 0" class="news__tickers">
+                <span
+                    v-if="headline.tickers.length > 0"
+                    class="news__tickers">
                     {{ headline.tickers.slice(0, 4).join(' · ') }}
                 </span>
             </p>

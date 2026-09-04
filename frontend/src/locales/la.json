@@ -586,6 +586,7 @@
         "noSplitsData": "Nulla data fissionum disponibilia",
         "noNewsAvailable": "Nullae novitates disponibiles.",
         "created": "Creatum:",
+        "edited": "Recensitum:",
         "noNotesAvailable": "Nullae notae disponibiles.",
         "viewFinancialStatements": "Videre Rationes Pecuniarias",
         "showAll": "Monstrare Omnia",
@@ -803,7 +804,9 @@
         "newNote": "Nova Nota",
         "placeholder": "Scribe notas hic",
         "deleteNote": "Notam delere",
+        "editNote": "Notam recensere",
         "saveFailed": "Malum creandi notam",
+        "updateFailed": "Nota renovari non potuit",
         "deleteFailed": "Nota deleri non potuit"
     },
     "watchlist": {

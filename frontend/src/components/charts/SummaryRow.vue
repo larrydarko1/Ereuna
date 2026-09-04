@@ -72,20 +72,27 @@ async function copy(): Promise<void> {
 </script>
 
 <template>
-    <div v-if="format === 'prose'" class="summary-row summary-row--prose">
-        <p class="summary-row__prose" :class="{ 'summary-row__prose--expanded': expanded }">{{ display }}</p>
+    <div
+        v-if="format === 'prose'"
+        class="summary-row summary-row--prose">
+        <p
+            class="summary-row__prose"
+            :class="{ 'summary-row__prose--expanded': expanded }"
+            >{{ display }}</p
+        >
         <button
             v-if="value !== null"
             type="button"
             class="summary-row__toggle"
             :aria-expanded="expanded"
-            @click="expanded = !expanded"
-        >
+            @click="expanded = !expanded">
             {{ expanded ? t('summary.showLess') : t('summary.showAll') }}
         </button>
     </div>
 
-    <div v-else class="summary-row">
+    <div
+        v-else
+        class="summary-row">
         <span class="summary-row__label">{{ label }}</span>
 
         <a
@@ -93,20 +100,20 @@ async function copy(): Promise<void> {
             class="summary-row__value summary-row__link"
             :href="href"
             target="_blank"
-            rel="noopener noreferrer"
-        >
+            rel="noopener noreferrer">
             {{ display }}
         </a>
 
-        <span v-else class="summary-row__value">
+        <span
+            v-else
+            class="summary-row__value">
             {{ display }}
             <button
                 v-if="format === 'copyable' && value !== null"
                 type="button"
                 class="summary-row__copy"
                 :aria-label="t('summary.copyToClipboard')"
-                @click="copy"
-            >
+                @click="copy">
                 {{ copied ? '✓' : '⧉' }}
             </button>
         </span>

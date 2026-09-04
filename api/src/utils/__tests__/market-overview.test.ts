@@ -10,11 +10,23 @@ function doc(fields: Record<string, unknown> = {}): StatsDoc {
 describe('toMarketOverview', () => {
     it('reads an index row under the period keys the ingestor uses', () => {
         const { indexes } = toMarketOverview(
-            doc({ indexPerformance: { SPY: { lastPrice: 493.69, '1D': 0.0058, '1M': 0.026, '4M': 0.074, '1Y': 0.14, YTD: 0.02 } } }),
+            doc({
+                indexPerformance: {
+                    SPY: { 'lastPrice': 493.69, '1D': 0.0058, '1M': 0.026, '4M': 0.074, '1Y': 0.14, 'YTD': 0.02 },
+                },
+            }),
         );
 
         expect(indexes).toEqual([
-            { symbol: 'SPY', lastPrice: 493.69, oneDay: 0.0058, oneMonth: 0.026, fourMonth: 0.074, oneYear: 0.14, yearToDate: 0.02 },
+            {
+                symbol: 'SPY',
+                lastPrice: 493.69,
+                oneDay: 0.0058,
+                oneMonth: 0.026,
+                fourMonth: 0.074,
+                oneYear: 0.14,
+                yearToDate: 0.02,
+            },
         ]);
     });
 
@@ -26,7 +38,11 @@ describe('toMarketOverview', () => {
 
     it('parses the outlook periods out of the SMA names', () => {
         const { outlook } = toMarketOverview(
-            doc({ marketOutlook: { shortTerm: { outlook: 'neutral', percentageUp: 56.83, smas: ['SMA5', 'SMA10', 'SMA20'] } } }),
+            doc({
+                marketOutlook: {
+                    shortTerm: { outlook: 'neutral', percentageUp: 56.83, smas: ['SMA5', 'SMA10', 'SMA20'] },
+                },
+            }),
         );
 
         expect(outlook).toEqual([{ term: 'short', verdict: 'neutral', percentUp: 56.83, periods: [5, 10, 20] }]);
@@ -58,7 +74,11 @@ describe('toMarketOverview', () => {
 
     it('derives the valuation gap from the two prices, not the stored ratio', () => {
         const { undervalued } = toMarketOverview(
-            doc({ top10Undervalued: [{ symbol: 'ORGO', current_price: 4, intrinsic_value: 6, valuation_ratio: 17_009.38 }] }),
+            doc({
+                top10Undervalued: [
+                    { symbol: 'ORGO', current_price: 4, intrinsic_value: 6, valuation_ratio: 17_009.38 },
+                ],
+            }),
         );
 
         expect(undervalued).toEqual([{ symbol: 'ORGO', currentPrice: 4, intrinsicValue: 6, gap: 0.5 }]);
@@ -74,7 +94,12 @@ describe('toMarketOverview', () => {
 
     it('drops a mover whose return arrived as a string rather than coercing it', () => {
         const { gainers } = toMarketOverview(
-            doc({ top10DailyGainers: [{ symbol: 'AAA', daily_return: '152' }, { symbol: 'BBB', daily_return: 12 }] }),
+            doc({
+                top10DailyGainers: [
+                    { symbol: 'AAA', daily_return: '152' },
+                    { symbol: 'BBB', daily_return: 12 },
+                ],
+            }),
         );
 
         expect(gainers).toEqual([{ symbol: 'BBB', dailyReturn: 12 }]);

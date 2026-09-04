@@ -44,7 +44,7 @@ export async function applyDividends(dividends: readonly Dividend[]): Promise<nu
     for (const dividend of dividends) {
         const date = isoDate(dividend.at);
         const result = await collection.updateOne(
-            { Symbol: dividend.symbol, 'dividends.date': { $ne: date } },
+            { 'Symbol': dividend.symbol, 'dividends.date': { $ne: date } },
             {
                 $push: { dividends: { date, amount: dividend.amount } },
                 $set: { DividendDate: dividend.at },
@@ -65,7 +65,7 @@ export async function applyDividends(dividends: readonly Dividend[]): Promise<nu
 async function recordSplit(split: Split): Promise<boolean> {
     const date = isoDate(split.at);
     const result = await assetInfoUpdates().updateOne(
-        { Symbol: split.symbol, 'splits.date': { $ne: date } },
+        { 'Symbol': split.symbol, 'splits.date': { $ne: date } },
         {
             $push: { splits: { date, ratio: split.factor } },
             // A forward split multiplies the count and a reverse one divides it;

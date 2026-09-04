@@ -79,9 +79,7 @@ const statsSchema = z.object({
     }),
 });
 
-const valueHistorySchema = z
-    .array(z.object({ date: z.iso.date(), value: finite }))
-    .max(config.limits.importRows);
+const valueHistorySchema = z.array(z.object({ date: z.iso.date(), value: finite })).max(config.limits.importRows);
 
 const importBody = z.object({
     trades: z.array(tradeInputSchema).max(config.limits.importRows),
@@ -124,11 +122,7 @@ router.delete(
 router.put(
     '/:number/base-value',
     ...validated({ params: numberParam, body: baseValueBody }, async (req, res): Promise<void> => {
-        const portfolio = await portfolioService.setBaseValue(
-            authedUserId(req),
-            req.params.number,
-            req.body.baseValue,
-        );
+        const portfolio = await portfolioService.setBaseValue(authedUserId(req), req.params.number, req.body.baseValue);
         res.json({ baseValue: portfolio.baseValue });
     }),
 );
@@ -156,11 +150,7 @@ router.put(
 router.put(
     '/:number/benchmarks',
     ...validated({ params: numberParam, body: benchmarksBody }, async (req, res): Promise<void> => {
-        const benchmarks = await portfolioService.setBenchmarks(
-            authedUserId(req),
-            req.params.number,
-            req.body.symbols,
-        );
+        const benchmarks = await portfolioService.setBenchmarks(authedUserId(req), req.params.number, req.body.symbols);
         res.json({ benchmarks });
     }),
 );

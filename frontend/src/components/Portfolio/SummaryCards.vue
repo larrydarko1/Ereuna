@@ -75,10 +75,21 @@ const cards = computed<Card[]>(() => {
 
 <template>
     <div class="summary-cards">
-        <article v-for="card in cards" :key="card.key" class="summary-cards__card">
+        <article
+            v-for="card in cards"
+            :key="card.key"
+            class="summary-cards__card">
             <h3 class="summary-cards__label">{{ card.label }}</h3>
-            <p class="summary-cards__value" :class="`summary-cards__value--${card.tone}`">{{ card.value }}</p>
-            <p v-if="card.note !== null" class="summary-cards__note">{{ card.note }}</p>
+            <p
+                class="summary-cards__value"
+                :class="`summary-cards__value--${card.tone}`"
+                >{{ card.value }}</p
+            >
+            <p
+                v-if="card.note !== null"
+                class="summary-cards__note"
+                >{{ card.note }}</p
+            >
         </article>
     </div>
 </template>

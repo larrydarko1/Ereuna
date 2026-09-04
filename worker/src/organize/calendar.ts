@@ -46,12 +46,14 @@ function eventsFor(doc: AssetInfoDoc, cutoff: Date): CalendarEventDoc[] {
 
     for (const dividend of doc.dividends ?? []) {
         const reportDate = within(dividend.date, cutoff);
-        if (reportDate !== null) events.push({ symbol: doc.Symbol, type: 'Dividend', reportDate, amount: dividend.amount ?? null });
+        if (reportDate !== null)
+            events.push({ symbol: doc.Symbol, type: 'Dividend', reportDate, amount: dividend.amount ?? null });
     }
 
     for (const split of doc.splits ?? []) {
         const reportDate = within(split.date, cutoff);
-        if (reportDate !== null) events.push({ symbol: doc.Symbol, type: 'Split', reportDate, ratio: split.ratio ?? null });
+        if (reportDate !== null)
+            events.push({ symbol: doc.Symbol, type: 'Split', reportDate, ratio: split.ratio ?? null });
     }
 
     for (const quarter of doc.quarterlyFinancials ?? []) {

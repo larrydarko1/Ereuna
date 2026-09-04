@@ -25,7 +25,11 @@ const errorId = computed(() => `${id}-error`);
 
 <template>
     <div class="field">
-        <label class="field__label" :for="id">{{ label }}</label>
+        <label
+            class="field__label"
+            :for="id"
+            >{{ label }}</label
+        >
         <input
             :id="id"
             v-model="model"
@@ -36,9 +40,13 @@ const errorId = computed(() => `${id}-error`);
             :placeholder="placeholder"
             :autofocus="autofocus"
             :aria-invalid="error !== null"
-            :aria-describedby="error !== null ? errorId : undefined"
-        />
-        <p v-if="error !== null" :id="errorId" class="field__error">{{ error }}</p>
+            :aria-describedby="error !== null ? errorId : undefined" />
+        <p
+            v-if="error !== null"
+            :id="errorId"
+            class="field__error"
+            >{{ error }}</p
+        >
     </div>
 </template>
 

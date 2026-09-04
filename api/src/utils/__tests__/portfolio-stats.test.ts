@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { closedLots, computeStats } from '@/utils/portfolio-stats.js';
 import type { ReplayTrade } from '@/utils/portfolio-replay.js';
 
-function trade(action: ReplayTrade['action'], shares: number, price: number, date: string, symbol = 'AAPL'): ReplayTrade {
+function trade(
+    action: ReplayTrade['action'],
+    shares: number,
+    price: number,
+    date: string,
+    symbol = 'AAPL',
+): ReplayTrade {
     const tradeDate = new Date(date);
     return { symbol, action, shares, price, total: shares * price, commission: 0, tradeDate, createdAt: tradeDate };
 }
@@ -210,7 +216,10 @@ describe('closedLots — commission', () => {
 
     it('totals every trade’s commission, including one that closed nothing', () => {
         const stats = computeStats(
-            [withCommission(trade('buy', 10, 100, '2026-01-01'), 5), withCommission(trade('buy', 10, 100, '2026-01-02'), 5)],
+            [
+                withCommission(trade('buy', 10, 100, '2026-01-01'), 5),
+                withCommission(trade('buy', 10, 100, '2026-01-02'), 5),
+            ],
             10_000,
         );
 

@@ -160,7 +160,7 @@ function toDoc(symbol: string, bucket: OpenBucket): CandleDoc {
         high: bucket.high,
         low: bucket.low,
         close: bucket.close,
-        volume: bucket.volume ?? 0
+        volume: bucket.volume ?? 0,
     };
 }
 

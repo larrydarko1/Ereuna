@@ -73,7 +73,10 @@ const noDuplicates = {
 };
 
 export const panelLayoutSchema = z.object({
-    sections: z.array(z.enum(PANEL_SECTIONS)).max(PANEL_SECTIONS.length).refine(noDuplicates.check, noDuplicates.message),
+    sections: z
+        .array(z.enum(PANEL_SECTIONS))
+        .max(PANEL_SECTIONS.length)
+        .refine(noDuplicates.check, noDuplicates.message),
     summaryFields: z
         .array(z.enum(SUMMARY_FIELDS))
         .max(SUMMARY_FIELDS.length)
@@ -84,7 +87,11 @@ export const requiredString = (message: string): z.ZodString => z.string({ error
 
 export const makePaginationQuery = ({ defaultLimit = 24, maxLimit = 100 } = {}): PaginationQuerySchema =>
     z.object({
-        page: z.coerce.number('page must be a positive integer').int().min(1, 'page must be a positive integer').default(1),
+        page: z.coerce
+            .number('page must be a positive integer')
+            .int()
+            .min(1, 'page must be a positive integer')
+            .default(1),
         limit: z.coerce
             .number(`limit must be 1–${maxLimit}`)
             .int()

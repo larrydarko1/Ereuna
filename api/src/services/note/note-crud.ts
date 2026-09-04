@@ -41,7 +41,12 @@ export async function listNotes(
     const filter = { userId, ...(symbol !== undefined ? { symbol } : {}) };
 
     const [items, total] = await Promise.all([
-        collection().find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).toArray(),
+        collection()
+            .find(filter)
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .toArray(),
         collection().countDocuments(filter),
     ]);
 

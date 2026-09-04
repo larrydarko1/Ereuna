@@ -13,8 +13,8 @@ export { ColorType } from './model/layout-options';
 export { isBusinessDay, isUTCTimestamp } from './model/horz-scale-behavior-time/types';
 export { TickMarkType } from './model/horz-scale-behavior-time/types';
 export const customSeriesDefaultOptions: CustomSeriesOptions = {
-	...seriesOptionsDefaults,
-	...customStyleDefaults,
+    ...seriesOptionsDefaults,
+    ...customStyleDefaults,
 };
 
 export { createChart, createChartEx, defaultHorzScaleBehavior } from './api/create-chart';
@@ -44,5 +44,5 @@ export type { SeriesMarker, SeriesMarkerPosition, SeriesMarkerShape } from './mo
  * Returns the current version as a string. For example `'3.3.0'`.
  */
 export function version(): string {
-	return '4.1.6';
+    return '4.1.6';
 }

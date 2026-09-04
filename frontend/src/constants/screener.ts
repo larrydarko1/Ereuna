@@ -44,18 +44,18 @@ export const FILTER_GROUPS = [
 const GROUP_BY_KEY: Readonly<Record<string, FilterGroup>> = {
     // Classification
     'asset-types': 'classification',
-    sectors: 'classification',
-    exchanges: 'classification',
-    countries: 'classification',
+    'sectors': 'classification',
+    'exchanges': 'classification',
+    'countries': 'classification',
     'ipo-date': 'classification',
 
     // Price and size
-    price: 'priceSize',
+    'price': 'priceSize',
     'market-cap': 'priceSize',
 
     // Valuation
-    pe: 'valuation',
-    peg: 'valuation',
+    'pe': 'valuation',
+    'peg': 'valuation',
     'ps-ratio': 'valuation',
     'pb-ratio': 'valuation',
     'enterprise-value': 'valuation',
@@ -63,18 +63,18 @@ const GROUP_BY_KEY: Readonly<Record<string, FilterGroup>> = {
     'div-yield': 'valuation',
 
     // Earnings and growth
-    eps: 'growth',
+    'eps': 'growth',
     'eps-qoq': 'growth',
     'eps-yoy': 'growth',
     'earnings-qoq': 'growth',
     'earnings-yoy': 'growth',
     'revenue-qoq': 'growth',
     'revenue-yoy': 'growth',
-    cagr: 'growth',
+    'cagr': 'growth',
 
     // Balance sheet
-    roe: 'balanceSheet',
-    roa: 'balanceSheet',
+    'roe': 'balanceSheet',
+    'roa': 'balanceSheet',
     'current-ratio': 'balanceSheet',
     'current-assets': 'balanceSheet',
     'current-liabilities': 'balanceSheet',
@@ -89,7 +89,7 @@ const GROUP_BY_KEY: Readonly<Record<string, FilterGroup>> = {
     'gross-margin': 'margins',
 
     // Technicals
-    rsi: 'technicals',
+    'rsi': 'technicals',
     'gap-percent': 'technicals',
     'rs-score-1w': 'technicals',
     'rs-score-1m': 'technicals',
@@ -195,7 +195,6 @@ export const COLUMNS: readonly ColumnSpec[] = [
     ...ENUM_FILTERS.map((spec) => ({ path: spec.queryPath, filterKey: spec.key, format: 'text' as const })),
     ...MA_FILTERS.map((spec) => ({ path: spec.path, filterKey: spec.key, format: 'number' as const })),
 ];
-
 
 /** Shown when a user has never chosen columns of their own. */
 export const DEFAULT_COLUMNS: readonly string[] = [

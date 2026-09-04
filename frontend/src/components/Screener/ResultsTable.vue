@@ -87,16 +87,32 @@ function onKeydown(event: KeyboardEvent): void {
 </script>
 
 <template>
-    <div class="results-table" :class="{ 'results-table--pending': pending }">
+    <div
+        class="results-table"
+        :class="{ 'results-table--pending': pending }">
         <table class="results-table__table">
             <thead>
                 <tr>
-                    <th scope="col" class="results-table__th results-table__th--symbol">{{ t('screener.symbol') }}</th>
-                    <th scope="col" class="results-table__th results-table__th--name">{{ t('screener.name') }}</th>
-                    <th v-for="column in resolved" :key="column.path" scope="col" class="results-table__th results-table__th--figure">
+                    <th
+                        scope="col"
+                        class="results-table__th results-table__th--symbol"
+                        >{{ t('screener.symbol') }}</th
+                    >
+                    <th
+                        scope="col"
+                        class="results-table__th results-table__th--name"
+                        >{{ t('screener.name') }}</th
+                    >
+                    <th
+                        v-for="column in resolved"
+                        :key="column.path"
+                        scope="col"
+                        class="results-table__th results-table__th--figure">
                         {{ header(column.filterKey) }}
                     </th>
-                    <th scope="col" class="results-table__th results-table__th--actions">
+                    <th
+                        scope="col"
+                        class="results-table__th results-table__th--actions">
                         <span class="results-table__sr">{{ t('common.settings') }}</span>
                     </th>
                 </tr>
@@ -111,8 +127,7 @@ function onKeydown(event: KeyboardEvent): void {
                     :aria-selected="row.symbol === selected"
                     tabindex="0"
                     @click="emit('select', row.symbol)"
-                    @keydown.enter="emit('select', row.symbol)"
-                >
+                    @keydown.enter="emit('select', row.symbol)">
                     <td class="results-table__td results-table__td--symbol">{{ row.symbol }}</td>
                     <td class="results-table__td results-table__td--name">{{ row.name ?? PLACEHOLDER }}</td>
                     <td
@@ -122,8 +137,7 @@ function onKeydown(event: KeyboardEvent): void {
                         :class="{
                             'results-table__td--up': isPositive(row, column.path, column.format),
                             'results-table__td--down': isNegative(row, column.path, column.format),
-                        }"
-                    >
+                        }">
                         {{ cell(row, column.path, column.format) }}
                     </td>
                     <td class="results-table__td results-table__td--actions">
@@ -135,8 +149,7 @@ function onKeydown(event: KeyboardEvent): void {
                                     ? t('screener.unhide', { symbol: row.symbol })
                                     : t('screener.hide', { symbol: row.symbol })
                             "
-                            @click.stop="emit('toggleHidden', row.symbol)"
-                        >
+                            @click.stop="emit('toggleHidden', row.symbol)">
                             {{ hiddenSymbols.includes(row.symbol) ? '👁' : '⊘' }}
                         </button>
                     </td>

@@ -28,10 +28,15 @@ function submit(): void {
 </script>
 
 <template>
-    <AppDialog :title="t('charts.screenshot.title')" size="sm" @close="emit('close')">
+    <AppDialog
+        :title="t('charts.screenshot.title')"
+        size="sm"
+        @close="emit('close')">
         <div class="screenshot">
             <label class="screenshot__option">
-                <input v-model="includeChartInfo" type="checkbox" />
+                <input
+                    v-model="includeChartInfo"
+                    type="checkbox" />
                 <span>
                     <span class="screenshot__name">{{ t('charts.screenshot.includeInfo') }}</span>
                     <span class="screenshot__hint">{{ t('charts.screenshot.includeInfoHint') }}</span>
@@ -39,7 +44,9 @@ function submit(): void {
             </label>
 
             <label class="screenshot__option">
-                <input v-model="includeLogo" type="checkbox" />
+                <input
+                    v-model="includeLogo"
+                    type="checkbox" />
                 <span>
                     <span class="screenshot__name">{{ t('charts.screenshot.includeLogo') }}</span>
                     <span class="screenshot__hint">{{ t('charts.screenshot.includeLogoHint') }}</span>
@@ -47,7 +54,9 @@ function submit(): void {
             </label>
 
             <label class="screenshot__option">
-                <input v-model="includeWatermark" type="checkbox" />
+                <input
+                    v-model="includeWatermark"
+                    type="checkbox" />
                 <span>
                     <span class="screenshot__name">{{ t('charts.screenshot.includeWatermark') }}</span>
                     <span class="screenshot__hint">{{ t('charts.screenshot.includeWatermarkHint') }}</span>
@@ -56,7 +65,10 @@ function submit(): void {
         </div>
 
         <template #footer>
-            <button type="button" class="screenshot__download" @click="submit">
+            <button
+                type="button"
+                class="screenshot__download"
+                @click="submit">
                 {{ t('charts.screenshot.download') }}
             </button>
         </template>

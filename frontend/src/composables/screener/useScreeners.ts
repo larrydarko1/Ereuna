@@ -5,13 +5,7 @@
  */
 import { computed, ref, type ComputedRef, type Ref } from 'vue';
 import { apiErrorMessage } from '@/api/client';
-import {
-    createScreener,
-    deleteScreener,
-    listScreeners,
-    updateScreener,
-    type ScreenerSummary,
-} from '@/api/screener';
+import { createScreener, deleteScreener, listScreeners, updateScreener, type ScreenerSummary } from '@/api/screener';
 import { i18n } from '@/i18n';
 
 export type UseScreenersReturn = {

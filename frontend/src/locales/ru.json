@@ -586,6 +586,7 @@
         "noSplitsData": "Данные о дроблении недоступны",
         "noNewsAvailable": "Новости недоступны.",
         "created": "Создано:",
+        "edited": "Изменено:",
         "noNotesAvailable": "Заметки недоступны.",
         "viewFinancialStatements": "Просмотреть финансовые отчёты",
         "showAll": "Показать все",
@@ -803,7 +804,9 @@
         "newNote": "Новая заметка",
         "placeholder": "Напишите заметки здесь",
         "deleteNote": "Удалить заметку",
+        "editNote": "Изменить заметку",
         "saveFailed": "Не удалось создать заметку",
+        "updateFailed": "Не удалось обновить заметку",
         "deleteFailed": "Не удалось удалить заметку"
     },
     "watchlist": {

@@ -213,11 +213,11 @@ export class TextAnnotationManager {
                 this.selectedAnnotationId = annotationHit;
                 this.isDragging = true;
 
-                const annotation = this.annotations.find(a => a.id === annotationHit);
+                const annotation = this.annotations.find((a) => a.id === annotationHit);
                 if (annotation) {
                     this.dragOffset = {
                         x: param.point.x - annotation.point.x,
-                        y: param.point.y - annotation.point.y
+                        y: param.point.y - annotation.point.y,
                     };
                 }
                 this.draw();
@@ -225,34 +225,39 @@ export class TextAnnotationManager {
             }
 
             // Create new annotation
-            this.promptForText((text) => {
-                if (text && text.trim()) {
-                    const styles = getComputedStyle(document.documentElement);
-                    const textColor = styles.getPropertyValue('--color-text').trim() || '#ffffff';
-                    const bgColor = styles.getPropertyValue('--color-elevated').trim() || '#414868';
+            this.promptForText(
+                (text) => {
+                    if (text && text.trim()) {
+                        const styles = getComputedStyle(document.documentElement);
+                        const textColor = styles.getPropertyValue('--color-text').trim() || '#ffffff';
+                        const bgColor = styles.getPropertyValue('--color-elevated').trim() || '#414868';
 
-                    const newAnnotation: TextAnnotation = {
-                        id: this.generateId(),
-                        point: {
-                            time: param.time!,
-                            price: price,
-                            x: param.point!.x,
-                            y: param.point!.y
-                        },
-                        text: text.trim(),
-                        fontSize: this.defaultFontSize,
-                        textColor: textColor,
-                        backgroundColor: bgColor,
-                        backgroundOpacity: this.defaultBackgroundOpacity,
-                        locked: false
-                    };
+                        const newAnnotation: TextAnnotation = {
+                            id: this.generateId(),
+                            point: {
+                                time: param.time!,
+                                price: price,
+                                x: param.point!.x,
+                                y: param.point!.y,
+                            },
+                            text: text.trim(),
+                            fontSize: this.defaultFontSize,
+                            textColor: textColor,
+                            backgroundColor: bgColor,
+                            backgroundOpacity: this.defaultBackgroundOpacity,
+                            locked: false,
+                        };
 
-                    this.annotations.push(newAnnotation);
-                    this.selectedAnnotationId = null; // Don't keep it selected after creation
-                    this.draw();
-                    this.triggerChange(); // Trigger auto-save
-                }
-            }, '', param.point!.x, param.point!.y);
+                        this.annotations.push(newAnnotation);
+                        this.selectedAnnotationId = null; // Don't keep it selected after creation
+                        this.draw();
+                        this.triggerChange(); // Trigger auto-save
+                    }
+                },
+                '',
+                param.point!.x,
+                param.point!.y,
+            );
         };
 
         this.moveHandler = (param: MouseEventParams<Time>) => {
@@ -263,13 +268,13 @@ export class TextAnnotationManager {
 
             // If dragging an annotation, update its position
             if (this.isDragging && this.selectedAnnotationId && this.dragOffset) {
-                const annotation = this.annotations.find(a => a.id === this.selectedAnnotationId);
+                const annotation = this.annotations.find((a) => a.id === this.selectedAnnotationId);
                 if (annotation && !annotation.locked) {
                     annotation.point = {
                         time: param.time,
                         price: price,
                         x: param.point.x - this.dragOffset.x,
-                        y: param.point.y - this.dragOffset.y
+                        y: param.point.y - this.dragOffset.y,
                     };
                     this.draw();
                 }
@@ -313,7 +318,7 @@ export class TextAnnotationManager {
 
     public removeSelectedAnnotation(): void {
         if (this.selectedAnnotationId) {
-            this.annotations = this.annotations.filter(a => a.id !== this.selectedAnnotationId);
+            this.annotations = this.annotations.filter((a) => a.id !== this.selectedAnnotationId);
             this.selectedAnnotationId = null;
             this.draw();
             this.triggerChange(); // Trigger auto-save
@@ -329,15 +334,20 @@ export class TextAnnotationManager {
 
     public editSelectedAnnotation(): void {
         if (this.selectedAnnotationId) {
-            const annotation = this.annotations.find(a => a.id === this.selectedAnnotationId);
+            const annotation = this.annotations.find((a) => a.id === this.selectedAnnotationId);
             if (annotation) {
                 this.updateAnnotationCoordinates(annotation);
-                this.promptForText((text) => {
-                    if (text && text.trim()) {
-                        annotation.text = text.trim();
-                        this.draw();
-                    }
-                }, annotation.text, annotation.point.x, annotation.point.y);
+                this.promptForText(
+                    (text) => {
+                        if (text && text.trim()) {
+                            annotation.text = text.trim();
+                            this.draw();
+                        }
+                    },
+                    annotation.text,
+                    annotation.point.x,
+                    annotation.point.y,
+                );
             }
         }
     }
@@ -373,7 +383,7 @@ export class TextAnnotationManager {
             outline: 'none',
             zIndex: '1000',
             fontFamily: 'Arial, sans-serif',
-            minWidth: '120px'
+            minWidth: '120px',
         });
 
         chartContainer.appendChild(this.textInput);
@@ -423,8 +433,7 @@ export class TextAnnotationManager {
             this.updateAnnotationCoordinates(annotation);
 
             const bounds = this.getAnnotationBounds(annotation);
-            if (x >= bounds.x && x <= bounds.x + bounds.width &&
-                y >= bounds.y && y <= bounds.y + bounds.height) {
+            if (x >= bounds.x && x <= bounds.x + bounds.width && y >= bounds.y && y <= bounds.y + bounds.height) {
                 return annotation.id;
             }
         }
@@ -452,7 +461,7 @@ export class TextAnnotationManager {
             x: annotation.point.x,
             y: annotation.point.y - height / 2,
             width: width,
-            height: height
+            height: height,
         };
     }
 
@@ -519,7 +528,14 @@ export class TextAnnotationManager {
         ctx.fillText(annotation.text, boxX + padding, annotation.point.y);
     }
 
-    private roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number): void {
+    private roundRect(
+        ctx: CanvasRenderingContext2D,
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        radius: number,
+    ): void {
         ctx.beginPath();
         ctx.moveTo(x + radius, y);
         ctx.lineTo(x + width - radius, y);

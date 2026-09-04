@@ -36,7 +36,6 @@ export const DEFAULT_CHART_SETTINGS: ChartSettings = {
     markers: { earnings: true, dividends: true, splits: true },
 };
 
-
 /** `config.limits.maxIndicatorPeriod` on the API side. */
 export const MAX_INDICATOR_PERIOD = 400;
 

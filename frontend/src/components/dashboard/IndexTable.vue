@@ -13,9 +13,7 @@ const PERIODS = ['oneDay', 'oneMonth', 'fourMonth', 'oneYear', 'yearToDate'] as 
 
 const { t } = useI18n();
 
-const rows = computed(() =>
-    [...indexes].sort((left, right) => rank(left.symbol) - rank(right.symbol)),
-);
+const rows = computed(() => [...indexes].sort((left, right) => rank(left.symbol) - rank(right.symbol)));
 
 function rank(symbol: string): number {
     const index = ORDER.indexOf(symbol);
@@ -30,14 +28,23 @@ function rank(symbol: string): number {
             <tr>
                 <th scope="col">{{ t('dashboard.indexes.etf') }}</th>
                 <th scope="col">{{ t('dashboard.indexes.price') }}</th>
-                <th v-for="period in PERIODS" :key="period" scope="col">
+                <th
+                    v-for="period in PERIODS"
+                    :key="period"
+                    scope="col">
                     {{ t(`dashboard.indexes.${period}`) }}
                 </th>
             </tr>
         </thead>
         <tbody>
-            <tr v-for="row in rows" :key="row.symbol">
-                <th scope="row" class="index-table__symbol">{{ row.symbol }}</th>
+            <tr
+                v-for="row in rows"
+                :key="row.symbol">
+                <th
+                    scope="row"
+                    class="index-table__symbol"
+                    >{{ row.symbol }}</th
+                >
                 <td class="index-table__figure">
                     {{ row.lastPrice === null ? '—' : formatCurrency(row.lastPrice) }}
                 </td>
@@ -45,8 +52,7 @@ function rank(symbol: string): number {
                     v-for="period in PERIODS"
                     :key="period"
                     class="index-table__figure"
-                    :class="`index-table__figure--${direction(row[period])}`"
-                >
+                    :class="`index-table__figure--${direction(row[period])}`">
                     {{ row[period] === null ? '—' : formatRatio(row[period]) }}
                 </td>
             </tr>

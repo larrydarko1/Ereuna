@@ -41,7 +41,8 @@ export async function news(query: NewsQuery): Promise<NewsRow[]> {
     // The symbol list is hashed rather than joined into the key: a dashboard
     // asking for thirty tickers would otherwise build a key longer than the
     // value, and two callers naming the same set now share one entry.
-    const scope = symbols.length === 0 ? 'all' : createHash('sha256').update(symbols.join(',')).digest('hex').slice(0, 16);
+    const scope =
+        symbols.length === 0 ? 'all' : createHash('sha256').update(symbols.join(',')).digest('hex').slice(0, 16);
     const since = query.since === undefined ? 'any' : query.since.toISOString().slice(0, 10);
 
     return withCache(

@@ -1,10 +1,10 @@
 /** https://developer.mozilla.org/en-US/docs/Web/API/InputDeviceCapabilities */
 interface InputDeviceCapabilities {
-	firesTouchEvents?: boolean;
+    firesTouchEvents?: boolean;
 }
 interface UIEvent {
-	/** https://developer.mozilla.org/en-US/docs/Web/API/UIEvent/sourceCapabilities */
-	sourceCapabilities?: InputDeviceCapabilities;
+    /** https://developer.mozilla.org/en-US/docs/Web/API/UIEvent/sourceCapabilities */
+    sourceCapabilities?: InputDeviceCapabilities;
 }
 
 /**
@@ -14,16 +14,17 @@ interface UIEvent {
  * Note: This is a partial type definition for the low entropy properties.
  */
 interface UADataBrand {
-	brand: string; version: string;
+    brand: string;
+    version: string;
 }
 interface Navigator {
-	userAgentData?: {
-		brands: UADataBrand[];
-		platform: string;
-		mobile: boolean;
-	};
+    userAgentData?: {
+        brands: UADataBrand[];
+        platform: string;
+        mobile: boolean;
+    };
 }
 
 interface Window {
-	chrome: unknown;
+    chrome: unknown;
 }

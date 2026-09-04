@@ -80,10 +80,13 @@ onMounted(() => {
             role="dialog"
             aria-modal="true"
             :aria-label="t('auth.twoFactorTitle')"
-            aria-describedby="two-factor-hint"
-        >
+            aria-describedby="two-factor-hint">
             <h2 class="prompt__title">{{ t('auth.twoFactorTitle') }}</h2>
-            <p id="two-factor-hint" class="prompt__hint">{{ t('auth.twoFactorHint') }}</p>
+            <p
+                id="two-factor-hint"
+                class="prompt__hint"
+                >{{ t('auth.twoFactorHint') }}</p
+            >
 
             <div class="prompt__digits">
                 <input
@@ -101,16 +104,26 @@ onMounted(() => {
                     @input="onInput(index, $event)"
                     @keydown.backspace="onBackspace(index)"
                     @keydown.arrow-left.prevent="focusAt(index - 1)"
-                    @keydown.arrow-right.prevent="focusAt(index + 1)"
-                />
+                    @keydown.arrow-right.prevent="focusAt(index + 1)" />
             </div>
 
             <div class="prompt__actions">
-                <button type="button" class="prompt__cancel" :disabled="pending" @click="emit('cancel')">
+                <button
+                    type="button"
+                    class="prompt__cancel"
+                    :disabled="pending"
+                    @click="emit('cancel')">
                     {{ t('common.cancel') }}
                 </button>
-                <button type="button" class="prompt__verify" :disabled="pending" @click="submit">
-                    <AppSpinner v-if="pending" size="sm" :label="t('common.processing')" />
+                <button
+                    type="button"
+                    class="prompt__verify"
+                    :disabled="pending"
+                    @click="submit">
+                    <AppSpinner
+                        v-if="pending"
+                        size="sm"
+                        :label="t('common.processing')" />
                     <span v-else>{{ t('auth.twoFactorVerify') }}</span>
                 </button>
             </div>

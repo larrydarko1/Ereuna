@@ -35,9 +35,11 @@ const isEmpty = computed(() => groups.value.every((group) => group.events.length
  */
 function detail(group: Group['key'], event: CalendarEvent): string | null {
     const value =
-        group === 'earnings' ? event.details.estimate
-        : group === 'dividends' ? event.details.amount
-        : event.details.ratio;
+        group === 'earnings'
+            ? event.details.estimate
+            : group === 'dividends'
+              ? event.details.amount
+              : event.details.ratio;
 
     return typeof value === 'number' || typeof value === 'string' ? String(value) : null;
 }
@@ -47,29 +49,61 @@ function detail(group: Group['key'], event: CalendarEvent): string | null {
     <div class="calendar">
         <label class="calendar__picker">
             <span class="visually-hidden">{{ t('dashboard.calendar.date') }}</span>
-            <input v-model="date" class="form-input" type="date" />
+            <input
+                v-model="date"
+                class="form-input"
+                type="date" />
         </label>
 
-        <p v-if="pending" class="calendar__note">{{ t('dashboard.loading') }}</p>
-        <p v-else-if="error !== null" class="calendar__note" role="alert">{{ error }}</p>
-        <p v-else-if="isEmpty" class="calendar__note">{{ t('dashboard.calendar.empty') }}</p>
+        <p
+            v-if="pending"
+            class="calendar__note"
+            >{{ t('dashboard.loading') }}</p
+        >
+        <p
+            v-else-if="error !== null"
+            class="calendar__note"
+            role="alert"
+            >{{ error }}</p
+        >
+        <p
+            v-else-if="isEmpty"
+            class="calendar__note"
+            >{{ t('dashboard.calendar.empty') }}</p
+        >
 
-        <div v-else class="calendar__groups">
-            <section v-for="group in groups" :key="group.key" class="calendar__group">
+        <div
+            v-else
+            class="calendar__groups">
+            <section
+                v-for="group in groups"
+                :key="group.key"
+                class="calendar__group">
                 <h3 class="calendar__title">
                     {{ t(`dashboard.calendar.${group.key}`) }}
                     <span class="calendar__count">{{ group.events.length }}</span>
                 </h3>
 
-                <ul v-if="group.events.length > 0" class="calendar__list">
-                    <li v-for="event in group.events" :key="`${event.type}-${event.symbol}`" class="calendar__row">
+                <ul
+                    v-if="group.events.length > 0"
+                    class="calendar__list">
+                    <li
+                        v-for="event in group.events"
+                        :key="`${event.type}-${event.symbol}`"
+                        class="calendar__row">
                         <span class="calendar__symbol">{{ event.symbol }}</span>
-                        <span v-if="detail(group.key, event) !== null" class="calendar__detail">
+                        <span
+                            v-if="detail(group.key, event) !== null"
+                            class="calendar__detail">
                             {{ detail(group.key, event) }}
                         </span>
                     </li>
                 </ul>
-                <p v-else class="calendar__note">{{ t('dashboard.calendar.empty') }}</p>
+                <p
+                    v-else
+                    class="calendar__note"
+                    >{{ t('dashboard.calendar.empty') }}</p
+                >
             </section>
         </div>
     </div>

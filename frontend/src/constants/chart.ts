@@ -24,7 +24,14 @@ export type OverlayLabel = {
     color: string;
 };
 
-export const CHART_TOOLS = ['ruler', 'trendline', 'box', 'text', 'freehand', 'priceLevel'] as const satisfies readonly ChartTool[];
+export const CHART_TOOLS = [
+    'ruler',
+    'trendline',
+    'box',
+    'text',
+    'freehand',
+    'priceLevel',
+] as const satisfies readonly ChartTool[];
 
 /** How many bars the volume colouring averages over before calling one heavy. */
 export const VOLUME_WINDOW = 250;

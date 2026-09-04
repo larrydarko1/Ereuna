@@ -26,19 +26,35 @@ function strategyName(strategy: string): string {
 </script>
 
 <template>
-    <AppDialog :title="t('charts.signals.title')" size="md" @close="emit('close')">
+    <AppDialog
+        :title="t('charts.signals.title')"
+        size="md"
+        @close="emit('close')">
         <p class="signals__subject">{{ symbol }}</p>
 
-        <p v-if="signals.length === 0" class="signals__empty">{{ t('charts.signals.none') }}</p>
+        <p
+            v-if="signals.length === 0"
+            class="signals__empty"
+            >{{ t('charts.signals.none') }}</p
+        >
 
-        <ul v-else class="signals__list">
-            <li v-for="(signal, index) in signals" :key="index" class="signals__item">
+        <ul
+            v-else
+            class="signals__list">
+            <li
+                v-for="(signal, index) in signals"
+                :key="index"
+                class="signals__item">
                 <div class="signals__head">
-                    <span class="signals__direction" :class="`signals__direction--${signal.direction.toLowerCase()}`">
+                    <span
+                        class="signals__direction"
+                        :class="`signals__direction--${signal.direction.toLowerCase()}`">
                         {{ t(`charts.signals.${signal.direction.toLowerCase()}`) }}
                     </span>
                     <span class="signals__strategy">{{ strategyName(signal.strategy) }}</span>
-                    <span v-if="signal.price !== null" class="signals__price">
+                    <span
+                        v-if="signal.price !== null"
+                        class="signals__price">
                         {{ formatCurrency(signal.price) }}
                     </span>
                 </div>

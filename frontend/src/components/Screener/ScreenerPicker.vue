@@ -3,7 +3,11 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { ScreenerSummary } from '@/api/screener';
 
-const { items, includedCount = 0, busy = false } = defineProps<{
+const {
+    items,
+    includedCount = 0,
+    busy = false,
+} = defineProps<{
     items: readonly ScreenerSummary[];
     includedCount?: number;
     busy?: boolean;
@@ -26,40 +30,62 @@ const current = computed(() => items.find((item) => item.name === selected.value
 
 <template>
     <div class="picker">
-        <select v-model="selected" class="picker__select" :aria-label="t('screener.chooseScreener')">
-            <option v-if="items.length === 0" value="">{{ t('screener.noScreeners') }}</option>
-            <option v-for="item in items" :key="item.id" :value="item.name">
+        <select
+            v-model="selected"
+            class="picker__select"
+            :aria-label="t('screener.chooseScreener')">
+            <option
+                v-if="items.length === 0"
+                value=""
+                >{{ t('screener.noScreeners') }}</option
+            >
+            <option
+                v-for="item in items"
+                :key="item.id"
+                :value="item.name">
                 {{ item.name }} ({{ item.filterCount }})
             </option>
         </select>
 
         <div class="picker__actions">
-            <button type="button" class="picker__button" :disabled="busy" @click="emit('create')">
+            <button
+                type="button"
+                class="picker__button"
+                :disabled="busy"
+                @click="emit('create')">
                 {{ t('common.add') }}
             </button>
-            <button type="button" class="picker__button" :disabled="busy || current === null" @click="emit('rename')">
+            <button
+                type="button"
+                class="picker__button"
+                :disabled="busy || current === null"
+                @click="emit('rename')">
                 {{ t('common.edit') }}
             </button>
-            <button type="button" class="picker__button" :disabled="busy || current === null" @click="emit('reset')">
+            <button
+                type="button"
+                class="picker__button"
+                :disabled="busy || current === null"
+                @click="emit('reset')">
                 {{ t('common.reset') }}
             </button>
             <button
                 type="button"
                 class="picker__button picker__button--danger"
                 :disabled="busy || current === null"
-                @click="emit('remove')"
-            >
+                @click="emit('remove')">
                 {{ t('common.delete') }}
             </button>
         </div>
 
-        <label v-if="current !== null" class="picker__include">
+        <label
+            v-if="current !== null"
+            class="picker__include">
             <input
                 type="checkbox"
                 :checked="current.include"
                 :disabled="busy"
-                @change="emit('toggleInclude', ($event.target as HTMLInputElement).checked)"
-            >
+                @change="emit('toggleInclude', ($event.target as HTMLInputElement).checked)" />
             <span>{{ t('screener.include') }}</span>
         </label>
 

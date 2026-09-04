@@ -19,7 +19,6 @@ import { userKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
 import { getScreener } from '@/services/screener/screener-crud.js';
 
-
 export type ScreenerResultPage = {
     items: ScreenerResult[];
     total: number;
@@ -46,7 +45,10 @@ const BASE_PROJECTION = {
     Exchange: 1,
 } as const;
 
-export function buildQuery(filters: Record<string, ScreenerFilterValue>, hiddenSymbols: string[] = []): Filter<AssetInfoDoc> {
+export function buildQuery(
+    filters: Record<string, ScreenerFilterValue>,
+    hiddenSymbols: string[] = [],
+): Filter<AssetInfoDoc> {
     const query: Filter<AssetInfoDoc> = {};
     const expressions: Document[] = [];
 
@@ -125,10 +127,7 @@ export async function runIncludedScreeners(
 ): Promise<ScreenerResultPage> {
     const { page, limit, columns = [], hiddenSymbols = [] } = options;
 
-    const screeners = await getDb()
-        .collection<ScreenerDoc>('Screeners')
-        .find({ userId, include: true })
-        .toArray();
+    const screeners = await getDb().collection<ScreenerDoc>('Screeners').find({ userId, include: true }).toArray();
 
     if (screeners.length === 0) return { items: [], total: 0, page, pages: 0 };
 

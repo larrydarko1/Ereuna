@@ -18,7 +18,10 @@ export type WatchlistRow = WatchlistEntry & {
  * being dropped — a symbol the ingestor has not reached should still be visible
  * in the list the user built.
  */
-export async function getWatchlistRows(userId: ObjectId, name: string): Promise<{ name: string; rows: WatchlistRow[] }> {
+export async function getWatchlistRows(
+    userId: ObjectId,
+    name: string,
+): Promise<{ name: string; rows: WatchlistRow[] }> {
     const watchlist = await getWatchlist(userId, name);
     const bySymbol = new Map((await quotes(watchlist.list.map((entry) => entry.ticker))).map((q) => [q.symbol, q]));
 
@@ -76,7 +79,11 @@ export async function removeTicker(userId: ObjectId, name: string, symbol: strin
  * their relative order at the end. Exchanges are never taken from the request
  * — they come from the stored entry, so a reorder cannot rewrite them.
  */
-export async function reorderTickers(userId: ObjectId, name: string, symbols: readonly string[]): Promise<WatchlistEntry[]> {
+export async function reorderTickers(
+    userId: ObjectId,
+    name: string,
+    symbols: readonly string[],
+): Promise<WatchlistEntry[]> {
     const watchlist = await getWatchlist(userId, name);
     const held = new Map(watchlist.list.map((entry) => [entry.ticker, entry]));
 

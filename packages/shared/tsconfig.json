@@ -1,8 +1,10 @@
-// Cross-workspace contracts, compiled for two runtimes: Node (api) and the
-// browser (frontend, which consumes this package as TypeScript source and
-// transpiles it with esbuild). The target is therefore the conservative one —
-// ES2024 rather than the api's ES2025 — because it has to be legible to
-// whichever toolchain reads it, and esbuild does not recognise ES2025.
+// Cross-workspace contracts. Nothing compiles this package: every consumer
+// reads it as TypeScript source — the frontend transpiles it with esbuild, the
+// backends run it through tsx — so there is no emit and no `outDir`. That is
+// the whole reason `exports` points at `./src/*.ts`.
+// The target is therefore the conservative one — ES2024 rather than the api's
+// ES2025 — because it has to be legible to whichever toolchain reads it, and
+// esbuild does not recognise ES2025.
 {
     "compilerOptions": {
         "target": "ES2024",
@@ -10,14 +12,12 @@
         "moduleResolution": "NodeNext",
         "lib": ["ES2024"],
         "types": ["node"],
-        "outDir": "dist",
         "rootDir": "src",
-        "declaration": true,
         "strict": true,
         "noUncheckedIndexedAccess": true,
         "skipLibCheck": true,
         "resolveJsonModule": true
     },
     "include": ["src"],
-    "exclude": ["node_modules", "dist"]
+    "exclude": ["node_modules"]
 }

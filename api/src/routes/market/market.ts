@@ -2,13 +2,14 @@
  * Market routes — mounted at /api/market (all require authentication)
  * GET /api/market/stats               — the ingested market summary, with its own ingest timestamp
  * GET /api/market/holidays            — the exchange holiday calendar
- * GET /api/market/symbols             — every symbol and its exchange
  * GET /api/market/news                — headlines, optionally narrowed to symbols and a date
  * GET /api/market/calendar            — earnings, dividends and splits for one day
  * GET /api/market/:symbol/financials  — annual and quarterly statements
  * Everything here is read-only ingested data, cached per read. There is no
  * separate "last update" endpoint: that timestamp is a field on `stats`, and
- * formatting it for display is the client's job, not a route's.
+ * formatting it for display is the client's job, not a route's. There is no
+ * symbol index either — shipping the whole universe so the browser can filter
+ * it is what `/api/charts/search` replaced.
  */
 import { Router } from 'express';
 import { z } from 'zod';
@@ -20,7 +21,12 @@ import * as marketService from '@/services/market/index.js';
 
 const symbolListSchema = z
     .string()
-    .transform((value) => value.split(',').map((part) => part.trim().toUpperCase()).filter((part) => part !== ''))
+    .transform((value) =>
+        value
+            .split(',')
+            .map((part) => part.trim().toUpperCase())
+            .filter((part) => part !== ''),
+    )
     .pipe(z.array(symbolSchema).max(config.limits.symbolsPerRequest));
 
 const newsQuery = z.object({
@@ -45,13 +51,6 @@ router.get(
     '/holidays',
     ...validated({}, async (_req, res): Promise<void> => {
         res.json(await marketService.holidays());
-    }),
-);
-
-router.get(
-    '/symbols',
-    ...validated({}, async (_req, res): Promise<void> => {
-        res.json({ items: await marketService.symbolIndex() });
     }),
 );
 

@@ -1,0 +1,12 @@
+node_modules
+dist
+backups
+db
+docker
+k8s
+models
+scripts
+**/.git
+**/.svn
+**/.hg
+**/node_modules

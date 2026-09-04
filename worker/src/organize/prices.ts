@@ -128,7 +128,8 @@ function toBar(symbol: string, row: VendorDailyBar): OhlcvDoc | null {
     const low = row.adjLow;
     const close = row.adjClose;
     const volume = row.adjVolume;
-    if (![open, high, low, close, volume].every((value) => typeof value === 'number' && Number.isFinite(value))) return null;
+    if (![open, high, low, close, volume].every((value) => typeof value === 'number' && Number.isFinite(value)))
+        return null;
 
     // The daily series is keyed by date; the vendor's midnight stamp is the date
     timestamp.setUTCHours(0, 0, 0, 0);

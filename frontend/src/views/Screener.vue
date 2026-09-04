@@ -193,7 +193,10 @@ async function exportCsv(): Promise<void> {
     if (mode.value === 'hidden') {
         downloadFile(
             'hidden.csv',
-            toCsv([t('screener.symbol')], hiddenSymbols.value.map((symbol) => [symbol])),
+            toCsv(
+                [t('screener.symbol')],
+                hiddenSymbols.value.map((symbol) => [symbol]),
+            ),
             CSV_TYPE,
         );
         return;
@@ -264,22 +267,25 @@ onUnmounted(() => {
 
 <template>
     <div class="screener">
-        <nav class="screener__tabs" :aria-label="t('screener.title')">
+        <nav
+            class="screener__tabs"
+            :aria-label="t('screener.title')">
             <button
-                v-for="option in (['filters', 'results', 'chart'] as const)"
+                v-for="option in ['filters', 'results', 'chart'] as const"
                 :key="option"
                 type="button"
                 class="screener__tab"
                 :class="{ 'screener__tab--active': pane === option }"
                 :aria-pressed="pane === option"
-                @click="pane = option"
-            >
+                @click="pane = option">
                 {{ t(`screener.panes.${option}`) }}
             </button>
         </nav>
 
         <div class="screener__grid">
-            <aside class="screener__column screener__column--filters" :class="{ 'screener__column--hidden': pane !== 'filters' }">
+            <aside
+                class="screener__column screener__column--filters"
+                :class="{ 'screener__column--hidden': pane !== 'filters' }">
                 <ScreenerPicker
                     v-model="selected"
                     :items="screeners"
@@ -289,12 +295,19 @@ onUnmounted(() => {
                     @rename="dialog = 'rename'"
                     @remove="dialog = 'delete'"
                     @reset="dialog = 'reset'"
-                    @toggle-include="setIncluded(selected, $event)"
-                />
+                    @toggle-include="setIncluded(selected, $event)" />
 
-                <p v-if="registry.error.value !== null" class="screener__error" role="alert">
+                <p
+                    v-if="registry.error.value !== null"
+                    class="screener__error"
+                    role="alert">
                     {{ registry.error.value }}
-                    <button type="button" class="screener__retry" @click="registry.load()">{{ t('common.refresh') }}</button>
+                    <button
+                        type="button"
+                        class="screener__retry"
+                        @click="registry.load()"
+                        >{{ t('common.refresh') }}</button
+                    >
                 </p>
 
                 <FilterPanel
@@ -303,29 +316,35 @@ onUnmounted(() => {
                     :saving="filters.saving.value"
                     :disabled="selected === ''"
                     @apply="applyFilter"
-                    @clear="clearFilter"
-                />
+                    @clear="clearFilter" />
             </aside>
 
-            <main class="screener__column screener__column--results" :class="{ 'screener__column--hidden': pane !== 'results' }">
+            <main
+                class="screener__column screener__column--results"
+                :class="{ 'screener__column--hidden': pane !== 'results' }">
                 <header class="screener__toolbar">
-                    <div class="screener__modes" role="group" :aria-label="t('screener.results')">
+                    <div
+                        class="screener__modes"
+                        role="group"
+                        :aria-label="t('screener.results')">
                         <button
-                            v-for="option in (['screener', 'combined', 'hidden'] as const)"
+                            v-for="option in ['screener', 'combined', 'hidden'] as const"
                             :key="option"
                             type="button"
                             class="screener__mode"
                             :class="{ 'screener__mode--active': mode === option }"
                             :aria-pressed="mode === option"
-                            @click="mode = option"
-                        >
+                            @click="mode = option">
                             {{ t(`screener.modes.${option}`) }}
                         </button>
                     </div>
 
                     <span class="screener__count">{{ t('screener.resultsCount', { count: total }) }}</span>
 
-                    <button type="button" class="screener__action" @click="dialog = 'columns'">
+                    <button
+                        type="button"
+                        class="screener__action"
+                        @click="dialog = 'columns'">
                         {{ t('screener.columnsTitle') }}
                     </button>
                     <button
@@ -333,8 +352,7 @@ onUnmounted(() => {
                         class="screener__action"
                         :disabled="exporting || total === 0"
                         :title="t('screener.exportHint', { max: EXPORT_LIMIT })"
-                        @click="exportCsv"
-                    >
+                        @click="exportCsv">
                         {{ exporting ? t('screener.downloading') : t('common.download') }}
                     </button>
                     <button
@@ -342,15 +360,21 @@ onUnmounted(() => {
                         class="screener__action"
                         :class="{ 'screener__action--active': autoplay }"
                         :aria-pressed="autoplay"
-                        @click="autoplay = !autoplay"
-                    >
+                        @click="autoplay = !autoplay">
                         {{ t('screener.autoplay') }}
                     </button>
                 </header>
 
-                <p v-if="results.error.value !== null" class="screener__error" role="alert">{{ results.error.value }}</p>
+                <p
+                    v-if="results.error.value !== null"
+                    class="screener__error"
+                    role="alert"
+                    >{{ results.error.value }}</p
+                >
 
-                <p v-else-if="rows.length === 0 && !results.pending.value" class="screener__empty">
+                <p
+                    v-else-if="rows.length === 0 && !results.pending.value"
+                    class="screener__empty">
                     {{ mode === 'hidden' ? t('screener.noHidden') : t('screener.noResults') }}
                 </p>
 
@@ -362,16 +386,17 @@ onUnmounted(() => {
                     :hidden-symbols="hiddenSymbols"
                     :pending="results.pending.value"
                     @select="selectedSymbol = $event"
-                    @toggle-hidden="toggleHidden"
-                />
+                    @toggle-hidden="toggleHidden" />
 
-                <nav v-if="mode !== 'hidden' && results.pages.value > 1" class="screener__pager" :aria-label="t('screener.results')">
+                <nav
+                    v-if="mode !== 'hidden' && results.pages.value > 1"
+                    class="screener__pager"
+                    :aria-label="t('screener.results')">
                     <button
                         type="button"
                         class="screener__action"
                         :disabled="results.page.value <= 1"
-                        @click="results.goTo(results.page.value - 1)"
-                    >
+                        @click="results.goTo(results.page.value - 1)">
                         {{ t('common.previous') }}
                     </button>
                     <span class="screener__page">
@@ -381,16 +406,24 @@ onUnmounted(() => {
                         type="button"
                         class="screener__action"
                         :disabled="results.page.value >= results.pages.value"
-                        @click="results.goTo(results.page.value + 1)"
-                    >
+                        @click="results.goTo(results.page.value + 1)">
                         {{ t('common.next') }}
                     </button>
                 </nav>
             </main>
 
-            <aside class="screener__column screener__column--chart" :class="{ 'screener__column--hidden': pane !== 'chart' }">
-                <p v-if="selectedSymbol === ''" class="screener__empty">{{ t('screener.selectRow') }}</p>
-                <PriceChart v-else :symbol="selectedSymbol" :profile="profile.data.value" />
+            <aside
+                class="screener__column screener__column--chart"
+                :class="{ 'screener__column--hidden': pane !== 'chart' }">
+                <p
+                    v-if="selectedSymbol === ''"
+                    class="screener__empty"
+                    >{{ t('screener.selectRow') }}</p
+                >
+                <PriceChart
+                    v-else
+                    :symbol="selectedSymbol"
+                    :profile="profile.data.value" />
             </aside>
         </div>
 
@@ -401,8 +434,7 @@ onUnmounted(() => {
             :max-length="20"
             :error="dialogError"
             @submit="runNamed(() => createScreener($event), 'screener.createFailed')"
-            @close="dialog = null"
-        />
+            @close="dialog = null" />
 
         <PromptDialog
             v-else-if="dialog === 'rename'"
@@ -412,35 +444,58 @@ onUnmounted(() => {
             :max-length="20"
             :error="dialogError"
             @submit="runNamed(() => renameScreener($event), 'screener.renameFailed')"
-            @close="dialog = null"
-        />
+            @close="dialog = null" />
 
-        <AppDialog v-else-if="dialog === 'delete'" :title="t('screener.deleteTitle')" size="sm" @close="dialog = null">
+        <AppDialog
+            v-else-if="dialog === 'delete'"
+            :title="t('screener.deleteTitle')"
+            size="sm"
+            @close="dialog = null">
             <p>{{ t('screener.deleteMessage', { name: selected }) }}</p>
             <template #footer>
-                <button type="button" class="screener__action" @click="dialog = null">{{ t('common.cancel') }}</button>
+                <button
+                    type="button"
+                    class="screener__action"
+                    @click="dialog = null"
+                    >{{ t('common.cancel') }}</button
+                >
                 <button
                     type="button"
                     class="screener__action screener__action--danger"
-                    @click="runNamed(() => removeScreener(selected), 'screener.deleteFailed')"
-                >
+                    @click="runNamed(() => removeScreener(selected), 'screener.deleteFailed')">
                     {{ t('common.delete') }}
                 </button>
             </template>
         </AppDialog>
 
-        <AppDialog v-else-if="dialog === 'reset'" :title="t('screener.resetTitle')" size="sm" @close="dialog = null">
+        <AppDialog
+            v-else-if="dialog === 'reset'"
+            :title="t('screener.resetTitle')"
+            size="sm"
+            @close="dialog = null">
             <p>{{ t('screener.resetMessage') }}</p>
             <p class="screener__warning">{{ t('screener.resetWarning') }}</p>
             <template #footer>
-                <button type="button" class="screener__action" @click="dialog = null">{{ t('common.cancel') }}</button>
-                <button type="button" class="screener__action screener__action--danger" @click="resetFilters">
+                <button
+                    type="button"
+                    class="screener__action"
+                    @click="dialog = null"
+                    >{{ t('common.cancel') }}</button
+                >
+                <button
+                    type="button"
+                    class="screener__action screener__action--danger"
+                    @click="resetFilters">
                     {{ t('screener.resetConfirm') }}
                 </button>
             </template>
         </AppDialog>
 
-        <ColumnsDialog v-else-if="dialog === 'columns'" :columns="columns" @save="saveColumns" @close="dialog = null" />
+        <ColumnsDialog
+            v-else-if="dialog === 'columns'"
+            :columns="columns"
+            @save="saveColumns"
+            @close="dialog = null" />
     </div>
 </template>
 

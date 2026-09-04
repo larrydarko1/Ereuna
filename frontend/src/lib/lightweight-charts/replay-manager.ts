@@ -33,7 +33,7 @@ export class ReplayManager {
             currentIndex: 0,
             speed: 1,
             startIndex: 0,
-            endIndex: data.length - 1
+            endIndex: data.length - 1,
         };
     }
 
@@ -180,10 +180,7 @@ export class ReplayManager {
     seekToIndex(index: number): void {
         if (!this.state.isActive) return;
 
-        const validIndex = Math.max(
-            this.state.startIndex,
-            Math.min(index, this.state.endIndex)
-        );
+        const validIndex = Math.max(this.state.startIndex, Math.min(index, this.state.endIndex));
 
         this.state.currentIndex = validIndex;
         this.notifyCallbacks();
@@ -263,7 +260,7 @@ export class ReplayManager {
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
-            hour12: false
+            hour12: false,
         });
     }
 
@@ -353,7 +350,7 @@ export class ReplayManager {
      */
     private notifyCallbacks(): void {
         const dateString = this.getCurrentDateString();
-        this.callbacks.forEach(callback => {
+        this.callbacks.forEach((callback) => {
             callback(this.state.currentIndex, dateString);
         });
     }

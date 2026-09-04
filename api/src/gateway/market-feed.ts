@@ -67,10 +67,7 @@ export async function stopMarketFeed(): Promise<void> {
  * it is whatever the aggregator last wrote before the market closed — so it is
  * dropped rather than presented as current.
  */
-export async function readLastCandle(
-    symbol: string,
-    timeframe: AggregatorTimeframe,
-): Promise<AggregateMessage | null> {
+export async function readLastCandle(symbol: string, timeframe: AggregatorTimeframe): Promise<AggregateMessage | null> {
     let raw: string | null;
     try {
         raw = await getRedis().get(lastCandleKey(symbol, timeframe));

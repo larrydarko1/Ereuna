@@ -30,7 +30,14 @@ export type FilterDescriptor =
     | { key: string; label: string; kind: 'range'; available: boolean; bounds: { min: number; max: number } | null }
     | { key: string; label: string; kind: 'date'; available: boolean; bounds: { min: string; max: string } | null }
     | { key: string; label: string; kind: 'enum'; available: boolean; options: string[] }
-    | { key: string; label: string; kind: 'ma'; available: boolean; directions: readonly string[]; targets: readonly string[] }
+    | {
+          key: string;
+          label: string;
+          kind: 'ma';
+          available: boolean;
+          directions: readonly string[];
+          targets: readonly string[];
+      }
     | { key: string; label: string; kind: 'flag'; available: boolean };
 
 export type ScreenerResult = {

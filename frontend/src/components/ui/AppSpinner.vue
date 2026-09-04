@@ -10,9 +10,22 @@ const { t } = useI18n();
 </script>
 
 <template>
-    <div class="spinner" :class="`spinner--${size}`" role="status">
-        <svg class="spinner__ring" viewBox="0 0 50 50" aria-hidden="true" focusable="false">
-            <circle class="spinner__path" cx="25" cy="25" r="20" fill="none" stroke-width="5" />
+    <div
+        class="spinner"
+        :class="`spinner--${size}`"
+        role="status">
+        <svg
+            class="spinner__ring"
+            viewBox="0 0 50 50"
+            aria-hidden="true"
+            focusable="false">
+            <circle
+                class="spinner__path"
+                cx="25"
+                cy="25"
+                r="20"
+                fill="none"
+                stroke-width="5" />
         </svg>
         <span class="visually-hidden">{{ label ?? t('common.loading') }}</span>
     </div>

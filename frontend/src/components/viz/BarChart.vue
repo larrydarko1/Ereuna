@@ -78,25 +78,30 @@ const active = computed(() => (hovered.value === null ? null : (bars[hovered.val
             :viewBox="`0 0 ${WIDTH} ${HEIGHT}`"
             role="img"
             :aria-label="label"
-            @pointerleave="hovered = null"
-        >
-            <line class="bar-chart__baseline" x1="0" :x2="WIDTH" :y1="baseline" :y2="baseline" />
+            @pointerleave="hovered = null">
+            <line
+                class="bar-chart__baseline"
+                x1="0"
+                :x2="WIDTH"
+                :y1="baseline"
+                :y2="baseline" />
             <rect
                 v-for="(bar, index) in shaped"
                 :key="`${bar.source.label}-${index}`"
                 class="bar-chart__bar"
-                :class="
-                    (bar.source.positive ?? bar.source.value >= 0)
-                        ? 'bar-chart__bar--up'
-                        : 'bar-chart__bar--down'
-                "
+                :class="(bar.source.positive ?? bar.source.value >= 0) ? 'bar-chart__bar--up' : 'bar-chart__bar--down'"
                 :x="bar.x"
                 :y="bar.y"
                 :width="bar.width"
                 :height="bar.height"
-                @pointerenter="hovered = index"
-            />
-            <line v-if="markerX !== null" class="bar-chart__marker" :x1="markerX" :x2="markerX" y1="0" :y2="HEIGHT" />
+                @pointerenter="hovered = index" />
+            <line
+                v-if="markerX !== null"
+                class="bar-chart__marker"
+                :x1="markerX"
+                :x2="markerX"
+                y1="0"
+                :y2="HEIGHT" />
         </svg>
 
         <figcaption class="bar-chart__readout">
@@ -104,7 +109,11 @@ const active = computed(() => (hovered.value === null ? null : (bars[hovered.val
                 <span class="bar-chart__readout-label">{{ active.label }}</span>
                 <span class="bar-chart__readout-value">{{ format(active.value) }}</span>
             </template>
-            <span v-else class="bar-chart__readout-label">{{ label }}</span>
+            <span
+                v-else
+                class="bar-chart__readout-label"
+                >{{ label }}</span
+            >
         </figcaption>
     </figure>
 </template>

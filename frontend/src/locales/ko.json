@@ -586,6 +586,7 @@
         "noSplitsData": "분할 데이터가 없습니다",
         "noNewsAvailable": "뉴스가 없습니다.",
         "created": "생성일:",
+        "edited": "수정일:",
         "noNotesAvailable": "메모가 없습니다.",
         "viewFinancialStatements": "재무제표 보기",
         "showAll": "전체 보기",
@@ -803,7 +804,9 @@
         "newNote": "새 메모",
         "placeholder": "여기에 메모를 작성하세요",
         "deleteNote": "메모 삭제",
+        "editNote": "메모 편집",
         "saveFailed": "메모 생성 실패",
+        "updateFailed": "메모를 수정할 수 없습니다",
         "deleteFailed": "메모를 삭제할 수 없습니다"
     },
     "watchlist": {

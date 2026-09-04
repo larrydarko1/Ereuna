@@ -17,26 +17,33 @@ const groups = computed(() =>
 </script>
 
 <template>
-    <SettingCard :title="t('user.themes.title')" :description="t('user.themes.description')">
-        <div v-for="group in groups" :key="group.mode" class="themes__group">
+    <SettingCard
+        :title="t('user.themes.title')"
+        :description="t('user.themes.description')">
+        <div
+            v-for="group in groups"
+            :key="group.mode"
+            class="themes__group">
             <h3 class="themes__heading">{{ t(`user.themes.${group.mode}`) }}</h3>
 
             <ul class="themes__grid">
-                <li v-for="theme in group.entries" :key="theme.id">
+                <li
+                    v-for="theme in group.entries"
+                    :key="theme.id">
                     <button
                         type="button"
                         class="themes__card"
                         :class="{ 'themes__card--active': currentTheme === theme.id }"
                         :aria-pressed="currentTheme === theme.id"
-                        @click="applyTheme(theme.id)"
-                    >
-                        <span class="themes__swatches" aria-hidden="true">
+                        @click="applyTheme(theme.id)">
+                        <span
+                            class="themes__swatches"
+                            aria-hidden="true">
                             <span
                                 v-for="(color, key) in theme.preview"
                                 :key="key"
                                 class="themes__swatch"
-                                :style="{ background: color }"
-                            ></span>
+                                :style="{ background: color }"></span>
                         </span>
                         <span class="themes__label">{{ theme.label }}</span>
                     </button>

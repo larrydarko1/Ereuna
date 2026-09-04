@@ -586,6 +586,7 @@
         "noSplitsData": "Nessun dato frazionamenti disponibile",
         "noNewsAvailable": "Nessuna notizia disponibile.",
         "created": "Creata:",
+        "edited": "Modificata:",
         "noNotesAvailable": "Nessuna nota disponibile.",
         "viewFinancialStatements": "Visualizza Bilanci Finanziari",
         "showAll": "Mostra Tutto",
@@ -803,7 +804,9 @@
         "newNote": "Nuova Nota",
         "placeholder": "Scrivi note qui",
         "deleteNote": "Elimina nota",
+        "editNote": "Modifica nota",
         "saveFailed": "Creazione nota non riuscita",
+        "updateFailed": "Impossibile aggiornare la nota",
         "deleteFailed": "Impossibile eliminare la nota"
     },
     "watchlist": {

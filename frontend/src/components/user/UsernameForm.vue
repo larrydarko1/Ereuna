@@ -49,26 +49,37 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-    <SettingCard :title="t('user.username.title')" :description="t('user.username.description')">
+    <SettingCard
+        :title="t('user.username.title')"
+        :description="t('user.username.description')">
         <p class="form-hint">{{ t('user.username.current', { username }) }}</p>
 
-        <form class="username-form" novalidate @submit.prevent="submit">
+        <form
+            class="username-form"
+            novalidate
+            @submit.prevent="submit">
             <AppField
                 v-model="next"
                 :label="t('user.username.new')"
                 :error="nameError"
-                autocomplete="username"
-            />
+                autocomplete="username" />
             <PasswordField
                 v-model="password"
                 :label="t('user.password.current')"
-                autocomplete="current-password"
-            />
+                autocomplete="current-password" />
 
-            <p v-if="error !== null" class="form-error" role="alert">{{ error }}</p>
+            <p
+                v-if="error !== null"
+                class="form-error"
+                role="alert"
+                >{{ error }}</p
+            >
 
             <div>
-                <button type="submit" class="btn btn--primary" :disabled="pending">
+                <button
+                    type="submit"
+                    class="btn btn--primary"
+                    :disabled="pending">
                     {{ pending ? t('common.processing') : t('user.username.submit') }}
                 </button>
             </div>

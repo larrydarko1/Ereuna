@@ -181,7 +181,9 @@ function checkTrade(
     if (trade.action === 'deposit') return null;
 
     const { equity, gross } = projected(book, marks, cash, trade);
-    return gross - equity * leverage > CASH_EPSILON ? at('buyingPower', round2(equity * leverage), round2(gross)) : null;
+    return gross - equity * leverage > CASH_EPSILON
+        ? at('buyingPower', round2(equity * leverage), round2(gross))
+        : null;
 }
 
 /**

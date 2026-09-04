@@ -14,38 +14,37 @@ import path from 'node:path';
 import { z } from 'zod';
 import { hexSecret, loggerEnv, mongoEnv, nodeEnv, redisEnv, requiredSecret } from '@ereuna/shared';
 
-const Env = z
-    .object({
-        ...nodeEnv,
-        ...loggerEnv,
-        ...mongoEnv,
-        ...redisEnv,
+const Env = z.object({
+    ...nodeEnv,
+    ...loggerEnv,
+    ...mongoEnv,
+    ...redisEnv,
 
-        PORT: z.coerce.number().int().positive().default(5500),
-        CORS_ORIGIN: z.url().default('http://localhost:3500'),
-        /** Trusted reverse-proxy hops for Express `trust proxy`. Never `true` — a
-         *  client can otherwise spoof X-Forwarded-For and defeat every ip-keyed control. */
-        TRUST_PROXY_HOPS: z.coerce.number().int().nonnegative().default(1),
+    PORT: z.coerce.number().int().positive().default(5500),
+    CORS_ORIGIN: z.url().default('http://localhost:3500'),
+    /** Trusted reverse-proxy hops for Express `trust proxy`. Never `true` — a
+     *  client can otherwise spoof X-Forwarded-For and defeat every ip-keyed control. */
+    TRUST_PROXY_HOPS: z.coerce.number().int().nonnegative().default(1),
 
-        JWT_SECRET: requiredSecret(32),
-        TOTP_ENCRYPTION_KEY: hexSecret(32), // AES-256-GCM key for TOTP secrets at rest.
-        TOTP_ISSUER: z.string().min(1).default('Ereuna'),
+    JWT_SECRET: requiredSecret(32),
+    TOTP_ENCRYPTION_KEY: hexSecret(32), // AES-256-GCM key for TOTP secrets at rest.
+    TOTP_ISSUER: z.string().min(1).default('Ereuna'),
 
-        METRICS_TOKEN: z.string().optional(),
+    METRICS_TOKEN: z.string().optional(),
 
-        /** Where the ticker logos live. The default sits two levels above this
-         *  module, which resolves to `api/assets/logos` from `src/` and from
-         *  `dist/` alike; an override is for the day the directory becomes a
-         *  mounted volume instead of part of the image.
-         *  Blank counts as absent. `.default()` only fires when the key is
-         *  MISSING, and a `.env` copied from the example carries every key with
-         *  an empty value — so a bare `.min(1)` here refuses to boot on the one
-         *  file the README tells you to copy. */
-        LOGO_DIR: z
-            .string()
-            .default('')
-            .transform((value) => (value === '' ? path.resolve(import.meta.dirname, '../../assets/logos') : value)),
-    });
+    /** Where the ticker logos live. The default sits two levels above this
+     *  module, which resolves to `api/assets/logos` from `src/` and from
+     *  `dist/` alike; an override is for the day the directory becomes a
+     *  mounted volume instead of part of the image.
+     *  Blank counts as absent. `.default()` only fires when the key is
+     *  MISSING, and a `.env` copied from the example carries every key with
+     *  an empty value — so a bare `.min(1)` here refuses to boot on the one
+     *  file the README tells you to copy. */
+    LOGO_DIR: z
+        .string()
+        .default('')
+        .transform((value) => (value === '' ? path.resolve(import.meta.dirname, '../../assets/logos') : value)),
+});
 
 const parsed = Env.parse(process.env);
 
@@ -59,7 +58,7 @@ export const config = {
     jwt: {
         secret: parsed.JWT_SECRET,
         accessTokenExpiry: '15m' as const,
-        refreshTokenExpiry: 7 * 24 * 60 * 60 * 1000, // 7 days 
+        refreshTokenExpiry: 7 * 24 * 60 * 60 * 1000, // 7 days
         sessionTokenExpiry: 24 * 60 * 60 * 1000, // 24 hours
         twoFactorTempExpiry: '5m' as const, // Temp token lifetime for the 2FA login flow
     },
@@ -104,7 +103,6 @@ export const config = {
         staticData: 30 * 60,
         userData: 15 * 60,
     },
-
 
     /** Ticker logos, served off disk. `maxAge` is the browser cache lifetime in
      *  seconds — long, but deliberately not `immutable`, so a mark that gets

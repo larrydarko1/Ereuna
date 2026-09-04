@@ -10,9 +10,9 @@ type TimerId = ReturnType<typeof setTimeout>;
  * It's NOT e.buttons (with s)!
  */
 enum MouseEventButton {
-	Left = 0,
-	Middle = 1,
-	Right = 2,
-	Fourth = 3,
-	Fifth = 4,
+    Left = 0,
+    Middle = 1,
+    Right = 2,
+    Fourth = 3,
+    Fifth = 4,
 }

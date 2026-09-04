@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
-const { symbol, exchange = null, size = 'md' } = defineProps<{
+const {
+    symbol,
+    exchange = null,
+    size = 'md',
+} = defineProps<{
     symbol: string;
     exchange?: string | null;
     size?: 'sm' | 'md';
@@ -36,9 +40,14 @@ watch(
         :alt="''"
         loading="lazy"
         decoding="async"
-        @error="failed = true"
-    />
-    <span v-else class="logo logo--fallback" :class="`logo--${size}`" aria-hidden="true">{{ initials }}</span>
+        @error="failed = true" />
+    <span
+        v-else
+        class="logo logo--fallback"
+        :class="`logo--${size}`"
+        aria-hidden="true"
+        >{{ initials }}</span
+    >
 </template>
 
 <style lang="scss" scoped>

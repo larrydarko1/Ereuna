@@ -33,8 +33,7 @@ const rows = computed(() =>
             :key="row.key"
             :label="row.label"
             :value="row.value"
-            :format="row.format"
-        />
+            :format="row.format" />
     </div>
 </template>
 

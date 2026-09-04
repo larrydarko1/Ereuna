@@ -13,7 +13,6 @@ import { getPortfolio } from '@/services/portfolio/portfolio-crud.js';
 import { readTrades } from '@/services/portfolio/portfolio-rebuild.js';
 import { toTradeRow, type TradeRow } from '@/services/portfolio/portfolio-trades.js';
 
-
 export type PortfolioSummary = {
     number: number;
     cash: number; // Negative means the portfolio is carrying a margin loan

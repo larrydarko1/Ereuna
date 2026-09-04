@@ -3,7 +3,11 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AppDialog from '@/components/ui/AppDialog.vue';
 
-const { current, error = null, saving = false } = defineProps<{
+const {
+    current,
+    error = null,
+    saving = false,
+} = defineProps<{
     current: readonly string[];
     error?: string | null;
     saving?: boolean;
@@ -36,40 +40,71 @@ function remove(symbol: string): void {
 </script>
 
 <template>
-    <AppDialog :title="t('portfolio.editBenchmarks')" size="sm" @close="emit('close')">
+    <AppDialog
+        :title="t('portfolio.editBenchmarks')"
+        size="sm"
+        @close="emit('close')">
         <div class="benchmarks-dialog">
-            <ul v-if="symbols.length > 0" class="benchmarks-dialog__list">
-                <li v-for="symbol in symbols" :key="symbol" class="benchmarks-dialog__item">
+            <ul
+                v-if="symbols.length > 0"
+                class="benchmarks-dialog__list">
+                <li
+                    v-for="symbol in symbols"
+                    :key="symbol"
+                    class="benchmarks-dialog__item">
                     <span>{{ symbol }}</span>
                     <button
                         type="button"
                         class="btn btn--small"
                         :aria-label="t('portfolio.removeBenchmark')"
-                        @click="remove(symbol)"
-                    >
+                        @click="remove(symbol)">
                         &times;
                     </button>
                 </li>
             </ul>
-            <p v-else class="form-hint">{{ t('portfolio.noBenchmarks') }}</p>
+            <p
+                v-else
+                class="form-hint"
+                >{{ t('portfolio.noBenchmarks') }}</p
+            >
 
-            <form class="benchmarks-dialog__add" @submit.prevent="add">
+            <form
+                class="benchmarks-dialog__add"
+                @submit.prevent="add">
                 <input
                     v-model="draft"
                     class="form-input"
                     :placeholder="t('portfolio.symbol')"
-                    :disabled="symbols.length >= MAX_BENCHMARKS"
-                />
-                <button type="submit" class="btn" :disabled="!canAdd">{{ t('portfolio.add') }}</button>
+                    :disabled="symbols.length >= MAX_BENCHMARKS" />
+                <button
+                    type="submit"
+                    class="btn"
+                    :disabled="!canAdd"
+                    >{{ t('portfolio.add') }}</button
+                >
             </form>
 
             <p class="form-hint">{{ t('portfolio.benchmarksHint') }}</p>
-            <p v-if="error !== null" class="form-error" role="alert">{{ error }}</p>
+            <p
+                v-if="error !== null"
+                class="form-error"
+                role="alert"
+                >{{ error }}</p
+            >
         </div>
 
         <template #footer>
-            <button type="button" class="btn" @click="emit('close')">{{ t('common.cancel') }}</button>
-            <button type="button" class="btn btn--primary" :disabled="saving" @click="emit('save', symbols)">
+            <button
+                type="button"
+                class="btn"
+                @click="emit('close')"
+                >{{ t('common.cancel') }}</button
+            >
+            <button
+                type="button"
+                class="btn btn--primary"
+                :disabled="saving"
+                @click="emit('save', symbols)">
                 {{ saving ? t('common.saving') : t('common.save') }}
             </button>
         </template>

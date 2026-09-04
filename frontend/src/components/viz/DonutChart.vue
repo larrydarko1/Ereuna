@@ -38,8 +38,16 @@ const shaped = computed(() => {
 
 <template>
     <figure class="donut-chart">
-        <svg class="donut-chart__svg" viewBox="0 0 42 42" role="img" :aria-label="label">
-            <circle class="donut-chart__track" cx="21" cy="21" :r="RADIUS" />
+        <svg
+            class="donut-chart__svg"
+            viewBox="0 0 42 42"
+            role="img"
+            :aria-label="label">
+            <circle
+                class="donut-chart__track"
+                cx="21"
+                cy="21"
+                :r="RADIUS" />
             <circle
                 v-for="(slice, index) in shaped"
                 :key="slice.source.label"
@@ -51,8 +59,7 @@ const shaped = computed(() => {
                 :stroke-dasharray="`${slice.length} ${CIRCUMFERENCE - slice.length}`"
                 :stroke-dashoffset="slice.offset"
                 @pointerenter="hovered = index"
-                @pointerleave="hovered = null"
-            />
+                @pointerleave="hovered = null" />
         </svg>
 
         <ul class="donut-chart__legend">
@@ -62,9 +69,10 @@ const shaped = computed(() => {
                 class="donut-chart__legend-item"
                 :class="{ 'donut-chart__legend-item--active': hovered === index }"
                 @pointerenter="hovered = index"
-                @pointerleave="hovered = null"
-            >
-                <span class="donut-chart__swatch" :class="`donut-chart__swatch--${index % PALETTE_SIZE}`" />
+                @pointerleave="hovered = null">
+                <span
+                    class="donut-chart__swatch"
+                    :class="`donut-chart__swatch--${index % PALETTE_SIZE}`" />
                 <span class="donut-chart__legend-label">{{ slice.source.label }}</span>
                 <span class="donut-chart__legend-value">{{ slice.percent.toFixed(1) }}%</span>
             </li>

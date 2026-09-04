@@ -16,7 +16,10 @@ const { t } = useI18n();
         <section class="movers__column">
             <h3 class="movers__title">{{ t('dashboard.movers.topGainers') }}</h3>
             <ol class="movers__list">
-                <li v-for="row in gainers" :key="row.symbol" class="movers__row">
+                <li
+                    v-for="row in gainers"
+                    :key="row.symbol"
+                    class="movers__row">
                     <span class="movers__symbol">{{ row.symbol }}</span>
                     <span class="movers__return movers__return--positive">{{ formatPercent(row.dailyReturn) }}</span>
                 </li>
@@ -26,7 +29,10 @@ const { t } = useI18n();
         <section class="movers__column">
             <h3 class="movers__title">{{ t('dashboard.movers.topLosers') }}</h3>
             <ol class="movers__list">
-                <li v-for="row in losers" :key="row.symbol" class="movers__row">
+                <li
+                    v-for="row in losers"
+                    :key="row.symbol"
+                    class="movers__row">
                     <span class="movers__symbol">{{ row.symbol }}</span>
                     <span class="movers__return movers__return--negative">{{ formatPercent(row.dailyReturn) }}</span>
                 </li>

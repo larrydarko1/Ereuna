@@ -18,168 +18,184 @@ import { drawText, hitTestText } from './series-markers-text';
 import { BitmapShapeItemCoordinates } from './series-markers-utils';
 
 export interface SeriesMarkerText {
-	content: string;
-	x: Coordinate;
-	y: Coordinate;
-	width: number;
-	height: number;
+    content: string;
+    x: Coordinate;
+    y: Coordinate;
+    width: number;
+    height: number;
 }
 
 export interface SeriesMarkerRendererDataItem extends TimedValue {
-	y: Coordinate;
-	size: number;
-	shape: SeriesMarkerShape;
-	color: string;
-	internalId: number;
-	externalId?: string;
-	text?: SeriesMarkerText;
-	textColor?: string;
+    y: Coordinate;
+    size: number;
+    shape: SeriesMarkerShape;
+    color: string;
+    internalId: number;
+    externalId?: string;
+    text?: SeriesMarkerText;
+    textColor?: string;
 }
 
 export interface SeriesMarkerRendererData {
-	items: SeriesMarkerRendererDataItem[];
-	visibleRange: SeriesItemsIndexesRange | null;
+    items: SeriesMarkerRendererDataItem[];
+    visibleRange: SeriesItemsIndexesRange | null;
 }
 
 export class SeriesMarkersRenderer extends BitmapCoordinatesPaneRenderer {
-	private _data: SeriesMarkerRendererData | null = null;
-	private _textWidthCache: TextWidthCache = new TextWidthCache();
-	private _fontSize: number = -1;
-	private _fontFamily: string = '';
-	private _font: string = '';
+    private _data: SeriesMarkerRendererData | null = null;
+    private _textWidthCache: TextWidthCache = new TextWidthCache();
+    private _fontSize: number = -1;
+    private _fontFamily: string = '';
+    private _font: string = '';
 
-	public setData(data: SeriesMarkerRendererData): void {
-		this._data = data;
-	}
+    public setData(data: SeriesMarkerRendererData): void {
+        this._data = data;
+    }
 
-	public setParams(fontSize: number, fontFamily: string): void {
-		if (this._fontSize !== fontSize || this._fontFamily !== fontFamily) {
-			this._fontSize = fontSize;
-			this._fontFamily = fontFamily;
-			this._font = makeFont(fontSize, fontFamily);
-			this._textWidthCache.reset();
-		}
-	}
+    public setParams(fontSize: number, fontFamily: string): void {
+        if (this._fontSize !== fontSize || this._fontFamily !== fontFamily) {
+            this._fontSize = fontSize;
+            this._fontFamily = fontFamily;
+            this._font = makeFont(fontSize, fontFamily);
+            this._textWidthCache.reset();
+        }
+    }
 
-	public hitTest(x: Coordinate, y: Coordinate): HoveredObject | null {
-		if (this._data === null || this._data.visibleRange === null) {
-			return null;
-		}
+    public hitTest(x: Coordinate, y: Coordinate): HoveredObject | null {
+        if (this._data === null || this._data.visibleRange === null) {
+            return null;
+        }
 
-		for (let i = this._data.visibleRange.from; i < this._data.visibleRange.to; i++) {
-			const item = this._data.items[i];
-			if (hitTestItem(item, x, y)) {
-				return {
-					hitTestData: item.internalId,
-					externalId: item.externalId,
-				};
-			}
-		}
+        for (let i = this._data.visibleRange.from; i < this._data.visibleRange.to; i++) {
+            const item = this._data.items[i];
+            if (hitTestItem(item, x, y)) {
+                return {
+                    hitTestData: item.internalId,
+                    externalId: item.externalId,
+                };
+            }
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	protected _drawImpl({ context: ctx, horizontalPixelRatio, verticalPixelRatio }: BitmapCoordinatesRenderingScope, isHovered: boolean, hitTestData?: unknown): void {
-		if (this._data === null || this._data.visibleRange === null) {
-			return;
-		}
+    protected _drawImpl(
+        { context: ctx, horizontalPixelRatio, verticalPixelRatio }: BitmapCoordinatesRenderingScope,
+        isHovered: boolean,
+        hitTestData?: unknown,
+    ): void {
+        if (this._data === null || this._data.visibleRange === null) {
+            return;
+        }
 
-		ctx.textBaseline = 'middle';
-		ctx.textAlign = 'center';
-		ctx.font = `bold ${this._font}`;
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
+        ctx.font = `bold ${this._font}`;
 
-		for (let i = this._data.visibleRange.from; i < this._data.visibleRange.to; i++) {
-			const item = this._data.items[i];
-			if (item.text !== undefined) {
-				item.text.width = this._textWidthCache.measureText(ctx, item.text.content);
-				item.text.height = this._fontSize;
-				// Use item.x directly since textAlign is now 'center'
-				item.text.x = item.x as Coordinate;
-			}
-			drawItem(item, ctx, horizontalPixelRatio, verticalPixelRatio);
-		}
-	}
+        for (let i = this._data.visibleRange.from; i < this._data.visibleRange.to; i++) {
+            const item = this._data.items[i];
+            if (item.text !== undefined) {
+                item.text.width = this._textWidthCache.measureText(ctx, item.text.content);
+                item.text.height = this._fontSize;
+                // Use item.x directly since textAlign is now 'center'
+                item.text.x = item.x as Coordinate;
+            }
+            drawItem(item, ctx, horizontalPixelRatio, verticalPixelRatio);
+        }
+    }
 }
 
-function bitmapShapeItemCoordinates(item: SeriesMarkerRendererDataItem, horizontalPixelRatio: number, verticalPixelRatio: number): BitmapShapeItemCoordinates {
-	const tickWidth = Math.max(1, Math.floor(horizontalPixelRatio));
-	const correction = (tickWidth % 2) / 2;
-	return {
-		x: Math.round(item.x * horizontalPixelRatio) + correction,
-		y: item.y * verticalPixelRatio,
-		pixelRatio: horizontalPixelRatio,
-	};
+function bitmapShapeItemCoordinates(
+    item: SeriesMarkerRendererDataItem,
+    horizontalPixelRatio: number,
+    verticalPixelRatio: number,
+): BitmapShapeItemCoordinates {
+    const tickWidth = Math.max(1, Math.floor(horizontalPixelRatio));
+    const correction = (tickWidth % 2) / 2;
+    return {
+        x: Math.round(item.x * horizontalPixelRatio) + correction,
+        y: item.y * verticalPixelRatio,
+        pixelRatio: horizontalPixelRatio,
+    };
 }
 
-function drawItem(item: SeriesMarkerRendererDataItem, ctx: CanvasRenderingContext2D, horizontalPixelRatio: number, verticalPixelRatio: number): void {
-	// Draw shape first with the item color
-	ctx.fillStyle = item.color;
-	drawShape(item, ctx, bitmapShapeItemCoordinates(item, horizontalPixelRatio, verticalPixelRatio));
+function drawItem(
+    item: SeriesMarkerRendererDataItem,
+    ctx: CanvasRenderingContext2D,
+    horizontalPixelRatio: number,
+    verticalPixelRatio: number,
+): void {
+    // Draw shape first with the item color
+    ctx.fillStyle = item.color;
+    drawShape(item, ctx, bitmapShapeItemCoordinates(item, horizontalPixelRatio, verticalPixelRatio));
 
-	// Then carve out the text from the shape to show the chart background
-	if (item.text !== undefined) {
-		// Use destination-out to cut out the text from the shape
-		ctx.globalCompositeOperation = 'destination-out';
-		ctx.fillStyle = 'rgba(0, 0, 0, 1)'; // Color doesn't matter, just opacity
-		ctx.globalAlpha = 1.0;
-		// Use item.y (the marker's y position) to center text vertically inside the shape
-		drawText(ctx, item.text.content, item.text.x, item.y, horizontalPixelRatio, verticalPixelRatio);
-		// Reset composite operation back to normal
-		ctx.globalCompositeOperation = 'source-over';
-		ctx.globalAlpha = 1.0;
-	}
+    // Then carve out the text from the shape to show the chart background
+    if (item.text !== undefined) {
+        // Use destination-out to cut out the text from the shape
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0, 0, 0, 1)'; // Color doesn't matter, just opacity
+        ctx.globalAlpha = 1.0;
+        // Use item.y (the marker's y position) to center text vertically inside the shape
+        drawText(ctx, item.text.content, item.text.x, item.y, horizontalPixelRatio, verticalPixelRatio);
+        // Reset composite operation back to normal
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1.0;
+    }
 }
 
+function drawShape(
+    item: SeriesMarkerRendererDataItem,
+    ctx: CanvasRenderingContext2D,
+    coordinates: BitmapShapeItemCoordinates,
+): void {
+    if (item.size === 0) {
+        return;
+    }
 
-function drawShape(item: SeriesMarkerRendererDataItem, ctx: CanvasRenderingContext2D, coordinates: BitmapShapeItemCoordinates): void {
-	if (item.size === 0) {
-		return;
-	}
+    switch (item.shape) {
+        case 'arrowDown':
+            drawArrow(false, ctx, coordinates, item.size);
+            return;
+        case 'arrowUp':
+            drawArrow(true, ctx, coordinates, item.size);
+            return;
+        case 'circle':
+            drawCircle(ctx, coordinates, item.size);
+            return;
+        case 'square':
+            drawSquare(ctx, coordinates, item.size);
+            return;
+        case 'roundedSquare':
+            drawRoundedSquare(ctx, coordinates, item.size);
+            return;
+    }
 
-	switch (item.shape) {
-		case 'arrowDown':
-			drawArrow(false, ctx, coordinates, item.size);
-			return;
-		case 'arrowUp':
-			drawArrow(true, ctx, coordinates, item.size);
-			return;
-		case 'circle':
-			drawCircle(ctx, coordinates, item.size);
-			return;
-		case 'square':
-			drawSquare(ctx, coordinates, item.size);
-			return;
-		case 'roundedSquare':
-			drawRoundedSquare(ctx, coordinates, item.size);
-			return;
-	}
-
-	ensureNever(item.shape);
+    ensureNever(item.shape);
 }
 
 function hitTestItem(item: SeriesMarkerRendererDataItem, x: Coordinate, y: Coordinate): boolean {
-	if (item.text !== undefined && hitTestText(item.text.x, item.text.y, item.text.width, item.text.height, x, y)) {
-		return true;
-	}
+    if (item.text !== undefined && hitTestText(item.text.x, item.text.y, item.text.width, item.text.height, x, y)) {
+        return true;
+    }
 
-	return hitTestShape(item, x, y);
+    return hitTestShape(item, x, y);
 }
 
 function hitTestShape(item: SeriesMarkerRendererDataItem, x: Coordinate, y: Coordinate): boolean {
-	if (item.size === 0) {
-		return false;
-	}
+    if (item.size === 0) {
+        return false;
+    }
 
-	switch (item.shape) {
-		case 'arrowDown':
-			return hitTestArrow(true, item.x, item.y, item.size, x, y);
-		case 'arrowUp':
-			return hitTestArrow(false, item.x, item.y, item.size, x, y);
-		case 'circle':
-			return hitTestCircle(item.x, item.y, item.size, x, y);
-		case 'square':
-			return hitTestSquare(item.x, item.y, item.size, x, y);
-		case 'roundedSquare':
-			return hitTestRoundedSquare(item.x, item.y, item.size, x, y);
-	}
+    switch (item.shape) {
+        case 'arrowDown':
+            return hitTestArrow(true, item.x, item.y, item.size, x, y);
+        case 'arrowUp':
+            return hitTestArrow(false, item.x, item.y, item.size, x, y);
+        case 'circle':
+            return hitTestCircle(item.x, item.y, item.size, x, y);
+        case 'square':
+            return hitTestSquare(item.x, item.y, item.size, x, y);
+        case 'roundedSquare':
+            return hitTestRoundedSquare(item.x, item.y, item.size, x, y);
+    }
 }

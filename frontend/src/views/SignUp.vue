@@ -60,38 +60,48 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-    <AuthLayout :title="t('auth.signUpTitle')" :subtitle="t('auth.signUpSubtitle')">
-        <form class="signup" novalidate @submit.prevent="submit">
+    <AuthLayout
+        :title="t('auth.signUpTitle')"
+        :subtitle="t('auth.signUpSubtitle')">
+        <form
+            class="signup"
+            novalidate
+            @submit.prevent="submit">
             <AppField
                 v-model="username"
                 :label="t('auth.username')"
                 :placeholder="t('auth.usernamePlaceholder')"
                 :error="usernameError"
                 autocomplete="username"
-                autofocus
-            />
+                autofocus />
             <PasswordField
                 v-model="password"
                 :label="t('auth.password')"
                 :placeholder="t('auth.passwordPlaceholder')"
                 :error="passwordError"
-                autocomplete="new-password"
-            />
+                autocomplete="new-password" />
             <PasswordField
                 v-model="confirmation"
                 :label="t('auth.confirmPassword')"
                 :placeholder="t('auth.confirmPasswordPlaceholder')"
                 :error="confirmationError"
-                autocomplete="new-password"
-            />
+                autocomplete="new-password" />
 
             <label class="signup__terms">
-                <input v-model="agreed" type="checkbox" />
+                <input
+                    v-model="agreed"
+                    type="checkbox" />
                 <span>{{ t('auth.agreeToTerms') }}</span>
             </label>
 
-            <button type="submit" class="signup__submit" :disabled="pending">
-                <AppSpinner v-if="pending" size="sm" :label="t('auth.creating')" />
+            <button
+                type="submit"
+                class="signup__submit"
+                :disabled="pending">
+                <AppSpinner
+                    v-if="pending"
+                    size="sm"
+                    :label="t('auth.creating')" />
                 <span v-else>{{ t('auth.signUp') }}</span>
             </button>
 

@@ -26,7 +26,10 @@ const DAY = 86_400_000;
 export function holidaysFor(year: number): Holiday[] {
     const holidays: Holiday[] = [
         ...FIXED.map(({ month, day, name }) => ({ date: iso(observed(Date.UTC(year, month, day))), name })),
-        ...NTH_WEEKDAY.map(({ month, weekday, nth, name }) => ({ date: iso(nthWeekday(year, month, weekday, nth)), name })),
+        ...NTH_WEEKDAY.map(({ month, weekday, nth, name }) => ({
+            date: iso(nthWeekday(year, month, weekday, nth)),
+            name,
+        })),
         { date: iso(lastMonday(year, 4)), name: 'Memorial Day' },
         { date: iso(easter(year) - 2 * DAY), name: 'Good Friday' },
     ];

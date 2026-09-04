@@ -17,8 +17,7 @@ const { t } = useI18n();
             type="checkbox"
             :checked="value?.enabled === true"
             :disabled="busy"
-            @change="emit('apply', { enabled: ($event.target as HTMLInputElement).checked })"
-        >
+            @change="emit('apply', { enabled: ($event.target as HTMLInputElement).checked })" />
         <span>{{ t('screener.flagOn') }}</span>
     </label>
 </template>

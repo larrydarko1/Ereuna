@@ -3,17 +3,17 @@
 // see rollup.config.js for the reference
 
 declare namespace NodeJS {
-	interface ProcessEnv {
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		NODE_ENV: 'development' | 'production';
+    interface ProcessEnv {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        NODE_ENV: 'development' | 'production';
 
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		BUILD_VERSION: string;
-	}
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        BUILD_VERSION: string;
+    }
 
-	interface Process {
-		env: ProcessEnv;
-	}
+    interface Process {
+        env: ProcessEnv;
+    }
 }
 
 // eslint-disable-next-line no-var

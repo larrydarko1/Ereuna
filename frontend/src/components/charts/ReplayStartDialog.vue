@@ -48,11 +48,22 @@ function submit(): void {
 </script>
 
 <template>
-    <AppDialog :title="t('charts.replay.selectStart')" size="sm" @close="emit('close')">
-        <form class="replay-start" @submit.prevent="submit">
+    <AppDialog
+        :title="t('charts.replay.selectStart')"
+        size="sm"
+        @close="emit('close')">
+        <form
+            class="replay-start"
+            @submit.prevent="submit">
             <label class="replay-start__field">
                 <span class="replay-start__label">{{ t('charts.replay.startDate') }}</span>
-                <input v-model="date" class="replay-start__input" type="date" :min="min" :max="max" required />
+                <input
+                    v-model="date"
+                    class="replay-start__input"
+                    type="date"
+                    :min="min"
+                    :max="max"
+                    required />
             </label>
 
             <div class="replay-start__presets">
@@ -61,18 +72,24 @@ function submit(): void {
                     :key="months"
                     type="button"
                     class="replay-start__preset"
-                    @click="applyPreset(months)"
-                >
+                    @click="applyPreset(months)">
                     {{ t('charts.replay.monthsAgo', { count: months }) }}
                 </button>
-                <button type="button" class="replay-start__preset" @click="applyPreset(12)">
+                <button
+                    type="button"
+                    class="replay-start__preset"
+                    @click="applyPreset(12)">
                     {{ t('charts.replay.yearsAgo', { count: 1 }) }}
                 </button>
             </div>
         </form>
 
         <template #footer>
-            <button type="button" class="replay-start__confirm" :disabled="!valid" @click="submit">
+            <button
+                type="button"
+                class="replay-start__confirm"
+                :disabled="!valid"
+                @click="submit">
                 {{ t('charts.replay.start') }}
             </button>
         </template>

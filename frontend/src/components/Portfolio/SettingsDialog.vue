@@ -3,14 +3,18 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AppDialog from '@/components/ui/AppDialog.vue';
 
-const { summary, error = null, saving = false } = defineProps<{
+const {
+    summary,
+    error = null,
+    saving = false,
+} = defineProps<{
     summary: { baseValue: number; leverage: number; defaultCommission: number };
     error?: string | null;
     saving?: boolean;
 }>();
 
 const emit = defineEmits<{
-    close: [];
+    'close': [];
     'save-base-value': [value: number];
     'save-leverage': [value: number];
     'save-commission': [value: number];
@@ -27,15 +31,27 @@ const commission = ref(String(summary.defaultCommission));
 </script>
 
 <template>
-    <AppDialog :title="t('portfolio.settings')" size="sm" @close="emit('close')">
+    <AppDialog
+        :title="t('portfolio.settings')"
+        size="sm"
+        @close="emit('close')">
         <div class="settings-dialog">
             <section class="settings-dialog__row">
                 <label class="form-field">
                     <span class="form-label">{{ t('portfolio.baseValue') }}</span>
-                    <input v-model="baseValue" class="form-input" type="number" min="0" step="any" />
+                    <input
+                        v-model="baseValue"
+                        class="form-input"
+                        type="number"
+                        min="0"
+                        step="any" />
                 </label>
                 <p class="form-hint">{{ t('portfolio.baseValueHint') }}</p>
-                <button type="button" class="btn" :disabled="saving" @click="emit('save-base-value', Number(baseValue))">
+                <button
+                    type="button"
+                    class="btn"
+                    :disabled="saving"
+                    @click="emit('save-base-value', Number(baseValue))">
                     {{ t('common.save') }}
                 </button>
             </section>
@@ -43,10 +59,20 @@ const commission = ref(String(summary.defaultCommission));
             <section class="settings-dialog__row">
                 <label class="form-field">
                     <span class="form-label">{{ t('portfolio.leverage') }}</span>
-                    <input v-model="leverage" class="form-input" type="number" min="1" :max="MAX_LEVERAGE" step="0.1" />
+                    <input
+                        v-model="leverage"
+                        class="form-input"
+                        type="number"
+                        min="1"
+                        :max="MAX_LEVERAGE"
+                        step="0.1" />
                 </label>
                 <p class="form-hint">{{ t('portfolio.leverageHint') }}</p>
-                <button type="button" class="btn" :disabled="saving" @click="emit('save-leverage', Number(leverage))">
+                <button
+                    type="button"
+                    class="btn"
+                    :disabled="saving"
+                    @click="emit('save-leverage', Number(leverage))">
                     {{ t('common.save') }}
                 </button>
             </section>
@@ -54,15 +80,29 @@ const commission = ref(String(summary.defaultCommission));
             <section class="settings-dialog__row">
                 <label class="form-field">
                     <span class="form-label">{{ t('portfolio.defaultCommission') }}</span>
-                    <input v-model="commission" class="form-input" type="number" min="0" step="any" />
+                    <input
+                        v-model="commission"
+                        class="form-input"
+                        type="number"
+                        min="0"
+                        step="any" />
                 </label>
                 <p class="form-hint">{{ t('portfolio.commissionHint') }}</p>
-                <button type="button" class="btn" :disabled="saving" @click="emit('save-commission', Number(commission))">
+                <button
+                    type="button"
+                    class="btn"
+                    :disabled="saving"
+                    @click="emit('save-commission', Number(commission))">
                     {{ t('common.save') }}
                 </button>
             </section>
 
-            <p v-if="error !== null" class="form-error" role="alert">{{ error }}</p>
+            <p
+                v-if="error !== null"
+                class="form-error"
+                role="alert"
+                >{{ error }}</p
+            >
         </div>
     </AppDialog>
 </template>

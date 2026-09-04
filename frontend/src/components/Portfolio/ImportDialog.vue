@@ -46,31 +46,54 @@ async function onFile(event: Event): Promise<void> {
 </script>
 
 <template>
-    <AppDialog :title="t('portfolio.import')" size="sm" @close="emit('close')">
+    <AppDialog
+        :title="t('portfolio.import')"
+        size="sm"
+        @close="emit('close')">
         <div class="import-dialog">
             <p class="form-hint">{{ t('portfolio.importHint') }}</p>
 
             <label class="form-field">
                 <span class="form-label">{{ t('portfolio.importFile') }}</span>
-                <input class="form-input" type="file" accept="application/json,.json" @change="onFile" />
+                <input
+                    class="form-input"
+                    type="file"
+                    accept="application/json,.json"
+                    @change="onFile" />
             </label>
 
-            <p v-if="summary !== null" class="import-dialog__summary">
+            <p
+                v-if="summary !== null"
+                class="import-dialog__summary">
                 {{ t('portfolio.importSummary', { trades: summary.trades }) }}
             </p>
 
-            <p v-if="problem !== null" class="form-error" role="alert">{{ problem }}</p>
-            <p v-else-if="error !== null" class="form-error" role="alert">{{ error }}</p>
+            <p
+                v-if="problem !== null"
+                class="form-error"
+                role="alert"
+                >{{ problem }}</p
+            >
+            <p
+                v-else-if="error !== null"
+                class="form-error"
+                role="alert"
+                >{{ error }}</p
+            >
         </div>
 
         <template #footer>
-            <button type="button" class="btn" @click="emit('close')">{{ t('common.cancel') }}</button>
+            <button
+                type="button"
+                class="btn"
+                @click="emit('close')"
+                >{{ t('common.cancel') }}</button
+            >
             <button
                 type="button"
                 class="btn btn--primary"
                 :disabled="parsed === null || saving"
-                @click="parsed !== null && emit('submit', parsed)"
-            >
+                @click="parsed !== null && emit('submit', parsed)">
                 {{ saving ? t('common.saving') : t('portfolio.import') }}
             </button>
         </template>

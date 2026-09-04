@@ -586,6 +586,7 @@
         "noSplitsData": "No hay datos de divisiones disponibles",
         "noNewsAvailable": "No hay noticias disponibles.",
         "created": "Creado:",
+        "edited": "Editado:",
         "noNotesAvailable": "No hay notas disponibles.",
         "viewFinancialStatements": "Ver Estados Financieros",
         "showAll": "Mostrar Todo",
@@ -803,7 +804,9 @@
         "newNote": "Nueva Nota",
         "placeholder": "Escribir notas aquí",
         "deleteNote": "Eliminar nota",
+        "editNote": "Editar nota",
         "saveFailed": "Error al crear la nota",
+        "updateFailed": "No se pudo actualizar la nota",
         "deleteFailed": "No se pudo eliminar la nota"
     },
     "watchlist": {

@@ -6,7 +6,16 @@ import { dailySeries, lifetimeStats, type LifetimeStats, type Series } from '@/o
 import { generateSignals } from '@/organize/signals.js';
 import { chunk, type Asset } from '@/organize/universe.js';
 import { setOn, writeAssetInfo } from '@/organize/write.js';
-import { averageDailyVolatility, cagr, changeOver, extremes, MIN_CAGR_YEARS, round, rsi, sma } from '@/utils/indicators.js';
+import {
+    averageDailyVolatility,
+    cagr,
+    changeOver,
+    extremes,
+    MIN_CAGR_YEARS,
+    round,
+    rsi,
+    sma,
+} from '@/utils/indicators.js';
 
 type Ranking = { symbol: string; change: number };
 
@@ -75,53 +84,53 @@ function metricsFor(asset: Asset, bars: Series, lifetime: LifetimeStats | undefi
     const low52 = extremes(lows.slice(lows.length - window52)).low;
 
     return {
-        TimeSeries: {
+        'TimeSeries': {
             open: round(closes.length === 0 ? null : (bars.opens[bars.opens.length - 1] ?? null), 2),
             high: round(highs[highs.length - 1] ?? null, 2),
             low: round(lows[lows.length - 1] ?? null, 2),
             close: round(close, 2),
             volume: round(volumes[volumes.length - 1] ?? null, 2),
         },
-        MarketCapitalization: marketCap,
-        RSI: round(rsi(closes), 2),
-        Gap: round(percent(changeOver(closes, 1)), 2),
+        'MarketCapitalization': marketCap,
+        'RSI': round(rsi(closes), 2),
+        'Gap': round(percent(changeOver(closes, 1)), 2),
 
         ...Object.fromEntries(MA_PERIODS.map((period) => [`MA${period}`, round(sma(closes, period), 2)])),
 
-        AvgVolume1W: whole(sma(volumes, WEEK)),
-        AvgVolume1M: whole(sma(volumes, MONTH)),
-        AvgVolume6M: whole(sma(volumes, SIX_MONTHS)),
-        AvgVolume1Y: whole(sma(volumes, YEAR)),
-        RelVolume1W: relativeVolume(volumes, WEEK),
-        RelVolume1M: relativeVolume(volumes, MONTH),
-        RelVolume6M: relativeVolume(volumes, SIX_MONTHS),
-        RelVolume1Y: relativeVolume(volumes, YEAR),
+        'AvgVolume1W': whole(sma(volumes, WEEK)),
+        'AvgVolume1M': whole(sma(volumes, MONTH)),
+        'AvgVolume6M': whole(sma(volumes, SIX_MONTHS)),
+        'AvgVolume1Y': whole(sma(volumes, YEAR)),
+        'RelVolume1W': relativeVolume(volumes, WEEK),
+        'RelVolume1M': relativeVolume(volumes, MONTH),
+        'RelVolume6M': relativeVolume(volumes, SIX_MONTHS),
+        'RelVolume1Y': relativeVolume(volumes, YEAR),
 
-        ADV1W: round(averageDailyVolatility(closes, WEEK), 4),
-        ADV1M: round(averageDailyVolatility(closes, MONTH), 4),
-        ADV4M: round(averageDailyVolatility(closes, FOUR_MONTHS), 4),
-        ADV1Y: round(averageDailyVolatility(closes, YEAR), 4),
+        'ADV1W': round(averageDailyVolatility(closes, WEEK), 4),
+        'ADV1M': round(averageDailyVolatility(closes, MONTH), 4),
+        'ADV4M': round(averageDailyVolatility(closes, FOUR_MONTHS), 4),
+        'ADV1Y': round(averageDailyVolatility(closes, YEAR), 4),
 
-        todaychange: round(changeOver(closes, 1), 4),
-        weekchange: round(changeOver(closes, WEEK), 4),
+        'todaychange': round(changeOver(closes, 1), 4),
+        'weekchange': round(changeOver(closes, WEEK), 4),
         '1mchange': round(changeOver(closes, MONTH), 4),
-        quarterchange: round(changeOver(closes, QUARTER), 4),
+        'quarterchange': round(changeOver(closes, QUARTER), 4),
         '4mchange': round(changeOver(closes, FOUR_MONTHS), 4),
         '6mchange': round(changeOver(closes, SIX_MONTHS), 4),
         '1ychange': round(changeOver(closes, YEAR), 4),
-        ytdchange: round(yearToDate(bars), 4),
+        'ytdchange': round(yearToDate(bars), 4),
 
-        AlltimeHigh: lifetime?.high ?? high52,
-        AlltimeLow: lifetime?.low ?? low52,
-        fiftytwoWeekHigh: high52,
-        fiftytwoWeekLow: low52,
-        percoff52WeekHigh: offExtreme(close, high52),
-        percoff52WeekLow: offExtreme(close, low52),
+        'AlltimeHigh': lifetime?.high ?? high52,
+        'AlltimeLow': lifetime?.low ?? low52,
+        'fiftytwoWeekHigh': high52,
+        'fiftytwoWeekLow': low52,
+        'percoff52WeekHigh': offExtreme(close, high52),
+        'percoff52WeekLow': offExtreme(close, low52),
 
         ...growthSinceListing(lifetime),
 
-        Signals: generateSignals(bars),
-        metricsUpdatedAt: latest ?? null,
+        'Signals': generateSignals(bars),
+        'metricsUpdatedAt': latest ?? null,
     };
 }
 

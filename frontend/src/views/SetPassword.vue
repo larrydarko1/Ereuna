@@ -47,24 +47,35 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-    <AuthLayout :title="t('auth.setPassword.title')" :subtitle="t('auth.setPassword.subtitle')">
-        <form class="set-password" novalidate @submit.prevent="submit">
+    <AuthLayout
+        :title="t('auth.setPassword.title')"
+        :subtitle="t('auth.setPassword.subtitle')">
+        <form
+            class="set-password"
+            novalidate
+            @submit.prevent="submit">
             <PasswordField
                 v-model="next"
                 :label="t('auth.setPassword.new')"
                 :error="nextError"
-                autocomplete="new-password"
-            />
+                autocomplete="new-password" />
             <PasswordField
                 v-model="confirmation"
                 :label="t('auth.setPassword.confirm')"
                 :error="confirmationError"
-                autocomplete="new-password"
-            />
+                autocomplete="new-password" />
 
-            <p v-if="error !== null" class="form-error" role="alert">{{ error }}</p>
+            <p
+                v-if="error !== null"
+                class="form-error"
+                role="alert"
+                >{{ error }}</p
+            >
 
-            <button type="submit" class="btn btn--primary" :disabled="pending">
+            <button
+                type="submit"
+                class="btn btn--primary"
+                :disabled="pending">
                 {{ pending ? t('common.processing') : t('auth.setPassword.submit') }}
             </button>
         </form>

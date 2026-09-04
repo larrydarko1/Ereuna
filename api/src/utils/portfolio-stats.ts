@@ -117,7 +117,12 @@ export function closedLots(trades: readonly ReplayTrade[]): ClosedLot[] {
         const perShare = trade.shares === 0 ? 0 : trade.commission / trade.shares;
 
         if (trade.action === 'buy' || trade.action === 'short') {
-            queue.push({ shares: trade.shares, price: trade.price, date: trade.tradeDate, commissionPerShare: perShare });
+            queue.push({
+                shares: trade.shares,
+                price: trade.price,
+                date: trade.tradeDate,
+                commissionPerShare: perShare,
+            });
             continue;
         }
 
@@ -181,7 +186,10 @@ function sortino(lots: readonly ClosedLot[]): number | null {
 }
 
 /** The best and worst symbols by total realised profit, with how many lots each closed. */
-function extremes(lots: readonly ClosedLot[]): { biggestWinner: TradeExtreme | null; biggestLoser: TradeExtreme | null } {
+function extremes(lots: readonly ClosedLot[]): {
+    biggestWinner: TradeExtreme | null;
+    biggestLoser: TradeExtreme | null;
+} {
     const totals = new Map<string, { amount: number; tradeCount: number }>();
     for (const lot of lots) {
         const entry = totals.get(lot.symbol) ?? { amount: 0, tradeCount: 0 };
@@ -196,8 +204,14 @@ function extremes(lots: readonly ClosedLot[]): { biggestWinner: TradeExtreme | n
     if (best === undefined || worst === undefined) return { biggestWinner: null, biggestLoser: null };
 
     return {
-        biggestWinner: best[1].amount > 0 ? { ticker: best[0], amount: round(best[1].amount), tradeCount: best[1].tradeCount } : null,
-        biggestLoser: worst[1].amount < 0 ? { ticker: worst[0], amount: round(Math.abs(worst[1].amount)), tradeCount: worst[1].tradeCount } : null,
+        biggestWinner:
+            best[1].amount > 0
+                ? { ticker: best[0], amount: round(best[1].amount), tradeCount: best[1].tradeCount }
+                : null,
+        biggestLoser:
+            worst[1].amount < 0
+                ? { ticker: worst[0], amount: round(Math.abs(worst[1].amount)), tradeCount: worst[1].tradeCount }
+                : null,
     };
 }
 

@@ -586,6 +586,7 @@
         "noSplitsData": "分割データがありません",
         "noNewsAvailable": "ニュースがありません。",
         "created": "作成日:",
+        "edited": "更新日:",
         "noNotesAvailable": "ノートがありません。",
         "viewFinancialStatements": "財務諸表を表示",
         "showAll": "すべて表示",
@@ -803,7 +804,9 @@
         "newNote": "新しいノート",
         "placeholder": "ここにノートを書く",
         "deleteNote": "メモを削除",
+        "editNote": "メモを編集",
         "saveFailed": "ノートの作成に失敗しました",
+        "updateFailed": "メモを更新できませんでした",
         "deleteFailed": "メモを削除できませんでした"
     },
     "watchlist": {

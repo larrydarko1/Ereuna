@@ -66,10 +66,7 @@ async function restoreWeekToDate(): Promise<void> {
     const weekStart = new Date(bucketStart('1w', Date.now()));
 
     try {
-        const bars = await getDb()
-            .collection<CandleDoc>(WEEKLY_COLLECTION)
-            .find({ timestamp: weekStart })
-            .toArray();
+        const bars = await getDb().collection<CandleDoc>(WEEKLY_COLLECTION).find({ timestamp: weekStart }).toArray();
 
         seedWeekly(bars);
         logger.info({ weekStart: weekStart.toISOString(), bars: bars.length }, 'Week-to-date bars restored');

@@ -25,18 +25,12 @@ export function toSummary(doc: WithId<ScreenerDoc>): ScreenerSummary {
 }
 
 export async function listScreeners(userId: ObjectId): Promise<ScreenerSummary[]> {
-    const docs = await getDb()
-        .collection<ScreenerDoc>('Screeners')
-        .find({ userId })
-        .sort({ nameLower: 1 })
-        .toArray();
+    const docs = await getDb().collection<ScreenerDoc>('Screeners').find({ userId }).sort({ nameLower: 1 }).toArray();
     return docs.map(toSummary);
 }
 
 export async function getScreener(userId: ObjectId, name: string): Promise<WithId<ScreenerDoc>> {
-    const doc = await getDb()
-        .collection<ScreenerDoc>('Screeners')
-        .findOne({ userId, nameLower: name.toLowerCase() });
+    const doc = await getDb().collection<ScreenerDoc>('Screeners').findOne({ userId, nameLower: name.toLowerCase() });
 
     if (doc === null) throw new AppError(404, 'SCREENER_NOT_FOUND', `screener ${name} not found`);
     return doc;

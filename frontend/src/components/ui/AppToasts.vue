@@ -9,7 +9,10 @@ useNotificationCleanup();
 </script>
 
 <template>
-    <div class="toasts" role="region" :aria-label="t('common.notifications')">
+    <div
+        class="toasts"
+        role="region"
+        :aria-label="t('common.notifications')">
         <TransitionGroup name="toast">
             <div
                 v-for="toast in toasts"
@@ -17,22 +20,22 @@ useNotificationCleanup();
                 class="toast"
                 :class="`toast--${toast.tone}`"
                 :role="toast.tone === 'error' ? 'alert' : 'status'"
-                :aria-live="toast.tone === 'error' ? 'assertive' : 'polite'"
-            >
+                :aria-live="toast.tone === 'error' ? 'assertive' : 'polite'">
                 <p class="toast__message">{{ toast.message }}</p>
                 <button
                     type="button"
                     class="toast__dismiss"
                     :aria-label="t('common.close')"
-                    @click="dismiss(toast.id)"
-                >
-                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    @click="dismiss(toast.id)">
+                    <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                        focusable="false">
                         <path
                             d="M6 6 18 18M18 6 6 18"
                             stroke="currentColor"
                             stroke-width="2.5"
-                            stroke-linecap="round"
-                        />
+                            stroke-linecap="round" />
                     </svg>
                 </button>
             </div>

@@ -99,19 +99,37 @@ router.get(
             Promise.all(
                 RANGE_FILTERS.map(async (spec) => {
                     const bounds = await screenerService.tryGetBounds(() => screenerService.getRangeBounds(spec));
-                    return { key: spec.key, label: spec.label, kind: 'range' as const, bounds, available: bounds !== null };
+                    return {
+                        key: spec.key,
+                        label: spec.label,
+                        kind: 'range' as const,
+                        bounds,
+                        available: bounds !== null,
+                    };
                 }),
             ),
             Promise.all(
                 ENUM_FILTERS.map(async (spec) => {
                     const options = await screenerService.getEnumOptions(spec);
-                    return { key: spec.key, label: spec.label, kind: 'enum' as const, options, available: options.length > 0 };
+                    return {
+                        key: spec.key,
+                        label: spec.label,
+                        kind: 'enum' as const,
+                        options,
+                        available: options.length > 0,
+                    };
                 }),
             ),
             Promise.all(
                 DATE_FILTERS.map(async (spec) => {
                     const bounds = await screenerService.tryGetBounds(() => screenerService.getDateBounds(spec));
-                    return { key: spec.key, label: spec.label, kind: 'date' as const, bounds, available: bounds !== null };
+                    return {
+                        key: spec.key,
+                        label: spec.label,
+                        kind: 'date' as const,
+                        bounds,
+                        available: bounds !== null,
+                    };
                 }),
             ),
         ]);
@@ -129,7 +147,12 @@ router.get(
                     directions: MA_DIRECTIONS,
                     targets: MA_TARGETS,
                 })),
-                ...FLAG_FILTERS.map((spec) => ({ key: spec.key, label: spec.label, kind: 'flag' as const, available: true })),
+                ...FLAG_FILTERS.map((spec) => ({
+                    key: spec.key,
+                    label: spec.label,
+                    kind: 'flag' as const,
+                    available: true,
+                })),
             ],
         });
     }),
@@ -167,9 +190,7 @@ router.patch(
         const userId = authedUserId(req);
         const { name } = req.params;
 
-        let summary = await screenerService
-            .getScreener(userId, name)
-            .then((doc) => screenerService.toSummary(doc));
+        let summary = await screenerService.getScreener(userId, name).then((doc) => screenerService.toSummary(doc));
 
         if (req.body.include !== undefined) {
             summary = await screenerService.setScreenerIncluded(userId, name, req.body.include);
@@ -237,7 +258,10 @@ router.put(
         }
 
         if (findDateFilter(filter) !== undefined) {
-            const screener = await screenerService.setDateFilter(userId, name, filter, { from: body.from, to: body.to });
+            const screener = await screenerService.setDateFilter(userId, name, filter, {
+                from: body.from,
+                to: body.to,
+            });
             res.json({ filters: screener.filters });
             return;
         }

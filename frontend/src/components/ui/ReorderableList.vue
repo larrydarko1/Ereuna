@@ -38,15 +38,17 @@ function remove(key: string): void {
 <template>
     <div class="reorderable">
         <ol class="reorderable__list">
-            <li v-for="(item, index) in chosen" :key="item.key" class="reorderable__row">
+            <li
+                v-for="(item, index) in chosen"
+                :key="item.key"
+                class="reorderable__row">
                 <span class="reorderable__label">{{ item.label }}</span>
                 <button
                     type="button"
                     class="reorderable__button"
                     :aria-label="t('panels.moveUp', { name: item.label })"
                     :disabled="index === 0"
-                    @click="move(index, -1)"
-                >
+                    @click="move(index, -1)">
                     <span aria-hidden="true">↑</span>
                 </button>
                 <button
@@ -54,16 +56,14 @@ function remove(key: string): void {
                     class="reorderable__button"
                     :aria-label="t('panels.moveDown', { name: item.label })"
                     :disabled="index === chosen.length - 1"
-                    @click="move(index, 1)"
-                >
+                    @click="move(index, 1)">
                     <span aria-hidden="true">↓</span>
                 </button>
                 <button
                     type="button"
                     class="reorderable__button"
                     :aria-label="t('panels.hide', { name: item.label })"
-                    @click="remove(item.key)"
-                >
+                    @click="remove(item.key)">
                     <span aria-hidden="true">✕</span>
                 </button>
             </li>
@@ -72,14 +72,16 @@ function remove(key: string): void {
         <template v-if="available.length > 0">
             <p class="reorderable__heading">{{ t('panels.hidden') }}</p>
             <ul class="reorderable__list">
-                <li v-for="item in available" :key="item.key" class="reorderable__row">
+                <li
+                    v-for="item in available"
+                    :key="item.key"
+                    class="reorderable__row">
                     <span class="reorderable__label reorderable__label--muted">{{ item.label }}</span>
                     <button
                         type="button"
                         class="reorderable__button"
                         :aria-label="t('panels.show', { name: item.label })"
-                        @click="add(item.key)"
-                    >
+                        @click="add(item.key)">
                         <span aria-hidden="true">+</span>
                     </button>
                 </li>

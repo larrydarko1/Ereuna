@@ -5,11 +5,7 @@ import { CHART_STYLES, type ChartIndicator, type ChartSettings } from '@ereuna/s
 import { apiErrorMessage } from '@/api/client';
 import AppDialog from '@/components/ui/AppDialog.vue';
 import { useChartTheme } from '@/composables/charts/useChartTheme';
-import {
-    DEFAULT_CHART_SETTINGS,
-    MAX_INDICATOR_PERIOD,
-    useChartSettings,
-} from '@/composables/charts/useChartSettings';
+import { DEFAULT_CHART_SETTINGS, MAX_INDICATOR_PERIOD, useChartSettings } from '@/composables/charts/useChartSettings';
 
 const emit = defineEmits<{ close: [] }>();
 
@@ -63,12 +59,22 @@ function setPeriod(indicator: ChartIndicator, value: string): void {
 </script>
 
 <template>
-    <AppDialog :title="t('charts.settings.title')" size="md" @close="emit('close')">
-        <form class="chart-settings" @submit.prevent="submit">
+    <AppDialog
+        :title="t('charts.settings.title')"
+        size="md"
+        @close="emit('close')">
+        <form
+            class="chart-settings"
+            @submit.prevent="submit">
             <label class="chart-settings__row">
                 <span class="chart-settings__label">{{ t('charts.settings.style') }}</span>
-                <select v-model="draft.style" class="chart-settings__select">
-                    <option v-for="style in CHART_STYLES" :key="style" :value="style">
+                <select
+                    v-model="draft.style"
+                    class="chart-settings__select">
+                    <option
+                        v-for="style in CHART_STYLES"
+                        :key="style"
+                        :value="style">
                         {{ t(`charts.styles.${style}`) }}
                     </option>
                 </select>
@@ -77,13 +83,17 @@ function setPeriod(indicator: ChartIndicator, value: string): void {
             <fieldset class="chart-settings__group">
                 <legend class="chart-settings__legend">{{ t('charts.settings.overlays') }}</legend>
 
-                <div v-for="(indicator, index) in draft.indicators" :key="index" class="chart-settings__indicator">
+                <div
+                    v-for="(indicator, index) in draft.indicators"
+                    :key="index"
+                    class="chart-settings__indicator">
                     <label class="chart-settings__toggle">
-                        <input v-model="indicator.visible" type="checkbox" />
+                        <input
+                            v-model="indicator.visible"
+                            type="checkbox" />
                         <span
                             class="chart-settings__swatch"
-                            :style="{ background: palette.overlays[index] }"
-                        ></span>
+                            :style="{ background: palette.overlays[index] }"></span>
                         <span class="chart-settings__visually-hidden">
                             {{ t('charts.settings.showOverlay', { number: index + 1 }) }}
                         </span>
@@ -92,9 +102,13 @@ function setPeriod(indicator: ChartIndicator, value: string): void {
                     <select
                         v-model="indicator.type"
                         class="chart-settings__select"
-                        :aria-label="t('charts.settings.overlayType', { number: index + 1 })"
-                    >
-                        <option v-for="type in OVERLAY_TYPES" :key="type" :value="type">{{ type }}</option>
+                        :aria-label="t('charts.settings.overlayType', { number: index + 1 })">
+                        <option
+                            v-for="type in OVERLAY_TYPES"
+                            :key="type"
+                            :value="type"
+                            >{{ type }}</option
+                        >
                     </select>
 
                     <input
@@ -104,33 +118,52 @@ function setPeriod(indicator: ChartIndicator, value: string): void {
                         :max="MAX_INDICATOR_PERIOD"
                         :value="indicator.period"
                         :aria-label="t('charts.settings.overlayPeriod', { number: index + 1 })"
-                        @input="setPeriod(indicator, ($event.target as HTMLInputElement).value)"
-                    />
+                        @input="setPeriod(indicator, ($event.target as HTMLInputElement).value)" />
                 </div>
             </fieldset>
 
             <fieldset class="chart-settings__group">
                 <legend class="chart-settings__legend">{{ t('charts.settings.markers') }}</legend>
 
-                <label v-for="marker in MARKERS" :key="marker" class="chart-settings__check">
-                    <input v-model="draft.markers[marker]" type="checkbox" />
+                <label
+                    v-for="marker in MARKERS"
+                    :key="marker"
+                    class="chart-settings__check">
+                    <input
+                        v-model="draft.markers[marker]"
+                        type="checkbox" />
                     <span>{{ t(`charts.settings.marker.${marker}`) }}</span>
                 </label>
 
                 <label class="chart-settings__check">
-                    <input v-model="draft.intrinsicValue" type="checkbox" />
+                    <input
+                        v-model="draft.intrinsicValue"
+                        type="checkbox" />
                     <span>{{ t('charts.settings.intrinsicValue') }}</span>
                 </label>
             </fieldset>
 
-            <p v-if="error !== null" class="chart-settings__error" role="alert">{{ error }}</p>
+            <p
+                v-if="error !== null"
+                class="chart-settings__error"
+                role="alert"
+                >{{ error }}</p
+            >
         </form>
 
         <template #footer>
-            <button type="button" class="chart-settings__link" :disabled="saving" @click="restoreDefaults">
+            <button
+                type="button"
+                class="chart-settings__link"
+                :disabled="saving"
+                @click="restoreDefaults">
                 {{ t('charts.settings.restoreDefaults') }}
             </button>
-            <button type="button" class="chart-settings__save" :disabled="saving" @click="submit">
+            <button
+                type="button"
+                class="chart-settings__save"
+                :disabled="saving"
+                @click="submit">
                 {{ t('common.save') }}
             </button>
         </template>

@@ -16,7 +16,7 @@ const Env = z
         ...mongoEnv,
         ...redisEnv,
 
-            WORKER_ROLE: z.enum(WORKER_ROLES).default('all'),
+        WORKER_ROLE: z.enum(WORKER_ROLES).default('all'),
 
         TIINGO_KEY: z.string().default(''),
 
@@ -38,7 +38,8 @@ const Env = z
             ctx.addIssue({
                 code: 'custom',
                 path: ['TIINGO_KEY'],
-                message: 'TIINGO_KEY is required unless WORKER_ROLE is "aggregate": the nightly run has nothing to fetch without it',
+                message:
+                    'TIINGO_KEY is required unless WORKER_ROLE is "aggregate": the nightly run has nothing to fetch without it',
             });
         }
     });

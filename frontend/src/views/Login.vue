@@ -97,29 +97,40 @@ function destination(): { name: string } | string {
 </script>
 
 <template>
-    <AuthLayout :title="t('auth.signInTitle')" :subtitle="t('auth.signInSubtitle')">
-        <form class="login" novalidate @submit.prevent="submit">
+    <AuthLayout
+        :title="t('auth.signInTitle')"
+        :subtitle="t('auth.signInSubtitle')">
+        <form
+            class="login"
+            novalidate
+            @submit.prevent="submit">
             <AppField
                 v-model="username"
                 :label="t('auth.username')"
                 :placeholder="t('auth.usernamePlaceholder')"
                 autocomplete="username"
-                autofocus
-            />
+                autofocus />
             <PasswordField
                 v-model="password"
                 :label="t('auth.password')"
                 :placeholder="t('auth.passwordPlaceholder')"
-                autocomplete="current-password"
-            />
+                autocomplete="current-password" />
 
             <label class="login__remember">
-                <input v-model="rememberMe" type="checkbox" />
+                <input
+                    v-model="rememberMe"
+                    type="checkbox" />
                 <span>{{ t('auth.rememberMe') }}</span>
             </label>
 
-            <button type="submit" class="login__submit" :disabled="!canSubmit">
-                <AppSpinner v-if="pending" size="sm" :label="t('auth.submitting')" />
+            <button
+                type="submit"
+                class="login__submit"
+                :disabled="!canSubmit">
+                <AppSpinner
+                    v-if="pending"
+                    size="sm"
+                    :label="t('auth.submitting')" />
                 <span v-else>{{ t('auth.signIn') }}</span>
             </button>
 
@@ -135,8 +146,7 @@ function destination(): { name: string } | string {
             ref="twoFactor"
             :pending="pending"
             @submit="verify"
-            @cancel="cancelTwoFactor"
-        />
+            @cancel="cancelTwoFactor" />
     </AuthLayout>
 </template>
 

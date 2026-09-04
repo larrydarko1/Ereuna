@@ -135,22 +135,23 @@ app.get('/livez', (_req: express.Request, res: express.Response) => {
 // Must be registered after every route: Express finds it by its 4-arg signature.
 app.use(errorHandler);
 
-
 /**
  * Startup is all-or-nothing. A half-booted server that accepts requests with no
  * database behind it fails every one of them with a 500 that says nothing about
  * the cause, so a failure here kills the process with a logged reason instead.
+ * One chained statement rather than a `const` nothing reads: the binding made
+ * this look like state, which has to sort above the middleware and the route
+ * table, when what it actually is is the last side effect in the file.
  */
-const startup = connectDb()
+connectDb()
     .then(() => initSocket(server))
     .then(() => {
         server.listen(config.port, () => logger.info({ port: config.port }, 'API listening'));
+    })
+    .catch((err: Error) => {
+        logger.fatal({ err }, 'API startup failed');
+        process.exit(1);
     });
-    
-startup.catch((err: Error) => {
-    logger.fatal({ err }, 'API startup failed');
-    process.exit(1);
-});
 
 /**
  * Graceful shutdown: close the gateway first, then stop accepting connections,

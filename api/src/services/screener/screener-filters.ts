@@ -110,7 +110,10 @@ export async function setMaFilter(
     const spec = findMaFilter(filterKey);
     if (spec === undefined) throw unknownFilter(filterKey);
 
-    if (!(MA_DIRECTIONS as readonly string[]).includes(direction) || !(MA_TARGETS as readonly string[]).includes(target)) {
+    if (
+        !(MA_DIRECTIONS as readonly string[]).includes(direction) ||
+        !(MA_TARGETS as readonly string[]).includes(target)
+    ) {
         throw new AppError(422, 'INVALID_FILTER_OPTION', `${direction}/${target} is not a valid MA relation`, {
             params: { filter: spec.key },
         });
@@ -137,7 +140,11 @@ export async function setFlagFilter(
     return writeFilter(userId, screenerName, spec.field, enabled);
 }
 
-export async function clearFilter(userId: ObjectId, screenerName: string, filterKey: string): Promise<WithId<ScreenerDoc>> {
+export async function clearFilter(
+    userId: ObjectId,
+    screenerName: string,
+    filterKey: string,
+): Promise<WithId<ScreenerDoc>> {
     const field = resolveField(filterKey);
 
     const updated = await getDb()
@@ -155,7 +162,9 @@ export async function clearFilter(userId: ObjectId, screenerName: string, filter
 }
 
 export async function resetFilters(userId: ObjectId, screenerName: string): Promise<WithId<ScreenerDoc>> {
-    const unset: Record<string, ''> = Object.fromEntries(ALL_FILTER_FIELDS.map((field) => [`filters.${field}`, '' as const]));
+    const unset: Record<string, ''> = Object.fromEntries(
+        ALL_FILTER_FIELDS.map((field) => [`filters.${field}`, '' as const]),
+    );
 
     const updated = await getDb()
         .collection<ScreenerDoc>('Screeners')

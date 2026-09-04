@@ -85,20 +85,26 @@ function onPointerMove(event: PointerEvent): void {
             role="img"
             :aria-label="label"
             @pointermove="onPointerMove"
-            @pointerleave="hovered = null"
-        >
+            @pointerleave="hovered = null">
             <template v-if="shape !== null">
-                <path class="line-chart__area" :d="shape.area" />
-                <path class="line-chart__line" :d="shape.line" />
+                <path
+                    class="line-chart__area"
+                    :d="shape.area" />
+                <path
+                    class="line-chart__line"
+                    :d="shape.line" />
                 <g v-if="active !== null">
                     <line
                         class="line-chart__crosshair"
                         :x1="active.x"
                         :x2="active.x"
                         y1="0"
-                        :y2="HEIGHT"
-                    />
-                    <circle class="line-chart__dot" :cx="active.x" :cy="active.y" :r="6" />
+                        :y2="HEIGHT" />
+                    <circle
+                        class="line-chart__dot"
+                        :cx="active.x"
+                        :cy="active.y"
+                        :r="6" />
                 </g>
             </template>
         </svg>
@@ -108,7 +114,11 @@ function onPointerMove(event: PointerEvent): void {
                 <span class="line-chart__readout-label">{{ active.point.label }}</span>
                 <span class="line-chart__readout-value">{{ format(active.point.value) }}</span>
             </template>
-            <span v-else class="line-chart__readout-label">{{ label }}</span>
+            <span
+                v-else
+                class="line-chart__readout-label"
+                >{{ label }}</span
+            >
         </figcaption>
     </figure>
 </template>

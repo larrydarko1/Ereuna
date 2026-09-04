@@ -35,16 +35,28 @@ function submit(): void {
 </script>
 
 <template>
-    <AppDialog :title="t('portfolio.cash')" @close="emit('close')">
-        <form class="cash-dialog" @submit.prevent="submit">
+    <AppDialog
+        :title="t('portfolio.cash')"
+        @close="emit('close')">
+        <form
+            class="cash-dialog"
+            @submit.prevent="submit">
             <fieldset class="form-options">
                 <legend class="form-legend">{{ t('portfolio.action') }}</legend>
                 <label class="form-option">
-                    <input v-model="action" type="radio" value="deposit" name="cash-action" />
+                    <input
+                        v-model="action"
+                        type="radio"
+                        value="deposit"
+                        name="cash-action" />
                     <span>{{ t('portfolio.actions.deposit') }}</span>
                 </label>
                 <label class="form-option">
-                    <input v-model="action" type="radio" value="withdrawal" name="cash-action" />
+                    <input
+                        v-model="action"
+                        type="radio"
+                        value="withdrawal"
+                        name="cash-action" />
                     <span>{{ t('portfolio.actions.withdrawal') }}</span>
                 </label>
             </fieldset>
@@ -58,29 +70,39 @@ function submit(): void {
                     min="0"
                     step="any"
                     required
-                    autofocus
-                />
+                    autofocus />
             </label>
 
             <label class="form-field">
                 <span class="form-label">{{ t('portfolio.date') }}</span>
-                <input v-model="tradeDate" class="form-input" type="date" required />
+                <input
+                    v-model="tradeDate"
+                    class="form-input"
+                    type="date"
+                    required />
             </label>
 
             <p class="form-hint">{{ t('portfolio.cashHint') }}</p>
-            <p v-if="error !== null" class="form-error" role="alert">{{ error }}</p>
+            <p
+                v-if="error !== null"
+                class="form-error"
+                role="alert"
+                >{{ error }}</p
+            >
         </form>
 
         <template #footer>
-            <button type="button" class="btn" @click="emit('close')">
+            <button
+                type="button"
+                class="btn"
+                @click="emit('close')">
                 {{ t('common.cancel') }}
             </button>
             <button
                 type="button"
                 class="btn btn--primary"
                 :disabled="!valid || saving"
-                @click="submit"
-            >
+                @click="submit">
                 {{ saving ? t('common.saving') : t('common.save') }}
             </button>
         </template>

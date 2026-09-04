@@ -11,7 +11,12 @@ import type { FilterGrouping } from '@/composables/screener/useFilterRegistry';
 import type { ActiveFilter, FilterKind } from '@/composables/screener/useScreenerFilters';
 import { formatDate, formatNumber } from '@/utils/formatters';
 
-const { groups, valueFor, saving = null, disabled = false } = defineProps<{
+const {
+    groups,
+    valueFor,
+    saving = null,
+    disabled = false,
+} = defineProps<{
     groups: FilterGrouping[];
     valueFor: (key: string, kind: FilterKind) => ActiveFilter | null;
     saving?: string | null;
@@ -95,9 +100,16 @@ function onFlag(key: string, value: { enabled: boolean }): void {
 
 <template>
     <div class="filter-panel">
-        <p v-if="disabled" class="filter-panel__notice">{{ t('screener.selectScreener') }}</p>
+        <p
+            v-if="disabled"
+            class="filter-panel__notice"
+            >{{ t('screener.selectScreener') }}</p
+        >
 
-        <section v-for="group in groups" :key="group.group" class="filter-panel__group">
+        <section
+            v-for="group in groups"
+            :key="group.group"
+            class="filter-panel__group">
             <h2 class="filter-panel__heading">{{ t(`screener.groups.${group.group}`) }}</h2>
 
             <FilterCard
@@ -108,43 +120,37 @@ function onFlag(key: string, value: { enabled: boolean }): void {
                 :summary="summary(filter)"
                 :available="filter.available && !disabled"
                 :busy="saving === filter.key"
-                @clear="emit('clear', filter.key)"
-            >
+                @clear="emit('clear', filter.key)">
                 <RangeFilter
                     v-if="filter.kind === 'range'"
                     :value="rangeValue(filter)"
                     :bounds="filter.bounds"
                     :busy="saving === filter.key"
-                    @apply="emit('apply', filter.key, $event)"
-                />
+                    @apply="emit('apply', filter.key, $event)" />
                 <DateFilter
                     v-else-if="filter.kind === 'date'"
                     :value="dateValue(filter)"
                     :bounds="filter.bounds"
                     :busy="saving === filter.key"
-                    @apply="emit('apply', filter.key, $event)"
-                />
+                    @apply="emit('apply', filter.key, $event)" />
                 <EnumFilter
                     v-else-if="filter.kind === 'enum'"
                     :options="filter.options"
                     :value="enumValue(filter)"
                     :busy="saving === filter.key"
-                    @apply="emit('apply', filter.key, $event)"
-                />
+                    @apply="emit('apply', filter.key, $event)" />
                 <MaFilter
                     v-else-if="filter.kind === 'ma'"
                     :directions="filter.directions"
                     :targets="filter.targets"
                     :value="maValue(filter)"
                     :busy="saving === filter.key"
-                    @apply="emit('apply', filter.key, $event)"
-                />
+                    @apply="emit('apply', filter.key, $event)" />
                 <FlagFilter
                     v-else
                     :value="flagValue(filter)"
                     :busy="saving === filter.key"
-                    @apply="onFlag(filter.key, $event)"
-                />
+                    @apply="onFlag(filter.key, $event)" />
             </FilterCard>
         </section>
     </div>

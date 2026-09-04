@@ -2,7 +2,11 @@
 import { nextTick, onMounted, onUnmounted, ref, useId, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-const { title, size = 'md', dismissible = true } = defineProps<{
+const {
+    title,
+    size = 'md',
+    dismissible = true,
+} = defineProps<{
     title: string;
     size?: 'sm' | 'md' | 'lg';
     dismissible?: boolean; // Whether a click on the backdrop closes. Escape always does.
@@ -21,9 +25,7 @@ const previouslyFocused = ref<HTMLElement | null>(null);
 
 function focusable(): HTMLElement[] {
     if (panel.value === null) return [];
-    return [...panel.value.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
-        (element) => element.offsetParent !== null,
-    );
+    return [...panel.value.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((element) => element.offsetParent !== null);
 }
 
 /**
@@ -86,7 +88,9 @@ onUnmounted(() => {
 
 <template>
     <Teleport to="body">
-        <div class="dialog" @mousedown="onBackdrop">
+        <div
+            class="dialog"
+            @mousedown="onBackdrop">
             <div
                 ref="panel"
                 class="dialog__panel"
@@ -94,11 +98,18 @@ onUnmounted(() => {
                 role="dialog"
                 aria-modal="true"
                 :aria-labelledby="titleId"
-                tabindex="-1"
-            >
+                tabindex="-1">
                 <header class="dialog__header">
-                    <h2 :id="titleId" class="dialog__title">{{ title }}</h2>
-                    <button type="button" class="dialog__close" :aria-label="t('common.close')" @click="emit('close')">
+                    <h2
+                        :id="titleId"
+                        class="dialog__title"
+                        >{{ title }}</h2
+                    >
+                    <button
+                        type="button"
+                        class="dialog__close"
+                        :aria-label="t('common.close')"
+                        @click="emit('close')">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </header>
@@ -107,7 +118,9 @@ onUnmounted(() => {
                     <slot />
                 </div>
 
-                <footer v-if="$slots.footer" class="dialog__footer">
+                <footer
+                    v-if="$slots.footer"
+                    class="dialog__footer">
                     <slot name="footer" />
                 </footer>
             </div>

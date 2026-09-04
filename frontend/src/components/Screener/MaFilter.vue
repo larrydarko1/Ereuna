@@ -2,7 +2,12 @@
 import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-const { directions, targets, value = null, busy = false } = defineProps<{
+const {
+    directions,
+    targets,
+    value = null,
+    busy = false,
+} = defineProps<{
     directions: readonly string[];
     targets: readonly string[];
     value?: { direction: string; target: string } | null;
@@ -34,8 +39,13 @@ watch(
     <div class="ma-filter">
         <label class="ma-filter__field">
             <span class="ma-filter__label">{{ t('screener.relation') }}</span>
-            <select v-model="direction" class="ma-filter__select">
-                <option v-for="option in directions" :key="option" :value="option">
+            <select
+                v-model="direction"
+                class="ma-filter__select">
+                <option
+                    v-for="option in directions"
+                    :key="option"
+                    :value="option">
                     {{ t(`screener.direction.${option}`) }}
                 </option>
             </select>
@@ -43,8 +53,15 @@ watch(
 
         <label class="ma-filter__field">
             <span class="ma-filter__label">{{ t('screener.compareTo') }}</span>
-            <select v-model="target" class="ma-filter__select">
-                <option v-for="option in targets" :key="option" :value="option">{{ targetLabel(option) }}</option>
+            <select
+                v-model="target"
+                class="ma-filter__select">
+                <option
+                    v-for="option in targets"
+                    :key="option"
+                    :value="option"
+                    >{{ targetLabel(option) }}</option
+                >
             </select>
         </label>
 
@@ -52,8 +69,7 @@ watch(
             type="button"
             class="ma-filter__apply"
             :disabled="busy"
-            @click="emit('apply', { direction, target })"
-        >
+            @click="emit('apply', { direction, target })">
             {{ t('common.apply') }}
         </button>
     </div>

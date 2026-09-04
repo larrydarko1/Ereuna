@@ -12,11 +12,7 @@ const EMPTY_DRAWINGS: ChartDrawings = {
     priceLevels: [],
 };
 
-export async function getDrawings(
-    userId: ObjectId,
-    symbol: string,
-    timeframe: ChartTimeframe,
-): Promise<ChartDrawings> {
+export async function getDrawings(userId: ObjectId, symbol: string, timeframe: ChartTimeframe): Promise<ChartDrawings> {
     const doc = await collection().findOne({ userId, symbol, timeframe });
     return doc?.drawings ?? EMPTY_DRAWINGS;
 }

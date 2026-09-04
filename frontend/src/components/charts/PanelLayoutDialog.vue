@@ -66,34 +66,62 @@ async function clearStored(): Promise<void> {
 </script>
 
 <template>
-    <AppDialog :title="t('panels.title')" size="md" @close="emit('close')">
-        <div class="panel-layout__tabs" role="group" :aria-label="t('panels.title')">
+    <AppDialog
+        :title="t('panels.title')"
+        size="md"
+        @close="emit('close')">
+        <div
+            class="panel-layout__tabs"
+            role="group"
+            :aria-label="t('panels.title')">
             <button
-                v-for="option in (['sections', 'fields'] as const)"
+                v-for="option in ['sections', 'fields'] as const"
                 :key="option"
                 type="button"
                 class="panel-layout__tab"
                 :class="{ 'panel-layout__tab--active': tab === option }"
                 :aria-pressed="tab === option"
-                @click="tab = option"
-            >
+                @click="tab = option">
                 {{ t(`panels.${option}`) }}
             </button>
         </div>
 
-        <ReorderableList v-if="tab === 'sections'" v-model="draftSections" :items="sectionItems" />
-        <ReorderableList v-else v-model="draftFields" :items="fieldItems" />
+        <ReorderableList
+            v-if="tab === 'sections'"
+            v-model="draftSections"
+            :items="sectionItems" />
+        <ReorderableList
+            v-else
+            v-model="draftFields"
+            :items="fieldItems" />
 
-        <p v-if="error !== null" class="panel-layout__error" role="alert">{{ error }}</p>
+        <p
+            v-if="error !== null"
+            class="panel-layout__error"
+            role="alert"
+            >{{ error }}</p
+        >
 
         <template #footer>
-            <button type="button" class="panel-layout__link" :disabled="saving" @click="restoreDefaults">
+            <button
+                type="button"
+                class="panel-layout__link"
+                :disabled="saving"
+                @click="restoreDefaults">
                 {{ t('panels.restoreDefaults') }}
             </button>
-            <button type="button" class="panel-layout__link" :disabled="saving" @click="clearStored">
+            <button
+                type="button"
+                class="panel-layout__link"
+                :disabled="saving"
+                @click="clearStored">
                 {{ t('panels.forgetLayout') }}
             </button>
-            <button type="button" class="panel-layout__save" :disabled="saving" @click="submit">
+            <button
+                type="button"
+                class="panel-layout__save"
+                :disabled="saving"
+                @click="submit">
                 {{ t('common.save') }}
             </button>
         </template>

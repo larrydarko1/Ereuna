@@ -42,7 +42,10 @@ function percent(value: number): string {
 
 <template>
     <ul class="breadth">
-        <li v-for="meter in meters" :key="meter.key" class="breadth__item">
+        <li
+            v-for="meter in meters"
+            :key="meter.key"
+            class="breadth__item">
             <span class="breadth__label">{{ t(`dashboard.breadth.${meter.key}`) }}</span>
 
             <span
@@ -54,11 +57,16 @@ function percent(value: number): string {
                         negative: percent(meter.negative),
                         neutral: percent(meter.neutral),
                     })
-                "
-            >
-                <span class="breadth__fill breadth__fill--positive" :style="{ width: `${meter.positive * 100}%` }" />
-                <span class="breadth__fill breadth__fill--neutral" :style="{ width: `${meter.neutral * 100}%` }" />
-                <span class="breadth__fill breadth__fill--negative" :style="{ width: `${meter.negative * 100}%` }" />
+                ">
+                <span
+                    class="breadth__fill breadth__fill--positive"
+                    :style="{ width: `${meter.positive * 100}%` }" />
+                <span
+                    class="breadth__fill breadth__fill--neutral"
+                    :style="{ width: `${meter.neutral * 100}%` }" />
+                <span
+                    class="breadth__fill breadth__fill--negative"
+                    :style="{ width: `${meter.negative * 100}%` }" />
             </span>
 
             <span class="breadth__values">

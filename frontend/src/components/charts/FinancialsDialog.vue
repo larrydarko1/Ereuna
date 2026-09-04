@@ -8,7 +8,11 @@ import { growth, numeric } from '@/utils/numbers';
 
 type Column = { key: string; label: string };
 
-const { symbol, statements = null, pending = false } = defineProps<{
+const {
+    symbol,
+    statements = null,
+    pending = false,
+} = defineProps<{
     symbol: string;
     statements?: Financials | null;
     pending?: boolean;
@@ -97,51 +101,82 @@ const formatChange = (value: number | null): string => (value === null ? '' : `$
 </script>
 
 <template>
-    <AppDialog :title="`${t('financials.title')} — ${symbol}`" size="lg" @close="emit('close')">
+    <AppDialog
+        :title="`${t('financials.title')} — ${symbol}`"
+        size="lg"
+        @close="emit('close')">
         <div class="financials-dialog__controls">
-            <div class="financials-dialog__periods" role="group" :aria-label="t('financials.period')">
+            <div
+                class="financials-dialog__periods"
+                role="group"
+                :aria-label="t('financials.period')">
                 <button
-                    v-for="option in (['annual', 'quarterly'] as const)"
+                    v-for="option in ['annual', 'quarterly'] as const"
                     :key="option"
                     type="button"
                     class="financials-dialog__period"
                     :class="{ 'financials-dialog__period--active': period === option }"
                     :aria-pressed="period === option"
-                    @click="period = option"
-                >
+                    @click="period = option">
                     {{ t(`financials.${option}`) }}
                 </button>
             </div>
 
             <label class="financials-dialog__toggle">
-                <input v-model="showDescriptions" type="checkbox" />
+                <input
+                    v-model="showDescriptions"
+                    type="checkbox" />
                 {{ t('financials.showDescriptions') }}
             </label>
         </div>
 
-        <p v-if="pending" class="financials-dialog__note">{{ t('sidebar.loading') }}</p>
-        <p v-else-if="rows.length === 0" class="financials-dialog__note">{{ t('financials.noData') }}</p>
+        <p
+            v-if="pending"
+            class="financials-dialog__note"
+            >{{ t('sidebar.loading') }}</p
+        >
+        <p
+            v-else-if="rows.length === 0"
+            class="financials-dialog__note"
+            >{{ t('financials.noData') }}</p
+        >
 
-        <div v-else class="financials-dialog__scroll">
+        <div
+            v-else
+            class="financials-dialog__scroll">
             <table class="financials-dialog__table">
                 <thead>
                     <tr>
-                        <th scope="col" class="financials-dialog__sticky">{{ t('financials.attribute') }}</th>
-                        <th v-for="column in columns" :key="column.key" scope="col">{{ column.label }}</th>
+                        <th
+                            scope="col"
+                            class="financials-dialog__sticky"
+                            >{{ t('financials.attribute') }}</th
+                        >
+                        <th
+                            v-for="column in columns"
+                            :key="column.key"
+                            scope="col"
+                            >{{ column.label }}</th
+                        >
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="row in rows" :key="row.attribute">
-                        <th scope="row" class="financials-dialog__sticky">
+                    <tr
+                        v-for="row in rows"
+                        :key="row.attribute">
+                        <th
+                            scope="row"
+                            class="financials-dialog__sticky">
                             {{ row.label }}
                             <span
                                 v-if="showDescriptions && row.description !== ''"
-                                class="financials-dialog__description"
-                            >
+                                class="financials-dialog__description">
                                 {{ row.description }}
                             </span>
                         </th>
-                        <td v-for="cell in row.cells" :key="cell.key">
+                        <td
+                            v-for="cell in row.cells"
+                            :key="cell.key">
                             {{ cell.value }}
                             <span
                                 v-if="cell.change !== null"
@@ -150,8 +185,7 @@ const formatChange = (value: number | null): string => (value === null ? '' : `$
                                     cell.change > 0
                                         ? 'financials-dialog__change--up'
                                         : 'financials-dialog__change--down'
-                                "
-                            >
+                                ">
                                 {{ formatChange(cell.change) }}
                             </span>
                         </td>

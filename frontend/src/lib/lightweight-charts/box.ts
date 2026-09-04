@@ -27,7 +27,7 @@ export class BoxManager {
     private boxes: Box[] = [];
     private currentBox: { point1: BoxPoint | null; point2: BoxPoint | null } = {
         point1: null,
-        point2: null
+        point2: null,
     };
     private selectedBoxId: string | null = null;
     private isDragging: boolean = false;
@@ -225,7 +225,7 @@ export class BoxManager {
             // Check if clicking inside a box body to move it
             const bodyHit = this.hitTestBody(param.point.x, param.point.y);
             if (bodyHit) {
-                const box = this.boxes.find(b => b.id === bodyHit);
+                const box = this.boxes.find((b) => b.id === bodyHit);
                 if (box) {
                     this.dragTarget = { boxId: bodyHit, corner: 'body' };
                     this.isDragging = true;
@@ -233,7 +233,7 @@ export class BoxManager {
                     // Store offset from box corner to click point
                     this.dragOffset = {
                         x: param.point.x - Math.min(box.point1.x, box.point2.x),
-                        y: param.point.y - Math.min(box.point1.y, box.point2.y)
+                        y: param.point.y - Math.min(box.point1.y, box.point2.y),
                     };
                     this.draw();
                     return;
@@ -247,7 +247,7 @@ export class BoxManager {
                     time: param.time,
                     price: price,
                     x: param.point.x,
-                    y: param.point.y
+                    y: param.point.y,
                 };
                 this.selectedBoxId = null;
             } else {
@@ -256,7 +256,7 @@ export class BoxManager {
                     time: param.time,
                     price: price,
                     x: param.point.x,
-                    y: param.point.y
+                    y: param.point.y,
                 };
 
                 // Get theme colors
@@ -271,7 +271,7 @@ export class BoxManager {
                     borderColor: themeColor,
                     fillOpacity: this.defaultFillOpacity,
                     borderWidth: this.defaultBorderWidth,
-                    locked: false
+                    locked: false,
                 };
 
                 this.boxes.push(newBox);
@@ -291,7 +291,7 @@ export class BoxManager {
 
             // If dragging a corner, update it
             if (this.isDragging && this.dragTarget) {
-                const box = this.boxes.find(b => b.id === this.dragTarget!.boxId);
+                const box = this.boxes.find((b) => b.id === this.dragTarget!.boxId);
                 if (box && !box.locked) {
                     if (this.dragTarget.corner === 'body' && this.dragOffset) {
                         // Move entire box
@@ -319,7 +319,7 @@ export class BoxManager {
                             time: param.time,
                             price: price,
                             x: param.point.x,
-                            y: param.point.y
+                            y: param.point.y,
                         };
 
                         switch (this.dragTarget.corner) {
@@ -354,7 +354,7 @@ export class BoxManager {
                     time: param.time,
                     price: price,
                     x: param.point.x,
-                    y: param.point.y
+                    y: param.point.y,
                 };
                 this.draw();
             }
@@ -398,7 +398,7 @@ export class BoxManager {
 
     public removeSelectedBox(): void {
         if (this.selectedBoxId) {
-            this.boxes = this.boxes.filter(b => b.id !== this.selectedBoxId);
+            this.boxes = this.boxes.filter((b) => b.id !== this.selectedBoxId);
             this.selectedBoxId = null;
             this.draw();
             this.triggerChange(); // Trigger auto-save
@@ -510,7 +510,7 @@ export class BoxManager {
                 borderColor: themeColor,
                 fillOpacity: this.defaultFillOpacity,
                 borderWidth: this.defaultBorderWidth,
-                locked: false
+                locked: false,
             };
             this.drawBox(tempBox, false);
         }

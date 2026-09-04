@@ -27,7 +27,7 @@ export class TrendLineManager {
     private trendLines: TrendLine[] = [];
     private currentLine: { point1: TrendLinePoint | null; point2: TrendLinePoint | null } = {
         point1: null,
-        point2: null
+        point2: null,
     };
     private selectedLineId: string | null = null;
     private isDragging: boolean = false;
@@ -235,7 +235,7 @@ export class TrendLineManager {
                     time: param.time,
                     price: price,
                     x: param.point.x,
-                    y: param.point.y
+                    y: param.point.y,
                 };
                 this.selectedLineId = null;
             } else {
@@ -244,7 +244,7 @@ export class TrendLineManager {
                     time: param.time,
                     price: price,
                     x: param.point.x,
-                    y: param.point.y
+                    y: param.point.y,
                 };
 
                 // Create the trendline with theme-aware color
@@ -259,7 +259,7 @@ export class TrendLineManager {
                     lineWidth: this.defaultLineWidth,
                     lineStyle: 'solid',
                     locked: false,
-                    extended: false
+                    extended: false,
                 };
                 this.trendLines.push(newLine);
                 this.currentLine = { point1: null, point2: null };
@@ -278,14 +278,14 @@ export class TrendLineManager {
 
             // If dragging a point, update it
             if (this.isDragging && this.dragTarget) {
-                const line = this.trendLines.find(l => l.id === this.dragTarget!.lineId);
+                const line = this.trendLines.find((l) => l.id === this.dragTarget!.lineId);
                 if (line && !line.locked) {
                     const pointKey = this.dragTarget.pointIndex === 1 ? 'point1' : 'point2';
                     line[pointKey] = {
                         time: param.time,
                         price: price,
                         x: param.point.x,
-                        y: param.point.y
+                        y: param.point.y,
                     };
                     this.draw();
                 }
@@ -298,7 +298,7 @@ export class TrendLineManager {
                     time: param.time,
                     price: price,
                     x: param.point.x,
-                    y: param.point.y
+                    y: param.point.y,
                 };
                 this.draw();
             }
@@ -341,7 +341,7 @@ export class TrendLineManager {
 
     public removeSelectedLine(): void {
         if (this.selectedLineId) {
-            this.trendLines = this.trendLines.filter(l => l.id !== this.selectedLineId);
+            this.trendLines = this.trendLines.filter((l) => l.id !== this.selectedLineId);
             this.selectedLineId = null;
             this.draw();
             this.triggerChange(); // Trigger auto-save
@@ -358,7 +358,7 @@ export class TrendLineManager {
 
     public updateSelectedLineColor(color: string): void {
         if (this.selectedLineId) {
-            const line = this.trendLines.find(l => l.id === this.selectedLineId);
+            const line = this.trendLines.find((l) => l.id === this.selectedLineId);
             if (line) {
                 line.color = color;
                 this.draw();
@@ -368,7 +368,7 @@ export class TrendLineManager {
 
     public toggleSelectedLineExtension(): void {
         if (this.selectedLineId) {
-            const line = this.trendLines.find(l => l.id === this.selectedLineId);
+            const line = this.trendLines.find((l) => l.id === this.selectedLineId);
             if (line) {
                 line.extended = !line.extended;
                 this.draw();
@@ -393,16 +393,12 @@ export class TrendLineManager {
             // Update coordinates based on current chart state
             this.updateLineCoordinates(line);
 
-            const dist1 = Math.sqrt(
-                Math.pow(line.point1.x - x, 2) + Math.pow(line.point1.y - y, 2)
-            );
+            const dist1 = Math.sqrt(Math.pow(line.point1.x - x, 2) + Math.pow(line.point1.y - y, 2));
             if (dist1 <= hitRadius) {
                 return { lineId: line.id, pointIndex: 1 };
             }
 
-            const dist2 = Math.sqrt(
-                Math.pow(line.point2.x - x, 2) + Math.pow(line.point2.y - y, 2)
-            );
+            const dist2 = Math.sqrt(Math.pow(line.point2.x - x, 2) + Math.pow(line.point2.y - y, 2));
             if (dist2 <= hitRadius) {
                 return { lineId: line.id, pointIndex: 2 };
             }
@@ -418,11 +414,7 @@ export class TrendLineManager {
             // Update coordinates based on current chart state
             this.updateLineCoordinates(line);
 
-            const distance = this.distanceToLine(
-                x, y,
-                line.point1.x, line.point1.y,
-                line.point2.x, line.point2.y
-            );
+            const distance = this.distanceToLine(x, y, line.point1.x, line.point1.y, line.point2.x, line.point2.y);
 
             if (distance <= hitDistance) {
                 return line.id;
@@ -432,11 +424,7 @@ export class TrendLineManager {
         return null;
     }
 
-    private distanceToLine(
-        px: number, py: number,
-        x1: number, y1: number,
-        x2: number, y2: number
-    ): number {
+    private distanceToLine(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
         const A = px - x1;
         const B = py - y1;
         const C = x2 - x1;
@@ -516,7 +504,7 @@ export class TrendLineManager {
                 lineWidth: this.defaultLineWidth,
                 lineStyle: 'dashed',
                 locked: false,
-                extended: false
+                extended: false,
             };
             this.drawTrendLine(tempLine, false);
         }

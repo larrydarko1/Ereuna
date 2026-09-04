@@ -235,15 +235,17 @@ export class FreehandManager {
 
             this.currentPath = {
                 id: this.generateId(),
-                points: [{
-                    time: param.time,
-                    price: price,
-                    x: param.point.x,
-                    y: param.point.y
-                }],
+                points: [
+                    {
+                        time: param.time,
+                        price: price,
+                        x: param.point.x,
+                        y: param.point.y,
+                    },
+                ],
                 color: color,
                 lineWidth: this.defaultLineWidth,
-                locked: false
+                locked: false,
             };
         };
 
@@ -260,24 +262,24 @@ export class FreehandManager {
                     time: param.time,
                     price: price,
                     x: param.point.x,
-                    y: param.point.y
+                    y: param.point.y,
                 });
                 this.draw();
             } else if (this.isDragging && this.selectedPathId) {
                 // Move entire path
-                const path = this.paths.find(p => p.id === this.selectedPathId);
+                const path = this.paths.find((p) => p.id === this.selectedPathId);
                 if (path && !path.locked && path.points.length > 0) {
                     const firstPoint = path.points[0];
                     const deltaX = param.point.x - firstPoint.x;
                     const deltaY = param.point.y - firstPoint.y;
 
                     // Update all points in the path
-                    path.points = path.points.map(point => ({
+                    path.points = path.points.map((point) => ({
                         ...point,
                         time: this.getTimeFromX(point.x + deltaX) || point.time,
                         price: this.getPriceFromY(point.y + deltaY) || point.price,
                         x: point.x + deltaX,
-                        y: point.y + deltaY
+                        y: point.y + deltaY,
                     }));
 
                     this.draw();
@@ -331,7 +333,7 @@ export class FreehandManager {
             this.mouseDownHandler({
                 time: time,
                 point: { x, y },
-                seriesData: new Map()
+                seriesData: new Map(),
             } as MouseEventParams<Time>);
         }
     };
@@ -349,7 +351,7 @@ export class FreehandManager {
             this.moveHandler({
                 time: time,
                 point: { x, y },
-                seriesData: new Map()
+                seriesData: new Map(),
             } as MouseEventParams<Time>);
         }
     };
@@ -407,7 +409,7 @@ export class FreehandManager {
 
     public removeSelectedPath(): void {
         if (this.selectedPathId) {
-            this.paths = this.paths.filter(p => p.id !== this.selectedPathId);
+            this.paths = this.paths.filter((p) => p.id !== this.selectedPathId);
             this.selectedPathId = null;
             this.draw();
             this.triggerChange(); // Trigger auto-save
@@ -470,7 +472,7 @@ export class FreehandManager {
     }
 
     private updatePathCoordinates(path: FreehandPath): void {
-        path.points.forEach(point => {
+        path.points.forEach((point) => {
             const x = this.getXFromTime(point.time);
             const y = this.getYFromPrice(point.price);
 

@@ -44,7 +44,7 @@ export interface OHLCData {
 export function findPivots(
     data: OHLCData[],
     leftBars: number = 5,
-    rightBars: number = 5
+    rightBars: number = 5,
 ): { highs: PivotPoint[]; lows: PivotPoint[] } {
     const highs: PivotPoint[] = [];
     const lows: PivotPoint[] = [];
@@ -62,7 +62,7 @@ export function findPivots(
             highs.push({
                 index: i,
                 time: data[i].time,
-                price: data[i].high
+                price: data[i].high,
             });
         }
 
@@ -78,7 +78,7 @@ export function findPivots(
             lows.push({
                 index: i,
                 time: data[i].time,
-                price: data[i].low
+                price: data[i].low,
             });
         }
     }
@@ -89,10 +89,7 @@ export function findPivots(
 /**
  * Detect Double Top patterns
  */
-export function detectDoubleTops(
-    highs: PivotPoint[],
-    tolerance: number = 0.02
-): PatternMatch[] {
+export function detectDoubleTops(highs: PivotPoint[], tolerance: number = 0.02): PatternMatch[] {
     const patterns: PatternMatch[] = [];
 
     for (let i = 0; i < highs.length - 1; i++) {
@@ -111,7 +108,7 @@ export function detectDoubleTops(
                         points: [highs[i], highs[j]],
                         confidence: 1 - priceDeviation / tolerance,
                         description: 'Double Top - Bearish Reversal',
-                        timeframe: { start: highs[i].time, end: highs[j].time }
+                        timeframe: { start: highs[i].time, end: highs[j].time },
                     });
                 }
             }
@@ -124,10 +121,7 @@ export function detectDoubleTops(
 /**
  * Detect Double Bottom patterns
  */
-export function detectDoubleBottoms(
-    lows: PivotPoint[],
-    tolerance: number = 0.02
-): PatternMatch[] {
+export function detectDoubleBottoms(lows: PivotPoint[], tolerance: number = 0.02): PatternMatch[] {
     const patterns: PatternMatch[] = [];
 
     for (let i = 0; i < lows.length - 1; i++) {
@@ -144,7 +138,7 @@ export function detectDoubleBottoms(
                         points: [lows[i], lows[j]],
                         confidence: 1 - priceDeviation / tolerance,
                         description: 'Double Bottom - Bullish Reversal',
-                        timeframe: { start: lows[i].time, end: lows[j].time }
+                        timeframe: { start: lows[i].time, end: lows[j].time },
                     });
                 }
             }
@@ -157,10 +151,7 @@ export function detectDoubleBottoms(
 /**
  * Detect Head and Shoulders pattern
  */
-export function detectHeadAndShoulders(
-    highs: PivotPoint[],
-    tolerance: number = 0.03
-): PatternMatch[] {
+export function detectHeadAndShoulders(highs: PivotPoint[], tolerance: number = 0.03): PatternMatch[] {
     const patterns: PatternMatch[] = [];
 
     // Need at least 3 peaks for H&S
@@ -185,7 +176,7 @@ export function detectHeadAndShoulders(
                         points: [leftShoulder, head, rightShoulder],
                         confidence: Math.min(1, 1 - shoulderDeviation / tolerance),
                         description: 'Head and Shoulders - Bearish Reversal',
-                        timeframe: { start: leftShoulder.time, end: rightShoulder.time }
+                        timeframe: { start: leftShoulder.time, end: rightShoulder.time },
                     });
                 }
             }
@@ -198,10 +189,7 @@ export function detectHeadAndShoulders(
 /**
  * Detect Inverse Head and Shoulders pattern
  */
-export function detectInverseHeadAndShoulders(
-    lows: PivotPoint[],
-    tolerance: number = 0.03
-): PatternMatch[] {
+export function detectInverseHeadAndShoulders(lows: PivotPoint[], tolerance: number = 0.03): PatternMatch[] {
     const patterns: PatternMatch[] = [];
 
     for (let i = 0; i < lows.length - 2; i++) {
@@ -223,7 +211,7 @@ export function detectInverseHeadAndShoulders(
                         points: [leftShoulder, head, rightShoulder],
                         confidence: Math.min(1, 1 - shoulderDeviation / tolerance),
                         description: 'Inverse Head and Shoulders - Bullish Reversal',
-                        timeframe: { start: leftShoulder.time, end: rightShoulder.time }
+                        timeframe: { start: leftShoulder.time, end: rightShoulder.time },
                     });
                 }
             }
@@ -240,7 +228,10 @@ function calculateSlope(points: PivotPoint[]): number {
     if (points.length < 2) return 0;
 
     const n = points.length;
-    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+    let sumX = 0,
+        sumY = 0,
+        sumXY = 0,
+        sumX2 = 0;
 
     points.forEach((point, idx) => {
         sumX += idx;
@@ -256,11 +247,7 @@ function calculateSlope(points: PivotPoint[]): number {
 /**
  * Detect Triangle patterns (Ascending, Descending, Symmetric)
  */
-export function detectTriangles(
-    highs: PivotPoint[],
-    lows: PivotPoint[],
-    minPoints: number = 4
-): PatternMatch[] {
+export function detectTriangles(highs: PivotPoint[], lows: PivotPoint[], minPoints: number = 4): PatternMatch[] {
     const patterns: PatternMatch[] = [];
 
     // Need at least 2 highs and 2 lows
@@ -277,7 +264,7 @@ export function detectTriangles(
         const allPoints = [...recentHighs, ...recentLows].sort((a, b) => a.time - b.time);
         const timeframe = {
             start: allPoints[0].time,
-            end: allPoints[allPoints.length - 1].time
+            end: allPoints[allPoints.length - 1].time,
         };
 
         // Ascending Triangle: flat resistance, rising support
@@ -287,7 +274,7 @@ export function detectTriangles(
                 points: allPoints,
                 confidence: 0.7,
                 description: 'Ascending Triangle - Bullish Continuation',
-                timeframe
+                timeframe,
             });
         }
 
@@ -298,7 +285,7 @@ export function detectTriangles(
                 points: allPoints,
                 confidence: 0.7,
                 description: 'Descending Triangle - Bearish Continuation',
-                timeframe
+                timeframe,
             });
         }
 
@@ -309,7 +296,7 @@ export function detectTriangles(
                 points: allPoints,
                 confidence: 0.65,
                 description: 'Symmetric Triangle - Continuation (Direction Uncertain)',
-                timeframe
+                timeframe,
             });
         }
     }
@@ -320,11 +307,7 @@ export function detectTriangles(
 /**
  * Detect Flag patterns (Bullish and Bearish)
  */
-export function detectFlags(
-    data: OHLCData[],
-    highs: PivotPoint[],
-    lows: PivotPoint[]
-): PatternMatch[] {
+export function detectFlags(data: OHLCData[], highs: PivotPoint[], lows: PivotPoint[]): PatternMatch[] {
     const patterns: PatternMatch[] = [];
 
     if (data.length < 20 || highs.length < 2 || lows.length < 2) return patterns;
@@ -344,8 +327,8 @@ export function detectFlags(
 
     // Strong uptrend followed by sideways/slight down movement = bullish flag
     if (trendMove > 0.05) {
-        const recentHighs = highs.filter(h => h.index >= data.length - recentBars);
-        const recentLows = lows.filter(l => l.index >= data.length - recentBars);
+        const recentHighs = highs.filter((h) => h.index >= data.length - recentBars);
+        const recentLows = lows.filter((l) => l.index >= data.length - recentBars);
 
         if (recentHighs.length >= 2 && recentLows.length >= 2) {
             const highSlope = calculateSlope(recentHighs);
@@ -360,8 +343,8 @@ export function detectFlags(
                     description: 'Bullish Flag - Continuation Pattern',
                     timeframe: {
                         start: consolidationStart.time,
-                        end: data[data.length - 1].time
-                    }
+                        end: data[data.length - 1].time,
+                    },
                 });
             }
         }
@@ -369,8 +352,8 @@ export function detectFlags(
 
     // Strong downtrend followed by sideways/slight up movement = bearish flag
     if (trendMove < -0.05) {
-        const recentHighs = highs.filter(h => h.index >= data.length - recentBars);
-        const recentLows = lows.filter(l => l.index >= data.length - recentBars);
+        const recentHighs = highs.filter((h) => h.index >= data.length - recentBars);
+        const recentLows = lows.filter((l) => l.index >= data.length - recentBars);
 
         if (recentHighs.length >= 2 && recentLows.length >= 2) {
             const highSlope = calculateSlope(recentHighs);
@@ -384,8 +367,8 @@ export function detectFlags(
                     description: 'Bearish Flag - Continuation Pattern',
                     timeframe: {
                         start: consolidationStart.time,
-                        end: data[data.length - 1].time
-                    }
+                        end: data[data.length - 1].time,
+                    },
                 });
             }
         }
@@ -403,7 +386,7 @@ export function detectAllPatterns(
         minBarsForPivot?: number;
         tolerance?: number;
         enabledPatterns?: PatternType[];
-    } = {}
+    } = {},
 ): PatternMatch[] {
     const {
         minBarsForPivot = 5,
@@ -417,8 +400,8 @@ export function detectAllPatterns(
             'descendingTriangle',
             'symmetricTriangle',
             'bullishFlag',
-            'bearishFlag'
-        ]
+            'bearishFlag',
+        ],
     } = options;
 
     if (data.length < 20) return [];
@@ -444,14 +427,14 @@ export function detectAllPatterns(
     }
 
     const triangles = detectTriangles(highs, lows);
-    triangles.forEach(pattern => {
+    triangles.forEach((pattern) => {
         if (enabledPatterns.includes(pattern.type)) {
             allPatterns.push(pattern);
         }
     });
 
     const flags = detectFlags(data, highs, lows);
-    flags.forEach(pattern => {
+    flags.forEach((pattern) => {
         if (enabledPatterns.includes(pattern.type)) {
             allPatterns.push(pattern);
         }

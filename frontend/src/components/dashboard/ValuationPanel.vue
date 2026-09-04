@@ -16,7 +16,10 @@ const { t } = useI18n();
         <section class="valuation__column">
             <h3 class="valuation__title">{{ t('dashboard.valuation.undervalued') }}</h3>
             <ol class="valuation__list">
-                <li v-for="row in undervalued" :key="row.symbol" class="valuation__row">
+                <li
+                    v-for="row in undervalued"
+                    :key="row.symbol"
+                    class="valuation__row">
                     <span class="valuation__symbol">{{ row.symbol }}</span>
                     <span class="valuation__prices">
                         {{ formatCurrency(row.currentPrice) }} → {{ formatCurrency(row.intrinsicValue) }}
@@ -29,7 +32,10 @@ const { t } = useI18n();
         <section class="valuation__column">
             <h3 class="valuation__title">{{ t('dashboard.valuation.overvalued') }}</h3>
             <ol class="valuation__list">
-                <li v-for="row in overvalued" :key="row.symbol" class="valuation__row">
+                <li
+                    v-for="row in overvalued"
+                    :key="row.symbol"
+                    class="valuation__row">
                     <span class="valuation__symbol">{{ row.symbol }}</span>
                     <span class="valuation__prices">
                         {{ formatCurrency(row.currentPrice) }} → {{ formatCurrency(row.intrinsicValue) }}

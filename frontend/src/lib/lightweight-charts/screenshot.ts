@@ -31,7 +31,7 @@ export class ChartScreenshot {
         appName: 'Ereuna',
         websiteUrl: 'ereuna.io',
         backgroundColor: '#1a1b26',
-        watermarkOpacity: 0.8
+        watermarkOpacity: 0.8,
     };
 
     constructor(chart: IChartApi, containerId: string = 'wk-chart') {
@@ -39,10 +39,7 @@ export class ChartScreenshot {
         this.chartContainer = document.getElementById(containerId);
     }
 
-    public async takeScreenshot(
-        chartInfo: ChartInfo,
-        config: Partial<ScreenshotConfig> = {}
-    ): Promise<void> {
+    public async takeScreenshot(chartInfo: ChartInfo, config: Partial<ScreenshotConfig> = {}): Promise<void> {
         const finalConfig = { ...this.defaultConfig, ...config };
 
         if (!this.chartContainer) {
@@ -59,11 +56,7 @@ export class ChartScreenshot {
             }
 
             // Create final canvas with branding
-            const finalCanvas = await this.createBrandedCanvas(
-                chartCanvas,
-                chartInfo,
-                finalConfig
-            );
+            const finalCanvas = await this.createBrandedCanvas(chartCanvas, chartInfo, finalConfig);
 
             // Download the image
             this.downloadCanvas(finalCanvas, chartInfo.symbol);
@@ -84,7 +77,7 @@ export class ChartScreenshot {
         let minTop = Infinity;
 
         // Find the actual bounds by checking all canvases
-        canvases.forEach(canvas => {
+        canvases.forEach((canvas) => {
             const canvasRect = canvas.getBoundingClientRect();
             minTop = Math.min(minTop, canvasRect.top - rect.top);
             maxBottom = Math.max(maxBottom, canvasRect.bottom - rect.top);
@@ -112,10 +105,10 @@ export class ChartScreenshot {
         ctx.fillRect(0, 0, width, height);
 
         // Draw each canvas layer in order, adjusted for the minTop offset
-        canvases.forEach(canvas => {
+        canvases.forEach((canvas) => {
             const canvasRect = canvas.getBoundingClientRect();
             const x = canvasRect.left - rect.left;
-            const y = (canvasRect.top - rect.top) - minTop; // Adjust for the offset
+            const y = canvasRect.top - rect.top - minTop; // Adjust for the offset
 
             // Draw canvas at its relative position
             ctx.drawImage(canvas, x, y, canvasRect.width, canvasRect.height);
@@ -127,15 +120,15 @@ export class ChartScreenshot {
     private async createBrandedCanvas(
         chartCanvas: HTMLCanvasElement,
         chartInfo: ChartInfo,
-        config: ScreenshotConfig
+        config: ScreenshotConfig,
     ): Promise<HTMLCanvasElement> {
         const dpr = window.devicePixelRatio || 1;
         const padding = 40 * dpr; // Reduced padding
         const headerHeight = config.includeChartInfo ? 70 * dpr : config.includeLogo ? 45 * dpr : 0;
         const chartPadding = 10 * dpr; // Minimal padding around chart
 
-        const finalWidth = chartCanvas.width + (padding * 2);
-        const finalHeight = chartCanvas.height + headerHeight + (chartPadding * 2) + padding;
+        const finalWidth = chartCanvas.width + padding * 2;
+        const finalHeight = chartCanvas.height + headerHeight + chartPadding * 2 + padding;
 
         const finalCanvas = document.createElement('canvas');
         finalCanvas.width = finalWidth;
@@ -159,8 +152,8 @@ export class ChartScreenshot {
         // Create a slightly darker box for the chart itself
         const chartBoxX = padding;
         const chartBoxY = headerHeight + chartPadding;
-        const chartBoxWidth = finalWidth - (padding * 2);
-        const chartBoxHeight = chartCanvas.height + (chartPadding * 2);
+        const chartBoxWidth = finalWidth - padding * 2;
+        const chartBoxHeight = chartCanvas.height + chartPadding * 2;
         const borderRadius = 16 * dpr;
 
         // Draw chart background box with rounded corners - same color as inner canvas
@@ -171,8 +164,8 @@ export class ChartScreenshot {
         ctx.fill();
 
         // Calculate chart dimensions to fit within the box
-        const maxChartWidth = chartBoxWidth - (chartPadding * 2);
-        const maxChartHeight = chartBoxHeight - (chartPadding * 2);
+        const maxChartWidth = chartBoxWidth - chartPadding * 2;
+        const maxChartHeight = chartBoxHeight - chartPadding * 2;
 
         // Limit chart height to maintain 5% margin from top (simulating space above highest candle)
         const maxAllowedHeight = 1080 * dpr; // Target max height for professional look
@@ -184,11 +177,14 @@ export class ChartScreenshot {
         // Draw the chart centered in its box
         ctx.drawImage(
             chartCanvas,
-            0, 0, chartCanvas.width, chartCanvas.height,
+            0,
+            0,
+            chartCanvas.width,
+            chartCanvas.height,
             padding + chartPadding,
             headerHeight + chartPadding + chartPadding,
             chartDrawWidth,
-            chartDrawHeight
+            chartDrawHeight,
         );
 
         return finalCanvas;
@@ -200,7 +196,7 @@ export class ChartScreenshot {
         config: ScreenshotConfig,
         x: number,
         width: number,
-        dpr: number = 1
+        dpr: number = 1,
     ): Promise<void> {
         // Get colors with proper contrast for the screenshot background
         const colors = this.getContrastColors(config.backgroundColor);
@@ -224,14 +220,14 @@ export class ChartScreenshot {
         ctx.textAlign = 'right';
         ctx.font = `${15 * dpr}px Arial`;
         ctx.fillStyle = textColorSecondary;
-        ctx.fillText(chartInfo.timeframe, width - x, firstLineY + (18 * dpr));
+        ctx.fillText(chartInfo.timeframe, width - x, firstLineY + 18 * dpr);
 
         // Measure timeframe width to position date
         const timeframeWidth = ctx.measureText(chartInfo.timeframe).width;
-        ctx.fillText(chartInfo.date, width - x - timeframeWidth - (20 * dpr), firstLineY + (18 * dpr));
+        ctx.fillText(chartInfo.date, width - x - timeframeWidth - 20 * dpr, firstLineY + 18 * dpr);
 
         // Second line: Ticker, Company Name, Price, Change (below date/timeframe on the right)
-        const secondLineY = firstLineY + (40 * dpr); // Position below date/timeframe
+        const secondLineY = firstLineY + 40 * dpr; // Position below date/timeframe
 
         // Build the info text from right to left for right alignment
         let infoText = '';
@@ -260,8 +256,8 @@ export class ChartScreenshot {
                 const isPositive = !chartInfo.change!.startsWith('-');
                 ctx.fillStyle = isPositive ? '#10b981' : '#ef4444';
                 ctx.font = `${15 * dpr}px Arial`;
-                ctx.fillText(changeText, rightX, secondLineY + (2 * dpr));
-                rightX -= ctx.measureText(changeText).width + (10 * dpr);
+                ctx.fillText(changeText, rightX, secondLineY + 2 * dpr);
+                rightX -= ctx.measureText(changeText).width + 10 * dpr;
 
                 // Draw price
                 ctx.font = `bold ${20 * dpr}px Arial`;
@@ -269,15 +265,15 @@ export class ChartScreenshot {
             }
 
             ctx.fillText(priceText, rightX, secondLineY);
-            rightX -= ctx.measureText(priceText).width + (14 * dpr);
+            rightX -= ctx.measureText(priceText).width + 14 * dpr;
 
             // Draw company name
             ctx.font = `${14 * dpr}px Arial`;
             ctx.fillStyle = textColorSecondary;
-            const availableWidth = rightX - x - (14 * dpr); // Space for name
+            const availableWidth = rightX - x - 14 * dpr; // Space for name
             const truncatedName = this.truncateText(ctx, chartInfo.name, availableWidth);
-            ctx.fillText(truncatedName, rightX, secondLineY + (3 * dpr));
-            rightX -= ctx.measureText(truncatedName).width + (14 * dpr);
+            ctx.fillText(truncatedName, rightX, secondLineY + 3 * dpr);
+            rightX -= ctx.measureText(truncatedName).width + 14 * dpr;
 
             // Draw ticker symbol (leftmost)
             ctx.font = `bold ${20 * dpr}px Arial`;
@@ -286,7 +282,7 @@ export class ChartScreenshot {
         }
 
         // Third line: Branding text below ticker/name/price (theme-adaptable)
-        const thirdLineY = secondLineY + (28 * dpr);
+        const thirdLineY = secondLineY + 28 * dpr;
         ctx.textAlign = 'right';
         ctx.font = `${11 * dpr}px Arial`;
         ctx.fillStyle = textColorSecondary; // Uses theme color
@@ -300,7 +296,7 @@ export class ChartScreenshot {
         x: number,
         y: number,
         width: number,
-        dpr: number = 1
+        dpr: number = 1,
     ): void {
         const styles = getComputedStyle(document.documentElement);
         const textColorSecondary = styles.getPropertyValue('--color-text-muted').trim() || '#9ca3af';
@@ -324,7 +320,7 @@ export class ChartScreenshot {
         x: number,
         y: number,
         width: number,
-        dpr: number = 1
+        dpr: number = 1,
     ): void {
         const styles = getComputedStyle(document.documentElement);
         const textColorSecondary = styles.getPropertyValue('--color-text-muted').trim() || '#9ca3af';
@@ -352,7 +348,7 @@ export class ChartScreenshot {
         y: number,
         height: number,
         color: string,
-        dpr: number = 1
+        dpr: number = 1,
     ): Promise<void> {
         return new Promise((resolve) => {
             const img = new Image();
@@ -381,9 +377,11 @@ export class ChartScreenshot {
             };
             img.onerror = () => resolve(); // Fail gracefully
             // Import the logo dynamically to ensure it works in both dev and production
-            import('@/assets/icons/ereuna.svg').then(module => {
-                img.src = module.default;
-            }).catch(() => resolve());
+            import('@/assets/icons/ereuna.svg')
+                .then((module) => {
+                    img.src = module.default;
+                })
+                .catch(() => resolve());
         });
     }
 
@@ -406,7 +404,7 @@ export class ChartScreenshot {
         y: number,
         width: number,
         height: number,
-        radius: number
+        radius: number,
     ): void {
         ctx.beginPath();
         ctx.moveTo(x + radius, y);
@@ -423,7 +421,9 @@ export class ChartScreenshot {
 
     private isLightColor(color: string): boolean {
         // Convert hex to RGB and calculate relative luminance
-        let r = 0, g = 0, b = 0;
+        let r = 0,
+            g = 0,
+            b = 0;
 
         if (color.startsWith('#')) {
             const hex = color.slice(1);
@@ -443,7 +443,7 @@ export class ChartScreenshot {
         return luminance > 0.5; // Light if luminance > 0.5
     }
 
-    private getContrastColors(backgroundColor: string): { textColor: string, textColorSecondary: string } {
+    private getContrastColors(backgroundColor: string): { textColor: string; textColorSecondary: string } {
         // Override colors based on background brightness for proper contrast
         const isLight = this.isLightColor(backgroundColor);
 
@@ -451,13 +451,13 @@ export class ChartScreenshot {
             // Dark text for light backgrounds
             return {
                 textColor: '#1a1b26',
-                textColorSecondary: '#6b7280'
+                textColorSecondary: '#6b7280',
             };
         } else {
             // Light text for dark backgrounds
             return {
                 textColor: '#ffffff',
-                textColorSecondary: '#9ca3af'
+                textColorSecondary: '#9ca3af',
             };
         }
     }
@@ -467,14 +467,14 @@ export class ChartScreenshot {
         if (color.startsWith('#')) {
             const num = parseInt(color.slice(1), 16);
             let r = (num >> 16) + amount;
-            let g = ((num >> 8) & 0x00FF) + amount;
-            let b = (num & 0x0000FF) + amount;
+            let g = ((num >> 8) & 0x00ff) + amount;
+            let b = (num & 0x0000ff) + amount;
 
             r = Math.max(0, Math.min(255, r));
             g = Math.max(0, Math.min(255, g));
             b = Math.max(0, Math.min(255, b));
 
-            return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
+            return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
         }
         return color;
     }
@@ -496,10 +496,7 @@ export class ChartScreenshot {
         }, 'image/png');
     }
 
-    public async copyToClipboard(
-        chartInfo: ChartInfo,
-        config: Partial<ScreenshotConfig> = {}
-    ): Promise<boolean> {
+    public async copyToClipboard(chartInfo: ChartInfo, config: Partial<ScreenshotConfig> = {}): Promise<boolean> {
         const finalConfig = { ...this.defaultConfig, ...config };
 
         if (!this.chartContainer) {
@@ -514,11 +511,7 @@ export class ChartScreenshot {
                 return false;
             }
 
-            const finalCanvas = await this.createBrandedCanvas(
-                chartCanvas,
-                chartInfo,
-                finalConfig
-            );
+            const finalCanvas = await this.createBrandedCanvas(chartCanvas, chartInfo, finalConfig);
 
             return new Promise((resolve) => {
                 finalCanvas.toBlob(async (blob) => {
@@ -528,9 +521,7 @@ export class ChartScreenshot {
                     }
 
                     try {
-                        await navigator.clipboard.write([
-                            new ClipboardItem({ 'image/png': blob })
-                        ]);
+                        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
                         resolve(true);
                     } catch (error) {
                         console.error('Failed to copy to clipboard:', error);

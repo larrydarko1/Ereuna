@@ -60,30 +60,54 @@ const tone = (value: number | null): string =>
 </script>
 
 <template>
-    <table v-if="quarters.length > 0" class="financials">
+    <table
+        v-if="quarters.length > 0"
+        class="financials">
         <thead>
             <tr>
                 <th scope="col">{{ t(`sidebar.${metric}Reported`) }}</th>
-                <th scope="col" class="financials__numeric">{{ columnLabel }}</th>
-                <th scope="col" class="financials__numeric">{{ t(`sidebar.${metric}QoQ`) }}</th>
-                <th scope="col" class="financials__numeric">{{ t(`sidebar.${metric}YoY`) }}</th>
+                <th
+                    scope="col"
+                    class="financials__numeric"
+                    >{{ columnLabel }}</th
+                >
+                <th
+                    scope="col"
+                    class="financials__numeric"
+                    >{{ t(`sidebar.${metric}QoQ`) }}</th
+                >
+                <th
+                    scope="col"
+                    class="financials__numeric"
+                    >{{ t(`sidebar.${metric}YoY`) }}</th
+                >
             </tr>
         </thead>
         <tbody>
-            <tr v-for="quarter in quarters" :key="quarter.date">
+            <tr
+                v-for="quarter in quarters"
+                :key="quarter.date">
                 <th scope="row">{{ formatDate(quarter.date) }}</th>
                 <td class="financials__numeric">{{ formatValue(quarter.value) }}</td>
-                <td class="financials__numeric" :class="tone(quarter.quarterOverQuarter)">
+                <td
+                    class="financials__numeric"
+                    :class="tone(quarter.quarterOverQuarter)">
                     {{ formatGrowth(quarter.quarterOverQuarter) }}
                 </td>
-                <td class="financials__numeric" :class="tone(quarter.yearOverYear)">
+                <td
+                    class="financials__numeric"
+                    :class="tone(quarter.yearOverYear)">
                     {{ formatGrowth(quarter.yearOverYear) }}
                 </td>
             </tr>
         </tbody>
     </table>
 
-    <p v-else class="financials__empty">{{ t(`sidebar.${EMPTY_KEYS[metric]}`) }}</p>
+    <p
+        v-else
+        class="financials__empty"
+        >{{ t(`sidebar.${EMPTY_KEYS[metric]}`) }}</p
+    >
 </template>
 
 <style lang="scss" scoped>

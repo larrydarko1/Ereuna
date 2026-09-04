@@ -18,7 +18,12 @@ import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
 import { issueSession, type AuthResult } from '@/services/auth/auth-tokens.js';
-import { throttleKey, assertLoginAllowed, clearLoginFailures, recordLoginFailure } from '@/services/auth/login-throttle.js';
+import {
+    throttleKey,
+    assertLoginAllowed,
+    clearLoginFailures,
+    recordLoginFailure,
+} from '@/services/auth/login-throttle.js';
 
 export type RecoveryCodeSet = {
     plaintext: string[];
@@ -49,8 +54,7 @@ export async function loginWithRecoveryCode(
     const user = await users.findOne({ usernameLower: username.trim().toLowerCase() });
     const normalised = code.trim().toUpperCase();
 
-    const matchedHash =
-        user === null ? null : await findMatchingHash(user.recoveryCodeHashes, normalised);
+    const matchedHash = user === null ? null : await findMatchingHash(user.recoveryCodeHashes, normalised);
 
     if (user === null || matchedHash === null) {
         const attempt = await recordLoginFailure(key);

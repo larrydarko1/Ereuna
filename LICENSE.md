@@ -2,7 +2,7 @@
 
 **Copyright © 2024-2026 Lorenzo Mazzola**
 
-This repository is made publicly available **solely as a portfolio demonstration and proof of work**. It documents the technical skills and architecture developed during a startup project. Public availability does not grant any rights beyond those explicitly stated in this license. 
+This repository is made publicly available **solely as a portfolio demonstration and proof of work**. It documents the technical skills and architecture developed during a startup project. Public availability does not grant any rights beyond those explicitly stated in this license.
 
 ---
 
@@ -16,6 +16,7 @@ This work is licensed under the **Creative Commons Attribution-NonCommercial-Sha
 ### What This Means
 
 **You are free to:**
+
 - **Share** — copy and redistribute the material in any medium or format for non-commercial purposes only
 - **Adapt** — remix, transform, and build upon the material for non-commercial purposes only
 - **Study** — view and learn from the source code for educational purposes and portfolio review
@@ -24,21 +25,23 @@ This work is licensed under the **Creative Commons Attribution-NonCommercial-Sha
 - **Contribute** — submit improvements back to this repository via pull requests
 
 **Under the following terms:**
+
 - **Attribution** — You must give appropriate credit to Lorenzo Mazzola, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
 - **NonCommercial** — You may not use the material for commercial purposes. This includes, but is not limited to:
-  - Selling, reselling, sublicensing, or redistributing the code for profit
-  - Operating financial services or trading platforms
-  - Offering market data services or analytics platforms
-  - Incorporating this software into commercial products or services
-  - **Hosting as a SaaS (Software as a Service)** — Running this software to provide services to third parties, whether paid or monetized through ads, subscriptions, or data collection
-  - Using in any revenue-generating context, including internal business tools that provide commercial advantage
-  - Offering consulting, support, or implementation services based on this software
+    - Selling, reselling, sublicensing, or redistributing the code for profit
+    - Operating financial services or trading platforms
+    - Offering market data services or analytics platforms
+    - Incorporating this software into commercial products or services
+    - **Hosting as a SaaS (Software as a Service)** — Running this software to provide services to third parties, whether paid or monetized through ads, subscriptions, or data collection
+    - Using in any revenue-generating context, including internal business tools that provide commercial advantage
+    - Offering consulting, support, or implementation services based on this software
 - **ShareAlike** — If you remix, transform, or build upon the material, you must distribute your contributions under the same CC BY-NC-SA 4.0 license as the original.
 - **No additional restrictions** — You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits.
 
 ### Restrictions
 
 You may **NOT**, without prior written permission:
+
 - Use the Software or any derivative works for **commercial purposes**
 - Use the Software in any **revenue-generating** product, service, or business operation
 - **Host or deploy as a SaaS** — Run this software to provide services to third parties
@@ -71,6 +74,7 @@ No patent license is granted by this license. If you have patent claims that wou
 **IMPORTANT:** This license applies **ONLY** to original code written by Lorenzo Mazzola. All third-party libraries, frameworks, and dependencies retain their original licenses.
 
 This project includes:
+
 - **Vue.js, Vite, Express, Node.js, MongoDB, Redis** and numerous npm/pip packages (see package.json and requirements.txt)
 - **TradingView Lightweight Charts** (Apache 2.0) - See [src/lib/lightweight-charts/LICENSE](src/lib/lightweight-charts/LICENSE)
 - **Other open-source libraries** listed in dependencies

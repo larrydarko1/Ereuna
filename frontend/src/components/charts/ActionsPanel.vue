@@ -6,7 +6,11 @@ import { formatDate, formatNumber } from '@/utils/formatters';
 
 type Row = { key: string; date: string; value: string };
 
-const { actions, kind, expandable = false } = defineProps<{
+const {
+    actions,
+    kind,
+    expandable = false,
+} = defineProps<{
     actions: readonly CorporateAction[];
     kind: 'dividends' | 'splits';
     expandable?: boolean; // Whether a "show all" control is offered — false once everything is loaded
@@ -31,26 +35,40 @@ const rows = computed<Row[]>(() =>
 </script>
 
 <template>
-    <table v-if="rows.length > 0" class="actions">
+    <table
+        v-if="rows.length > 0"
+        class="actions">
         <thead>
             <tr>
                 <th scope="col">{{ t(`sidebar.${kind}Reported`) }}</th>
-                <th scope="col" class="actions__numeric">{{ t(`sidebar.${kind}Column`) }}</th>
+                <th
+                    scope="col"
+                    class="actions__numeric"
+                    >{{ t(`sidebar.${kind}Column`) }}</th
+                >
             </tr>
         </thead>
         <tbody>
-            <tr v-for="row in rows" :key="row.key">
+            <tr
+                v-for="row in rows"
+                :key="row.key">
                 <th scope="row">{{ row.date }}</th>
                 <td class="actions__numeric">{{ row.value }}</td>
             </tr>
         </tbody>
     </table>
 
-    <p v-else class="actions__empty">
+    <p
+        v-else
+        class="actions__empty">
         {{ kind === 'dividends' ? t('sidebar.noDividendData') : t('sidebar.noSplitsData') }}
     </p>
 
-    <button v-if="expandable && rows.length > 0" type="button" class="actions__more" @click="emit('expand')">
+    <button
+        v-if="expandable && rows.length > 0"
+        type="button"
+        class="actions__more"
+        @click="emit('expand')">
         {{ t('sidebar.showAll') }}
     </button>
 </template>

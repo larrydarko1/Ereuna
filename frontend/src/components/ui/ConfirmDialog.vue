@@ -22,13 +22,30 @@ const { t } = useI18n();
 </script>
 
 <template>
-    <AppDialog :title="title" size="sm" @close="emit('close')">
+    <AppDialog
+        :title="title"
+        size="sm"
+        @close="emit('close')">
         <p class="confirm-dialog__message">{{ message }}</p>
-        <p v-if="error !== null" class="form-error" role="alert">{{ error }}</p>
+        <p
+            v-if="error !== null"
+            class="form-error"
+            role="alert"
+            >{{ error }}</p
+        >
 
         <template #footer>
-            <button type="button" class="btn" @click="emit('close')">{{ cancelLabel ?? t('common.cancel') }}</button>
-            <button type="button" class="btn btn--danger" :disabled="pending" @click="emit('confirm')">
+            <button
+                type="button"
+                class="btn"
+                @click="emit('close')"
+                >{{ cancelLabel ?? t('common.cancel') }}</button
+            >
+            <button
+                type="button"
+                class="btn btn--danger"
+                :disabled="pending"
+                @click="emit('confirm')">
                 {{ pending ? t('common.processing') : (confirmLabel ?? t('common.confirm')) }}
             </button>
         </template>

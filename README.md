@@ -20,6 +20,7 @@ The application itself is designed to aggregate financial markets data using agg
 In production it held 14 containers unified in a network (the deployment architecture diagram is shown below).
 
 **Core Features:**
+
 - **Dashboard** - Market outlook general overview
 - **Account Settings** - Basic CRUD, Recovery Code, Security / 2FA, 50 custom themes, support for 18 languages
 - **Portfolio Simulations** - Support for 10 different portfolios, benchmarks and performance tracking, simulation for cash deposits, withdraws, long and short positions, fractional shares and leverage up to 10x, with CRUD functionalities for each, retroactive balancing (meaning portfolio automatically rebuilds itself after edit)
@@ -49,11 +50,13 @@ To speed up and optimize my weekly screening routine.
 Before this project, I was running multiple screeners sequentially, because if I applied too many filters on a single screener, it would've cut out opportunities because it didn't check all the boxes (my strategy is running more screeners with less filters and then look for overlaps—the more duplicated values, the stronger the signal, assuming the filters are strong and the strategies are aligned of course, this was my case).
 
 The problem with this approach was:
+
 - **Time consuming** - Running screeners sequentially and checking for overlaps manually across multiple lists was inefficient
 - **Human error** - Some things were easily missed when comparing results manually
 - **Noise** - I was stuck seeing irrelevant results I didn't care about even though it technically passed my criteria (example: I don't care about small pharmaceutical companies, or meme coins, etc.)
 
 **Old Workflow:**
+
 ```
 Screener 1 → Results A (200 stocks)
 Screener 2 → Results B (180 stocks)  } Manual comparison
@@ -69,6 +72,7 @@ Screener 4 → Results D (220 stocks)  } Human error prone
 With the new workflow, I'm simply selecting screeners, pressing a button, and the system runs them simultaneously. I get a compacted unified list of results, with duplicates automatically sorted from most duplicated to least duplicated, strongest signals on top.
 
 **New Workflow:**
+
 ```
 Screener 1 + 2 + 3 + 4 → [Multi-Screener Engine]
                               ↓
@@ -82,15 +86,17 @@ Screener 1 + 2 + 3 + 4 → [Multi-Screener Engine]
 ```
 
 **Key Benefits:**
--  **80% time reduction** - From hours to minutes (1/5 of the original time)
--  **Smart filtering** - Duplicate detection automatically identifies strongest signals
--  **No manual errors** - Automated overlap detection eliminates human mistakes
+
+- **80% time reduction** - From hours to minutes (1/5 of the original time)
+- **Smart filtering** - Duplicate detection automatically identifies strongest signals
+- **No manual errors** - Automated overlap detection eliminates human mistakes
 
 Each user gets to customize visibility of certain assets. Don't want to see meme coins or penny stocks for zombie companies? Just hide them from your profile and they won't appear on query results unless you manually reinsert them again. You can still research them in the Charts section (it will remind you that they are in your hidden list), but they won't appear in query results in the screener.
 
 # How to use it
 
 There are three ways of running this project, in all cases you need:
+
 - MongoDB installed
 - Redis (optional on local machine)
 - Docker Engine (optional, if you want to run locally)
@@ -98,26 +104,31 @@ There are three ways of running this project, in all cases you need:
 ## Local Development
 
 For local development (how I run it most of the time), simply spin up the frontend:
+
 ```bash
 npm run dev
 ```
 
 And the backend (rest api):
+
 ```bash
 npm run backend
 ```
 
-Make sure the database is available, then go to localhost:3500. Websocket won't work with this method. 
+Make sure the database is available, then go to localhost:3500. Websocket won't work with this method.
 
 ## Docker (Development Build)
 
 You can try building using docker, make sure to type:
+
 ```bash
 npm run dbup
 ```
+
 So that it dumps all collections into the proper folder db/dump, for the mongodb container to restore later.
 
 Then type:
+
 ```bash
 npm run docker:dev
 ```
@@ -125,10 +136,11 @@ npm run docker:dev
 This will provide a local Docker version of the full app, including WebSocket and all the other containers. Note that you need a Tiingo premium API key to update new data and access the real-time data feed.
 
 **Important notes:**
-- As of today, only crypto allows for intraday volume data / FULL TOPS. I didn't have the time to code an ingestor for crypto; only IEX data is currently available.
-- Since February 2025, IEX changed rules and to have access to FULL TOPS Data you need a deal directly with them. I couldn't afford to pay an extra $500/month, so I used Tiingo reference price using their infrastructure (no intraday volume). 
 
-About the WebSocket, without a solid infrastructure, there are probably memory leaks when it uploads intraday data into the database. I've never had issues with daily or weekly data updates though in weeks of testing. 
+- As of today, only crypto allows for intraday volume data / FULL TOPS. I didn't have the time to code an ingestor for crypto; only IEX data is currently available.
+- Since February 2025, IEX changed rules and to have access to FULL TOPS Data you need a deal directly with them. I couldn't afford to pay an extra $500/month, so I used Tiingo reference price using their infrastructure (no intraday volume).
+
+About the WebSocket, without a solid infrastructure, there are probably memory leaks when it uploads intraday data into the database. I've never had issues with daily or weekly data updates though in weeks of testing.
 
 **CAREFUL:** Tiingo Websocket infrastructure seems to have a weird issue where if there's an outage, it can create a dangling subscription that drains your monthly bandwidth, and you can't close it on your end. Make sure you have a solid internet connection and contact Tiingo support if you encounter issues.
 
@@ -159,6 +171,7 @@ CF_DNS_API_TOKEN=your_key_here
 1. Point your domain DNS to your server IP in Cloudflare
 2. Get your Cloudflare API token (needs Zone:Read and DNS:Edit permissions)
 3. Create a `.env` file with your Cloudflare credentials for Traefik to use:
+
 ```
 CLOUDFLARE_EMAIL=your@email.com
 CLOUDFLARE_API_TOKEN=your_api_token_here
@@ -177,12 +190,12 @@ npm run docker:prod
 If done right, the services will spin up behind Traefik and be accessible through your domain. Traefik will automatically handle the SSL/TLS certificates via Let's Encrypt using Cloudflare's DNS challenge, so you don't need to worry about certificate renewal, it's automatic. The certificates get stored in `docker/acme.json` (don't delete this file or you'll have to regenerate certificates).
 
 First startup will take a few minutes while containers initialize and MongoDB restores the database dump. You can monitor the logs to see what's happening:
+
 ```bash
 docker-compose -f docker/docker-compose.prod.yml logs -f
 ```
 
-Once everything is up, your app should be accessible at your domain, and Grafana monitoring at your monitoring subdomain (if configured). 
-
+Once everything is up, your app should be accessible at your domain, and Grafana monitoring at your monitoring subdomain (if configured).
 
 # Architecture
 
@@ -257,7 +270,8 @@ Ereuna/                              # npm workspaces monorepo
 ├── package-lock.json
 └── README.md                        # Project summary documentation
 ```
-----
+
+---
 
 Docker Deployment Architecture
 ═══════════════════════════════════════════════════════════════════════════════
@@ -312,22 +326,25 @@ Docker Deployment Architecture
 
 Networks:
 ----------
-• ereuna-network          - External network (Traefik → Services)
+
+• ereuna-network - External network (Traefik → Services)
 • ereuna-network-internal - Internal network (Services ↔ Databases)
 
 Service Dependencies:
 ---------------------
-Frontend  → Backend, Redis, MongoDB
-Backend   → MongoDB, Redis
+
+Frontend → Backend, Redis, MongoDB
+Backend → MongoDB, Redis
 WebSocket → Redis, MongoDB
-Ingestor  → Redis, MongoDB
+Ingestor → Redis, MongoDB
 Aggregator→ Redis, MongoDB
-Grafana   → Prometheus, Loki
+Grafana → Prometheus, Loki
 Prometheus→ All services (metrics)
-Promtail  → Loki (logs)
+Promtail → Loki (logs)
 
 Data Flow:
 ----------
+
 1. Client → Traefik (HTTPS termination)
 2. Traefik → Frontend/WebSocket (based on path)
 3. Frontend → Backend API (REST)
@@ -341,22 +358,25 @@ Data Flow:
 
 Volumes:
 --------
-• mongodb_data    - Persistent database storage
+
+• mongodb_data - Persistent database storage
 • prometheus_data - Metrics time-series storage
-• grafana_data    - Dashboards and configurations
-• logs_volume     - Aggregated application logs
+• grafana_data - Dashboards and configurations
+• logs_volume - Aggregated application logs
 
 Health Checks:
 --------------
-MongoDB    - mongosh ping
-Redis      - redis-cli ping
+
+MongoDB - mongosh ping
+Redis - redis-cli ping
 Aggregator - /ready endpoint
-Ingestor   - /ready endpoint
-WebSocket  - /ready endpoint
+Ingestor - /ready endpoint
+WebSocket - /ready endpoint
 
 # Dependencies
 
 ### Frontend (Vue.js/TypeScript)
+
 - **Vue 3** - Progressive JavaScript framework
 - **Vite** - Next-generation frontend build tool
 - **TypeScript** - Type-safe JavaScript
@@ -370,6 +390,7 @@ WebSocket  - /ready endpoint
 - **QRCode.vue** - QR code generation
 
 ### Backend API (Node.js/TypeScript)
+
 - **Express** - Web framework
 - **MongoDB** - Database driver (v6.8.0)
 - **IORedis** - Redis caching client
@@ -387,6 +408,7 @@ WebSocket  - /ready endpoint
 - **PDF-lib** - PDF generation
 
 ### Python Services (Backend)
+
 - **FastAPI** - Modern async web framework
 - **Motor** - Async MongoDB driver
 - **PyMongo** - MongoDB operations
@@ -397,6 +419,7 @@ WebSocket  - /ready endpoint
 - **Requests** - HTTP library
 
 ### Infrastructure & DevOps
+
 - **Docker & Docker Compose** - Containerization
 - **Traefik** - Reverse proxy & HTTPS/TLS
 - **MongoDB** - Primary database
@@ -409,10 +432,12 @@ WebSocket  - /ready endpoint
 - **Redis Exporter** - Cache metrics
 
 ### External APIs & Services
+
 - **Tiingo API** - Market data (EOD, real-time, fundamentals, crypto)
 - **Cloudflare** - DNS & SSL/TLS certificates
 
 ### Development Tools
+
 - **Nodemon** - Auto-reload server
 - **TypeScript** - Type system (v5.9.2)
 - **ts-node** - TypeScript execution
@@ -434,6 +459,7 @@ This project was built using amazing open-source tools and third-party services:
 ## Contact
 
 For questions, collaboration, or commercial licensing inquiries:
+
 - **GitHub:** [@larrydarko1](https://github.com/larrydarko1)
 - **Email:** Open an issue on GitHub for contact
 
@@ -442,12 +468,14 @@ For questions, collaboration, or commercial licensing inquiries:
 ⚠️ **This project is licensed under CC BY-NC-SA 4.0 — Non-commercial use only.**
 
 You may **NOT** use this code for:
+
 - Commercial products or services
 - SaaS platforms or hosted services
 - Revenue-generating applications
 - Reselling, repackaging, or sublicensing
 
 You **MAY** use this code for:
+
 - Learning and educational purposes
 - Portfolio review and technical interviews
 - Personal, non-commercial projects
@@ -459,5 +487,4 @@ For commercial licensing inquiries, please open an issue on GitHub.
 
 ---
 
-*Built with 🖤 as a learning journey into full-stack development*
-
+_Built with 🖤 as a learning journey into full-stack development_

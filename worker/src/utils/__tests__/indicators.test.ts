@@ -15,6 +15,9 @@ import {
 /** An ascending series, oldest first — the order every function here expects. */
 const rising = Array.from({ length: 30 }, (_, index) => 100 + index);
 
+/** Long enough to clear the MACD warmup, which `rising` deliberately is not. */
+const longRising = Array.from({ length: 120 }, (_, index) => 100 + index);
+
 describe('sma', () => {
     it('averages the newest bars, not the oldest', () => {
         expect(sma(rising, 3)).toBe(128);
@@ -49,6 +52,18 @@ describe('rsi', () => {
 
     it('is null before there are enough changes', () => {
         expect(rsi([1, 2, 3])).toBeNull();
+    });
+
+    it('smooths across the whole series rather than the last window', () => {
+        // Twenty-one bars up, then fourteen down. Every change inside a
+        // fourteen-period window is a loss, so the windowed variant reads 0;
+        // Wilder's carries the run-up forward and reads just above the midline.
+        // This is the assertion that pins which RSI this is.
+        const upThenDown = [
+            ...Array.from({ length: 21 }, (_, index) => 60 + index * 2),
+            ...Array.from({ length: 14 }, (_, index) => 99 - index),
+        ];
+        expect(rsi(upThenDown)).toBeCloseTo(52.33, 2);
     });
 });
 
@@ -109,13 +124,19 @@ describe('ema and macd', () => {
     });
 
     it('produces two aligned series', () => {
-        const result = macd(rising);
-        expect(result?.macd).toHaveLength(rising.length);
-        expect(result?.signal).toHaveLength(rising.length);
+        const result = macd(longRising);
+        expect(result?.macd).toHaveLength(longRising.length);
+        expect(result?.signal).toHaveLength(longRising.length);
     });
 
     it('is null before there are enough bars for the slow leg', () => {
         expect(macd([1, 2, 3])).toBeNull();
+    });
+
+    it('is null while the slow leg is still weighted by its own seed', () => {
+        // Past `slow` bars but short of the warmup, which is where the old
+        // guard handed back a crossover driven by the first close.
+        expect(macd(longRising.slice(0, 30))).toBeNull();
     });
 });
 

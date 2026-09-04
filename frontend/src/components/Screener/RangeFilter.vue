@@ -3,7 +3,11 @@ import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { formatNumber } from '@/utils/formatters';
 
-const { value = null, bounds = null, busy = false } = defineProps<{
+const {
+    value = null,
+    bounds = null,
+    busy = false,
+} = defineProps<{
     value?: { min: number; max: number } | null;
     bounds?: { min: number; max: number } | null;
     busy?: boolean;
@@ -63,20 +67,42 @@ watch(
 </script>
 
 <template>
-    <form class="range-filter" @submit.prevent="submit">
+    <form
+        class="range-filter"
+        @submit.prevent="submit">
         <label class="range-filter__field">
             <span class="range-filter__label">{{ t('screener.min') }}</span>
-            <input v-model="min" type="number" step="any" class="range-filter__input" :placeholder="placeholder('min')">
+            <input
+                v-model="min"
+                type="number"
+                step="any"
+                class="range-filter__input"
+                :placeholder="placeholder('min')" />
         </label>
 
         <label class="range-filter__field">
             <span class="range-filter__label">{{ t('screener.max') }}</span>
-            <input v-model="max" type="number" step="any" class="range-filter__input" :placeholder="placeholder('max')">
+            <input
+                v-model="max"
+                type="number"
+                step="any"
+                class="range-filter__input"
+                :placeholder="placeholder('max')" />
         </label>
 
-        <button type="submit" class="range-filter__apply" :disabled="busy">{{ t('common.apply') }}</button>
+        <button
+            type="submit"
+            class="range-filter__apply"
+            :disabled="busy"
+            >{{ t('common.apply') }}</button
+        >
 
-        <p v-if="error !== null" class="range-filter__error" role="alert">{{ error }}</p>
+        <p
+            v-if="error !== null"
+            class="range-filter__error"
+            role="alert"
+            >{{ error }}</p
+        >
     </form>
 </template>
 

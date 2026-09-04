@@ -19,17 +19,31 @@ const rows = computed(() => series[universe.value] ?? []);
     <div class="ma-breadth">
         <label class="ma-breadth__filter">
             <span class="visually-hidden">{{ t('dashboard.sma.universe') }}</span>
-            <select v-model="universe" class="form-input">
-                <option v-for="option in BREADTH_UNIVERSES" :key="option" :value="option">
+            <select
+                v-model="universe"
+                class="form-input">
+                <option
+                    v-for="option in BREADTH_UNIVERSES"
+                    :key="option"
+                    :value="option">
                     {{ t(`dashboard.universe.${option}`) }}
                 </option>
             </select>
         </label>
 
-        <p v-if="rows.length === 0" class="ma-breadth__empty">{{ t('dashboard.noData') }}</p>
+        <p
+            v-if="rows.length === 0"
+            class="ma-breadth__empty"
+            >{{ t('dashboard.noData') }}</p
+        >
 
-        <ul v-else class="ma-breadth__list">
-            <li v-for="row in rows" :key="row.period" class="ma-breadth__row">
+        <ul
+            v-else
+            class="ma-breadth__list">
+            <li
+                v-for="row in rows"
+                :key="row.period"
+                class="ma-breadth__row">
                 <span class="ma-breadth__period">{{ t('dashboard.sma.period', { period: row.period }) }}</span>
                 <span
                     class="ma-breadth__bar"
@@ -39,10 +53,13 @@ const rows = computed(() => series[universe.value] ?? []);
                             above: formatNumber(row.above * 100, 1),
                             below: formatNumber(row.below * 100, 1),
                         })
-                    "
-                >
-                    <span class="ma-breadth__fill ma-breadth__fill--above" :style="{ width: `${row.above * 100}%` }" />
-                    <span class="ma-breadth__fill ma-breadth__fill--below" :style="{ width: `${row.below * 100}%` }" />
+                    ">
+                    <span
+                        class="ma-breadth__fill ma-breadth__fill--above"
+                        :style="{ width: `${row.above * 100}%` }" />
+                    <span
+                        class="ma-breadth__fill ma-breadth__fill--below"
+                        :style="{ width: `${row.below * 100}%` }" />
                 </span>
                 <span class="ma-breadth__values">
                     <span class="ma-breadth__above">{{ formatNumber(row.above * 100, 0) }}%</span>

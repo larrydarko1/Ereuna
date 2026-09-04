@@ -86,24 +86,24 @@ async function load(): Promise<Row[]> {
             { Delisted: { $ne: true } },
             {
                 projection: {
-                    _id: 0,
-                    Symbol: 1,
-                    AssetType: 1,
-                    Exchange: 1,
-                    Sector: 1,
-                    Industry: 1,
-                    MarketCapitalization: 1,
-                    IntrinsicValue: 1,
+                    '_id': 0,
+                    'Symbol': 1,
+                    'AssetType': 1,
+                    'Exchange': 1,
+                    'Sector': 1,
+                    'Industry': 1,
+                    'MarketCapitalization': 1,
+                    'IntrinsicValue': 1,
                     'TimeSeries.close': 1,
-                    todaychange: 1,
-                    quarterchange: 1,
+                    'todaychange': 1,
+                    'quarterchange': 1,
                     '1mchange': 1,
                     '4mchange': 1,
                     '1ychange': 1,
-                    ytdchange: 1,
-                    fiftytwoWeekHigh: 1,
-                    fiftytwoWeekLow: 1,
-                    metricsUpdatedAt: 1,
+                    'ytdchange': 1,
+                    'fiftytwoWeekHigh': 1,
+                    'fiftytwoWeekLow': 1,
+                    'metricsUpdatedAt': 1,
                     ...Object.fromEntries(MA_PERIODS.map((period) => [`MA${period}`, 1])),
                 },
             },
@@ -135,7 +135,7 @@ function toRow(doc: AssetInfoDoc): Row {
             '1M': numeric(doc['1mchange']),
             '4M': numeric(doc['4mchange']),
             '1Y': numeric(doc['1ychange']),
-            YTD: numeric(doc.ytdchange),
+            'YTD': numeric(doc.ytdchange),
         },
         updatedAt: updatedAt instanceof Date ? updatedAt : null,
     };
@@ -162,7 +162,9 @@ function inUniverse(row: Row, universe: (typeof UNIVERSES)[number]): boolean {
  * The universes are partitioned once and every period reuses the partition.
  */
 function breadthByUniverse(rows: readonly Row[]): Record<number, Record<string, { up: number; down: number }>> {
-    const partitions = new Map(UNIVERSES.map((universe) => [universe, rows.filter((row) => inUniverse(row, universe))]));
+    const partitions = new Map(
+        UNIVERSES.map((universe) => [universe, rows.filter((row) => inUniverse(row, universe))]),
+    );
     const breadth: Record<number, Record<string, { up: number; down: number }>> = {};
 
     for (const period of MA_PERIODS) {
@@ -252,7 +254,11 @@ function tiers(
     reduce: (members: Row[]) => number | null,
 ): Record<string, unknown>[] {
     const eligible = rows.filter(
-        (row) => row[field] !== '' && row.quarterChange !== null && (row.marketCap ?? 0) > 0 && PRIMARY_EXCHANGES.includes(row.exchange),
+        (row) =>
+            row[field] !== '' &&
+            row.quarterChange !== null &&
+            (row.marketCap ?? 0) > 0 &&
+            PRIMARY_EXCHANGES.includes(row.exchange),
     );
 
     const groups = new Map<string, Row[]>();
@@ -266,7 +272,9 @@ function tiers(
         .flatMap(([name, members]) => {
             if (members.length < MIN_TIER_MEMBERS) return [];
             const averageReturn = reduce(members);
-            return averageReturn === null ? [] : [{ [field]: name, average_return: averageReturn, count: members.length }];
+            return averageReturn === null
+                ? []
+                : [{ [field]: name, average_return: averageReturn, count: members.length }];
         })
         .sort((left, right) => (right.average_return as number) - (left.average_return as number));
 }
@@ -285,7 +293,10 @@ function indexPerformance(rows: readonly Row[]): Record<string, unknown> {
 /** The day's biggest moves on the primary exchanges, as percentages. */
 function movers(rows: readonly Row[], direction: 'asc' | 'desc'): Record<string, unknown>[] {
     const eligible = rows.filter(
-        (row) => PRIMARY_EXCHANGES.includes(row.exchange) && row.todayChange !== null && Math.abs(row.todayChange) <= MAX_DAILY_MOVE,
+        (row) =>
+            PRIMARY_EXCHANGES.includes(row.exchange) &&
+            row.todayChange !== null &&
+            Math.abs(row.todayChange) <= MAX_DAILY_MOVE,
     );
 
     return sortBy(eligible, (row) => row.todayChange ?? 0, direction)

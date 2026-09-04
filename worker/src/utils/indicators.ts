@@ -1,7 +1,7 @@
 /**
  * Indicator maths. Pure, no I/O, no database.
  * Every function here takes a series in ASCENDING time order — oldest first,
- * newest last — and every caller sorts that way. 
+ * newest last — and every caller sorts that way.
  */
 
 export type MacdSeries = {
@@ -31,21 +31,37 @@ export function ema(values: readonly number[], period: number): number[] {
     return out;
 }
 
+/**
+ * Wilder's RSI over the whole series, which is the one every chart draws.
+ * The average gain and loss are seeded on the first `period` changes and then
+ * smoothed across every change after them, so each new bar moves the reading by
+ * a fraction of itself instead of dropping a bar off the back of a window. The
+ * windowed variant this replaced (Cutler's) is a different indicator wearing the
+ * same name: it reads several points away from Wilder's on the same series, and
+ * on a research app that means the number here disagrees with the number the
+ * user is looking at on their broker's chart.
+ * Both averages divide by `period` and not by the count of days that moved —
+ * that part is common to both variants, and is what keeps a single large drop
+ * among small gains from reading as balanced.
+ */
 export function rsi(closes: readonly number[], period = 14): number | null {
     if (closes.length < period + 1) return null;
 
-    const window = closes.slice(closes.length - (period + 1));
-    let gains = 0;
-    let losses = 0;
-
-    for (let index = 1; index < window.length; index += 1) {
-        const change = (window[index] ?? 0) - (window[index - 1] ?? 0);
-        if (change > 0) gains += change;
-        else losses -= change;
+    let averageGain = 0;
+    let averageLoss = 0;
+    for (let index = 1; index <= period; index += 1) {
+        const change = (closes[index] ?? 0) - (closes[index - 1] ?? 0);
+        if (change > 0) averageGain += change;
+        else averageLoss -= change;
     }
+    averageGain /= period;
+    averageLoss /= period;
 
-    const averageGain = gains / period;
-    const averageLoss = losses / period;
+    for (let index = period + 1; index < closes.length; index += 1) {
+        const change = (closes[index] ?? 0) - (closes[index - 1] ?? 0);
+        averageGain = (averageGain * (period - 1) + Math.max(change, 0)) / period;
+        averageLoss = (averageLoss * (period - 1) + Math.max(-change, 0)) / period;
+    }
 
     // No down days: the index is pinned at its ceiling, not undefined
     if (averageLoss === 0) return averageGain === 0 ? 50 : 100;
@@ -53,8 +69,18 @@ export function rsi(closes: readonly number[], period = 14): number | null {
     return 100 - 100 / (1 + averageGain / averageLoss);
 }
 
+/**
+ * The MACD line and its signal, both index-aligned with `closes`.
+ * The minimum is not `slow` bars but enough of them for the EMA warmup to have
+ * burned off. `ema` seeds on the first close, and that seed still carries
+ * `(1 - 2 / (period + 1)) ** n` of the weight n bars later — at exactly `slow`
+ * bars it is a seventh of a 26-period average, so a crossover there says more
+ * about where the series happened to start than about the market. The old guard
+ * let that through; no caller passes a series that short today, which is the
+ * only reason it never produced a wrong signal.
+ */
 export function macd(closes: readonly number[], fast = 12, slow = 26, signalPeriod = 9): MacdSeries | null {
-    if (closes.length < slow) return null;
+    if (closes.length < warmupBars(slow) + signalPeriod) return null;
 
     const fastEma = ema(closes, fast);
     const slowEma = ema(closes, slow);
@@ -130,4 +156,9 @@ export function round(value: number | null, places: number): number | null {
     if (value === null || !Number.isFinite(value)) return null;
     const factor = 10 ** places;
     return Math.round(value * factor) / factor;
+}
+
+/** Bars until an EMA seeded on its first value carries under 1% of the weight. */
+function warmupBars(period: number): number {
+    return Math.ceil(Math.log(0.01) / Math.log(1 - 2 / (period + 1)));
 }
