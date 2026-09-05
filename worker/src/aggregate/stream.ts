@@ -65,13 +65,7 @@ export async function consumeTrades(shouldStop: () => boolean): Promise<void> {
 
             if (response === null) continue;
 
-            const ids: string[] = [];
-            for (const [, entries] of response) {
-                for (const [id, fields] of entries) {
-                    ids.push(id);
-                    handle(fields);
-                }
-            }
+            const ids = drain(response, handle);
 
             // Acknowledged as a batch: one round trip per read rather than one
             // per trade, and a crash before the ack simply replays the batch,
@@ -155,5 +149,21 @@ function toEpochMs(instant: unknown): number | null {
 }
 
 function sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise((resolve): void => {
+        setTimeout(resolve, ms);
+    });
+}
+
+/** Hand every entry in a read to `onEntry` and give back the ids to acknowledge. */
+function drain(response: StreamRead, onEntry: (fields: string[]) => void): string[] {
+    const ids: string[] = [];
+
+    for (const [, entries] of response ?? []) {
+        for (const [id, fields] of entries) {
+            ids.push(id);
+            onEntry(fields);
+        }
+    }
+
+    return ids;
 }

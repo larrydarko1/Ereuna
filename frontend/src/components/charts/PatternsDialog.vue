@@ -24,11 +24,12 @@ const BIAS: Record<string, 'bullish' | 'bearish' | 'neutral'> = {
     bearishFlag: 'bearish',
 };
 
-const { t, te } = useI18n();
+const i18n = useI18n();
+const { t } = i18n;
 
 function patternName(type: string): string {
     const key = `charts.patterns.types.${type}`;
-    return te(key) ? t(key) : type;
+    return i18n.te(key) ? t(key) : type;
 }
 
 function bias(type: string): 'bullish' | 'bearish' | 'neutral' {

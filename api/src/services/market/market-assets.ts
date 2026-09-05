@@ -100,7 +100,7 @@ const summaryFieldsCovered: SummaryField extends keyof AssetProfile ? true : nev
  * cannot create a watchlist entry or a trade against a symbol that will never
  * have a price.
  */
-export async function requireAsset(symbol: string): Promise<AssetInfoDoc> {
+export async function getAsset(symbol: string): Promise<AssetInfoDoc> {
     const asset = await getDb().collection<AssetInfoDoc>('AssetInfo').findOne({ Symbol: symbol });
     if (asset === null) throw new AppError(404, 'ASSET_NOT_FOUND', `symbol ${symbol} not in AssetInfo`);
     return asset;
@@ -108,7 +108,7 @@ export async function requireAsset(symbol: string): Promise<AssetInfoDoc> {
 
 /** The exchange a symbol trades on, or an empty string when the reference data does not say. */
 export async function assetExchange(symbol: string): Promise<string> {
-    return (await requireAsset(symbol)).Exchange ?? '';
+    return (await getAsset(symbol)).Exchange ?? '';
 }
 
 /**
@@ -168,7 +168,7 @@ export async function searchAssets(term: string, limit: number): Promise<AssetSu
 
 /** The reference data for one asset, shaped for display. */
 export async function assetProfile(symbol: string): Promise<AssetProfile> {
-    const doc = await requireAsset(symbol);
+    const doc = await getAsset(symbol);
 
     return {
         symbol: doc.Symbol,
@@ -253,7 +253,7 @@ export async function corporateActions(
     kind: 'dividends' | 'splits',
     limit: number,
 ): Promise<CorporateAction[]> {
-    const asset = await requireAsset(symbol);
+    const asset = await getAsset(symbol);
     const actions = asset[kind] ?? [];
     return [...actions].reverse().slice(0, limit);
 }
@@ -265,7 +265,7 @@ export async function corporateActions(
  * as NaN.
  */
 export async function earningsDates(symbol: string): Promise<string[]> {
-    const asset = await requireAsset(symbol);
+    const asset = await getAsset(symbol);
     return (asset.quarterlyIncome ?? [])
         .map((quarter) => (quarter.fiscalDateEnding === undefined ? null : new Date(quarter.fiscalDateEnding)))
         .filter((date): date is Date => date !== null && !Number.isNaN(date.getTime()))

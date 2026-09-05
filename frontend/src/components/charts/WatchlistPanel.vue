@@ -132,8 +132,10 @@ function exportList(): void {
     URL.revokeObjectURL(url);
 }
 
-const changeTone = (value: number | null): string =>
-    value === null || value === 0 ? '' : value > 0 ? 'watchlist__change--up' : 'watchlist__change--down';
+function changeTone(value: number | null): string {
+    if (value === null || value === 0) return '';
+    return value > 0 ? 'watchlist__change--up' : 'watchlist__change--down';
+}
 
 onMounted(() => {
     void run(() => load());
@@ -200,6 +202,7 @@ onMounted(() => {
                     class="watchlist__file"
                     type="file"
                     accept=".txt,text/plain"
+                    :aria-label="t('common.import')"
                     @change="importFile" />
             </div>
         </header>

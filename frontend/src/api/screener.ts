@@ -69,7 +69,7 @@ export type ResultsQuery = {
     limit?: number;
 };
 
-export function listScreeners(): ApiResult<{ items: ScreenerSummary[] }> {
+export function getScreeners(): ApiResult<{ items: ScreenerSummary[] }> {
     return api.get<{ items: ScreenerSummary[] }>('/screeners');
 }
 
@@ -94,8 +94,8 @@ export function updateScreener(name: string, patch: { name?: string; include?: b
     return api.patch<ScreenerSummary>(`/screeners/${encodeURIComponent(name)}`, patch);
 }
 
-export function deleteScreener(name: string): ApiResult<{ ok: true }> {
-    return api.delete<{ ok: true }>(`/screeners/${encodeURIComponent(name)}`);
+export function deleteScreener(name: string): ApiResult<void> {
+    return api.delete<void>(`/screeners/${encodeURIComponent(name)}`);
 }
 
 export function getScreenerResults(name: string, query: ResultsQuery = {}): ApiResult<ScreenerResultPage> {

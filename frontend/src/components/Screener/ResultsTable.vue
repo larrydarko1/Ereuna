@@ -29,7 +29,7 @@ const PLACEHOLDER = '—';
 const { t } = useI18n();
 
 /** Only columns the catalogue knows how to label and format are rendered. */
-const resolved = computed(() => columns.map((path) => findColumn(path)).filter((column) => column !== undefined));
+const resolved = computed(() => columns.map((path) => findColumn(path)).filter((column) => column !== null));
 
 function header(filterKey: string): string {
     return t(`screener.fields.${filterKey}`);
@@ -118,7 +118,7 @@ function onKeydown(event: KeyboardEvent): void {
                 </tr>
             </thead>
 
-            <tbody @keydown="onKeydown">
+            <tbody>
                 <tr
                     v-for="row in items"
                     :key="row.symbol"
@@ -127,6 +127,7 @@ function onKeydown(event: KeyboardEvent): void {
                     :aria-selected="row.symbol === selected"
                     tabindex="0"
                     @click="emit('select', row.symbol)"
+                    @keydown="onKeydown"
                     @keydown.enter="emit('select', row.symbol)">
                     <td class="results-table__td results-table__td--symbol">{{ row.symbol }}</td>
                     <td class="results-table__td results-table__td--name">{{ row.name ?? PLACEHOLDER }}</td>

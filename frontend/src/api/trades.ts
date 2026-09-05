@@ -46,7 +46,7 @@ export type TradeQuery = {
     symbol?: string;
 };
 
-export function listTrades(number: number, query: TradeQuery = {}): ApiResult<TradePage> {
+export function getTrades(number: number, query: TradeQuery = {}): ApiResult<TradePage> {
     return api.get<TradePage>(`/portfolios/${number}/trades`, { params: query });
 }
 
@@ -58,6 +58,6 @@ export function updateTrade(number: number, id: string, trade: TradeInput): ApiR
     return api.patch<TradeRow>(`/portfolios/${number}/trades/${id}`, trade);
 }
 
-export function deleteTrade(number: number, id: string): ApiResult<{ ok: true }> {
-    return api.delete<{ ok: true }>(`/portfolios/${number}/trades/${id}`);
+export function deleteTrade(number: number, id: string): ApiResult<void> {
+    return api.delete<void>(`/portfolios/${number}/trades/${id}`);
 }

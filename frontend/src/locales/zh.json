@@ -342,7 +342,6 @@
             "deposit": "现金存入",
             "withdrawal": "现金提取"
         },
-        "actions.cover": "回补",
         "cashHint": "现金变动同样记为交易，因此初始余额应作为存入记录。",
         "baseValueHint": "用于衡量收益率的本金。没有它就无法计算百分比。",
         "defaultCommission": "默认佣金",

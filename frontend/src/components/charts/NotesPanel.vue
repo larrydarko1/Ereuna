@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { apiErrorMessage } from '@/api/client';
-import { createNote, deleteNote, listNotes, updateNote, type NoteRow } from '@/api/note';
+import { createNote, deleteNote, getNotes, updateNote, type NoteRow } from '@/api/note';
 import { useResource } from '@/composables/data/useResource';
 import { formatDate } from '@/utils/formatters';
 
@@ -15,8 +15,8 @@ const { t } = useI18n();
 
 const { data, pending, error, mutate } = useResource(
     () => symbol,
-    async (current) => (await listNotes({ symbol: current, limit: 50 })).data.items,
-    { enabled: (current) => current !== '' },
+    async (current) => (await getNotes({ symbol: current, limit: 50 })).data.items,
+    { enabled: (current): boolean => current !== '' },
 );
 
 const draft = ref('');

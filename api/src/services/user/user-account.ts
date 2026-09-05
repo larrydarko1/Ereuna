@@ -6,7 +6,7 @@
  * only while `passwordResetRequired` is up, and both clear it.
  */
 import argon2 from 'argon2';
-import { ObjectId, type WithId } from 'mongodb';
+import { type ObjectId, type WithId } from 'mongodb';
 import type {
     ChartDrawingDoc,
     NoteDoc,
@@ -24,11 +24,11 @@ import { getDb } from '@/lib/db.js';
 import { revokeAllUserTokens, toAuthUser, type AuthUser } from '@/services/auth/auth-tokens.js';
 
 export async function getAccount(userId: ObjectId): Promise<AuthUser> {
-    return toAuthUser(await requireUser(userId));
+    return toAuthUser(await getUser(userId));
 }
 
 export async function changePassword(userId: ObjectId, currentPassword: string, newPassword: string): Promise<void> {
-    const user = await requireUser(userId);
+    const user = await getUser(userId);
 
     if (!(await argon2.verify(user.passwordHash, currentPassword))) {
         throw new AppError(401, 'INCORRECT_PASSWORD', 'Current password does not match', {
@@ -62,7 +62,7 @@ export async function changePassword(userId: ObjectId, currentPassword: string, 
  * which is the whole point of `changePassword` asking for one.
  */
 export async function setPasswordAfterRecovery(userId: ObjectId, newPassword: string): Promise<void> {
-    const user = await requireUser(userId);
+    const user = await getUser(userId);
 
     if (!user.passwordResetRequired) {
         throw new AppError(403, 'PASSWORD_RESET_NOT_ALLOWED', 'No password reset is pending for this account');
@@ -87,7 +87,7 @@ export async function setPasswordAfterRecovery(userId: ObjectId, newPassword: st
 }
 
 export async function changeUsername(userId: ObjectId, password: string, newUsername: string): Promise<AuthUser> {
-    const user = await requireUser(userId);
+    const user = await getUser(userId);
 
     if (!(await argon2.verify(user.passwordHash, password))) {
         throw new AppError(401, 'INCORRECT_PASSWORD', 'Password does not match', {
@@ -113,7 +113,7 @@ export async function changeUsername(userId: ObjectId, password: string, newUser
 }
 
 export async function deleteAccount(userId: ObjectId, password: string): Promise<void> {
-    const user = await requireUser(userId);
+    const user = await getUser(userId);
 
     if (!(await argon2.verify(user.passwordHash, password))) {
         throw new AppError(401, 'INCORRECT_PASSWORD', 'Password does not match', {
@@ -139,7 +139,7 @@ export async function deleteAccount(userId: ObjectId, password: string): Promise
     await invalidatePrefix(`u:${userId.toHexString()}:`);
 }
 
-async function requireUser(userId: ObjectId): Promise<WithId<UserDoc>> {
+async function getUser(userId: ObjectId): Promise<WithId<UserDoc>> {
     const user = await getDb().collection<UserDoc>('Users').findOne({ _id: userId });
     if (user === null) throw new AppError(404, 'USER_NOT_FOUND', `user ${userId.toHexString()} not found`);
     return user;

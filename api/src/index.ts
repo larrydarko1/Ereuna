@@ -40,7 +40,7 @@ import { portfoliosRouter, tradesRouter } from '@/routes/portfolio/index.js';
 import { screenersRouter } from '@/routes/screener/index.js';
 import { watchlistsRouter } from '@/routes/watchlist/index.js';
 
-const app = express();
+export const app = express();
 const server = createServer(app);
 
 /** A numeric hop count, never `true` — otherwise a client can spoof
@@ -124,6 +124,7 @@ app.get('/healthz', async (_req: express.Request, res: express.Response) => {
         res.json({ ok: true });
     } catch {
         // A kubelet probe, not a client-facing error — a bare ok/503, no AppError.
+        // eslint-disable-next-line no-restricted-syntax -- the probe contract is a status code, and nothing localises it
         res.status(503).json({ ok: false });
     }
 });
@@ -178,5 +179,3 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
             .catch(() => process.exit(1));
     });
 }
-
-export { app };

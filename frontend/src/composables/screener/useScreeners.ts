@@ -5,7 +5,7 @@
  */
 import { computed, ref, type ComputedRef, type Ref } from 'vue';
 import { apiErrorMessage } from '@/api/client';
-import { createScreener, deleteScreener, listScreeners, updateScreener, type ScreenerSummary } from '@/api/screener';
+import { createScreener, deleteScreener, getScreeners, updateScreener, type ScreenerSummary } from '@/api/screener';
 import { i18n } from '@/i18n';
 
 export type UseScreenersReturn = {
@@ -19,7 +19,7 @@ export type UseScreenersReturn = {
     create: (name: string) => Promise<void>;
     rename: (name: string) => Promise<void>;
     remove: (name: string) => Promise<void>;
-    setIncluded: (name: string, include: boolean) => Promise<void>;
+    setIncluded: (name: string, options: { include: boolean }) => Promise<void>;
 };
 
 export function useScreeners(): UseScreenersReturn {
@@ -35,7 +35,7 @@ export function useScreeners(): UseScreenersReturn {
         pending.value = true;
         error.value = null;
         try {
-            const { data } = await listScreeners();
+            const { data } = await getScreeners();
             items.value = data.items;
 
             // Hold the selection if it survived, otherwise fall to the first
@@ -87,9 +87,9 @@ export function useScreeners(): UseScreenersReturn {
         });
     }
 
-    async function setIncluded(name: string, include: boolean): Promise<void> {
+    async function setIncluded(name: string, options: { include: boolean }): Promise<void> {
         await mutate(async () => {
-            await updateScreener(name, { include });
+            await updateScreener(name, options);
             return null;
         });
     }

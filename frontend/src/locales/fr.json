@@ -342,7 +342,6 @@
             "deposit": "Dépôt d'argent",
             "withdrawal": "Retrait d'argent"
         },
-        "actions.cover": "Rachat",
         "cashHint": "Les mouvements d'espèces sont enregistrés comme des opérations : un solde initial est un dépôt.",
         "baseValueHint": "Le capital auquel votre performance est comparée. Sans lui, aucun pourcentage ne peut être calculé.",
         "defaultCommission": "Commission par défaut",

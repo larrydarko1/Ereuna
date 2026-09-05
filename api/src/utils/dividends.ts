@@ -35,16 +35,7 @@ export function dividendCashFlows(
         let index = 0;
 
         for (const payment of [...payments].sort((a, b) => a.paymentDate.getTime() - b.paymentDate.getTime())) {
-            // Advance the holding to the payment date. The cursor only moves
-            // forward because both lists are sorted, so this is one pass over
-            // the trades per symbol rather than a rescan per payment.
-            while (index < symbolTrades.length) {
-                const trade = symbolTrades[index];
-                if (trade === undefined || trade.tradeDate > payment.paymentDate) break;
-                if (trade.action === 'buy' || trade.action === 'cover') shares += trade.shares;
-                else if (trade.action === 'sell' || trade.action === 'short') shares -= trade.shares;
-                index += 1;
-            }
+            ({ shares, index } = advanceHolding(symbolTrades, index, shares, payment.paymentDate));
 
             if (shares !== 0 && payment.amount > 0) {
                 flows.push({ symbol, date: payment.paymentDate, amount: shares * payment.amount });
@@ -53,4 +44,29 @@ export function dividendCashFlows(
     }
 
     return flows.sort((a, b) => a.date.getTime() - b.date.getTime());
+}
+
+/**
+ * Apply every trade up to and including `on`, and report where the cursor stopped.
+ * The cursor only moves forward because both lists are sorted, so a symbol's
+ * whole schedule costs one pass over its trades rather than a rescan per payment.
+ */
+function advanceHolding(
+    trades: readonly ReplayTrade[],
+    from: number,
+    held: number,
+    on: Date,
+): { shares: number; index: number } {
+    let shares = held;
+    let index = from;
+
+    while (index < trades.length) {
+        const trade = trades[index];
+        if (trade === undefined || trade.tradeDate > on) break;
+        if (trade.action === 'buy' || trade.action === 'cover') shares += trade.shares;
+        else if (trade.action === 'sell' || trade.action === 'short') shares -= trade.shares;
+        index += 1;
+    }
+
+    return { shares, index };
 }

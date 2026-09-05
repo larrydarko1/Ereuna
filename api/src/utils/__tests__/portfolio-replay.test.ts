@@ -108,10 +108,9 @@ describe('replayTrades', () => {
     });
 
     it('settles a dividend after the trades dated the same day', () => {
-        const result = replayTrades(
-            [deposit(10_000, '2026-01-01'), buy(10, 100, '2026-02-01')],
-            [{ symbol: 'AAPL', date: new Date('2026-02-01'), amount: 25 }],
-        );
+        const result = replayTrades([deposit(10_000, '2026-01-01'), buy(10, 100, '2026-02-01')], {
+            cashFlows: [{ symbol: 'AAPL', date: new Date('2026-02-01'), amount: 25 }],
+        });
 
         expect(result.cash).toBe(9025);
     });
@@ -238,20 +237,20 @@ describe('replayTrades — leverage', () => {
     it('lets gross exposure reach equity times leverage', () => {
         const log = [deposit(1000, '2026-01-01'), buy(20, 100, '2026-01-05')];
 
-        expect(replayTrades(log, [], { leverage: 2 }).violation).toBeNull();
-        expect(replayTrades(log, [], { leverage: 1.5 }).violation).toMatchObject({ kind: 'buyingPower' });
+        expect(replayTrades(log, { leverage: 2 }).violation).toBeNull();
+        expect(replayTrades(log, { leverage: 1.5 }).violation).toMatchObject({ kind: 'buyingPower' });
     });
 
     it('counts a long and a short together as gross exposure, not against each other', () => {
         const log = [deposit(1000, '2026-01-01'), buy(10, 100, '2026-01-05'), short(10, 100, '2026-01-06', 'MSFT')];
 
         // Net exposure is zero, but 2,000 of gross needs 2x on 1,000 of equity.
-        expect(replayTrades(log, [], { leverage: 2 }).violation).toBeNull();
-        expect(replayTrades(log, [], { leverage: 1 }).violation).toMatchObject({ kind: 'buyingPower' });
+        expect(replayTrades(log, { leverage: 2 }).violation).toBeNull();
+        expect(replayTrades(log, { leverage: 1 }).violation).toMatchObject({ kind: 'buyingPower' });
     });
 
     it('lets cash go negative on margin, which is the loan', () => {
-        const result = replayTrades([deposit(1000, '2026-01-01'), buy(20, 100, '2026-01-05')], [], { leverage: 2 });
+        const result = replayTrades([deposit(1000, '2026-01-01'), buy(20, 100, '2026-01-05')], { leverage: 2 });
 
         expect(result.cash).toBe(-1000);
         expect(result.valueHistory.at(-1)?.value).toBe(1000);
@@ -265,7 +264,6 @@ describe('replayTrades — leverage', () => {
                 buy(1, 20, '2026-01-10'), // Re-marks the whole position down to 20
                 sell(10, 20, '2026-01-11'),
             ],
-            [],
             { leverage: 2 },
         );
 

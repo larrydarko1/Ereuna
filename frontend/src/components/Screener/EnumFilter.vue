@@ -51,7 +51,8 @@ watch(
             v-model="query"
             type="search"
             class="enum-filter__search"
-            :placeholder="t('common.search')" />
+            :placeholder="t('common.search')"
+            :aria-label="t('common.search')" />
 
         <ul class="enum-filter__list">
             <li

@@ -35,7 +35,7 @@ type Quote = {
     changePercent: number | null;
 };
 
-export function listWatchlists(): ApiResult<{ items: WatchlistSummary[] }> {
+export function getWatchlists(): ApiResult<{ items: WatchlistSummary[] }> {
     return api.get<{ items: WatchlistSummary[] }>('/watchlists');
 }
 
@@ -55,8 +55,8 @@ export function renameWatchlist(name: string, newName: string): ApiResult<Watchl
     return api.patch<WatchlistSummary>(`/watchlists/${encodeURIComponent(name)}`, { name: newName });
 }
 
-export function deleteWatchlist(name: string): ApiResult<{ ok: true }> {
-    return api.delete<{ ok: true }>(`/watchlists/${encodeURIComponent(name)}`);
+export function deleteWatchlist(name: string): ApiResult<void> {
+    return api.delete<void>(`/watchlists/${encodeURIComponent(name)}`);
 }
 
 export function reorderTickers(name: string, symbols: readonly string[]): ApiResult<{ list: WatchlistEntry[] }> {

@@ -57,11 +57,7 @@ export async function updateDailyMetrics(universe: readonly Asset[]): Promise<nu
 
             covered += 1;
             operations.push(setOn(asset.symbol, metricsFor(asset, bars, lifetime.get(asset.symbol))));
-
-            for (const { bars: window, field } of RS_WINDOWS) {
-                const change = changeOver(bars.closes, window);
-                if (change !== null) rankings.get(field)?.push({ symbol: asset.symbol, change });
-            }
+            tallyRelativeStrength(asset.symbol, bars.closes, rankings);
         }
 
         await writeAssetInfo(operations);
@@ -211,4 +207,12 @@ async function writeRelativeStrength(rankings: ReadonlyMap<string, Ranking[]>): 
     }
 
     await writeAssetInfo(operations);
+}
+
+/** Record one symbol's change over each relative-strength window. */
+function tallyRelativeStrength(symbol: string, closes: readonly number[], rankings: Map<string, Ranking[]>): void {
+    for (const { bars, field } of RS_WINDOWS) {
+        const change = changeOver(closes, bars);
+        if (change !== null) rankings.get(field)?.push({ symbol, change });
+    }
 }

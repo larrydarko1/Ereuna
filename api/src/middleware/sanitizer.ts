@@ -8,7 +8,7 @@ export function sanitizeRequest(req: Request, _res: Response, next: NextFunction
         req.body = stripUnsafeKeys(req.body);
     }
     if (typeof req.query === 'object' && req.query !== null) {
-        stripUnsafeKeysInPlace(req.query as Record<string, unknown>);
+        stripUnsafeKeysInPlace(req.query);
     }
     next();
 }
@@ -29,6 +29,7 @@ function stripUnsafeKeys(value: unknown): unknown {
 function stripUnsafeKeysInPlace(obj: Record<string, unknown>): void {
     for (const key of Object.keys(obj)) {
         if (isUnsafeKey(key)) {
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- the keys being stripped are attacker-supplied by definition, so they cannot be static
             delete obj[key];
         } else {
             const child = obj[key];

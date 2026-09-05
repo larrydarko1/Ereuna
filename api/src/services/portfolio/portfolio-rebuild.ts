@@ -45,7 +45,7 @@ export async function readTrades(userId: ObjectId, portfolioNumber: number): Pro
  */
 export async function validateLog(trades: readonly ReplayTrade[], leverage: number): Promise<void> {
     const flows = dividendCashFlows(trades, await dividendSchedules(symbolsOf(trades)));
-    const { violation, positions } = replayTrades(trades, flows, { leverage });
+    const { violation, positions } = replayTrades(trades, { cashFlows: flows, leverage });
 
     if (violation !== null) throw toAppError(violation);
 
@@ -72,7 +72,7 @@ export async function rebuild(userId: ObjectId, portfolioNumber: number): Promis
     ]);
 
     const flows = dividendCashFlows(trades, await dividendSchedules(symbolsOf(trades)));
-    const state = replayTrades(trades, flows, { leverage: portfolio?.leverage });
+    const state = replayTrades(trades, { cashFlows: flows, leverage: portfolio?.leverage });
 
     await persist(userId, portfolioNumber, trades, state, portfolio?.baseValue ?? 0);
     return { ...state, trades };

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { ChartTimeframe } from '@ereuna/shared';
+import type { ChartMarkers, ChartTimeframe } from '@ereuna/shared';
 import { CHART_TIMEFRAMES, isIntraday } from '@ereuna/shared';
 import {
     BoxManager,
@@ -39,7 +39,7 @@ import AppDialog from '@/components/ui/AppDialog.vue';
 import AppSpinner from '@/components/ui/AppSpinner.vue';
 import { useChartDrawings } from '@/composables/charts/useChartDrawings';
 import { useChartReplay } from '@/composables/charts/useChartReplay';
-import { useChartSeries, type ChartBar } from '@/composables/charts/useChartSeries';
+import { useChartSeries, type ChartBar, type OverlaySeries } from '@/composables/charts/useChartSeries';
 import { useChartSettings } from '@/composables/charts/useChartSettings';
 import { useChartTheme, withAlpha } from '@/composables/charts/useChartTheme';
 import { useLiveCandle } from '@/composables/charts/useLiveCandle';
@@ -71,6 +71,8 @@ const {
 
 /** The screenshot manager finds the canvas layers by the container's id. */
 const CANVAS_ID = 'price-chart-canvas';
+
+const overlaySeries: ISeriesApi<'Line'>[] = [];
 
 const { t } = useI18n();
 const { notify } = useNotifications();
@@ -111,7 +113,6 @@ const dialog = ref<'settings' | 'patterns' | 'signals' | 'screenshot' | 'replay'
 let chart: IChartApi | null = null;
 let mainSeries: ISeriesApi<SeriesType> | null = null;
 let volumeSeries: ISeriesApi<'Histogram'> | null = null;
-let overlaySeries: ISeriesApi<'Line'>[] = [];
 let intrinsicLine: IPriceLine | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let screenshotManager: ChartScreenshot | null = null;
@@ -397,7 +398,7 @@ function applyMarkers(): void {
         const day = date?.slice(0, 10);
         if (day === undefined || day === '' || (listed !== null && day < listed)) return;
         markers.push({
-            time: day as Time,
+            time: day,
             position: 'aboveBar',
             shape: 'circle',
             size: 1,
@@ -414,7 +415,7 @@ function applyMarkers(): void {
     if (dividends) for (const action of events?.dividends ?? []) add(action.date, colors.dividend, 'D');
     if (splits) for (const action of events?.splits ?? []) add(action.date, colors.split, 'S');
 
-    markers.sort((a, b) => String(a.time).localeCompare(String(b.time)));
+    markers.sort((a, b) => timeValue(a.time) - timeValue(b.time));
     volumeSeries.setMarkers(markers);
 }
 
@@ -643,7 +644,7 @@ onMounted(() => {
     chart.subscribeCrosshairMove(onCrosshair);
     chart.timeScale().subscribeVisibleLogicalRangeChange(onRangeChange);
 
-    resizeObserver = new ResizeObserver(() => {
+    resizeObserver = new ResizeObserver((): void => {
         resize();
         priceLevels?.updatePositions();
     });
@@ -679,7 +680,7 @@ watch(palette, () => {
 watch(() => settings.value.style, buildMainSeries);
 watch(shapedBars, applyBars);
 watch(replay.visibleVolume, applyVolume);
-watch([() => series.overlays.value, replay.visibleOverlays], syncOverlays);
+watch([(): readonly OverlaySeries[] => series.overlays.value, replay.visibleOverlays], syncOverlays);
 watch(series.intrinsicValue, applyIntrinsicLine);
 watch(
     () => live.candle.value,
@@ -687,7 +688,9 @@ watch(
         if (candle !== null) series.applyLive(candle);
     },
 );
-watch([() => events, () => settings.value.markers, timeframe], applyMarkers, { deep: true });
+watch([(): ChartEvents | null => events, (): ChartMarkers => settings.value.markers, timeframe], applyMarkers, {
+    deep: true,
+});
 watch(tool, applyTool);
 
 // A different chart is a different set of annotations. What is on screen

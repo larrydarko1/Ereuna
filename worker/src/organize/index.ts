@@ -39,7 +39,7 @@ export async function startOrganizer(): Promise<void> {
         await runNightly();
     }
 
-    return new Promise<void>((resolve) => {
+    return new Promise<void>((resolve): void => {
         const schedule = (): void => {
             if (stopping) {
                 resolve();

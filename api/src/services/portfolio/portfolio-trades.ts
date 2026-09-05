@@ -11,10 +11,10 @@ import type { PortfolioDoc, TradeAction, TradeDoc } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
-import { requireAsset } from '@/services/market/index.js';
+import { getAsset } from '@/services/market/index.js';
 import {
     applyDeclaredState,
-    ensurePortfolio,
+    getOrCreatePortfolio,
     writeSettings,
     type DeclaredState,
     type PortfolioSettings,
@@ -60,7 +60,7 @@ export function toTradeRow(doc: WithId<TradeDoc>): TradeRow {
 }
 
 /** The blotter: newest first, which is the order the index on (userId, portfolioNumber, tradeDate) serves. */
-export async function listTrades(
+export async function getTradePage(
     userId: ObjectId,
     portfolioNumber: number,
     options: { page: number; limit: number; symbol?: string },
@@ -82,9 +82,9 @@ export async function listTrades(
 }
 
 export async function addTrade(userId: ObjectId, portfolioNumber: number, input: TradeInput): Promise<TradeRow> {
-    const portfolio = await ensurePortfolio(userId, portfolioNumber);
+    const portfolio = await getOrCreatePortfolio(userId, portfolioNumber);
     assertNotFuture(input.tradeDate);
-    if (input.symbol !== null) await requireAsset(input.symbol);
+    if (input.symbol !== null) await getAsset(input.symbol);
 
     const existing = await readTrades(userId, portfolioNumber);
     if (existing.length >= config.limits.tradesPerPortfolio) {
@@ -109,11 +109,11 @@ export async function updateTrade(
     input: TradeInput,
 ): Promise<TradeRow> {
     const [portfolio, original] = await Promise.all([
-        ensurePortfolio(userId, portfolioNumber),
-        requireTrade(userId, portfolioNumber, tradeId),
+        getOrCreatePortfolio(userId, portfolioNumber),
+        getTrade(userId, portfolioNumber, tradeId),
     ]);
     assertNotFuture(input.tradeDate);
-    if (input.symbol !== null) await requireAsset(input.symbol);
+    if (input.symbol !== null) await getAsset(input.symbol);
 
     const existing = await readTrades(userId, portfolioNumber);
     const fields = settle(input, portfolio);
@@ -128,8 +128,8 @@ export async function updateTrade(
 
 export async function deleteTrade(userId: ObjectId, portfolioNumber: number, tradeId: ObjectId): Promise<void> {
     const [portfolio] = await Promise.all([
-        ensurePortfolio(userId, portfolioNumber),
-        requireTrade(userId, portfolioNumber, tradeId),
+        getOrCreatePortfolio(userId, portfolioNumber),
+        getTrade(userId, portfolioNumber, tradeId),
     ]);
 
     const existing = await readTrades(userId, portfolioNumber);
@@ -154,11 +154,12 @@ export async function replaceTrades(
     userId: ObjectId,
     portfolioNumber: number,
     inputs: readonly TradeInput[],
-    settings: PortfolioSettings = {},
-    declared: DeclaredState = {},
+    options: { settings?: PortfolioSettings; declared?: DeclaredState } = {},
 ): Promise<number> {
+    const { settings = {}, declared = {} } = options;
+
     await writeSettings(userId, portfolioNumber, settings);
-    const portfolio = await ensurePortfolio(userId, portfolioNumber);
+    const portfolio = await getOrCreatePortfolio(userId, portfolioNumber);
 
     if (inputs.length > config.limits.tradesPerPortfolio) {
         throw new AppError(422, 'TRADE_LIMIT_REACHED', 'import exceeds the trade limit', {
@@ -169,7 +170,7 @@ export async function replaceTrades(
     for (const input of inputs) assertNotFuture(input.tradeDate);
 
     const symbols = [...new Set(inputs.flatMap((input) => (input.symbol === null ? [] : [input.symbol])))];
-    await Promise.all(symbols.map((symbol) => requireAsset(symbol)));
+    await Promise.all(symbols.map((symbol) => getAsset(symbol)));
 
     // `createdAt` follows the file's row order so that same-day rows replay in
     // the order they were exported, which is the order they originally settled.
@@ -225,7 +226,7 @@ function withoutTrade(trades: readonly WithId<TradeDoc>[], tradeId: ObjectId): W
     return trades.filter((trade) => !trade._id.equals(tradeId));
 }
 
-async function requireTrade(userId: ObjectId, portfolioNumber: number, tradeId: ObjectId): Promise<WithId<TradeDoc>> {
+async function getTrade(userId: ObjectId, portfolioNumber: number, tradeId: ObjectId): Promise<WithId<TradeDoc>> {
     const trade = await collection().findOne({ _id: tradeId, userId, portfolioNumber });
     if (trade === null) throw new AppError(404, 'TRADE_NOT_FOUND', `trade ${tradeId.toHexString()} not found`);
     return trade;

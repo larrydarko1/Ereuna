@@ -9,6 +9,7 @@ export async function pruneIntraday(now = Date.now()): Promise<number> {
     let removed = 0;
 
     for (const collection of INTRADAY_COLLECTIONS) {
+        // eslint-disable-next-line contracts/no-db-await-in-loop -- one deleteMany per intraday collection; no query spans collections, so six is the minimum
         const result = await getDb()
             .collection<OhlcvDoc>(collection)
             .deleteMany({ timestamp: { $lt: cutoff } });

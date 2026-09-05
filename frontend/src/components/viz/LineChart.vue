@@ -35,7 +35,8 @@ const shape = computed(() => {
     const min = Math.min(...values);
     const max = Math.max(...values);
     // A flat series would divide by zero; centring it is the honest picture.
-    const span = max - min || 1;
+    const range = max - min;
+    const span = range === 0 ? 1 : range;
     const usable = HEIGHT - PADDING * 2;
 
     const coords = points.map((point, index) => ({

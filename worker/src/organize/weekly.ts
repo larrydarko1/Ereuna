@@ -69,6 +69,7 @@ async function upsertWeekly(bars: readonly OhlcvDoc[]): Promise<void> {
 
     for (const batch of chunk(operations, config.organize.writeBatchSize)) {
         try {
+            // eslint-disable-next-line contracts/no-db-await-in-loop -- one round trip per batch of operations, not per item, and sequential so a whole universe does not swamp the pool
             await getDb().collection<OhlcvDoc>('OHCLVData2').bulkWrite(batch, { ordered: false });
         } catch (err) {
             logger.error({ err, count: batch.length }, 'Weekly bulk write failed');

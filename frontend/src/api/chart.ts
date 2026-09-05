@@ -159,6 +159,6 @@ export function saveDrawings(
     });
 }
 
-export function clearDrawings(symbol: string, timeframe: ChartTimeframe): ApiResult<{ ok: true }> {
-    return api.delete<{ ok: true }>(`/charts/${encodeURIComponent(symbol)}/drawings`, { params: { timeframe } });
+export function clearDrawings(symbol: string, timeframe: ChartTimeframe): ApiResult<void> {
+    return api.delete<void>(`/charts/${encodeURIComponent(symbol)}/drawings`, { params: { timeframe } });
 }

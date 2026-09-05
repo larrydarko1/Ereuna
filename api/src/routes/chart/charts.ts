@@ -130,6 +130,6 @@ router.delete(
     '/:symbol/drawings',
     ...validated({ params: symbolParam, query: timeframeQuery }, async (req, res): Promise<void> => {
         await chartService.clearDrawings(authedUserId(req), req.params.symbol, req.validatedQuery.timeframe);
-        res.json({ ok: true });
+        res.status(204).end();
     }),
 );

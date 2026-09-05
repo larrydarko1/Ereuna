@@ -180,6 +180,7 @@ api.interceptors.response.use(
         }
 
         localizeApiError(err);
-        return Promise.reject(err as Error);
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- an interceptor re-rejects what it caught; wrapping it would hide the AxiosError callers read
+        return Promise.reject(err);
     },
 );

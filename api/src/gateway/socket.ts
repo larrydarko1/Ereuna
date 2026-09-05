@@ -83,7 +83,7 @@ export async function initSocket(httpServer: HttpServer): Promise<void> {
         // CORS does not govern WebSocket upgrades, so the origin is checked
         // here as well — for the polling transport `cors` is the real control,
         // for the upgrade it is this.
-        allowRequest: (req, callback) => {
+        allowRequest: (req, callback): void => {
             const origin = req.headers.origin;
             callback(null, origin === undefined || origin === config.corsOrigin);
         },
@@ -177,9 +177,11 @@ async function watchQuotes(socket: FeedSocket, payload: unknown): Promise<void> 
     if (!parsed.success || !(await allowWatch(socket))) return;
 
     const symbols = [...new Set(parsed.data.symbols)];
-    await Promise.all(socket.quoteRooms.map((room) => socket.leave(room)));
+    // join/leave are synchronous on the in-memory adapter, which is the only one
+    // this gateway uses — see the note on why there is no Redis adapter.
+    for (const room of socket.quoteRooms) void socket.leave(room);
     socket.quoteRooms = symbols.map(quoteRoom);
-    await Promise.all(socket.quoteRooms.map((room) => socket.join(room)));
+    for (const room of socket.quoteRooms) void socket.join(room);
 
     const quotes: Record<string, number> = {};
     for (const symbol of symbols) {

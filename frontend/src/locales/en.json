@@ -342,7 +342,6 @@
             "deposit": "Cash Deposit",
             "withdrawal": "Cash Withdrawal"
         },
-        "actions.cover": "Cover",
         "cashHint": "Cash movements are recorded as trades, so a starting balance is a deposit.",
         "baseValueHint": "The capital your return is measured against. Without it there is no percentage to report.",
         "defaultCommission": "Default Commission",

@@ -34,14 +34,14 @@ const isEmpty = computed(() => groups.value.every((group) => group.events.length
  * with none.
  */
 function detail(group: Group['key'], event: CalendarEvent): string | null {
-    const value =
-        group === 'earnings'
-            ? event.details.estimate
-            : group === 'dividends'
-              ? event.details.amount
-              : event.details.ratio;
-
+    const value = detailField(group, event);
     return typeof value === 'number' || typeof value === 'string' ? String(value) : null;
+}
+
+/** The payload field each event type carries its headline number in. */
+function detailField(group: Group['key'], event: CalendarEvent): unknown {
+    if (group === 'earnings') return event.details.estimate;
+    return group === 'dividends' ? event.details.amount : event.details.ratio;
 }
 </script>
 

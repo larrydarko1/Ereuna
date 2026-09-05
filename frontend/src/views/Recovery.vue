@@ -27,7 +27,7 @@ async function submit(): Promise<void> {
     try {
         // rememberMe is false: recovery is an emergency route in, not a device
         // the user is declaring as trusted.
-        await recover(username.value.trim(), code.value.trim(), false);
+        await recover(username.value.trim(), code.value.trim(), { rememberMe: false });
         await syncTheme();
         notify(t('auth.recoverySpent'));
         // The session has no password behind it until this is done
@@ -52,8 +52,7 @@ async function submit(): Promise<void> {
                 v-model="username"
                 :label="t('auth.username')"
                 :placeholder="t('auth.usernamePlaceholder')"
-                autocomplete="username"
-                autofocus />
+                autocomplete="username" />
             <AppField
                 v-model="code"
                 :label="t('auth.recoveryCode')"

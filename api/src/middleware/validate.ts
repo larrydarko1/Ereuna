@@ -82,6 +82,7 @@ function validate(schemas: Schemas): RequestHandler {
         if (errors.length > 0) {
             // The multi-error shape ({ error, errors[] }) is wider than AppError
             // can carry; this middleware is the canonical validation responder.
+            // eslint-disable-next-line no-restricted-syntax -- this middleware IS the validation responder; routing it through AppError would lose the per-field list
             res.status(422).json({ error: 'VALIDATION_FAILED', errors });
             return;
         }

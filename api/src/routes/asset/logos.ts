@@ -78,6 +78,7 @@ router.get(
                     res.destroy();
                     return;
                 }
+                // eslint-disable-next-line no-restricted-syntax -- sendFile's callback runs after the handler returned; there is no error middleware left to reach
                 res.status(404).json({ error: 'NOT_FOUND' });
             },
         );

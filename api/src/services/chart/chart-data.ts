@@ -6,7 +6,7 @@
  */
 import type { ObjectId } from 'mongodb';
 import type { ChartIndicator, ChartTimeframe } from '@ereuna/shared';
-import { barSeries, requireAsset, type BarSeries } from '@/services/market/index.js';
+import { barSeries, getAsset, type BarSeries } from '@/services/market/index.js';
 import { getPreferences } from '@/services/user/index.js';
 import { ema, sma, type SeriesPoint } from '@/utils/indicators.js';
 
@@ -37,7 +37,7 @@ export async function getChartSeries(
     timeframe: ChartTimeframe,
     options: { before?: Date } = {},
 ): Promise<ChartSeries> {
-    const asset = await requireAsset(symbol);
+    const asset = await getAsset(symbol);
     const [series, preferences] = await Promise.all([barSeries(symbol, timeframe, options), getPreferences(userId)]);
 
     const settings = preferences.chartSettings;

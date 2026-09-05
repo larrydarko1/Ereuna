@@ -25,7 +25,9 @@ export function useChartSymbol(): UseChartSymbolReturn {
         return typeof param === 'string' ? param.trim().toUpperCase() : '';
     });
 
-    const symbol = computed(() => routeSymbol.value || (preferences.value?.defaultSymbol ?? ''));
+    const symbol = computed(() =>
+        routeSymbol.value === '' ? (preferences.value?.defaultSymbol ?? '') : routeSymbol.value,
+    );
 
     async function select(next: string): Promise<void> {
         const target = next.trim().toUpperCase();

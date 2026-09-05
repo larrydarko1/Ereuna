@@ -39,7 +39,7 @@ const splits = computed(() => visible(events?.splits));
 const financials = useResource(
     () => symbol,
     async (current) => (await getFinancials(current)).data,
-    { enabled: (current) => current !== '' },
+    { enabled: (current): boolean => current !== '' },
 );
 
 const quarterly = computed<readonly Record<string, unknown>[]>(() => financials.data.value?.quarterly ?? []);

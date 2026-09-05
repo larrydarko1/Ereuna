@@ -85,7 +85,7 @@ export type PortfolioImport = {
     portfolio?: Partial<PortfolioExport['portfolio']>;
 };
 
-export function listPortfolios(): ApiResult<{ items: PortfolioRow[] }> {
+export function getPortfolios(): ApiResult<{ items: PortfolioRow[] }> {
     return api.get<{ items: PortfolioRow[] }>('/portfolios');
 }
 
@@ -93,8 +93,8 @@ export function getPortfolio(number: number): ApiResult<PortfolioSummary> {
     return api.get<PortfolioSummary>(`/portfolios/${number}`);
 }
 
-export function deletePortfolio(number: number): ApiResult<{ ok: true }> {
-    return api.delete<{ ok: true }>(`/portfolios/${number}`);
+export function deletePortfolio(number: number): ApiResult<void> {
+    return api.delete<void>(`/portfolios/${number}`);
 }
 
 export function setBaseValue(number: number, baseValue: number): ApiResult<{ baseValue: number }> {

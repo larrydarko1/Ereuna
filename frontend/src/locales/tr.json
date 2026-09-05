@@ -342,7 +342,6 @@
             "deposit": "Nakit Yatırma",
             "withdrawal": "Nakit Çekme"
         },
-        "actions.cover": "Kapatma",
         "cashHint": "Nakit hareketleri de işlem olarak kaydedilir; başlangıç bakiyesi bir yatırmadır.",
         "baseValueHint": "Getirinizin ölçüldüğü sermaye. Bu olmadan hesaplanacak bir yüzde yoktur.",
         "defaultCommission": "Varsayılan komisyon",

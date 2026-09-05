@@ -72,8 +72,7 @@ async function submit(): Promise<void> {
                 :label="t('auth.username')"
                 :placeholder="t('auth.usernamePlaceholder')"
                 :error="usernameError"
-                autocomplete="username"
-                autofocus />
+                autocomplete="username" />
             <PasswordField
                 v-model="password"
                 :label="t('auth.password')"

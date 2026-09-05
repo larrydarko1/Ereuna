@@ -9,7 +9,7 @@ import type { PortfolioDoc, PortfolioStatsSnapshot, PortfolioValuePoint, Positio
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
-import { requireAsset } from '@/services/market/index.js';
+import { getAsset } from '@/services/market/index.js';
 import { readTrades, rebuild, validateLog } from '@/services/portfolio/portfolio-rebuild.js';
 import { DEFAULT_LEVERAGE } from '@/utils/portfolio-replay.js';
 
@@ -80,7 +80,7 @@ export async function getPortfolio(userId: ObjectId, number: number): Promise<Wi
  * upsert is atomic, so two concurrent first writes cannot both insert — the
  * unique index on (userId, number) is what guarantees it.
  */
-export async function ensurePortfolio(userId: ObjectId, number: number): Promise<WithId<PortfolioDoc>> {
+export async function getOrCreatePortfolio(userId: ObjectId, number: number): Promise<WithId<PortfolioDoc>> {
     const now = new Date();
     const doc = await collection().findOneAndUpdate(
         { userId, number },
@@ -113,7 +113,7 @@ export async function ensurePortfolio(userId: ObjectId, number: number): Promise
  * the stats, which is why the rebuild runs afterwards.
  */
 export async function setBaseValue(userId: ObjectId, number: number, baseValue: number): Promise<WithId<PortfolioDoc>> {
-    await ensurePortfolio(userId, number);
+    await getOrCreatePortfolio(userId, number);
     await collection().updateOne({ userId, number }, { $set: { baseValue, updatedAt: new Date() } });
 
     await rebuild(userId, number);
@@ -127,7 +127,7 @@ export async function setLeverage(userId: ObjectId, number: number, leverage: nu
         });
     }
 
-    await ensurePortfolio(userId, number);
+    await getOrCreatePortfolio(userId, number);
     await validateLog(await readTrades(userId, number), leverage);
 
     await collection().updateOne({ userId, number }, { $set: { leverage, updatedAt: new Date() } });
@@ -136,7 +136,7 @@ export async function setLeverage(userId: ObjectId, number: number, leverage: nu
 }
 
 export async function setDefaultCommission(userId: ObjectId, number: number, commission: number): Promise<number> {
-    await ensurePortfolio(userId, number);
+    await getOrCreatePortfolio(userId, number);
     await collection().updateOne(
         { userId, number },
         { $set: { defaultCommission: commission, updatedAt: new Date() } },
@@ -161,9 +161,9 @@ export async function writeSettings(userId: ObjectId, number: number, settings: 
     };
     if (Object.keys(set).length === 0) return;
 
-    if (benchmarks !== undefined) await Promise.all(benchmarks.map((symbol) => requireAsset(symbol)));
+    if (benchmarks !== undefined) await Promise.all(benchmarks.map((symbol) => getAsset(symbol)));
 
-    await ensurePortfolio(userId, number);
+    await getOrCreatePortfolio(userId, number);
     await collection().updateOne({ userId, number }, { $set: { ...set, updatedAt: new Date() } });
 }
 
@@ -195,9 +195,9 @@ export async function setBenchmarks(userId: ObjectId, number: number, symbols: r
     // Reference data is checked before the write, so a benchmark can never be a
     // symbol that will silently produce no series on the summary.
     const unique = [...new Set(symbols)];
-    await Promise.all(unique.map((symbol) => requireAsset(symbol)));
+    await Promise.all(unique.map((symbol) => getAsset(symbol)));
 
-    await ensurePortfolio(userId, number);
+    await getOrCreatePortfolio(userId, number);
     await collection().updateOne({ userId, number }, { $set: { benchmarks: unique, updatedAt: new Date() } });
 
     return unique;

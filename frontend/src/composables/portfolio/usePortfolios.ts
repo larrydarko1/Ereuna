@@ -6,7 +6,7 @@ import {
     exportPortfolio,
     getPortfolio,
     importPortfolio,
-    listPortfolios,
+    getPortfolios,
     setBaseValue,
     setBenchmarks,
     setDefaultCommission,
@@ -70,7 +70,7 @@ export function usePortfolios(): UsePortfoliosReturn {
 
     async function load(): Promise<void> {
         try {
-            const { data } = await listPortfolios();
+            const { data } = await getPortfolios();
             slots.value = data.items;
         } catch (err) {
             error.value = fail(err);

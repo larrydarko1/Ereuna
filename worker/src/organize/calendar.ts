@@ -92,6 +92,7 @@ async function write(operations: readonly AnyBulkWriteOperation<CalendarEventDoc
 
     for (const batch of chunk(operations, 500)) {
         try {
+            // eslint-disable-next-line contracts/no-db-await-in-loop -- one round trip per batch of operations, not per item, and sequential so a whole universe does not swamp the pool
             await getDb().collection<CalendarEventDoc>('Calendar').bulkWrite(batch, { ordered: false });
         } catch (err) {
             logger.error({ err, count: batch.length }, 'Calendar bulk write failed');

@@ -53,6 +53,7 @@ export type ReplayResult = {
 };
 
 export type ReplayOptions = {
+    cashFlows?: readonly CashFlow[];
     leverage?: number;
 };
 
@@ -88,13 +89,9 @@ export function sortTrades<T extends Pick<ReplayTrade, 'tradeDate' | 'createdAt'
     });
 }
 
-export function replayTrades(
-    trades: readonly ReplayTrade[],
-    cashFlows: readonly CashFlow[] = [],
-    options: ReplayOptions = {},
-): ReplayResult {
+export function replayTrades(trades: readonly ReplayTrade[], options: ReplayOptions = {}): ReplayResult {
     const leverage = options.leverage ?? DEFAULT_LEVERAGE;
-    const events = mergeEvents(trades, cashFlows);
+    const events = mergeEvents(trades, options.cashFlows ?? []);
 
     const book = new Map<string, ReplayPosition>();
     /** Last price seen per symbol — the mark used to value open positions at each point in the history. */

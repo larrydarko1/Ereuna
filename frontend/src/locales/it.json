@@ -342,7 +342,6 @@
             "deposit": "Deposito Liquidità",
             "withdrawal": "Prelievo Liquidità"
         },
-        "actions.cover": "Copertura",
         "cashHint": "I movimenti di liquidità sono registrati come operazioni: un saldo iniziale è un deposito.",
         "baseValueHint": "Il capitale rispetto al quale si misura il rendimento. Senza di esso non esiste una percentuale da riportare.",
         "defaultCommission": "Commissione predefinita",

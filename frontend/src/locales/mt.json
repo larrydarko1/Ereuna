@@ -342,7 +342,6 @@
             "deposit": "Depożitu ta' Flus",
             "withdrawal": "Irtirar ta' Flus"
         },
-        "actions.cover": "Kopri",
         "cashHint": "Il-movimenti ta' flus jiġu rreġistrati bħala tranżazzjonijiet, mela bilanċ tal-bidu huwa depożitu.",
         "baseValueHint": "Il-kapital li miegħu jitkejjel ir-redditu tiegħek. Mingħajru m'hemmx persentaġġ x'jintwera.",
         "defaultCommission": "Kummissjoni awtomatika",

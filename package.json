@@ -53,12 +53,12 @@
         "dup:check": "node scripts/checks/check-duplication.mjs",
         "lint:dead": "knip --no-progress --tags=-public --include files,exports,types,nsExports,nsTypes,namespaceMembers,enumMembers,duplicates,dependencies,devDependencies,optionalPeerDependencies",
         "lint:dup": "jscpd frontend/src api/src worker/src ingestor/src packages/shared/src --config .jscpd.json --absolute --reporters console",
-        "ci:check": "npm run audit:check && npm run pkg:check && npm run env:check && npm run style:check && npm run declorder:check && npm run refactor:check && npm run i18n:check && npm run html:check && npm run scss:check && npm run api:check && npm run ws:check && npm run err:check && npm run sec:check && npm run db:check && npm run dead:check && npm run dup:check && npm -w frontend run stylelint && npm run typecheck && npm run build:all && npm test",
+        "ci:check": "npm run audit:check && npm run pkg:check && npm run env:check && npm run style:check && npm run declorder:check && npm run refactor:check && npm run i18n:check && npm run html:check && npm run scss:check && npm run api:check && npm run ws:check && npm run err:check && npm run sec:check && npm run db:check && npm run dead:check && npm run dup:check && npm run format:check && npm run lint && npm -w frontend run stylelint && npm run typecheck && npm run build:all && npm test",
         "preview": "npm -w frontend run preview",
-        "worker": "npm -w worker run start",
-        "worker:aggregate": "npm -w worker run start:aggregate",
-        "worker:organize": "npm -w worker run start:organize",
-        "ingestor": "npm -w ingestor run start",
+        "worker": "npm -w worker run dev",
+        "worker:aggregate": "npm -w worker run dev:aggregate",
+        "worker:organize": "npm -w worker run dev:organize",
+        "ingestor": "npm -w ingestor run dev",
         "dbstart": "brew services start mongodb-community",
         "dbstop": "brew services stop mongodb-community",
         "db:migrate": "npm -w db run migrate:up",
@@ -82,7 +82,9 @@
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-vue": "^10.9.2",
         "eslint-plugin-vuejs-accessibility": "^2.5.0",
-        "typescript-eslint": "^8.58.1"
+        "typescript-eslint": "^8.58.1",
+        "@vitest/eslint-plugin": "^1.6.24",
+        "globals": "^17.12.0"
     },
     "packageManager": "npm@11.16.0",
     "engines": {

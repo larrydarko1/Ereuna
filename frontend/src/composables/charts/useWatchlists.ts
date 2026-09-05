@@ -19,7 +19,7 @@ import {
     createWatchlist,
     deleteWatchlist,
     getWatchlist,
-    listWatchlists,
+    getWatchlists,
     removeTicker as removeTickerRequest,
     renameWatchlist,
     reorderTickers as reorderTickersRequest,
@@ -71,7 +71,7 @@ export function useWatchlists(): UseWatchlistsReturn {
         if (loaded.value && !force) return;
         pending.value = true;
         try {
-            const { data } = await listWatchlists();
+            const { data } = await getWatchlists();
             lists.value = data.items;
             loaded.value = true;
 

@@ -115,7 +115,7 @@ router.delete(
     '/:number',
     ...validated({ params: numberParam }, async (req, res): Promise<void> => {
         await portfolioService.deletePortfolio(authedUserId(req), req.params.number);
-        res.json({ ok: true });
+        res.status(204).end();
     }),
 );
 
@@ -172,14 +172,18 @@ router.post(
             req.params.number,
             req.body.trades.map(toTradeInput),
             {
-                ...(declared.baseValue !== undefined ? { baseValue: declared.baseValue } : {}),
-                ...(declared.leverage !== undefined ? { leverage: declared.leverage } : {}),
-                ...(declared.defaultCommission !== undefined ? { defaultCommission: declared.defaultCommission } : {}),
-                ...(declared.benchmarks !== undefined ? { benchmarks: declared.benchmarks } : {}),
-            },
-            {
-                ...(declared.stats !== undefined && declared.stats !== null ? { stats: declared.stats } : {}),
-                ...(declared.valueHistory !== undefined ? { valueHistory: declared.valueHistory } : {}),
+                settings: {
+                    ...(declared.baseValue !== undefined ? { baseValue: declared.baseValue } : {}),
+                    ...(declared.leverage !== undefined ? { leverage: declared.leverage } : {}),
+                    ...(declared.defaultCommission !== undefined
+                        ? { defaultCommission: declared.defaultCommission }
+                        : {}),
+                    ...(declared.benchmarks !== undefined ? { benchmarks: declared.benchmarks } : {}),
+                },
+                declared: {
+                    ...(declared.stats !== undefined && declared.stats !== null ? { stats: declared.stats } : {}),
+                    ...(declared.valueHistory !== undefined ? { valueHistory: declared.valueHistory } : {}),
+                },
             },
         );
 

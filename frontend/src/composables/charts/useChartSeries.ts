@@ -6,7 +6,7 @@ import type { Time } from '@/lib/lightweight-charts';
 import { getSeries, type Candle, type ChartOverlay } from '@/api/chart';
 import { apiErrorMessage } from '@/api/client';
 import { i18n } from '@/i18n';
-import { timeValue } from '@/utils/chartTime';
+import { timeKey, timeValue } from '@/utils/chartTime';
 
 export type ChartBar = {
     time: Time;
@@ -123,15 +123,15 @@ export function useChartSeries(key: () => ChartSeriesKey): UseChartSeriesReturn 
                 return;
             }
 
-            const known = new Set(bars.value.map((bar) => String(bar.time)));
+            const known = new Set(bars.value.map((bar) => timeKey(bar.time)));
             const older = data.candles
                 .map((candle) => toBar(candle, timeframe))
-                .filter((bar) => !known.has(String(bar.time)));
+                .filter((bar) => !known.has(timeKey(bar.time)));
 
-            const knownVolume = new Set(volume.value.map((point) => String(point.time)));
+            const knownVolume = new Set(volume.value.map((point) => timeKey(point.time)));
             const olderVolume = data.volume
                 .map((point) => ({ time: toTime(point.time, timeframe), value: point.value }))
-                .filter((point) => !knownVolume.has(String(point.time)));
+                .filter((point) => !knownVolume.has(timeKey(point.time)));
 
             bars.value = [...older, ...bars.value];
             volume.value = [...olderVolume, ...volume.value];
@@ -189,8 +189,8 @@ export function useChartSeries(key: () => ChartSeriesKey): UseChartSeriesReturn 
     watch(key, load, { immediate: true, deep: true });
 
     return {
-        bars: readonly(bars) as Readonly<Ref<readonly ChartBar[]>>,
-        volume: readonly(volume) as Readonly<Ref<readonly ChartPoint[]>>,
+        bars: readonly(bars),
+        volume: readonly(volume),
         overlays: readonly(overlays) as Readonly<Ref<readonly OverlaySeries[]>>,
         intrinsicValue: readonly(intrinsicValue),
         pending: readonly(pending),
@@ -230,10 +230,10 @@ function mergeOverlays(
         const match = incoming.find((overlay) => overlay.type === series.type && overlay.period === series.period);
         if (match === undefined) return series;
 
-        const known = new Set(series.points.map((point) => String(point.time)));
+        const known = new Set(series.points.map((point) => timeKey(point.time)));
         const older = match.points
             .map((point) => ({ time: toTime(point.time, timeframe), value: point.value }))
-            .filter((point) => !known.has(String(point.time)));
+            .filter((point) => !known.has(timeKey(point.time)));
 
         return { ...series, points: [...older, ...series.points] };
     });
@@ -248,7 +248,7 @@ function mergeOverlays(
  * from UTC, which is what the previous chart did. The `Z` goes back on.
  */
 function toTime(raw: string, timeframe: ChartTimeframe): Time {
-    if (!isIntraday(timeframe)) return raw as Time;
+    if (!isIntraday(timeframe)) return raw;
     const parsed = Date.parse(raw.endsWith('Z') ? raw : `${raw}Z`);
     return (Number.isNaN(parsed) ? 0 : Math.floor(parsed / 1000)) as Time;
 }

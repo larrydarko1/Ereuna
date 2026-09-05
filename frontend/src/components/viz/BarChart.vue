@@ -33,7 +33,9 @@ const scale = computed(() => {
     // where "no change" sits, or a small gain reads as a large one.
     const max = Math.max(0, ...values);
     const min = Math.min(0, ...values);
-    const span = max - min || 1;
+    // A flat series would divide by zero
+    const range = max - min;
+    const span = range === 0 ? 1 : range;
     const usable = HEIGHT - PADDING * 2;
     return { span, usable, zero: PADDING + (max / span) * usable };
 });

@@ -3,7 +3,8 @@ import { defineAsyncComponent, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { countRecoveryCodes, disableTwoFactor, regenerateRecoveryCodes } from '@/api/account';
 import { apiErrorMessage } from '@/api/client';
-import ReauthDialog, { type Credentials } from '@/components/user/ReauthDialog.vue';
+import ReauthDialog from '@/components/user/ReauthDialog.vue';
+import type { Credentials } from '@/types/user';
 import RecoveryCodesDialog from '@/components/user/RecoveryCodesDialog.vue';
 import SettingCard from '@/components/user/SettingCard.vue';
 import { useResource } from '@/composables/data/useResource';
@@ -30,7 +31,7 @@ const error = ref<string | null>(null);
 const { data: remaining, reload: reloadRemaining } = useResource(
     () => enabled,
     async () => (await countRecoveryCodes()).data.remaining,
-    { enabled: (on) => on },
+    { enabled: (on): boolean => on },
 );
 
 function open(next: Dialog): void {

@@ -342,7 +342,6 @@
             "deposit": "Depósito de Efectivo",
             "withdrawal": "Retiro de Efectivo"
         },
-        "actions.cover": "Cubrir",
         "cashHint": "Los movimientos de efectivo se registran como operaciones, así que un saldo inicial es un depósito.",
         "baseValueHint": "El capital con el que se compara tu rendimiento. Sin él no hay porcentaje que mostrar.",
         "defaultCommission": "Comisión predeterminada",

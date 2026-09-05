@@ -68,7 +68,7 @@ router.get(
     '/',
     ...validated({ params: numberParam, query: listQuery }, async (req, res): Promise<void> => {
         const { page, limit, symbol } = req.validatedQuery;
-        res.json(await portfolioService.listTrades(authedUserId(req), req.params.number, { page, limit, symbol }));
+        res.json(await portfolioService.getTradePage(authedUserId(req), req.params.number, { page, limit, symbol }));
     }),
 );
 
@@ -97,6 +97,6 @@ router.delete(
     '/:id',
     ...validated({ params: tradeParams }, async (req, res): Promise<void> => {
         await portfolioService.deleteTrade(authedUserId(req), req.params.number, new ObjectId(req.params.id));
-        res.json({ ok: true });
+        res.status(204).end();
     }),
 );

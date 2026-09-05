@@ -11,7 +11,8 @@ const { symbol, signals } = defineProps<{
 
 const emit = defineEmits<{ close: [] }>();
 
-const { t, te } = useI18n();
+const i18n = useI18n();
+const { t } = i18n;
 
 /**
  * The strategy's name, translated when it is one we know.
@@ -21,7 +22,7 @@ const { t, te } = useI18n();
  */
 function strategyName(strategy: string): string {
     const key = `charts.signals.strategies.${strategy}`;
-    return te(key) ? t(key) : strategy.replace(/_/gu, ' ');
+    return i18n.te(key) ? t(key) : strategy.replace(/_/gu, ' ');
 }
 </script>
 

@@ -10,7 +10,7 @@ import type { NoteDoc } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
-import { requireAsset } from '@/services/market/index.js';
+import { getAsset } from '@/services/market/index.js';
 
 export type NoteRow = {
     id: string;
@@ -33,7 +33,7 @@ export type NotePage = {
  * one is what the chart panel asks for. They are one query because the only
  * difference is a field in the filter.
  */
-export async function listNotes(
+export async function getNotePage(
     userId: ObjectId,
     options: { page: number; limit: number; symbol?: string },
 ): Promise<NotePage> {
@@ -54,7 +54,7 @@ export async function listNotes(
 }
 
 export async function createNote(userId: ObjectId, symbol: string, message: string): Promise<NoteRow> {
-    await requireAsset(symbol);
+    await getAsset(symbol);
 
     const count = await collection().countDocuments({ userId, symbol });
     if (count >= config.limits.notesPerSymbol) {

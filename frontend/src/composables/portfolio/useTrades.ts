@@ -1,7 +1,7 @@
 /** useTrades — the blotter, and the three writes that change a portfolio. */
 import { computed, ref, type ComputedRef, type Ref } from 'vue';
 import { apiErrorMessage } from '@/api/client';
-import { addTrade, deleteTrade, listTrades, updateTrade, type TradeInput, type TradeRow } from '@/api/trades';
+import { addTrade, deleteTrade, getTrades, updateTrade, type TradeInput, type TradeRow } from '@/api/trades';
 import { i18n } from '@/i18n';
 
 export type UseTradesReturn = {
@@ -37,7 +37,7 @@ export function useTrades(portfolio: () => number, onWrite: () => Promise<void> 
         error.value = null;
 
         try {
-            const { data } = await listTrades(portfolio(), { page: page.value, limit: PAGE_SIZE });
+            const { data } = await getTrades(portfolio(), { page: page.value, limit: PAGE_SIZE });
             if (ticket !== sequence) return;
             items.value = data.items;
             total.value = data.total;

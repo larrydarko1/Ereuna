@@ -77,7 +77,7 @@ const revision = ref(0);
 
 const columns = computed(() => {
     const stored = preferences.value?.screenerColumns ?? [];
-    const usable = stored.filter((path) => findColumn(path) !== undefined);
+    const usable = stored.filter((path) => findColumn(path) !== null);
     return usable.length > 0 ? usable : [...DEFAULT_COLUMNS];
 });
 
@@ -103,7 +103,7 @@ const total = computed(() => (mode.value === 'hidden' ? hiddenSymbols.value.leng
 const profile = useResource(
     () => selectedSymbol.value,
     async (symbol) => (await getProfile(symbol)).data,
-    { enabled: (symbol) => symbol !== '' },
+    { enabled: (symbol): boolean => symbol !== '' },
 );
 
 const exporting = ref(false);
@@ -295,7 +295,7 @@ onUnmounted(() => {
                     @rename="dialog = 'rename'"
                     @remove="dialog = 'delete'"
                     @reset="dialog = 'reset'"
-                    @toggle-include="setIncluded(selected, $event)" />
+                    @toggle-include="setIncluded(selected, { include: $event })" />
 
                 <p
                     v-if="registry.error.value !== null"

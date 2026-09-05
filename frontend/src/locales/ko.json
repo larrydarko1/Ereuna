@@ -342,7 +342,6 @@
             "deposit": "현금 입금",
             "withdrawal": "현금 출금"
         },
-        "actions.cover": "환매",
         "cashHint": "현금 이동도 거래로 기록되므로 초기 잔액은 입금으로 등록합니다.",
         "baseValueHint": "수익률을 측정하는 기준 자본입니다. 없으면 비율을 계산할 수 없습니다.",
         "defaultCommission": "기본 수수료",

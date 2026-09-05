@@ -193,7 +193,7 @@ router.patch(
         let summary = await screenerService.getScreener(userId, name).then((doc) => screenerService.toSummary(doc));
 
         if (req.body.include !== undefined) {
-            summary = await screenerService.setScreenerIncluded(userId, name, req.body.include);
+            summary = await screenerService.setScreenerIncluded(userId, name, { include: req.body.include });
         }
         if (req.body.name !== undefined) {
             summary = await screenerService.renameScreener(userId, name, req.body.name);
@@ -207,7 +207,7 @@ router.delete(
     '/:name',
     ...validated({ params: nameParam }, async (req, res): Promise<void> => {
         await screenerService.deleteScreener(authedUserId(req), req.params.name);
-        res.json({ ok: true });
+        res.status(204).end();
     }),
 );
 
@@ -241,7 +241,7 @@ router.put(
         const { name, filter } = req.params;
         const body = req.body;
 
-        if (findRangeFilter(filter) !== undefined) {
+        if (findRangeFilter(filter) !== null) {
             const screener = await screenerService.setRangeFilter(userId, name, filter, {
                 min: body.min,
                 max: body.max,
@@ -250,14 +250,14 @@ router.put(
             return;
         }
 
-        if (findEnumFilter(filter) !== undefined) {
+        if (findEnumFilter(filter) !== null) {
             if (body.values === undefined) throw missingField(filter, 'values');
             const screener = await screenerService.setEnumFilter(userId, name, filter, body.values);
             res.json({ filters: screener.filters });
             return;
         }
 
-        if (findDateFilter(filter) !== undefined) {
+        if (findDateFilter(filter) !== null) {
             const screener = await screenerService.setDateFilter(userId, name, filter, {
                 from: body.from,
                 to: body.to,
@@ -266,7 +266,7 @@ router.put(
             return;
         }
 
-        if (findMaFilter(filter) !== undefined) {
+        if (findMaFilter(filter) !== null) {
             if (body.direction === undefined || body.target === undefined) {
                 throw missingField(filter, 'direction and target');
             }
@@ -275,9 +275,9 @@ router.put(
             return;
         }
 
-        if (findFlagFilter(filter) !== undefined) {
+        if (findFlagFilter(filter) !== null) {
             if (body.enabled === undefined) throw missingField(filter, 'enabled');
-            const screener = await screenerService.setFlagFilter(userId, name, filter, body.enabled);
+            const screener = await screenerService.setFlagFilter(userId, name, filter, { enabled: body.enabled });
             res.json({ filters: screener.filters });
             return;
         }

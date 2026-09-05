@@ -15,16 +15,15 @@ import { getCurrentScope, onScopeDispose } from 'vue';
 export type Cancelable<TArgs extends unknown[]> = ((...args: TArgs) => void) & { cancel: () => void };
 
 export type DebounceOptions = {
-    /** Ceiling on how long a call may be deferred while input keeps arriving.
-     *  Without it, a fast continuous typer defers the call forever. */
+    ms?: number;
     maxWait?: number;
 };
 
 export function useDebounceFn<TArgs extends unknown[]>(
     fn: (...args: TArgs) => void,
-    ms = 200,
     options: DebounceOptions = {},
 ): Cancelable<TArgs> {
+    const ms = options.ms ?? 200;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let maxTimer: ReturnType<typeof setTimeout> | undefined;
     let lastArgs: TArgs | undefined;

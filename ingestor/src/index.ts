@@ -11,7 +11,7 @@
 import 'dotenv/config';
 import { type Server } from 'http';
 import { startProbeServer } from '@ereuna/shared/service/probes';
-import { isHoliday, isMarketHours } from '@/calendar.js';
+import { getHolidays, isHoliday, isMarketHours } from '@/calendar.js';
 import { config } from '@/lib/config.js';
 import { closeDb, connectDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
@@ -29,7 +29,7 @@ let probes: Server | undefined;
  */
 async function run(): Promise<void> {
     while (!stopping) {
-        if (await isHoliday()) {
+        if (isHoliday(await getHolidays())) {
             await sleep(60_000);
             continue;
         }
@@ -49,7 +49,9 @@ async function run(): Promise<void> {
 }
 
 function sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise((resolve): void => {
+        setTimeout(resolve, ms);
+    });
 }
 
 /**
@@ -62,7 +64,7 @@ connectDb()
         probes = startProbeServer({
             port: config.probe.port,
             token: config.probe.token,
-            onError: (err) => logger.error({ err }, 'Failed to render metrics'),
+            onError: (err): void => logger.error({ err }, 'Failed to render metrics'),
         });
         logger.info({ port: config.probe.port }, 'Probes listening');
         return run();

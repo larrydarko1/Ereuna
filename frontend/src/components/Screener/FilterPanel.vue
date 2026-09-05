@@ -28,7 +28,8 @@ const emit = defineEmits<{
     clear: [key: string];
 }>();
 
-const { t, te } = useI18n();
+const i18n = useI18n();
+const { t } = i18n;
 
 function label(key: string): string {
     return t(`screener.fields.${key}`);
@@ -37,7 +38,7 @@ function label(key: string): string {
 /** Explanatory text, where one has been written for this filter. */
 function tip(key: string): string | null {
     const path = `screener.tips.${key}`;
-    return te(path) ? t(path) : null;
+    return i18n.te(path) ? t(path) : null;
 }
 
 function summary(filter: FilterDescriptor): string | null {

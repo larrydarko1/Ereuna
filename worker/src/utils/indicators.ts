@@ -4,6 +4,12 @@
  * newest last — and every caller sorts that way.
  */
 
+export type MacdOptions = {
+    fast?: number;
+    slow?: number;
+    signalPeriod?: number;
+};
+
 export type MacdSeries = {
     macd: number[];
     signal: number[];
@@ -79,7 +85,8 @@ export function rsi(closes: readonly number[], period = 14): number | null {
  * let that through; no caller passes a series that short today, which is the
  * only reason it never produced a wrong signal.
  */
-export function macd(closes: readonly number[], fast = 12, slow = 26, signalPeriod = 9): MacdSeries | null {
+export function macd(closes: readonly number[], options: MacdOptions = {}): MacdSeries | null {
+    const { fast = 12, slow = 26, signalPeriod = 9 } = options;
     if (closes.length < warmupBars(slow) + signalPeriod) return null;
 
     const fastEma = ema(closes, fast);

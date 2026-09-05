@@ -98,7 +98,9 @@ async function acquire(): Promise<void> {
     }
     // The slot is handed over by release() rather than freed and re-taken, so
     // a caller arriving between the two cannot jump the queue
-    await new Promise<void>((resolve) => waiting.push(resolve));
+    await new Promise<void>((resolve): void => {
+        waiting.push(resolve);
+    });
 }
 
 function release(): void {
@@ -120,27 +122,42 @@ async function request<T>(path: string, query: Record<string, string> = {}): Pro
 
     await acquire();
     try {
-        for (let attempt = 1; attempt <= config.tiingo.retries; attempt += 1) {
-            try {
-                const response = await fetch(url, {
-                    headers: { Authorization: `Token ${config.tiingo.key}`, Accept: 'application/json' },
-                    signal: AbortSignal.timeout(config.tiingo.timeoutMs),
-                });
-
-                if (response.ok) return (await response.json()) as T;
-                if (response.status < 500 && response.status !== 429) throw new TiingoError(response.status, path);
-                if (attempt === config.tiingo.retries) throw new TiingoError(response.status, path);
-            } catch (err) {
-                if (err instanceof TiingoError && err.status < 500 && err.status !== 429) throw err;
-                if (attempt === config.tiingo.retries) throw err;
-                logger.debug({ err, path, attempt }, 'Vendor request failed, retrying');
-            }
-
-            await new Promise((resolve) => setTimeout(resolve, 2 ** attempt * 500));
-        }
-
-        throw new TiingoError(0, path); // Unreachable: the loop returns or throws
+        return await retrying<T>(url, path);
     } finally {
         release();
     }
+}
+
+/** The retry ladder, with the rate-limit slot already held by the caller. */
+async function retrying<T>(url: URL, path: string): Promise<T> {
+    for (let attempt = 1; attempt <= config.tiingo.retries; attempt += 1) {
+        try {
+            return await attemptOnce<T>(url, path);
+        } catch (err) {
+            if (err instanceof TiingoError && err.status < 500 && err.status !== 429) throw err;
+            if (attempt === config.tiingo.retries) throw err;
+            logger.debug({ err, path, attempt }, 'Vendor request failed, retrying');
+        }
+
+        await new Promise((resolve): void => {
+            setTimeout(resolve, 2 ** attempt * 500);
+        });
+    }
+
+    throw new TiingoError(0, path); // Unreachable: the loop returns or throws
+}
+
+/**
+ * One GET, with every non-2xx raised as a TiingoError carrying its status.
+ * Which statuses are worth another try is the ladder's decision, not this one's,
+ * so the 4xx rule lives in exactly one place.
+ */
+async function attemptOnce<T>(url: URL, path: string): Promise<T> {
+    const response = await fetch(url, {
+        headers: { Authorization: `Token ${config.tiingo.key}`, Accept: 'application/json' },
+        signal: AbortSignal.timeout(config.tiingo.timeoutMs),
+    });
+
+    if (response.ok) return (await response.json()) as T;
+    throw new TiingoError(response.status, path);
 }

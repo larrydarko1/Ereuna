@@ -18,7 +18,7 @@ const { t } = useI18n();
 const { data, pending, error } = useResource(
     () => symbol,
     async (current) => (await getNews({ symbols: [current], limit })).data.items,
-    { enabled: (current) => current !== '' },
+    { enabled: (current): boolean => current !== '' },
 );
 
 const headlines = computed<Headline[]>(() =>

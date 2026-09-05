@@ -90,6 +90,7 @@ async function adjustIntraday(symbol: string, factor: number): Promise<void> {
     const db = getDb();
 
     for (const collection of INTRADAY_COLLECTIONS) {
+        // eslint-disable-next-line contracts/no-db-await-in-loop -- one updateMany per intraday collection; no query spans collections, so six is the minimum
         const result = await db.collection<OhlcvDoc>(collection).updateMany({ tickerID: symbol }, [
             {
                 $set: {

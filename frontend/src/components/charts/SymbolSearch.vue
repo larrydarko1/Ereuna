@@ -29,7 +29,7 @@ const expanded = computed(() => open.value && (hasResults.value || pending.value
 
 let sequence = 0;
 
-const search = useDebounceFn((query: string) => void run(query), DEBOUNCE_MS, { maxWait: 1000 });
+const search = useDebounceFn((query: string) => void run(query), { ms: DEBOUNCE_MS, maxWait: 1000 });
 
 const optionId = (index: number): string => `${listboxId}-${index}`;
 

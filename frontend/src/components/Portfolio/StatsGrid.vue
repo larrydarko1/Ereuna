@@ -9,136 +9,149 @@ const { snapshot } = defineProps<{ snapshot: PortfolioStatsSnapshot }>();
 const { t } = useI18n();
 
 const stats = computed(() => {
-    const s = snapshot;
-
     return [
         {
             key: 'realizedPL',
             label: t('portfolio.realizedPL'),
-            value: formatCurrency(s.realizedPL),
-            tone: direction(s.realizedPL),
+            value: formatCurrency(snapshot.realizedPL),
+            tone: direction(snapshot.realizedPL),
         },
         {
             key: 'realizedPLPercent',
             label: t('portfolio.realizedPLPercent'),
-            value: formatPercent(s.realizedPLPercent),
-            tone: direction(s.realizedPLPercent),
+            value: formatPercent(snapshot.realizedPLPercent),
+            tone: direction(snapshot.realizedPLPercent),
         },
         {
             key: 'trades',
             label: t('portfolio.trades'),
-            value: formatNumber(s.winnerCount + s.loserCount + s.breakevenCount, 0),
+            value: formatNumber(snapshot.winnerCount + snapshot.loserCount + snapshot.breakevenCount, 0),
             tone: 'flat' as const,
         },
         {
             key: 'winRate',
             label: t('portfolio.winRate'),
-            value: `${formatNumber(s.winnerPercent, 1)}%`,
+            value: `${formatNumber(snapshot.winnerPercent, 1)}%`,
             tone: 'flat' as const,
         },
         {
             key: 'winners',
             label: t('portfolio.winningTrades'),
-            value: formatNumber(s.winnerCount, 0),
+            value: formatNumber(snapshot.winnerCount, 0),
             tone: 'up' as const,
         },
         {
             key: 'losers',
             label: t('portfolio.losingTrades'),
-            value: formatNumber(s.loserCount, 0),
+            value: formatNumber(snapshot.loserCount, 0),
             tone: 'down' as const,
         },
         {
             key: 'breakeven',
             label: t('portfolio.breakevenTrades'),
-            value: formatNumber(s.breakevenCount, 0),
+            value: formatNumber(snapshot.breakevenCount, 0),
             tone: 'flat' as const,
         },
-        { key: 'avgGain', label: t('portfolio.avgGainPercent'), value: formatPercent(s.avgGain), tone: 'up' as const },
+        {
+            key: 'avgGain',
+            label: t('portfolio.avgGainPercent'),
+            value: formatPercent(snapshot.avgGain),
+            tone: 'up' as const,
+        },
         {
             key: 'avgLoss',
             label: t('portfolio.avgLossPercent'),
-            value: formatPercent(s.avgLoss),
+            value: formatPercent(snapshot.avgLoss),
             tone: 'down' as const,
         },
-        { key: 'avgGainAbs', label: t('portfolio.avgGain'), value: formatCurrency(s.avgGainAbs), tone: 'up' as const },
+        {
+            key: 'avgGainAbs',
+            label: t('portfolio.avgGain'),
+            value: formatCurrency(snapshot.avgGainAbs),
+            tone: 'up' as const,
+        },
         {
             key: 'avgLossAbs',
             label: t('portfolio.avgLoss'),
-            value: formatCurrency(s.avgLossAbs),
+            value: formatCurrency(snapshot.avgLossAbs),
             tone: 'down' as const,
         },
         {
             key: 'avgPositionSize',
             label: t('portfolio.avgPositionSize'),
-            value: formatCurrency(s.avgPositionSize),
+            value: formatCurrency(snapshot.avgPositionSize),
             tone: 'flat' as const,
         },
         {
             key: 'holdWinners',
             label: t('portfolio.avgHoldTimeWinners'),
-            value: days(s.avgHoldTimeWinners),
+            value: days(snapshot.avgHoldTimeWinners),
             tone: 'flat' as const,
         },
         {
             key: 'holdLosers',
             label: t('portfolio.avgHoldTimeLosers'),
-            value: days(s.avgHoldTimeLosers),
+            value: days(snapshot.avgHoldTimeLosers),
             tone: 'flat' as const,
         },
         {
             key: 'gainLossRatio',
             label: t('portfolio.gainLossRatio'),
-            value: ratio(s.gainLossRatio),
+            value: ratio(snapshot.gainLossRatio),
             tone: 'flat' as const,
         },
         {
             key: 'profitFactor',
             label: t('portfolio.profitFactor'),
-            value: ratio(s.profitFactor),
+            value: ratio(snapshot.profitFactor),
             tone: 'flat' as const,
         },
         {
             key: 'riskRewardRatio',
             label: t('portfolio.riskRewardRatio'),
-            value: ratio(s.riskRewardRatio),
+            value: ratio(snapshot.riskRewardRatio),
             tone: 'flat' as const,
         },
         {
             key: 'sortinoRatio',
             label: t('portfolio.sortinoRatio'),
-            value: ratio(s.sortinoRatio),
+            value: ratio(snapshot.sortinoRatio),
             tone: 'flat' as const,
         },
         {
             key: 'longCount',
             label: t('portfolio.longPosition'),
-            value: formatNumber(s.longCount, 0),
+            value: formatNumber(snapshot.longCount, 0),
             tone: 'flat' as const,
         },
         {
             key: 'shortCount',
             label: t('portfolio.shortPosition'),
-            value: formatNumber(s.shortCount, 0),
+            value: formatNumber(snapshot.shortCount, 0),
             tone: 'flat' as const,
         },
         {
             key: 'totalCommission',
             label: t('portfolio.fees'),
-            value: formatCurrency(s.totalCommission),
+            value: formatCurrency(snapshot.totalCommission),
             tone: 'flat' as const,
         },
         {
             key: 'biggestWinner',
             label: t('portfolio.biggestWinner'),
             value:
-                s.biggestWinner === null ? '—' : `${s.biggestWinner.ticker} ${formatCurrency(s.biggestWinner.amount)}`,
+                snapshot.biggestWinner === null
+                    ? '—'
+                    : `${snapshot.biggestWinner.ticker} ${formatCurrency(snapshot.biggestWinner.amount)}`,
             tone: 'up' as const,
         },
         {
             key: 'biggestLoser',
             label: t('portfolio.biggestLoser'),
-            value: s.biggestLoser === null ? '—' : `${s.biggestLoser.ticker} ${formatCurrency(s.biggestLoser.amount)}`,
+            value:
+                snapshot.biggestLoser === null
+                    ? '—'
+                    : `${snapshot.biggestLoser.ticker} ${formatCurrency(snapshot.biggestLoser.amount)}`,
             tone: 'down' as const,
         },
     ];

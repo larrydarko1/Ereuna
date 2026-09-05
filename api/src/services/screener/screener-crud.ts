@@ -1,5 +1,5 @@
 /** screener-crud — create, rename, delete, list, and toggle a saved screener. */
-import { ObjectId, type WithId } from 'mongodb';
+import { type ObjectId, type WithId } from 'mongodb';
 import type { ScreenerDoc } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { invalidatePrefix } from '@/lib/cache.js';
@@ -102,7 +102,13 @@ export async function deleteScreener(userId: ObjectId, name: string): Promise<vo
 }
 
 /** Switch a screener in or out of the combined results set. */
-export async function setScreenerIncluded(userId: ObjectId, name: string, include: boolean): Promise<ScreenerSummary> {
+export async function setScreenerIncluded(
+    userId: ObjectId,
+    name: string,
+    options: { include: boolean },
+): Promise<ScreenerSummary> {
+    const { include } = options;
+
     const updated = await getDb()
         .collection<ScreenerDoc>('Screeners')
         .findOneAndUpdate(
@@ -123,5 +129,5 @@ export async function invalidateResults(userId: ObjectId): Promise<void> {
 }
 
 function isDuplicateKey(err: unknown): boolean {
-    return typeof err === 'object' && err !== null && 'code' in err && (err as { code: unknown }).code === 11000;
+    return typeof err === 'object' && err !== null && 'code' in err && err.code === 11000;
 }

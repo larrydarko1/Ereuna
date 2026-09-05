@@ -24,7 +24,7 @@ const editingLayout = ref(false);
 const profile = useResource(
     () => symbol.value,
     async (current) => (await getProfile(current)).data,
-    { enabled: (current) => current !== '' },
+    { enabled: (current): boolean => current !== '' },
 );
 
 /**
@@ -36,7 +36,7 @@ const profile = useResource(
 const events = useResource(
     () => symbol.value,
     async (current) => (await getEvents(current, true)).data,
-    { enabled: (current) => current !== '' },
+    { enabled: (current): boolean => current !== '' },
 );
 
 const title = computed(() => profile.data.value?.name ?? symbol.value);

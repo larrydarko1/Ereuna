@@ -17,14 +17,12 @@ const { summary } = defineProps<{ summary: PortfolioSummary }>();
 const { t } = useI18n();
 
 const cards = computed<Card[]>(() => {
-    const s = summary;
-
     return [
         {
             key: 'totalValue',
             label: t('portfolio.totalValue'),
-            value: formatCurrency(s.totalValue),
-            note: s.baseValue > 0 ? `${t('portfolio.baseValue')} ${formatCurrency(s.baseValue)}` : null,
+            value: formatCurrency(summary.totalValue),
+            note: summary.baseValue > 0 ? `${t('portfolio.baseValue')} ${formatCurrency(summary.baseValue)}` : null,
             tone: 'flat',
         },
         {
@@ -32,42 +30,42 @@ const cards = computed<Card[]>(() => {
             label: t('portfolio.totalPL'),
             // Null until a base value is declared: there is no return without
             // something to measure it against, and showing 0% would be a claim.
-            value: s.totalPL === null ? '—' : formatCurrency(s.totalPL),
-            note: s.totalPLPercent === null ? null : formatPercent(s.totalPLPercent),
-            tone: direction(s.totalPL),
+            value: summary.totalPL === null ? '—' : formatCurrency(summary.totalPL),
+            note: summary.totalPLPercent === null ? null : formatPercent(summary.totalPLPercent),
+            tone: direction(summary.totalPL),
         },
         {
             key: 'unrealizedPL',
             label: t('portfolio.unrealizedPL'),
-            value: formatCurrency(s.unrealizedPL),
+            value: formatCurrency(summary.unrealizedPL),
             note: null,
-            tone: direction(s.unrealizedPL),
+            tone: direction(summary.unrealizedPL),
         },
         {
             key: 'cash',
             label: t('portfolio.cash'),
-            value: formatCurrency(s.cash),
+            value: formatCurrency(summary.cash),
             // Negative cash is the margin loan, not an error, and saying so is
             // the difference between a borrowed position and a broken one.
-            note: s.cash < 0 ? t('portfolio.marginLoan') : null,
-            tone: s.cash < 0 ? 'down' : 'flat',
+            note: summary.cash < 0 ? t('portfolio.marginLoan') : null,
+            tone: summary.cash < 0 ? 'down' : 'flat',
         },
         {
             key: 'exposure',
             label: t('portfolio.grossExposure'),
-            value: formatCurrency(s.grossExposure),
-            note: `${t('portfolio.netExposure')} ${formatCurrency(s.netExposure)}`,
+            value: formatCurrency(summary.grossExposure),
+            note: `${t('portfolio.netExposure')} ${formatCurrency(summary.netExposure)}`,
             tone: 'flat',
         },
         {
             key: 'leverage',
             label: t('portfolio.leverage'),
             value:
-                s.leverageUsed === null
-                    ? `${formatNumber(s.leverage, 1)}×`
-                    : `${formatNumber(s.leverageUsed, 2)}× / ${formatNumber(s.leverage, 1)}×`,
-            note: `${t('portfolio.buyingPower')} ${formatCurrency(s.buyingPower)}`,
-            tone: s.leverageUsed !== null && s.leverageUsed > s.leverage ? 'down' : 'flat',
+                summary.leverageUsed === null
+                    ? `${formatNumber(summary.leverage, 1)}×`
+                    : `${formatNumber(summary.leverageUsed, 2)}× / ${formatNumber(summary.leverage, 1)}×`,
+            note: `${t('portfolio.buyingPower')} ${formatCurrency(summary.buyingPower)}`,
+            tone: summary.leverageUsed !== null && summary.leverageUsed > summary.leverage ? 'down' : 'flat',
         },
     ];
 });

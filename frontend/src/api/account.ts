@@ -10,16 +10,16 @@ export function getAccount(): ApiResult<SessionUser> {
     return api.get<SessionUser>('/account');
 }
 
-export function changePassword(currentPassword: string, newPassword: string): ApiResult<{ ok: true }> {
-    return api.patch<{ ok: true }>('/account/password', { currentPassword, newPassword });
+export function changePassword(currentPassword: string, newPassword: string): ApiResult<void> {
+    return api.patch<void>('/account/password', { currentPassword, newPassword });
 }
 
 export function changeUsername(password: string, username: string): ApiResult<SessionUser> {
     return api.patch<SessionUser>('/account/username', { password, username });
 }
 
-export function deleteAccount(password: string): ApiResult<{ ok: true }> {
-    return api.delete<{ ok: true }>('/account', { data: { password } });
+export function deleteAccount(password: string): ApiResult<void> {
+    return api.delete<void>('/account', { data: { password } });
 }
 
 export function beginTwoFactor(): ApiResult<TotpEnrolment> {
@@ -32,8 +32,8 @@ export function confirmTwoFactor(code: string): ApiResult<{ recoveryCodes: strin
 
 /** Both factors, not just the second: dropping 2FA must not be possible for
  *  someone holding only the authenticator, or only a live session. */
-export function disableTwoFactor(password: string, code: string): ApiResult<{ ok: true }> {
-    return api.delete<{ ok: true }>('/account/2fa', { data: { password, code } });
+export function disableTwoFactor(password: string, code: string): ApiResult<void> {
+    return api.delete<void>('/account/2fa', { data: { password, code } });
 }
 
 /** Re-authenticated: a fresh set voids the old one, and each code it issues
@@ -44,8 +44,8 @@ export function regenerateRecoveryCodes(password: string): ApiResult<{ recoveryC
 
 /** Only accepted on a session opened with a recovery code — there is no
  *  current password to re-authenticate with, which is why it was used. */
-export function setPasswordAfterRecovery(newPassword: string): ApiResult<{ ok: true }> {
-    return api.post<{ ok: true }>('/account/recovery-password', { newPassword });
+export function setPasswordAfterRecovery(newPassword: string): ApiResult<void> {
+    return api.post<void>('/account/recovery-password', { newPassword });
 }
 
 export function countRecoveryCodes(): ApiResult<{ remaining: number }> {

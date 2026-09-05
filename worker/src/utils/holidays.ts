@@ -73,6 +73,7 @@ function lastMonday(year: number, month: number): number {
  * Good Friday is the only exchange holiday tied to the lunar calendar, which is
  * why this is here at all.
  */
+/* eslint-disable no-restricted-syntax -- the letters are the algorithm's names */
 function easter(year: number): number {
     const a = year % 19;
     const b = Math.floor(year / 100);
@@ -91,6 +92,7 @@ function easter(year: number): number {
 
     return Date.UTC(year, month - 1, day);
 }
+/* eslint-enable no-restricted-syntax */
 
 function iso(at: number): string {
     return new Date(at).toISOString().slice(0, 10);

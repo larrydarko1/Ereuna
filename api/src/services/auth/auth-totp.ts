@@ -13,7 +13,7 @@
  * on demand, never stored.
  */
 import argon2 from 'argon2';
-import { ObjectId, type WithId } from 'mongodb';
+import { type ObjectId, type WithId } from 'mongodb';
 import { Secret, TOTP } from 'otpauth';
 import type { UserDoc } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
@@ -29,7 +29,7 @@ export type TotpEnrolment = {
 };
 
 export async function beginTotpEnrolment(userId: ObjectId): Promise<TotpEnrolment> {
-    const user = await requireUser(userId);
+    const user = await getUser(userId);
     if (user.totpEnabled) {
         throw new AppError(409, 'TWO_FA_ALREADY_ENABLED', 'Two-factor authentication is already enabled');
     }
@@ -46,7 +46,7 @@ export async function beginTotpEnrolment(userId: ObjectId): Promise<TotpEnrolmen
 }
 
 export async function confirmTotpEnrolment(userId: ObjectId, code: string): Promise<{ recoveryCodes: string[] }> {
-    const user = await requireUser(userId);
+    const user = await getUser(userId);
     if (user.pendingTotpSecretEncrypted === null) {
         throw new AppError(409, 'TWO_FA_NOT_PENDING', 'No pending two-factor enrolment to confirm');
     }
@@ -80,7 +80,7 @@ export async function confirmTotpEnrolment(userId: ObjectId, code: string): Prom
  * to strip the account back to a single factor they already control.
  */
 export async function disableTotp(userId: ObjectId, password: string, code: string): Promise<void> {
-    const user = await requireUser(userId);
+    const user = await getUser(userId);
     if (!user.totpEnabled || user.totpSecretEncrypted === null) {
         throw new AppError(409, 'TWO_FA_NOT_ENABLED', 'Two-factor authentication is not enabled');
     }
@@ -113,7 +113,7 @@ export async function disableTotp(userId: ObjectId, password: string, code: stri
  * account without it would be a way in that the user never opted into.
  */
 export async function regenerateRecoveryCodes(userId: ObjectId, password: string): Promise<string[]> {
-    const user = await requireUser(userId);
+    const user = await getUser(userId);
     if (!user.totpEnabled || user.totpSecretEncrypted === null) {
         throw new AppError(409, 'TWO_FA_NOT_ENABLED', 'Two-factor authentication is not enabled');
     }
@@ -134,7 +134,7 @@ export async function validateTotpLogin(
     code: string,
     options: { rememberMe: boolean },
 ): Promise<AuthResult> {
-    const user = await requireUser(userId);
+    const user = await getUser(userId);
     if (!user.totpEnabled || user.totpSecretEncrypted === null) {
         throw new AppError(409, 'TWO_FA_NOT_ENABLED', 'Two-factor authentication is not enabled');
     }
@@ -143,7 +143,7 @@ export async function validateTotpLogin(
     return issueSession(user, options);
 }
 
-async function requireUser(userId: ObjectId): Promise<WithId<UserDoc>> {
+async function getUser(userId: ObjectId): Promise<WithId<UserDoc>> {
     const user = await getDb().collection<UserDoc>('Users').findOne({ _id: userId });
     if (user === null) throw new AppError(404, 'USER_NOT_FOUND', `user ${userId.toHexString()} not found`);
     return user;

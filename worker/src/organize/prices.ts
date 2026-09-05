@@ -4,7 +4,7 @@ import type { OhlcvDoc } from '@ereuna/shared';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
-import { marketPrices, type VendorDailyBar, type VendorMarketBar } from '@/lib/tiingo.js';
+import { marketPrices, type VendorDailyBar } from '@/lib/tiingo.js';
 import { chunk, type Asset } from '@/organize/universe.js';
 
 export type PriceUpdate = {
@@ -76,6 +76,7 @@ export async function refetchHistory(symbol: string, history: readonly VendorDai
     const db = getDb();
     await db.collection<OhlcvDoc>('OHCLVData').deleteMany({ tickerID: symbol });
     for (const batch of chunk(bars, config.organize.writeBatchSize)) {
+        // eslint-disable-next-line contracts/no-db-await-in-loop -- one insert per batch of bars, not per bar, and sequential so a whole universe does not swamp the pool
         await db.collection<OhlcvDoc>('OHCLVData').insertMany(batch, { ordered: false });
     }
 
@@ -141,6 +142,7 @@ async function upsertBars(collection: string, operations: readonly AnyBulkWriteO
 
     for (const batch of chunk(operations, config.organize.writeBatchSize)) {
         try {
+            // eslint-disable-next-line contracts/no-db-await-in-loop -- one round trip per batch of operations, not per item, and sequential so a whole universe does not swamp the pool
             await getDb().collection<OhlcvDoc>(collection).bulkWrite(batch, { ordered: false });
         } catch (err) {
             logger.error({ err, collection, count: batch.length }, 'Bar bulk write failed');

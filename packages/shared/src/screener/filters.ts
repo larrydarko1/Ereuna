@@ -477,24 +477,24 @@ const FIELD_BY_KEY = new Map<string, string>([
     ...FLAG_FILTERS.map((f) => [f.key, f.field] as const),
 ]);
 
-export function findRangeFilter(key: string): RangeFilterSpec | undefined {
-    return RANGE_BY_KEY.get(key);
+export function findRangeFilter(key: string): RangeFilterSpec | null {
+    return RANGE_BY_KEY.get(key) ?? null;
 }
 
-export function findEnumFilter(key: string): EnumFilterSpec | undefined {
-    return ENUM_BY_KEY.get(key);
+export function findEnumFilter(key: string): EnumFilterSpec | null {
+    return ENUM_BY_KEY.get(key) ?? null;
 }
 
-export function findDateFilter(key: string): DateFilterSpec | undefined {
-    return DATE_BY_KEY.get(key);
+export function findDateFilter(key: string): DateFilterSpec | null {
+    return DATE_BY_KEY.get(key) ?? null;
 }
 
-export function findMaFilter(key: string): (typeof MA_FILTERS)[number] | undefined {
-    return MA_BY_KEY.get(key);
+export function findMaFilter(key: string): (typeof MA_FILTERS)[number] | null {
+    return MA_BY_KEY.get(key) ?? null;
 }
 
-export function findFlagFilter(key: string): (typeof FLAG_FILTERS)[number] | undefined {
-    return FLAG_BY_KEY.get(key);
+export function findFlagFilter(key: string): (typeof FLAG_FILTERS)[number] | null {
+    return FLAG_BY_KEY.get(key) ?? null;
 }
 
 export function filterField(key: string): string | undefined {

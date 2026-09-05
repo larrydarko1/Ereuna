@@ -21,12 +21,7 @@ export async function updateNews(universe: readonly Asset[]): Promise<number> {
 
     for (const batch of chunk(symbols, SYMBOLS_PER_REQUEST)) {
         try {
-            for (const item of await news(batch, ARTICLES_PER_REQUEST)) {
-                const article = toArticle(item);
-                // Keyed by URL so the run de-duplicates before it writes, not
-                // by discovering the collision at the server
-                if (article !== null) operations.set(article.url, upsert(article));
-            }
+            collect(await news(batch, ARTICLES_PER_REQUEST), operations);
         } catch (err) {
             logger.debug({ err, symbols: batch.length }, 'News batch failed');
         }
@@ -64,11 +59,24 @@ function upsert(article: NewsDoc): AnyBulkWriteOperation<NewsDoc> {
     return { updateOne: { filter: { url: article.url }, update: { $set: article }, upsert: true } };
 }
 
+/**
+ * Fold one vendor batch into the pending upserts.
+ * Keyed by URL so the run de-duplicates before it writes, rather than
+ * discovering the collision at the server.
+ */
+function collect(items: readonly VendorNewsItem[], into: Map<string, AnyBulkWriteOperation<NewsDoc>>): void {
+    for (const item of items) {
+        const article = toArticle(item);
+        if (article !== null) into.set(article.url, upsert(article));
+    }
+}
+
 async function write(operations: readonly AnyBulkWriteOperation<NewsDoc>[]): Promise<void> {
     if (operations.length === 0) return;
 
     for (const batch of chunk(operations, 500)) {
         try {
+            // eslint-disable-next-line contracts/no-db-await-in-loop -- one round trip per batch of operations, not per item, and sequential so a whole universe does not swamp the pool
             await getDb().collection<NewsDoc>('News').bulkWrite(batch, { ordered: false });
         } catch (err) {
             logger.error({ err, count: batch.length }, 'News bulk write failed');

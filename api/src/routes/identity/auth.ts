@@ -137,7 +137,7 @@ router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
 });
 
 /**
- * Logout always answers 200, whether or not the cookie was valid. A caller
+ * Logout always succeeds, whether or not the cookie was valid. A caller
  * trying to end a session has nothing to do with a failure, and reporting one
  * would tell an unauthenticated caller whether a token it holds is live.
  */
@@ -145,5 +145,5 @@ router.post('/logout', async (req: Request, res: Response): Promise<void> => {
     const rawToken = readRefreshCookie(req);
     if (rawToken !== null) await authService.revokeRefreshToken(rawToken);
     clearRefreshCookie(res);
-    res.json({ ok: true });
+    res.status(204).end();
 });

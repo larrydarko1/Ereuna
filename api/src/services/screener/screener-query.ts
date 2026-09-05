@@ -4,7 +4,7 @@
  * Does NOT own: filter storage (screener-filters.ts) or bounds (screener-bounds.ts).
  */
 import type { Document, Filter } from 'mongodb';
-import { ObjectId } from 'mongodb';
+import { type ObjectId } from 'mongodb';
 import {
     DATE_FILTERS,
     ENUM_FILTERS,
@@ -225,6 +225,7 @@ function isRange(value: unknown): value is [number, number] {
 /** Parse the stored `abv200` / `blwPrice` shorthand into its two parts. */
 function parseMaRelation(value: string): { direction: 'abv' | 'blw'; target: string } | null {
     const match = /^(abv|blw)(10|20|50|200|[Pp]rice)$/.exec(value);
-    if (match === null) return null;
-    return { direction: match[1] as 'abv' | 'blw', target: match[2]!.toLowerCase() === 'price' ? 'price' : match[2]! };
+    const [, direction, target] = match ?? [];
+    if (direction === undefined || target === undefined) return null;
+    return { direction: direction as 'abv' | 'blw', target: target.toLowerCase() === 'price' ? 'price' : target };
 }

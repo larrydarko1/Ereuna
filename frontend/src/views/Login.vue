@@ -36,7 +36,7 @@ async function submit(): Promise<void> {
     pending.value = true;
 
     try {
-        const result = await login(username.value.trim(), password.value, rememberMe.value);
+        const result = await login(username.value.trim(), password.value, { rememberMe: rememberMe.value });
         if (result.requires2FA) {
             tempToken.value = result.tempToken;
             return;
@@ -54,7 +54,7 @@ async function verify(code: string): Promise<void> {
     pending.value = true;
 
     try {
-        await validateTwoFactor(tempToken.value, code, rememberMe.value);
+        await validateTwoFactor(tempToken.value, code, { rememberMe: rememberMe.value });
         await enter();
     } catch (err) {
         notifyError(apiErrorMessage(err, t('errors.INVALID_TWO_FA_CODE')));
@@ -108,8 +108,7 @@ function destination(): { name: string } | string {
                 v-model="username"
                 :label="t('auth.username')"
                 :placeholder="t('auth.usernamePlaceholder')"
-                autocomplete="username"
-                autofocus />
+                autocomplete="username" />
             <PasswordField
                 v-model="password"
                 :label="t('auth.password')"

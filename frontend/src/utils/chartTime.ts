@@ -17,6 +17,17 @@ export function timeValue(time: Time): number {
     return Date.UTC(time.year, time.month - 1, time.day) / 1000;
 }
 
+/**
+ * A stable identity for a bar, safe as a `Set` or `Map` key.
+ * `String(time)` was doing this before, which is correct for the two shapes we
+ * produce and silently wrong for the third: every BusinessDay stringifies to
+ * `[object Object]`, so a series carrying one would de-duplicate down to a
+ * single bar.
+ */
+export function timeKey(time: Time): string {
+    return typeof time === 'string' ? time : String(timeValue(time));
+}
+
 /** The instant a bar sits at, or null when the value will not parse. */
 export function timeToDate(time: Time): Date | null {
     const seconds = timeValue(time);

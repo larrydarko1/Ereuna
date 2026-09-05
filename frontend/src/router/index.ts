@@ -1,5 +1,8 @@
-import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
+import { createRouter, createWebHistory, type RouteRecordRaw, type RouterScrollBehavior } from 'vue-router';
 import { findSessionUser, isAuthenticated } from '@/api/client';
+
+/** vue-router keeps `ScrollPosition` internal, so it is named through the behaviour it belongs to. */
+type ScrollTarget = Awaited<ReturnType<RouterScrollBehavior>>;
 
 const routes: RouteRecordRaw[] = [
     {
@@ -68,7 +71,7 @@ const router = createRouter({
     routes,
     // Every navigation is to a different view, so the top is always the right
     // place to be — except when the browser is restoring a back/forward entry.
-    scrollBehavior: (_to, _from, saved) => saved ?? { top: 0 },
+    scrollBehavior: (_to, _from, saved): ScrollTarget => saved ?? { top: 0 },
 });
 
 declare module 'vue-router' {

@@ -20,19 +20,31 @@ export async function register(username: string, password: string): Promise<Sess
     return establish(data);
 }
 
-export async function login(username: string, password: string, rememberMe: boolean): Promise<LoginResult> {
-    const { data } = await api.post<LoginResponse>('/auth/login', { username, password, rememberMe });
+export async function login(
+    username: string,
+    password: string,
+    options: { rememberMe: boolean },
+): Promise<LoginResult> {
+    const { data } = await api.post<LoginResponse>('/auth/login', { username, password, ...options });
     if ('requires2FA' in data) return { requires2FA: true, tempToken: data.tempToken };
     return { requires2FA: false, user: establish(data) };
 }
 
-export async function validateTwoFactor(tempToken: string, code: string, rememberMe: boolean): Promise<SessionUser> {
-    const { data } = await api.post<AuthSuccess>('/auth/2fa/validate', { tempToken, code, rememberMe });
+export async function validateTwoFactor(
+    tempToken: string,
+    code: string,
+    options: { rememberMe: boolean },
+): Promise<SessionUser> {
+    const { data } = await api.post<AuthSuccess>('/auth/2fa/validate', { tempToken, code, ...options });
     return establish(data);
 }
 
-export async function recover(username: string, recoveryCode: string, rememberMe: boolean): Promise<SessionUser> {
-    const { data } = await api.post<AuthSuccess>('/auth/recover', { username, recoveryCode, rememberMe });
+export async function recover(
+    username: string,
+    recoveryCode: string,
+    options: { rememberMe: boolean },
+): Promise<SessionUser> {
+    const { data } = await api.post<AuthSuccess>('/auth/recover', { username, recoveryCode, ...options });
     return establish(data);
 }
 

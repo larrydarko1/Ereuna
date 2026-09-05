@@ -23,7 +23,8 @@ const emit = defineEmits<{ close: [] }>();
 /** Above this, a figure reads better abbreviated than written out in full. */
 const COMPACT_THRESHOLD = 100_000;
 
-const { t, te } = useI18n();
+const i18n = useI18n();
+const { t } = i18n;
 
 const period = ref<'annual' | 'quarterly'>('annual');
 const showDescriptions = ref(false);
@@ -81,7 +82,7 @@ const rows = computed(() =>
  * print the key itself into the table.
  */
 function translate(key: string): string | null {
-    return te(key) ? t(key) : null;
+    return i18n.te(key) ? t(key) : null;
 }
 
 function format(value: number | null): string {

@@ -13,7 +13,7 @@ import type { MarketOverview, StatsDoc } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { marketKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
-import { requireAsset } from '@/services/market/market-assets.js';
+import { getAsset } from '@/services/market/market-assets.js';
 import { toMarketOverview } from '@/utils/market-overview.js';
 
 export type Financials = {
@@ -45,7 +45,7 @@ export async function holidays(): Promise<StatsDoc> {
  * answers to the caller.
  */
 export async function financials(symbol: string): Promise<Financials> {
-    const asset = await requireAsset(symbol);
+    const asset = await getAsset(symbol);
     return {
         symbol,
         annual: asset.AnnualFinancials ?? [],

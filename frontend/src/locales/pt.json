@@ -342,7 +342,6 @@
             "deposit": "Depósito em Dinheiro",
             "withdrawal": "Saque em Dinheiro"
         },
-        "actions.cover": "Cobrir",
         "cashHint": "Movimentos de caixa são registados como operações, por isso um saldo inicial é um depósito.",
         "baseValueHint": "O capital com o qual o seu retorno é comparado. Sem ele não há percentagem a apresentar.",
         "defaultCommission": "Comissão predefinida",

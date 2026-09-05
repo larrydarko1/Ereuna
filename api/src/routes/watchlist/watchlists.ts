@@ -70,7 +70,7 @@ router.delete(
     '/:name',
     ...validated({ params: nameParam }, async (req, res): Promise<void> => {
         await watchlistService.deleteWatchlist(authedUserId(req), req.params.name);
-        res.json({ ok: true });
+        res.status(204).end();
     }),
 );
 

@@ -31,6 +31,7 @@ export async function latestCloses(symbols: readonly string[]): Promise<Map<stri
     if (symbols.length === 0) return closes;
 
     for (const batch of chunk(symbols, BATCH_SIZE)) {
+        // eslint-disable-next-line contracts/no-db-await-in-loop -- one aggregation per batch of symbols; the per-symbol version above is the bug this replaced
         const docs = await getDb()
             .collection<OhlcvDoc>('OHCLVData')
             .aggregate<{ _id: string; close: number }>([
@@ -63,6 +64,7 @@ export async function quotes(symbols: readonly string[]): Promise<Quote[]> {
             const results: Quote[] = [];
 
             for (const batch of chunk(symbols, BATCH_SIZE)) {
+                // eslint-disable-next-line contracts/no-db-await-in-loop -- one aggregation per batch of symbols, not per symbol
                 const docs = await getDb()
                     .collection<OhlcvDoc>('OHCLVData')
                     .aggregate<{ _id: string; bars: { close: number; timestamp: Date }[] }>([

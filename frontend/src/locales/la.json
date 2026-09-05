@@ -342,7 +342,6 @@
             "deposit": "Depositio Pecuniae",
             "withdrawal": "Retractio Pecuniae"
         },
-        "actions.cover": "Tegere",
         "cashHint": "Motus pecuniae ut negotia scribuntur; ergo summa initialis depositio est.",
         "baseValueHint": "Caput ad quod reditus tuus metitur. Sine eo nulla est portio centesima.",
         "defaultCommission": "Merces praedefinita",

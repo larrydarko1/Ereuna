@@ -342,7 +342,6 @@
             "deposit": "Geldeinzahlung",
             "withdrawal": "Geldabhebung"
         },
-        "actions.cover": "Eindecken",
         "cashHint": "Geldbewegungen werden als Transaktionen erfasst; ein Anfangssaldo ist eine Einzahlung.",
         "baseValueHint": "Das Kapital, an dem Ihre Rendite gemessen wird. Ohne es gibt es keinen Prozentsatz.",
         "defaultCommission": "Standardprovision",

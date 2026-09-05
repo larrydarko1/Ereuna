@@ -137,7 +137,7 @@ export function openBucketCount(): number {
 function close(timeframe: AggregatorTimeframe, symbol: string, bucket: OpenBucket): void {
     const doc = toDoc(symbol, bucket);
     enqueue(timeframe, doc);
-    publishCandle(toMessage(timeframe, doc, true));
+    publishCandle(toMessage(timeframe, doc, { final: true }));
 }
 
 /**
@@ -149,7 +149,7 @@ function publishInProgress(timeframe: AggregatorTimeframe, symbol: string, now: 
     const bucket = bucketsFor(timeframe).get(symbol);
     if (bucket === undefined || now - bucket.publishedAt < config.candles.publishThrottleMs) return;
     bucket.publishedAt = now;
-    publishCandle(toMessage(timeframe, toDoc(symbol, bucket), false));
+    publishCandle(toMessage(timeframe, toDoc(symbol, bucket), { final: false }));
 }
 
 function toDoc(symbol: string, bucket: OpenBucket): CandleDoc {
@@ -164,7 +164,7 @@ function toDoc(symbol: string, bucket: OpenBucket): CandleDoc {
     };
 }
 
-function toMessage(timeframe: AggregatorTimeframe, doc: CandleDoc, final: boolean): AggregateMessage {
+function toMessage(timeframe: AggregatorTimeframe, doc: CandleDoc, options: { final: boolean }): AggregateMessage {
     return {
         tickerID: doc.tickerID,
         timeframe,
@@ -174,7 +174,7 @@ function toMessage(timeframe: AggregatorTimeframe, doc: CandleDoc, final: boolea
         low: doc.low,
         close: doc.close,
         volume: doc.volume,
-        final,
+        final: options.final,
     };
 }
 

@@ -4,7 +4,7 @@
  * Does NOT own: deriving bounds and options (screener-bounds.ts) or turning
  * stored filters into a query (screener-query.ts).
  */
-import { ObjectId, type WithId } from 'mongodb';
+import { type ObjectId, type WithId } from 'mongodb';
 import {
     findDateFilter,
     findEnumFilter,
@@ -20,7 +20,7 @@ import {
 import { AppError } from '@/lib/app-error.js';
 import { getDb } from '@/lib/db.js';
 import { getDateBounds, getEnumOptions, getRangeBounds } from '@/services/screener/screener-bounds.js';
-import { getScreener, invalidateResults } from '@/services/screener/screener-crud.js';
+import { invalidateResults } from '@/services/screener/screener-crud.js';
 
 export type RangeInput = { min?: number; max?: number };
 
@@ -31,7 +31,7 @@ export async function setRangeFilter(
     input: RangeInput,
 ): Promise<WithId<ScreenerDoc>> {
     const spec = findRangeFilter(filterKey);
-    if (spec === undefined) throw unknownFilter(filterKey);
+    if (spec === null) throw unknownFilter(filterKey);
 
     if (input.min === undefined && input.max === undefined) {
         throw new AppError(422, 'FILTER_RANGE_INVALID', `${spec.label} needs at least one of min or max`, {
@@ -59,7 +59,7 @@ export async function setEnumFilter(
     values: string[],
 ): Promise<WithId<ScreenerDoc>> {
     const spec = findEnumFilter(filterKey);
-    if (spec === undefined) throw unknownFilter(filterKey);
+    if (spec === null) throw unknownFilter(filterKey);
 
     const allowed = new Set(await getEnumOptions(spec));
     const unknown = values.find((value) => !allowed.has(value));
@@ -79,7 +79,7 @@ export async function setDateFilter(
     input: { from?: string; to?: string },
 ): Promise<WithId<ScreenerDoc>> {
     const spec = findDateFilter(filterKey);
-    if (spec === undefined) throw unknownFilter(filterKey);
+    if (spec === null) throw unknownFilter(filterKey);
 
     if (input.from === undefined && input.to === undefined) {
         throw new AppError(422, 'FILTER_RANGE_INVALID', `${spec.label} needs at least one of from or to`, {
@@ -108,7 +108,7 @@ export async function setMaFilter(
     target: string,
 ): Promise<WithId<ScreenerDoc>> {
     const spec = findMaFilter(filterKey);
-    if (spec === undefined) throw unknownFilter(filterKey);
+    if (spec === null) throw unknownFilter(filterKey);
 
     if (
         !(MA_DIRECTIONS as readonly string[]).includes(direction) ||
@@ -133,11 +133,11 @@ export async function setFlagFilter(
     userId: ObjectId,
     screenerName: string,
     filterKey: string,
-    enabled: boolean,
+    options: { enabled: boolean },
 ): Promise<WithId<ScreenerDoc>> {
     const spec = findFlagFilter(filterKey);
-    if (spec === undefined) throw unknownFilter(filterKey);
-    return writeFilter(userId, screenerName, spec.field, enabled);
+    if (spec === null) throw unknownFilter(filterKey);
+    return writeFilter(userId, screenerName, spec.field, options.enabled);
 }
 
 export async function clearFilter(
@@ -207,7 +207,7 @@ function resolveField(filterKey: string): string {
         findDateFilter(filterKey) ??
         findMaFilter(filterKey) ??
         findFlagFilter(filterKey);
-    if (spec === undefined) throw unknownFilter(filterKey);
+    if (spec === null) throw unknownFilter(filterKey);
     return spec.field;
 }
 

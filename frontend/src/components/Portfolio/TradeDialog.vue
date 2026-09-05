@@ -38,7 +38,7 @@ const price = ref(String(editing?.price ?? ''));
 const commission = ref(editing === null ? '' : String(editing.commission));
 const tradeDate = ref(toDateInput(editing?.tradeDate ?? new Date()));
 
-const total = computed(() => (Number(shares.value) || 0) * (Number(price.value) || 0));
+const total = computed(() => amount(shares.value) * amount(price.value));
 
 const valid = computed(
     () => symbol.value.trim() !== '' && Number(shares.value) > 0 && Number(price.value) > 0 && tradeDate.value !== '',
@@ -58,6 +58,11 @@ function submit(): void {
         ...(commission.value === '' ? {} : { commission: Number(commission.value) }),
         tradeDate: tradeDate.value,
     });
+}
+/** A field's value as a number, with a half-typed or empty field reading as zero. */
+function amount(input: string): number {
+    const parsed = Number(input);
+    return Number.isFinite(parsed) ? parsed : 0;
 }
 </script>
 
@@ -132,8 +137,16 @@ function submit(): void {
                 </label>
 
                 <div class="form-field">
-                    <span class="form-label">{{ t('portfolio.total') }}</span>
-                    <output class="form-output">{{ formatCurrency(total) }}</output>
+                    <span
+                        id="trade-total-label"
+                        class="form-label"
+                        >{{ t('portfolio.total') }}</span
+                    >
+                    <output
+                        class="form-output"
+                        aria-labelledby="trade-total-label"
+                        >{{ formatCurrency(total) }}</output
+                    >
                 </div>
             </div>
 

@@ -342,7 +342,6 @@
             "deposit": "Mona Depono",
             "withdrawal": "Mona Retiro"
         },
-        "actions.cover": "Kovri",
         "cashHint": "Monaj movoj registriĝas kiel transakcioj, do komenca saldo estas depono.",
         "baseValueHint": "La kapitalo laŭ kiu via rendimento mezuriĝas. Sen ĝi ne ekzistas procento.",
         "defaultCommission": "Defaŭlta komisio",

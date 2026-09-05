@@ -28,7 +28,7 @@ router.get(
     '/',
     ...validated({ query: listQuery }, async (req, res): Promise<void> => {
         const { page, limit, symbol } = req.validatedQuery;
-        res.json(await noteService.listNotes(authedUserId(req), { page, limit, symbol }));
+        res.json(await noteService.getNotePage(authedUserId(req), { page, limit, symbol }));
     }),
 );
 
@@ -52,6 +52,6 @@ router.delete(
     '/:id',
     ...validated({ params: idParam }, async (req, res): Promise<void> => {
         await noteService.deleteNote(authedUserId(req), new ObjectId(req.params.id));
-        res.json({ ok: true });
+        res.status(204).end();
     }),
 );

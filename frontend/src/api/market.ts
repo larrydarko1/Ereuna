@@ -40,7 +40,7 @@ export type Financials = {
 
 export type NewsQuery = {
     symbols?: string[];
-    since?: string | 'all';
+    since?: string; // An ISO date, or the literal `all` for no lower bound
     limit?: number;
 };
 

@@ -2,7 +2,7 @@
 import crypto from 'crypto';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
-import { ObjectId, type WithId } from 'mongodb';
+import { type ObjectId, type WithId } from 'mongodb';
 import type { RefreshTokenDoc, UserDoc } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';

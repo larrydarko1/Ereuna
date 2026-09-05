@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AggregateMessage } from '@ereuna/shared';
+import { AGGREGATOR_TIMEFRAMES, type AggregateMessage } from '@ereuna/shared';
 import type { CandleDoc } from '@/aggregate/writer.js';
 
 const publishCandle = vi.fn<(message: AggregateMessage) => void>();
@@ -62,9 +62,10 @@ describe('applyTrade', () => {
     it('feeds every timeframe from one trade', () => {
         applyTrade('AAPL', 100, at('2026-09-03T14:37:10Z'), 1000);
 
-        for (const timeframe of ['1m', '5m', '15m', '30m', '1hr', '1d', '1w']) {
-            expect(sent(timeframe), timeframe).toHaveLength(1);
-        }
+        // One assertion over the whole map rather than one per timeframe: a
+        // failure then names which timeframe went quiet instead of just the index.
+        const counts = Object.fromEntries(AGGREGATOR_TIMEFRAMES.map((tf) => [tf, sent(tf).length]));
+        expect(counts).toEqual({ '1m': 1, '5m': 1, '15m': 1, '30m': 1, '1hr': 1, '1d': 1, '1w': 1 });
     });
 
     it('throttles in-progress updates but never a finished candle', () => {

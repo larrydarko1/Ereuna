@@ -342,7 +342,6 @@
             "deposit": "現金入金",
             "withdrawal": "現金出金"
         },
-        "actions.cover": "買い戻し",
         "cashHint": "現金の増減も取引として記録されるため、初期残高は入金として登録します。",
         "baseValueHint": "リターンを測る基準となる資本です。これがないと割合を算出できません。",
         "defaultCommission": "既定の手数料",

@@ -27,7 +27,7 @@ export type NoteQuery = {
     symbol?: string;
 };
 
-export function listNotes(query: NoteQuery = {}): ApiResult<NotePage> {
+export function getNotes(query: NoteQuery = {}): ApiResult<NotePage> {
     return api.get<NotePage>('/notes', { params: query });
 }
 
@@ -39,6 +39,6 @@ export function updateNote(id: string, message: string): ApiResult<NoteRow> {
     return api.patch<NoteRow>(`/notes/${id}`, { message });
 }
 
-export function deleteNote(id: string): ApiResult<{ ok: true }> {
-    return api.delete<{ ok: true }>(`/notes/${id}`);
+export function deleteNote(id: string): ApiResult<void> {
+    return api.delete<void>(`/notes/${id}`);
 }

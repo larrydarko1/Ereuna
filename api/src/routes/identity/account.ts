@@ -50,7 +50,7 @@ router.patch(
     '/password',
     ...validated({ body: changePasswordBody }, async (req, res): Promise<void> => {
         await userService.changePassword(authedUserId(req), req.body.currentPassword, req.body.newPassword);
-        res.json({ ok: true });
+        res.status(204).end();
     }),
 );
 
@@ -65,7 +65,7 @@ router.delete(
     '/',
     ...validated({ body: confirmPasswordBody }, async (req, res): Promise<void> => {
         await userService.deleteAccount(authedUserId(req), req.body.password);
-        res.json({ ok: true });
+        res.status(204).end();
     }),
 );
 
@@ -87,7 +87,7 @@ router.delete(
     '/2fa',
     ...validated({ body: disableTotpBody }, async (req, res): Promise<void> => {
         await authService.disableTotp(authedUserId(req), req.body.password, req.body.code);
-        res.json({ ok: true });
+        res.status(204).end();
     }),
 );
 
@@ -112,6 +112,6 @@ router.post(
     '/recovery-password',
     ...validated({ body: newPasswordBody }, async (req, res): Promise<void> => {
         await userService.setPasswordAfterRecovery(authedUserId(req), req.body.newPassword);
-        res.json({ ok: true });
+        res.status(204).end();
     }),
 );

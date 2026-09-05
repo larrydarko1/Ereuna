@@ -50,13 +50,17 @@ const quarters = computed<Quarter[]>(() => {
 const columnLabel = computed(() => t(`sidebar.${metric}Column`));
 
 /** EPS is a per-share figure with cents; revenue and net income are large. */
-const formatValue = (value: number | null): string =>
-    value === null ? '—' : metric === 'eps' ? formatNumber(value, 2) : formatCompact(value);
+function formatValue(value: number | null): string {
+    if (value === null) return '—';
+    return metric === 'eps' ? formatNumber(value, 2) : formatCompact(value);
+}
 
 const formatGrowth = (value: number | null): string => (value === null ? '—' : `${formatNumber(value, 1)}%`);
 
-const tone = (value: number | null): string =>
-    value === null ? '' : value > 0 ? 'financials__cell--up' : 'financials__cell--down';
+function tone(value: number | null): string {
+    if (value === null) return '';
+    return value > 0 ? 'financials__cell--up' : 'financials__cell--down';
+}
 </script>
 
 <template>

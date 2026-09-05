@@ -231,8 +231,8 @@ export function readColumn(row: Record<string, unknown>, path: string): unknown 
     return cursor ?? null;
 }
 
-export function findColumn(path: string): ColumnSpec | undefined {
-    return COLUMN_BY_PATH.get(path);
+export function findColumn(path: string): ColumnSpec | null {
+    return COLUMN_BY_PATH.get(path) ?? null;
 }
 
 function columnFormat(key: string, path: string): ColumnFormat {

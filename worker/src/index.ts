@@ -28,6 +28,7 @@ async function ensureIndexes(): Promise<void> {
 
     for (const { collection, keys, options } of specs) {
         try {
+            // eslint-disable-next-line contracts/no-db-await-in-loop, no-restricted-syntax
             await db.collection(collection).createIndex(keys, options ?? {});
         } catch (err) {
             logger.error({ err, collection, keys }, 'Index could not be created');
@@ -48,7 +49,7 @@ connectDb()
         probes = startProbeServer({
             port: config.probe.port,
             token: config.probe.token,
-            onError: (err) => logger.error({ err }, 'Failed to render metrics'),
+            onError: (err): void => logger.error({ err }, 'Failed to render metrics'),
         });
         logger.info({ role, port: config.probe.port }, 'Worker started');
 

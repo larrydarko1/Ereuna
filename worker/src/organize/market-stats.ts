@@ -171,24 +171,35 @@ function breadthByUniverse(rows: readonly Row[]): Record<number, Record<string, 
         const byUniverse: Record<string, { up: number; down: number }> = {};
 
         for (const [universe, members] of partitions) {
-            let up = 0;
-            let down = 0;
-
-            for (const row of members) {
-                const average = row.movingAverages.get(period);
-                if (average === null || average === undefined || row.close === null) continue;
-                if (row.close > average) up += 1;
-                else down += 1;
-            }
-
-            const total = up + down;
-            byUniverse[universe] = total === 0 ? { up: 0, down: 0 } : { up: up / total, down: down / total };
+            byUniverse[universe] = shareAboveAverage(members, period);
         }
 
         breadth[period] = byUniverse;
     }
 
     return breadth;
+}
+
+/** The three-band reading the dashboard renders from a breadth percentage. */
+function outlookFor(average: number): string {
+    if (average >= 0.7) return 'bullish';
+    return average >= 0.5 ? 'neutral' : 'bearish';
+}
+
+/** How one universe splits above and below a moving average, as two fractions. */
+function shareAboveAverage(members: readonly Row[], period: number): { up: number; down: number } {
+    let up = 0;
+    let down = 0;
+
+    for (const row of members) {
+        const average = row.movingAverages.get(period);
+        if (average === null || average === undefined || row.close === null) continue;
+        if (row.close > average) up += 1;
+        else down += 1;
+    }
+
+    const total = up + down;
+    return total === 0 ? { up: 0, down: 0 } : { up: up / total, down: down / total };
 }
 
 /**
@@ -204,7 +215,7 @@ function outlook(breadth: Record<number, Record<string, { up: number; down: numb
         const average = periods.reduce((sum, period) => sum + (breadth[period]?.ALL?.up ?? 0), 0) / periods.length;
 
         reading[key] = {
-            outlook: average >= 0.7 ? 'bullish' : average >= 0.5 ? 'neutral' : 'bearish',
+            outlook: outlookFor(average),
             percentageUp: round(average * 100, 2),
             smas: periods.map((period) => `SMA${period}`),
         };
@@ -276,7 +287,7 @@ function tiers(
                 ? []
                 : [{ [field]: name, average_return: averageReturn, count: members.length }];
         })
-        .sort((left, right) => (right.average_return as number) - (left.average_return as number));
+        .sort((left, right) => right.average_return - left.average_return);
 }
 
 function indexPerformance(rows: readonly Row[]): Record<string, unknown> {

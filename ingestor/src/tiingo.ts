@@ -44,7 +44,7 @@ const dropped = new Counter({
  * open. Distinguishing them would only be a different log line.
  */
 export function runSession(symbols: readonly string[], shouldStop: () => boolean): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise((resolve): void => {
         const socket = new WebSocket(config.tiingo.url);
         let subscriptionId: number | null = null;
         let closing = false;

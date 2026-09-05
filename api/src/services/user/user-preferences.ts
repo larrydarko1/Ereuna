@@ -4,7 +4,7 @@
  * panel layouts, and the screener column selection.
  * Does NOT own: credentials or two-factor state (user-account.ts).
  */
-import { ObjectId } from 'mongodb';
+import { type ObjectId } from 'mongodb';
 import type { UserDoc } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { getDb } from '@/lib/db.js';
