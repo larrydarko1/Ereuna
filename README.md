@@ -1,4 +1,4 @@
-![Ereuna Header](public/Basic/banner.png)
+![Ereuna Header](frontend/public/banner.png)
 
 <div align="center">
 
@@ -11,7 +11,7 @@
 
 ---
 
-![Ereuna Demo](public/Basic/heroAnimation.gif)
+![Ereuna Demo](frontend/public/heroAnimation.gif)
 
 Ereuna was my first project—I learned how to code using it. It took me months of refactoring and learning to pull it off. Even though the startup project eventually didn't go as planned, I don't regret spending so much time on it, because it allowed me to grow as a developer and I've built something I need.
 

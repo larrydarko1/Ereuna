@@ -286,61 +286,10 @@ export class ChartScreenshot {
         ctx.textAlign = 'right';
         ctx.font = `${11 * dpr}px Arial`;
         ctx.fillStyle = textColorSecondary; // Uses theme color
-        ctx.fillText('Made with Ereuna — ereuna.io', width - x, thirdLineY);
+        ctx.fillText('Made with Ereuna', width - x, thirdLineY);
         ctx.globalAlpha = 1;
     }
 
-    private drawFooter(
-        ctx: CanvasRenderingContext2D,
-        config: ScreenshotConfig,
-        x: number,
-        y: number,
-        width: number,
-        dpr: number = 1,
-    ): void {
-        const styles = getComputedStyle(document.documentElement);
-        const textColorSecondary = styles.getPropertyValue('--color-text-muted').trim() || '#9ca3af';
-
-        ctx.globalAlpha = 0.5; // Lighter opacity
-        ctx.fillStyle = textColorSecondary;
-        ctx.font = `${11 * dpr}px Arial`;
-        ctx.textBaseline = 'middle';
-
-        // Center the branding text
-        ctx.textAlign = 'center';
-        ctx.fillText('Made by Ereuna — ereuna.io', width / 2, y);
-
-        ctx.textAlign = 'left';
-        ctx.globalAlpha = 1;
-    }
-
-    private drawFooterOld(
-        ctx: CanvasRenderingContext2D,
-        config: ScreenshotConfig,
-        x: number,
-        y: number,
-        width: number,
-        dpr: number = 1,
-    ): void {
-        const styles = getComputedStyle(document.documentElement);
-        const textColorSecondary = styles.getPropertyValue('--color-text-muted').trim() || '#9ca3af';
-
-        ctx.globalAlpha = 0.7;
-        ctx.fillStyle = textColorSecondary;
-        ctx.font = `${12 * dpr}px Arial`;
-        ctx.textBaseline = 'middle';
-
-        // Left side - "Made With Ereuna"
-        ctx.textAlign = 'left';
-        ctx.fillText('Made With Ereuna', x, y);
-
-        // Right side - domain
-        ctx.textAlign = 'right';
-        ctx.fillText(config.websiteUrl, width - x, y);
-
-        ctx.textAlign = 'left';
-        ctx.globalAlpha = 1;
-    }
 
     private async drawLogo(
         ctx: CanvasRenderingContext2D,
@@ -376,12 +325,10 @@ export class ChartScreenshot {
                 resolve();
             };
             img.onerror = () => resolve(); // Fail gracefully
-            // Import the logo dynamically to ensure it works in both dev and production
-            import('@/assets/icons/ereuna.svg')
-                .then((module) => {
-                    img.src = module.default;
-                })
-                .catch(() => resolve());
+            // The mark lives in public/, so the URL is stable in dev and in the build
+            // and needs no bundler entry. It is the same file Header.vue masks; the
+            // old asset was a 500px PNG wrapped in an SVG, which tinted badly.
+            img.src = '/mark.svg';
         });
     }
 

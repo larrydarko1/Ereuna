@@ -1,54 +1,77 @@
 <!doctype html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0" />
 
-<head>
-  <meta charset="UTF-8" />
-  <!-- Favicon and Apple Touch Icon -->
-  <link rel="icon" type="image/png" sizes="32x32" href="/Basic/favicon.png" />
-  <link rel="icon" type="image/x-icon" href="/Basic/favicon.ico" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/Basic/apple-touch-icon.png" />
-  <link rel="icon" type="image/svg+xml" href="/Basic/favicon.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Primary Meta Tags -->
-  <title>Ereuna | Cut your research time and costs—invest with confidence.</title>
-  <meta name="title" content="Ereuna | Cut your research time and costs—invest with confidence.">
-  <meta name="description"
-    content="Ereuna is a comprehensive financial market research platform offering advanced stock screening, portfolio analysis, and data visualization tools. Access real-time market data, technical indicators, and research insights to make informed investment decisions. Perfect for individual investors and financial researchers seeking cost-effective research solutions.">
-  <meta name="keywords"
-    content="ereuna, stock screener, stock market research, investment analysis, portfolio tracker, financial data, market insights, technical indicators, stock charts, investment research platform, financial education, data analysis tools, market screening, investment tools, stock market data, financial research, investment analytics, market trends, stock analysis, portfolio management tools">
-  <meta name="robots" content="index, follow">
+        <!-- Favicons. The SVG is what modern browsers take; the .ico covers the
+             bare /favicon.ico request, and the 32px PNG covers Safari 14, which
+             is the browserslist floor and predates SVG favicon support. -->
+        <link
+            rel="icon"
+            type="image/svg+xml"
+            href="/favicon.svg" />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="/favicon.png" />
+        <link
+            rel="icon"
+            type="image/x-icon"
+            href="/favicon.ico" />
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="/apple-touch-icon.png" />
 
-  <!-- Category and Classification -->
-  <meta name="category" content="Financial Research and Education">
-  <meta name="classification" content="Financial Market Research Platform">
-  <meta name="audience" content="Individual Investors, Retail Traders, Financial Researchers">
-  <meta name="coverage" content="Stock Market Data Analysis, Investment Research Tools">
+        <title>Ereuna</title>
+        <meta
+            name="description"
+            content="Ereuna is a Web Application for Screening and Researching Financial Markets" />
 
-  <!-- Canonical URL -->
-  <link rel="canonical" href="https://ereuna.io/" />
+        <!-- PLACEHOLDER ORIGIN — ereuna.io was the startup's domain and is gone,
+             so pointing at it would be a link to somebody else's site. example.com
+             is reserved by IANA and resolves nowhere, which is the property that
+             makes it safe here; check-html-standards.mjs warns on every run while
+             it is still in place. Swap it for a real domain at launch, and at that
+             point also move `canonical` to per-route generation — one static
+             canonical tells crawlers every route is the homepage. -->
+        <link
+            rel="canonical"
+            href="https://ereuna.example.com/" />
+        <meta
+            property="og:type"
+            content="website" />
+        <meta
+            property="og:url"
+            content="https://ereuna.example.com/" />
+        <meta
+            property="og:title"
+            content="Ereuna — market research" />
+        <meta
+            property="og:description"
+            content="Screen the US equity universe, chart it, and track a portfolio against replayed trade history." />
+        <meta
+            property="og:image"
+            content="https://ereuna.example.com/preview.png" />
+        <meta
+            name="twitter:card"
+            content="summary_large_image" />
 
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://ereuna.io/">
-  <meta property="og:title" content="Ereuna">
-  <meta property="og:description" content="Cut your research time and costs—invest with confidence.">
-  <meta property="og:image" content="https://ereuna.io/Basic/preview.png">
-  <meta property="og:site_name" content="Ereuna">
+        <!-- Matches the `default` theme's --color-bg, so mobile browser chrome
+             doesn't flash a light bar above a dark app on load. -->
+        <meta
+            name="theme-color"
+            content="#1a1b26" />
+    </head>
 
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://ereuna.io/">
-  <meta name="twitter:title" content="Ereuna">
-  <meta name="twitter:description" content="Cut your research time and costs—invest with confidence.">
-  <meta name="twitter:image" content="https://ereuna.io/Basic/preview.png">
-
-  <!-- Theme Color -->
-  <meta name="theme-color" content="#1a1b26">
-</head>
-
-<body>
-  <div id="app"></div>
-  <script type="module" src="/src/main.ts"></script>
-</body>
-
+    <body>
+        <div id="app"></div>
+        <script
+            type="module"
+            src="/src/main.ts"></script>
+    </body>
 </html>
