@@ -21,7 +21,9 @@ const sorted = computed(() => [...rows].sort((left, right) => right.averageRetur
 
 const strongest = computed(() => sorted.value.slice(0, Math.min(count, Math.floor(sorted.value.length / 2))));
 
-const weakest = computed(() => sorted.value.slice(-strongest.value.length).reverse());
+const weakest = computed(() =>
+    strongest.value.length === 0 ? [] : sorted.value.slice(-strongest.value.length).reverse(),
+);
 </script>
 
 <template>

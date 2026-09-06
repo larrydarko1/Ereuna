@@ -290,7 +290,6 @@ export class ChartScreenshot {
         ctx.globalAlpha = 1;
     }
 
-
     private async drawLogo(
         ctx: CanvasRenderingContext2D,
         x: number,

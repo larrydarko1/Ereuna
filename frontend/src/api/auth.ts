@@ -55,6 +55,10 @@ export async function recover(
 export async function logout(): Promise<void> {
     try {
         await api.post('/auth/logout');
+    } catch {
+        // Swallowed rather than rethrown: every caller navigates away next, and
+        // a rejection here left the user sitting on a signed-in page with no
+        // session behind it
     } finally {
         clearAuth();
     }

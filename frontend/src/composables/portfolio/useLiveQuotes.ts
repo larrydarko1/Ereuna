@@ -46,10 +46,11 @@ export function useLiveQuotes(symbols: () => readonly string[], enabled: () => b
     socket.on('connect', subscribe);
 
     watch(
-        // Joined rather than compared by identity: the caller derives this list
-        // from the positions, so it is a new array on every reload even when it
-        // names exactly the same symbols.
-        () => [symbols().join(','), enabled()] as const,
+        // One string rather than a tuple: the caller derives this list from the
+        // positions, so it is a new array on every reload even when it names
+        // exactly the same symbols — and a tuple is a new array too, which
+        // re-subscribed and blanked every price on each reload.
+        () => `${symbols().join(',')}|${String(enabled())}`,
         () => {
             quotes.value = {};
             subscribe();

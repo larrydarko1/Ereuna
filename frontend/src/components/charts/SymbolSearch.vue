@@ -20,12 +20,15 @@ const active = ref(-1);
 const pending = ref(false);
 const error = ref<string | null>(null);
 const open = ref(false);
+const searched = ref(false);
 
 const input = useTemplateRef<HTMLInputElement>('input');
 const listboxId = useId();
 
 const hasResults = computed(() => results.value.length > 0);
-const expanded = computed(() => open.value && (hasResults.value || pending.value || error.value !== null));
+const expanded = computed(
+    () => open.value && (hasResults.value || pending.value || error.value !== null || searched.value),
+);
 
 let sequence = 0;
 
@@ -49,7 +52,10 @@ async function run(query: string): Promise<void> {
         active.value = -1;
         error.value = apiErrorMessage(err, t('search.failed'));
     } finally {
-        if (ticket === sequence) pending.value = false;
+        if (ticket === sequence) {
+            pending.value = false;
+            searched.value = true;
+        }
     }
 }
 
@@ -69,6 +75,7 @@ function choose(index: number): void {
     term.value = '';
     results.value = [];
     active.value = -1;
+    searched.value = false;
     open.value = false;
     input.value?.blur();
 }
@@ -105,6 +112,7 @@ watch(term, (value) => {
         active.value = -1;
         pending.value = false;
         error.value = null;
+        searched.value = false;
         return;
     }
 

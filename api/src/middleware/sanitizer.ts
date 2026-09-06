@@ -8,7 +8,16 @@ export function sanitizeRequest(req: Request, _res: Response, next: NextFunction
         req.body = stripUnsafeKeys(req.body);
     }
     if (typeof req.query === 'object' && req.query !== null) {
-        stripUnsafeKeysInPlace(req.query);
+        // Express 5's `req.query` is a getter that re-parses the query string on
+        // every read, so the object one middleware mutates is not the object the
+        // route handler receives. Shadowing the getter with an own property is
+        // what makes the strip stick — mutating in place is silently discarded.
+        Object.defineProperty(req, 'query', {
+            value: stripUnsafeKeys(req.query),
+            configurable: true,
+            enumerable: true,
+            writable: false,
+        });
     }
     next();
 }
@@ -23,21 +32,6 @@ function stripUnsafeKeys(value: unknown): unknown {
         );
     }
     return value;
-}
-
-/** Mutate in place — needed for `req.query`, which is a read-only getter in Express 5. */
-function stripUnsafeKeysInPlace(obj: Record<string, unknown>): void {
-    for (const key of Object.keys(obj)) {
-        if (isUnsafeKey(key)) {
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- the keys being stripped are attacker-supplied by definition, so they cannot be static
-            delete obj[key];
-        } else {
-            const child = obj[key];
-            if (child !== null && typeof child === 'object') {
-                stripUnsafeKeysInPlace(child as Record<string, unknown>);
-            }
-        }
-    }
 }
 
 function isUnsafeKey(key: string): boolean {

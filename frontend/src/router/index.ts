@@ -86,7 +86,10 @@ router.beforeEach((to) => {
 
     if (signedIn && to.meta.guestOnly === true) return { name: 'Dashboard' };
     if (!signedIn && to.meta.public !== true) {
-        return { name: 'Login', query: to.fullPath === '/' ? {} : { redirect: to.fullPath } };
+        // No redirect for the landing route: `/` resolves to Dashboard before
+        // any guard runs, so a bare visit would otherwise be sent to
+        // `/login?redirect=/dashboard` — where sign-in lands anyway.
+        return { name: 'Login', query: to.name === 'Dashboard' ? {} : { redirect: to.fullPath } };
     }
 
     // A recovery code is a way back in, not a password. Until one is set the

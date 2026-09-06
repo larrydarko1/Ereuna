@@ -1,0 +1,137 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { HttpResponse, http } from 'msw';
+import { mockApi, ORIGIN } from '@/__tests__/support/msw';
+import { clearAuth, setSessionUser } from '@/api/client';
+import { initTheme, useTheme } from '@/composables/ui/useTheme';
+import { DEFAULT_THEME } from '@/composables/ui/themes';
+
+const mock = mockApi();
+const { currentTheme, applyTheme, syncTheme, themes } = useTheme();
+
+const user = {
+    id: '507f1f77bcf86cd799439011',
+    username: 'larry',
+    language: 'en',
+    twoFactorEnabled: false,
+    passwordResetRequired: false,
+};
+
+const preferences = (theme: string | null): Record<string, unknown> => ({
+    language: 'en',
+    theme,
+    defaultSymbol: 'AAPL',
+    hiddenSymbols: [],
+    chartSettings: null,
+    panels: null,
+    screenerColumns: [],
+});
+
+const painted = (): string | null => document.documentElement.getAttribute('data-theme');
+
+beforeEach(() => {
+    clearAuth();
+    localStorage.clear();
+    applyTheme(DEFAULT_THEME);
+});
+
+describe('initTheme', () => {
+    it('paints the stored theme, so the first frame is the right colour', () => {
+        localStorage.setItem('ereuna-theme', 'nord');
+
+        initTheme();
+
+        expect(painted()).toBe('nord');
+        expect(currentTheme.value).toBe('nord');
+    });
+
+    it('falls back to the default when nothing is stored', () => {
+        initTheme();
+
+        expect(currentTheme.value).toBe(DEFAULT_THEME);
+    });
+
+    it('ignores a stored theme the stylesheet no longer defines', () => {
+        localStorage.setItem('ereuna-theme', 'tokyo-night');
+
+        initTheme();
+
+        expect(currentTheme.value).toBe(DEFAULT_THEME);
+    });
+});
+
+describe('applyTheme', () => {
+    it('switches with one attribute write, and remembers the choice', () => {
+        applyTheme('dracula');
+
+        expect(painted()).toBe('dracula');
+        expect(localStorage.getItem('ereuna-theme')).toBe('dracula');
+    });
+
+    it('does not call the account when nobody is signed in', () => {
+        applyTheme('dracula');
+
+        expect(mock.calls).toHaveLength(0);
+    });
+
+    it('tells the account in the background once there is a session', async () => {
+        setSessionUser(user);
+        mock.on('PATCH /api/preferences', preferences('dracula'));
+
+        applyTheme('dracula');
+
+        await vi.waitFor(() => expect(mock.calls).toHaveLength(1));
+        expect(mock.last().body).toEqual({ theme: 'dracula' });
+    });
+
+    it('keeps the applied theme when the account write fails', async () => {
+        setSessionUser(user);
+        mock.on('PATCH /api/preferences', { error: 'INTERNAL' }, { status: 500 });
+
+        applyTheme('dracula');
+        await vi.waitFor(() => expect(mock.calls).toHaveLength(1));
+
+        expect(currentTheme.value).toBe('dracula');
+    });
+
+    it('offers the whole manifest to a picker', () => {
+        expect(themes.length).toBeGreaterThan(10);
+    });
+});
+
+describe('syncTheme', () => {
+    it('does nothing without a session', async () => {
+        await syncTheme();
+
+        expect(mock.calls).toHaveLength(0);
+    });
+
+    it('adopts the account theme, so a choice follows the user to another device', async () => {
+        setSessionUser(user);
+        mock.on('GET /api/preferences', preferences('nord'));
+
+        await syncTheme();
+
+        expect(currentTheme.value).toBe('nord');
+        expect(localStorage.getItem('ereuna-theme')).toBe('nord');
+    });
+
+    it('leaves the local theme alone when the account has none', async () => {
+        setSessionUser(user);
+        applyTheme('dracula');
+        mock.on('GET /api/preferences', preferences(null));
+
+        await syncTheme();
+
+        expect(currentTheme.value).toBe('dracula');
+    });
+
+    it('leaves the local theme alone when the account cannot be read', async () => {
+        setSessionUser(user);
+        applyTheme('dracula');
+        mock.server.use(http.get(`${ORIGIN}/api/preferences`, () => HttpResponse.error()));
+
+        await expect(syncTheme()).resolves.toBeUndefined();
+
+        expect(currentTheme.value).toBe('dracula');
+    });
+});

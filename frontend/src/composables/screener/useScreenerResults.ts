@@ -70,7 +70,11 @@ export function useScreenerResults(source: () => ResultsSource, revision: () => 
     // Changing the source or the filters starts again from page one; only a
     // page change keeps the position it just asked for.
     watch(
-        () => [JSON.stringify(source()), revision()] as const,
+        // One string rather than a tuple: a tuple is a new array on every
+        // evaluation, so anything that merely re-ran this getter — switching the
+        // list to the hidden symbols, say — re-queried a match set that had not
+        // changed.
+        () => `${JSON.stringify(source())}|${String(revision())}`,
         () => {
             page.value = 1;
             void fetchPage();

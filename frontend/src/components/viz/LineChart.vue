@@ -34,14 +34,15 @@ const shape = computed(() => {
     const values = points.map((point) => point.value);
     const min = Math.min(...values);
     const max = Math.max(...values);
-    // A flat series would divide by zero; centring it is the honest picture.
+    // A flat series would divide by zero; centring it is the honest picture,
+    // which is what the half is for — dividing by a span of 1 would draw the
+    // line along the bottom edge instead, as if every value were the minimum.
     const range = max - min;
-    const span = range === 0 ? 1 : range;
     const usable = HEIGHT - PADDING * 2;
 
     const coords = points.map((point, index) => ({
         x: points.length === 1 ? WIDTH / 2 : (index / (points.length - 1)) * WIDTH,
-        y: PADDING + (1 - (point.value - min) / span) * usable,
+        y: PADDING + (1 - (range === 0 ? 0.5 : (point.value - min) / range)) * usable,
     }));
 
     const line = coords.map((c, i) => `${i === 0 ? 'M' : 'L'}${c.x.toFixed(2)},${c.y.toFixed(2)}`).join(' ');

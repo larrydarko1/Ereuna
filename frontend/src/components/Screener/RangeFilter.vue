@@ -17,26 +17,23 @@ const emit = defineEmits<{ apply: [{ min?: number; max?: number }] }>();
 
 const { t } = useI18n();
 
-const min = ref('');
-const max = ref('');
+const min = ref<string | number>('');
+const max = ref<string | number>('');
 const error = ref<string | null>(null);
 
-/** A blank field means "no limit on this side", not zero. */
-function parse(raw: string): number | undefined {
-    const trimmed = raw.trim();
-    if (trimmed === '') return undefined;
-    const parsed = Number(trimmed);
-    return Number.isFinite(parsed) ? parsed : Number.NaN;
+/**
+ * A blank field means "no limit on this side", not zero. A `type="number"`
+ * input hands Vue a number, or an empty string when it holds nothing the
+ * browser could read as one — there is no third case to guard.
+ */
+function limit(raw: string | number): number | undefined {
+    return typeof raw === 'number' ? raw : undefined;
 }
 
 function submit(): void {
-    const low = parse(min.value);
-    const high = parse(max.value);
+    const low = limit(min.value);
+    const high = limit(max.value);
 
-    if (Number.isNaN(low) || Number.isNaN(high)) {
-        error.value = t('screener.errorNumber');
-        return;
-    }
     if (low === undefined && high === undefined) {
         error.value = t('screener.errorNumber');
         return;
@@ -58,8 +55,8 @@ function placeholder(side: 'min' | 'max'): string {
 watch(
     () => value,
     (current) => {
-        min.value = current === null ? '' : String(current.min);
-        max.value = current === null ? '' : String(current.max);
+        min.value = current?.min ?? '';
+        max.value = current?.max ?? '';
         error.value = null;
     },
     { immediate: true },
