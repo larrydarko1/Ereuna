@@ -1,6 +1,8 @@
 node_modules
 dist
 backups
+playwright-report
+test-results
 db
 docker
 k8s

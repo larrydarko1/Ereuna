@@ -39,4 +39,9 @@ acme.json
 todo.md
 CLAUDE.md
 coverage
+/e2e/playwright-report
+/e2e/test-results
+/e2e/.playwright
+playwright-report
+test-results
 

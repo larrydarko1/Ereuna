@@ -37,7 +37,6 @@ describe('Header', () => {
         const { wrapper } = await header();
 
         expect(wrapper.get('nav').attributes('aria-label')).toBe(i18n.global.t('common.mainNavigation'));
-        expect(wrapper.get('.header__mark').attributes('aria-label')).toBe(i18n.global.t('header.nav.dashboard'));
     });
 
     it('signs out and lands on the sign-in page', async () => {

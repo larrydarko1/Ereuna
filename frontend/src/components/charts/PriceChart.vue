@@ -894,9 +894,13 @@ watch(isEodOnly, (eodOnly) => {
     overflow: hidden;
 }
 
+// Absolute, not `height: 100%`: the frame is sized by `min-height` while its
+// `height` stays `auto`, so a percentage resolves against nothing and this
+// element collapses to 0. lightweight-charts reads the host's size once at
+// creation, so a collapsed host is a chart that draws into a 0px viewport.
 .price-chart__canvas {
-    width: 100%;
-    height: 100%;
+    position: absolute;
+    inset: 0;
 }
 
 .price-chart__confirm {

@@ -21,10 +21,7 @@ async function signOut(): Promise<void> {
 
 <template>
     <header class="header">
-        <RouterLink
-            to="/dashboard"
-            class="header__mark"
-            :aria-label="t('header.nav.dashboard')" />
+        <div class="header__mark" />
 
         <nav
             class="header__nav"
@@ -46,21 +43,29 @@ async function signOut(): Promise<void> {
                         <rect
                             x="2"
                             y="2"
+                            width="9"
+                            height="9"
                             rx="2"
                             fill="currentColor" />
                         <rect
                             x="13"
                             y="2"
+                            width="9"
+                            height="9"
                             rx="2"
                             fill="currentColor" />
                         <rect
                             x="2"
-                            y="15"
+                            y="13"
+                            width="9"
+                            height="9"
                             rx="2"
                             fill="currentColor" />
                         <rect
                             x="13"
-                            y="11"
+                            y="13"
+                            width="9"
+                            height="9"
                             rx="2"
                             fill="currentColor" />
                     </g>
@@ -195,10 +200,6 @@ async function signOut(): Promise<void> {
     background: $color-text;
     mask: url('/mark.svg') no-repeat center / contain;
     opacity: 0.3;
-
-    &:hover {
-        opacity: 0.6;
-    }
 }
 
 .header__nav {

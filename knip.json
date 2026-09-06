@@ -2,8 +2,8 @@
     "$schema": "./node_modules/knip/schema.json",
     "workspaces": {
         ".": {
-            "entry": ["scripts/**/*.mjs!", "eslint.config.js!"],
-            "project": ["scripts/**/*.{js,mjs,cjs}!", "eslint/*.js", "*.{ts,mts,js}"]
+            "entry": ["scripts/**/*.mjs!", "eslint.config.js!", "e2e/support/global-setup.ts"],
+            "project": ["scripts/**/*.{js,mjs,cjs}!", "eslint/*.js", "e2e/**/*.ts", "*.{ts,mts,js}"]
         },
         "frontend": { "entry": ["index.html!"], "project": ["src/**/*.{ts,vue}!", "*.ts"] },
         "api": { "project": ["src/**/*.ts!", "*.ts"] },
