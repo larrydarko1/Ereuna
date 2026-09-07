@@ -5,12 +5,9 @@ import { clearAuth } from '@/api/client';
 import { i18n } from '@/i18n';
 import { mockApi } from '@/__tests__/support/msw';
 import { testRouter } from '@/__tests__/support/router';
-import { dismiss, useNotifications } from '@/composables/ui/useNotifications';
 import Login from '@/views/Login.vue';
 
 const api = mockApi();
-
-const { toasts } = useNotifications();
 
 const USER = { id: 'u1', username: 'larry', twoFactorEnabled: false };
 
@@ -41,7 +38,6 @@ const verify = async (wrapper: VueWrapper, code: string): Promise<void> => {
 
 beforeEach(() => {
     clearAuth();
-    for (const toast of [...toasts.value]) dismiss(toast.id);
     api.on('GET /api/preferences', {
         language: 'en',
         theme: null,
@@ -123,7 +119,7 @@ describe('Login', () => {
         await fill(wrapper, 'larry', 'wrong');
         await submit(wrapper);
 
-        expect(toasts.value[0]?.tone).toBe('error');
+        expect(wrapper.get('.form-error[role="alert"]').text()).toBe(i18n.global.t('errors.INVALID_CREDENTIALS'));
         expect(wrapper.findAll('.field__error')).toHaveLength(0);
         expect(router.currentRoute.value.name).toBe('Login');
     });
@@ -162,7 +158,7 @@ describe('Login', () => {
 
         await verify(wrapper, '000000');
 
-        expect(toasts.value[0]?.message).toBe(i18n.global.t('errors.INVALID_TWO_FA_CODE'));
+        expect(wrapper.get('.form-error[role="alert"]').text()).toBe(i18n.global.t('errors.INVALID_TWO_FA_CODE'));
         expect(wrapper.find('.prompt').exists()).toBe(true);
         expect(router.currentRoute.value.name).toBe('Login');
     });

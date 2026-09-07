@@ -19,8 +19,6 @@
         "export": "Exportar",
         "import": "Importar",
         "download": "Baixar",
-        "settings": "Configurações",
-        "notifications": "Notificações",
         "mainNavigation": "Navegação principal",
         "saving": "Salvando...",
         "pageOf": "Página {page} de {pages}"
@@ -35,7 +33,6 @@
         "alreadyHaveAccount": "Já possui uma conta?",
         "dontHaveAccount": "Não tem uma conta?",
         "invalidCredentials": "Credenciais inválidas",
-        "accountCreated": "Conta criada com sucesso",
         "signInTitle": "Entrar",
         "signInSubtitle": "Bem-vindo de volta.",
         "signUpTitle": "Criar uma conta",
@@ -51,8 +48,6 @@
         "hidePassword": "Ocultar palavra-passe",
         "submitting": "A entrar…",
         "creating": "A criar conta…",
-        "agreeToTerms": "Aceito os termos de serviço.",
-        "agreeRequired": "Aceite os termos para continuar.",
         "backToSignIn": "Voltar ao início de sessão",
         "useRecoveryCode": "Usar um código de recuperação",
         "recoverySpent": "Esse código já foi usado. Defina uma nova palavra-passe nas definições da conta.",
@@ -61,8 +56,7 @@
             "subtitle": "Iniciaste sessão com um código de recuperação. Escolhe uma palavra-passe antes de continuar.",
             "new": "Nova palavra-passe",
             "confirm": "Confirmar palavra-passe",
-            "submit": "Definir palavra-passe",
-            "done": "Palavra-passe definida. Inicia sessão com ela para continuar."
+            "submit": "Definir palavra-passe"
         },
         "twoFactorTitle": "Código de dois fatores",
         "twoFactorHint": "Introduza o código de 6 dígitos da sua aplicação de autenticação.",
@@ -138,37 +132,18 @@
             "title": "Principais Movimentações Diárias",
             "topGainers": "Top 10 Ganhos",
             "topLosers": "Top 10 Perdas"
-        },
-        "valuation": {
-            "title": "Análise de Valor Intrínseco",
-            "undervalued": "Top 10 Subavaliados",
-            "overvalued": "Top 10 Superavaliados",
-            "disclaimer": "Os valores intrínsecos vêm de um modelo de fluxo de caixa descontado aplicado às últimas demonstrações financeiras publicadas. São estimativas, não aconselhamento de investimento."
-        },
-        "calendar": {
-            "title": "Calendário do mercado",
-            "date": "Data",
-            "empty": "Nada agendado",
-            "earnings": "Lucros",
-            "dividends": "Dividendos",
-            "splits": "Desdobramento"
-        },
-        "news": {
-            "title": "Notícias"
         }
     },
     "user": {
         "title": "Conta",
         "nav": {
             "account": "Conta",
-            "appearance": "Aparência",
             "security": "Segurança"
         },
         "language": {
             "title": "Idioma",
             "description": "Guardado na conta, por isso acompanha-o em qualquer dispositivo.",
             "label": "Idioma da interface",
-            "changed": "Idioma atualizado.",
             "disclaimer": "Tudo exceto o inglês é traduzido automaticamente e pode soar estranho."
         },
         "username": {
@@ -177,8 +152,7 @@
             "current": "Sessão iniciada como {username}.",
             "new": "Novo nome de utilizador",
             "sameAsCurrent": "Esse já é o seu nome de utilizador.",
-            "submit": "Alterar nome de utilizador",
-            "changed": "Nome de utilizador atualizado."
+            "submit": "Alterar nome de utilizador"
         },
         "password": {
             "title": "Palavra-passe",
@@ -186,8 +160,7 @@
             "current": "Palavra-passe atual",
             "new": "Nova palavra-passe",
             "confirm": "Confirmar nova palavra-passe",
-            "submit": "Alterar palavra-passe",
-            "changed": "Palavra-passe atualizada. Inicie sessão de novo."
+            "submit": "Alterar palavra-passe"
         },
         "delete": {
             "title": "Eliminar conta",
@@ -201,9 +174,10 @@
         },
         "themes": {
             "title": "Tema",
-            "description": "Cinquenta e duas paletas. A sua escolha fica guardada na conta.",
+            "description": "Seis paletas, três escuras e três claras. A sua escolha fica guardada na conta.",
             "dark": "Escuro",
-            "light": "Claro"
+            "light": "Claro",
+            "label": "Tema"
         },
         "security": {
             "title": "Autenticação de dois fatores",
@@ -212,8 +186,6 @@
             "statusOff": "A autenticação de dois fatores está desativada.",
             "enable": "Ativar",
             "disable": "Desativar",
-            "enabledNotice": "A autenticação de dois fatores está agora ativa.",
-            "disabledNotice": "A autenticação de dois fatores está agora desativada.",
             "disableTitle": "Desativar a autenticação de dois fatores?",
             "disableMessage": "Introduza um código da sua aplicação para confirmar. Os seus códigos de recuperação são destruídos com ela.",
             "code": "Código do autenticador",
@@ -237,7 +209,8 @@
                 "copied": "Copiado",
                 "done": "Já os guardei"
             }
-        }
+        },
+        "dangerZone": "Zona de perigo"
     },
     "portfolio": {
         "title": "Portfólio",
@@ -331,8 +304,6 @@
         "add": "Adicionar",
         "editTrade": "Editar Operação",
         "deleteTrade": "Excluir Operação",
-        "portfolioImportedSuccess": "Portfólio importado com sucesso!",
-        "portfolioResetSuccess": "Portfólio redefinido com sucesso!",
         "settings": "Configurações",
         "actions": {
             "buy": "Comprar",
@@ -374,7 +345,6 @@
         "hidden": "LISTA OCULTA",
         "eodOnly": "Apenas EOD",
         "noData": "Sem dados",
-        "intrinsicValueShort": "VI",
         "timeframeLabel": "Intervalo",
         "clearDrawingsBody": "Tem certeza de que deseja limpar todos os desenhos para este símbolo? Esta ação não pode ser desfeita.",
         "timeframes": {
@@ -422,19 +392,12 @@
         "settings": {
             "title": "Editar Configurações do Gráfico",
             "style": "Tipo de Gráfico",
-            "intrinsicValue": "Valor Intrínseco",
-            "marker": {
-                "earnings": "Marcadores de Lucros",
-                "dividends": "Marcadores de Dividendos",
-                "splits": "Marcadores de Desdobramentos"
-            },
             "restoreDefaults": "Redefinir",
             "saveFailed": "Não foi possível guardar o layout",
             "overlays": "Médias móveis",
             "showOverlay": "Mostrar a média {number}",
             "overlayType": "Tipo da média {number}",
-            "overlayPeriod": "Período da média {number}",
-            "markers": "Marcadores"
+            "overlayPeriod": "Período da média {number}"
         },
         "replay": {
             "start": "Iniciar Modo Replay",
@@ -536,7 +499,6 @@
         "rsi": "IFR",
         "cagr": "TCAC",
         "cagrYears": "Anos TCAC",
-        "intrinsicValue": "Valor Intrínseco (IA)",
         "fundFamily": "Família do Fundo",
         "fundCategory": "Categoria do Fundo",
         "netExpenseRatio": "Índice de Despesas Líquidas",
@@ -583,12 +545,11 @@
         "splitsReported": "Reportado",
         "splitsColumn": "Desdobramento",
         "noSplitsData": "Nenhum dado de desdobramentos disponível",
-        "noNewsAvailable": "Nenhuma notícia disponível.",
         "created": "Criado:",
         "edited": "Editado:",
         "noNotesAvailable": "Nenhuma nota disponível.",
         "viewFinancialStatements": "Ver Demonstrações Financeiras",
-        "showAll": "Mostrar Tudo",
+        "showAll": "Mostrar tudo (mais {count})",
         "sections": {
             "summary": "Resumo",
             "eps": "Tabela de Crescimento LPA",
@@ -597,9 +558,9 @@
             "dividends": "Tabela de Dividendos",
             "splits": "Tabela de Desdobramentos",
             "financials": "Demonstrações Financeiras",
-            "notes": "Notas",
-            "news": "Notícias"
-        }
+            "notes": "Notas"
+        },
+        "showLess": "Mostrar menos"
     },
     "panels": {
         "title": "Editar Seções do Painel",
@@ -865,7 +826,6 @@
         "resetWarning": "Esta ação não pode ser desfeita.",
         "resetConfirm": "Sim, Redefinir",
         "columnsTitle": "Editar Colunas",
-        "columnsUpdated": "Colunas atualizadas com sucesso",
         "columnsFailed": "Falha ao atualizar colunas",
         "errorNoColumns": "Por favor, selecione pelo menos uma coluna",
         "hide": "Ocultar Ativo ({symbol})",
@@ -915,7 +875,6 @@
             "ps-ratio": "Índice P/V",
             "pb-ratio": "Índice P/VC",
             "enterprise-value": "Valor Empresarial (1000s)",
-            "intrinsic-value": "Valor Intrínseco",
             "eps": "LPA",
             "eps-qoq": "Crescimento LPA TaT (%)",
             "eps-yoy": "Crescimento LPA AaA (%)",
@@ -1014,7 +973,6 @@
             "enterprise-value": "Valor empresarial (EV) é uma medida do valor total de uma empresa, calculado adicionando sua capitalização de mercado à sua dívida total e subtraindo seu caixa e equivalentes.",
             "rsi": "O índice de força relativa (IFR) é um indicador técnico que mede o momentum do preço das ações de uma empresa, variando de 0 a 100.",
             "gap-percent": "Gap % é uma medida da mudança percentual no preço de uma ação do fechamento do dia anterior para a abertura do dia atual. É calculado como (Abertura Atual - Fechamento Anterior) / Fechamento Anterior. Um gap % positivo indica um movimento de preço ascendente, enquanto um gap % negativo indica um movimento de preço descendente.",
-            "intrinsic-value": "Valor Intrínseco (VI) estima o valor real de uma ação usando um modelo de Fluxo de Caixa Descontado (FCD). Calculamos o VI por: 1. Somando os últimos 20 trimestres de Fluxo de Caixa Livre (FCL) para obter o FCL anual dos últimos 5 anos. 2. Calculando a Taxa de Crescimento Anual Composta (CAGR) de 5 anos do FCL. 3. Projetando o FCL para os próximos 5 anos usando este CAGR. 4. Descontando esses FCLs projetados ao valor presente a uma taxa de 10%. 5. Adicionando um valor terminal (usando o Modelo de Crescimento de Gordon com uma taxa de crescimento de 2,5%) e descontando-o. 6. Adicionando caixa líquido (caixa menos dívida) do trimestre mais recente. 7. Dividindo o total por ações em circulação para obter VI por ação. Esta abordagem ajuda a avaliar se uma ação está subvalorizada ou supervalorizada com base em seu potencial de fluxo de caixa futuro.",
             "eps-qoq": "Esta seção calcula a taxa de crescimento da Receita, Lucros (Lucro Líquido) e Lucro Por Ação (LPA) de uma empresa ao longo do tempo. As taxas de crescimento são calculadas como uma mudança percentual do trimestre anterior (TaT) e do mesmo trimestre do ano anterior (AaA).",
             "eps-yoy": "Esta seção calcula a taxa de crescimento da Receita, Lucros (Lucro Líquido) e Lucro Por Ação (LPA) de uma empresa ao longo do tempo. As taxas de crescimento são calculadas como uma mudança percentual do trimestre anterior (TaT) e do mesmo trimestre do ano anterior (AaA).",
             "earnings-qoq": "Esta seção calcula a taxa de crescimento da Receita, Lucros (Lucro Líquido) e Lucro Por Ação (LPA) de uma empresa ao longo do tempo. As taxas de crescimento são calculadas como uma mudança percentual do trimestre anterior (TaT) e do mesmo trimestre do ano anterior (AaA).",
@@ -1042,7 +1000,13 @@
             "change-ytd": "Filtre ações por desempenho de preço, incluindo: Variação %, % de desconto da máxima/mínima de 52 semanas, Nova máxima/mínima histórica, cruzamentos de MA; Identifique ações em tendência e possíveis rompimentos.",
             "off-52w-high": "Filtre ações por desempenho de preço, incluindo: Variação %, % de desconto da máxima/mínima de 52 semanas, Nova máxima/mínima histórica, cruzamentos de MA; Identifique ações em tendência e possíveis rompimentos.",
             "off-52w-low": "Filtre ações por desempenho de preço, incluindo: Variação %, % de desconto da máxima/mínima de 52 semanas, Nova máxima/mínima histórica, cruzamentos de MA; Identifique ações em tendência e possíveis rompimentos."
-        }
+        },
+        "hideColumn": "Visibilidade",
+        "emptyTitle": "Ainda não há triagens",
+        "emptyHint": "Uma triagem é um conjunto de filtros guardado. Crie uma para começar a estreitar o universo.",
+        "createFirst": "Crie a sua primeira triagem",
+        "noResultsHint": "Nenhum ativo cumpre todos os filtros. Alargue ou remova um para ver mais.",
+        "noHiddenHint": "Oculte um ativo na tabela de resultados e ele aparecerá aqui."
     },
     "errors": {
         "VALIDATION_FAILED": "Alguns dos dados introduzidos não são válidos.",

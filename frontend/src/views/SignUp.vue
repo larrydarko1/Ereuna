@@ -8,7 +8,6 @@ import PasswordField from '@/components/ui/PasswordField.vue';
 import AuthLayout from '@/components/auth/AuthLayout.vue';
 import { register } from '@/api/auth';
 import { apiErrorMessage } from '@/api/client';
-import { notifyError, notifySuccess } from '@/composables/ui/useNotifications';
 import { allValid, validatePassword, validatePasswordConfirmation, validateUsername } from '@/utils/validation';
 
 const { t } = useI18n();
@@ -17,8 +16,8 @@ const router = useRouter();
 const username = ref('');
 const password = ref('');
 const confirmation = ref('');
-const agreed = ref(false);
 const pending = ref(false);
+const error = ref<string | null>(null);
 
 // Errors appear only after a submit attempt. Validating as the user types means
 // telling someone their password is too short while they are still typing it.
@@ -33,11 +32,7 @@ const confirmationError = computed(() =>
 async function submit(): Promise<void> {
     submitted.value = true;
     if (pending.value) return;
-
-    if (!agreed.value) {
-        notifyError(t('auth.agreeRequired'));
-        return;
-    }
+    error.value = null;
 
     const results = [
         validateUsername(username.value),
@@ -49,10 +44,9 @@ async function submit(): Promise<void> {
     pending.value = true;
     try {
         await register(username.value.trim(), password.value);
-        notifySuccess(t('auth.accountCreated'));
         await router.push({ name: 'Dashboard' });
     } catch (err) {
-        notifyError(apiErrorMessage(err, t('validation.unexpectedError')));
+        error.value = apiErrorMessage(err, t('validation.unexpectedError'));
     } finally {
         pending.value = false;
     }
@@ -86,12 +80,12 @@ async function submit(): Promise<void> {
                 :error="confirmationError"
                 autocomplete="new-password" />
 
-            <label class="signup__terms">
-                <input
-                    v-model="agreed"
-                    type="checkbox" />
-                <span>{{ t('auth.agreeToTerms') }}</span>
-            </label>
+            <p
+                v-if="error !== null"
+                class="form-error"
+                role="alert"
+                >{{ error }}</p
+            >
 
             <button
                 type="submit"
@@ -117,15 +111,6 @@ async function submit(): Promise<void> {
     display: flex;
     flex-direction: column;
     gap: $space-4;
-}
-
-.signup__terms {
-    display: flex;
-    align-items: center;
-    gap: $space-2;
-    font-size: $font-size-sm;
-    color: $color-text-muted;
-    cursor: pointer;
 }
 
 .signup__submit {

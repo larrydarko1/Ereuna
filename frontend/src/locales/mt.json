@@ -19,8 +19,6 @@
         "export": "Esporta",
         "import": "Importa",
         "download": "Niżżel",
-        "settings": "Settings",
-        "notifications": "Notifiki",
         "mainNavigation": "Navigazzjoni prinċipali",
         "saving": "Qed jissejvja...",
         "pageOf": "Paġna {page} minn {pages}"
@@ -35,7 +33,6 @@
         "alreadyHaveAccount": "Diġà għandek kont?",
         "dontHaveAccount": "M'għandekx kont?",
         "invalidCredentials": "Kredenzjali invalidi",
-        "accountCreated": "Kont maħluq b'suċċess",
         "signInTitle": "Idħol",
         "signInSubtitle": "Merħba lura.",
         "signUpTitle": "Oħloq kont",
@@ -51,8 +48,6 @@
         "hidePassword": "Aħbi l-password",
         "submitting": "Qed jidħol…",
         "creating": "Qed jinħoloq il-kont…",
-        "agreeToTerms": "Naqbel mat-termini tas-servizz.",
-        "agreeRequired": "Jekk jogħġbok aċċetta t-termini biex tkompli.",
         "backToSignIn": "Lura għad-dħul",
         "useRecoveryCode": "Uża kodiċi ta' rkupru",
         "recoverySpent": "Dak il-kodiċi issa ntuża. Issettja password ġdida mill-issettjar tal-kont.",
@@ -61,8 +56,7 @@
             "subtitle": "Dħalt b'kodiċi ta' rkupru. Agħżel password qabel tkompli.",
             "new": "Password ġdida",
             "confirm": "Ikkonferma l-password",
-            "submit": "Issettja l-password",
-            "done": "Il-password ġiet issettjata. Idħol biha biex tkompli."
+            "submit": "Issettja l-password"
         },
         "twoFactorTitle": "Kodiċi b'żewġ fatturi",
         "twoFactorHint": "Daħħal il-kodiċi ta' 6 ċifri mill-app tal-awtentikazzjoni.",
@@ -138,37 +132,18 @@
             "title": "L-Aqwa Movers tal-Jum",
             "topGainers": "L-Aqwa 10 Gainers",
             "topLosers": "L-Aqwa 10 Losers"
-        },
-        "valuation": {
-            "title": "Analiżi tal-Valur Intrinziku",
-            "undervalued": "Top 10 Sottovalutati",
-            "overvalued": "Top 10 Sopravalutati",
-            "disclaimer": "Il-valuri intrinsiċi ġejjin minn mudell ta’ fluss ta’ flus skontat fuq l-aħħar rendikonti finanzjarji ppubblikati. Huma stimi, mhux parir ta’ investiment."
-        },
-        "calendar": {
-            "title": "Kalendarju tas-suq",
-            "date": "Data",
-            "empty": "Xejn skedat",
-            "earnings": "Qligħ",
-            "dividends": "Dividendi",
-            "splits": "Split"
-        },
-        "news": {
-            "title": "Aħbarijiet"
         }
     },
     "user": {
         "title": "Kont",
         "nav": {
             "account": "Kont",
-            "appearance": "Dehra",
             "security": "Sigurtà"
         },
         "language": {
             "title": "Lingwa",
             "description": "Tinżamm fil-kont tiegħek, għalhekk issegwik fuq kull apparat.",
             "label": "Lingwa tal-interfaċċa",
-            "changed": "Il-lingwa ġiet aġġornata.",
             "disclaimer": "Kollox ħlief l-Ingliż huwa tradott bil-magna u jista' jinstema' goff."
         },
         "username": {
@@ -177,8 +152,7 @@
             "current": "Daħlt bħala {username}.",
             "new": "Isem tal-utent ġdid",
             "sameAsCurrent": "Dak diġà huwa l-isem tal-utent tiegħek.",
-            "submit": "Ibdel l-isem tal-utent",
-            "changed": "L-isem tal-utent ġie aġġornat."
+            "submit": "Ibdel l-isem tal-utent"
         },
         "password": {
             "title": "Password",
@@ -186,8 +160,7 @@
             "current": "Password kurrenti",
             "new": "Password ġdida",
             "confirm": "Ikkonferma l-password il-ġdida",
-            "submit": "Ibdel il-password",
-            "changed": "Il-password ġiet aġġornata. Erġa' idħol."
+            "submit": "Ibdel il-password"
         },
         "delete": {
             "title": "Ħassar il-kont",
@@ -201,9 +174,10 @@
         },
         "themes": {
             "title": "Tema",
-            "description": "Tnejn u ħamsin palett. L-għażla tiegħek tinżamm fil-kont.",
+            "description": "Sitt paletti, tlieta skuri u tlieta ċari. L-għażla tiegħek tinżamm fil-kont.",
             "dark": "Skur",
-            "light": "Ċar"
+            "light": "Ċar",
+            "label": "Tema"
         },
         "security": {
             "title": "Awtentikazzjoni b'żewġ fatturi",
@@ -212,8 +186,6 @@
             "statusOff": "L-awtentikazzjoni b'żewġ fatturi hija mitfija.",
             "enable": "Ixgħel",
             "disable": "Itfi",
-            "enabledNotice": "L-awtentikazzjoni b'żewġ fatturi issa hija mixgħula.",
-            "disabledNotice": "L-awtentikazzjoni b'żewġ fatturi issa hija mitfija.",
             "disableTitle": "Titfi l-awtentikazzjoni b'żewġ fatturi?",
             "disableMessage": "Daħħal kodiċi mill-app tiegħek biex tikkonferma. Il-kodiċi ta' rkupru tiegħek jinqerdu magħha.",
             "code": "Kodiċi tal-awtentikatur",
@@ -237,7 +209,8 @@
                 "copied": "Ikkupjat",
                 "done": "Ħadthom"
             }
-        }
+        },
+        "dangerZone": "Żona ta’ periklu"
     },
     "portfolio": {
         "title": "Portfolio",
@@ -331,8 +304,6 @@
         "add": "Żid",
         "editTrade": "Editja Negozju",
         "deleteTrade": "Ħassar Negozju",
-        "portfolioImportedSuccess": "Portfolio importat b'suċċess!",
-        "portfolioResetSuccess": "Portfolio rrisettjat b'suċċess!",
         "settings": "Settings",
         "actions": {
             "buy": "Ixtri",
@@ -374,7 +345,6 @@
         "hidden": "LISTA MOĦBIJA",
         "eodOnly": "EOD Biss",
         "noData": "L-ebda dejta",
-        "intrinsicValueShort": "VI",
         "timeframeLabel": "Perjodu",
         "clearDrawingsBody": "Żgur li trid tħassar id-drawjngs kollha għal dan is-simbolu? Dan ma jistax jiġi annullat.",
         "timeframes": {
@@ -422,19 +392,12 @@
         "settings": {
             "title": "Editja Settings tal-Chart",
             "style": "Tip ta' Chart",
-            "intrinsicValue": "Valur Intrinziku",
-            "marker": {
-                "earnings": "Markaturi tal-Qligħ",
-                "dividends": "Markaturi tad-Dividendi",
-                "splits": "Markaturi tal-Qsim"
-            },
             "restoreDefaults": "Irrisettja",
             "saveFailed": "Ma setax jiġi salvat it-tqassim",
             "overlays": "Medji mobbli",
             "showOverlay": "Uri l-medja {number}",
             "overlayType": "Tip tal-medja {number}",
-            "overlayPeriod": "Perjodu tal-medja {number}",
-            "markers": "Marki"
+            "overlayPeriod": "Perjodu tal-medja {number}"
         },
         "replay": {
             "start": "Ibda Modalità Replay",
@@ -536,7 +499,6 @@
         "rsi": "RSI",
         "cagr": "CAGR",
         "cagrYears": "Snin CAGR",
-        "intrinsicValue": "Valur Intrinziku",
         "fundFamily": "Familja tal-Fond",
         "fundCategory": "Kategorija tal-Fond",
         "netExpenseRatio": "Proporzjon ta' Spej jeż Nett",
@@ -583,12 +545,11 @@
         "splitsReported": "Rappurtat",
         "splitsColumn": "Split",
         "noSplitsData": "Ebda data ta' splits disponibbli",
-        "noNewsAvailable": "Ebda aħbarijiet disponibbli.",
         "created": "Maħluqa:",
         "edited": "Editjata:",
         "noNotesAvailable": "Ebda noti disponibbli.",
         "viewFinancialStatements": "Ara Dikjarazzjonijiet Finanzjarji",
-        "showAll": "Uri Kollox",
+        "showAll": "Uri kollox ({count} oħra)",
         "sections": {
             "summary": "Sommarju",
             "eps": "Tabella tat-Tkabbir tal-EPS",
@@ -597,9 +558,9 @@
             "dividends": "Tabella tad-Dividendi",
             "splits": "Tabella tal-Splits",
             "financials": "Dikjarazzjonijiet Finanzjarji",
-            "notes": "Noti",
-            "news": "Aħbarijiet"
-        }
+            "notes": "Noti"
+        },
+        "showLess": "Uri inqas"
     },
     "panels": {
         "title": "Editja Sezzjonijiet tal-Panel",
@@ -865,7 +826,6 @@
         "resetWarning": "Dan ma jistax jiġi annullat.",
         "resetConfirm": "Iva, Irrisettja",
         "columnsTitle": "Editja Kolonni",
-        "columnsUpdated": "Kolonni aġġornati b'suċċess",
         "columnsFailed": "Ma rnexxiex jaġġorna l-kolonni",
         "errorNoColumns": "Jekk jogħġbok agħżel mill-inqas kolonna waħda",
         "hide": "Aħbi Assi ({symbol})",
@@ -915,7 +875,6 @@
             "ps-ratio": "Proporzjon PS",
             "pb-ratio": "Proporzjon PB",
             "enterprise-value": "Valur tal-Intrapriża (1000s)",
-            "intrinsic-value": "Valur Intrinziku",
             "eps": "EPS",
             "eps-qoq": "Tkabbir EPS QoQ (%)",
             "eps-yoy": "Tkabbir EPS YoY (%)",
@@ -1014,7 +973,6 @@
             "enterprise-value": "Valur tal-intrapriża (EV) huwa kejl tal-valur totali ta' kumpanija, ikkalkulat billi żżid il-kapitalizzazzjoni tas-suq tagħha mad-dejn totali tagħha u tneħħi l-flus u ekwivalenti tal-flus tagħha.",
             "rsi": "L-indiċi ta' qawwa relattiva (RSI) huwa indikatur tekniku li jkejjel il-momentum tal-prezz tal-azzjonijiet ta' kumpanija, li jivarja minn 0 għal 100.",
             "gap-percent": "Gap % huwa kejl tal-bidla fil-perċentwal fil-prezz ta' stock mill-għeluq tal-ġurnata ta' qabel għall-ftuħ tal-ġurnata kurrenti. Huwa kkalkulat bħala (Ftuħ Kurrenti - Għeluq ta' Qabel) / Għeluq ta' Qabel. Gap % pożittiv jindika moviment tal-prezz 'l fuq, filwaqt li gap % negattiv jindika moviment tal-prezz 'l isfel.",
-            "intrinsic-value": "Valur Intrinziku (IV) jistma l-valur veru ta' stock bl-użu ta' mudell ta' Fluss ta' Flus Skontati (DCF). Aħna nikkalklaw IV billi: 1. Nġibu s-somma tal-aħħar 20 trimestru ta' Fluss ta' Flus Ħieles (FCF) biex niksbu FCF annwali għall-aħħar 5 snin. 2. Nikkalklaw ir-Rata ta' Tkabbir Annwali Komposta (CAGR) ta' 5 snin ta' FCF. 3. Nipproġettaw FCF għall-5 snin li ġejjin bl-użu ta' dan il-CAGR. 4. Niskontaw dawn il-FCFs ipproġettati għall-valur preżenti b'rata ta' 10%. 5. Iżżid valur terminali (bl-użu tal-Mudell ta' Tkabbir Gordon b'rata ta' tkabbir ta' 2.5%) u niskontawh. 6. Iżżid flus netti (flus nieqes dejn) mill-aħħar trimestru. 7. Naqsmu t-totali bl-azzjonijiet stabbiliti biex niksbu IV għal kull sehem. Dan l-approċċ jgħin biex tivvaluta jekk stock hijiex sottovalutata jew sopravalutata bbażata fuq il-potenzjal tal-fluss ta' flus futur tagħha.",
             "eps-qoq": "Din is-sezzjoni tikkalkula r-rata ta' tkabbir tad-Dħul, Qligħ (Dħul Nett), u Qligħ għal Kull Sehem (EPS) ta' kumpanija maż-żmien. Ir-rati ta' tkabbir huma kkalkulati bħala bidla fil-perċentwal mit-trimestru ta' qabel (QoQ) u mill-istess trimestru fis-sena ta' qabel (YoY).",
             "eps-yoy": "Din is-sezzjoni tikkalkula r-rata ta' tkabbir tad-Dħul, Qligħ (Dħul Nett), u Qligħ għal Kull Sehem (EPS) ta' kumpanija maż-żmien. Ir-rati ta' tkabbir huma kkalkulati bħala bidla fil-perċentwal mit-trimestru ta' qabel (QoQ) u mill-istess trimestru fis-sena ta' qabel (YoY).",
             "earnings-qoq": "Din is-sezzjoni tikkalkula r-rata ta' tkabbir tad-Dħul, Qligħ (Dħul Nett), u Qligħ għal Kull Sehem (EPS) ta' kumpanija maż-żmien. Ir-rati ta' tkabbir huma kkalkulati bħala bidla fil-perċentwal mit-trimestru ta' qabel (QoQ) u mill-istess trimestru fis-sena ta' qabel (YoY).",
@@ -1042,7 +1000,13 @@
             "change-ytd": "Filtra stocks skont il-prestazzjoni tal-prezz, inkluż: Bidla %, % 'l isfel minn għoli/baxx ta' 52 ġimgħa, Għoli/baxx ġdid ta' dejjem, crossovers MA; Identifika stocks li qed jiżviluppaw u breakouts potenzjali.",
             "off-52w-high": "Filtra stocks skont il-prestazzjoni tal-prezz, inkluż: Bidla %, % 'l isfel minn għoli/baxx ta' 52 ġimgħa, Għoli/baxx ġdid ta' dejjem, crossovers MA; Identifika stocks li qed jiżviluppaw u breakouts potenzjali.",
             "off-52w-low": "Filtra stocks skont il-prestazzjoni tal-prezz, inkluż: Bidla %, % 'l isfel minn għoli/baxx ta' 52 ġimgħa, Għoli/baxx ġdid ta' dejjem, crossovers MA; Identifika stocks li qed jiżviluppaw u breakouts potenzjali."
-        }
+        },
+        "hideColumn": "Viżibbiltà",
+        "emptyTitle": "Għad m’hemm ebda screener",
+        "emptyHint": "Screener huwa sett ta’ filtri maħżun. Oħloq wieħed biex tibda tnaqqas il-lista.",
+        "createFirst": "Oħloq l-ewwel screener tiegħek",
+        "noResultsHint": "Ebda assi ma jissodisfa l-filtri kollha. Wessa’ jew neħħi wieħed minnhom.",
+        "noHiddenHint": "Aħbi assi mit-tabella tar-riżultati u jidher hawn."
     },
     "errors": {
         "VALIDATION_FAILED": "Uħud mid-dettalji li daħħalt mhumiex validi.",

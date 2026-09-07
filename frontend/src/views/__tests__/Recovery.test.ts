@@ -5,12 +5,9 @@ import { clearAuth } from '@/api/client';
 import { i18n } from '@/i18n';
 import { mockApi } from '@/__tests__/support/msw';
 import { testRouter } from '@/__tests__/support/router';
-import { dismiss, useNotifications } from '@/composables/ui/useNotifications';
 import Recovery from '@/views/Recovery.vue';
 
 const api = mockApi();
-
-const { toasts } = useNotifications();
 
 const USER = { id: 'u1', username: 'larry', twoFactorEnabled: true };
 
@@ -33,7 +30,6 @@ const submit = async (wrapper: VueWrapper): Promise<void> => {
 
 beforeEach(() => {
     clearAuth();
-    for (const toast of [...toasts.value]) dismiss(toast.id);
     api.on('GET /api/preferences', {
         language: 'en',
         theme: null,
@@ -74,7 +70,6 @@ describe('Recovery', () => {
         await submit(wrapper);
 
         expect(router.currentRoute.value.name).toBe('SetPassword');
-        expect(toasts.value[0]?.message).toBe(i18n.global.t('auth.recoverySpent'));
     });
 
     it('stays put and complains when the code is not accepted', async () => {
@@ -84,7 +79,7 @@ describe('Recovery', () => {
         await fill(wrapper, 'larry', 'nope');
         await submit(wrapper);
 
-        expect(toasts.value[0]?.tone).toBe('error');
+        expect(wrapper.get('.form-error[role="alert"]').text()).toBe(i18n.global.t('errors.INVALID_RECOVERY_CODE'));
         expect(router.currentRoute.value.name).toBe('Recovery');
     });
 

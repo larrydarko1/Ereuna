@@ -27,17 +27,9 @@ export type UserDoc = {
 export type ChartSettings = {
     style: ChartStyle; // How a bar is drawn
     indicators: ChartIndicator[];
-    intrinsicValue: boolean; // Whether to plot the asset's intrinsic value line
-    markers: ChartMarkers; // Which corporate actions are flagged on the time axis
 };
 
 export type ChartStyle = (typeof CHART_STYLES)[number];
-
-export type ChartMarkers = {
-    earnings: boolean;
-    dividends: boolean;
-    splits: boolean;
-};
 
 export type ChartIndicator = {
     type: 'SMA' | 'EMA';
@@ -237,7 +229,6 @@ export type AssetInfoDoc = {
     Currency?: string;
     Delisted?: boolean;
     MarketCapitalization?: number;
-    IntrinsicValue?: number;
     dividends?: CorporateAction[];
     splits?: CorporateAction[];
     quarterlyIncome?: { fiscalDateEnding?: string }[];
@@ -254,25 +245,6 @@ export type OhlcvDoc = {
     low: number;
     close: number;
     volume: number;
-};
-
-export type NewsDoc = {
-    title: string;
-    url: string;
-    source?: string;
-    summary?: string;
-    imageUrl?: string;
-    tickers: string[];
-    publishedDate: Date;
-};
-
-export type CalendarEventType = (typeof CALENDAR_EVENT_TYPES)[number];
-
-export type CalendarEventDoc = {
-    symbol: string;
-    type: CalendarEventType;
-    reportDate: Date;
-    [field: string]: unknown; // Per-type payload the ingestor attaches (estimate, amount, ratio)
 };
 
 export type StatsDoc = {
@@ -297,7 +269,6 @@ export const PANEL_SECTIONS = [
     'splits',
     'financials',
     'notes',
-    'news',
 ] as const;
 
 export const SUMMARY_FIELDS = [
@@ -345,7 +316,6 @@ export const SUMMARY_FIELDS = [
     'fundCategory',
     'fundFamily',
     'netExpenseRatio',
-    'intrinsicValue',
     'cagr',
     'cagrYears',
     'website',
@@ -378,8 +348,6 @@ export const CHART_TIMEFRAMES = [
 export const INTRADAY_COLLECTIONS = CHART_TIMEFRAMES.filter(isIntraday).map(
     (timeframe) => OHLCV_COLLECTIONS[timeframe],
 );
-
-export const CALENDAR_EVENT_TYPES = ['Earnings', 'Dividend', 'Split'] as const;
 
 /** Intraday bars carry a time-of-day; daily and weekly bars are dated only. */
 export function isIntraday(timeframe: ChartTimeframe): boolean {

@@ -36,12 +36,12 @@ beforeEach(() => {
 
 describe('initTheme', () => {
     it('paints the stored theme, so the first frame is the right colour', () => {
-        localStorage.setItem('ereuna-theme', 'nord');
+        localStorage.setItem('ereuna-theme', 'gruvbox');
 
         initTheme();
 
-        expect(painted()).toBe('nord');
-        expect(currentTheme.value).toBe('nord');
+        expect(painted()).toBe('gruvbox');
+        expect(currentTheme.value).toBe('gruvbox');
     });
 
     it('falls back to the default when nothing is stored', () => {
@@ -61,40 +61,40 @@ describe('initTheme', () => {
 
 describe('applyTheme', () => {
     it('switches with one attribute write, and remembers the choice', () => {
-        applyTheme('dracula');
+        applyTheme('catpuccin');
 
-        expect(painted()).toBe('dracula');
-        expect(localStorage.getItem('ereuna-theme')).toBe('dracula');
+        expect(painted()).toBe('catpuccin');
+        expect(localStorage.getItem('ereuna-theme')).toBe('catpuccin');
     });
 
     it('does not call the account when nobody is signed in', () => {
-        applyTheme('dracula');
+        applyTheme('catpuccin');
 
         expect(mock.calls).toHaveLength(0);
     });
 
     it('tells the account in the background once there is a session', async () => {
         setSessionUser(user);
-        mock.on('PATCH /api/preferences', preferences('dracula'));
+        mock.on('PATCH /api/preferences', preferences('catpuccin'));
 
-        applyTheme('dracula');
+        applyTheme('catpuccin');
 
         await vi.waitFor(() => expect(mock.calls).toHaveLength(1));
-        expect(mock.last().body).toEqual({ theme: 'dracula' });
+        expect(mock.last().body).toEqual({ theme: 'catpuccin' });
     });
 
     it('keeps the applied theme when the account write fails', async () => {
         setSessionUser(user);
         mock.on('PATCH /api/preferences', { error: 'INTERNAL' }, { status: 500 });
 
-        applyTheme('dracula');
+        applyTheme('catpuccin');
         await vi.waitFor(() => expect(mock.calls).toHaveLength(1));
 
-        expect(currentTheme.value).toBe('dracula');
+        expect(currentTheme.value).toBe('catpuccin');
     });
 
-    it('offers the whole manifest to a picker', () => {
-        expect(themes.length).toBeGreaterThan(10);
+    it('offers the whole manifest to a picker — three dark and three light', () => {
+        expect(themes.map((theme) => theme.id)).toHaveLength(6);
     });
 });
 
@@ -107,31 +107,31 @@ describe('syncTheme', () => {
 
     it('adopts the account theme, so a choice follows the user to another device', async () => {
         setSessionUser(user);
-        mock.on('GET /api/preferences', preferences('nord'));
+        mock.on('GET /api/preferences', preferences('gruvbox'));
 
         await syncTheme();
 
-        expect(currentTheme.value).toBe('nord');
-        expect(localStorage.getItem('ereuna-theme')).toBe('nord');
+        expect(currentTheme.value).toBe('gruvbox');
+        expect(localStorage.getItem('ereuna-theme')).toBe('gruvbox');
     });
 
     it('leaves the local theme alone when the account has none', async () => {
         setSessionUser(user);
-        applyTheme('dracula');
+        applyTheme('catpuccin');
         mock.on('GET /api/preferences', preferences(null));
 
         await syncTheme();
 
-        expect(currentTheme.value).toBe('dracula');
+        expect(currentTheme.value).toBe('catpuccin');
     });
 
     it('leaves the local theme alone when the account cannot be read', async () => {
         setSessionUser(user);
-        applyTheme('dracula');
+        applyTheme('catpuccin');
         mock.server.use(http.get(`${ORIGIN}/api/preferences`, () => HttpResponse.error()));
 
         await expect(syncTheme()).resolves.toBeUndefined();
 
-        expect(currentTheme.value).toBe('dracula');
+        expect(currentTheme.value).toBe('catpuccin');
     });
 });

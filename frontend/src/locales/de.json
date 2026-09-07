@@ -19,8 +19,6 @@
         "export": "Exportieren",
         "import": "Importieren",
         "download": "Herunterladen",
-        "settings": "Einstellungen",
-        "notifications": "Benachrichtigungen",
         "mainNavigation": "Hauptnavigation",
         "saving": "Speichert...",
         "pageOf": "Seite {page} von {pages}"
@@ -35,7 +33,6 @@
         "alreadyHaveAccount": "Bereits ein Konto?",
         "dontHaveAccount": "Noch kein Konto?",
         "invalidCredentials": "Ungültige Anmeldedaten",
-        "accountCreated": "Konto erfolgreich erstellt",
         "signInTitle": "Anmelden",
         "signInSubtitle": "Willkommen zurück.",
         "signUpTitle": "Konto erstellen",
@@ -51,8 +48,6 @@
         "hidePassword": "Passwort verbergen",
         "submitting": "Anmeldung läuft…",
         "creating": "Konto wird erstellt…",
-        "agreeToTerms": "Ich stimme den Nutzungsbedingungen zu.",
-        "agreeRequired": "Bitte akzeptieren Sie die Bedingungen, um fortzufahren.",
         "backToSignIn": "Zurück zur Anmeldung",
         "useRecoveryCode": "Wiederherstellungscode verwenden",
         "recoverySpent": "Dieser Code ist nun verbraucht. Legen Sie in den Kontoeinstellungen ein neues Passwort fest.",
@@ -61,8 +56,7 @@
             "subtitle": "Du hast dich mit einem Wiederherstellungscode angemeldet. Wähle ein Passwort, bevor es weitergeht.",
             "new": "Neues Passwort",
             "confirm": "Passwort bestätigen",
-            "submit": "Passwort festlegen",
-            "done": "Passwort festgelegt. Melde dich damit an, um fortzufahren."
+            "submit": "Passwort festlegen"
         },
         "twoFactorTitle": "Zwei-Faktor-Code",
         "twoFactorHint": "Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein.",
@@ -138,37 +132,18 @@
             "title": "Tägliche Top-Mover",
             "topGainers": "Top 10 Gewinner",
             "topLosers": "Top 10 Verlierer"
-        },
-        "valuation": {
-            "title": "Analyse des inneren Werts",
-            "undervalued": "Top 10 Unterbewertet",
-            "overvalued": "Top 10 Überbewertet",
-            "disclaimer": "Innere Werte stammen aus einem Discounted-Cashflow-Modell auf Basis der zuletzt gemeldeten Geschäftszahlen. Es sind Schätzungen, keine Anlageberatung."
-        },
-        "calendar": {
-            "title": "Marktkalender",
-            "date": "Datum",
-            "empty": "Nichts geplant",
-            "earnings": "Gewinne",
-            "dividends": "Dividenden",
-            "splits": "Split"
-        },
-        "news": {
-            "title": "Nachrichten"
         }
     },
     "user": {
         "title": "Konto",
         "nav": {
             "account": "Konto",
-            "appearance": "Darstellung",
             "security": "Sicherheit"
         },
         "language": {
             "title": "Sprache",
             "description": "Im Konto gespeichert und damit auf jedem Gerät gleich.",
             "label": "Sprache der Oberfläche",
-            "changed": "Sprache aktualisiert.",
             "disclaimer": "Alles außer Englisch ist maschinell übersetzt und kann holprig klingen."
         },
         "username": {
@@ -177,8 +152,7 @@
             "current": "Angemeldet als {username}.",
             "new": "Neuer Benutzername",
             "sameAsCurrent": "Das ist bereits Ihr Benutzername.",
-            "submit": "Benutzernamen ändern",
-            "changed": "Benutzername aktualisiert."
+            "submit": "Benutzernamen ändern"
         },
         "password": {
             "title": "Passwort",
@@ -186,8 +160,7 @@
             "current": "Aktuelles Passwort",
             "new": "Neues Passwort",
             "confirm": "Neues Passwort bestätigen",
-            "submit": "Passwort ändern",
-            "changed": "Passwort aktualisiert. Bitte erneut anmelden."
+            "submit": "Passwort ändern"
         },
         "delete": {
             "title": "Konto löschen",
@@ -201,9 +174,10 @@
         },
         "themes": {
             "title": "Design",
-            "description": "Zweiundfünfzig Paletten. Ihre Wahl wird im Konto gespeichert.",
+            "description": "Sechs Paletten, drei dunkle und drei helle. Ihre Wahl wird im Konto gespeichert.",
             "dark": "Dunkel",
-            "light": "Hell"
+            "light": "Hell",
+            "label": "Design"
         },
         "security": {
             "title": "Zwei-Faktor-Authentifizierung",
@@ -212,8 +186,6 @@
             "statusOff": "Die Zwei-Faktor-Authentifizierung ist aus.",
             "enable": "Aktivieren",
             "disable": "Deaktivieren",
-            "enabledNotice": "Die Zwei-Faktor-Authentifizierung ist jetzt aktiv.",
-            "disabledNotice": "Die Zwei-Faktor-Authentifizierung ist jetzt aus.",
             "disableTitle": "Zwei-Faktor-Authentifizierung deaktivieren?",
             "disableMessage": "Geben Sie zur Bestätigung einen Code aus Ihrer App ein. Ihre Wiederherstellungscodes werden dabei vernichtet.",
             "code": "Authenticator-Code",
@@ -237,7 +209,8 @@
                 "copied": "Kopiert",
                 "done": "Ich habe sie gespeichert"
             }
-        }
+        },
+        "dangerZone": "Gefahrenbereich"
     },
     "portfolio": {
         "title": "Portfolio",
@@ -331,8 +304,6 @@
         "add": "Hinzufügen",
         "editTrade": "Trade bearbeiten",
         "deleteTrade": "Trade löschen",
-        "portfolioImportedSuccess": "Portfolio erfolgreich importiert!",
-        "portfolioResetSuccess": "Portfolio erfolgreich zurückgesetzt!",
         "settings": "Einstellungen",
         "actions": {
             "buy": "Kaufen",
@@ -374,7 +345,6 @@
         "hidden": "VERSTECKTE LISTE",
         "eodOnly": "Nur EOD",
         "noData": "Keine Daten",
-        "intrinsicValueShort": "IW",
         "timeframeLabel": "Zeitraum",
         "clearDrawingsBody": "Sind Sie sicher, dass Sie alle Zeichnungen für dieses Symbol löschen möchten? Dies kann nicht rückgängig gemacht werden.",
         "timeframes": {
@@ -422,19 +392,12 @@
         "settings": {
             "title": "Chart-Einstellungen bearbeiten",
             "style": "Chart-Typ",
-            "intrinsicValue": "Innerer Wert",
-            "marker": {
-                "earnings": "Gewinnmarkierungen",
-                "dividends": "Dividendenmarkierungen",
-                "splits": "Split-Markierungen"
-            },
             "restoreDefaults": "Zurücksetzen",
             "saveFailed": "Layout konnte nicht gespeichert werden",
             "overlays": "Gleitende Durchschnitte",
             "showOverlay": "Durchschnitt {number} anzeigen",
             "overlayType": "Typ des Durchschnitts {number}",
-            "overlayPeriod": "Periode des Durchschnitts {number}",
-            "markers": "Marker"
+            "overlayPeriod": "Periode des Durchschnitts {number}"
         },
         "replay": {
             "start": "Replay-Modus Starten",
@@ -536,7 +499,6 @@
         "rsi": "RSI",
         "cagr": "CAGR",
         "cagrYears": "CAGR-Jahre",
-        "intrinsicValue": "Innerer Wert (KI)",
         "fundFamily": "Fondsfamilie",
         "fundCategory": "Fondskategorie",
         "netExpenseRatio": "Nettokostenquote",
@@ -583,12 +545,11 @@
         "splitsReported": "Gemeldet",
         "splitsColumn": "Split",
         "noSplitsData": "Keine Split-Daten verfügbar",
-        "noNewsAvailable": "Keine Nachrichten verfügbar.",
         "created": "Erstellt:",
         "edited": "Bearbeitet:",
         "noNotesAvailable": "Keine Notizen verfügbar.",
         "viewFinancialStatements": "Finanzberichte anzeigen",
-        "showAll": "Alles anzeigen",
+        "showAll": "Alle anzeigen ({count} weitere)",
         "sections": {
             "summary": "Zusammenfassung",
             "eps": "GPA-Wachstumstabelle",
@@ -597,9 +558,9 @@
             "dividends": "Dividendentabelle",
             "splits": "Split-Tabelle",
             "financials": "Finanzberichte",
-            "notes": "Notizen",
-            "news": "Nachrichten"
-        }
+            "notes": "Notizen"
+        },
+        "showLess": "Weniger anzeigen"
     },
     "panels": {
         "title": "Panel-Abschnitte bearbeiten",
@@ -865,7 +826,6 @@
         "resetWarning": "Dies kann nicht rückgängig gemacht werden.",
         "resetConfirm": "Ja, zurücksetzen",
         "columnsTitle": "Edit Columns",
-        "columnsUpdated": "Spalten erfolgreich aktualisiert",
         "columnsFailed": "Spalten konnten nicht aktualisiert werden",
         "errorNoColumns": "Bitte wählen Sie mindestens eine Spalte aus",
         "hide": "Asset ausblenden ({symbol})",
@@ -915,7 +875,6 @@
             "ps-ratio": "KUV",
             "pb-ratio": "KBV",
             "enterprise-value": "Unternehmenswert (1000s)",
-            "intrinsic-value": "Innerer Wert",
             "eps": "EPS",
             "eps-qoq": "EPS-Wachstum QoQ (%)",
             "eps-yoy": "EPS-Wachstum JäJ (%)",
@@ -1014,7 +973,6 @@
             "enterprise-value": "Der Unternehmenswert (EV) ist ein Maß für den Gesamtwert eines Unternehmens, berechnet durch Addition seiner Marktkapitalisierung zu seiner Gesamtverschuldung und Subtraktion von Bargeld und Äquivalenten.",
             "rsi": "Der Relative-Stärke-Index (RSI) ist ein technischer Indikator, der die Kursdynamik einer Aktie misst und von 0 bis 100 reicht.",
             "gap-percent": "Gap % ist ein Maß für die prozentuale Veränderung des Aktienkurses vom Schlusskurs des Vortages bis zur Eröffnung des aktuellen Tages. Es wird berechnet als (Aktuelle Eröffnung - Vorheriger Schluss) / Vorheriger Schluss. Ein positiver Gap % zeigt eine Aufwärtsbewegung an, während ein negativer Gap % eine Abwärtsbewegung anzeigt.",
-            "intrinsic-value": "Der Innere Wert (IV) schätzt den wahren Wert einer Aktie mithilfe eines Discounted Cash Flow (DCF)-Modells. Wir berechnen IV wie folgt: 1. Summierung der letzten 20 Quartale des Free Cash Flow (FCF) für den jährlichen FCF der letzten 5 Jahre. 2. Berechnung der 5-Jahres-CAGR des FCF. 3. Projektion des FCF für die nächsten 5 Jahre unter Verwendung dieser CAGR. 4. Diskontierung dieser projizierten FCFs auf den Barwert mit einer Rate von 10%. 5. Hinzufügen eines Endwerts (unter Verwendung des Gordon Growth Model mit einer Wachstumsrate von 2,5%) und dessen Diskontierung. 6. Hinzufügen des Nettobargeld (Bargeld minus Schulden) aus dem letzten Quartal. 7. Division der Gesamtsumme durch die ausstehenden Aktien, um IV pro Aktie zu erhalten. Dieser Ansatz hilft bei der Beurteilung, ob eine Aktie unter- oder überbewertet ist, basierend auf ihrem zukünftigen Cashflow-Potenzial.",
             "eps-qoq": "Dieser Abschnitt berechnet die Wachstumsrate von Umsatz, Gewinn (Nettogewinn) und Gewinn pro Aktie (EPS) eines Unternehmens im Zeitverlauf. Die Wachstumsraten werden als prozentuale Änderung vom vorherigen Quartal (QoQ) und vom gleichen Quartal des Vorjahres (JäJ) berechnet.",
             "eps-yoy": "Dieser Abschnitt berechnet die Wachstumsrate von Umsatz, Gewinn (Nettogewinn) und Gewinn pro Aktie (EPS) eines Unternehmens im Zeitverlauf. Die Wachstumsraten werden als prozentuale Änderung vom vorherigen Quartal (QoQ) und vom gleichen Quartal des Vorjahres (JäJ) berechnet.",
             "earnings-qoq": "Dieser Abschnitt berechnet die Wachstumsrate von Umsatz, Gewinn (Nettogewinn) und Gewinn pro Aktie (EPS) eines Unternehmens im Zeitverlauf. Die Wachstumsraten werden als prozentuale Änderung vom vorherigen Quartal (QoQ) und vom gleichen Quartal des Vorjahres (JäJ) berechnet.",
@@ -1042,7 +1000,13 @@
             "change-ytd": "Filtert Aktien nach Kursentwicklung, einschließlich: Änderung %, % vom 52-Wochen-Hoch/-Tief, Neue Allzeithochs/-tiefs, MA-Kreuzungen; Identifiziert Trendaktien und potenzielle Ausbrüche.",
             "off-52w-high": "Filtert Aktien nach Kursentwicklung, einschließlich: Änderung %, % vom 52-Wochen-Hoch/-Tief, Neue Allzeithochs/-tiefs, MA-Kreuzungen; Identifiziert Trendaktien und potenzielle Ausbrüche.",
             "off-52w-low": "Filtert Aktien nach Kursentwicklung, einschließlich: Änderung %, % vom 52-Wochen-Hoch/-Tief, Neue Allzeithochs/-tiefs, MA-Kreuzungen; Identifiziert Trendaktien und potenzielle Ausbrüche."
-        }
+        },
+        "hideColumn": "Sichtbarkeit",
+        "emptyTitle": "Noch keine Screener",
+        "emptyHint": "Ein Screener ist ein gespeicherter Filtersatz. Erstellen Sie einen, um das Universum einzugrenzen.",
+        "createFirst": "Ersten Screener erstellen",
+        "noResultsHint": "Kein Wert erfüllt alle Filter. Erweitern oder entfernen Sie einen, um mehr zu sehen.",
+        "noHiddenHint": "Blenden Sie einen Wert in der Ergebnistabelle aus, dann erscheint er hier."
     },
     "errors": {
         "VALIDATION_FAILED": "Einige der eingegebenen Angaben sind ungültig.",

@@ -4,9 +4,14 @@ import type { PatternMatch } from '@/lib/lightweight-charts/pattern-detection';
 import AppDialog from '@/components/ui/AppDialog.vue';
 import { formatDate, formatNumber } from '@/utils/formatters';
 
-const { symbol, patterns } = defineProps<{
+const {
+    symbol,
+    patterns,
+    notice = null,
+} = defineProps<{
     symbol: string;
     patterns: readonly PatternMatch[];
+    notice?: string | null; // Why there is nothing to detect, when the window is too short to try
 }>();
 
 const emit = defineEmits<{ close: [] }>();
@@ -49,7 +54,13 @@ function span(pattern: PatternMatch): string {
         @close="emit('close')">
         <p class="patterns__subject">{{ symbol }}</p>
 
-        <template v-if="patterns.length === 0">
+        <p
+            v-if="notice !== null"
+            class="patterns__empty"
+            >{{ notice }}</p
+        >
+
+        <template v-else-if="patterns.length === 0">
             <p class="patterns__empty">{{ t('charts.patterns.none') }}</p>
             <p class="patterns__hint">{{ t('charts.patterns.noneHint') }}</p>
         </template>

@@ -72,26 +72,6 @@ describe('toMarketOverview', () => {
         expect(movingAverages.etf).toEqual([]);
     });
 
-    it('derives the valuation gap from the two prices, not the stored ratio', () => {
-        const { undervalued } = toMarketOverview(
-            doc({
-                top10Undervalued: [
-                    { symbol: 'ORGO', current_price: 4, intrinsic_value: 6, valuation_ratio: 17_009.38 },
-                ],
-            }),
-        );
-
-        expect(undervalued).toEqual([{ symbol: 'ORGO', currentPrice: 4, intrinsicValue: 6, gap: 0.5 }]);
-    });
-
-    it('drops a valuation row priced at zero, which no gap can be taken from', () => {
-        const { overvalued } = toMarketOverview(
-            doc({ top10Overvalued: [{ symbol: 'DEAD', current_price: 0, intrinsic_value: 5 }] }),
-        );
-
-        expect(overvalued).toEqual([]);
-    });
-
     it('drops a mover whose return arrived as a string rather than coercing it', () => {
         const { gainers } = toMarketOverview(
             doc({

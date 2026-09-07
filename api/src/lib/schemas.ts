@@ -62,8 +62,6 @@ export const chartSettingsSchema = z.object({
             }),
         )
         .max(config.limits.indicatorsPerChart),
-    intrinsicValue: z.boolean(),
-    markers: z.object({ earnings: z.boolean(), dividends: z.boolean(), splits: z.boolean() }),
 });
 
 /** A key listed twice would render one row in two places. */

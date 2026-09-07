@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { apiErrorMessage } from '@/api/client';
 import { createNote, deleteNote, getNotes, updateNote, type NoteRow } from '@/api/note';
+import AppIcon from '@/components/ui/AppIcon.vue';
 import { useResource } from '@/composables/data/useResource';
 import { formatDate } from '@/utils/formatters';
 
@@ -166,14 +167,14 @@ async function remove(id: string): Promise<void> {
                         class="notes__control"
                         :aria-label="t('notes.editNote')"
                         @click="startEdit(note)">
-                        ✎
+                        <AppIcon name="pencil" />
                     </button>
                     <button
                         type="button"
                         class="notes__control notes__control--delete"
                         :aria-label="t('notes.deleteNote')"
                         @click="remove(note.id)">
-                        ✕
+                        <AppIcon name="close" />
                     </button>
                 </span>
             </p>

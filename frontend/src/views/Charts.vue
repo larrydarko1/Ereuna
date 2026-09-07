@@ -28,10 +28,9 @@ const profile = useResource(
 );
 
 /**
- * The corporate-action history, read once for the whole view.
- * The chart marks every dividend and split on the time axis and the sidebar
- * lists the most recent of each, so they share one request rather than asking
- * for the same history twice with different limits.
+ * The corporate-action history behind the sidebar's dividend and split tables.
+ * Read whole rather than paged: the panels limit their own render, and the
+ * chart no longer marks these on the time axis.
  */
 const events = useResource(
     () => symbol.value,
@@ -108,7 +107,6 @@ onMounted(async () => {
                 <PriceChart
                     :symbol="symbol"
                     :profile="profile.data.value"
-                    :events="events.data.value"
                     class="charts__canvas" />
             </main>
 
@@ -176,6 +174,19 @@ onMounted(async () => {
 
     @include above($bp-lg) {
         display: block;
+    }
+}
+
+// The info column is as tall as its sections; the chart is not. Left to grow
+// it pushed the page down and scrolled the chart out of view, so above the
+// three-column breakpoint it pins itself and scrolls inside its own box.
+.charts__column--info {
+    @include above($bp-lg) {
+        position: sticky;
+        top: $space-2;
+        max-height: calc(100dvh - #{$space-4});
+        overflow-y: auto;
+        overscroll-behavior: contain;
     }
 }
 

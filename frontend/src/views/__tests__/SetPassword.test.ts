@@ -5,12 +5,9 @@ import { clearAuth } from '@/api/client';
 import { i18n } from '@/i18n';
 import { mockApi } from '@/__tests__/support/msw';
 import { testRouter } from '@/__tests__/support/router';
-import { dismiss, useNotifications } from '@/composables/ui/useNotifications';
 import SetPassword from '@/views/SetPassword.vue';
 
 const api = mockApi();
-
-const { toasts } = useNotifications();
 
 const view = async (): Promise<{ wrapper: VueWrapper; router: Router }> => {
     const router = testRouter();
@@ -31,7 +28,6 @@ const submit = async (wrapper: VueWrapper): Promise<void> => {
 
 beforeEach(() => {
     clearAuth();
-    for (const toast of [...toasts.value]) dismiss(toast.id);
     api.on('POST /api/account/recovery-password', null, { status: 204 });
     api.on('POST /api/auth/logout', null, { status: 204 });
 });
@@ -73,7 +69,6 @@ describe('SetPassword', () => {
         expect(api.calls.map((call) => call.path)).toEqual(['/api/account/recovery-password', '/api/auth/logout']);
         expect(api.calls[0]?.body).toEqual({ newPassword: 'Sup3rSecret!' });
         expect(router.currentRoute.value.name).toBe('Login');
-        expect(toasts.value[0]?.tone).toBe('success');
     });
 
     it('stays put and explains a refusal', async () => {

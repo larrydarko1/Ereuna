@@ -66,27 +66,27 @@ describe('PanelLayoutDialog', () => {
     });
 
     it('starts from the saved layout rather than the shipped one', async () => {
-        api.on('GET /api/preferences', preferences({ sections: ['news'], summaryFields: ['symbol'] }));
+        api.on('GET /api/preferences', preferences({ sections: ['notes'], summaryFields: ['symbol'] }));
         await loadPreferences(true);
 
         open();
 
-        expect(chosen()).toEqual([i18n.global.t('sidebar.sections.news')]);
+        expect(chosen()).toEqual([i18n.global.t('sidebar.sections.notes')]);
     });
 
     it('saves both lists together, since one dialog edits both', async () => {
-        api.on('GET /api/preferences', preferences({ sections: ['news'], summaryFields: ['symbol'] }));
+        api.on('GET /api/preferences', preferences({ sections: ['notes'], summaryFields: ['symbol'] }));
         await loadPreferences(true);
         const wrapper = open();
 
         await click($('.panel-layout__save'));
 
-        expect(api.last().body).toEqual({ panels: { sections: ['news'], summaryFields: ['symbol'] } });
+        expect(api.last().body).toEqual({ panels: { sections: ['notes'], summaryFields: ['symbol'] } });
         expect(wrapper.emitted('close')).toHaveLength(1);
     });
 
     it('puts the shipped order back in the draft without storing it', async () => {
-        api.on('GET /api/preferences', preferences({ sections: ['news'], summaryFields: ['symbol'] }));
+        api.on('GET /api/preferences', preferences({ sections: ['notes'], summaryFields: ['symbol'] }));
         await loadPreferences(true);
         open();
 

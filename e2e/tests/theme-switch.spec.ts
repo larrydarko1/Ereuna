@@ -9,21 +9,27 @@ function paintedBackground(page: Page): Promise<string> {
 test.describe('Theme switching', () => {
     test('picking a theme repaints the app and survives a reload', async ({ authedPage: page }) => {
         await page.goto('/account');
-        await page.getByRole('tab', { name: 'Appearance' }).click();
 
-        const nord = page.getByRole('button', { name: 'Nord' });
-        await expect(nord).toHaveAttribute('aria-pressed', 'false');
+        const picker = page.getByLabel('Theme');
+        await expect(picker).toHaveValue('default');
         expect(await paintedBackground(page)).toBe('#1a1b26');
 
-        await nord.click();
+        await picker.selectOption('gruvbox');
 
-        await expect(nord).toHaveAttribute('aria-pressed', 'true');
-        await expect(page.locator('html')).toHaveAttribute('data-theme', 'nord');
-        expect(await paintedBackground(page)).toBe('#2e3440');
+        await expect(page.locator('html')).toHaveAttribute('data-theme', 'gruvbox');
+        expect(await paintedBackground(page)).toBe('#282828');
 
         await page.reload();
 
-        await expect(page.locator('html')).toHaveAttribute('data-theme', 'nord');
-        expect(await paintedBackground(page)).toBe('#2e3440');
+        await expect(page.locator('html')).toHaveAttribute('data-theme', 'gruvbox');
+        expect(await paintedBackground(page)).toBe('#282828');
+        await expect(page.getByLabel('Theme')).toHaveValue('gruvbox');
+    });
+
+    test('the six palettes are offered in two groups, dark and light', async ({ authedPage: page }) => {
+        await page.goto('/account');
+
+        await expect(page.getByLabel('Theme').locator('option')).toHaveCount(6);
+        await expect(page.getByLabel('Theme').locator('optgroup')).toHaveCount(2);
     });
 });

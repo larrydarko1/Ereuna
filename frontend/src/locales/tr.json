@@ -19,8 +19,6 @@
         "export": "Dışa Aktar",
         "import": "İçe Aktar",
         "download": "İndir",
-        "settings": "Ayarlar",
-        "notifications": "Bildirimler",
         "mainNavigation": "Ana gezinme",
         "saving": "Kaydediliyor...",
         "pageOf": "Sayfa {page} / {pages}"
@@ -35,7 +33,6 @@
         "alreadyHaveAccount": "Zaten hesabınız var mı?",
         "dontHaveAccount": "Hesabınız yok mu?",
         "invalidCredentials": "Geçersiz kimlik bilgileri",
-        "accountCreated": "Hesap başarıyla oluşturuldu",
         "signInTitle": "Oturum aç",
         "signInSubtitle": "Tekrar hoş geldiniz.",
         "signUpTitle": "Hesap oluştur",
@@ -51,8 +48,6 @@
         "hidePassword": "Parolayı gizle",
         "submitting": "Oturum açılıyor…",
         "creating": "Hesap oluşturuluyor…",
-        "agreeToTerms": "Hizmet şartlarını kabul ediyorum.",
-        "agreeRequired": "Devam etmek için şartları kabul edin.",
         "backToSignIn": "Oturum açmaya dön",
         "useRecoveryCode": "Kurtarma kodu kullan",
         "recoverySpent": "Bu kod artık kullanıldı. Hesap ayarlarından yeni bir parola belirleyin.",
@@ -61,8 +56,7 @@
             "subtitle": "Kurtarma koduyla giriş yaptın. Devam etmeden önce bir parola seç.",
             "new": "Yeni parola",
             "confirm": "Parolayı onayla",
-            "submit": "Parolayı belirle",
-            "done": "Parola belirlendi. Devam etmek için onunla giriş yap."
+            "submit": "Parolayı belirle"
         },
         "twoFactorTitle": "İki adımlı doğrulama kodu",
         "twoFactorHint": "Kimlik doğrulama uygulamanızdaki 6 haneli kodu girin.",
@@ -138,37 +132,18 @@
             "title": "Günlük En Çok Hareket Edenler",
             "topGainers": "İlk 10 Kazanan",
             "topLosers": "İlk 10 Kaybeden"
-        },
-        "valuation": {
-            "title": "İçsel Değer Analizi",
-            "undervalued": "İlk 10 Düşük Değerli",
-            "overvalued": "İlk 10 Yüksek Değerli",
-            "disclaimer": "İçsel değerler, son açıklanan finansal tablolar üzerinde çalıştırılan indirgenmiş nakit akışı modelinden gelir. Bunlar tahmindir, yatırım tavsiyesi değildir."
-        },
-        "calendar": {
-            "title": "Piyasa takvimi",
-            "date": "Tarih",
-            "empty": "Planlanmış bir şey yok",
-            "earnings": "Kazançlar",
-            "dividends": "Temettüler",
-            "splits": "Bölünme"
-        },
-        "news": {
-            "title": "Haberler"
         }
     },
     "user": {
         "title": "Hesap",
         "nav": {
             "account": "Hesap",
-            "appearance": "Görünüm",
             "security": "Güvenlik"
         },
         "language": {
             "title": "Dil",
             "description": "Hesabınızda saklanır, böylece her cihazda sizinle gelir.",
             "label": "Arayüz dili",
-            "changed": "Dil güncellendi.",
             "disclaimer": "İngilizce dışındaki her şey makine çevirisidir ve kulağa tuhaf gelebilir."
         },
         "username": {
@@ -177,8 +152,7 @@
             "current": "{username} olarak oturum açıldı.",
             "new": "Yeni kullanıcı adı",
             "sameAsCurrent": "Bu zaten sizin kullanıcı adınız.",
-            "submit": "Kullanıcı adını değiştir",
-            "changed": "Kullanıcı adı güncellendi."
+            "submit": "Kullanıcı adını değiştir"
         },
         "password": {
             "title": "Parola",
@@ -186,8 +160,7 @@
             "current": "Mevcut parola",
             "new": "Yeni parola",
             "confirm": "Yeni parolayı onayla",
-            "submit": "Parolayı değiştir",
-            "changed": "Parola güncellendi. Yeniden oturum açın."
+            "submit": "Parolayı değiştir"
         },
         "delete": {
             "title": "Hesabı sil",
@@ -201,9 +174,10 @@
         },
         "themes": {
             "title": "Tema",
-            "description": "Elli iki palet. Seçiminiz hesapta saklanır.",
+            "description": "Üçü koyu, üçü açık altı palet. Seçiminiz hesapta saklanır.",
             "dark": "Koyu",
-            "light": "Açık"
+            "light": "Açık",
+            "label": "Tema"
         },
         "security": {
             "title": "İki adımlı doğrulama",
@@ -212,8 +186,6 @@
             "statusOff": "İki adımlı doğrulama kapalı.",
             "enable": "Aç",
             "disable": "Kapat",
-            "enabledNotice": "İki adımlı doğrulama artık açık.",
-            "disabledNotice": "İki adımlı doğrulama artık kapalı.",
             "disableTitle": "İki adımlı doğrulama kapatılsın mı?",
             "disableMessage": "Onaylamak için uygulamanızdan bir kod girin. Kurtarma kodlarınız da onunla birlikte yok edilir.",
             "code": "Doğrulama kodu",
@@ -237,7 +209,8 @@
                 "copied": "Kopyalandı",
                 "done": "Kaydettim"
             }
-        }
+        },
+        "dangerZone": "Tehlikeli bölge"
     },
     "portfolio": {
         "title": "Portföy",
@@ -331,8 +304,6 @@
         "add": "Ekle",
         "editTrade": "İşlemi Düzenle",
         "deleteTrade": "İşlemi Sil",
-        "portfolioImportedSuccess": "Portföy başarıyla içe aktarıldı!",
-        "portfolioResetSuccess": "Portföy başarıyla sıfırlandı!",
         "settings": "Ayarlar",
         "actions": {
             "buy": "Al",
@@ -374,7 +345,6 @@
         "hidden": "GİZLİ LİSTE",
         "eodOnly": "Yalnızca EOD",
         "noData": "Veri yok",
-        "intrinsicValueShort": "İD",
         "timeframeLabel": "Zaman aralığı",
         "clearDrawingsBody": "Bu sembol için tüm çizimleri temizlemek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
         "timeframes": {
@@ -422,19 +392,12 @@
         "settings": {
             "title": "Grafik Ayarlarını Düzenle",
             "style": "Grafik Tipi",
-            "intrinsicValue": "İçsel Değer",
-            "marker": {
-                "earnings": "Kazanç İşaretleyicileri",
-                "dividends": "Temettü İşaretleyicileri",
-                "splits": "Bölünme İşaretleyicileri"
-            },
             "restoreDefaults": "Sıfırla",
             "saveFailed": "Düzen kaydedilemedi",
             "overlays": "Hareketli ortalamalar",
             "showOverlay": "{number}. ortalamayı göster",
             "overlayType": "{number}. ortalamanın türü",
-            "overlayPeriod": "{number}. ortalamanın periyodu",
-            "markers": "İşaretler"
+            "overlayPeriod": "{number}. ortalamanın periyodu"
         },
         "replay": {
             "start": "Tekrar Modunu Başlat",
@@ -536,7 +499,6 @@
         "rsi": "RSI",
         "cagr": "CAGR",
         "cagrYears": "CAGR Yılları",
-        "intrinsicValue": "İçsel Değer",
         "fundFamily": "Fon Ailesi",
         "fundCategory": "Fon Kategorisi",
         "netExpenseRatio": "Net Gider Oranı",
@@ -583,12 +545,11 @@
         "splitsReported": "Raporlanan",
         "splitsColumn": "Bölünme",
         "noSplitsData": "Bölünme verisi mevcut değil",
-        "noNewsAvailable": "Haber mevcut değil.",
         "created": "Oluşturuldu:",
         "edited": "Düzenlendi:",
         "noNotesAvailable": "Not mevcut değil.",
         "viewFinancialStatements": "Finansal Tabloları Görüntüle",
-        "showAll": "Tümünü Göster",
+        "showAll": "Tümünü göster ({count} tane daha)",
         "sections": {
             "summary": "Özet",
             "eps": "EPS Büyüme Tablosu",
@@ -597,9 +558,9 @@
             "dividends": "Temettü Tablosu",
             "splits": "Bölünme Tablosu",
             "financials": "Finansal Tablolar",
-            "notes": "Notlar",
-            "news": "Haberler"
-        }
+            "notes": "Notlar"
+        },
+        "showLess": "Daha az göster"
     },
     "panels": {
         "title": "Panel Bölümlerini Düzenle",
@@ -865,7 +826,6 @@
         "resetWarning": "Bu işlem geri alınamaz.",
         "resetConfirm": "Evet, Sıfırla",
         "columnsTitle": "Sütunları Düzenle",
-        "columnsUpdated": "Sütunlar başarıyla güncellendi",
         "columnsFailed": "Sütunlar güncellenemedi",
         "errorNoColumns": "Lütfen en az bir sütun seçin",
         "hide": "Varlığı Gizle ({symbol})",
@@ -915,7 +875,6 @@
             "ps-ratio": "PS Oranı",
             "pb-ratio": "PD/DD Oranı",
             "enterprise-value": "Şirket Değeri (1000'ler)",
-            "intrinsic-value": "İçsel Değer",
             "eps": "Hisse Başı Kazanç",
             "eps-qoq": "EPS Büyümesi ÇbÇ (%)",
             "eps-yoy": "EPS Büyümesi YbY (%)",
@@ -1014,7 +973,6 @@
             "enterprise-value": "Kurumsal değer (EV), bir şirketin toplam değerinin bir ölçüsüdür ve piyasa kapitalizasyonuna toplam borcunun eklenmesi ve nakit ve benzerlerinin çıkarılmasıyla hesaplanır.",
             "rsi": "Göreceli güç endeksi (RSI), bir şirketin hisse senedi fiyat momentumunu ölçen teknik bir göstergedir ve 0 ile 100 arasında değişir.",
             "gap-percent": "Boşluk %, bir hisse senedinin fiyatının önceki günün kapanışından mevcut günün açılışına yüzdesel değişiminin bir ölçüsüdür. (Mevcut Açılış - Önceki Kapanış) / Önceki Kapanış olarak hesaplanır. Pozitif bir boşluk % yukarı yönlü bir fiyat hareketini, negatif bir boşluk % ise aşağı yönlü bir fiyat hareketini gösterir.",
-            "intrinsic-value": "İçsel Değer (IV), İndirimli Nakit Akışı (DCF) modeli kullanarak bir hisse senedinin gerçek değerini tahmin eder. IV'yi şu şekilde hesaplıyoruz: 1. Son 5 yıl için yıllık FCF elde etmek üzere son 20 çeyreğin Serbest Nakit Akışını (FCF) toplama. 2. FCF'nin 5 yıllık Bileşik Yıllık Büyüme Oranını (CAGR) hesaplama. 3. Bu CAGR kullanarak önümüzdeki 5 yıl için FCF'yi tahmin etme. 4. Bu tahmin edilen FCF'leri %10 oranında bugünkü değere indirgeme. 5. Bir terminal değeri ekleme (Gordon Büyüme Modeli kullanarak %2,5 büyüme oranıyla) ve indirgeme. 6. En son çeyrekten net nakit (nakit eksi borç) ekleme. 7. Toplamı dolaşımdaki hisselere bölerek hisse başına IV elde etme. Bu yaklaşım, bir hisse senedinin gelecekteki nakit akışı potansiyeline dayalı olarak düşük değerli mi yoksa aşırı değerli mi olduğunu değerlendirmeye yardımcı olur.",
             "eps-qoq": "Bu bölüm, bir şirketin Gelir, Kazanç (Net Gelir) ve Hisse Başına Kazanç (EPS) büyüme oranını zaman içinde hesaplar. Büyüme oranları, önceki çeyrekten (ÇbÇ) ve önceki yılın aynı çeyreğinden (YbY) yüzde değişimi olarak hesaplanır.",
             "eps-yoy": "Bu bölüm, bir şirketin Gelir, Kazanç (Net Gelir) ve Hisse Başına Kazanç (EPS) büyüme oranını zaman içinde hesaplar. Büyüme oranları, önceki çeyrekten (ÇbÇ) ve önceki yılın aynı çeyreğinden (YbY) yüzde değişimi olarak hesaplanır.",
             "earnings-qoq": "Bu bölüm, bir şirketin Gelir, Kazanç (Net Gelir) ve Hisse Başına Kazanç (EPS) büyüme oranını zaman içinde hesaplar. Büyüme oranları, önceki çeyrekten (ÇbÇ) ve önceki yılın aynı çeyreğinden (YbY) yüzde değişimi olarak hesaplanır.",
@@ -1042,7 +1000,13 @@
             "change-ytd": "Hisse senetlerini fiyat performansına göre filtreleyin: Değişim %, 52 haftalık zirve/dipten %, Yeni tüm zamanların zirvesi/dibi, MA geçişleri; Trend olan hisse senetlerini ve potansiyel kırılmaları belirleyin.",
             "off-52w-high": "Hisse senetlerini fiyat performansına göre filtreleyin: Değişim %, 52 haftalık zirve/dipten %, Yeni tüm zamanların zirvesi/dibi, MA geçişleri; Trend olan hisse senetlerini ve potansiyel kırılmaları belirleyin.",
             "off-52w-low": "Hisse senetlerini fiyat performansına göre filtreleyin: Değişim %, 52 haftalık zirve/dipten %, Yeni tüm zamanların zirvesi/dibi, MA geçişleri; Trend olan hisse senetlerini ve potansiyel kırılmaları belirleyin."
-        }
+        },
+        "hideColumn": "Görünürlük",
+        "emptyTitle": "Henüz tarayıcı yok",
+        "emptyHint": "Tarayıcı, kaydedilmiş bir filtre kümesidir. Evreni daraltmaya başlamak için bir tane oluşturun.",
+        "createFirst": "İlk tarayıcınızı oluşturun",
+        "noResultsHint": "Hiçbir varlık tüm filtreleri karşılamıyor. Birini genişletin veya kaldırın.",
+        "noHiddenHint": "Sonuç tablosunda bir varlığı gizleyin, burada listelenecektir."
     },
     "errors": {
         "VALIDATION_FAILED": "Girdiğiniz bilgilerin bir kısmı geçerli değil.",

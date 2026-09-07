@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import type { CorporateAction } from '@ereuna/shared';
 import type { AssetProfile, ChartEvents } from '@/api/chart';
 import { getFinancials } from '@/api/market';
 import ActionsPanel from '@/components/charts/ActionsPanel.vue';
 import FinancialsDialog from '@/components/charts/FinancialsDialog.vue';
 import FinancialsPanel from '@/components/charts/FinancialsPanel.vue';
-import NewsPanel from '@/components/charts/NewsPanel.vue';
 import NotesPanel from '@/components/charts/NotesPanel.vue';
 import SidebarSection from '@/components/charts/SidebarSection.vue';
 import SummaryPanel from '@/components/charts/SummaryPanel.vue';
@@ -23,18 +23,15 @@ const {
     events?: ChartEvents | null;
 }>();
 
-/** How many of each action are shown before "show all". The API sends newest first. */
-const DEFAULT_ACTIONS = 4;
-
 const { t } = useI18n();
 const { sections, summaryFields } = usePanelLayout();
 
-/** False until the user asks for the whole history rather than the last four. */
-const allEvents = ref(false);
 const showFinancials = ref(false);
 
-const dividends = computed(() => visible(events?.dividends));
-const splits = computed(() => visible(events?.splits));
+// The whole history is read once for the view and each panel limits its own
+// render, so nothing here decides how many rows a table shows
+const dividends = computed<readonly CorporateAction[]>(() => events?.dividends ?? []);
+const splits = computed<readonly CorporateAction[]>(() => events?.splits ?? []);
 
 const financials = useResource(
     () => symbol,
@@ -43,23 +40,6 @@ const financials = useResource(
 );
 
 const quarterly = computed<readonly Record<string, unknown>[]>(() => financials.data.value?.quarterly ?? []);
-
-/** Both action panels offer "show all" until the history is already on screen. */
-const expandable = computed(() => !allEvents.value && (dividends.value.length > 0 || splits.value.length > 0));
-
-function visible<T>(actions: readonly T[] | undefined): readonly T[] {
-    const all = actions ?? [];
-    return allEvents.value ? all : all.slice(0, DEFAULT_ACTIONS);
-}
-
-// "Show all" was asked of one instrument, not of every instrument after it:
-// a new symbol starts back at the four most recent.
-watch(
-    () => symbol,
-    () => {
-        allEvents.value = false;
-    },
-);
 </script>
 
 <template>
@@ -81,16 +61,12 @@ watch(
                 <ActionsPanel
                     v-else-if="section === 'dividends'"
                     :actions="dividends"
-                    kind="dividends"
-                    :expandable="expandable"
-                    @expand="allEvents = true" />
+                    kind="dividends" />
 
                 <ActionsPanel
                     v-else-if="section === 'splits'"
                     :actions="splits"
-                    kind="splits"
-                    :expandable="expandable"
-                    @expand="allEvents = true" />
+                    kind="splits" />
 
                 <button
                     v-else-if="section === 'financials'"
@@ -102,10 +78,6 @@ watch(
 
                 <NotesPanel
                     v-else-if="section === 'notes'"
-                    :symbol="symbol" />
-
-                <NewsPanel
-                    v-else-if="section === 'news'"
                     :symbol="symbol" />
             </SidebarSection>
         </template>

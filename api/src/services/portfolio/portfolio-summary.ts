@@ -6,12 +6,18 @@
  * unrealised P/L, benchmark returns).
  */
 import type { ObjectId } from 'mongodb';
-import type { PortfolioStatsSnapshot, PortfolioValuePoint, PositionDoc, PositionSide } from '@ereuna/shared';
+import type {
+    PortfolioStatsSnapshot,
+    PortfolioValuePoint,
+    PositionDoc,
+    PositionSide,
+    TradeAction,
+    TradeDoc,
+} from '@ereuna/shared';
 import { getDb } from '@/lib/db.js';
 import { closeOnOrAfter, latestCloses } from '@/services/market/index.js';
 import { getPortfolio } from '@/services/portfolio/portfolio-crud.js';
 import { readTrades } from '@/services/portfolio/portfolio-rebuild.js';
-import { toTradeRow, type TradeRow } from '@/services/portfolio/portfolio-trades.js';
 
 export type PortfolioSummary = {
     number: number;
@@ -44,7 +50,27 @@ export type PortfolioExport = {
         stats: PortfolioStatsSnapshot | null;
         valueHistory: PortfolioValuePoint[];
     };
-    trades: TradeRow[];
+    trades: ExportedTrade[];
+};
+
+/**
+ * One trade as the import route accepts it back, which is the whole point of
+ * an export.
+ * Not a `TradeRow`: a row carries an id and a creation time the import has no
+ * field for, and it carries `shares: 0` and `price: 0` on a cash movement —
+ * which `tradeInputSchema` rejects outright, because a deposit that names a
+ * share count is a malformed deposit. Every export of a portfolio holding a
+ * deposit was therefore un-importable. The keys are omitted here rather than
+ * zeroed, so the envelope round-trips.
+ */
+type ExportedTrade = {
+    action: TradeAction;
+    symbol?: string;
+    shares?: number;
+    price?: number;
+    total: number;
+    commission: number;
+    tradeDate: Date;
 };
 
 type ValuedPosition = {
@@ -131,7 +157,21 @@ export async function exportPortfolio(userId: ObjectId, number: number): Promise
             stats: portfolio.stats,
             valueHistory: portfolio.valueHistory,
         },
-        trades: trades.map(toTradeRow),
+        trades: trades.map(toExportedTrade),
+    };
+}
+
+/** Cash movements name no instrument, no share count and no price. */
+function toExportedTrade(doc: TradeDoc): ExportedTrade {
+    const cash = doc.action === 'deposit' || doc.action === 'withdrawal';
+
+    return {
+        action: doc.action,
+        ...(cash || doc.symbol === null ? {} : { symbol: doc.symbol }),
+        ...(cash ? {} : { shares: doc.shares, price: doc.price }),
+        total: doc.total,
+        commission: doc.commission,
+        tradeDate: doc.tradeDate,
     };
 }
 

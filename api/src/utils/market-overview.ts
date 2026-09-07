@@ -16,7 +16,6 @@ import {
     type OutlookVerdict,
     type StatsDoc,
     type TierRow,
-    type ValuationRow,
 } from '@ereuna/shared';
 
 /** The ingestor's asset-type keys, in the order the universes are declared. */
@@ -48,8 +47,6 @@ export function toMarketOverview(doc: StatsDoc): MarketOverview {
         industries: readTier(doc.industryTierList, 'industry'),
         gainers: readMovers(doc.top10DailyGainers),
         losers: readMovers(doc.top10DailyLosers),
-        undervalued: readValuations(doc.top10Undervalued),
-        overvalued: readValuations(doc.top10Overvalued),
     };
 }
 
@@ -170,21 +167,5 @@ function readMovers(value: unknown): MoverRow[] {
         const dailyReturn = num(row.daily_return);
         if (symbol === null || dailyReturn === null) return [];
         return [{ symbol, dailyReturn }];
-    });
-}
-
-function readValuations(value: unknown): ValuationRow[] {
-    if (!Array.isArray(value)) return [];
-
-    return value.flatMap((entry) => {
-        const row = record(entry);
-        const symbol = text(row.symbol);
-        const currentPrice = num(row.current_price);
-        const intrinsicValue = num(row.intrinsic_value);
-        if (symbol === null || currentPrice === null || intrinsicValue === null || currentPrice <= 0) return [];
-        // The document carries `valuation_ratio`, a percentage that runs to
-        // five figures on a penny stock. The gap is derived here instead so
-        // the two sides of the panel are the same measure with opposite signs.
-        return [{ symbol, currentPrice, intrinsicValue, gap: intrinsicValue / currentPrice - 1 }];
     });
 }

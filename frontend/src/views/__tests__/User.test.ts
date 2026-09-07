@@ -71,12 +71,19 @@ describe('User', () => {
     it('swaps the region below for the section that was picked', async () => {
         const wrapper = await view();
 
-        await tab(wrapper, 1).trigger('click');
-        expect(wrapper.find('.themes__grid').exists()).toBe(true);
+        expect(wrapper.find('.themes__preview').exists()).toBe(true);
 
-        await tab(wrapper, 2).trigger('click');
+        await tab(wrapper, 1).trigger('click');
         await flushPromises();
         expect(wrapper.find('.security__status').exists()).toBe(true);
+        expect(wrapper.find('.themes__preview').exists()).toBe(false);
+    });
+
+    it('sets the destructive card apart under a heading of its own', async () => {
+        const wrapper = await view();
+
+        expect(wrapper.get('.account__danger-heading').text()).toBe(i18n.global.t('user.dangerZone'));
+        expect(wrapper.find('.setting--danger').exists()).toBe(true);
     });
 
     it('shows the username the account carries', async () => {
@@ -102,7 +109,7 @@ describe('User', () => {
         api.on('POST /api/account/2fa', { secret: 'JBSWY3DPEHPK3PXP', uri: 'otpauth://totp/Ereuna:larry' });
         api.on('POST /api/account/2fa/confirm', { recoveryCodes: ['aaa-111'] });
         const wrapper = await view();
-        await tab(wrapper, 2).trigger('click');
+        await tab(wrapper, 1).trigger('click');
         await flushPromises();
 
         expect(wrapper.get('.security__status').text()).toBe(i18n.global.t('user.security.statusOff'));

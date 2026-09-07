@@ -30,13 +30,20 @@ export type OverlaySeries = {
 export type ChartSeriesKey = {
     symbol: string;
     timeframe: ChartTimeframe;
+    /**
+     * The overlays the API is being asked to compute, as a stable signature.
+     * The averages are a stored preference the server reads for itself, so
+     * nothing is sent with the request — but editing them has to re-ask for the
+     * series, and without them in the key a new moving average only appeared
+     * after a symbol or timeframe change.
+     */
+    overlays: string;
 };
 
 export type UseChartSeriesReturn = {
     bars: Readonly<Ref<readonly ChartBar[]>>;
     volume: Readonly<Ref<readonly ChartPoint[]>>;
     overlays: Readonly<Ref<readonly OverlaySeries[]>>;
-    intrinsicValue: Readonly<Ref<number | null>>;
     pending: Readonly<Ref<boolean>>;
     error: Readonly<Ref<string | null>>;
     exhausted: Readonly<Ref<boolean>>; // True once a page comes back empty: there is nothing older to ask for.
@@ -59,7 +66,6 @@ export function useChartSeries(key: () => ChartSeriesKey): UseChartSeriesReturn 
     const bars = ref<ChartBar[]>([]);
     const volume = ref<ChartPoint[]>([]);
     const overlays = ref<OverlaySeries[]>([]);
-    const intrinsicValue = ref<number | null>(null);
     const pending = ref(false);
     const error = ref<string | null>(null);
     const exhausted = ref(false);
@@ -89,7 +95,6 @@ export function useChartSeries(key: () => ChartSeriesKey): UseChartSeriesReturn 
             bars.value = data.candles.map((candle) => toBar(candle, timeframe));
             volume.value = data.volume.map((point) => ({ time: toTime(point.time, timeframe), value: point.value }));
             overlays.value = data.overlays.map((overlay) => toOverlay(overlay, timeframe));
-            intrinsicValue.value = data.intrinsicValue;
             cursor = data.candles[0]?.time ?? null;
             exhausted.value = data.candles.length === 0;
             error.value = null;
@@ -149,7 +154,6 @@ export function useChartSeries(key: () => ChartSeriesKey): UseChartSeriesReturn 
         bars.value = [];
         volume.value = [];
         overlays.value = [];
-        intrinsicValue.value = null;
         error.value = null;
         exhausted.value = false;
         cursor = null;
@@ -186,13 +190,23 @@ export function useChartSeries(key: () => ChartSeriesKey): UseChartSeriesReturn 
         volume.value = [...volume.value, point];
     }
 
-    watch(key, load, { immediate: true, deep: true });
+    // Watched as one flat string rather than as the object: `key` builds a new
+    // object on every read, so a watcher on it re-fetched — and `load` blanks
+    // the chart first — whenever anything it touches changed, including a
+    // preference that has nothing to do with the series.
+    watch(
+        () => {
+            const { symbol, timeframe, overlays } = key();
+            return `${symbol}|${timeframe}|${overlays}`;
+        },
+        load,
+        { immediate: true },
+    );
 
     return {
         bars: readonly(bars),
         volume: readonly(volume),
         overlays: readonly(overlays) as Readonly<Ref<readonly OverlaySeries[]>>,
-        intrinsicValue: readonly(intrinsicValue),
         pending: readonly(pending),
         error: readonly(error),
         exhausted: readonly(exhausted),

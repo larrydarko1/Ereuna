@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRowLimit } from '@/composables/ui/useRowLimit';
 import { formatCompact, formatDate, formatNumber } from '@/utils/formatters';
 import { growth, numeric } from '@/utils/numbers';
 
@@ -18,6 +19,9 @@ const { rows, metric } = defineProps<{
 
 const QUARTERS_IN_YEAR = 4;
 
+/** A year of quarters before the panel is expanded. */
+const DEFAULT_ROWS = QUARTERS_IN_YEAR;
+
 const FIELDS = {
     eps: 'reportedEPS',
     earnings: 'netIncome',
@@ -28,7 +32,7 @@ const EMPTY_KEYS = { eps: 'noEpsData', earnings: 'noEarningsData', sales: 'noSal
 
 const { t } = useI18n();
 
-const quarters = computed<Quarter[]>(() => {
+const all = computed<Quarter[]>(() => {
     const field = FIELDS[metric];
     const values = rows.map((row) => numeric(row[field]));
 
@@ -46,6 +50,8 @@ const quarters = computed<Quarter[]>(() => {
         ];
     });
 });
+
+const { rows: quarters, expanded, toggleable, hidden, toggle } = useRowLimit(() => all.value, DEFAULT_ROWS);
 
 const columnLabel = computed(() => t(`sidebar.${metric}Column`));
 
@@ -112,6 +118,15 @@ function tone(value: number | null): string {
         class="financials__empty"
         >{{ t(`sidebar.${EMPTY_KEYS[metric]}`) }}</p
     >
+
+    <button
+        v-if="toggleable"
+        type="button"
+        class="btn btn--link financials__more"
+        :aria-expanded="expanded"
+        @click="toggle">
+        {{ expanded ? t('sidebar.showLess') : t('sidebar.showAll', { count: hidden }) }}
+    </button>
 </template>
 
 <style lang="scss" scoped>
@@ -163,5 +178,9 @@ function tone(value: number | null): string {
     margin: 0;
     color: $color-text-muted;
     font-size: $font-size-sm;
+}
+
+.financials__more {
+    margin-top: $space-2;
 }
 </style>

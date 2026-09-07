@@ -44,7 +44,6 @@ export type ChartSeries = {
     candles: Candle[];
     volume: VolumePoint[];
     overlays: ChartOverlay[];
-    intrinsicValue: number | null;
 };
 
 export type AssetProfile = {
@@ -63,7 +62,6 @@ export type AssetProfile = {
     delisted: boolean;
     marketCap: number | null;
     sharesOutstanding: number | null;
-    intrinsicValue: number | null;
     bookValue: number | null;
     pe: number | null;
     peg: number | null;

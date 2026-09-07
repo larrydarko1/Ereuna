@@ -19,8 +19,6 @@
         "export": "Eksporti",
         "import": "Importi",
         "download": "Elŝuti",
-        "settings": "Agordoj",
-        "notifications": "Sciigoj",
         "mainNavigation": "Ĉefa navigado",
         "saving": "Konservante...",
         "pageOf": "Paĝo {page} el {pages}"
@@ -35,7 +33,6 @@
         "alreadyHaveAccount": "Ĉu jam havas konton?",
         "dontHaveAccount": "Ĉu ne havas konton?",
         "invalidCredentials": "Nevalidaj legitimaĵoj",
-        "accountCreated": "Konto kreita sukcese",
         "signInTitle": "Ensaluti",
         "signInSubtitle": "Bonvenon reen.",
         "signUpTitle": "Krei konton",
@@ -51,8 +48,6 @@
         "hidePassword": "Kaŝi pasvorton",
         "submitting": "Ensalutante…",
         "creating": "Kreante konton…",
-        "agreeToTerms": "Mi konsentas pri la kondiĉoj de servo.",
-        "agreeRequired": "Bonvolu akcepti la kondiĉojn por daŭrigi.",
         "backToSignIn": "Reen al ensaluto",
         "useRecoveryCode": "Uzi restarigan kodon",
         "recoverySpent": "Tiu kodo nun estas eluzita. Agordu novan pasvorton en viaj kontagordoj.",
@@ -61,8 +56,7 @@
             "subtitle": "Vi ensalutis per rehava kodo. Elektu pasvorton antaŭ ol daŭrigi.",
             "new": "Nova pasvorto",
             "confirm": "Konfirmi pasvorton",
-            "submit": "Agordi pasvorton",
-            "done": "Pasvorto agordita. Ensalutu per ĝi por daŭrigi."
+            "submit": "Agordi pasvorton"
         },
         "twoFactorTitle": "Dufaktora kodo",
         "twoFactorHint": "Enigu la 6-ciferan kodon el via aŭtentikiga aplikaĵo.",
@@ -138,37 +132,18 @@
             "title": "Ĉiutagaj Plej Bonaj Movetoj",
             "topGainers": "Plej Bonaj 10 Gajnantoj",
             "topLosers": "Plej Bonaj 10 Perdantoj"
-        },
-        "valuation": {
-            "title": "Interna Valora Analizo",
-            "undervalued": "Plej Bonaj 10 Subvaloraj",
-            "overvalued": "Plej Bonaj 10 Supervaloraj",
-            "disclaimer": "Enaj valoroj venas de modelo de rabatita monfluo aplikita al la lastaj raportitaj financaj datumoj. Ili estas taksoj, ne investa konsilo."
-        },
-        "calendar": {
-            "title": "Merkata kalendaro",
-            "date": "Dato",
-            "empty": "Nenio planita",
-            "earnings": "Gajnoj",
-            "dividends": "Dividendoj",
-            "splits": "Fendo"
-        },
-        "news": {
-            "title": "Novaĵoj"
         }
     },
     "user": {
         "title": "Konto",
         "nav": {
             "account": "Konto",
-            "appearance": "Aspekto",
             "security": "Sekureco"
         },
         "language": {
             "title": "Lingvo",
             "description": "Konservita en via konto, do ĝi sekvas vin al ĉiu aparato.",
             "label": "Lingvo de la interfaco",
-            "changed": "Lingvo ĝisdatigita.",
             "disclaimer": "Ĉio krom la angla estas maŝine tradukita kaj povas soni mallerte."
         },
         "username": {
@@ -177,8 +152,7 @@
             "current": "Ensalutinta kiel {username}.",
             "new": "Nova uzantnomo",
             "sameAsCurrent": "Tio jam estas via uzantnomo.",
-            "submit": "Ŝanĝi uzantnomon",
-            "changed": "Uzantnomo ĝisdatigita."
+            "submit": "Ŝanĝi uzantnomon"
         },
         "password": {
             "title": "Pasvorto",
@@ -186,8 +160,7 @@
             "current": "Nuna pasvorto",
             "new": "Nova pasvorto",
             "confirm": "Konfirmi novan pasvorton",
-            "submit": "Ŝanĝi pasvorton",
-            "changed": "Pasvorto ĝisdatigita. Ensalutu denove."
+            "submit": "Ŝanĝi pasvorton"
         },
         "delete": {
             "title": "Forigi konton",
@@ -201,9 +174,10 @@
         },
         "themes": {
             "title": "Etoso",
-            "description": "Kvindek du paletroj. Via elekto konserviĝas en la konto.",
+            "description": "Ses paletroj, tri malhelaj kaj tri helaj. Via elekto konserviĝas en la konto.",
             "dark": "Malhelaj",
-            "light": "Helaj"
+            "light": "Helaj",
+            "label": "Etoso"
         },
         "security": {
             "title": "Dufaktora aŭtentigo",
@@ -212,8 +186,6 @@
             "statusOff": "Dufaktora aŭtentigo estas malŝaltita.",
             "enable": "Ŝalti",
             "disable": "Malŝalti",
-            "enabledNotice": "Dufaktora aŭtentigo nun estas ŝaltita.",
-            "disabledNotice": "Dufaktora aŭtentigo nun estas malŝaltita.",
             "disableTitle": "Ĉu malŝalti la dufaktoran aŭtentigon?",
             "disableMessage": "Enigu kodon el via aplikaĵo por konfirmi. Viaj restarigaj kodoj estas detruitaj kun ĝi.",
             "code": "Aŭtentiga kodo",
@@ -237,7 +209,8 @@
                 "copied": "Kopiita",
                 "done": "Mi konservis ilin"
             }
-        }
+        },
+        "dangerZone": "Danĝera zono"
     },
     "portfolio": {
         "title": "Portofoli",
@@ -331,8 +304,6 @@
         "add": "Aldoni",
         "editTrade": "Redakti Komercon",
         "deleteTrade": "Forigi Komercon",
-        "portfolioImportedSuccess": "Portofoli importita sukcese!",
-        "portfolioResetSuccess": "Portofoli restarigi sukcese!",
         "settings": "Agordoj",
         "actions": {
             "buy": "Aĉeti",
@@ -374,7 +345,6 @@
         "hidden": "KAŜITA LISTO",
         "eodOnly": "Nur EOD",
         "noData": "Neniuj datumoj",
-        "intrinsicValueShort": "IV",
         "timeframeLabel": "Tempokadro",
         "clearDrawingsBody": "Ĉu vi certas ke vi volas forigi ĉiujn desegnojn por ĉi tiu simbolo? Ĉi tio ne povas esti malfari.",
         "timeframes": {
@@ -422,19 +392,12 @@
         "settings": {
             "title": "Redakti Diagramajn Agordojn",
             "style": "Diagrama Tipo",
-            "intrinsicValue": "Interna Valoro",
-            "marker": {
-                "earnings": "Enspezaj Markiloj",
-                "dividends": "Dividendaj Markiloj",
-                "splits": "Dividaj Markiloj"
-            },
             "restoreDefaults": "Restarigi",
             "saveFailed": "Ne eblis konservi la aranĝon",
             "overlays": "Movaj mezumoj",
             "showOverlay": "Montri mezumon {number}",
             "overlayType": "Tipo de mezumo {number}",
-            "overlayPeriod": "Periodo de mezumo {number}",
-            "markers": "Markiloj"
+            "overlayPeriod": "Periodo de mezumo {number}"
         },
         "replay": {
             "start": "Ekigi Reĝistadon",
@@ -536,7 +499,6 @@
         "rsi": "RSI",
         "cagr": "CAGR",
         "cagrYears": "CAGR Jaroj",
-        "intrinsicValue": "Interna Valoro (IA)",
         "fundFamily": "Fondusa Familio",
         "fundCategory": "Fondusa Kategorio",
         "netExpenseRatio": "Neta Elspezo-Proporcio",
@@ -583,12 +545,11 @@
         "splitsReported": "Raportita",
         "splitsColumn": "Fendo",
         "noSplitsData": "Neniuj fendaj datumoj disponeblas",
-        "noNewsAvailable": "Neniuj novaĵoj disponeblas.",
         "created": "Kreita:",
         "edited": "Redaktita:",
         "noNotesAvailable": "Neniuj notoj disponeblas.",
         "viewFinancialStatements": "Vidi Financajn Deklarojn",
-        "showAll": "Montri Ĉion",
+        "showAll": "Montri ĉion ({count} pliaj)",
         "sections": {
             "summary": "Resumo",
             "eps": "EPS-Kreska Tabelo",
@@ -597,9 +558,9 @@
             "dividends": "Dividenda Tabelo",
             "splits": "Fenda Tabelo",
             "financials": "Financaj Deklaroj",
-            "notes": "Notoj",
-            "news": "Novaĵoj"
-        }
+            "notes": "Notoj"
+        },
+        "showLess": "Montri malpli"
     },
     "panels": {
         "title": "Redakti Panelajn Sekciojn",
@@ -865,7 +826,6 @@
         "resetWarning": "Ĉi tio ne povas esti malfari.",
         "resetConfirm": "Jes, Restarigi",
         "columnsTitle": "Redakti Kolumnojn",
-        "columnsUpdated": "Kolumnoj ĝisdatigitaj sukcese",
         "columnsFailed": "Malsukcesis ĝisdatigi kolumnojn",
         "errorNoColumns": "Bonvolu elekti almenaŭ unu kolumnon",
         "hide": "Kaŝi Aktivon ({symbol})",
@@ -915,7 +875,6 @@
             "ps-ratio": "PS Proporcio",
             "pb-ratio": "PB Rilatumo",
             "enterprise-value": "Entreprena Valoro (miloj)",
-            "intrinsic-value": "Intrinseca Valoro",
             "eps": "EPS",
             "eps-qoq": "EPS-Kresko KoK (%)",
             "eps-yoy": "EPS-Kresko JoJ (%)",
@@ -1014,7 +973,6 @@
             "enterprise-value": "Entreprena valoro (EV) estas mezuro de kompania totala valoro, kalkulita aldonante ĝian merkato-kapitaligon al ĝia totala ŝuldo kaj subtrahante ĝian monon kaj ekvivalentojn.",
             "rsi": "La relativa forta indekso (RSI) estas teknika indikilo kiu mezuras kompanian akcian prezan movimenton, variante de 0 al 100.",
             "gap-percent": "Interspaco % estas mezuro de la procenta ŝanĝo en akcia prezo de la antaŭa taga fermo al la nuna taga malfermo. Ĝi estas kalkulita kiel (Nuna Malfermo - Antaŭa Fermo) / Antaŭa Fermo. Pozitiva interspaco % indikas supran prezan movon, dum negativa interspaco % indikas malsupran prezan movon.",
-            "intrinsic-value": "Interna Valoro (IV) taksas akcian veran valoron uzante Rabatitan Monfluan (DCF) modelon. Ni kalkulas IV per: 1. Sumante la lastajn 20 trimestroj de Libera Monfluo (FCF) por akiri jaran FCF por la pasintaj 5 jaroj. 2. Kalkulante la 5-jaran Kumulitan Jaran Kreskan Kurson (CAGR) de FCF. 3. Projekciante FCF por la sekvaj 5 jaroj uzante ĉi tiun CAGR. 4. Rabatante ĉi tiujn projekcitaj n FCF-ojn al nuna valoro je 10% kurso. 5. Aldonante terminan valoron (uzante la Gordon-Kreskan Modelon kun 2.5% kreska kurso) kaj rabatante ĝin. 6. Aldonante netan monon (mono minus ŝuldo) de la plej nova trimestro. 7. Dividante la totalon per elstaraj akcioj por akiri IV por akcio. Ĉi tiu aliro helpas taksi se akcio estas subvalorita aŭ supervalorita bazita sur ĝia estonta monflua ebleco.",
             "eps-qoq": "Ĉi tiu sekcio kalkulas la kreskan kur on de kompaniaj Enspezoj, Gajnoj (Neta Enspezo), kaj Gajnoj Por Akcio (EPS) tra tempo. La kreskaj kursoj estas kalkulitaj kiel procenta ŝanĝo de la antaŭa trimestro (TpT) kaj de la sama trimestro en la antaŭa jaro (JpJ).",
             "eps-yoy": "Ĉi tiu sekcio kalkulas la kreskan kur on de kompaniaj Enspezoj, Gajnoj (Neta Enspezo), kaj Gajnoj Por Akcio (EPS) tra tempo. La kreskaj kursoj estas kalkulitaj kiel procenta ŝanĝo de la antaŭa trimestro (TpT) kaj de la sama trimestro en la antaŭa jaro (JpJ).",
             "earnings-qoq": "Ĉi tiu sekcio kalkulas la kreskan kur on de kompaniaj Enspezoj, Gajnoj (Neta Enspezo), kaj Gajnoj Por Akcio (EPS) tra tempo. La kreskaj kursoj estas kalkulitaj kiel procenta ŝanĝo de la antaŭa trimestro (TpT) kaj de la sama trimestro en la antaŭa jaro (JpJ).",
@@ -1042,7 +1000,13 @@
             "change-ytd": "Filtri akciojn per preza rendimento, inkluzive: Ŝanĝo %, % de 52-semaja alta/malalta, Nova plej-alta/plej-malalta ĉiam, MA transiraj; Identigi tendencajn akciojn kaj eblajn elrompojn.",
             "off-52w-high": "Filtri akciojn per preza rendimento, inkluzive: Ŝanĝo %, % de 52-semaja alta/malalta, Nova plej-alta/plej-malalta ĉiam, MA transiraj; Identigi tendencajn akciojn kaj eblajn elrompojn.",
             "off-52w-low": "Filtri akciojn per preza rendimento, inkluzive: Ŝanĝo %, % de 52-semaja alta/malalta, Nova plej-alta/plej-malalta ĉiam, MA transiraj; Identigi tendencajn akciojn kaj eblajn elrompojn."
-        }
+        },
+        "hideColumn": "Videbleco",
+        "emptyTitle": "Ankoraŭ neniu kribrilo",
+        "emptyHint": "Kribrilo estas konservita aro da filtriloj. Kreu unu por mallarĝigi la universon.",
+        "createFirst": "Kreu vian unuan kribrilon",
+        "noResultsHint": "Neniu valoraĵo plenumas ĉiujn filtrilojn. Larĝigu aŭ forigu unu el ili.",
+        "noHiddenHint": "Kaŝu valoraĵon en la rezulta tabelo kaj ĝi aperos ĉi tie."
     },
     "errors": {
         "VALIDATION_FAILED": "Kelkaj el la enigitaj datumoj ne validas.",

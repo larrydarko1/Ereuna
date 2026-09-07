@@ -27,7 +27,7 @@ describe('THEMES', () => {
 
 describe('isThemeId', () => {
     it('accepts a theme the stylesheet defines', () => {
-        expect(isThemeId('nord')).toBe(true);
+        expect(isThemeId('gruvbox')).toBe(true);
     });
 
     it('refuses one it does not — a picker entry with no stylesheet behind it', () => {

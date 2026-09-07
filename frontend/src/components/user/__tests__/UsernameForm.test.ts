@@ -2,12 +2,9 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { i18n } from '@/i18n';
 import { mockApi } from '@/__tests__/support/msw';
-import { dismiss, useNotifications } from '@/composables/ui/useNotifications';
 import UsernameForm from '@/components/user/UsernameForm.vue';
 
 const api = mockApi();
-
-const { toasts } = useNotifications();
 
 const form = (): VueWrapper => mount(UsernameForm, { props: { username: 'larry' } });
 
@@ -21,9 +18,7 @@ const submit = async (wrapper: VueWrapper): Promise<void> => {
     await flushPromises();
 };
 
-beforeEach(() => {
-    for (const toast of [...toasts.value]) dismiss(toast.id);
-});
+beforeEach(() => {});
 
 describe('UsernameForm', () => {
     it('names the username in use', () => {
@@ -85,7 +80,6 @@ describe('UsernameForm', () => {
         await submit(wrapper);
 
         expect(wrapper.emitted('renamed')?.[0]).toEqual([user]);
-        expect(toasts.value[0]?.tone).toBe('success');
     });
 
     it('empties the form once the rename lands', async () => {

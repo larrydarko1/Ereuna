@@ -22,7 +22,6 @@ export async function registerViaUi(page: Page, user: TestUser): Promise<void> {
     await page.getByLabel('Username').fill(user.username);
     await page.getByLabel('Password', { exact: true }).fill(user.password);
     await page.getByLabel('Confirm Password').fill(user.password);
-    await page.getByLabel('I agree to the terms of service.').check();
     await page.getByRole('button', { name: 'Sign Up' }).click();
 
     await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();

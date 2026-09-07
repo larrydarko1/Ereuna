@@ -9,7 +9,6 @@ import AuthLayout from '@/components/auth/AuthLayout.vue';
 import TwoFactorPrompt from '@/components/auth/TwoFactorPrompt.vue';
 import { login, validateTwoFactor } from '@/api/auth';
 import { apiErrorMessage } from '@/api/client';
-import { notifyError } from '@/composables/ui/useNotifications';
 import { useTheme } from '@/composables/ui/useTheme';
 
 const { t } = useI18n();
@@ -21,6 +20,7 @@ const username = ref('');
 const password = ref('');
 const rememberMe = ref(false);
 const pending = ref(false);
+const error = ref<string | null>(null);
 
 /** Set only when the account has 2FA on. Its presence is what shows the prompt. */
 const tempToken = ref<string | null>(null);
@@ -34,6 +34,7 @@ const canSubmit = computed(() => username.value.trim() !== '' && password.value 
 async function submit(): Promise<void> {
     if (!canSubmit.value) return;
     pending.value = true;
+    error.value = null;
 
     try {
         const result = await login(username.value.trim(), password.value, { rememberMe: rememberMe.value });
@@ -43,7 +44,7 @@ async function submit(): Promise<void> {
         }
         await enter();
     } catch (err) {
-        notifyError(apiErrorMessage(err, t('auth.invalidCredentials')));
+        error.value = apiErrorMessage(err, t('auth.invalidCredentials'));
     } finally {
         pending.value = false;
     }
@@ -52,12 +53,13 @@ async function submit(): Promise<void> {
 async function verify(code: string): Promise<void> {
     if (tempToken.value === null) return;
     pending.value = true;
+    error.value = null;
 
     try {
         await validateTwoFactor(tempToken.value, code, { rememberMe: rememberMe.value });
         await enter();
     } catch (err) {
-        notifyError(apiErrorMessage(err, t('errors.INVALID_TWO_FA_CODE')));
+        error.value = apiErrorMessage(err, t('errors.INVALID_TWO_FA_CODE'));
         twoFactor.value?.reset();
     } finally {
         pending.value = false;
@@ -69,6 +71,7 @@ function cancelTwoFactor(): void {
     // half-finished login cannot be completed from this page or any other.
     tempToken.value = null;
     password.value = '';
+    error.value = null;
 }
 
 /**
@@ -114,6 +117,13 @@ function destination(): { name: string } | string {
                 :label="t('auth.password')"
                 :placeholder="t('auth.passwordPlaceholder')"
                 autocomplete="current-password" />
+
+            <p
+                v-if="error !== null"
+                class="form-error"
+                role="alert"
+                >{{ error }}</p
+            >
 
             <label class="login__remember">
                 <input

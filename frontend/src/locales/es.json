@@ -19,8 +19,6 @@
         "export": "Exportar",
         "import": "Importar",
         "download": "Descargar",
-        "settings": "Configuración",
-        "notifications": "Notificaciones",
         "mainNavigation": "Navegación principal",
         "saving": "Guardando...",
         "pageOf": "Página {page} de {pages}"
@@ -35,7 +33,6 @@
         "alreadyHaveAccount": "¿Ya tiene una cuenta?",
         "dontHaveAccount": "¿No tiene una cuenta?",
         "invalidCredentials": "Credenciales inválidas",
-        "accountCreated": "Cuenta creada exitosamente",
         "signInTitle": "Iniciar sesión",
         "signInSubtitle": "Bienvenido de nuevo.",
         "signUpTitle": "Crear una cuenta",
@@ -51,8 +48,6 @@
         "hidePassword": "Ocultar contraseña",
         "submitting": "Iniciando sesión…",
         "creating": "Creando cuenta…",
-        "agreeToTerms": "Acepto los términos del servicio.",
-        "agreeRequired": "Acepta los términos para continuar.",
         "backToSignIn": "Volver al inicio de sesión",
         "useRecoveryCode": "Usar un código de recuperación",
         "recoverySpent": "Ese código ya está usado. Establece una nueva contraseña en los ajustes de tu cuenta.",
@@ -61,8 +56,7 @@
             "subtitle": "Has iniciado sesión con un código de recuperación. Elige una contraseña antes de continuar.",
             "new": "Nueva contraseña",
             "confirm": "Confirmar contraseña",
-            "submit": "Establecer contraseña",
-            "done": "Contraseña establecida. Inicia sesión con ella para continuar."
+            "submit": "Establecer contraseña"
         },
         "twoFactorTitle": "Código de dos factores",
         "twoFactorHint": "Introduce el código de 6 dígitos de tu aplicación de autenticación.",
@@ -138,37 +132,18 @@
             "title": "Principales Movimientos Diarios",
             "topGainers": "Top 10 Ganadores",
             "topLosers": "Top 10 Perdedores"
-        },
-        "valuation": {
-            "title": "Análisis de Valor Intrínseco",
-            "undervalued": "Top 10 Subvalorados",
-            "overvalued": "Top 10 Sobrevalorados",
-            "disclaimer": "Los valores intrínsecos provienen de un modelo de flujo de caja descontado aplicado a los últimos estados financieros publicados. Son estimaciones, no asesoramiento de inversión."
-        },
-        "calendar": {
-            "title": "Calendario del mercado",
-            "date": "Fecha",
-            "empty": "Nada programado",
-            "earnings": "Ganancias",
-            "dividends": "Dividendos",
-            "splits": "División"
-        },
-        "news": {
-            "title": "Noticias"
         }
     },
     "user": {
         "title": "Cuenta",
         "nav": {
             "account": "Cuenta",
-            "appearance": "Apariencia",
             "security": "Seguridad"
         },
         "language": {
             "title": "Idioma",
             "description": "Se guarda en tu cuenta, así que te acompaña en cualquier dispositivo.",
             "label": "Idioma de la interfaz",
-            "changed": "Idioma actualizado.",
             "disclaimer": "Todo salvo el inglés está traducido automáticamente y puede sonar extraño."
         },
         "username": {
@@ -177,8 +152,7 @@
             "current": "Sesión iniciada como {username}.",
             "new": "Nuevo nombre de usuario",
             "sameAsCurrent": "Ese ya es tu nombre de usuario.",
-            "submit": "Cambiar nombre de usuario",
-            "changed": "Nombre de usuario actualizado."
+            "submit": "Cambiar nombre de usuario"
         },
         "password": {
             "title": "Contraseña",
@@ -186,8 +160,7 @@
             "current": "Contraseña actual",
             "new": "Nueva contraseña",
             "confirm": "Confirmar nueva contraseña",
-            "submit": "Cambiar contraseña",
-            "changed": "Contraseña actualizada. Vuelve a iniciar sesión."
+            "submit": "Cambiar contraseña"
         },
         "delete": {
             "title": "Eliminar cuenta",
@@ -201,9 +174,10 @@
         },
         "themes": {
             "title": "Tema",
-            "description": "Cincuenta y dos paletas. Tu elección se guarda en la cuenta.",
+            "description": "Seis paletas, tres oscuras y tres claras. Su elección se guarda en la cuenta.",
             "dark": "Oscuro",
-            "light": "Claro"
+            "light": "Claro",
+            "label": "Tema"
         },
         "security": {
             "title": "Autenticación en dos pasos",
@@ -212,8 +186,6 @@
             "statusOff": "La autenticación en dos pasos está desactivada.",
             "enable": "Activar",
             "disable": "Desactivar",
-            "enabledNotice": "La autenticación en dos pasos ya está activada.",
-            "disabledNotice": "La autenticación en dos pasos ya está desactivada.",
             "disableTitle": "¿Desactivar la autenticación en dos pasos?",
             "disableMessage": "Introduce un código de tu aplicación para confirmar. Tus códigos de recuperación se destruyen con ella.",
             "code": "Código de autenticación",
@@ -237,7 +209,8 @@
                 "copied": "Copiado",
                 "done": "Los he guardado"
             }
-        }
+        },
+        "dangerZone": "Zona de peligro"
     },
     "portfolio": {
         "title": "Portafolio",
@@ -331,8 +304,6 @@
         "add": "Agregar",
         "editTrade": "Editar Operación",
         "deleteTrade": "Eliminar Operación",
-        "portfolioImportedSuccess": "¡Portafolio importado con éxito!",
-        "portfolioResetSuccess": "¡Portafolio reiniciado exitosamente!",
         "settings": "Configuración",
         "actions": {
             "buy": "Comprar",
@@ -374,7 +345,6 @@
         "hidden": "LISTA OCULTA",
         "eodOnly": "Solo EOD",
         "noData": "Sin datos",
-        "intrinsicValueShort": "VI",
         "timeframeLabel": "Marco temporal",
         "clearDrawingsBody": "¿Está seguro de que desea eliminar todos los dibujos de este símbolo? Esta acción no se puede deshacer.",
         "timeframes": {
@@ -422,19 +392,12 @@
         "settings": {
             "title": "Editar Configuración del Gráfico",
             "style": "Tipo de Gráfico",
-            "intrinsicValue": "Valor Intrínseco",
-            "marker": {
-                "earnings": "Marcadores de Ganancias",
-                "dividends": "Marcadores de Dividendos",
-                "splits": "Marcadores de Splits"
-            },
             "restoreDefaults": "Restablecer",
             "saveFailed": "No se pudo guardar el diseño",
             "overlays": "Medias móviles",
             "showOverlay": "Mostrar la media {number}",
             "overlayType": "Tipo de la media {number}",
-            "overlayPeriod": "Periodo de la media {number}",
-            "markers": "Marcadores"
+            "overlayPeriod": "Periodo de la media {number}"
         },
         "replay": {
             "start": "Iniciar Modo Repetición",
@@ -536,7 +499,6 @@
         "rsi": "RSI",
         "cagr": "CAGR",
         "cagrYears": "Años CAGR",
-        "intrinsicValue": "Valor Intrínseco (IA)",
         "fundFamily": "Familia del Fondo",
         "fundCategory": "Categoría del Fondo",
         "netExpenseRatio": "Ratio de Gastos Netos",
@@ -583,12 +545,11 @@
         "splitsReported": "Reportado",
         "splitsColumn": "División",
         "noSplitsData": "No hay datos de divisiones disponibles",
-        "noNewsAvailable": "No hay noticias disponibles.",
         "created": "Creado:",
         "edited": "Editado:",
         "noNotesAvailable": "No hay notas disponibles.",
         "viewFinancialStatements": "Ver Estados Financieros",
-        "showAll": "Mostrar Todo",
+        "showAll": "Mostrar todo ({count} más)",
         "sections": {
             "summary": "Resumen",
             "eps": "Tabla de Crecimiento de BPA",
@@ -597,9 +558,9 @@
             "dividends": "Tabla de Dividendos",
             "splits": "Tabla de Splits",
             "financials": "Estados Financieros",
-            "notes": "Notas",
-            "news": "Noticias"
-        }
+            "notes": "Notas"
+        },
+        "showLess": "Mostrar menos"
     },
     "panels": {
         "title": "Editar Secciones del Panel",
@@ -865,7 +826,6 @@
         "resetWarning": "Esto no se puede deshacer.",
         "resetConfirm": "Sí, Restablecer",
         "columnsTitle": "Editar Columnas",
-        "columnsUpdated": "Columnas actualizadas exitosamente",
         "columnsFailed": "Error al actualizar las columnas",
         "errorNoColumns": "Por favor seleccione al menos una columna",
         "hide": "Ocultar Activo ({symbol})",
@@ -915,7 +875,6 @@
             "ps-ratio": "Relación P/S",
             "pb-ratio": "Relación P/B",
             "enterprise-value": "Valor Empresarial (1000s)",
-            "intrinsic-value": "Valor Intrínseco",
             "eps": "BPA",
             "eps-qoq": "Crecimiento BPA TaT (%)",
             "eps-yoy": "Crecimiento BPA AaA (%)",
@@ -1014,7 +973,6 @@
             "enterprise-value": "El valor empresarial (EV) es una medida del valor total de una empresa, calculado sumando su capitalización de mercado a su deuda total y restando su efectivo y equivalentes.",
             "rsi": "El índice de fuerza relativa (RSI) es un indicador técnico que mide el impulso del precio de las acciones de una empresa, que varía de 0 a 100.",
             "gap-percent": "El Gap % es una medida del cambio porcentual en el precio de una acción desde el cierre del día anterior hasta la apertura del día actual. Se calcula como (Apertura Actual - Cierre Anterior) / Cierre Anterior. Un gap % positivo indica un movimiento de precio ascendente, mientras que un gap % negativo indica un movimiento de precio descendente.",
-            "intrinsic-value": "El Valor Intrínseco (IV) estima el valor real de una acción utilizando un modelo de Flujo de Caja Descontado (DCF). Calculamos el IV mediante: 1. Sumar los últimos 20 trimestres de Flujo de Caja Libre (FCF) para obtener el FCF anual de los últimos 5 años. 2. Calcular la Tasa de Crecimiento Anual Compuesta (CAGR) de 5 años del FCF. 3. Proyectar el FCF para los próximos 5 años usando este CAGR. 4. Descontar estos FCF proyectados a valor presente a una tasa del 10%. 5. Agregar un valor terminal (usando el Modelo de Crecimiento de Gordon con una tasa de crecimiento del 2.5%) y descontarlo. 6. Agregar el efectivo neto (efectivo menos deuda) del último trimestre. 7. Dividir el total por las acciones en circulación para obtener el IV por acción. Este enfoque ayuda a evaluar si una acción está subvaluada o sobrevaluada según su potencial de flujo de caja futuro.",
             "eps-qoq": "Esta sección calcula la tasa de crecimiento de los ingresos, ganancias (ingreso neto) y ganancias por acción (EPS) de una empresa a lo largo del tiempo. Las tasas de crecimiento se calculan como un cambio porcentual del trimestre anterior (TaT) y del mismo trimestre del año anterior (AaA).",
             "eps-yoy": "Esta sección calcula la tasa de crecimiento de los ingresos, ganancias (ingreso neto) y ganancias por acción (EPS) de una empresa a lo largo del tiempo. Las tasas de crecimiento se calculan como un cambio porcentual del trimestre anterior (TaT) y del mismo trimestre del año anterior (AaA).",
             "earnings-qoq": "Esta sección calcula la tasa de crecimiento de los ingresos, ganancias (ingreso neto) y ganancias por acción (EPS) de una empresa a lo largo del tiempo. Las tasas de crecimiento se calculan como un cambio porcentual del trimestre anterior (TaT) y del mismo trimestre del año anterior (AaA).",
@@ -1042,7 +1000,13 @@
             "change-ytd": "Filtre acciones por rendimiento de precios, incluyendo: Cambio %, % desde máximo/mínimo de 52 semanas, Nuevo máximo/mínimo histórico, cruces de MA; Identifique acciones en tendencia y posibles rupturas.",
             "off-52w-high": "Filtre acciones por rendimiento de precios, incluyendo: Cambio %, % desde máximo/mínimo de 52 semanas, Nuevo máximo/mínimo histórico, cruces de MA; Identifique acciones en tendencia y posibles rupturas.",
             "off-52w-low": "Filtre acciones por rendimiento de precios, incluyendo: Cambio %, % desde máximo/mínimo de 52 semanas, Nuevo máximo/mínimo histórico, cruces de MA; Identifique acciones en tendencia y posibles rupturas."
-        }
+        },
+        "hideColumn": "Visibilidad",
+        "emptyTitle": "Todavía no hay filtros",
+        "emptyHint": "Un filtro es un conjunto de criterios guardado. Cree uno para empezar a acotar el universo.",
+        "createFirst": "Cree su primer filtro",
+        "noResultsHint": "Ningún activo cumple todos los criterios. Amplíe o borre uno para ver más.",
+        "noHiddenHint": "Oculte un activo en la tabla de resultados y aparecerá aquí."
     },
     "errors": {
         "VALIDATION_FAILED": "Algunos de los datos introducidos no son válidos.",

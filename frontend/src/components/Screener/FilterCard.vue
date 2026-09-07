@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, useId, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import AppIcon from '@/components/ui/AppIcon.vue';
 
 const {
     label,
@@ -43,11 +44,10 @@ watch(
                 :aria-controls="bodyId"
                 :disabled="!available"
                 @click="open = !open">
-                <span
+                <AppIcon
                     class="filter-card__chevron"
-                    aria-hidden="true"
-                    >{{ open ? '▾' : '▸' }}</span
-                >
+                    :name="open ? 'chevron-down' : 'chevron-right'"
+                    :size="14" />
                 <span class="filter-card__label">{{ label }}</span>
                 <span
                     v-if="summary !== null"
@@ -125,7 +125,6 @@ watch(
 }
 
 .filter-card__chevron {
-    width: 12px;
     color: $color-text-muted;
 }
 

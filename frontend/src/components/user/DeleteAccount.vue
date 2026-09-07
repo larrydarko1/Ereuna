@@ -36,13 +36,12 @@ async function confirm(): Promise<void> {
 <template>
     <SettingCard
         :title="t('user.delete.title')"
-        :description="t('user.delete.description')">
-        <div class="delete__warning">
-            <p class="delete__lead"
-                ><strong>{{ t('user.delete.warning') }}</strong> {{ t('user.delete.warningDetails') }}</p
-            >
-            <p class="form-hint">{{ t('user.delete.exportFirst') }}</p>
-        </div>
+        :description="t('user.delete.description')"
+        tone="danger">
+        <p class="delete__lead"
+            ><strong>{{ t('user.delete.warning') }}</strong> {{ t('user.delete.warningDetails') }}</p
+        >
+        <p class="form-hint">{{ t('user.delete.exportFirst') }}</p>
 
         <PasswordField
             v-model="password"
@@ -79,15 +78,8 @@ async function confirm(): Promise<void> {
 </template>
 
 <style lang="scss" scoped>
-.delete__warning {
-    padding: $space-3;
-    border: $border-width solid $color-negative;
-    border-radius: $radius-sm;
-    background: color-mix(in srgb, $color-negative 8%, transparent);
-}
-
 .delete__lead {
-    margin: 0 0 $space-1;
+    margin: 0;
     font-size: $font-size-sm;
     line-height: $line-height-body;
     color: $color-text;

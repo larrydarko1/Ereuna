@@ -3,12 +3,9 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { i18n } from '@/i18n';
 import { mockApi } from '@/__tests__/support/msw';
 import { testRouter } from '@/__tests__/support/router';
-import { dismiss, useNotifications } from '@/composables/ui/useNotifications';
 import PasswordForm from '@/components/user/PasswordForm.vue';
 
 const api = mockApi();
-
-const { toasts } = useNotifications();
 
 const form = (): { wrapper: VueWrapper; router: ReturnType<typeof testRouter> } => {
     const router = testRouter();
@@ -29,7 +26,6 @@ const submit = async (wrapper: VueWrapper): Promise<void> => {
 };
 
 beforeEach(() => {
-    for (const toast of [...toasts.value]) dismiss(toast.id);
     api.on('PATCH /api/account/password', null, { status: 204 });
     api.on('POST /api/auth/logout', null, { status: 204 });
 });
@@ -88,7 +84,6 @@ describe('PasswordForm', () => {
 
         expect(api.calls.map((call) => call.path)).toEqual(['/api/account/password', '/api/auth/logout']);
         expect(router.currentRoute.value.name).toBe('Login');
-        expect(toasts.value[0]?.tone).toBe('success');
     });
 
     it('shows what the API refused and keeps the session', async () => {

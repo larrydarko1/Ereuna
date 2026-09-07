@@ -52,13 +52,6 @@ export type MoverRow = {
     dailyReturn: number;
 };
 
-export type ValuationRow = {
-    symbol: string;
-    currentPrice: number;
-    intrinsicValue: number;
-    gap: number;
-};
-
 export type MarketOverview = {
     updatedAt: string | null;
     indexes: IndexPerformance[];
@@ -69,8 +62,6 @@ export type MarketOverview = {
     industries: TierRow[];
     gainers: MoverRow[];
     losers: MoverRow[];
-    undervalued: ValuationRow[];
-    overvalued: ValuationRow[];
 };
 
 export const BREADTH_UNIVERSES = ['all', 'stock', 'etf', 'fund', 'otc', 'pink', 'crypto'] as const;

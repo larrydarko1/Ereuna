@@ -62,7 +62,7 @@ describe('getChartSeries', () => {
 
     it("overlays the user's own indicators instead, once they have some", async () => {
         state.preferences = {
-            chartSettings: { indicators: [{ type: 'EMA', period: 9, visible: true }], intrinsicValue: false },
+            chartSettings: { indicators: [{ type: 'EMA', period: 9, visible: true }] },
         };
         const result = await getChartSeries(USER_ID, 'AAPL', 'daily');
         expect(result.overlays.map((o) => `${o.type}${o.period}`)).toEqual(['EMA9']);
@@ -75,7 +75,6 @@ describe('getChartSeries', () => {
                     { type: 'SMA', period: 10, visible: true },
                     { type: 'SMA', period: 20, visible: false },
                 ],
-                intrinsicValue: false,
             },
         };
         const result = await getChartSeries(USER_ID, 'AAPL', 'daily');
@@ -93,21 +92,5 @@ describe('getChartSeries', () => {
         state.series = rising(3);
         const result = await getChartSeries(USER_ID, 'AAPL', 'daily');
         expect(result.overlays.every((o) => o.points.length === 0)).toBe(true);
-    });
-
-    it('withholds the intrinsic value unless the user asked for it', async () => {
-        state.asset = { Symbol: 'AAPL', IntrinsicValue: 250 };
-        await expect(getChartSeries(USER_ID, 'AAPL', 'daily').then((r) => r.intrinsicValue)).resolves.toBeNull();
-    });
-
-    it('includes the intrinsic value when the setting is on', async () => {
-        state.asset = { Symbol: 'AAPL', IntrinsicValue: 250 };
-        state.preferences = { chartSettings: { indicators: [], intrinsicValue: true } };
-        await expect(getChartSeries(USER_ID, 'AAPL', 'daily').then((r) => r.intrinsicValue)).resolves.toBe(250);
-    });
-
-    it('reports the intrinsic value as unknown when the setting is on but the asset has none', async () => {
-        state.preferences = { chartSettings: { indicators: [], intrinsicValue: true } };
-        await expect(getChartSeries(USER_ID, 'AAPL', 'daily').then((r) => r.intrinsicValue)).resolves.toBeNull();
     });
 });

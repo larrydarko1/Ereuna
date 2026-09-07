@@ -20,9 +20,6 @@ vi.mock('@/organize/write.js', async (importOriginal) => {
         },
     };
 });
-// The DCF is covered by its own suite; here it only needs to be a boundary the
-// valuation pass hands its inputs across.
-vi.mock('@/organize/intrinsic-value.js', () => ({ intrinsicValue: () => 42 }));
 
 const { updateValuations } = await import('@/organize/valuation.js');
 
@@ -220,11 +217,5 @@ describe('the dividend yield', () => {
     ])('reports nothing with %s', async (_label, overrides) => {
         const fields = await fieldsFor({ dividends: [{ date: '2026-06-01', amount: 1 }], ...overrides });
         expect(fields.DividendYield).toBeNull();
-    });
-});
-
-describe('the intrinsic value', () => {
-    it('carries through whatever the discounted cash flow produced', async () => {
-        expect((await fieldsFor()).IntrinsicValue).toBe(42);
     });
 });

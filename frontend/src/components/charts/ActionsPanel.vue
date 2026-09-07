@@ -2,36 +2,33 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { CorporateAction } from '@ereuna/shared';
+import { useRowLimit } from '@/composables/ui/useRowLimit';
 import { formatDate, formatNumber } from '@/utils/formatters';
 
 type Row = { key: string; date: string; value: string };
 
-const {
-    actions,
-    kind,
-    expandable = false,
-} = defineProps<{
+const { actions, kind } = defineProps<{
     actions: readonly CorporateAction[];
     kind: 'dividends' | 'splits';
-    expandable?: boolean; // Whether a "show all" control is offered — false once everything is loaded
 }>();
 
-const emit = defineEmits<{ expand: [] }>();
+/** How many rows are shown before the panel is expanded. */
+const DEFAULT_ROWS = 4;
 
 const { t } = useI18n();
 
-const rows = computed<Row[]>(() =>
-    actions.flatMap((action, index) => {
+const all = computed<Row[]>(() =>
+    actions.map((action, index) => {
         const amount = kind === 'dividends' ? action.amount : action.ratio;
-        return [
-            {
-                key: `${action.date}-${index}`,
-                date: formatDate(action.date),
-                value: typeof amount === 'number' ? formatNumber(amount, kind === 'dividends' ? 4 : 2) : '—',
-            },
-        ];
+        return {
+            key: `${action.date}-${index}`,
+            date: formatDate(action.date),
+            value: typeof amount === 'number' ? formatNumber(amount, kind === 'dividends' ? 4 : 2) : '—',
+        };
     }),
 );
+
+const { rows, expanded, toggleable, hidden, toggle } = useRowLimit(() => all.value, DEFAULT_ROWS);
 </script>
 
 <template>
@@ -65,15 +62,18 @@ const rows = computed<Row[]>(() =>
     </p>
 
     <button
-        v-if="expandable && rows.length > 0"
+        v-if="toggleable"
         type="button"
-        class="actions__more"
-        @click="emit('expand')">
-        {{ t('sidebar.showAll') }}
+        class="btn btn--link actions__more"
+        :aria-expanded="expanded"
+        @click="toggle">
+        {{ expanded ? t('sidebar.showLess') : t('sidebar.showAll', { count: hidden }) }}
     </button>
 </template>
 
 <style lang="scss" scoped>
+/* –––––– Table –––––– */
+
 .actions {
     width: 100%;
     border-collapse: collapse;
@@ -110,6 +110,8 @@ const rows = computed<Row[]>(() =>
     text-align: end;
 }
 
+/* –––––– Empty and expand –––––– */
+
 .actions__empty {
     margin: 0;
     color: $color-text-muted;
@@ -118,11 +120,5 @@ const rows = computed<Row[]>(() =>
 
 .actions__more {
     margin-top: $space-2;
-    padding: 0;
-    border: none;
-    background: none;
-    color: $color-accent-1;
-    font-size: $font-size-xs;
-    cursor: pointer;
 }
 </style>

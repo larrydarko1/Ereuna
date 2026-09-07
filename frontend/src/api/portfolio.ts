@@ -10,7 +10,7 @@
  */
 import type { PortfolioStatsSnapshot, PortfolioValuePoint, PositionSide } from '@ereuna/shared';
 import { api, type ApiResult } from '@/api/client';
-import type { TradeInput, TradeRow } from '@/api/trades';
+import type { TradeInput } from '@/api/trades';
 
 export type PortfolioRow = {
     number: number;
@@ -67,7 +67,11 @@ export type PortfolioSummary = {
     benchmarks: BenchmarkResult[];
 };
 
-/** The export envelope, which is also exactly what `importPortfolio` accepts. */
+/**
+ * The export envelope, which is also exactly what `importPortfolio` accepts —
+ * the trades come back as `TradeInput`, not as rows, so the file the user
+ * downloads is a file the user can upload.
+ */
 export type PortfolioExport = {
     portfolio: {
         baseValue: number;
@@ -77,7 +81,7 @@ export type PortfolioExport = {
         stats: PortfolioStatsSnapshot | null;
         valueHistory: PortfolioValuePoint[];
     };
-    trades: TradeRow[];
+    trades: TradeInput[];
 };
 
 export type PortfolioImport = {

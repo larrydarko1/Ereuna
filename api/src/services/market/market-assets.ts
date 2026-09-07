@@ -33,7 +33,6 @@ export type AssetProfile = {
     delisted: boolean;
     marketCap: number | null;
     sharesOutstanding: number | null;
-    intrinsicValue: number | null;
     bookValue: number | null;
     pe: number | null;
     peg: number | null;
@@ -186,7 +185,6 @@ export async function assetProfile(symbol: string): Promise<AssetProfile> {
         delisted: doc.Delisted === true,
         marketCap: numeric(doc.MarketCapitalization),
         sharesOutstanding: numeric(doc.SharesOutstanding),
-        intrinsicValue: numeric(doc.IntrinsicValue),
         bookValue: numeric(doc.BookValue),
         pe: numeric(doc.PERatio),
         peg: numeric(doc.PEGRatio),

@@ -28,7 +28,6 @@ export async function seedAsset(overrides: Record<string, unknown> = {}): Promis
             Currency: 'USD',
             Delisted: false,
             MarketCapitalization: 1_000_000_000,
-            IntrinsicValue: 120,
             dividends: [],
             splits: [],
             ...overrides,

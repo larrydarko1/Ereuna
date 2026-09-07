@@ -45,17 +45,17 @@ describe('Dashboard', () => {
         expect(wrapper.find('.index-table').exists()).toBe(true);
         expect(wrapper.find('.ma-breadth').exists()).toBe(true);
         expect(wrapper.find('.movers').exists()).toBe(true);
-        expect(wrapper.find('.valuation').exists()).toBe(true);
         expect(wrapper.find('.outlook').exists()).toBe(true);
         expect(wrapper.find('.breadth').exists()).toBe(true);
     });
 
-    it('ranks sectors and industries in their own panels', async () => {
+    it('ranks sectors and industries side by side, in a row of their own', async () => {
         api.on('GET /api/market/stats', overview());
 
         const wrapper = await view();
 
         expect(wrapper.findAll('.tier')).toHaveLength(2);
+        expect(wrapper.findAll('.dashboard__grid--pair .tier')).toHaveLength(2);
     });
 
     it('dates the summary by when the ingestor last wrote it', async () => {
@@ -75,12 +75,11 @@ describe('Dashboard', () => {
         expect(wrapper.find('.dashboard__grid').exists()).toBe(false);
     });
 
-    it('still shows the calendar and the news, which read on their own schedule', async () => {
-        api.on('GET /api/market/stats', { error: 'INTERNAL' }, { status: 500 });
+    it('reads the summary once and asks for nothing else', async () => {
+        api.on('GET /api/market/stats', overview());
 
-        const wrapper = await view();
+        await view();
 
-        expect(wrapper.find('.calendar').exists()).toBe(true);
-        expect(api.calls.some((call) => call.path === '/api/market/news')).toBe(true);
+        expect(api.calls.map((call) => call.path)).toEqual(['/api/market/stats']);
     });
 });

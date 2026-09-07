@@ -4,7 +4,6 @@ import type { Router } from 'vue-router';
 import { clearAuth } from '@/api/client';
 import { mockApi } from '@/__tests__/support/msw';
 import { testRouter } from '@/__tests__/support/router';
-import { notify } from '@/composables/ui/useNotifications';
 import App from '@/App.vue';
 
 mockApi();
@@ -43,14 +42,6 @@ describe('App', () => {
         const { wrapper } = await shell('/dashboard');
 
         expect(wrapper.findComponent({ name: 'RouterView' }).exists()).toBe(true);
-    });
-
-    it('always hosts the toasts, so a message can reach any page', async () => {
-        const { wrapper } = await shell('/login');
-        notify('saved');
-        await flushPromises();
-
-        expect(wrapper.find('.toasts').exists()).toBe(true);
     });
 
     it('follows the route, showing the header the moment one is not public', async () => {

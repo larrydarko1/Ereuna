@@ -3,6 +3,7 @@ import { computed, onMounted, ref, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { apiErrorMessage } from '@/api/client';
 import AppDialog from '@/components/ui/AppDialog.vue';
+import AppIcon from '@/components/ui/AppIcon.vue';
 import PromptDialog from '@/components/ui/PromptDialog.vue';
 import { useWatchlists } from '@/composables/charts/useWatchlists';
 import { formatNumber, formatPercent } from '@/utils/formatters';
@@ -288,7 +289,7 @@ onMounted(() => {
                     :aria-label="t('watchlist.moveUp', { symbol: row.ticker })"
                     :disabled="index === 0 || busy"
                     @click="moveRow(index, -1)">
-                    <span aria-hidden="true">↑</span>
+                    <AppIcon name="arrow-up" />
                 </button>
                 <button
                     type="button"
@@ -296,7 +297,7 @@ onMounted(() => {
                     :aria-label="t('watchlist.moveDown', { symbol: row.ticker })"
                     :disabled="index === rows.length - 1 || busy"
                     @click="moveRow(index, 1)">
-                    <span aria-hidden="true">↓</span>
+                    <AppIcon name="arrow-down" />
                 </button>
                 <button
                     type="button"
@@ -304,7 +305,7 @@ onMounted(() => {
                     :aria-label="t('watchlist.removeSymbol', { symbol: row.ticker })"
                     :disabled="busy"
                     @click="run(() => removeTicker(row.ticker))">
-                    <span aria-hidden="true">✕</span>
+                    <AppIcon name="close" />
                 </button>
             </li>
         </ul>
@@ -365,7 +366,11 @@ onMounted(() => {
     font-size: $font-size-xs;
 }
 
-.watchlist__picker,
+.watchlist__picker {
+    width: 100%;
+    font-size: $font-size-sm;
+}
+
 .watchlist__add-input {
     width: 100%;
     padding: $space-1 $space-2;

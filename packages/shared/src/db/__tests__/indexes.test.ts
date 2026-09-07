@@ -97,10 +97,8 @@ describe('the uniqueness constraints', () => {
         expect(spec?.options?.unique).toBe(true);
     });
 
-    it('keeps AssetInfo.Symbol and News.url unique — both are upsert keys', () => {
+    it('keeps AssetInfo.Symbol unique — it is the upsert key for the whole nightly run', () => {
         const symbol = REFERENCE_INDEXES.find((i) => i.collection === 'AssetInfo');
-        const url = REFERENCE_INDEXES.find((i) => i.collection === 'News' && 'url' in i.keys);
         expect(symbol?.options?.unique).toBe(true);
-        expect(url?.options?.unique).toBe(true);
     });
 });

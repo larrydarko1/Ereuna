@@ -8,7 +8,6 @@ import type { Credentials } from '@/types/user';
 import RecoveryCodesDialog from '@/components/user/RecoveryCodesDialog.vue';
 import SettingCard from '@/components/user/SettingCard.vue';
 import { useResource } from '@/composables/data/useResource';
-import { notifySuccess } from '@/composables/ui/useNotifications';
 
 type Dialog = 'enrol' | 'disable' | 'regenerate' | 'codes';
 
@@ -43,7 +42,6 @@ function enrolled(issued: string[]): void {
     codes.value = issued;
     dialog.value = 'codes';
     emit('changed', true);
-    notifySuccess(t('user.security.enabledNotice'));
 }
 
 async function disable({ password, code }: Credentials): Promise<void> {
@@ -54,7 +52,6 @@ async function disable({ password, code }: Credentials): Promise<void> {
         await disableTwoFactor(password, code);
         dialog.value = null;
         emit('changed', false);
-        notifySuccess(t('user.security.disabledNotice'));
     } catch (err) {
         error.value = apiErrorMessage(err, t('errors.INTERNAL'));
     } finally {

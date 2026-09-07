@@ -5,12 +5,9 @@ import { clearAuth } from '@/api/client';
 import { i18n } from '@/i18n';
 import { mockApi } from '@/__tests__/support/msw';
 import { testRouter } from '@/__tests__/support/router';
-import { dismiss, useNotifications } from '@/composables/ui/useNotifications';
 import SignUp from '@/views/SignUp.vue';
 
 const api = mockApi();
-
-const { toasts } = useNotifications();
 
 const USER = { id: 'u1', username: 'larry', twoFactorEnabled: false };
 
@@ -26,13 +23,11 @@ const fill = async (
     username: string,
     password: string,
     confirmation = password,
-    agree = true,
 ): Promise<void> => {
     const inputs = wrapper.findAll('input');
     await inputs[0]?.setValue(username);
     await inputs[1]?.setValue(password);
     await inputs[2]?.setValue(confirmation);
-    await wrapper.get('.signup__terms input').setValue(agree);
 };
 
 const submit = async (wrapper: VueWrapper): Promise<void> => {
@@ -42,7 +37,6 @@ const submit = async (wrapper: VueWrapper): Promise<void> => {
 
 beforeEach(() => {
     clearAuth();
-    for (const toast of [...toasts.value]) dismiss(toast.id);
 });
 
 describe('SignUp', () => {
@@ -52,16 +46,6 @@ describe('SignUp', () => {
         await fill(wrapper, 'a', 'short', 'other');
 
         expect(wrapper.findAll('.field__error')).toHaveLength(0);
-    });
-
-    it('refuses to register until the terms are agreed to', async () => {
-        const { wrapper } = await view();
-
-        await fill(wrapper, 'larry', 'Sup3rSecret!', 'Sup3rSecret!', false);
-        await submit(wrapper);
-
-        expect(api.calls).toHaveLength(0);
-        expect(toasts.value[0]?.message).toBe(i18n.global.t('auth.agreeRequired'));
     });
 
     it('refuses a username or password the API would reject anyway', async () => {
@@ -92,7 +76,6 @@ describe('SignUp', () => {
 
         expect(api.last().body).toEqual({ username: 'larry', password: 'Sup3rSecret!' });
         expect(router.currentRoute.value.name).toBe('Dashboard');
-        expect(toasts.value[0]?.tone).toBe('success');
     });
 
     it('stays put and explains a refusal', async () => {
@@ -102,7 +85,7 @@ describe('SignUp', () => {
         await fill(wrapper, 'larry', 'Sup3rSecret!');
         await submit(wrapper);
 
-        expect(toasts.value[0]?.message).toBe(i18n.global.t('errors.USERNAME_TAKEN'));
+        expect(wrapper.get('.form-error[role="alert"]').text()).toBe(i18n.global.t('errors.USERNAME_TAKEN'));
         expect(router.currentRoute.value.name).toBe('SignUp');
     });
 

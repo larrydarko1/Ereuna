@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import AppIcon from '@/components/ui/AppIcon.vue';
 
 type ReorderableItem = { key: string; label: string };
 
@@ -49,7 +50,7 @@ function remove(key: string): void {
                     :aria-label="t('panels.moveUp', { name: item.label })"
                     :disabled="index === 0"
                     @click="move(index, -1)">
-                    <span aria-hidden="true">↑</span>
+                    <AppIcon name="arrow-up" />
                 </button>
                 <button
                     type="button"
@@ -57,14 +58,14 @@ function remove(key: string): void {
                     :aria-label="t('panels.moveDown', { name: item.label })"
                     :disabled="index === chosen.length - 1"
                     @click="move(index, 1)">
-                    <span aria-hidden="true">↓</span>
+                    <AppIcon name="arrow-down" />
                 </button>
                 <button
                     type="button"
                     class="reorderable__button"
                     :aria-label="t('panels.hide', { name: item.label })"
                     @click="remove(item.key)">
-                    <span aria-hidden="true">✕</span>
+                    <AppIcon name="close" />
                 </button>
             </li>
         </ol>

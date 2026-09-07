@@ -74,7 +74,6 @@ export const SUMMARY_FIELD_SPECS: Record<SummaryField, SummaryFieldSpec> = {
     fundCategory: { labelKey: 'fundCategory', format: 'text' },
     fundFamily: { labelKey: 'fundFamily', format: 'text' },
     netExpenseRatio: { labelKey: 'netExpenseRatio', format: 'percent' },
-    intrinsicValue: { labelKey: 'intrinsicValue', format: 'number' },
     cagr: { labelKey: 'cagr', format: 'ratio' },
     cagrYears: { labelKey: 'cagrYears', format: 'integer' },
     website: { labelKey: 'companyWebsite', format: 'link' },

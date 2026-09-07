@@ -21,11 +21,11 @@
 
 ## Overview
 
-EreunaDB contains **20 collections** across four domains. Nine are written by
-the API on behalf of a signed-in user; eleven hold market data and are written
+EreunaDB contains **18 collections** across four domains. Nine are written by
+the API on behalf of a signed-in user; nine hold market data and are written
 only by the worker and the ingestor.
 
-The names of all twenty live in `packages/shared/src/db/indexes.ts`, which is
+The names of all eighteen live in `packages/shared/src/db/indexes.ts`, which is
 also where every index is declared. Nothing else names a collection: the
 bootstrap migration imports the list, the drift gate reads it, and this document
 is checked against it.
@@ -47,7 +47,7 @@ what stops this directory describing a schema that no longer exists.
         │
 ┌──────────────┐
 │  worker      │  aggregate: OHCLVData*      (candles, from the Redis stream)
-│  worker/src/ │  organize:  AssetInfo, News, Calendar, Stats
+│  worker/src/ │  organize:  AssetInfo, Stats
 └──────────────┘
         │
 ┌──────────────┐
@@ -92,7 +92,7 @@ a single-use code, not a link, so the database holds no contactable identity.
 | `theme` | string \| null | Null until the user picks one. |
 | `defaultSymbol` | string | The symbol the chart opens on. |
 | `hiddenSymbols` | string[] | Symbols excluded from this user's screener results. |
-| `chartSettings` | object \| null | Style, indicators, intrinsic-value line, corporate-action markers. Null until first configured. |
+| `chartSettings` | object \| null | Style and indicators. Null until first configured. |
 | `panels` | object \| null | Saved sidebar section order and summary-field order. Null until reordered. |
 | `screenerColumns` | string[] | Chosen result columns, in display order. |
 | `createdAt` | Date | |
@@ -255,7 +255,6 @@ reason — the nightly jobs each attach their own fields.
 | `Currency` | string? | |
 | `Delisted` | boolean? | Set by the nightly delist step. Filtered on by the universe queries, not by the screener. |
 | `MarketCapitalization` | number? | |
-| `IntrinsicValue` | number? | |
 | `dividends` | object[]? | `{ date, amount }`, payment date. |
 | `splits` | object[]? | `{ date, ratio }`, effective date. Above one is a forward split. |
 | `quarterlyIncome` | object[]? | |
@@ -369,28 +368,6 @@ One-minute bars, written by the aggregate role from the Redis trade stream.
 | `close` | number | |
 | `volume` | number | |
 
-#### News
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| `_id` | ObjectId | |
-| `title` | string | |
-| `url` | string | Unique, and the upsert key — the same story arriving in two batches updates one row instead of inserting a second. |
-| `source` | string? | |
-| `summary` | string? | |
-| `imageUrl` | string? | |
-| `tickers` | string[] | Symbols the article was tagged with. Drives the per-symbol headline panel. |
-| `publishedDate` | Date | |
-
-#### Calendar
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| `_id` | ObjectId | |
-| `symbol` | string | |
-| `type` | string | `Earnings`, `Dividend` or `Split`. |
-| `reportDate` | Date | Unique with `type` and `symbol`, which is the upsert key when the calendar is rebuilt. |
-
 #### Stats
 
 Singleton documents keyed by a string `_id` — `marketStats`, `Holidays`,
@@ -432,7 +409,7 @@ Every index in the database is declared in
 | --- | --- | --- |
 | `INDEXES` | API, at boot | The nine collections the API writes |
 | `OHLCV_INDEXES` | worker, both roles | The seven candle collections |
-| `REFERENCE_INDEXES` | worker, `organize` role | AssetInfo, News, Calendar |
+| `REFERENCE_INDEXES` | worker, `organize` role | AssetInfo |
 
 Each entry carries a `why`. An index without a query behind it is a write cost
 nobody has agreed to, and the contract test fails an entry that cannot state
@@ -470,3 +447,4 @@ boot would rebuild the index on every restart.
 | `20260904000000-bootstrap-ereuna-collections` | Creates every collection in the registry, so a database built from nothing has the same namespaces as one that has been running for a year. |
 | `20260904000100-drop-legacy-schema` | Removes what the rebuild left behind: ten collections nothing reads, the documents still in the pre-rebuild shape, and thirty-two indexes serving queries no longer issued. |
 | `20260904000200-reshape-market-data` | Brings the market data the rebuild kept into the shape the rebuilt code reads: renames `News.description` to `summary`, collapses the duplicate `AssetInfo` and `News` rows that would stop the manifest's unique indexes building, and removes the progress-tracker document the old code kept among the calendar events. |
+| `20260906000000-drop-news-and-calendar` | Drops `News` and `Calendar`, and clears `AssetInfo.IntrinsicValue` and the two valuation lists on `marketStats`: the dashboard no longer carries a news feed, an events calendar or a valuation panel, and no step writes any of them. The trading-hours calendar (`Stats._id: 'Holidays'`) is untouched. |

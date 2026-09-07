@@ -2,12 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { i18n } from '@/i18n';
 import { mockApi } from '@/__tests__/support/msw';
-import { dismiss, useNotifications } from '@/composables/ui/useNotifications';
 import SecurityPanel from '@/components/user/SecurityPanel.vue';
 
 const api = mockApi();
-
-const { toasts } = useNotifications();
 
 const panel = async (enabled: boolean): Promise<VueWrapper> => {
     const wrapper = mount(SecurityPanel, { props: { enabled }, attachTo: document.body });
@@ -37,7 +34,6 @@ const confirmDialog = async (): Promise<void> => {
 };
 
 beforeEach(() => {
-    for (const toast of [...toasts.value]) dismiss(toast.id);
     api.on('GET /api/account/recovery-codes', { remaining: 7 });
 });
 
@@ -86,7 +82,6 @@ describe('SecurityPanel', () => {
 
         expect(wrapper.emitted('changed')?.[0]).toEqual([false]);
         expect(document.body.querySelector('[role="dialog"]')).toBeNull();
-        expect(toasts.value[0]?.tone).toBe('success');
     });
 
     it('keeps the dialog open and explains a refusal', async () => {

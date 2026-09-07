@@ -2,12 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { i18n, SUPPORTED_LOCALES } from '@/i18n';
 import { mockApi } from '@/__tests__/support/msw';
-import { dismiss, useNotifications } from '@/composables/ui/useNotifications';
 import LanguageSetting from '@/components/user/LanguageSetting.vue';
 
 const api = mockApi();
-
-const { toasts } = useNotifications();
 
 const setting = (): VueWrapper => mount(LanguageSetting);
 
@@ -19,7 +16,6 @@ const pick = async (wrapper: VueWrapper, locale: string): Promise<void> => {
 };
 
 beforeEach(() => {
-    for (const toast of [...toasts.value]) dismiss(toast.id);
     api.on('PATCH /api/preferences', { language: 'fr' });
 });
 
@@ -44,12 +40,6 @@ describe('LanguageSetting', () => {
         expect(api.last().body).toEqual({ language: 'fr' });
     });
 
-    it('confirms the switch with a toast', async () => {
-        await pick(setting(), 'fr');
-
-        expect(toasts.value[0]?.tone).toBe('success');
-    });
-
     it('ignores a value that is not a locale it ships', async () => {
         const wrapper = setting();
         (wrapper.get('select').element as HTMLSelectElement).value = 'kl';
@@ -58,6 +48,5 @@ describe('LanguageSetting', () => {
         await flushPromises();
 
         expect(i18n.global.locale.value).toBe('en');
-        expect(toasts.value).toHaveLength(0);
     });
 });

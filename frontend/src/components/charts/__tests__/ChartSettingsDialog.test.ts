@@ -117,15 +117,6 @@ describe('ChartSettingsDialog', () => {
         });
     });
 
-    it('saves the markers as they were ticked', async () => {
-        open();
-
-        await click(all('.chart-settings__check input')[0]);
-        await click($('.chart-settings__save'));
-
-        expect(api.last().body).toMatchObject({ chartSettings: { markers: { earnings: false } } });
-    });
-
     it('puts the shipped settings back in the draft without storing them', async () => {
         api.on('GET /api/preferences', preferences({ ...DEFAULT_CHART_SETTINGS, style: 'line' }));
         await loadPreferences(true);

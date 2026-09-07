@@ -19,6 +19,7 @@ import TradeDialog from '@/components/portfolio/TradeDialog.vue';
 import TradeHistory from '@/components/portfolio/TradeHistory.vue';
 import AppSpinner from '@/components/ui/AppSpinner.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import EmptyState from '@/components/ui/EmptyState.vue';
 import BarChart, { type Bar } from '@/components/viz/BarChart.vue';
 import DonutChart from '@/components/viz/DonutChart.vue';
 import LineChart from '@/components/viz/LineChart.vue';
@@ -26,7 +27,6 @@ import { useLiveQuotes } from '@/composables/portfolio/useLiveQuotes';
 import { usePortfolios } from '@/composables/portfolio/usePortfolios';
 import { useTrades } from '@/composables/portfolio/useTrades';
 import { useMarketStatus } from '@/composables/charts/useMarketStatus';
-import { notifySuccess } from '@/composables/ui/useNotifications';
 import { formatCurrency, formatDate, formatNumber } from '@/utils/formatters';
 
 type Dialog = 'trade' | 'cash' | 'settings' | 'benchmarks' | 'import' | 'export' | 'reset';
@@ -74,7 +74,7 @@ const tradeToDelete = ref<TradeRow | null>(null);
 const tradePreset = ref<{ action: TradeAction; symbol: string; shares: number } | null>(null);
 
 /** The whole trade log, loaded on demand for the monthly breakdown. */
-const fullLog = ref<TradeRow[] | null>(null);
+const fullLog = ref<TradeInput[] | null>(null);
 const loadingLog = ref(false);
 
 const valuePoints = computed(() =>
@@ -165,7 +165,6 @@ async function submitImport(payload: PortfolioImport): Promise<void> {
         await trades.load();
         fullLog.value = null;
         dialog.value = null;
-        notifySuccess(t('portfolio.portfolioImportedSuccess'));
     });
 }
 
@@ -175,7 +174,6 @@ async function confirmReset(): Promise<void> {
         await trades.load();
         fullLog.value = null;
         dialog.value = null;
-        notifySuccess(t('portfolio.portfolioResetSuccess'));
     });
 }
 
@@ -225,26 +223,23 @@ onMounted(async () => {
 
         <AppSpinner v-if="pending && summary === null" />
 
-        <section
+        <EmptyState
             v-else-if="summary === null"
-            class="portfolio__empty">
-            <h2 class="portfolio__empty-title">{{ t('portfolio.emptySlot') }}</h2>
-            <p class="portfolio__empty-body">{{ t('portfolio.emptySlotHint') }}</p>
-            <div class="portfolio__empty-actions">
-                <button
-                    type="button"
-                    class="btn btn--primary"
-                    @click="dialog = 'cash'">
-                    {{ t('portfolio.actions.deposit') }}
-                </button>
-                <button
-                    type="button"
-                    class="btn"
-                    @click="dialog = 'import'"
-                    >{{ t('portfolio.import') }}</button
-                >
-            </div>
-        </section>
+            :title="t('portfolio.emptySlot')"
+            :body="t('portfolio.emptySlotHint')">
+            <button
+                type="button"
+                class="btn btn--primary"
+                @click="dialog = 'cash'">
+                {{ t('portfolio.actions.deposit') }}
+            </button>
+            <button
+                type="button"
+                class="btn"
+                @click="dialog = 'import'"
+                >{{ t('portfolio.import') }}</button
+            >
+        </EmptyState>
 
         <template v-else>
             <SummaryCards :summary="summary" />
@@ -430,35 +425,6 @@ onMounted(async () => {
     border-radius: $radius-sm;
     color: $color-negative;
     font-size: $font-size-sm;
-}
-
-.portfolio__empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5em;
-    padding: 4em 1em;
-    border: $border-width dashed $color-elevated;
-    border-radius: $radius-md;
-    text-align: center;
-}
-
-.portfolio__empty-title {
-    margin: 0;
-    font-size: $font-size-md;
-    color: $color-text;
-}
-
-.portfolio__empty-body {
-    margin: 0;
-    font-size: $font-size-sm;
-    color: $color-text-muted;
-}
-
-.portfolio__empty-actions {
-    display: flex;
-    gap: 0.5em;
-    margin-top: 0.5em;
 }
 
 .portfolio__charts {

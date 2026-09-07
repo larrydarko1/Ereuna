@@ -16,45 +16,51 @@ beforeEach(() => {
 
 describe('ThemePicker', () => {
     it('offers every theme the app ships', () => {
-        expect(picker().findAll('.themes__card')).toHaveLength(THEMES.length);
+        expect(picker().findAll('option')).toHaveLength(THEMES.length);
     });
 
     it('groups the dark themes apart from the light ones', () => {
-        const wrapper = picker();
-        const headings = wrapper.findAll('.themes__heading').map((node) => node.text());
+        const labels = picker()
+            .findAll('optgroup')
+            .map((node) => node.attributes('label'));
 
-        expect(headings).toEqual([i18n.global.t('user.themes.dark'), i18n.global.t('user.themes.light')]);
+        expect(labels).toEqual([i18n.global.t('user.themes.dark'), i18n.global.t('user.themes.light')]);
     });
 
     it('counts each group by the themes in it', () => {
-        const groups = picker().findAll('.themes__group');
+        const groups = picker().findAll('optgroup');
         const dark = THEMES.filter((theme) => theme.mode === 'dark').length;
 
-        expect(groups[0]?.findAll('.themes__card')).toHaveLength(dark);
-        expect(groups[1]?.findAll('.themes__card')).toHaveLength(THEMES.length - dark);
+        expect(groups[0]?.findAll('option')).toHaveLength(dark);
+        expect(groups[1]?.findAll('option')).toHaveLength(THEMES.length - dark);
     });
 
-    it('shows a swatch for every colour a theme previews', () => {
+    it('shows the theme in use as the selected one', () => {
+        expect((picker().get('select').element as HTMLSelectElement).value).toBe(currentTheme.value);
+    });
+
+    it('previews the selected theme with a swatch for every colour it defines', () => {
         const first = THEMES[0];
-        const card = picker().get('.themes__card');
 
-        expect(card.findAll('.themes__swatch')).toHaveLength(Object.keys(first?.preview ?? {}).length);
-    });
-
-    it('marks the theme in use as pressed, and only that one', () => {
-        const wrapper = picker();
-
-        expect(wrapper.findAll('.themes__card[aria-pressed="true"]')).toHaveLength(1);
+        expect(picker().findAll('.themes__swatch')).toHaveLength(Object.keys(first?.preview ?? {}).length);
     });
 
     it('applies the theme that was picked', async () => {
         const wrapper = picker();
-        // Cards are grouped dark-first, so the fourth on screen is the fourth dark one
-        const target = THEMES.filter((theme) => theme.mode === 'dark')[3];
+        const target = THEMES.filter((theme) => theme.mode === 'light')[0];
 
-        await wrapper.findAll('.themes__card')[3]?.trigger('click');
+        await wrapper.get('select').setValue(target?.id);
 
         expect(currentTheme.value).toBe(target?.id);
-        expect(wrapper.findAll('.themes__card')[3]?.classes()).toContain('themes__card--active');
+    });
+
+    it('ignores a value that names no theme the stylesheet defines', async () => {
+        const wrapper = picker();
+        const before = currentTheme.value;
+        (wrapper.get('select').element as HTMLSelectElement).value = 'tokyo-night';
+
+        await wrapper.get('select').trigger('change');
+
+        expect(currentTheme.value).toBe(before);
     });
 });

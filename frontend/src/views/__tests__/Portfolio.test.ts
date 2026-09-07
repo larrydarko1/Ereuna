@@ -6,14 +6,11 @@ import { clearAuth } from '@/api/client';
 import { i18n } from '@/i18n';
 import { mockApi } from '@/__tests__/support/msw';
 import { summary as makeSummary } from '@/__tests__/support/portfolio';
-import { dismiss, useNotifications } from '@/composables/ui/useNotifications';
 import Portfolio from '@/views/Portfolio.vue';
 
 vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());
 
 const api = mockApi();
-
-const { toasts } = useNotifications();
 
 const trade = (over: Partial<TradeRow> = {}): TradeRow => ({
     id: 't1',
@@ -82,7 +79,6 @@ beforeEach(() => {
     clearAuth();
     localStorage.clear();
     document.body.innerHTML = '';
-    for (const toast of [...toasts.value]) dismiss(toast.id);
     api.on('GET /api/market/status', { status: 'closed', holiday: null });
 });
 
@@ -105,8 +101,8 @@ describe('Portfolio', () => {
 
         const wrapper = await view();
 
-        expect(wrapper.get('.portfolio__empty-title').text()).toBe(i18n.global.t('portfolio.emptySlot'));
-        expect(wrapper.findAll('.portfolio__empty-actions .btn')).toHaveLength(2);
+        expect(wrapper.get('.empty-state__title').text()).toBe(i18n.global.t('portfolio.emptySlot'));
+        expect(wrapper.findAll('.empty-state__actions .btn')).toHaveLength(2);
     });
 
     it('fills every panel from the one summary', async () => {
@@ -237,7 +233,7 @@ describe('Portfolio', () => {
         wrapper.unmount();
     });
 
-    it('resets the slot on confirmation and says so', async () => {
+    it('resets the slot on confirmation', async () => {
         seed();
         api.on('DELETE /api/portfolios/0', null, { status: 204 });
         const wrapper = await view();
@@ -246,7 +242,6 @@ describe('Portfolio', () => {
         await click($('.dialog__footer .btn--danger, .dialog__footer .btn--primary'));
 
         expect(api.calls.some((call) => call.method === 'DELETE')).toBe(true);
-        expect(toasts.value[0]?.message).toBe(i18n.global.t('portfolio.portfolioResetSuccess'));
         wrapper.unmount();
     });
 

@@ -85,13 +85,6 @@ export const RANGE_FILTERS = [
     },
     { key: 'pb-ratio', field: 'PB', queryPath: 'PriceToBookRatio', label: 'P/B ratio', bounds: { kind: 'derived' } },
     { key: 'enterprise-value', field: 'EV', queryPath: 'EV', label: 'Enterprise value', bounds: { kind: 'derived' } },
-    {
-        key: 'intrinsic-value',
-        field: 'IV',
-        queryPath: 'IntrinsicValue',
-        label: 'Intrinsic value',
-        bounds: { kind: 'derived' },
-    },
 
     // Earnings, revenue and dividends
     { key: 'eps', field: 'EPS', queryPath: 'EPS', label: 'EPS', bounds: { kind: 'derived' } },

@@ -13,8 +13,6 @@ export type ChartPalette = {
     positive: string;
     negative: string;
     volume: string;
-    dividend: string;
-    split: string;
     overlays: readonly string[];
 };
 
@@ -30,8 +28,6 @@ const TOKENS = {
     positive: '--color-positive',
     negative: '--color-negative',
     volume: '--color-volume',
-    dividend: '--color-accent-3',
-    split: '--color-ma-3',
 } as const satisfies Record<Exclude<keyof ChartPalette, 'overlays'>, string>;
 
 const OVERLAY_TOKENS = ['--color-ma-1', '--color-ma-2', '--color-ma-3', '--color-ma-4'] as const;
@@ -81,8 +77,6 @@ function readPalette(): ChartPalette {
         positive: read(TOKENS.positive),
         negative: read(TOKENS.negative),
         volume: read(TOKENS.volume),
-        dividend: read(TOKENS.dividend),
-        split: read(TOKENS.split),
         overlays: OVERLAY_TOKENS.map(read),
     };
 }

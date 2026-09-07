@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { effectScope, ref } from 'vue';
+import { effectScope, nextTick, ref } from 'vue';
 import type { ChartTimeframe } from '@ereuna/shared';
 import { mockApi } from '@/__tests__/support/msw';
 import { useChartSeries, type UseChartSeriesReturn } from '@/composables/charts/useChartSeries';
@@ -20,16 +20,15 @@ const series = (times: string[], extra: Record<string, unknown> = {}): Record<st
     candles: times.map((time) => candle(time)),
     volume: times.map((time) => ({ time, value: 100 })),
     overlays: [],
-    intrinsicValue: null,
     ...extra,
 });
 
-function inScope(key: () => { symbol: string; timeframe: ChartTimeframe }): {
+function inScope(key: () => { symbol: string; timeframe: ChartTimeframe; overlays?: string }): {
     chart: UseChartSeriesReturn;
     stop: () => void;
 } {
     const scope = effectScope();
-    const chart = scope.run(() => useChartSeries(key)) as UseChartSeriesReturn;
+    const chart = scope.run(() => useChartSeries(() => ({ overlays: '', ...key() }))) as UseChartSeriesReturn;
     return { chart, stop: () => scope.stop() };
 }
 
@@ -39,7 +38,6 @@ describe('loading a series', () => {
             'GET /api/charts/AAPL',
             series(['2026-03-02', '2026-03-03'], {
                 overlays: [{ type: 'SMA', period: 10, points: [{ time: '2026-03-03', value: 9 }] }],
-                intrinsicValue: 150,
             }),
         );
         const { chart } = inScope(() => ({ symbol: 'AAPL', timeframe: 'daily' }));
@@ -47,7 +45,6 @@ describe('loading a series', () => {
         await vi.waitFor(() => expect(chart.bars.value).toHaveLength(2));
         expect(chart.volume.value).toHaveLength(2);
         expect(chart.overlays.value[0]).toMatchObject({ type: 'SMA', period: 10 });
-        expect(chart.intrinsicValue.value).toBe(150);
         expect(chart.pending.value).toBe(false);
     });
 
@@ -85,6 +82,49 @@ describe('loading a series', () => {
         symbol.value = 'MSFT';
 
         await vi.waitFor(() => expect(chart.bars.value).toHaveLength(2));
+    });
+
+    it('re-reads the window when the user edits their moving averages', async () => {
+        const overlays = ref('SMA10');
+        mock.on(
+            'GET /api/charts/AAPL',
+            series(['2026-03-02'], {
+                overlays: [{ type: 'SMA', period: 10, points: [{ time: '2026-03-02', value: 9 }] }],
+            }),
+        );
+        const { chart } = inScope(() => ({ symbol: 'AAPL', timeframe: 'daily', overlays: overlays.value }));
+        await vi.waitFor(() => expect(chart.overlays.value).toHaveLength(1));
+
+        // The API computes the averages from the stored preference, so the new
+        // one only reaches the chart if the key change re-issues the read.
+        mock.on(
+            'GET /api/charts/AAPL',
+            series(['2026-03-02'], {
+                overlays: [
+                    { type: 'SMA', period: 10, points: [{ time: '2026-03-02', value: 9 }] },
+                    { type: 'EMA', period: 50, points: [{ time: '2026-03-02', value: 8 }] },
+                ],
+            }),
+        );
+        overlays.value = 'SMA10,EMA50';
+
+        await vi.waitFor(() => expect(chart.overlays.value).toHaveLength(2));
+    });
+
+    it('holds its bars when something the key does not name changes', async () => {
+        const unrelated = ref('dark');
+        mock.on('GET /api/charts/AAPL', series(['2026-03-02', '2026-03-03']));
+        const { chart } = inScope(() => {
+            void unrelated.value; // A preference read alongside the key, as the chart view does
+            return { symbol: 'AAPL', timeframe: 'daily', overlays: 'SMA10' };
+        });
+        await vi.waitFor(() => expect(chart.bars.value).toHaveLength(2));
+
+        // Reloading clears the bars first, so a spurious re-read blanks the chart.
+        unrelated.value = 'light';
+        await nextTick();
+
+        expect(chart.bars.value).toHaveLength(2);
     });
 
     it('reports a failure and holds no bars', async () => {

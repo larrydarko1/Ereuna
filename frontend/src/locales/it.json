@@ -19,8 +19,6 @@
         "export": "Esporta",
         "import": "Importa",
         "download": "Scarica",
-        "settings": "Impostazioni",
-        "notifications": "Notifiche",
         "mainNavigation": "Navigazione principale",
         "saving": "Salvataggio...",
         "pageOf": "Pagina {page} di {pages}"
@@ -35,7 +33,6 @@
         "alreadyHaveAccount": "Hai già un account?",
         "dontHaveAccount": "Non hai un account?",
         "invalidCredentials": "Credenziali non valide",
-        "accountCreated": "Account creato con successo",
         "signInTitle": "Accedi",
         "signInSubtitle": "Bentornato.",
         "signUpTitle": "Crea un account",
@@ -51,8 +48,6 @@
         "hidePassword": "Nascondi password",
         "submitting": "Accesso in corso…",
         "creating": "Creazione account…",
-        "agreeToTerms": "Accetto i termini di servizio.",
-        "agreeRequired": "Accetta i termini per continuare.",
         "backToSignIn": "Torna all'accesso",
         "useRecoveryCode": "Usa un codice di recupero",
         "recoverySpent": "Quel codice è ora consumato. Imposta una nuova password dalle impostazioni dell'account.",
@@ -61,8 +56,7 @@
             "subtitle": "Hai effettuato l'accesso con un codice di recupero. Scegli una password prima di proseguire.",
             "new": "Nuova password",
             "confirm": "Conferma password",
-            "submit": "Imposta password",
-            "done": "Password impostata. Accedi con questa per continuare."
+            "submit": "Imposta password"
         },
         "twoFactorTitle": "Codice a due fattori",
         "twoFactorHint": "Inserisci il codice a 6 cifre dell'app di autenticazione.",
@@ -138,37 +132,18 @@
             "title": "Top Movers Giornalieri",
             "topGainers": "Top 10 Rialzi",
             "topLosers": "Top 10 Ribassi"
-        },
-        "valuation": {
-            "title": "Analisi del Valore Intrinseco",
-            "undervalued": "Top 10 Sottovalutati",
-            "overvalued": "Top 10 Sopravvalutati",
-            "disclaimer": "I valori intrinseci derivano da un modello di flussi di cassa scontati applicato agli ultimi bilanci pubblicati. Sono stime, non consulenza finanziaria."
-        },
-        "calendar": {
-            "title": "Calendario di mercato",
-            "date": "Data",
-            "empty": "Nulla in programma",
-            "earnings": "Utili",
-            "dividends": "Dividendi",
-            "splits": "Frazionamento"
-        },
-        "news": {
-            "title": "Notizie"
         }
     },
     "user": {
         "title": "Account",
         "nav": {
             "account": "Account",
-            "appearance": "Aspetto",
             "security": "Sicurezza"
         },
         "language": {
             "title": "Lingua",
             "description": "Salvata sull'account, quindi ti segue su ogni dispositivo.",
             "label": "Lingua dell'interfaccia",
-            "changed": "Lingua aggiornata.",
             "disclaimer": "Tutto tranne l'inglese è tradotto automaticamente e può suonare goffo."
         },
         "username": {
@@ -177,8 +152,7 @@
             "current": "Sei entrato come {username}.",
             "new": "Nuovo nome utente",
             "sameAsCurrent": "È già il tuo nome utente.",
-            "submit": "Cambia nome utente",
-            "changed": "Nome utente aggiornato."
+            "submit": "Cambia nome utente"
         },
         "password": {
             "title": "Password",
@@ -186,8 +160,7 @@
             "current": "Password attuale",
             "new": "Nuova password",
             "confirm": "Conferma la nuova password",
-            "submit": "Cambia password",
-            "changed": "Password aggiornata. Accedi di nuovo."
+            "submit": "Cambia password"
         },
         "delete": {
             "title": "Elimina account",
@@ -201,9 +174,10 @@
         },
         "themes": {
             "title": "Tema",
-            "description": "Cinquantadue palette. La tua scelta è salvata sull'account.",
+            "description": "Sei palette, tre scure e tre chiare. La scelta è salvata sull'account.",
             "dark": "Scuro",
-            "light": "Chiaro"
+            "light": "Chiaro",
+            "label": "Tema"
         },
         "security": {
             "title": "Autenticazione a due fattori",
@@ -212,8 +186,6 @@
             "statusOff": "L'autenticazione a due fattori è disattivata.",
             "enable": "Attiva",
             "disable": "Disattiva",
-            "enabledNotice": "L'autenticazione a due fattori è ora attiva.",
-            "disabledNotice": "L'autenticazione a due fattori è ora disattivata.",
             "disableTitle": "Disattivare l'autenticazione a due fattori?",
             "disableMessage": "Inserisci un codice dalla tua app per confermare. I codici di recupero vengono distrutti con essa.",
             "code": "Codice dell'autenticatore",
@@ -237,7 +209,8 @@
                 "copied": "Copiato",
                 "done": "Li ho salvati"
             }
-        }
+        },
+        "dangerZone": "Zona pericolosa"
     },
     "portfolio": {
         "title": "Portafoglio",
@@ -331,8 +304,6 @@
         "add": "Aggiungi",
         "editTrade": "Modifica Trade",
         "deleteTrade": "Elimina Trade",
-        "portfolioImportedSuccess": "Portafoglio importato con successo!",
-        "portfolioResetSuccess": "Portafoglio reimpostato con successo!",
         "settings": "Impostazioni",
         "actions": {
             "buy": "Acquisto",
@@ -374,7 +345,6 @@
         "hidden": "LISTA NASCOSTA",
         "eodOnly": "Solo EOD",
         "noData": "Nessun dato",
-        "intrinsicValueShort": "VI",
         "timeframeLabel": "Intervallo",
         "clearDrawingsBody": "Sei sicuro di voler cancellare tutti i disegni per questo simbolo? Questa azione non può essere annullata.",
         "timeframes": {
@@ -422,19 +392,12 @@
         "settings": {
             "title": "Modifica Impostazioni Grafico",
             "style": "Tipo di Grafico",
-            "intrinsicValue": "Valore Intrinseco",
-            "marker": {
-                "earnings": "Marcatori Utili",
-                "dividends": "Marcatori Dividendi",
-                "splits": "Marcatori Split"
-            },
             "restoreDefaults": "Reimposta",
             "saveFailed": "Impossibile salvare il layout",
             "overlays": "Medie mobili",
             "showOverlay": "Mostra la media {number}",
             "overlayType": "Tipo della media {number}",
-            "overlayPeriod": "Periodo della media {number}",
-            "markers": "Marcatori"
+            "overlayPeriod": "Periodo della media {number}"
         },
         "replay": {
             "start": "Avvia Modalità Replay",
@@ -536,7 +499,6 @@
         "rsi": "RSI",
         "cagr": "CAGR",
         "cagrYears": "Anni CAGR",
-        "intrinsicValue": "Valore Intrinseco",
         "fundFamily": "Famiglia Fondo",
         "fundCategory": "Categoria Fondo",
         "netExpenseRatio": "Rapporto Spese Nette",
@@ -583,12 +545,11 @@
         "splitsReported": "Riportato",
         "splitsColumn": "Frazionamento",
         "noSplitsData": "Nessun dato frazionamenti disponibile",
-        "noNewsAvailable": "Nessuna notizia disponibile.",
         "created": "Creata:",
         "edited": "Modificata:",
         "noNotesAvailable": "Nessuna nota disponibile.",
         "viewFinancialStatements": "Visualizza Bilanci Finanziari",
-        "showAll": "Mostra Tutto",
+        "showAll": "Mostra tutto (altri {count})",
         "sections": {
             "summary": "Riepilogo",
             "eps": "Tabella Crescita EPS",
@@ -597,9 +558,9 @@
             "dividends": "Tabella Dividendi",
             "splits": "Tabella Frazionamenti",
             "financials": "Bilanci Finanziari",
-            "notes": "Note",
-            "news": "Notizie"
-        }
+            "notes": "Note"
+        },
+        "showLess": "Mostra meno"
     },
     "panels": {
         "title": "Modifica Sezioni Pannello",
@@ -865,7 +826,6 @@
         "resetWarning": "Questa azione non può essere annullata.",
         "resetConfirm": "Sì, Reimposta",
         "columnsTitle": "Modifica Colonne",
-        "columnsUpdated": "Colonne aggiornate con successo",
         "columnsFailed": "Impossibile aggiornare le colonne",
         "errorNoColumns": "Seleziona almeno una colonna",
         "hide": "Nascondi Asset ({symbol})",
@@ -915,7 +875,6 @@
             "ps-ratio": "Rapporto PS",
             "pb-ratio": "Rapporto PB",
             "enterprise-value": "Valore Aziendale (1000s)",
-            "intrinsic-value": "Valore Intrinseco",
             "eps": "EPS",
             "eps-qoq": "Crescita EPS QoQ (%)",
             "eps-yoy": "Crescita EPS YoY (%)",
@@ -1014,7 +973,6 @@
             "enterprise-value": "Enterprise value (EV) is a measure of a company's total value, calculated by adding its market capitalization to its total debt and subtracting its cash and equivalents.",
             "rsi": "L'indice di forza relativa (RSI) è un indicatore tecnico che misura il momentum del prezzo delle azioni di un'azienda, con un intervallo da 0 a 100.",
             "gap-percent": "Gap % è una misura della variazione percentuale del prezzo di un'azione dalla chiusura del giorno precedente all'apertura del giorno corrente. Si calcola come (Apertura Corrente - Chiusura Precedente) / Chiusura Precedente. Un gap % positivo indica un movimento di prezzo al rialzo, mentre un gap % negativo indica un movimento di prezzo al ribasso.",
-            "intrinsic-value": "Il Valore Intrinseco (IV) stima il vero valore di un'azione utilizzando un modello di Flusso di Cassa Scontato (DCF). Calcoliamo l'IV: 1. Sommando gli ultimi 20 trimestri di Flusso di Cassa Libero (FCF) per ottenere l'FCF annuale degli ultimi 5 anni. 2. Calcolando il Tasso di Crescita Annuale Composto (CAGR) a 5 anni dell'FCF. 3. Proiettando l'FCF per i prossimi 5 anni usando questo CAGR. 4. Scontando questi FCF proiettati al valore attuale con un tasso del 10%. 5. Aggiungendo un valore terminale (usando il Modello di Crescita di Gordon con un tasso di crescita del 2,5%) e scontandolo. 6. Aggiungendo la liquidità netta (liquidità meno debito) dall'ultimo trimestre. 7. Dividendo il totale per le azioni in circolazione per ottenere l'IV per azione. Questo approccio aiuta a valutare se un'azione è sottovalutata o sopravvalutata in base al suo potenziale di flusso di cassa futuro.",
             "eps-qoq": "Questa sezione calcola il tasso di crescita dei Ricavi, Utili (Reddito Netto) e Utile per Azione (EPS) di un'azienda nel tempo. I tassi di crescita sono calcolati come variazione percentuale rispetto al trimestre precedente (QoQ) e rispetto allo stesso trimestre dell'anno precedente (YoY).",
             "eps-yoy": "Questa sezione calcola il tasso di crescita dei Ricavi, Utili (Reddito Netto) e Utile per Azione (EPS) di un'azienda nel tempo. I tassi di crescita sono calcolati come variazione percentuale rispetto al trimestre precedente (QoQ) e rispetto allo stesso trimestre dell'anno precedente (YoY).",
             "earnings-qoq": "Questa sezione calcola il tasso di crescita dei Ricavi, Utili (Reddito Netto) e Utile per Azione (EPS) di un'azienda nel tempo. I tassi di crescita sono calcolati come variazione percentuale rispetto al trimestre precedente (QoQ) e rispetto allo stesso trimestre dell'anno precedente (YoY).",
@@ -1042,7 +1000,13 @@
             "change-ytd": "Filtra le azioni per performance di prezzo, inclusi: Variazione %, % dal massimo/minimo 52 settimane, Nuovo massimo/minimo storico, Incr. medie mobili; Identifica azioni in tendenza e potenziali breakout.",
             "off-52w-high": "Filtra le azioni per performance di prezzo, inclusi: Variazione %, % dal massimo/minimo 52 settimane, Nuovo massimo/minimo storico, Incr. medie mobili; Identifica azioni in tendenza e potenziali breakout.",
             "off-52w-low": "Filtra le azioni per performance di prezzo, inclusi: Variazione %, % dal massimo/minimo 52 settimane, Nuovo massimo/minimo storico, Incr. medie mobili; Identifica azioni in tendenza e potenziali breakout."
-        }
+        },
+        "hideColumn": "Visibilità",
+        "emptyTitle": "Ancora nessuno screener",
+        "emptyHint": "Uno screener è un insieme di filtri salvato. Creane uno per iniziare a restringere l'universo.",
+        "createFirst": "Crea il tuo primo screener",
+        "noResultsHint": "Nessun titolo soddisfa tutti i filtri. Allargane o eliminane uno.",
+        "noHiddenHint": "Nascondi un titolo dalla tabella dei risultati e comparirà qui."
     },
     "errors": {
         "VALIDATION_FAILED": "Alcuni dei dati inseriti non sono validi.",

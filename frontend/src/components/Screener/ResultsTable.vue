@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { ScreenerResult } from '@/api/screener';
+import AppIcon from '@/components/ui/AppIcon.vue';
 import { findColumn, readColumn, type ColumnFormat } from '@/constants/screener';
 import { formatCompact, formatNumber } from '@/utils/formatters';
 
@@ -95,6 +96,11 @@ function onKeydown(event: KeyboardEvent): void {
                 <tr>
                     <th
                         scope="col"
+                        class="results-table__th results-table__th--actions">
+                        <span class="visually-hidden">{{ t('screener.hideColumn') }}</span>
+                    </th>
+                    <th
+                        scope="col"
                         class="results-table__th results-table__th--symbol"
                         >{{ t('screener.symbol') }}</th
                     >
@@ -110,11 +116,6 @@ function onKeydown(event: KeyboardEvent): void {
                         class="results-table__th results-table__th--figure">
                         {{ header(column.filterKey) }}
                     </th>
-                    <th
-                        scope="col"
-                        class="results-table__th results-table__th--actions">
-                        <span class="results-table__sr">{{ t('common.settings') }}</span>
-                    </th>
                 </tr>
             </thead>
 
@@ -129,6 +130,21 @@ function onKeydown(event: KeyboardEvent): void {
                     @click="emit('select', row.symbol)"
                     @keydown="onKeydown"
                     @keydown.enter="emit('select', row.symbol)">
+                    <td class="results-table__td results-table__td--actions">
+                        <button
+                            type="button"
+                            class="results-table__action"
+                            :class="{ 'results-table__action--on': hiddenSymbols.includes(row.symbol) }"
+                            :aria-label="
+                                hiddenSymbols.includes(row.symbol)
+                                    ? t('screener.unhide', { symbol: row.symbol })
+                                    : t('screener.hide', { symbol: row.symbol })
+                            "
+                            :aria-pressed="hiddenSymbols.includes(row.symbol)"
+                            @click.stop="emit('toggleHidden', row.symbol)">
+                            <AppIcon :name="hiddenSymbols.includes(row.symbol) ? 'eye' : 'eye-off'" />
+                        </button>
+                    </td>
                     <td class="results-table__td results-table__td--symbol">{{ row.symbol }}</td>
                     <td class="results-table__td results-table__td--name">{{ row.name ?? PLACEHOLDER }}</td>
                     <td
@@ -140,19 +156,6 @@ function onKeydown(event: KeyboardEvent): void {
                             'results-table__td--down': isNegative(row, column.path, column.format),
                         }">
                         {{ cell(row, column.path, column.format) }}
-                    </td>
-                    <td class="results-table__td results-table__td--actions">
-                        <button
-                            type="button"
-                            class="results-table__action"
-                            :aria-label="
-                                hiddenSymbols.includes(row.symbol)
-                                    ? t('screener.unhide', { symbol: row.symbol })
-                                    : t('screener.hide', { symbol: row.symbol })
-                            "
-                            @click.stop="emit('toggleHidden', row.symbol)">
-                            {{ hiddenSymbols.includes(row.symbol) ? '👁' : '⊘' }}
-                        </button>
                     </td>
                 </tr>
             </tbody>
@@ -193,16 +196,21 @@ function onKeydown(event: KeyboardEvent): void {
     text-align: left;
 }
 
-.results-table__th--actions {
+// The hide toggle leads the row and stays put through a horizontal scroll.
+// As the last column it was off-screen the moment a screener chose more than a
+// handful of figures, which is what made the hidden list look unreachable.
+.results-table__th--actions,
+.results-table__td--actions {
+    position: sticky;
+    left: 0;
+    z-index: $z-sticky;
     width: 32px;
+    padding: 0 $space-1;
+    background: $color-surface;
 }
 
-.results-table__sr {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
+.results-table__th--actions {
+    z-index: $z-sticky + 1;
 }
 
 .results-table__row {
@@ -219,6 +227,13 @@ function onKeydown(event: KeyboardEvent): void {
 }
 
 .results-table__row--selected {
+    background: $color-elevated;
+}
+
+// The pinned cell paints its own background to cover what scrolls under it, so
+// it has to be told about the row states the row's own background answers for
+.results-table__row:hover .results-table__td--actions,
+.results-table__row--selected .results-table__td--actions {
     background: $color-elevated;
 }
 
@@ -253,15 +268,21 @@ function onKeydown(event: KeyboardEvent): void {
 }
 
 .results-table__action {
+    display: grid;
+    place-items: center;
+    padding: $space-1;
     border: none;
     background: none;
     color: $color-text-muted;
-    font-size: $font-size-sm;
     line-height: 1;
     cursor: pointer;
 
     &:hover {
         color: $color-text;
     }
+}
+
+.results-table__action--on {
+    color: $color-accent-1;
 }
 </style>

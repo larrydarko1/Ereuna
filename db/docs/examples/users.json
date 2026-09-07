@@ -31,20 +31,14 @@
                 "period": 200,
                 "visible": false
             }
-        ],
-        "intrinsicValue": true,
-        "markers": {
-            "earnings": true,
-            "dividends": true,
-            "splits": false
-        }
+        ]
     },
     "panels": {
         "sections": [
             "summary",
             "eps",
             "earnings",
-            "news"
+            "dividends"
         ],
         "summaryFields": [
             "symbol",

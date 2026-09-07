@@ -19,9 +19,7 @@ const rows = computed(() => series[universe.value] ?? []);
     <div class="ma-breadth">
         <label class="ma-breadth__filter">
             <span class="visually-hidden">{{ t('dashboard.sma.universe') }}</span>
-            <select
-                v-model="universe"
-                class="form-input">
+            <select v-model="universe">
                 <option
                     v-for="option in BREADTH_UNIVERSES"
                     :key="option"

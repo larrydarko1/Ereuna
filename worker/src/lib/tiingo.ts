@@ -35,16 +35,6 @@ export type VendorStatement = {
     };
 };
 
-export type VendorNewsItem = {
-    id?: number;
-    title?: string;
-    url?: string;
-    description?: string;
-    source?: string;
-    publishedDate?: string;
-    tickers?: string[];
-};
-
 const waiting: (() => void)[] = [];
 
 class TiingoError extends Error {
@@ -75,14 +65,6 @@ export function dailyHistory(symbol: string, startDate = '1960-01-01'): Promise<
 /** Quarterly and annual financial statements for one symbol. */
 export function statements(symbol: string): Promise<VendorStatement[]> {
     return request<VendorStatement[]>(`/tiingo/fundamentals/${encodeURIComponent(symbol)}/statements`);
-}
-
-/** Headlines mentioning any of `symbols`. */
-export function news(symbols: readonly string[], limit: number): Promise<VendorNewsItem[]> {
-    return request<VendorNewsItem[]>('/tiingo/news', {
-        tickers: symbols.map((symbol) => symbol.toLowerCase()).join(','),
-        limit: String(limit),
-    });
 }
 
 /**

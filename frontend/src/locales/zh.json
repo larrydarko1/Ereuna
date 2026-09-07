@@ -19,8 +19,6 @@
         "export": "导出",
         "import": "导入",
         "download": "下载",
-        "settings": "设置",
-        "notifications": "通知",
         "mainNavigation": "主导航",
         "saving": "保存中...",
         "pageOf": "第 {page} 页，共 {pages} 页"
@@ -35,7 +33,6 @@
         "alreadyHaveAccount": "已有账户？",
         "dontHaveAccount": "还没有账户？",
         "invalidCredentials": "凭证无效",
-        "accountCreated": "账户创建成功",
         "signInTitle": "登录",
         "signInSubtitle": "欢迎回来。",
         "signUpTitle": "创建账户",
@@ -51,8 +48,6 @@
         "hidePassword": "隐藏密码",
         "submitting": "正在登录…",
         "creating": "正在创建账户…",
-        "agreeToTerms": "我同意服务条款。",
-        "agreeRequired": "请接受条款以继续。",
         "backToSignIn": "返回登录",
         "useRecoveryCode": "使用恢复码",
         "recoverySpent": "该代码已失效。请在账户设置中设置新密码。",
@@ -61,8 +56,7 @@
             "subtitle": "你使用恢复码登录。请先设置一个密码再继续。",
             "new": "新密码",
             "confirm": "确认密码",
-            "submit": "设置密码",
-            "done": "密码已设置。请使用它登录以继续。"
+            "submit": "设置密码"
         },
         "twoFactorTitle": "双重验证码",
         "twoFactorHint": "请输入验证器应用中的 6 位代码。",
@@ -138,37 +132,18 @@
             "title": "每日最大波动",
             "topGainers": "涨幅前10",
             "topLosers": "跌幅前10"
-        },
-        "valuation": {
-            "title": "内在价值分析",
-            "undervalued": "最被低估前10",
-            "overvalued": "最被高估前10",
-            "disclaimer": "内在价值由现金流折现模型基于最近一期公布的财务数据计算得出。仅为估算，不构成投资建议。"
-        },
-        "calendar": {
-            "title": "市场日历",
-            "date": "日期",
-            "empty": "暂无安排",
-            "earnings": "收益",
-            "dividends": "股息",
-            "splits": "拆股"
-        },
-        "news": {
-            "title": "新闻"
         }
     },
     "user": {
         "title": "账户",
         "nav": {
             "account": "账户",
-            "appearance": "外观",
             "security": "安全"
         },
         "language": {
             "title": "语言",
             "description": "保存在账户中，因此在任何设备上都保持一致。",
             "label": "界面语言",
-            "changed": "语言已更新。",
             "disclaimer": "除英语外均为机器翻译，措辞可能生硬。"
         },
         "username": {
@@ -177,8 +152,7 @@
             "current": "已登录为 {username}。",
             "new": "新用户名",
             "sameAsCurrent": "这已经是你的用户名了。",
-            "submit": "修改用户名",
-            "changed": "用户名已更新。"
+            "submit": "修改用户名"
         },
         "password": {
             "title": "密码",
@@ -186,8 +160,7 @@
             "current": "当前密码",
             "new": "新密码",
             "confirm": "确认新密码",
-            "submit": "修改密码",
-            "changed": "密码已更新，请重新登录。"
+            "submit": "修改密码"
         },
         "delete": {
             "title": "删除账户",
@@ -201,9 +174,10 @@
         },
         "themes": {
             "title": "主题",
-            "description": "五十二套配色。你的选择保存在账户中。",
+            "description": "六种配色，三深三浅。您的选择会保存在账户中。",
             "dark": "深色",
-            "light": "浅色"
+            "light": "浅色",
+            "label": "主题"
         },
         "security": {
             "title": "两步验证",
@@ -212,8 +186,6 @@
             "statusOff": "两步验证已关闭。",
             "enable": "开启",
             "disable": "关闭",
-            "enabledNotice": "两步验证现已开启。",
-            "disabledNotice": "两步验证现已关闭。",
             "disableTitle": "关闭两步验证？",
             "disableMessage": "请输入验证器应用中的验证码以确认。你的恢复码也会一并销毁。",
             "code": "验证码",
@@ -237,7 +209,8 @@
                 "copied": "已复制",
                 "done": "我已保存"
             }
-        }
+        },
+        "dangerZone": "危险区域"
     },
     "portfolio": {
         "title": "投资组合",
@@ -331,8 +304,6 @@
         "add": "添加",
         "editTrade": "编辑交易",
         "deleteTrade": "删除交易",
-        "portfolioImportedSuccess": "投资组合导入成功！",
-        "portfolioResetSuccess": "投资组合重置成功！",
         "settings": "设置",
         "actions": {
             "buy": "买入",
@@ -374,7 +345,6 @@
         "hidden": "隐藏列表",
         "eodOnly": "仅日终数据",
         "noData": "无数据",
-        "intrinsicValueShort": "内在价值",
         "timeframeLabel": "时间周期",
         "clearDrawingsBody": "您确定要清除此代码的所有绘图吗？此操作无法撤销。",
         "timeframes": {
@@ -422,19 +392,12 @@
         "settings": {
             "title": "编辑图表设置",
             "style": "图表类型",
-            "intrinsicValue": "内在价值",
-            "marker": {
-                "earnings": "收益标记",
-                "dividends": "股息标记",
-                "splits": "拆股标记"
-            },
             "restoreDefaults": "重置",
             "saveFailed": "无法保存布局",
             "overlays": "移动平均线",
             "showOverlay": "显示均线 {number}",
             "overlayType": "均线 {number} 类型",
-            "overlayPeriod": "均线 {number} 周期",
-            "markers": "标记"
+            "overlayPeriod": "均线 {number} 周期"
         },
         "replay": {
             "start": "开始重放模式",
@@ -536,7 +499,6 @@
         "rsi": "RSI",
         "cagr": "复合年增长率",
         "cagrYears": "复合年增长率年数",
-        "intrinsicValue": "内在价值（AI）",
         "fundFamily": "基金家族",
         "fundCategory": "基金类别",
         "netExpenseRatio": "净费用率",
@@ -583,12 +545,11 @@
         "splitsReported": "报告日期",
         "splitsColumn": "拆股",
         "noSplitsData": "无拆股数据",
-        "noNewsAvailable": "无新闻",
         "created": "创建于：",
         "edited": "编辑于：",
         "noNotesAvailable": "无笔记",
         "viewFinancialStatements": "查看财务报表",
-        "showAll": "显示全部",
+        "showAll": "显示全部（还有 {count} 项）",
         "sections": {
             "summary": "摘要",
             "eps": "每股收益增长表",
@@ -597,9 +558,9 @@
             "dividends": "股息表",
             "splits": "拆股表",
             "financials": "财务报表",
-            "notes": "笔记",
-            "news": "新闻"
-        }
+            "notes": "笔记"
+        },
+        "showLess": "显示更少"
     },
     "panels": {
         "title": "编辑面板部分",
@@ -865,7 +826,6 @@
         "resetWarning": "此操作无法撤销。",
         "resetConfirm": "是的，重置",
         "columnsTitle": "编辑列",
-        "columnsUpdated": "列更新成功",
         "columnsFailed": "更新列失败",
         "errorNoColumns": "请至少选择一列",
         "hide": "隐藏资产 ({symbol})",
@@ -915,7 +875,6 @@
             "ps-ratio": "市销率",
             "pb-ratio": "市净率",
             "enterprise-value": "企业价值（1000s）",
-            "intrinsic-value": "内在价值",
             "eps": "每股收益",
             "eps-qoq": "每股收益环比增长（%）",
             "eps-yoy": "每股收益同比增长（%）",
@@ -1014,7 +973,6 @@
             "enterprise-value": "企业价值（EV）是衡量公司总价值的指标，通过将公司市值加上总债务再减去现金及现金等价物计算得出。",
             "rsi": "相对强弱指数（RSI）是一项技术指标，衡量公司股价动量，范围从0刺100。",
             "gap-percent": "跳空%是衡量股票价格从前一天收盘价到当天开盘价的百分比变化。它的计算方式为：（当前开盘 - 前一收盘）/ 前一收盘。正数跳空%表示价格上涨，负数跳空%表示价格下跌。",
-            "intrinsic-value": "内在价值（IV）使用折现现金流（DCF）模型估算股票的真实价值。我们通过以下步骤计算IV：1. 汇总最后20个季度的自由现金流（FCF）以获得过去5年的年度FCF。2. 计算FCF的5年复合年增长率（CAGR）。3. 使用此CAGR预测未来5年的FCF。4. 以10%的率将这些预测FCF折现为现值。5. 添加终值（使用增长率2.5%的戈登增长模型）并进行折现。6. 添加最新季度的净现金（现金减债务）。7. 将总数除以流通股以获得每股IV。此方法有助于根据股票的未来现金流潜力评估其是被低估还是被高估。",
             "eps-qoq": "本节计算公司收入、收益（净收入）和每股收益（EPS）随时间的增长率。增长率计算为与上一季度（环比）和去年同期（同比）的百分比变化。",
             "eps-yoy": "本节计算公司收入、收益（净收入）和每股收益（EPS）随时间的增长率。增长率计算为与上一季度（环比）和去年同期（同比）的百分比变化。",
             "earnings-qoq": "本节计算公司收入、收益（净收入）和每股收益（EPS）随时间的增长率。增长率计算为与上一季度（环比）和去年同期（同比）的百分比变化。",
@@ -1042,7 +1000,13 @@
             "change-ytd": "按价格表现筛选股票，包括：涨跌幅%、距52周最高/最低%、历史新高/新低、均线交叉；识别趋势股票和潜在突破。",
             "off-52w-high": "按价格表现筛选股票，包括：涨跌幅%、距52周最高/最低%、历史新高/新低、均线交叉；识别趋势股票和潜在突破。",
             "off-52w-low": "按价格表现筛选股票，包括：涨跌幅%、距52周最高/最低%、历史新高/新低、均线交叉；识别趋势股票和潜在突破。"
-        }
+        },
+        "hideColumn": "显示状态",
+        "emptyTitle": "尚未创建筛选器",
+        "emptyHint": "筛选器是一组已保存的条件。创建一个即可开始缩小标的范围。",
+        "createFirst": "创建第一个筛选器",
+        "noResultsHint": "没有标的符合全部条件。请放宽或清除其中一项。",
+        "noHiddenHint": "在结果表中隐藏某个标的后，它会显示在这里。"
     },
     "errors": {
         "VALIDATION_FAILED": "您输入的部分内容无效。",

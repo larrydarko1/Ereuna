@@ -42,9 +42,9 @@ async function download(): Promise<void> {
                           trade.tradeDate,
                           trade.action,
                           trade.symbol ?? '',
-                          trade.shares,
-                          trade.price,
-                          trade.commission,
+                          trade.shares ?? '',
+                          trade.price ?? '',
+                          trade.commission ?? '',
                           trade.total,
                       ]),
                   );

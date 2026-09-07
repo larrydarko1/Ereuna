@@ -19,8 +19,6 @@
         "export": "Exporter",
         "import": "Importer",
         "download": "Télécharger",
-        "settings": "Paramètres",
-        "notifications": "Notifications",
         "mainNavigation": "Navigation principale",
         "saving": "Enregistrement...",
         "pageOf": "Page {page} sur {pages}"
@@ -35,7 +33,6 @@
         "alreadyHaveAccount": "Vous avez déjà un compte ?",
         "dontHaveAccount": "Vous n'avez pas de compte ?",
         "invalidCredentials": "Identifiants invalides",
-        "accountCreated": "Compte créé avec succès",
         "signInTitle": "Se connecter",
         "signInSubtitle": "Bon retour.",
         "signUpTitle": "Créer un compte",
@@ -51,8 +48,6 @@
         "hidePassword": "Masquer le mot de passe",
         "submitting": "Connexion…",
         "creating": "Création du compte…",
-        "agreeToTerms": "J'accepte les conditions d'utilisation.",
-        "agreeRequired": "Acceptez les conditions pour continuer.",
         "backToSignIn": "Retour à la connexion",
         "useRecoveryCode": "Utiliser un code de récupération",
         "recoverySpent": "Ce code est désormais utilisé. Définissez un nouveau mot de passe dans les paramètres de votre compte.",
@@ -61,8 +56,7 @@
             "subtitle": "Vous vous êtes connecté avec un code de récupération. Choisissez un mot de passe avant de continuer.",
             "new": "Nouveau mot de passe",
             "confirm": "Confirmer le mot de passe",
-            "submit": "Définir le mot de passe",
-            "done": "Mot de passe défini. Connectez-vous avec pour continuer."
+            "submit": "Définir le mot de passe"
         },
         "twoFactorTitle": "Code à deux facteurs",
         "twoFactorHint": "Saisissez le code à 6 chiffres de votre application d'authentification.",
@@ -138,37 +132,18 @@
             "title": "Principaux mouvements du jour",
             "topGainers": "Top 10 des hausses",
             "topLosers": "Top 10 des baisses"
-        },
-        "valuation": {
-            "title": "Analyse de valeur intrinsèque",
-            "undervalued": "Top 10 sous-évalués",
-            "overvalued": "Top 10 surévalués",
-            "disclaimer": "Les valeurs intrinsèques proviennent d’un modèle d’actualisation des flux de trésorerie appliqué aux derniers états financiers publiés. Ce sont des estimations, pas un conseil en investissement."
-        },
-        "calendar": {
-            "title": "Calendrier du marché",
-            "date": "Date",
-            "empty": "Rien de prévu",
-            "earnings": "Bénéfices",
-            "dividends": "Dividendes",
-            "splits": "Division"
-        },
-        "news": {
-            "title": "Actualités"
         }
     },
     "user": {
         "title": "Compte",
         "nav": {
             "account": "Compte",
-            "appearance": "Apparence",
             "security": "Sécurité"
         },
         "language": {
             "title": "Langue",
             "description": "Enregistrée sur votre compte, elle vous suit sur tous vos appareils.",
             "label": "Langue de l'interface",
-            "changed": "Langue mise à jour.",
             "disclaimer": "Tout sauf l'anglais est traduit automatiquement et peut sonner maladroit."
         },
         "username": {
@@ -177,8 +152,7 @@
             "current": "Connecté en tant que {username}.",
             "new": "Nouveau nom d'utilisateur",
             "sameAsCurrent": "C'est déjà votre nom d'utilisateur.",
-            "submit": "Changer le nom d'utilisateur",
-            "changed": "Nom d'utilisateur mis à jour."
+            "submit": "Changer le nom d'utilisateur"
         },
         "password": {
             "title": "Mot de passe",
@@ -186,8 +160,7 @@
             "current": "Mot de passe actuel",
             "new": "Nouveau mot de passe",
             "confirm": "Confirmer le nouveau mot de passe",
-            "submit": "Changer le mot de passe",
-            "changed": "Mot de passe mis à jour. Reconnectez-vous."
+            "submit": "Changer le mot de passe"
         },
         "delete": {
             "title": "Supprimer le compte",
@@ -201,9 +174,10 @@
         },
         "themes": {
             "title": "Thème",
-            "description": "Cinquante-deux palettes. Votre choix est enregistré sur le compte.",
+            "description": "Six palettes, trois sombres et trois claires. Votre choix est enregistré sur le compte.",
             "dark": "Sombre",
-            "light": "Clair"
+            "light": "Clair",
+            "label": "Thème"
         },
         "security": {
             "title": "Authentification à deux facteurs",
@@ -212,8 +186,6 @@
             "statusOff": "L'authentification à deux facteurs est désactivée.",
             "enable": "Activer",
             "disable": "Désactiver",
-            "enabledNotice": "L'authentification à deux facteurs est maintenant activée.",
-            "disabledNotice": "L'authentification à deux facteurs est maintenant désactivée.",
             "disableTitle": "Désactiver l'authentification à deux facteurs ?",
             "disableMessage": "Saisissez un code de votre application pour confirmer. Vos codes de récupération sont détruits avec elle.",
             "code": "Code d'authentification",
@@ -237,7 +209,8 @@
                 "copied": "Copié",
                 "done": "Je les ai enregistrés"
             }
-        }
+        },
+        "dangerZone": "Zone sensible"
     },
     "portfolio": {
         "title": "Portefeuille",
@@ -331,8 +304,6 @@
         "add": "Ajouter",
         "editTrade": "Modifier la transaction",
         "deleteTrade": "Supprimer la transaction",
-        "portfolioImportedSuccess": "Portefeuille importé avec succès !",
-        "portfolioResetSuccess": "Portefeuille réinitialisé avec succès !",
         "settings": "Paramètres",
         "actions": {
             "buy": "Achat",
@@ -374,7 +345,6 @@
         "hidden": "LISTE CACHÉE",
         "eodOnly": "EOD uniquement",
         "noData": "Aucune donnée",
-        "intrinsicValueShort": "VI",
         "timeframeLabel": "Intervalle",
         "clearDrawingsBody": "Êtes-vous sûr de vouloir effacer tous les dessins pour ce symbole ? Cette action est irréversible.",
         "timeframes": {
@@ -422,19 +392,12 @@
         "settings": {
             "title": "Modifier les paramètres du graphique",
             "style": "Type de graphique",
-            "intrinsicValue": "Valeur intrinsèque",
-            "marker": {
-                "earnings": "Marqueurs de bénéfices",
-                "dividends": "Marqueurs de dividendes",
-                "splits": "Marqueurs de fractionnements"
-            },
             "restoreDefaults": "Réinitialiser",
             "saveFailed": "Impossible d'enregistrer la disposition",
             "overlays": "Moyennes mobiles",
             "showOverlay": "Afficher la moyenne {number}",
             "overlayType": "Type de la moyenne {number}",
-            "overlayPeriod": "Période de la moyenne {number}",
-            "markers": "Repères"
+            "overlayPeriod": "Période de la moyenne {number}"
         },
         "replay": {
             "start": "Démarrer le Mode Replay",
@@ -536,7 +499,6 @@
         "rsi": "RSI",
         "cagr": "TCAC",
         "cagrYears": "Années TCAC",
-        "intrinsicValue": "Valeur intrinsèque (IA)",
         "fundFamily": "Famille de fonds",
         "fundCategory": "Catégorie de fonds",
         "netExpenseRatio": "Ratio de frais net",
@@ -583,12 +545,11 @@
         "splitsReported": "Déclaré",
         "splitsColumn": "Division",
         "noSplitsData": "Aucune donnée de division disponible",
-        "noNewsAvailable": "Aucune actualité disponible.",
         "created": "Créé le :",
         "edited": "Modifié le :",
         "noNotesAvailable": "Aucune note disponible.",
         "viewFinancialStatements": "Voir les états financiers",
-        "showAll": "Afficher tout",
+        "showAll": "Afficher tout ({count} de plus)",
         "sections": {
             "summary": "Résumé",
             "eps": "Tableau de croissance du BPA",
@@ -597,9 +558,9 @@
             "dividends": "Tableau des dividendes",
             "splits": "Tableau des divisions",
             "financials": "États financiers",
-            "notes": "Notes",
-            "news": "Actualités"
-        }
+            "notes": "Notes"
+        },
+        "showLess": "Afficher moins"
     },
     "panels": {
         "title": "Modifier les sections du panneau",
@@ -865,7 +826,6 @@
         "resetWarning": "Cette action est irréversible.",
         "resetConfirm": "Oui, réinitialiser",
         "columnsTitle": "Modifier les colonnes",
-        "columnsUpdated": "Colonnes mises à jour avec succès",
         "columnsFailed": "Échec de la mise à jour des colonnes",
         "errorNoColumns": "Veuillez sélectionner au moins une colonne",
         "hide": "Masquer l'actif ({symbol})",
@@ -915,7 +875,6 @@
             "ps-ratio": "Ratio C/V",
             "pb-ratio": "Ratio C/VC",
             "enterprise-value": "Valeur d'entreprise (1000s)",
-            "intrinsic-value": "Valeur intrinsèque",
             "eps": "BPA",
             "eps-qoq": "Croissance BPA TàT (%)",
             "eps-yoy": "Croissance BPA AàA (%)",
@@ -1014,7 +973,6 @@
             "enterprise-value": "La valeur d'entreprise (EV) est une mesure de la valeur totale d'une entreprise, calculée en ajoutant sa capitalisation boursière à sa dette totale et en soustrayant sa trésorerie et équivalents.",
             "rsi": "L'indice de force relative (RSI) est un indicateur technique qui mesure la dynamique du prix de l'action d'une entreprise, allant de 0 à 100.",
             "gap-percent": "L'écart % est une mesure de la variation en pourcentage du prix d'une action entre la clôture de la veille et l'ouverture du jour. Il est calculé comme (Ouverture actuelle - Clôture précédente) / Clôture précédente. Un écart % positif indique un mouvement de prix à la hausse, tandis qu'un écart % négatif indique un mouvement à la baisse.",
-            "intrinsic-value": "La Valeur Intrinsèque (VI) estime la vraie valeur d'une action en utilisant un modèle de Flux de Trésorerie Actualisé (DCF). Nous calculons la VI en : 1. Additionnant les 20 derniers trimestres de Flux de Trésorerie Libre (FCF) pour obtenir le FCF annuel des 5 dernières années. 2. Calculant le Taux de Croissance Annuel Composé (TCAC) sur 5 ans du FCF. 3. Projetant le FCF pour les 5 prochaines années en utilisant ce TCAC. 4. Actualisant ces FCF projetés à la valeur actuelle à un taux de 10%. 5. Ajoutant une valeur terminale (en utilisant le Modèle de Croissance de Gordon avec un taux de croissance de 2,5%) et en l'actualisant. 6. Ajoutant la trésorerie nette (trésorerie moins dette) du dernier trimestre. 7. Divisant le total par les actions en circulation pour obtenir la VI par action. Cette approche aide à évaluer si une action est sous-évaluée ou surévaluée en fonction de son potentiel de flux de trésorerie futur.",
             "eps-qoq": "Cette section calcule le taux de croissance du Revenu, des Bénéfices (Résultat Net) et du Bénéfice Par Action (BPA) d'une entreprise au fil du temps. Les taux de croissance sont calculés en pourcentage de variation par rapport au trimestre précédent (TàT) et par rapport au même trimestre de l'année précédente (AàA).",
             "eps-yoy": "Cette section calcule le taux de croissance du Revenu, des Bénéfices (Résultat Net) et du Bénéfice Par Action (BPA) d'une entreprise au fil du temps. Les taux de croissance sont calculés en pourcentage de variation par rapport au trimestre précédent (TàT) et par rapport au même trimestre de l'année précédente (AàA).",
             "earnings-qoq": "Cette section calcule le taux de croissance du Revenu, des Bénéfices (Résultat Net) et du Bénéfice Par Action (BPA) d'une entreprise au fil du temps. Les taux de croissance sont calculés en pourcentage de variation par rapport au trimestre précédent (TàT) et par rapport au même trimestre de l'année précédente (AàA).",
@@ -1042,7 +1000,13 @@
             "change-ytd": "Filtrez les actions par performance de prix, incluant : Variation %, % d'écart du plus haut/bas 52 semaines, Nouveau plus haut/bas historique, Croisements de moyennes mobiles ; Identifiez les actions en tendance et les ruptures potentielles.",
             "off-52w-high": "Filtrez les actions par performance de prix, incluant : Variation %, % d'écart du plus haut/bas 52 semaines, Nouveau plus haut/bas historique, Croisements de moyennes mobiles ; Identifiez les actions en tendance et les ruptures potentielles.",
             "off-52w-low": "Filtrez les actions par performance de prix, incluant : Variation %, % d'écart du plus haut/bas 52 semaines, Nouveau plus haut/bas historique, Croisements de moyennes mobiles ; Identifiez les actions en tendance et les ruptures potentielles."
-        }
+        },
+        "hideColumn": "Visibilité",
+        "emptyTitle": "Aucun screener pour le moment",
+        "emptyHint": "Un screener est un ensemble de filtres enregistré. Créez-en un pour commencer à réduire l'univers.",
+        "createFirst": "Créer votre premier screener",
+        "noResultsHint": "Aucun actif ne remplit tous les filtres. Élargissez ou effacez-en un.",
+        "noHiddenHint": "Masquez un actif dans le tableau des résultats et il apparaîtra ici."
     },
     "errors": {
         "VALIDATION_FAILED": "Certaines des informations saisies ne sont pas valides.",

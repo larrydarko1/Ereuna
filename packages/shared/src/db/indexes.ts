@@ -65,7 +65,7 @@ export const OHLCV_COLLECTIONS = {
 } as const satisfies Record<ChartTimeframe, string>;
 
 /** Reference and derived market data, written by the worker's nightly run. */
-export const REFERENCE_COLLECTIONS = ['AssetInfo', 'News', 'Calendar', 'Stats'] as const;
+export const REFERENCE_COLLECTIONS = ['AssetInfo', 'Stats'] as const;
 
 /**
  * Every collection in EreunaDB. The bootstrap migration creates exactly these,
@@ -191,10 +191,8 @@ export const OHLCV_INDEXES: IndexSpec[] = Object.values(OHLCV_COLLECTIONS).map((
  * The reference and derived collections, applied by the worker's nightly run.
  * `AssetInfo.Symbol` is unique because every job in that run addresses a symbol
  * by it and a duplicate would mean half the night's figures landing on one copy
- * and half on the other. `News.url` is unique because it is the upsert key that
- * makes re-running a night idempotent — the old code checked for the article
- * with a query per headline instead, then inserted anyway when two batches
- * returned the same story.
+ * and half on the other. `Stats` is addressed by `_id` alone and needs nothing
+ * declared here.
  */
 export const REFERENCE_INDEXES: IndexSpec[] = [
     {
@@ -202,27 +200,5 @@ export const REFERENCE_INDEXES: IndexSpec[] = [
         keys: { Symbol: 1 },
         options: { unique: true },
         why: 'Every nightly job and every market read addresses an asset by symbol.',
-    },
-    {
-        collection: 'News',
-        keys: { url: 1 },
-        options: { unique: true },
-        why: 'The upsert key for a headline, so the same story arriving twice updates one row.',
-    },
-    {
-        collection: 'News',
-        keys: { publishedDate: -1 },
-        why: 'Headline reads are "the newest N", optionally since a date.',
-    },
-    {
-        collection: 'News',
-        keys: { tickers: 1, publishedDate: -1 },
-        why: 'The per-symbol headline panel filters on tickers before taking the newest N.',
-    },
-    {
-        collection: 'Calendar',
-        keys: { reportDate: 1, type: 1, symbol: 1 },
-        options: { unique: true },
-        why: 'One row per (date, type, symbol) — the upsert key when the calendar is rebuilt.',
     },
 ];

@@ -7,7 +7,6 @@ import AppSpinner from '@/components/ui/AppSpinner.vue';
 import AuthLayout from '@/components/auth/AuthLayout.vue';
 import { recover } from '@/api/auth';
 import { apiErrorMessage } from '@/api/client';
-import { notifyError, notify } from '@/composables/ui/useNotifications';
 import { useTheme } from '@/composables/ui/useTheme';
 
 const { t } = useI18n();
@@ -17,23 +16,24 @@ const { syncTheme } = useTheme();
 const username = ref('');
 const code = ref('');
 const pending = ref(false);
+const error = ref<string | null>(null);
 
 const canSubmit = computed(() => username.value.trim() !== '' && code.value.trim() !== '' && !pending.value);
 
 async function submit(): Promise<void> {
     if (!canSubmit.value) return;
     pending.value = true;
+    error.value = null;
 
     try {
         // rememberMe is false: recovery is an emergency route in, not a device
         // the user is declaring as trusted.
         await recover(username.value.trim(), code.value.trim(), { rememberMe: false });
         await syncTheme();
-        notify(t('auth.recoverySpent'));
         // The session has no password behind it until this is done
         await router.push({ name: 'SetPassword' });
     } catch (err) {
-        notifyError(apiErrorMessage(err, t('auth.invalidCredentials')));
+        error.value = apiErrorMessage(err, t('auth.invalidCredentials'));
     } finally {
         pending.value = false;
     }
@@ -58,6 +58,13 @@ async function submit(): Promise<void> {
                 :label="t('auth.recoveryCode')"
                 :placeholder="t('auth.recoveryCodePlaceholder')"
                 autocomplete="one-time-code" />
+
+            <p
+                v-if="error !== null"
+                class="form-error"
+                role="alert"
+                >{{ error }}</p
+            >
 
             <button
                 type="submit"

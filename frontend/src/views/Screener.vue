@@ -8,22 +8,22 @@ import PriceChart from '@/components/charts/PriceChart.vue';
 import ColumnsDialog from '@/components/screener/ColumnsDialog.vue';
 import FilterPanel from '@/components/screener/FilterPanel.vue';
 import ResultsTable from '@/components/screener/ResultsTable.vue';
+import ResultsToolbar from '@/components/screener/ResultsToolbar.vue';
 import ScreenerPicker from '@/components/screener/ScreenerPicker.vue';
 import AppDialog from '@/components/ui/AppDialog.vue';
+import EmptyState from '@/components/ui/EmptyState.vue';
 import PromptDialog from '@/components/ui/PromptDialog.vue';
 import { useResource } from '@/composables/data/useResource';
-import { loadPreferences, patchPreferences, usePreferences } from '@/composables/data/usePreferences';
+import { adoptPreferences, loadPreferences, patchPreferences, usePreferences } from '@/composables/data/usePreferences';
 import { useFilterRegistry } from '@/composables/screener/useFilterRegistry';
 import { useScreenerFilters } from '@/composables/screener/useScreenerFilters';
 import { useScreenerResults, type ResultsSource } from '@/composables/screener/useScreenerResults';
 import { useScreeners } from '@/composables/screener/useScreeners';
-import { notifyError, notifySuccess } from '@/composables/ui/useNotifications';
-import { DEFAULT_COLUMNS, findColumn, readColumn } from '@/constants/screener';
+import { DEFAULT_COLUMNS, findColumn, readColumn, type ListMode } from '@/constants/screener';
 import { CSV_TYPE, toCsv } from '@/utils/csv';
 import { downloadFile } from '@/utils/download';
 
 type Pane = 'filters' | 'results' | 'chart';
-type ListMode = 'screener' | 'combined' | 'hidden';
 type Dialog = 'create' | 'rename' | 'delete' | 'reset' | 'columns' | null;
 
 /**
@@ -108,15 +108,15 @@ const profile = useResource(
 
 const exporting = ref(false);
 
+/** The reason the last toolbar action failed, cleared by the next attempt. */
+const actionError = ref<string | null>(null);
+
 const autoplay = ref(false);
 let timer: ReturnType<typeof setInterval> | undefined;
 
 /** A filter write changes both the matches and the picker's per-screener count. */
 async function afterFilterChange(): Promise<void> {
-    if (filters.error.value !== null) {
-        notifyError(filters.error.value);
-        return;
-    }
+    if (filters.error.value !== null) return;
     revision.value += 1;
     await loadScreeners();
 }
@@ -150,25 +150,27 @@ async function runNamed(action: () => Promise<void>, failure: string): Promise<v
 
 async function toggleHidden(symbol: string): Promise<void> {
     const hidden = hiddenSymbols.value.includes(symbol);
+    actionError.value = null;
     try {
         const { data } = hidden ? await unhideSymbol(symbol) : await hideSymbol(symbol);
-        // The write already happened server-side; this only refreshes the copy
-        // every other panel reads from.
-        await patchPreferences({ hiddenSymbols: data.hiddenSymbols });
+        // The route owns this field and has already stored it, so the answer is
+        // folded into the cache rather than sent back through PATCH — which does
+        // not accept `hiddenSymbols` and refused every hide with a 422.
+        adoptPreferences({ hiddenSymbols: data.hiddenSymbols });
         revision.value += 1;
     } catch {
-        notifyError(t('screener.hideFailed'));
+        actionError.value = t('screener.hideFailed');
     }
 }
 
 async function saveColumns(next: string[]): Promise<void> {
     dialog.value = null;
+    actionError.value = null;
     try {
         await patchPreferences({ screenerColumns: next });
         revision.value += 1;
-        notifySuccess(t('screener.columnsUpdated'));
     } catch {
-        notifyError(t('screener.columnsFailed'));
+        actionError.value = t('screener.columnsFailed');
     }
 }
 
@@ -203,6 +205,7 @@ async function exportCsv(): Promise<void> {
     }
 
     exporting.value = true;
+    actionError.value = null;
     try {
         const collected = await collectForExport();
         const headers = [
@@ -222,7 +225,7 @@ async function exportCsv(): Promise<void> {
         const name = mode.value === 'combined' ? t('screener.modes.combined') : selected.value;
         downloadFile(`${name}.csv`, toCsv(headers, body), CSV_TYPE);
     } catch {
-        notifyError(t('screener.exportFailed'));
+        actionError.value = t('screener.exportFailed');
     } finally {
         exporting.value = false;
     }
@@ -310,6 +313,13 @@ onUnmounted(() => {
                     >
                 </p>
 
+                <p
+                    v-if="filters.error.value !== null"
+                    class="screener__error"
+                    role="alert"
+                    >{{ filters.error.value }}</p
+                >
+
                 <FilterPanel
                     :groups="registry.grouped.value"
                     :value-for="filters.valueFor"
@@ -322,48 +332,21 @@ onUnmounted(() => {
             <main
                 class="screener__column screener__column--results"
                 :class="{ 'screener__column--hidden': pane !== 'results' }">
-                <header class="screener__toolbar">
-                    <div
-                        class="screener__modes"
-                        role="group"
-                        :aria-label="t('screener.results')">
-                        <button
-                            v-for="option in ['screener', 'combined', 'hidden'] as const"
-                            :key="option"
-                            type="button"
-                            class="screener__mode"
-                            :class="{ 'screener__mode--active': mode === option }"
-                            :aria-pressed="mode === option"
-                            @click="mode = option">
-                            {{ t(`screener.modes.${option}`) }}
-                        </button>
-                    </div>
+                <ResultsToolbar
+                    v-model:mode="mode"
+                    v-model:autoplay="autoplay"
+                    :total="total"
+                    :export-limit="EXPORT_LIMIT"
+                    :exporting="exporting"
+                    @columns="dialog = 'columns'"
+                    @export="exportCsv" />
 
-                    <span class="screener__count">{{ t('screener.resultsCount', { count: total }) }}</span>
-
-                    <button
-                        type="button"
-                        class="screener__action"
-                        @click="dialog = 'columns'">
-                        {{ t('screener.columnsTitle') }}
-                    </button>
-                    <button
-                        type="button"
-                        class="screener__action"
-                        :disabled="exporting || total === 0"
-                        :title="t('screener.exportHint', { max: EXPORT_LIMIT })"
-                        @click="exportCsv">
-                        {{ exporting ? t('screener.downloading') : t('common.download') }}
-                    </button>
-                    <button
-                        type="button"
-                        class="screener__action"
-                        :class="{ 'screener__action--active': autoplay }"
-                        :aria-pressed="autoplay"
-                        @click="autoplay = !autoplay">
-                        {{ t('screener.autoplay') }}
-                    </button>
-                </header>
+                <p
+                    v-if="actionError !== null"
+                    class="screener__error"
+                    role="alert"
+                    >{{ actionError }}</p
+                >
 
                 <p
                     v-if="results.error.value !== null"
@@ -372,11 +355,23 @@ onUnmounted(() => {
                     >{{ results.error.value }}</p
                 >
 
-                <p
+                <!-- No screener yet is a slot to fill, not a query that matched nothing -->
+                <EmptyState
+                    v-else-if="screeners.length === 0 && !screenersPending"
+                    :title="t('screener.emptyTitle')"
+                    :body="t('screener.emptyHint')">
+                    <button
+                        type="button"
+                        class="btn btn--primary"
+                        @click="dialog = 'create'">
+                        {{ t('screener.createFirst') }}
+                    </button>
+                </EmptyState>
+
+                <EmptyState
                     v-else-if="rows.length === 0 && !results.pending.value"
-                    class="screener__empty">
-                    {{ mode === 'hidden' ? t('screener.noHidden') : t('screener.noResults') }}
-                </p>
+                    :title="mode === 'hidden' ? t('screener.noHidden') : t('screener.noResults')"
+                    :body="mode === 'hidden' ? t('screener.noHiddenHint') : t('screener.noResultsHint')" />
 
                 <ResultsTable
                     v-else
@@ -578,43 +573,6 @@ onUnmounted(() => {
     padding: $space-2;
 }
 
-.screener__toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $space-2;
-    align-items: center;
-    padding: $space-2;
-    border-bottom: $border-width solid $color-elevated;
-}
-
-.screener__modes {
-    display: flex;
-    gap: $space-1;
-}
-
-.screener__mode {
-    padding: $space-1 $space-2;
-    border: $border-width solid $color-elevated;
-    border-radius: $radius-sm;
-    background: $color-surface;
-    color: $color-text-muted;
-    font-family: inherit;
-    font-size: $font-size-xs;
-    cursor: pointer;
-}
-
-.screener__mode--active {
-    background: $color-elevated;
-    color: $color-text;
-}
-
-.screener__count {
-    margin-right: auto;
-    color: $color-text-muted;
-    font-size: $font-size-xs;
-    font-variant-numeric: tabular-nums;
-}
-
 .screener__action {
     padding: $space-1 $space-3;
     border: $border-width solid $color-elevated;
@@ -633,10 +591,6 @@ onUnmounted(() => {
         opacity: 0.5;
         cursor: default;
     }
-}
-
-.screener__action--active {
-    background: $color-elevated;
 }
 
 .screener__action--danger {

@@ -137,4 +137,18 @@
         color: $color-text-muted;
         font-size: $font-size-xs;
     }
+
+    // No box at all — a control that reads as a link, for "show all"/"show
+    // less" under a table, where a bordered button would out-weigh the rows.
+    &--link {
+        padding: 0;
+        border: 0;
+        background: none;
+        color: $color-accent-1;
+        font-size: $font-size-xs;
+
+        &:hover:not(:disabled) {
+            text-decoration: underline;
+        }
+    }
 }

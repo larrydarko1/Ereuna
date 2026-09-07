@@ -6,7 +6,7 @@
  */
 import type { ObjectId } from 'mongodb';
 import type { ChartIndicator, ChartTimeframe } from '@ereuna/shared';
-import { barSeries, getAsset, type BarSeries } from '@/services/market/index.js';
+import { barSeries, type BarSeries } from '@/services/market/index.js';
 import { getPreferences } from '@/services/user/index.js';
 import { ema, sma, type SeriesPoint } from '@/utils/indicators.js';
 
@@ -20,7 +20,6 @@ export type ChartSeries = BarSeries & {
     symbol: string;
     timeframe: ChartTimeframe;
     overlays: ChartOverlay[];
-    intrinsicValue: number | null;
 };
 
 /** Overlays used until the user configures their own. */
@@ -37,7 +36,6 @@ export async function getChartSeries(
     timeframe: ChartTimeframe,
     options: { before?: Date } = {},
 ): Promise<ChartSeries> {
-    const asset = await getAsset(symbol);
     const [series, preferences] = await Promise.all([barSeries(symbol, timeframe, options), getPreferences(userId)]);
 
     const settings = preferences.chartSettings;
@@ -53,6 +51,5 @@ export async function getChartSeries(
             period: indicator.period,
             points: indicator.type === 'EMA' ? ema(bars, indicator.period) : sma(bars, indicator.period),
         })),
-        intrinsicValue: settings?.intrinsicValue === true ? (asset.IntrinsicValue ?? null) : null,
     };
 }

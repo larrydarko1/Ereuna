@@ -6,7 +6,6 @@ import { apiErrorMessage, type SessionUser } from '@/api/client';
 import AppField from '@/components/ui/AppField.vue';
 import PasswordField from '@/components/ui/PasswordField.vue';
 import SettingCard from '@/components/user/SettingCard.vue';
-import { notifySuccess } from '@/composables/ui/useNotifications';
 import { allValid, validateUsername } from '@/utils/validation';
 
 const { username } = defineProps<{ username: string }>();
@@ -36,7 +35,6 @@ async function submit(): Promise<void> {
     try {
         const { data } = await changeUsername(password.value, next.value.trim());
         emit('renamed', data);
-        notifySuccess(t('user.username.changed'));
         next.value = '';
         password.value = '';
         submitted.value = false;

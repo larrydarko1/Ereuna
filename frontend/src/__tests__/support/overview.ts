@@ -37,8 +37,6 @@ export function overview(over: Partial<MarketOverview> = {}): MarketOverview {
         ],
         gainers: [{ symbol: 'AAPL', dailyReturn: 0.05 }],
         losers: [{ symbol: 'F', dailyReturn: -0.04 }],
-        undervalued: [{ symbol: 'AAPL', currentPrice: 100, intrinsicValue: 140, gap: 0.4 }],
-        overvalued: [{ symbol: 'TSLA', currentPrice: 300, intrinsicValue: 200, gap: -0.33 }],
         ...over,
     };
 }

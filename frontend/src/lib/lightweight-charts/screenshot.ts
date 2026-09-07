@@ -207,9 +207,10 @@ export class ChartScreenshot {
         ctx.textBaseline = 'top';
 
         // First line: Logo (left) and Date/Timeframe (right)
-        const firstLineY = -5 * dpr; // Minimal top margin for logo at absolute top
+        const firstLineY = 6 * dpr;
 
-        // Draw logo - much larger size and theme-adaptable
+        // The wordmark, not the square icon: an export is branded, and a bare
+        // glyph 90px tall said less than the whole name at a third of that.
         if (config.includeLogo) {
             await this.drawLogo(ctx, x, firstLineY, 90 * dpr, textColor, dpr);
         }
@@ -230,7 +231,6 @@ export class ChartScreenshot {
         const secondLineY = firstLineY + 40 * dpr; // Position below date/timeframe
 
         // Build the info text from right to left for right alignment
-        let infoText = '';
         let priceText = '';
         let changeText = '';
 
@@ -280,14 +280,6 @@ export class ChartScreenshot {
             ctx.fillStyle = textColor;
             ctx.fillText(chartInfo.symbol, rightX, secondLineY);
         }
-
-        // Third line: Branding text below ticker/name/price (theme-adaptable)
-        const thirdLineY = secondLineY + 28 * dpr;
-        ctx.textAlign = 'right';
-        ctx.font = `${11 * dpr}px Arial`;
-        ctx.fillStyle = textColorSecondary; // Uses theme color
-        ctx.fillText('Made with Ereuna', width - x, thirdLineY);
-        ctx.globalAlpha = 1;
     }
 
     private async drawLogo(
@@ -324,10 +316,10 @@ export class ChartScreenshot {
                 resolve();
             };
             img.onerror = () => resolve(); // Fail gracefully
-            // The mark lives in public/, so the URL is stable in dev and in the build
-            // and needs no bundler entry. It is the same file Header.vue masks; the
-            // old asset was a 500px PNG wrapped in an SVG, which tinted badly.
-            img.src = '/mark.svg';
+            // The full wordmark, 1280x720, from public/ — the URL is stable in
+            // dev and in the build and needs no bundler entry. `drawLogo` reads
+            // the intrinsic ratio, so the width follows the height it is given.
+            img.src = '/logo.svg';
         });
     }
 
@@ -406,23 +398,6 @@ export class ChartScreenshot {
                 textColorSecondary: '#9ca3af',
             };
         }
-    }
-
-    private adjustColorBrightness(color: string, amount: number): string {
-        // Simple brightness adjustment for hex colors
-        if (color.startsWith('#')) {
-            const num = parseInt(color.slice(1), 16);
-            let r = (num >> 16) + amount;
-            let g = ((num >> 8) & 0x00ff) + amount;
-            let b = (num & 0x0000ff) + amount;
-
-            r = Math.max(0, Math.min(255, r));
-            g = Math.max(0, Math.min(255, g));
-            b = Math.max(0, Math.min(255, b));
-
-            return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
-        }
-        return color;
     }
 
     private downloadCanvas(canvas: HTMLCanvasElement, symbol: string): void {

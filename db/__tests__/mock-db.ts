@@ -7,6 +7,8 @@
  * on a collection that is not there RESOLVES, and `dropIndex()` on an index
  * that is not there RESOLVES too. A mock that threw instead would let a
  * migration claim work it never did, and pass.
+ * `updateMany` applies the two operators the migrations here use, `$rename` and
+ * `$unset`, and counts a document as modified only when one of them changed it.
  * `aggregate` recognises one pipeline — the group-and-count the dedupe issues.
  * Anything else throws rather than returning an empty result, so a migration
  * that grows a second pipeline fails here instead of passing on a silent [].
@@ -84,6 +86,12 @@ export const mockDb = {
                     if (!(from in doc)) continue;
                     doc[to as string] = doc[from];
                     delete doc[from];
+                    changed = true;
+                }
+
+                for (const field of Object.keys(update.$unset ?? {})) {
+                    if (!(field in doc)) continue;
+                    delete doc[field];
                     changed = true;
                 }
 

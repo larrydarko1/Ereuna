@@ -9,7 +9,6 @@ import { DEFAULT_CHART_SETTINGS, MAX_INDICATOR_PERIOD, useChartSettings } from '
 
 const emit = defineEmits<{ close: [] }>();
 
-const MARKERS = ['earnings', 'dividends', 'splits'] as const;
 const OVERLAY_TYPES = ['SMA', 'EMA'] as const;
 
 const { t } = useI18n();
@@ -43,7 +42,6 @@ function clone(settings: ChartSettings): ChartSettings {
     return {
         ...settings,
         indicators: settings.indicators.map((indicator) => ({ ...indicator })),
-        markers: { ...settings.markers },
     };
 }
 
@@ -122,27 +120,6 @@ function setPeriod(indicator: ChartIndicator, value: string): void {
                 </div>
             </fieldset>
 
-            <fieldset class="chart-settings__group">
-                <legend class="chart-settings__legend">{{ t('charts.settings.markers') }}</legend>
-
-                <label
-                    v-for="marker in MARKERS"
-                    :key="marker"
-                    class="chart-settings__check">
-                    <input
-                        v-model="draft.markers[marker]"
-                        type="checkbox" />
-                    <span>{{ t(`charts.settings.marker.${marker}`) }}</span>
-                </label>
-
-                <label class="chart-settings__check">
-                    <input
-                        v-model="draft.intrinsicValue"
-                        type="checkbox" />
-                    <span>{{ t('charts.settings.intrinsicValue') }}</span>
-                </label>
-            </fieldset>
-
             <p
                 v-if="error !== null"
                 class="chart-settings__error"
@@ -212,8 +189,7 @@ function setPeriod(indicator: ChartIndicator, value: string): void {
     grid-template-columns: auto 1fr 6rem;
 }
 
-.chart-settings__toggle,
-.chart-settings__check {
+.chart-settings__toggle {
     display: flex;
     align-items: center;
     gap: $space-2;
@@ -227,7 +203,10 @@ function setPeriod(indicator: ChartIndicator, value: string): void {
     border-radius: $radius-sm;
 }
 
-.chart-settings__select,
+.chart-settings__select {
+    font-size: $font-size-sm;
+}
+
 .chart-settings__number {
     padding: $space-1 $space-2;
     border: $border-width solid $color-elevated;

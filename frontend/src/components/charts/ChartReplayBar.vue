@@ -170,11 +170,6 @@ function onSeek(event: Event): void {
 }
 
 .replay__speed {
-    padding: 0 $space-1;
-    border: $border-width solid $color-elevated;
-    border-radius: $radius-sm;
-    background: $color-bg;
-    color: $color-text;
     font-size: $font-size-xs;
 }
 

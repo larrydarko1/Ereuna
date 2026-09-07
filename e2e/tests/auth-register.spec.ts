@@ -14,7 +14,6 @@ test.describe('Registration', () => {
         await page.getByLabel('Username').fill(user.username);
         await page.getByLabel('Password', { exact: true }).fill(user.password);
         await page.getByLabel('Confirm Password').fill(user.password);
-        await page.getByLabel('I agree to the terms of service.').check();
 
         await page.getByRole('button', { name: 'Sign Up' }).click();
 

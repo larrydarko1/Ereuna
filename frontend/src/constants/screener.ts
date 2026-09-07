@@ -15,6 +15,9 @@ export type FilterGroup = (typeof FILTER_GROUPS)[number];
 /** How a result column reads once it is in a cell. */
 export type ColumnFormat = 'text' | 'number' | 'compact' | 'percent' | 'date';
 
+/** Which list the results table is showing: one screener, all of them, or the hidden set. */
+export type ListMode = (typeof LIST_MODES)[number];
+
 export type ColumnSpec = {
     path: string; // The AssetInfo path the API projects and keys the row by
     filterKey: string; // The filter this column came from — and so its label
@@ -22,6 +25,8 @@ export type ColumnSpec = {
 };
 
 /** Headings, in the order they are rendered. */
+export const LIST_MODES = ['screener', 'combined', 'hidden'] as const;
+
 export const FILTER_GROUPS = [
     'classification',
     'priceSize',
@@ -59,7 +64,6 @@ const GROUP_BY_KEY: Readonly<Record<string, FilterGroup>> = {
     'ps-ratio': 'valuation',
     'pb-ratio': 'valuation',
     'enterprise-value': 'valuation',
-    'intrinsic-value': 'valuation',
     'div-yield': 'valuation',
 
     // Earnings and growth

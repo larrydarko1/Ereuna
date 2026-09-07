@@ -5,17 +5,17 @@ import { i18n } from '@/i18n';
 import { formatDate, formatNumber } from '@/utils/formatters';
 import ActionsPanel from '@/components/charts/ActionsPanel.vue';
 
-const panel = (
-    actions: CorporateAction[],
-    kind: 'dividends' | 'splits' = 'dividends',
-    expandable = false,
-): VueWrapper => mount(ActionsPanel, { props: { actions, kind, expandable } });
+const panel = (actions: CorporateAction[], kind: 'dividends' | 'splits' = 'dividends'): VueWrapper =>
+    mount(ActionsPanel, { props: { actions, kind } });
 
 const dividend = (amount: number | null = 0.24): CorporateAction =>
     ({ date: '2026-02-10', amount }) as unknown as CorporateAction;
 
 const split = (ratio: number | null = 4): CorporateAction =>
     ({ date: '2026-02-10', ratio }) as unknown as CorporateAction;
+
+/** More than the four rows the short list holds, so the control is offered. */
+const many = (count: number): CorporateAction[] => Array.from({ length: count }, () => dividend());
 
 describe('ActionsPanel', () => {
     it('shows one row per action', () => {
@@ -63,14 +63,27 @@ describe('ActionsPanel', () => {
         expect(panel([], 'splits').get('.actions__empty').text()).toBe(i18n.global.t('sidebar.noSplitsData'));
     });
 
-    it('offers to show the whole history only while there is one to show', async () => {
-        expect(panel([dividend()], 'dividends', false).find('.actions__more').exists()).toBe(false);
-        expect(panel([], 'dividends', true).find('.actions__more').exists()).toBe(false);
+    it('shows the first four and offers the rest', () => {
+        const wrapper = panel(many(9));
 
-        const wrapper = panel([dividend()], 'dividends', true);
+        expect(wrapper.findAll('tbody tr')).toHaveLength(4);
+        expect(wrapper.get('.actions__more').text()).toBe(i18n.global.t('sidebar.showAll', { count: 5 }));
+    });
+
+    it('offers nothing to expand when the whole history already fits', () => {
+        expect(panel(many(4)).find('.actions__more').exists()).toBe(false);
+        expect(panel([]).find('.actions__more').exists()).toBe(false);
+    });
+
+    it('goes both ways — expanding is not one-way', async () => {
+        const wrapper = panel(many(9));
+
         await wrapper.get('.actions__more').trigger('click');
+        expect(wrapper.findAll('tbody tr')).toHaveLength(9);
+        expect(wrapper.get('.actions__more').text()).toBe(i18n.global.t('sidebar.showLess'));
 
-        expect(wrapper.emitted('expand')).toHaveLength(1);
+        await wrapper.get('.actions__more').trigger('click');
+        expect(wrapper.findAll('tbody tr')).toHaveLength(4);
     });
 
     it('keeps two actions dated the same day apart', () => {

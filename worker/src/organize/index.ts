@@ -1,13 +1,12 @@
 /** The nightly run. */
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
-import { updateCalendar, updateHolidays } from '@/organize/calendar.js';
 import { applyDividends, applySplits } from '@/organize/corporate-actions.js';
 import { updateDailyMetrics } from '@/organize/daily-metrics.js';
 import { markDelisted, stillListed } from '@/organize/delist.js';
 import { updateFundamentals } from '@/organize/fundamentals.js';
+import { updateHolidays } from '@/organize/holidays.js';
 import { updateMarketStats } from '@/organize/market-stats.js';
-import { updateNews } from '@/organize/news.js';
 import { updateDailyPrices, type PriceUpdate } from '@/organize/prices.js';
 import { pruneIntraday } from '@/organize/prune.js';
 import { msUntilNextRun } from '@/organize/schedule.js';
@@ -117,8 +116,6 @@ async function runNightly(): Promise<RunSummary> {
     await step('valuations', () => updateValuations(), 0);
     await step('marketStats', () => updateMarketStats(), undefined);
     await step('holidays', () => updateHolidays(), 0);
-    await step('calendar', () => updateCalendar(), 0);
-    await step('news', () => updateNews(universe), 0);
     await step('prune', () => pruneIntraday(), 0);
 
     const summary = { steps, failed, durationMs: Date.now() - startedAt };

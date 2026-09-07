@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { PortfolioValuePoint } from '@ereuna/shared';
-import type { TradeRow } from '@/api/trades';
+import type { TradeInput } from '@/api/trades';
 import BarChart, { type Bar } from '@/components/viz/BarChart.vue';
 import { direction, formatCurrency, formatPercent } from '@/utils/formatters';
 import { i18n } from '@/i18n';
@@ -22,7 +22,7 @@ const { valueHistory, trades } = defineProps<{
     valueHistory: readonly PortfolioValuePoint[];
     /** The whole log, not a page of it: a month's cash flow is wrong if any
      *  deposit inside it is missing. */
-    trades: readonly TradeRow[];
+    trades: readonly TradeInput[];
 }>();
 
 const { t } = useI18n();

@@ -19,8 +19,6 @@
         "export": "Exportare",
         "import": "Importare",
         "download": "Deponere",
-        "settings": "Configuratio",
-        "notifications": "Nuntiationes",
         "mainNavigation": "Navigatio principalis",
         "saving": "Servante...",
         "pageOf": "Pagina {page} ex {pages}"
@@ -35,7 +33,6 @@
         "alreadyHaveAccount": "Iam habes rationem?",
         "dontHaveAccount": "Non habes rationem?",
         "invalidCredentials": "Credentiae invalidiae",
-        "accountCreated": "Ratio creata cum successu",
         "signInTitle": "Intra",
         "signInSubtitle": "Iterum salve.",
         "signUpTitle": "Rationem crea",
@@ -51,8 +48,6 @@
         "hidePassword": "Tesseram cela",
         "submitting": "Intratur…",
         "creating": "Ratio creatur…",
-        "agreeToTerms": "Condicionibus servitii assentior.",
-        "agreeRequired": "Quaeso condiciones accipe ut pergas.",
         "backToSignIn": "Ad introitum redi",
         "useRecoveryCode": "Utere codice recuperationis",
         "recoverySpent": "Ille codex iam consumptus est. Novam tesseram in rationis optionibus constitue.",
@@ -61,8 +56,7 @@
             "subtitle": "Tessera recuperationis ingressus es. Tesseram elige priusquam pergas.",
             "new": "Nova tessera",
             "confirm": "Tesseram confirma",
-            "submit": "Tesseram statuere",
-            "done": "Tessera statuta. Ea ingredere ut pergas."
+            "submit": "Tesseram statuere"
         },
         "twoFactorTitle": "Codex duplicis authenticationis",
         "twoFactorHint": "Codicem sex figurarum ex applicatione authenticationis insere.",
@@ -138,37 +132,18 @@
             "title": "Summi Motores Diurni",
             "topGainers": "10 Summi Lucrati",
             "topLosers": "10 Summi Perditi"
-        },
-        "valuation": {
-            "title": "Analysio Valoris Intrinseci",
-            "undervalued": "10 Summi Subvaluati",
-            "overvalued": "10 Summi Supervaluati",
-            "disclaimer": "Valores intrinseci ex exemplari fluxus pecuniae deminuti ducuntur, rationibus nuper editis adhibitis. Aestimationes sunt, non consilium collocandi."
-        },
-        "calendar": {
-            "title": "Calendarium fori",
-            "date": "Dies",
-            "empty": "Nihil constitutum",
-            "earnings": "Lucra",
-            "dividends": "Dividenda",
-            "splits": "Fissio"
-        },
-        "news": {
-            "title": "Nuntii"
         }
     },
     "user": {
         "title": "Ratio",
         "nav": {
             "account": "Ratio",
-            "appearance": "Species",
             "security": "Securitas"
         },
         "language": {
             "title": "Lingua",
             "description": "In ratione servatur, itaque te in omne instrumentum sequitur.",
             "label": "Lingua interfaciei",
-            "changed": "Lingua renovata est.",
             "disclaimer": "Omnia praeter Anglicum machina translata sunt et inepte sonare possunt."
         },
         "username": {
@@ -177,8 +152,7 @@
             "current": "Ingressus es ut {username}.",
             "new": "Novum nomen usoris",
             "sameAsCurrent": "Id iam nomen usoris tuum est.",
-            "submit": "Nomen usoris mutare",
-            "changed": "Nomen usoris renovatum est."
+            "submit": "Nomen usoris mutare"
         },
         "password": {
             "title": "Tessera",
@@ -186,8 +160,7 @@
             "current": "Tessera praesens",
             "new": "Tessera nova",
             "confirm": "Tesseram novam confirma",
-            "submit": "Tesseram mutare",
-            "changed": "Tessera renovata. Iterum ingredere."
+            "submit": "Tesseram mutare"
         },
         "delete": {
             "title": "Rationem delere",
@@ -201,9 +174,10 @@
         },
         "themes": {
             "title": "Species",
-            "description": "Duae et quinquaginta colorum tabulae. Electio tua in ratione servatur.",
+            "description": "Sex paletae, tres obscurae et tres lucidae. Electio tua in ratione servatur.",
             "dark": "Obscurae",
-            "light": "Lucidae"
+            "light": "Lucidae",
+            "label": "Habitus"
         },
         "security": {
             "title": "Auctoratio duplex",
@@ -212,8 +186,6 @@
             "statusOff": "Auctoratio duplex exstincta est.",
             "enable": "Accendere",
             "disable": "Exstinguere",
-            "enabledNotice": "Auctoratio duplex nunc accensa est.",
-            "disabledNotice": "Auctoratio duplex nunc exstincta est.",
             "disableTitle": "Auctorationem duplicem exstinguere?",
             "disableMessage": "Numerum ex applicatione tua insere ad confirmandum. Numeri recuperationis simul delentur.",
             "code": "Numerus applicationis",
@@ -237,7 +209,8 @@
                 "copied": "Exscriptum",
                 "done": "Servavi eos"
             }
-        }
+        },
+        "dangerZone": "Regio periculosa"
     },
     "portfolio": {
         "title": "Sarcina",
@@ -331,8 +304,6 @@
         "add": "Addere",
         "editTrade": "Emendare Mercaturam",
         "deleteTrade": "Delere Mercaturam",
-        "portfolioImportedSuccess": "Sarcina importata cum successu!",
-        "portfolioResetSuccess": "Sarcina restituta cum successu!",
         "settings": "Configuratio",
         "actions": {
             "buy": "Emere",
@@ -374,7 +345,6 @@
         "hidden": "LISTA OCCULTA",
         "eodOnly": "EOD Solum",
         "noData": "Nulla data",
-        "intrinsicValueShort": "VI",
         "timeframeLabel": "Intervallum temporis",
         "clearDrawingsBody": "Certusne es te velle purgare omnes picturas pro hoc symbolo? Hoc revocari non potest.",
         "timeframes": {
@@ -422,19 +392,12 @@
         "settings": {
             "title": "Emendare Configurationem Tabulae",
             "style": "Typus Tabulae",
-            "intrinsicValue": "Valor Intrinsecus",
-            "marker": {
-                "earnings": "Signa Quaestuum",
-                "dividends": "Signa Dividendorum",
-                "splits": "Signa Divisionum"
-            },
             "restoreDefaults": "Restituere",
             "saveFailed": "Dispositio servari non potuit",
             "overlays": "Mediae mobiles",
             "showOverlay": "Mediam {number} monstrare",
             "overlayType": "Genus mediae {number}",
-            "overlayPeriod": "Periodus mediae {number}",
-            "markers": "Signa"
+            "overlayPeriod": "Periodus mediae {number}"
         },
         "replay": {
             "start": "Incipe Modum Replicandi",
@@ -536,7 +499,6 @@
         "rsi": "RSI",
         "cagr": "CAGR",
         "cagrYears": "Anni CAGR",
-        "intrinsicValue": "Valor Intrinsecus",
         "fundFamily": "Familia Fundi",
         "fundCategory": "Categoria Fundi",
         "netExpenseRatio": "Ratio Expensae Nettae",
@@ -583,12 +545,11 @@
         "splitsReported": "Relatum",
         "splitsColumn": "Fissio",
         "noSplitsData": "Nulla data fissionum disponibilia",
-        "noNewsAvailable": "Nullae novitates disponibiles.",
         "created": "Creatum:",
         "edited": "Recensitum:",
         "noNotesAvailable": "Nullae notae disponibiles.",
         "viewFinancialStatements": "Videre Rationes Pecuniarias",
-        "showAll": "Monstrare Omnia",
+        "showAll": "Monstrare omnia ({count} plura)",
         "sections": {
             "summary": "Summarium",
             "eps": "Tabula Crescentiae LpP",
@@ -597,9 +558,9 @@
             "dividends": "Tabula Dividendorum",
             "splits": "Tabula Fissionum",
             "financials": "Rationes Pecuniariae",
-            "notes": "Notae",
-            "news": "Nuntii"
-        }
+            "notes": "Notae"
+        },
+        "showLess": "Monstrare minus"
     },
     "panels": {
         "title": "Emendare Sectiones Panelis",
@@ -865,7 +826,6 @@
         "resetWarning": "Hoc revocari non potest.",
         "resetConfirm": "Sic, Restituere",
         "columnsTitle": "Emendare Columnas",
-        "columnsUpdated": "Columnae aggiornatae cum successu",
         "columnsFailed": "Malum aggiornandi columnas",
         "errorNoColumns": "Quaeso elige saltem unam columnam",
         "hide": "Celare Bonum ({symbol})",
@@ -915,7 +875,6 @@
             "ps-ratio": "Ratio PS",
             "pb-ratio": "Ratio PB",
             "enterprise-value": "Valor Imperii (millia)",
-            "intrinsic-value": "Valor Intrinsecus",
             "eps": "EPS",
             "eps-qoq": "Crescentia LpP TaT (%)",
             "eps-yoy": "Crescentia LpP AaA (%)",
@@ -1014,7 +973,6 @@
             "enterprise-value": "Valor societatis (EV) est mensura valoris totalis societatis, calculata addendo capitalizationem mercatus eius ad debitum totale eius et subtrahendo pecuniam et aequivalentes eius.",
             "rsi": "Index fortitudinis relativae (RSI) est indicator technicus qui metitur momentum pretii partis societatis, variando ab 0 ad 100.",
             "gap-percent": "Gap % est mensura mutationis percentagii in pretio partis a clausura diei praecedentis ad aperturam diei praesentis. Calculatur ut (Apertura Praesens - Clausura Praecedenta) / Clausura Praecedenta. Gap % positivum indicat motum pretii sursum, dum gap % negativum indicat motum pretii deorsum.",
-            "intrinsic-value": "Valor Intrinsecus (IV) aestimat verum valorem partis utendo modellum Fluxus Pecuniae Discount (DCF). Calculamus IV: 1. Summando ultimos 20 trimestres Fluxus Pecuniae Liberi (FCF) ad obtinendum FCF annuum pro 5 annis praeteritis. 2. Calculando Indicem Incrementi Annui Compositi (CAGR) 5 annorum FCF. 3. Proiciendo FCF pro proximis 5 annis utendo hunc CAGR. 4. Discountando hos FCFs proiectos ad valorem praesentem cum indice 10%. 5. Addendo valorem terminalem (utendo Modellum Incrementi Gordon cum indice incrementi 2.5%) et discountando eum. 6. Addendo pecuniam nettam (pecunia minus debitum) ex trimestre ultimo. 7. Dividendo totale per partes existentes ad obtinendum IV per partem. Haec accessio adiuvat aestimare utrum pars parum aestimata vel nimis aestimata sit secundum potentiale fluxus pecuniae futuri eius.",
             "eps-qoq": "Haec sectio calculat indicem incrementi Reditus, Lucrorum (Lucri Netti), et Lucrorum Per Partem (EPS) societatis per tempus. Indices incrementi calculantur ut mutatio percentagii a trimestre praecedente (QoQ) et a eodem trimestre anni praecedentis (YoY).",
             "eps-yoy": "Haec sectio calculat indicem incrementi Reditus, Lucrorum (Lucri Netti), et Lucrorum Per Partem (EPS) societatis per tempus. Indices incrementi calculantur ut mutatio percentagii a trimestre praecedente (QoQ) et a eodem trimestre anni praecedentis (YoY).",
             "earnings-qoq": "Haec sectio calculat indicem incrementi Reditus, Lucrorum (Lucri Netti), et Lucrorum Per Partem (EPS) societatis per tempus. Indices incrementi calculantur ut mutatio percentagii a trimestre praecedente (QoQ) et a eodem trimestre anni praecedentis (YoY).",
@@ -1042,7 +1000,13 @@
             "change-ytd": "Filtrare partes per effectum pretii, includens: Mutatio %, % ab alto/infimo 52 hebdomadarum, Novum altum/infimum omnis temporis, Transitus MA; Identificare partes tendentes et eruptiones potentiales.",
             "off-52w-high": "Filtrare partes per effectum pretii, includens: Mutatio %, % ab alto/infimo 52 hebdomadarum, Novum altum/infimum omnis temporis, Transitus MA; Identificare partes tendentes et eruptiones potentiales.",
             "off-52w-low": "Filtrare partes per effectum pretii, includens: Mutatio %, % ab alto/infimo 52 hebdomadarum, Novum altum/infimum omnis temporis, Transitus MA; Identificare partes tendentes et eruptiones potentiales."
-        }
+        },
+        "hideColumn": "Visibilitas",
+        "emptyTitle": "Nulla cribra adhuc",
+        "emptyHint": "Cribrum est cribrorum congeries servata. Unum crea ut universum contrahas.",
+        "createFirst": "Crea cribrum primum",
+        "noResultsHint": "Nulla res omnibus cribris satisfacit. Unum laxa aut dele.",
+        "noHiddenHint": "Rem in tabula exituum cela et hic apparebit."
     },
     "errors": {
         "VALIDATION_FAILED": "Nonnulla quae inscripsisti non valent.",

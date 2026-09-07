@@ -344,33 +344,3 @@ describe("the day's movers", () => {
         expect(document.top10DailyGainers).toEqual([]);
     });
 });
-
-describe('the valuation extremes', () => {
-    it('ranks the widest discount first for undervalued and the widest premium first for overvalued', async () => {
-        const document = await run([
-            asset({ Symbol: 'CHEAP', IntrinsicValue: 200, TimeSeries: { close: 100 } }),
-            asset({ Symbol: 'RICH', IntrinsicValue: 50, TimeSeries: { close: 100 } }),
-        ]);
-        expect((document.top10Undervalued as { symbol: string }[])[0]?.symbol).toBe('CHEAP');
-        expect((document.top10Overvalued as { symbol: string }[])[0]?.symbol).toBe('RICH');
-    });
-
-    it('rounds both prices to the cent', async () => {
-        const document = await run([asset({ IntrinsicValue: 123.456, TimeSeries: { close: 99.994 } })]);
-        expect((document.top10Undervalued as Doc[])[0]).toEqual({
-            symbol: 'AAPL',
-            current_price: 99.99,
-            intrinsic_value: 123.46,
-        });
-    });
-
-    it.each([
-        ['no intrinsic value', { IntrinsicValue: null }],
-        ['a non-positive intrinsic value', { IntrinsicValue: 0 }],
-        ['no price', { TimeSeries: { close: 0 } }],
-        ['a non-stock', { AssetType: 'ETF' }],
-    ])('excludes an asset with %s', async (_label, overrides) => {
-        const document = await run([asset(overrides)]);
-        expect(document.top10Undervalued).toEqual([]);
-    });
-});

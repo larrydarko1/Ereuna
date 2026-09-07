@@ -104,12 +104,6 @@ const current = computed(() => items.find((item) => item.name === selected.value
 
 .picker__select {
     width: 100%;
-    padding: $space-2;
-    border: $border-width solid $color-elevated;
-    border-radius: $radius-sm;
-    background: $color-sunken;
-    color: $color-text;
-    font-family: inherit;
     font-size: $font-size-sm;
 }
 

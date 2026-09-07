@@ -113,8 +113,6 @@ describe('chartSettingsSchema', () => {
     const valid = {
         style: CHART_STYLES[0],
         indicators: [{ type: 'SMA' as const, period: 20, visible: true }],
-        intrinsicValue: false,
-        markers: { earnings: true, dividends: false, splits: false },
     };
 
     it('accepts a complete settings object', () => {
@@ -135,8 +133,11 @@ describe('chartSettingsSchema', () => {
         expect(chartSettingsSchema.safeParse({ ...valid, indicators: many }).success).toBe(false);
     });
 
-    it('requires every marker flag rather than defaulting one', () => {
-        expect(chartSettingsSchema.safeParse({ ...valid, markers: { earnings: true } }).success).toBe(false);
+    // A field required here that the client does not send 400s every save, and
+    // the chart then silently keeps the defaults it was already drawing.
+    it('requires nothing beyond the style and the indicators', () => {
+        const parsed = chartSettingsSchema.parse(valid);
+        expect(Object.keys(parsed).sort()).toEqual(['indicators', 'style']);
     });
 });
 

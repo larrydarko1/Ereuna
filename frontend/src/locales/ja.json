@@ -19,8 +19,6 @@
         "export": "エクスポート",
         "import": "インポート",
         "download": "ダウンロード",
-        "settings": "設定",
-        "notifications": "通知",
         "mainNavigation": "メインナビゲーション",
         "saving": "保存中...",
         "pageOf": "{pages} ページ中 {page} ページ"
@@ -35,7 +33,6 @@
         "alreadyHaveAccount": "既にアカウントをお持ちですか？",
         "dontHaveAccount": "アカウントをお持ちではありませんか？",
         "invalidCredentials": "無効な認証情報",
-        "accountCreated": "アカウントが正常に作成されました",
         "signInTitle": "ログイン",
         "signInSubtitle": "おかえりなさい。",
         "signUpTitle": "アカウントを作成",
@@ -51,8 +48,6 @@
         "hidePassword": "パスワードを非表示",
         "submitting": "ログインしています…",
         "creating": "アカウントを作成しています…",
-        "agreeToTerms": "利用規約に同意します。",
-        "agreeRequired": "続行するには規約に同意してください。",
         "backToSignIn": "ログインに戻る",
         "useRecoveryCode": "リカバリコードを使用",
         "recoverySpent": "そのコードは使用済みです。アカウント設定から新しいパスワードを設定してください。",
@@ -61,8 +56,7 @@
             "subtitle": "リカバリコードでサインインしました。続ける前にパスワードを設定してください。",
             "new": "新しいパスワード",
             "confirm": "パスワードの確認",
-            "submit": "パスワードを設定",
-            "done": "パスワードを設定しました。これでサインインして続けてください。"
+            "submit": "パスワードを設定"
         },
         "twoFactorTitle": "二要素認証コード",
         "twoFactorHint": "認証アプリの6桁のコードを入力してください。",
@@ -138,37 +132,18 @@
             "title": "日次トップ動き",
             "topGainers": "トップ10上昇",
             "topLosers": "トップ10下落"
-        },
-        "valuation": {
-            "title": "本質価値分析",
-            "undervalued": "トップ10割安",
-            "overvalued": "トップ10割高",
-            "disclaimer": "本質的価値は、直近の公表財務データにディスカウンテッド・キャッシュフロー・モデルを適用して算出したものです。推定値であり、投資助言ではありません。"
-        },
-        "calendar": {
-            "title": "マーケットカレンダー",
-            "date": "日付",
-            "empty": "予定はありません",
-            "earnings": "利益",
-            "dividends": "配当金",
-            "splits": "分割"
-        },
-        "news": {
-            "title": "ニュース"
         }
     },
     "user": {
         "title": "アカウント",
         "nav": {
             "account": "アカウント",
-            "appearance": "外観",
             "security": "セキュリティ"
         },
         "language": {
             "title": "言語",
             "description": "アカウントに保存されるため、どの端末でも同じになります。",
             "label": "表示言語",
-            "changed": "言語を更新しました。",
             "disclaimer": "英語以外は機械翻訳のため、不自然な表現が含まれることがあります。"
         },
         "username": {
@@ -177,8 +152,7 @@
             "current": "{username} としてログイン中です。",
             "new": "新しいユーザー名",
             "sameAsCurrent": "それはすでに現在のユーザー名です。",
-            "submit": "ユーザー名を変更",
-            "changed": "ユーザー名を更新しました。"
+            "submit": "ユーザー名を変更"
         },
         "password": {
             "title": "パスワード",
@@ -186,8 +160,7 @@
             "current": "現在のパスワード",
             "new": "新しいパスワード",
             "confirm": "新しいパスワードの確認",
-            "submit": "パスワードを変更",
-            "changed": "パスワードを更新しました。もう一度ログインしてください。"
+            "submit": "パスワードを変更"
         },
         "delete": {
             "title": "アカウントを削除",
@@ -201,9 +174,10 @@
         },
         "themes": {
             "title": "テーマ",
-            "description": "52 種類の配色。選択はアカウントに保存されます。",
+            "description": "ダーク 3 種、ライト 3 種の計 6 配色。選択内容はアカウントに保存されます。",
             "dark": "ダーク",
-            "light": "ライト"
+            "light": "ライト",
+            "label": "テーマ"
         },
         "security": {
             "title": "二段階認証",
@@ -212,8 +186,6 @@
             "statusOff": "二段階認証は無効です。",
             "enable": "有効にする",
             "disable": "無効にする",
-            "enabledNotice": "二段階認証を有効にしました。",
-            "disabledNotice": "二段階認証を無効にしました。",
             "disableTitle": "二段階認証を無効にしますか？",
             "disableMessage": "確認のため認証アプリのコードを入力してください。リカバリーコードも同時に破棄されます。",
             "code": "認証コード",
@@ -237,7 +209,8 @@
                 "copied": "コピーしました",
                 "done": "保存しました"
             }
-        }
+        },
+        "dangerZone": "危険な操作"
     },
     "portfolio": {
         "title": "ポートフォリオ",
@@ -331,8 +304,6 @@
         "add": "追加",
         "editTrade": "取引編集",
         "deleteTrade": "取引削除",
-        "portfolioImportedSuccess": "ポートフォリオが正常にインポートされました！",
-        "portfolioResetSuccess": "ポートフォリオのリセットに成功しました！",
         "settings": "設定",
         "actions": {
             "buy": "購入",
@@ -374,7 +345,6 @@
         "hidden": "非表示リスト",
         "eodOnly": "終値のみ",
         "noData": "データなし",
-        "intrinsicValueShort": "IV",
         "timeframeLabel": "時間軸",
         "clearDrawingsBody": "このシンボルの描画をすべて消去しますか？この操作は元に戻せません。",
         "timeframes": {
@@ -422,19 +392,12 @@
         "settings": {
             "title": "チャート設定編集",
             "style": "チャートタイプ",
-            "intrinsicValue": "本質価値",
-            "marker": {
-                "earnings": "利益マーカー",
-                "dividends": "配当マーカー",
-                "splits": "分割マーカー"
-            },
             "restoreDefaults": "リセット",
             "saveFailed": "レイアウトを保存できませんでした",
             "overlays": "移動平均",
             "showOverlay": "移動平均 {number} を表示",
             "overlayType": "移動平均 {number} の種類",
-            "overlayPeriod": "移動平均 {number} の期間",
-            "markers": "マーカー"
+            "overlayPeriod": "移動平均 {number} の期間"
         },
         "replay": {
             "start": "リプレイモードを開始",
@@ -536,7 +499,6 @@
         "rsi": "RSI",
         "cagr": "CAGR",
         "cagrYears": "CAGR年数",
-        "intrinsicValue": "本質的価値",
         "fundFamily": "ファンドファミリー",
         "fundCategory": "ファンドカテゴリー",
         "netExpenseRatio": "純経費率",
@@ -583,12 +545,11 @@
         "splitsReported": "報告日",
         "splitsColumn": "分割",
         "noSplitsData": "分割データがありません",
-        "noNewsAvailable": "ニュースがありません。",
         "created": "作成日:",
         "edited": "更新日:",
         "noNotesAvailable": "ノートがありません。",
         "viewFinancialStatements": "財務諸表を表示",
-        "showAll": "すべて表示",
+        "showAll": "すべて表示（他 {count} 件）",
         "sections": {
             "summary": "サマリー",
             "eps": "EPS成長表",
@@ -597,9 +558,9 @@
             "dividends": "配当表",
             "splits": "分割表",
             "financials": "財務諸表",
-            "notes": "ノート",
-            "news": "ニュース"
-        }
+            "notes": "ノート"
+        },
+        "showLess": "省略表示"
     },
     "panels": {
         "title": "パネルセクションの編集",
@@ -865,7 +826,6 @@
         "resetWarning": "この操作は元に戻せません。",
         "resetConfirm": "はい、リセットします",
         "columnsTitle": "列を編集",
-        "columnsUpdated": "列を更新しました",
         "columnsFailed": "列の更新に失敗しました",
         "errorNoColumns": "少なくとも１列を選択してください",
         "hide": "資産を非表示 ({symbol})",
@@ -915,7 +875,6 @@
             "ps-ratio": "PSレシオ",
             "pb-ratio": "PBレシオ",
             "enterprise-value": "企業価値 (1000s)",
-            "intrinsic-value": "本質的価値",
             "eps": "EPS",
             "eps-qoq": "EPS成長率 QoQ (%)",
             "eps-yoy": "EPS成長率 YoY (%)",
@@ -1014,7 +973,6 @@
             "enterprise-value": "企業価値（EV）は時価総額に総借入金を加え現金を引いた価値です。",
             "rsi": "相対力指数（RSI）は0から100の範囲で株価モメンタムを計測するテクニカル指標です。",
             "gap-percent": "ギャップ%は前日終値から当日始値への変化率です。",
-            "intrinsic-value": "本質的価値（IV）は割引キャッシュフロー（DCF）モデルを使用して株式の真の価値を推定します。",
             "eps-qoq": "このセクションは売上高、利益、EPSの成長率を計算します。前期比および前年同期比で表示されます。",
             "eps-yoy": "このセクションは売上高、利益、EPSの成長率を計算します。前期比および前年同期比で表示されます。",
             "earnings-qoq": "このセクションは売上高、利益、EPSの成長率を計算します。前期比および前年同期比で表示されます。",
@@ -1042,7 +1000,13 @@
             "change-ytd": "価格パフォーマンスでフィルタリング：変化率、52週高値/安値からの下落率、新高値/安値、MAクロスオーバー。",
             "off-52w-high": "価格パフォーマンスでフィルタリング：変化率、52週高値/安値からの下落率、新高値/安値、MAクロスオーバー。",
             "off-52w-low": "価格パフォーマンスでフィルタリング：変化率、52週高値/安値からの下落率、新高値/安値、MAクロスオーバー。"
-        }
+        },
+        "hideColumn": "表示",
+        "emptyTitle": "スクリーナーがありません",
+        "emptyHint": "スクリーナーは保存されたフィルターの組み合わせです。作成して銘柄を絞り込みましょう。",
+        "createFirst": "最初のスクリーナーを作成",
+        "noResultsHint": "すべての条件を満たす銘柄がありません。条件を緩めるか解除してください。",
+        "noHiddenHint": "結果テーブルで銘柄を非表示にすると、ここに一覧されます。"
     },
     "errors": {
         "VALIDATION_FAILED": "入力された内容の一部が正しくありません。",

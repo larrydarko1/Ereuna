@@ -44,7 +44,6 @@ beforeEach(async () => {
     api.on('GET /api/preferences', preferences(null));
     api.on('GET /api/market/AAPL/financials', { symbol: 'AAPL', annual: [], quarterly: [] });
     api.on('GET /api/notes', { items: [], total: 0, page: 1, pages: 1 });
-    api.on('GET /api/market/news', { items: [] });
     await loadPreferences();
 });
 
@@ -56,13 +55,13 @@ describe('ChartSidebar', () => {
     });
 
     it('shows only the sections the saved layout keeps, in its order', async () => {
-        api.on('GET /api/preferences', preferences({ sections: ['news', 'summary'], summaryFields: ['symbol'] }));
+        api.on('GET /api/preferences', preferences({ sections: ['notes', 'summary'], summaryFields: ['symbol'] }));
         await loadPreferences(true);
 
         const wrapper = await sidebar();
 
         expect(titles(wrapper)).toEqual([
-            i18n.global.t('sidebar.sections.news'),
+            i18n.global.t('sidebar.sections.notes'),
             i18n.global.t('sidebar.sections.summary'),
         ]);
     });
@@ -85,19 +84,22 @@ describe('ChartSidebar', () => {
         expect(wrapper.findAll('.actions tbody tr')).toHaveLength(8);
     });
 
-    it('shows the whole history once it is asked for', async () => {
+    it('expands one table without expanding the other', async () => {
         const wrapper = await sidebar({ events: events(9) });
 
-        await wrapper.get('.actions__more').trigger('click');
+        await wrapper.findAll('.actions__more')[0]?.trigger('click');
 
-        expect(wrapper.findAll('.actions tbody tr')).toHaveLength(18);
+        // Dividends opened to nine; splits is still showing its four.
+        expect(wrapper.findAll('.actions tbody tr')).toHaveLength(13);
     });
 
     it('goes back to the four most recent for the next instrument', async () => {
         const wrapper = await sidebar({ events: events(9) });
-        await wrapper.get('.actions__more').trigger('click');
+        await wrapper.findAll('.actions__more')[0]?.trigger('click');
 
-        await wrapper.setProps({ symbol: 'MSFT' });
+        // A new symbol arrives as a new history, which is what collapses the
+        // table — not the count, which the next instrument may well match.
+        await wrapper.setProps({ symbol: 'MSFT', events: events(9) });
         await flushPromises();
 
         expect(wrapper.findAll('.actions tbody tr')).toHaveLength(8);

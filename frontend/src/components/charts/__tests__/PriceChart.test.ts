@@ -31,7 +31,6 @@ const series = (closesIn: number[] = RUN): Record<string, unknown> => ({
     candles: closesIn.map((close, index) => candle(index, close)),
     volume: closesIn.map((_, index) => ({ time: 1_700_000_000 + index * DAY, value: 1_000_000 })),
     overlays: [],
-    intrinsicValue: null,
 });
 
 const profile = (over: Partial<AssetProfile> = {}): AssetProfile =>

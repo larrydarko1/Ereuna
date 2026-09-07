@@ -1,5 +1,5 @@
 /**
- * useTheme — the app's 52 palettes, switched at runtime.
+ * useTheme — the app's six palettes, switched at runtime.
  * Switching is one attribute write: `data-theme` on <html> activates the
  * matching block in `styles/_themes.scss`, and every component that reads a
  * $color-* token follows automatically. No component does any work per switch.

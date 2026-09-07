@@ -7,7 +7,6 @@ import { logout } from '@/api/auth';
 import { apiErrorMessage } from '@/api/client';
 import AuthLayout from '@/components/auth/AuthLayout.vue';
 import PasswordField from '@/components/ui/PasswordField.vue';
-import { notifySuccess } from '@/composables/ui/useNotifications';
 import { allValid, validatePassword, validatePasswordConfirmation } from '@/utils/validation';
 
 const { t } = useI18n();
@@ -33,7 +32,6 @@ async function submit(): Promise<void> {
     pending.value = true;
     try {
         await setPasswordAfterRecovery(next.value);
-        notifySuccess(t('auth.setPassword.done'));
         // Every refresh token is revoked with the new password, so this session
         // is already dead server-side — sign in again with what was just set
         await logout();
@@ -54,6 +52,9 @@ async function submit(): Promise<void> {
             class="set-password"
             novalidate
             @submit.prevent="submit">
+            <!-- The code that got the user here is now spent; this is where they learn it -->
+            <p class="form-hint">{{ t('auth.recoverySpent') }}</p>
+
             <PasswordField
                 v-model="next"
                 :label="t('auth.setPassword.new')"

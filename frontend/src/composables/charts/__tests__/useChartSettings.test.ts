@@ -40,7 +40,7 @@ describe('settings', () => {
     });
 
     it('answers with the stored settings once they are loaded', async () => {
-        const stored: ChartSettings = { ...DEFAULT_CHART_SETTINGS, style: 'line', intrinsicValue: true };
+        const stored: ChartSettings = { ...DEFAULT_CHART_SETTINGS, style: 'line' };
         mock.on('GET /api/preferences', preferences(stored));
 
         await loadPreferences();

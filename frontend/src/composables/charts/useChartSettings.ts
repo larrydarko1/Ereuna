@@ -1,8 +1,8 @@
 /**
  * useChartSettings — how the chart is drawn, as a user preference.
- * Which overlays to average, how a bar is shaped and which corporate actions
- * are flagged belong to the person, not to any one instrument, so they live in
- * `/api/preferences` alongside the theme and the default symbol.
+ * Which overlays to average and how a bar is shaped belong to the person, not
+ * to any one instrument, so they live in `/api/preferences` alongside the theme
+ * and the default symbol.
  * The chart this replaces read them from `/api/:user/indicators`, an endpoint
  * that returned an untyped blob, and wrote them to `/api/chart-settings` — a
  * different shape at a different path, which is why the two drifted: the
@@ -32,8 +32,6 @@ export const DEFAULT_CHART_SETTINGS: ChartSettings = {
         { type: 'SMA', period: 50, visible: true },
         { type: 'SMA', period: 200, visible: true },
     ],
-    intrinsicValue: false,
-    markers: { earnings: true, dividends: true, splits: true },
 };
 
 /** `config.limits.maxIndicatorPeriod` on the API side. */

@@ -7,7 +7,6 @@ import { logout } from '@/api/auth';
 import { apiErrorMessage } from '@/api/client';
 import PasswordField from '@/components/ui/PasswordField.vue';
 import SettingCard from '@/components/user/SettingCard.vue';
-import { notifySuccess } from '@/composables/ui/useNotifications';
 import { allValid, validatePassword, validatePasswordConfirmation } from '@/utils/validation';
 
 const { t } = useI18n();
@@ -34,7 +33,6 @@ async function submit(): Promise<void> {
     pending.value = true;
     try {
         await changePassword(current.value, next.value);
-        notifySuccess(t('user.password.changed'));
         // The API revokes every refresh token on a password change, so this
         // session is already dead server-side. Ending it here means the user
         // signs in again on purpose rather than being bounced mid-click

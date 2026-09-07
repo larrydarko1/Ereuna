@@ -12,9 +12,9 @@ import ThemePicker from '@/components/user/ThemePicker.vue';
 import UsernameForm from '@/components/user/UsernameForm.vue';
 import { useResource } from '@/composables/data/useResource';
 
-type Section = 'account' | 'appearance' | 'security';
+type Section = 'account' | 'security';
 
-const SECTIONS: readonly Section[] = ['account', 'appearance', 'security'];
+const SECTIONS: readonly Section[] = ['account', 'security'];
 
 const { t } = useI18n();
 
@@ -88,14 +88,16 @@ function setTwoFactor(enabled: boolean): void {
             :aria-labelledby="`account-tab-${section}`">
             <template v-if="section === 'account'">
                 <LanguageSetting />
+                <ThemePicker />
                 <UsernameForm
                     :username="account.username"
                     @renamed="adopt" />
                 <PasswordForm />
+
+                <!-- Separated and named, so nothing irreversible sits in the run of ordinary settings -->
+                <h2 class="account__danger-heading">{{ t('user.dangerZone') }}</h2>
                 <DeleteAccount />
             </template>
-
-            <ThemePicker v-else-if="section === 'appearance'" />
 
             <SecurityPanel
                 v-else
@@ -147,5 +149,16 @@ function setTwoFactor(enabled: boolean): void {
 .account__tab--active {
     background: $color-surface;
     color: $color-accent-1;
+}
+
+/* –––––– Danger zone –––––– */
+
+.account__danger-heading {
+    margin: $space-4 0 0;
+    padding-top: $space-4;
+    border-top: $border-width solid $color-elevated;
+    font-size: $font-size-md;
+    font-weight: $font-weight-medium;
+    color: $color-negative;
 }
 </style>

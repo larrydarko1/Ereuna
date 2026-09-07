@@ -3,7 +3,6 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { clearAuth } from '@/api/client';
 import { i18n } from '@/i18n';
 import { mockApi } from '@/__tests__/support/msw';
-import { dismiss, useNotifications } from '@/composables/ui/useNotifications';
 import { DEFAULT_COLUMNS } from '@/constants/screener';
 import Screener from '@/views/Screener.vue';
 
@@ -17,8 +16,6 @@ vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket'))
 const PriceChartStub = { name: 'PriceChart', props: ['symbol', 'profile'], template: '<div class="stub-chart" />' };
 
 const api = mockApi();
-
-const { toasts } = useNotifications();
 
 const screener = (name: string, over: Record<string, unknown> = {}): Record<string, unknown> => ({
     id: name,
@@ -76,19 +73,18 @@ const click = async (element: HTMLElement | undefined): Promise<void> => {
 };
 
 const action = (wrapper: VueWrapper, label: string): HTMLElement => {
-    const node = wrapper.findAll('.screener__action').find((button) => button.text() === label);
+    const node = wrapper.findAll('.toolbar__action').find((button) => button.text() === label);
     if (node === undefined) throw new Error(`no action labelled ${label}`);
     return node.element as HTMLElement;
 };
 
 const mode = (wrapper: VueWrapper, index: number): HTMLElement =>
-    wrapper.findAll('.screener__mode')[index]?.element as HTMLElement;
+    wrapper.findAll('.toolbar__mode')[index]?.element as HTMLElement;
 
 beforeEach(() => {
     clearAuth();
     localStorage.clear();
     document.body.innerHTML = '';
-    for (const toast of [...toasts.value]) dismiss(toast.id);
     api.on('GET /api/preferences', preferences());
     api.on('PATCH /api/preferences', preferences());
     api.on('GET /api/screeners', { items: [screener('Growth'), screener('Value')] });
@@ -119,7 +115,7 @@ describe('Screener', () => {
         const wrapper = await view();
 
         expect(wrapper.findAll('.results-table__row')).toHaveLength(2);
-        expect(wrapper.get('.screener__count').text()).toBe(i18n.global.t('screener.resultsCount', { count: 2 }));
+        expect(wrapper.get('.toolbar__count').text()).toBe(i18n.global.t('screener.resultsCount', { count: 2 }));
     });
 
     it('puts the first match on the chart, so the pane is never empty', async () => {
@@ -179,7 +175,7 @@ describe('Screener', () => {
 
         const wrapper = await view();
 
-        expect(wrapper.get('.screener__empty').text()).toBe(i18n.global.t('screener.noResults'));
+        expect(wrapper.get('.empty-state__title').text()).toBe(i18n.global.t('screener.noResults'));
     });
 
     it('says so differently when it is the hidden list that is empty', async () => {
@@ -187,7 +183,7 @@ describe('Screener', () => {
 
         await click(mode(wrapper, 2));
 
-        expect(wrapper.get('.screener__empty').text()).toBe(i18n.global.t('screener.noHidden'));
+        expect(wrapper.get('.empty-state__title').text()).toBe(i18n.global.t('screener.noHidden'));
     });
 
     it('applies a filter, then reloads both the matches and the screener counts', async () => {
@@ -220,17 +216,16 @@ describe('Screener', () => {
 
         await click(wrapper.get('.results-table__action').element as HTMLElement);
 
-        expect(toasts.value[0]?.message).toBe(i18n.global.t('screener.hideFailed'));
+        expect(wrapper.get('.screener__error[role="alert"]').text()).toBe(i18n.global.t('screener.hideFailed'));
     });
 
-    it('saves the chosen columns and says so', async () => {
+    it('saves the chosen columns', async () => {
         const wrapper = await view();
 
         await click(action(wrapper, i18n.global.t('screener.columnsTitle')));
         await click($('.columns-dialog__button--primary'));
 
         expect(api.calls.find((call) => call.method === 'PATCH')?.body).toHaveProperty('screenerColumns');
-        expect(toasts.value[0]?.message).toBe(i18n.global.t('screener.columnsUpdated'));
         wrapper.unmount();
     });
 
@@ -319,7 +314,7 @@ describe('Screener', () => {
 
         await click(action(wrapper, i18n.global.t('common.download')));
 
-        expect(toasts.value[0]?.message).toBe(i18n.global.t('screener.exportFailed'));
+        expect(wrapper.get('.screener__error[role="alert"]').text()).toBe(i18n.global.t('screener.exportFailed'));
     });
 
     it('walks the selection down the list while autoplay is on, and stops at the end', async () => {

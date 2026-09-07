@@ -31,12 +31,12 @@ describe('the stored layout', () => {
     it('reads order as the array order and hidden as absence', async () => {
         mock.on(
             'GET /api/preferences',
-            preferences({ sections: ['summary', 'news'], summaryFields: ['symbol', 'pe'] }),
+            preferences({ sections: ['summary', 'notes'], summaryFields: ['symbol', 'pe'] }),
         );
 
         await loadPreferences();
 
-        expect(sections.value).toEqual(['summary', 'news']);
+        expect(sections.value).toEqual(['summary', 'notes']);
         expect(summaryFields.value).toEqual(['symbol', 'pe']);
     });
 

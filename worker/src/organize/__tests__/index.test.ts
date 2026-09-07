@@ -60,8 +60,7 @@ vi.mock('@/organize/fundamentals.js', () => ({ updateFundamentals: step('fundame
 vi.mock('@/organize/daily-metrics.js', () => ({ updateDailyMetrics: step('metrics') }));
 vi.mock('@/organize/valuation.js', () => ({ updateValuations: step('valuations') }));
 vi.mock('@/organize/market-stats.js', () => ({ updateMarketStats: step('marketStats') }));
-vi.mock('@/organize/calendar.js', () => ({ updateHolidays: step('holidays'), updateCalendar: step('calendar') }));
-vi.mock('@/organize/news.js', () => ({ updateNews: step('news') }));
+vi.mock('@/organize/holidays.js', () => ({ updateHolidays: step('holidays') }));
 vi.mock('@/organize/prune.js', () => ({ pruneIntraday: step('prune') }));
 
 const { config } = await import('@/lib/config.js');
@@ -85,8 +84,6 @@ const THE_LINE = [
     'valuations',
     'marketStats',
     'holidays',
-    'calendar',
-    'news',
     'prune',
 ];
 
@@ -145,13 +142,13 @@ describe('the nightly line', () => {
 
     it('drops the symbols the delisting scan retired before the steps that follow it', async () => {
         await runOnce();
-        expect(seen.news).toEqual([[{ symbol: 'AAPL' }]]);
+        expect(seen.metrics).toEqual([[{ symbol: 'AAPL' }]]);
     });
 
     it('keeps the whole universe when the delisting scan itself failed', async () => {
         fails.add('delist');
         await runOnce();
-        expect(seen.news).toEqual([[{ symbol: 'AAPL' }, { symbol: 'GONE' }]]);
+        expect(seen.metrics).toEqual([[{ symbol: 'AAPL' }, { symbol: 'GONE' }]]);
     });
 });
 

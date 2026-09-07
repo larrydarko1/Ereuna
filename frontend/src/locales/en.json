@@ -19,8 +19,6 @@
         "export": "Export",
         "import": "Import",
         "download": "Download",
-        "settings": "Settings",
-        "notifications": "Notifications",
         "mainNavigation": "Main navigation",
         "saving": "Saving...",
         "pageOf": "Page {page} of {pages}"
@@ -35,7 +33,6 @@
         "alreadyHaveAccount": "Already have an account?",
         "dontHaveAccount": "Don't have an account?",
         "invalidCredentials": "Invalid credentials",
-        "accountCreated": "Account created successfully",
         "signInTitle": "Sign in",
         "signInSubtitle": "Welcome back.",
         "signUpTitle": "Create an account",
@@ -51,8 +48,6 @@
         "hidePassword": "Hide password",
         "submitting": "Signing in…",
         "creating": "Creating account…",
-        "agreeToTerms": "I agree to the terms of service.",
-        "agreeRequired": "Please accept the terms to continue.",
         "backToSignIn": "Back to sign in",
         "useRecoveryCode": "Use a recovery code",
         "recoverySpent": "That code is now spent. Set a new password from your account settings.",
@@ -61,8 +56,7 @@
             "subtitle": "You signed in with a recovery code. Choose a password before you go on.",
             "new": "New password",
             "confirm": "Confirm password",
-            "submit": "Set password",
-            "done": "Password set. Sign in with it to continue."
+            "submit": "Set password"
         },
         "twoFactorTitle": "Two-factor code",
         "twoFactorHint": "Enter the 6-digit code from your authenticator app.",
@@ -138,37 +132,18 @@
             "title": "Daily Top Movers",
             "topGainers": "Top 10 Gainers",
             "topLosers": "Top 10 Losers"
-        },
-        "valuation": {
-            "title": "Intrinsic Value Analysis",
-            "undervalued": "Top 10 Undervalued",
-            "overvalued": "Top 10 Overvalued",
-            "disclaimer": "Intrinsic values come from a discounted cash flow model run on the last reported financials. They are estimates, not investment advice."
-        },
-        "calendar": {
-            "title": "Market calendar",
-            "date": "Date",
-            "empty": "Nothing scheduled",
-            "earnings": "Earnings",
-            "dividends": "Dividends",
-            "splits": "Split"
-        },
-        "news": {
-            "title": "News"
         }
     },
     "user": {
         "title": "Account",
         "nav": {
             "account": "Account",
-            "appearance": "Appearance",
             "security": "Security"
         },
         "language": {
             "title": "Language",
             "description": "Stored on your account, so it follows you to any device.",
             "label": "Interface language",
-            "changed": "Language updated.",
             "disclaimer": "Everything but English is machine-translated and may read awkwardly."
         },
         "username": {
@@ -177,8 +152,7 @@
             "current": "Signed in as {username}.",
             "new": "New username",
             "sameAsCurrent": "That is already your username.",
-            "submit": "Change username",
-            "changed": "Username updated."
+            "submit": "Change username"
         },
         "password": {
             "title": "Password",
@@ -186,8 +160,7 @@
             "current": "Current password",
             "new": "New password",
             "confirm": "Confirm new password",
-            "submit": "Change password",
-            "changed": "Password updated. Sign in again."
+            "submit": "Change password"
         },
         "delete": {
             "title": "Delete account",
@@ -201,9 +174,10 @@
         },
         "themes": {
             "title": "Theme",
-            "description": "Fifty-two palettes. Your choice is stored on the account.",
+            "description": "Six palettes, three dark and three light. Your choice is stored on the account.",
             "dark": "Dark",
-            "light": "Light"
+            "light": "Light",
+            "label": "Theme"
         },
         "security": {
             "title": "Two-factor authentication",
@@ -212,8 +186,6 @@
             "statusOff": "Two-factor authentication is off.",
             "enable": "Turn on",
             "disable": "Turn off",
-            "enabledNotice": "Two-factor authentication is now on.",
-            "disabledNotice": "Two-factor authentication is now off.",
             "disableTitle": "Turn off two-factor authentication?",
             "disableMessage": "Enter a code from your authenticator to confirm. Your recovery codes are destroyed with it.",
             "code": "Authenticator code",
@@ -237,7 +209,8 @@
                 "copied": "Copied",
                 "done": "I have saved them"
             }
-        }
+        },
+        "dangerZone": "Danger zone"
     },
     "portfolio": {
         "title": "Portfolio",
@@ -331,8 +304,6 @@
         "add": "Add",
         "editTrade": "Edit Trade",
         "deleteTrade": "Delete Trade",
-        "portfolioImportedSuccess": "Portfolio imported successfully!",
-        "portfolioResetSuccess": "Portfolio reset successfully!",
         "settings": "Settings",
         "actions": {
             "buy": "Buy",
@@ -374,7 +345,6 @@
         "hidden": "HIDDEN LIST",
         "eodOnly": "EOD Only",
         "noData": "No data",
-        "intrinsicValueShort": "IV",
         "timeframeLabel": "Timeframe",
         "clearDrawingsBody": "Are you sure you want to clear all drawings for this symbol? This cannot be undone.",
         "timeframes": {
@@ -422,19 +392,12 @@
         "settings": {
             "title": "Edit Chart Settings",
             "style": "Chart Type",
-            "intrinsicValue": "Intrinsic Value",
-            "marker": {
-                "earnings": "Earnings Markers",
-                "dividends": "Dividends Markers",
-                "splits": "Splits Markers"
-            },
             "restoreDefaults": "Reset",
             "saveFailed": "Could not save the layout",
             "overlays": "Moving averages",
             "showOverlay": "Show average {number}",
             "overlayType": "Type of average {number}",
-            "overlayPeriod": "Period of average {number}",
-            "markers": "Markers"
+            "overlayPeriod": "Period of average {number}"
         },
         "replay": {
             "start": "Start Replay Mode",
@@ -536,7 +499,6 @@
         "rsi": "RSI",
         "cagr": "CAGR",
         "cagrYears": "CAGR Years",
-        "intrinsicValue": "Intrinsic Value",
         "fundFamily": "Fund Family",
         "fundCategory": "Fund Category",
         "netExpenseRatio": "Net Expense Ratio",
@@ -583,12 +545,11 @@
         "splitsReported": "Reported",
         "splitsColumn": "Split",
         "noSplitsData": "No splits data available",
-        "noNewsAvailable": "No news available.",
         "created": "Created:",
         "edited": "Edited:",
         "noNotesAvailable": "No notes available.",
         "viewFinancialStatements": "View Financial Statements",
-        "showAll": "Show All",
+        "showAll": "Show all ({count} more)",
         "sections": {
             "summary": "Summary",
             "eps": "EPS Growth Table",
@@ -597,9 +558,9 @@
             "dividends": "Dividend Table",
             "splits": "Split Table",
             "financials": "Financial Statements",
-            "notes": "Notes",
-            "news": "News"
-        }
+            "notes": "Notes"
+        },
+        "showLess": "Show less"
     },
     "panels": {
         "title": "Edit Panel Sections",
@@ -865,7 +826,6 @@
         "resetWarning": "This cannot be undone.",
         "resetConfirm": "Yes, Reset",
         "columnsTitle": "Edit Columns",
-        "columnsUpdated": "Columns updated successfully",
         "columnsFailed": "Failed to update columns",
         "errorNoColumns": "Please select at least one column",
         "hide": "Hide Asset ({symbol})",
@@ -915,7 +875,6 @@
             "ps-ratio": "PS Ratio",
             "pb-ratio": "PB Ratio",
             "enterprise-value": "Enterprise Value (1000s)",
-            "intrinsic-value": "Intrinsic Value",
             "eps": "EPS",
             "eps-qoq": "EPS Growth QoQ (%)",
             "eps-yoy": "EPS Growth YoY (%)",
@@ -1014,7 +973,6 @@
             "enterprise-value": "Enterprise value (EV) is a measure of a company's total value, calculated by adding its market capitalization to its total debt and subtracting its cash and equivalents.",
             "rsi": "The relative strength index (RSI) is a technical indicator that measures a company's stock price momentum, ranging from 0 to 100.",
             "gap-percent": "Gap % is a measure of the percentage change in a stock's price from the previous day's close to the current day's open. It is calculated as (Current Open - Previous Close) / Previous Close. A positive gap % indicates an upward price movement, while a negative gap % indicates a downward price movement.",
-            "intrinsic-value": "Intrinsic Value (IV) estimates a stock's true worth using a Discounted Cash Flow (DCF) model. We calculate IV by: 1. Summing the last 20 quarters of Free Cash Flow (FCF) to get annual FCF for the past 5 years. 2. Calculating the 5-year Compound Annual Growth Rate (CAGR) of FCF. 3. Projecting FCF for the next 5 years using this CAGR. 4. Discounting these projected FCFs to present value at a 10% rate. 5. Adding a terminal value (using the Gordon Growth Model with a 2.5% growth rate) and discounting it. 6. Adding net cash (cash minus debt) from the latest quarter. 7. Dividing the total by shares outstanding to get IV per share. This approach helps assess if a stock is undervalued or overvalued based on its future cash flow potential.",
             "eps-qoq": "This section calculates the growth rate of a company's Revenue, Earnings (Net Income), and Earnings Per Share (EPS) over time. The growth rates are calculated as a percentage change from the previous quarter (QoQ) and from the same quarter in the previous year (YoY).",
             "eps-yoy": "This section calculates the growth rate of a company's Revenue, Earnings (Net Income), and Earnings Per Share (EPS) over time. The growth rates are calculated as a percentage change from the previous quarter (QoQ) and from the same quarter in the previous year (YoY).",
             "earnings-qoq": "This section calculates the growth rate of a company's Revenue, Earnings (Net Income), and Earnings Per Share (EPS) over time. The growth rates are calculated as a percentage change from the previous quarter (QoQ) and from the same quarter in the previous year (YoY).",
@@ -1042,7 +1000,13 @@
             "change-ytd": "Filter stocks by price performance, including: Change %, % off 52-week high/low, New all-time high/low, MA crossovers; Identify trending stocks and potential breakouts.",
             "off-52w-high": "Filter stocks by price performance, including: Change %, % off 52-week high/low, New all-time high/low, MA crossovers; Identify trending stocks and potential breakouts.",
             "off-52w-low": "Filter stocks by price performance, including: Change %, % off 52-week high/low, New all-time high/low, MA crossovers; Identify trending stocks and potential breakouts."
-        }
+        },
+        "hideColumn": "Visibility",
+        "emptyTitle": "No screeners yet",
+        "emptyHint": "A screener is a saved set of filters. Create one to start narrowing the universe.",
+        "createFirst": "Create your first screener",
+        "noResultsHint": "No asset matches every filter. Widen or clear one to see more.",
+        "noHiddenHint": "Hide an asset from the results table and it will be listed here."
     },
     "errors": {
         "VALIDATION_FAILED": "Some of the details you entered aren't valid.",

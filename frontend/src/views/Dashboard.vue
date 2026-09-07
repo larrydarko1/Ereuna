@@ -2,15 +2,12 @@
 import { useI18n } from 'vue-i18n';
 import { getMarketStats } from '@/api/market';
 import BreadthMeters from '@/components/dashboard/BreadthMeters.vue';
-import CalendarPanel from '@/components/dashboard/CalendarPanel.vue';
 import IndexTable from '@/components/dashboard/IndexTable.vue';
 import MaBreadth from '@/components/dashboard/MaBreadth.vue';
 import MarketClock from '@/components/dashboard/MarketClock.vue';
 import MoversPanel from '@/components/dashboard/MoversPanel.vue';
-import NewsFeed from '@/components/dashboard/NewsFeed.vue';
 import OutlookPills from '@/components/dashboard/OutlookPills.vue';
 import TierList from '@/components/dashboard/TierList.vue';
-import ValuationPanel from '@/components/dashboard/ValuationPanel.vue';
 import { useResource } from '@/composables/data/useResource';
 
 const { t } = useI18n();
@@ -72,37 +69,21 @@ const {
                         :gainers="overview.gainers"
                         :losers="overview.losers" />
                 </section>
+            </div>
 
+            <!-- Sector and industry read as one comparison, so they share a row of their own -->
+            <div class="dashboard__grid dashboard__grid--pair">
                 <section class="dashboard__panel">
                     <h2 class="dashboard__title">{{ t('dashboard.sectors.title') }}</h2>
                     <TierList :rows="overview.sectors" />
                 </section>
 
-                <section class="dashboard__panel dashboard__panel--wide">
+                <section class="dashboard__panel">
                     <h2 class="dashboard__title">{{ t('dashboard.industries.title') }}</h2>
                     <TierList :rows="overview.industries" />
                 </section>
-
-                <section class="dashboard__panel dashboard__panel--wide">
-                    <h2 class="dashboard__title">{{ t('dashboard.valuation.title') }}</h2>
-                    <ValuationPanel
-                        :undervalued="overview.undervalued"
-                        :overvalued="overview.overvalued" />
-                    <p class="dashboard__footnote">{{ t('dashboard.valuation.disclaimer') }}</p>
-                </section>
             </div>
         </template>
-
-        <!-- Below the summary: two panels that read on their own schedule -->
-        <section class="dashboard__panel">
-            <h2 class="dashboard__title">{{ t('dashboard.calendar.title') }}</h2>
-            <CalendarPanel />
-        </section>
-
-        <section class="dashboard__panel">
-            <h2 class="dashboard__title">{{ t('dashboard.news.title') }}</h2>
-            <NewsFeed />
-        </section>
     </main>
 </template>
 
@@ -132,6 +113,14 @@ const {
     gap: 1em;
 }
 
+// Two columns exactly, not auto-fit: the pair is a comparison and auto-fit
+// would drop industry onto its own row at any width that fits three panels
+.dashboard__grid--pair {
+    @include above($bp-lg) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 .dashboard__panel {
     padding: 0.9em 1em;
     border: $border-width solid $color-elevated;
@@ -139,20 +128,10 @@ const {
     background: $color-surface;
 }
 
-.dashboard__panel--wide {
-    grid-column: 1 / -1;
-}
-
 .dashboard__title {
     margin: 0 0 0.6em;
     font-size: $font-size-md;
     color: $color-text;
-}
-
-.dashboard__footnote {
-    margin: 0.6em 0 0;
-    font-size: $font-size-xs;
-    color: $color-text-muted;
 }
 
 .dashboard__note {

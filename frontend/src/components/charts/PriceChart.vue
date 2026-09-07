@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { ChartMarkers, ChartTimeframe } from '@ereuna/shared';
-import { CHART_TIMEFRAMES, isIntraday } from '@ereuna/shared';
+import type { ChartTimeframe } from '@ereuna/shared';
+import { CHART_TIMEFRAMES } from '@ereuna/shared';
 import {
     BoxManager,
     ChartRuler,
@@ -14,11 +14,9 @@ import {
     TrendLineManager,
     createChart,
     type IChartApi,
-    type IPriceLine,
     type ISeriesApi,
     type LogicalRange,
     type MouseEventParams,
-    type SeriesMarker,
     type SeriesType,
     type Time,
 } from '@/lib/lightweight-charts';
@@ -26,7 +24,7 @@ import { detectAllPatterns, type PatternMatch } from '@/lib/lightweight-charts/p
 import { PriceLevelManager } from '@/lib/lightweight-charts/price-level';
 import { PatternOverlayManager } from '@/lib/lightweight-charts/pattern-overlay';
 import type { ScreenshotConfig } from '@/lib/lightweight-charts/screenshot';
-import type { AssetProfile, ChartEvents } from '@/api/chart';
+import type { AssetProfile } from '@/api/chart';
 import ChartLegend from '@/components/charts/ChartLegend.vue';
 import ChartReplayBar from '@/components/charts/ChartReplayBar.vue';
 import ChartSettingsDialog from '@/components/charts/ChartSettingsDialog.vue';
@@ -45,7 +43,6 @@ import { useChartTheme, withAlpha } from '@/composables/charts/useChartTheme';
 import { useLiveCandle } from '@/composables/charts/useLiveCandle';
 import { useMarketStatus } from '@/composables/charts/useMarketStatus';
 import { usePreferences } from '@/composables/data/usePreferences';
-import { useNotifications } from '@/composables/ui/useNotifications';
 import {
     EOD_TIMEFRAMES,
     MIN_PATTERN_BARS,
@@ -59,14 +56,9 @@ import {
 import { closes, heikinAshi, relativeVolume } from '@/utils/candles';
 import { timeToIsoDate, timeValue } from '@/utils/chartTime';
 
-const {
-    symbol,
-    profile = null,
-    events = null,
-} = defineProps<{
+const { symbol, profile = null } = defineProps<{
     symbol: string;
     profile?: AssetProfile | null;
-    events?: ChartEvents | null;
 }>();
 
 /** The screenshot manager finds the canvas layers by the container's id. */
@@ -75,13 +67,12 @@ const CANVAS_ID = 'price-chart-canvas';
 const overlaySeries: ISeriesApi<'Line'>[] = [];
 
 const { t } = useI18n();
-const { notify } = useNotifications();
 const { palette } = useChartTheme();
 const { settings } = useChartSettings();
 const { preferences } = usePreferences();
 
 const timeframe = ref<ChartTimeframe>('daily');
-const series = useChartSeries(() => ({ symbol, timeframe: timeframe.value }));
+const series = useChartSeries(() => ({ symbol, timeframe: timeframe.value, overlays: overlaySignature() }));
 const replay = useChartReplay(series.bars, series.volume, series.overlays);
 const drawings = useChartDrawings();
 const market = useMarketStatus(() => profile?.exchange === 'CRYPTO');
@@ -103,6 +94,9 @@ const container = useTemplateRef<HTMLElement>('container');
 const tool = ref<ChartTool | null>(null);
 const crosshairIndex = ref<number | null>(null);
 const detectedPatterns = ref<PatternMatch[]>([]);
+
+/** Set instead of a pattern list when the visible window is too short to scan. */
+const patternNotice = ref<string | null>(null);
 const patternsShown = ref(false);
 const dialog = ref<'settings' | 'patterns' | 'signals' | 'screenshot' | 'replay' | 'clear' | null>(null);
 
@@ -113,7 +107,6 @@ const dialog = ref<'settings' | 'patterns' | 'signals' | 'screenshot' | 'replay'
 let chart: IChartApi | null = null;
 let mainSeries: ISeriesApi<SeriesType> | null = null;
 let volumeSeries: ISeriesApi<'Histogram'> | null = null;
-let intrinsicLine: IPriceLine | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let screenshotManager: ChartScreenshot | null = null;
 let patternOverlay: PatternOverlayManager | null = null;
@@ -220,10 +213,7 @@ function chartOptions(): Parameters<IChartApi['applyOptions']>[0] {
  */
 function buildMainSeries(): void {
     if (chart === null) return;
-    if (mainSeries !== null) {
-        chart.removeSeries(mainSeries);
-        intrinsicLine = null;
-    }
+    if (mainSeries !== null) chart.removeSeries(mainSeries);
     // A new series holds no data, so the next apply has to be a full one.
     applied = null;
 
@@ -269,7 +259,6 @@ function buildMainSeries(): void {
     }
 
     applyBars();
-    applyIntrinsicLine();
     rebuildManagers();
 }
 
@@ -292,7 +281,6 @@ function applyBars(): void {
     }
 
     applied = last === undefined ? null : { length: bars.length, last: timeValue(last.time) };
-    applyMarkers();
 
     // Price levels are absolutely-positioned DOM, not canvas: they only know
     // where to sit once the series they are priced against has been drawn.
@@ -338,85 +326,23 @@ function syncOverlays(): void {
     });
 }
 
+/**
+ * The overlay set as one comparable string.
+ * The API computes the averages from the stored preference, so this is not sent
+ * anywhere — it exists so the series key changes when the user edits them and
+ * the window is re-read with the new lines on it.
+ */
+function overlaySignature(): string {
+    return settings.value.indicators
+        .filter((indicator) => indicator.visible)
+        .map((indicator) => `${indicator.type}${indicator.period}`)
+        .join(',');
+}
+
 function averageClose(): number {
     const bars = series.bars.value;
     if (bars.length === 0) return 0;
     return bars.reduce((total, bar) => total + bar.close, 0) / bars.length;
-}
-
-/**
- * The intrinsic-value line, when the user asked for one and the asset has one.
- * The API only sends the value when the setting is on, so an absent value here
- * means either answer and both draw nothing.
- */
-function applyIntrinsicLine(): void {
-    if (mainSeries === null) return;
-    if (intrinsicLine !== null) {
-        mainSeries.removePriceLine(intrinsicLine);
-        intrinsicLine = null;
-    }
-
-    const value = series.intrinsicValue.value;
-    if (value === null) return;
-
-    intrinsicLine = mainSeries.createPriceLine({
-        price: value,
-        color: palette.value.border,
-        lineWidth: 2,
-        lineStyle: 2,
-        axisLabelVisible: true,
-        title: t('charts.intrinsicValueShort'),
-    });
-}
-
-// Markers
-
-/**
- * Corporate actions on the time axis.
- * Markers are attached to the volume series rather than to the price series so
- * a style change does not drop them, and anything dated before the listing is
- * discarded — the reference data carries dividend histories that predate an
- * asset's own IPO, and a marker with no bar under it renders at the left edge.
- */
-function applyMarkers(): void {
-    if (volumeSeries === null) return;
-
-    // Corporate actions are dated to a day. An intraday series is keyed to the
-    // second, so there is no bar for "2024-03-15" to attach a marker to, and
-    // asking for one places nothing. Day-level markers belong on day-level bars.
-    if (isIntraday(timeframe.value)) {
-        volumeSeries.setMarkers([]);
-        return;
-    }
-
-    const { earnings, dividends, splits } = settings.value.markers;
-    const listed = profile?.ipo ?? null;
-    const colors = palette.value;
-    const markers: SeriesMarker<Time>[] = [];
-
-    const add = (date: string | undefined, color: string, text: string): void => {
-        const day = date?.slice(0, 10);
-        if (day === undefined || day === '' || (listed !== null && day < listed)) return;
-        markers.push({
-            time: day,
-            position: 'aboveBar',
-            shape: 'circle',
-            size: 1,
-            color,
-            text,
-            id: `${text}-${day}`,
-            // `originalTime` is how the renderer maps a marker back to the bar
-            // it was given; for a business day that is the same string.
-            originalTime: day,
-        });
-    };
-
-    if (earnings) for (const date of events?.earnings ?? []) add(date, colors.accent, 'E');
-    if (dividends) for (const action of events?.dividends ?? []) add(action.date, colors.dividend, 'D');
-    if (splits) for (const action of events?.splits ?? []) add(action.date, colors.split, 'S');
-
-    markers.sort((a, b) => timeValue(a.time) - timeValue(b.time));
-    volumeSeries.setMarkers(markers);
 }
 
 // Drawing tools
@@ -504,10 +430,13 @@ function togglePatterns(): void {
 
     const bars = replay.visibleBars.value;
     if (bars.length < MIN_PATTERN_BARS) {
-        notify(t('charts.patterns.tooFewBars', { count: MIN_PATTERN_BARS }), 'info');
+        patternNotice.value = t('charts.patterns.tooFewBars', { count: MIN_PATTERN_BARS });
+        detectedPatterns.value = [];
+        dialog.value = 'patterns';
         return;
     }
 
+    patternNotice.value = null;
     detectedPatterns.value = detectAllPatterns(
         bars.map((bar) => ({
             time: new Date(`${timeToIsoDate(bar.time)}T00:00:00Z`).getTime() / 1000,
@@ -531,6 +460,7 @@ function togglePatterns(): void {
 function clearPatterns(): void {
     patternOverlay?.clearPatterns();
     detectedPatterns.value = [];
+    patternNotice.value = null;
     patternsShown.value = false;
 }
 
@@ -681,16 +611,12 @@ watch(() => settings.value.style, buildMainSeries);
 watch(shapedBars, applyBars);
 watch(replay.visibleVolume, applyVolume);
 watch([(): readonly OverlaySeries[] => series.overlays.value, replay.visibleOverlays], syncOverlays);
-watch(series.intrinsicValue, applyIntrinsicLine);
 watch(
     () => live.candle.value,
     (candle) => {
         if (candle !== null) series.applyLive(candle);
     },
 );
-watch([(): ChartEvents | null => events, (): ChartMarkers => settings.value.markers, timeframe], applyMarkers, {
-    deep: true,
-});
 watch(tool, applyTool);
 
 // A different chart is a different set of annotations. What is on screen
@@ -800,6 +726,7 @@ watch(isEodOnly, (eodOnly) => {
             v-else-if="dialog === 'patterns'"
             :symbol="symbol"
             :patterns="detectedPatterns"
+            :notice="patternNotice"
             @close="dialog = null" />
 
         <SignalsDialog

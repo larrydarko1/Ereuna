@@ -10,7 +10,6 @@ import type { AssetInfoDoc } from '@ereuna/shared';
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
 import type { Statement } from '@/organize/fundamentals.js';
-import { intrinsicValue } from '@/organize/intrinsic-value.js';
 import { setOn, writeAssetInfo } from '@/organize/write.js';
 import { numeric, round } from '@/utils/indicators.js';
 
@@ -62,13 +61,6 @@ function valuationFor(doc: AssetInfoDoc, now: Date): Record<string, unknown> {
         PEGRatio: pegRatio(price, quarterly),
         EV: enterpriseValue(marketCap, latest),
         DividendYield: dividendYield(doc, price, now),
-        IntrinsicValue: intrinsicValue({
-            quarterly,
-            sharesOutstanding: shares,
-            splits: Array.isArray(doc.splits) ? doc.splits : [],
-            price,
-            now,
-        }),
     };
 }
 

@@ -2,7 +2,6 @@
 import { useI18n } from 'vue-i18n';
 import SettingCard from '@/components/user/SettingCard.vue';
 import { changeLocale, isSupportedLocale, SUPPORTED_LOCALES } from '@/i18n';
-import { notifySuccess } from '@/composables/ui/useNotifications';
 
 const { t, locale } = useI18n();
 
@@ -10,7 +9,6 @@ async function select(event: Event): Promise<void> {
     const value = (event.target as HTMLSelectElement).value;
     if (!isSupportedLocale(value)) return;
     await changeLocale(value);
-    notifySuccess(t('user.language.changed'));
 }
 </script>
 
@@ -21,7 +19,6 @@ async function select(event: Event): Promise<void> {
         <label class="form-field">
             <span class="form-label">{{ t('user.language.label') }}</span>
             <select
-                class="form-input"
                 :value="locale"
                 @change="select">
                 <option

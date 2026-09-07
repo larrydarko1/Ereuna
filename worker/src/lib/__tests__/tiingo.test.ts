@@ -7,7 +7,7 @@ vi.mock('@/lib/logger.js', () => ({
 }));
 
 const { config } = await import('@/lib/config.js');
-const { dailyHistory, marketPrices, news, statements } = await import('@/lib/tiingo.js');
+const { dailyHistory, marketPrices, statements } = await import('@/lib/tiingo.js');
 
 const BASE = config.tiingo.baseUrl;
 
@@ -66,15 +66,6 @@ describe('the endpoints', () => {
         server.use(http.get(`${BASE}/tiingo/fundamentals/:symbol/statements`, () => HttpResponse.json([])));
         await statements('AAPL');
         expect(lastUrl().pathname).toBe('/tiingo/fundamentals/AAPL/statements');
-    });
-
-    it('asks for headlines by a lower-cased comma-joined ticker list', async () => {
-        server.use(http.get(`${BASE}/tiingo/news`, () => HttpResponse.json([])));
-        await news(['AAPL', 'MSFT'], 100);
-
-        const url = lastUrl();
-        expect(url.searchParams.get('tickers')).toBe('aapl,msft');
-        expect(url.searchParams.get('limit')).toBe('100');
     });
 });
 

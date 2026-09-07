@@ -18,7 +18,6 @@ type Row = {
     marketCap: number | null;
     todayChange: number | null;
     quarterChange: number | null;
-    intrinsicValue: number | null;
     week52High: number | null;
     week52Low: number | null;
     movingAverages: Map<number, number | null>;
@@ -70,8 +69,6 @@ export async function updateMarketStats(): Promise<void> {
         indexPerformance: indexPerformance(priced),
         top10DailyGainers: movers(priced, 'desc'),
         top10DailyLosers: movers(priced, 'asc'),
-        top10Undervalued: valuations(priced, 'desc'),
-        top10Overvalued: valuations(priced, 'asc'),
         updatedAt: latestBar(rows) ?? undefined,
     };
 
@@ -93,7 +90,6 @@ async function load(): Promise<Row[]> {
                     'Sector': 1,
                     'Industry': 1,
                     'MarketCapitalization': 1,
-                    'IntrinsicValue': 1,
                     'TimeSeries.close': 1,
                     'todaychange': 1,
                     'quarterchange': 1,
@@ -126,7 +122,6 @@ function toRow(doc: AssetInfoDoc): Row {
         marketCap: numeric(doc.MarketCapitalization),
         todayChange: numeric(doc.todaychange),
         quarterChange: numeric(doc.quarterchange),
-        intrinsicValue: numeric(doc.IntrinsicValue),
         week52High: numeric(doc.fiftytwoWeekHigh),
         week52Low: numeric(doc.fiftytwoWeekLow),
         movingAverages: new Map(MA_PERIODS.map((period) => [period, numeric(doc[`MA${period}`])])),
@@ -313,26 +308,6 @@ function movers(rows: readonly Row[], direction: 'asc' | 'desc'): Record<string,
     return sortBy(eligible, (row) => row.todayChange ?? 0, direction)
         .slice(0, MOVERS)
         .map((row) => ({ symbol: row.symbol, daily_return: round((row.todayChange ?? 0) * 100, 2) }));
-}
-
-/** The widest gaps between the discounted-cash-flow value and the traded price. */
-function valuations(rows: readonly Row[], direction: 'asc' | 'desc'): Record<string, unknown>[] {
-    const eligible = rows.filter(
-        (row) =>
-            row.assetType === 'Stock' &&
-            PRIMARY_EXCHANGES.includes(row.exchange) &&
-            row.intrinsicValue !== null &&
-            row.intrinsicValue > 0 &&
-            (row.close ?? 0) > 0,
-    );
-
-    return sortBy(eligible, (row) => (row.intrinsicValue ?? 0) / (row.close ?? 1) - 1, direction)
-        .slice(0, MOVERS)
-        .map((row) => ({
-            symbol: row.symbol,
-            current_price: round(row.close, 2),
-            intrinsic_value: round(row.intrinsicValue, 2),
-        }));
 }
 
 /**
