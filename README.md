@@ -9,53 +9,134 @@
 
 </div>
 
----
-
 ![Ereuna Demo](frontend/public/heroAnimation.gif)
 
-Ereuna was my first project—I learned how to code using it. It took me months of refactoring and learning to pull it off. Even though the startup project eventually didn't go as planned, I don't regret spending so much time on it, because it allowed me to grow as a developer and I've built something I need.
+---
 
-The application itself is designed to aggregate financial markets data using aggregation methods that when used correctly, can save up to 80% of time in the screening routine. At its peak it **supported 60k+ financial instruments** between Stock, ETF, Mutual Funds and Crypto, database contained around **450M documents**, and the websocket infrastructure used to process between **10-20M messages every day**. Deployment was done using a single VPS running multiple docker containers using docker compose and Traefik as reverse proxy. I wanted to develop it further using Kubernetes (multi node cluster) and implementing a CI/CD Pipeline, but unfortunately I didn't have the chance.
+## Current status — read this first
 
-In production it held 14 containers unified in a network (the deployment architecture diagram is shown below).
+**This repository is mid-rewrite and is not production-ready. Don't deploy it.**
 
-**Core Features:**
+Ereuna was my first project — I learned to code by building it. It ran in production
+for a startup that didn't work out, and at its peak it was a real system: 60k+
+instruments, ~450M documents, 10–20M websocket messages a day, 14 containers on a
+single VPS behind Traefik.
 
-- **Dashboard** - Market outlook general overview
-- **Account Settings** - Basic CRUD, Recovery Code, Security / 2FA, 50 custom themes, support for 18 languages
-- **Portfolio Simulations** - Support for 10 different portfolios, benchmarks and performance tracking, simulation for cash deposits, withdraws, long and short positions, fractional shares and leverage up to 10x, with CRUD functionalities for each, retroactive balancing (meaning portfolio automatically rebuilds itself after edit)
-- **Charts** - Fork of Lightweight Charts by TradingView, Watchlists / Watchpanel, simple fundamental data for in depth analysis
-- **Screener** - 40+ filters, 2 mini charts and customizable tables + Multi screener and hidden list
+It was also badly engineered, in the specific way a first project is badly engineered:
+logic in the wrong layer, no consistent error contract, business rules computed in the
+browser, a Python service doing a job that had no reason to be a separate language.
+It worked, and I could no longer defend how it worked.
 
-In-depth documentation with visual tutorials is available at `/Documentation` once the app is running.
+So I'm rewriting it, domain by domain, against a written standard I wrote first. That
+rewrite is what you're looking at. As of **2026-09-07**, batches 1–8b are done —
+foundation, auth and app shell, charts, screener, portfolio, frontend restructuring,
+and the realtime services rebuilt in Node.
 
-## Tech Stack
+### What that means for anyone reading the code
 
-**MEVN + Python Microservices**
+- **The app does not currently work end to end.** I know of open bugs and I'm working
+  through them in order. Fixes land as batches, not as one big-bang restoration.
+- **The live market-data path is unverified.** The ingestor holds one socket to the
+  vendor's trade feed and the worker buckets that stream into candles. Neither can be
+  meaningfully tested for time constraints, so both are written but not yet proven
+  against real traffic as the previous implementation.
+- **There is no infrastructure in this repo.** No Dockerfiles, no compose, no Traefik,
+  no Prometheus/Grafana/Loki. That was all deliberately dropped from scope. Infra isn't
+  where my strength is, rebuilding it correctly would cost more time than the rewrite
+  itself, and a portfolio repo doesn't need to be deployable to be readable. The
+  production stack described in older versions of this file was real — it just isn't
+  what this repository is anymore.
+- **Test coverage is high, and you should discount it accordingly.** See the note below.
 
-- **Frontend:** Vue.js 3 + TypeScript + Vite
-- **Backend API:** Node.js + Express + TypeScript
-- **Database:** MongoDB (450M+ documents at peak)
-- **Cache & Streaming:** Redis (pub/sub, caching, data streaming)
-- **Microservices:** Python + FastAPI (WebSocket server, data ingestor, aggregator)
-- **Infrastructure:** Docker + Docker Compose + Traefik
-- **Monitoring:** Prometheus + Grafana + Loki + Promtail
+The banner and demo GIF above are from the pre-rewrite version, and show features that
+have since been cut or are being rebuilt.
 
-# Why I Built It
+## How this was built
 
-To speed up and optimize my weekly screening routine.
+This rewrite is AI-assisted, and I'd rather say so than let you guess from the commit
+velocity.
 
-### The Problem
+I did not hand-type 65,000 lines in a week, and nobody should claim they did. What I
+wrote is the layer above the code:
 
-Before this project, I was running multiple screeners sequentially, because if I applied too many filters on a single screener, it would've cut out opportunities because it didn't check all the boxes (my strategy is running more screeners with less filters and then look for overlaps—the more duplicated values, the stronger the signal, assuming the filters are strong and the strategies are aligned of course, this was my case).
+- **The standard.** A written spec covering git, TypeScript, Vue, SCSS, HTML, i18n, API
+  design, database, env, websockets, error handling, testing and refactoring — authored
+  before the rewrite started, and held against a reference implementation so that
+  "how should this look" always has an answer.
+- **The architecture and its rationale.** Every non-obvious decision in this codebase is
+  recorded with the reason it was made. Why the gateway has deliberately _no_ Redis
+  adapter. Why the candle index is ascending when every read is newest-first. Why the
+  ingestor and the aggregate role are singletons and cannot be `worker_threads` inside
+  the API. Why migrations are forward-only and never touch indexes. Those are judgment
+  calls, and they're mine.
+- **The enforcement layer.** Seventeen custom gates in [`scripts/checks/`](scripts/checks/),
+  each one written because of a specific failure that's invisible in a diff — a locale
+  missing a key renders its own dotted path; a theme missing a token is an invisible
+  element in that theme only. Each gate's header states which failure it exists for and
+  what it deliberately does _not_ check. They run together as `npm run ci:check`
+  alongside ESLint, Prettier, stylelint, typecheck and the test suites.
 
-The problem with this approach was:
+That's the difference I'd point at. Vibe coding is accepting output with no spec and no
+verification. Here the spec and the verification came first, and the generated code has
+to survive them.
 
-- **Time consuming** - Running screeners sequentially and checking for overlaps manually across multiple lists was inefficient
-- **Human error** - Some things were easily missed when comparing results manually
-- **Noise** - I was stuck seeing irrelevant results I didn't care about even though it technically passed my criteria (example: I don't care about small pharmaceutical companies, or meme coins, etc.)
+**On the test numbers:** unit coverage sits around 96% of lines with ~250 test files and
+11 Playwright end-to-end specs. Treat that as evidence the suite exists and passes, not
+as evidence the code is correct — tests generated alongside the code, from the same
+spec, can encode the same misunderstanding the code does. I've reviewed a portion of it
+by hand; reviewing all of it properly is months of work, and I've had days. The gates
+catch structural drift. They don't catch a wrong idea, faithfully implemented and
+faithfully tested.
 
-**Old Workflow:**
+That's the honest limit of what this repo currently proves, and I'd rather state it than
+have you find it.
+
+---
+
+## What it does
+
+A market research app: screener, charts, portfolio simulation, market data.
+
+- **Dashboard** — market outlook overview
+- **Screener** — 40+ filters, mini charts, customizable tables, multi-screener with
+  overlap detection, per-user hidden list
+- **Charts** — a forked and extended build of TradingView's Lightweight Charts (v4, when i started the original project),
+  watchlists, fundamentals panels
+- **Portfolio simulation** — up to 10 portfolios, benchmarks, cash deposits and
+  withdrawals, long and short positions, fractional shares, leverage to 10x, full CRUD
+  on every trade
+- **Account** — CRUD, recovery codes, 2FA, 6 themes (3 dark, 3 light), 18 languages
+
+The portfolio is **event-sourced**: the trade log is the only thing stored, and cash,
+positions, value history and every statistic are replayed server-side after each write.
+Nothing is incremented in place, which is what makes editing or deleting a trade safe.
+No portfolio number is ever computed in the browser.
+
+## Tech stack
+
+**TypeScript end to end.** There is no Python in this repository — the two services that
+used to be FastAPI are now Node workspaces.
+
+- **Frontend** — Vue 3.5 (`<script setup>`), TypeScript, Vite, vue-i18n, SCSS. No Pinia;
+  state lives in composables grouped by domain.
+- **API** — Node.js, Express, Zod, MongoDB, Socket.IO
+- **Worker** — Node.js; realtime candle aggregation and the nightly batch, split by role
+- **Ingestor** — Node.js; a single socket to the vendor's trade feed
+- **Shared** — `@ereuna/shared`, consumed as TypeScript source by every workspace
+- **Data** — MongoDB (time series collections for candles), Redis (streams + pub/sub)
+- **Market data** — Tiingo
+
+Requires **Node >= 24**.
+
+## Why I built it
+
+To speed up my weekly screening routine.
+
+My strategy is running several screeners with few filters each and looking for overlaps —
+the more a symbol repeats, the stronger the signal. Running them one at a time and
+comparing lists by hand was slow, error-prone, and full of results I didn't care about.
+
+**Before:**
 
 ```
 Screener 1 → Results A (200 stocks)
@@ -64,14 +145,10 @@ Screener 3 → Results C (150 stocks)  } Look for overlaps
 Screener 4 → Results D (220 stocks)  } Human error prone
               ↓
       Final list (maybe 30-40 stocks)
-      Time: Hours of work
+      Time: hours
 ```
 
-### The Solution
-
-With the new workflow, I'm simply selecting screeners, pressing a button, and the system runs them simultaneously. I get a compacted unified list of results, with duplicates automatically sorted from most duplicated to least duplicated, strongest signals on top.
-
-**New Workflow:**
+**After:**
 
 ```
 Screener 1 + 2 + 3 + 4 → [Multi-Screener Engine]
@@ -82,409 +159,208 @@ Screener 1 + 2 + 3 + 4 → [Multi-Screener Engine]
                               ↓
                     Final list (30-40 stocks)
                     Strongest signals first
-                    Time: Minutes
+                    Time: minutes
 ```
 
-**Key Benefits:**
+Each user can hide assets they never want to see — meme coins, zombie penny stocks —
+and they stop appearing in query results. They're still reachable in the Charts section,
+which reminds you they're hidden.
 
-- **80% time reduction** - From hours to minutes (1/5 of the original time)
-- **Smart filtering** - Duplicate detection automatically identifies strongest signals
-- **No manual errors** - Automated overlap detection eliminates human mistakes
+## Running it locally
 
-Each user gets to customize visibility of certain assets. Don't want to see meme coins or penny stocks for zombie companies? Just hide them from your profile and they won't appear on query results unless you manually reinsert them again. You can still research them in the Charts section (it will remind you that they are in your hidden list), but they won't appear in query results in the screener.
-
-# How to use it
-
-There are three ways of running this project, in all cases you need:
-
-- MongoDB installed
-- Redis (optional on local machine)
-- Docker Engine (optional, if you want to run locally)
-
-## Local Development
-
-For local development (how I run it most of the time), simply spin up the frontend:
+You need MongoDB and Redis running, and a Tiingo API key if you want the market-data
+services to do anything.
 
 ```bash
+npm install
+
+# frontend (:3500) + api (:5500) together
 npm run dev
 ```
 
-And the backend (rest api):
+The other processes run on their own, because none of them can be folded into another:
 
 ```bash
-npm run backend
+npm run ingestor          # vendor trade feed → Redis stream
+npm run worker            # both roles (default for local work)
+npm run worker:aggregate  # realtime bucketing only
+npm run worker:organize   # nightly batch only
 ```
 
-Make sure the database is available, then go to localhost:3500. Websocket won't work with this method.
-
-## Docker (Development Build)
-
-You can try building using docker, make sure to type:
+Database:
 
 ```bash
-npm run dbup
+npm run db:migrate         # forward-only migrations
+npm run db:migrate:status
 ```
 
-So that it dumps all collections into the proper folder db/dump, for the mongodb container to restore later.
+### Environment
 
-Then type:
+Most infra values have working local defaults, so a fresh clone starts with very little.
+Two secrets have no default and will kill the process at boot if missing:
 
 ```bash
-npm run docker:dev
+JWT_SECRET=            # 32+ characters
+TOTP_ENCRYPTION_KEY=   # 64 hex characters (AES-256-GCM key for TOTP secrets at rest)
+TIINGO_KEY=            # required by the ingestor and the worker
 ```
 
-This will provide a local Docker version of the full app, including WebSocket and all the other containers. Note that you need a Tiingo premium API key to update new data and access the real-time data feed.
+Optional overrides: `MONGO_URI`, `MONGO_DB`, `REDIS_HOST`, `REDIS_PORT`, `PORT`,
+`CORS_ORIGIN`, `LOG_LEVEL`, `WORKER_ROLE`. In production the schema rejects any value
+that's still a recognisable dev placeholder, rather than quietly booting with it.
 
-**Important notes:**
-
-- As of today, only crypto allows for intraday volume data / FULL TOPS. I didn't have the time to code an ingestor for crypto; only IEX data is currently available.
-- Since February 2025, IEX changed rules and to have access to FULL TOPS Data you need a deal directly with them. I couldn't afford to pay an extra $500/month, so I used Tiingo reference price using their infrastructure (no intraday volume).
-
-About the WebSocket, without a solid infrastructure, there are probably memory leaks when it uploads intraday data into the database. I've never had issues with daily or weekly data updates though in weeks of testing.
-
-**CAREFUL:** Tiingo Websocket infrastructure seems to have a weird issue where if there's an outage, it can create a dangling subscription that drains your monthly bandwidth, and you can't close it on your end. Make sure you have a solid internet connection and contact Tiingo support if you encounter issues.
-
-- Running messages from 8000+ stock symbols can drain at least 1GB every work day
-- If it resets many times, a standard account with 40GB will certainly encounter issues
-- **Use at your own risk.** I couldn't fix it, but since the VPS had a solid connection and redistribution plan had plently of bandwidth, I've never had that issue in production.
-
-## Docker (Production Build)
-
-Simply setup your VPS node, transfer the project folder (make sure you have db dump filled with database data), then configure your environment variables properly.
-
-**Required Environment Variables:**
-
-Create a `.env` file in the root directory with:
-
-```bash
-MONGODB_URI=mongodb://localhost:27017/
-TIINGO_KEY=your_tiingo_premium_key_here
-VITE_EREUNA_KEY=frontend_key_for_validation_here
-GF_SECURITY_ADMIN_PASSWORD=grafana_password_here
-CLOUDFLARE_EMAIL=email@example.com
-CF_DNS_API_TOKEN=your_key_here
-
-```
-
-**Cloudflare Setup for SSL/TLS:**
-
-1. Point your domain DNS to your server IP in Cloudflare
-2. Get your Cloudflare API token (needs Zone:Read and DNS:Edit permissions)
-3. Create a `.env` file with your Cloudflare credentials for Traefik to use:
-
-```
-CLOUDFLARE_EMAIL=your@email.com
-CLOUDFLARE_API_TOKEN=your_api_token_here
-```
-
-4. Make sure your `docker/traefik.yml` is configured with your domain and Cloudflare as the certificate resolver (it should be already if you're using my config, but double check the acme email and domain settings match yours)
-
-5. Ensure ports 80 and 443 are open on your server firewall
-
-Then build the project:
-
-```bash
-npm run docker:prod
-```
-
-If done right, the services will spin up behind Traefik and be accessible through your domain. Traefik will automatically handle the SSL/TLS certificates via Let's Encrypt using Cloudflare's DNS challenge, so you don't need to worry about certificate renewal, it's automatic. The certificates get stored in `docker/acme.json` (don't delete this file or you'll have to regenerate certificates).
-
-First startup will take a few minutes while containers initialize and MongoDB restores the database dump. You can monitor the logs to see what's happening:
-
-```bash
-docker-compose -f docker/docker-compose.prod.yml logs -f
-```
-
-Once everything is up, your app should be accessible at your domain, and Grafana monitoring at your monitoring subdomain (if configured).
-
-# Architecture
+## Architecture
 
 ```
 Ereuna/                              # npm workspaces monorepo
-├── packages/
-│   └── shared/                      # @ereuna/shared — cross-workspace contracts
-│       └── src/index.ts
+├── packages/shared/                 # @ereuna/shared — cross-workspace contracts
+│   └── src/
+│       ├── config/env.ts            # shared Zod env fragments
+│       ├── db/indexes.ts            # the ONE place a collection or index is declared
+│       └── market/realtime.ts       # every Redis key and channel name
 │
-├── frontend/                        # Vue 3 single-page app (workspace)
-│   ├── public/                      # Public static files
-│   │   ├── Basic/                   # Basic asset data
-│   │   ├── CRYPTO/                  # Crypto listings
-│   │   ├── NASDAQ/                  # NASDAQ listings
-│   │   ├── NYSE/                    # NYSE listings
-│   │   ├── NMFQS/                   # Mutual fund listings
-│   │   ├── docs/                    # Documentation files
-│   │   ├── robots.txt               # SEO configuration
-│   │   └── sitemap.xml              # Sitemap
-│   ├── src/
-│   │   ├── assets/                  # Icons & images
-│   │   ├── components/              # blog, charts, Docs, Portfolio,
-│   │   │                            #   Screener, sidebar, User
-│   │   ├── composables/             # Vue composables
-│   │   ├── config/                  # Frontend configuration
-│   │   ├── constants/               # Constants & enums
-│   │   ├── i18n/locales/            # Translation files
-│   │   ├── lib/lightweight-charts/  # Forked TradingView Lightweight Charts
-│   │   ├── router/                  # Vue Router configuration
-│   │   ├── store/                   # Pinia state management
-│   │   ├── types/                   # TypeScript type definitions
-│   │   ├── views/                   # Page components
-│   │   ├── App.vue                  # Root component
-│   │   ├── main.ts                  # Application entry point
-│   │   └── style.scss               # Global styles
-│   ├── index.html                   # HTML entry point
-│   ├── vite.config.ts               # Vite build configuration
-│   └── tsconfig*.json               # app / node project references
+├── frontend/                        # Vue 3 SPA
+│   └── src/
+│       ├── api/                     # typed HTTP clients
+│       ├── components/              # auth, charts, dashboard, portfolio,
+│       │                            #   screener, ui, user, viz
+│       ├── composables/             # domain state (no Pinia)
+│       ├── constants/               # enums, icon path registry
+│       ├── lib/lightweight-charts/  # frozen vendored TradingView fork
+│       ├── locales/                 # 18 locales, every key in every file
+│       ├── router/  styles/  types/  utils/  views/
 │
-├── api/                             # Node.js/TypeScript REST API (workspace)
-│   ├── src/
-│   │   ├── routes/                  # Charts, Dashboard, Maintenance, Notes,
-│   │   │                            #   Portfolio, Screener, Users, Watchlists
-│   │   ├── utils/                   # cache, config, dividends, logger,
-│   │   │                            #   portfolioStats, priceVolumeUtils,
-│   │   │                            #   validationUtils
-│   │   └── index.ts                 # Express server entry point
-│   └── tsconfig.json
+├── api/                             # Express REST + Socket.IO
+│   └── src/
+│       ├── routes/                  # validate and delegate
+│       ├── services/                # business logic
+│       ├── gateway/                 # Socket.IO, on the API's own HTTP server
+│       ├── lib/                     # one external concern each
+│       ├── middleware/              # auth, error handler
+│       └── utils/                   # pure
 │
-├── aggregator/                      # Python aggregation service (workspace)
-│   ├── aggregator.py                # Real-time candle aggregator
-│   ├── app.py                       # FastAPI application
-│   ├── delist.py                    # Delisting scanner
-│   ├── helper.py                    # Maintenance utilities
-│   ├── ipo.py                       # New ticker onboarding
-│   ├── organizer.py                 # Daily data orchestrator
-│   ├── signal_analyzer.py           # Technical trading signals
-│   ├── websocket/                   # Real-time price streaming
-│   │   └── websocket.py             #   (to be folded into api)
-│   └── requirements.txt             # Python dependencies
+├── worker/                          # realtime aggregation + nightly batch
+│   └── src/
+│       ├── aggregate/               # XREADGROUP → 7 timeframes → MongoDB
+│       ├── organize/                # the 19:00 ET dependency line
+│       ├── lib/tiingo.ts            # the only module that talks to the vendor
+│       └── utils/                   # pure indicator maths
 │
-├── ingestor/                        # Python ingestion service (workspace)
-│   ├── ingestor.py                  # Tiingo data stream consumer
-│   └── requirements.txt             # Python dependencies
-│
-├── db/                              # Database utilities & docs (workspace)
-│   ├── dump/                        # Database backups (gitignored)
-│   ├── docs/                        # MongoDB schema docs → [see DATABASE.md](db/docs/DATABASE.md)
-│   └── restore.sh                   # Restore + index bootstrap
-│
-├── package.json                     # Workspace root — scripts & shared devDeps
-├── package-lock.json
-└── README.md                        # Project summary documentation
+├── ingestor/                        # ONE socket to the vendor trade feed
+├── db/                              # forward-only migrations + schema docs
+├── e2e/                             # Playwright specs
+├── eslint/                          # 15 composed rule packs
+└── scripts/checks/                  # the 16 custom gates
 ```
 
----
+### The realtime path
 
-Docker Deployment Architecture
-═══════════════════════════════════════════════════════════════════════════════
+Three processes, joined only by Redis. Each is a separate workspace because none of them
+can be collapsed into another.
 
-                                   Internet
-                                      │
-                                      ▼
-                            ┌─────────────────┐
-                            │    Traefik      │  Port 80/443
-                            │  Reverse Proxy  │  (HTTPS/TLS)
-                            └────────┬────────┘
-                                     │
-                    ┌────────────────┼────────────────┐
-                    │                │                │
-                    ▼                ▼                ▼
-          ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-          │   Frontend   │  │   Grafana    │  │  WebSocket   │
-          │  (Vue.js)    │  │ Monitoring   │  │   Server     │
-          │  Port 3500   │  │  Port 3000   │  │  Port 8000   │
-          └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
-                 │                 │                 │
-                 └────────┬────────┴────────┬────────┘
-                          │                 │
-            ┌─────────────┼─────────────────┼─────────────────┐
-            │             │                 │                 │
-            ▼             ▼                 ▼                 ▼
-    ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-    │   Backend    │ │  Aggregator  │ │   Ingestor   │ │ Prometheus   │
-    │  (Node.js)   │ │  (FastAPI)   │ │  (FastAPI)   │ │   Metrics    │
-    │  Port 5500   │ │  Port 8002   │ │  Port 8001   │ │  Port 9090   │
-    └──────┬───────┘ └──────┬───────┘ └──────┬───────┘ └──────────────┘
-           │                │                │
-           └────────────────┼────────────────┘
-                            │
-            ┌───────────────┼────────────────┐
-            │               │                │
-            ▼               ▼                ▼
-    ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-    │   MongoDB    │ │     Redis    │ │     Loki     │
-    │   Database   │ │     Cache    │ │  Log Storage │
-    │  Port 27017  │ │  Port 6379   │ │  Port 3100   │
-    └──────┬───────┘ └──────┬───────┘ └──────────────┘
-           │                │
-           ▼                ▼
-    ┌──────────────┐ ┌──────────────┐
-    │   MongoDB    │ │    Redis     │
-    │   Exporter   │ │   Exporter   │
-    │  Port 9216   │ │  Port 9121   │
-    └──────────────┘ └──────────────┘
+```
+ingestor → holds ONE socket to the vendor's trade feed, XADDs `tiingo:stream`
+   │
+   ▼
+worker   → aggregate: XREADGROUP over that stream, buckets into 7 timeframes,
+   │                  upserts MongoDB, publishes `aggr:{tf}`
+   │       organize:  the nightly batch, 19:00 ET
+   ▼
+api      → one `psubscribe aggr:*` per process, fans out to Socket.IO rooms
+```
 
-═══════════════════════════════════════════════════════════════════════════════
+The ingestor and the aggregate role are **singletons**. Two ingestors double-subscribe
+upstream and write every trade twice; two aggregators split the consumer group and each
+build half a candle out of half the trades. That's what `WORKER_ROLE` buys — one image,
+one entry point, and the ability to pin `replicas: 1` on the aggregate deployment while
+the organize one scales freely.
 
-Networks:
-----------
+Websockets are Socket.IO on the API's own HTTP server, one port, authenticated with the
+access token on the handshake. There is deliberately **no Redis adapter**: the adapter
+exists to route an emit raised on one pod to a socket on another, and here every pod
+already holds every bucket its own sockets need.
 
-• ereuna-network - External network (Traefik → Services)
-• ereuna-network-internal - Internal network (Services ↔ Databases)
+The nightly run is a straight dependency line, not a scheduler: prices → splits →
+dividends → weekly → delist → fundamentals → metrics → valuations → market stats →
+holidays → prune. Each step is isolated, so one vendor outage costs one step and not
+the run.
 
-Service Dependencies:
----------------------
+### Database notes
 
-Frontend → Backend, Redis, MongoDB
-Backend → MongoDB, Redis
-WebSocket → Redis, MongoDB
-Ingestor → Redis, MongoDB
-Aggregator→ Redis, MongoDB
-Grafana → Prometheus, Loki
-Prometheus→ All services (metrics)
-Promtail → Loki (logs)
+`packages/shared/src/db/indexes.ts` is the single place a collection name or an index is
+declared. The API applies its manifest at boot; the worker applies the candle and
+reference manifests.
 
-Data Flow:
-----------
+The seven candle collections are MongoDB **time series** collections, keyed on
+`(tickerID, timestamp)` ascending — `tickerID` is an equality match, so the server walks
+the ascending index backwards for a newest-first sort at the same cost, and a descending
+copy would have cost hours of index build for nothing.
 
-1. Client → Traefik (HTTPS termination)
-2. Traefik → Frontend/WebSocket (based on path)
-3. Frontend → Backend API (REST)
-4. Frontend → WebSocket (Real-time data)
-5. WebSocket ↔ Redis (Pub/Sub)
-6. Ingestor → Redis Stream (Market data)
-7. Aggregator → Redis → MongoDB (Candle aggregation)
-8. Backend → MongoDB (User data, portfolios)
-9. Promtail → Docker logs → Loki
-10. Prometheus → Service metrics → Grafana
+Migrations are **forward-only** and never touch indexes. There's no `down()` — a
+reversal that loses data is a second, unreviewed migration that runs during an incident.
+Adding an index is a manifest entry applied at the next boot; _dropping_ one is a
+migration, because a drop applied at boot would rebuild the index on every restart of
+every replica.
 
-Volumes:
---------
+## Quality gates
 
-• mongodb_data - Persistent database storage
-• prometheus_data - Metrics time-series storage
-• grafana_data - Dashboards and configurations
-• logs_volume - Aggregated application logs
+```bash
+npm run ci:check    # everything below, in order
+```
 
-Health Checks:
---------------
+Seventeen custom gates in [`scripts/checks/`](scripts/checks/) — fifteen take no
+dependencies at all and read the tree with `node:fs` and the TypeScript compiler that
+was already here; the last two wrap `knip` and `jscpd`. Alongside them: ESLint (15
+composed rule packs), `prettier --check`, stylelint, typecheck, the unit suite with
+coverage, and Playwright.
 
-MongoDB - mongosh ping
-Redis - redis-cli ping
-Aggregator - /ready endpoint
-Ingestor - /ready endpoint
-WebSocket - /ready endpoint
+Two gates are inverted from the written standard on purpose and say so in their own
+headers: `check-ws-standards.mjs` _fails_ if a Redis adapter appears on the gateway, and
+`check-security-drift.mjs` allows exactly two unauthenticated mounts and fails on a third.
 
-# Dependencies
+The vendored charting fork is excluded from every gate — it's 208 files of upstream code
+and its typecheck errors are expected and out of scope.
 
-### Frontend (Vue.js/TypeScript)
+## Dependencies
 
-- **Vue 3** - Progressive JavaScript framework
-- **Vite** - Next-generation frontend build tool
-- **TypeScript** - Type-safe JavaScript
-- **Pinia** - State management
-- **Vue Router** - Client-side routing
-- **Vue I18n** - Internationalization (17+ languages)
-- **TradingView Lightweight Charts** - Financial charting (It's a forked version with more features built on top of it)
-- **Chart.js** - Additional charting library (Portfolio Simulator)
-- **Chartjs Plugin Annotation** - Chart annotations
-- **Sortable.js** - Drag-and-drop lists (for watchlist sorting mainly)
-- **QRCode.vue** - QR code generation
+**Frontend** — Vue 3, Vite, TypeScript, Vue Router, Vue I18n, forked Lightweight Charts,
+Sortable.js, QRCode.vue. Charts outside the fork are hand-written SVG in
+`components/viz/`, scaled by `viewBox`.
 
-### Backend API (Node.js/TypeScript)
+**API** — Express, Zod, MongoDB driver, Socket.IO, IORedis, Argon2, jsonwebtoken, Helmet,
+express-rate-limit, Pino, Speakeasy, PDF-lib.
 
-- **Express** - Web framework
-- **MongoDB** - Database driver (v6.8.0)
-- **IORedis** - Redis caching client
-- **Argon2** - Password hashing
-- **JWT (jsonwebtoken)** - Authentication tokens
-- **Helmet** - Security headers
-- **Express Rate Limit** - DDoS protection
-- **Express Validator** - Input validation
-- **Validator** - String validation
-- **CORS** - Cross-origin resource sharing
-- **Pino** - Structured logging
-- **Pino Pretty** - Log formatting
-- **Dotenv** - Environment management
-- **Speakeasy** - 2FA/TOTP
-- **PDF-lib** - PDF generation
+**Worker / Ingestor** — MongoDB driver, IORedis, Zod, Pino. The ingestor's vendor socket
+uses Node's native `WebSocket`, so there's no client library.
 
-### Python Services (Backend)
+**Tooling** — Vitest, Playwright, ESLint, Prettier, stylelint, knip, jscpd, migrate-mongo,
+tsx, tsc-alias.
 
-- **FastAPI** - Modern async web framework
-- **Motor** - Async MongoDB driver
-- **PyMongo** - MongoDB operations
-- **aioredis** - Async Redis client
-- **Pandas & NumPy** - Data processing & analytics
-- **Uvicorn** - ASGI server
-- **Python-dotenv** - Environment management
-- **Requests** - HTTP library
-
-### Infrastructure & DevOps
-
-- **Docker & Docker Compose** - Containerization
-- **Traefik** - Reverse proxy & HTTPS/TLS
-- **MongoDB** - Primary database
-- **Redis** - Caching, pub/sub & streaming
-- **Prometheus** - Metrics collection
-- **Grafana** - Monitoring dashboards
-- **Loki** - Log aggregation
-- **Promtail** - Log shipping
-- **Percona MongoDB Exporter** - Database metrics
-- **Redis Exporter** - Cache metrics
-
-### External APIs & Services
-
-- **Tiingo API** - Market data (EOD, real-time, fundamentals, crypto)
-- **Cloudflare** - DNS & SSL/TLS certificates
-
-### Development Tools
-
-- **Nodemon** - Auto-reload server
-- **TypeScript** - Type system (v5.9.2)
-- **ts-node** - TypeScript execution
-- **Vite Plugin Node Polyfills** - Node.js polyfills for browser
-- **Sass Embedded** - SCSS compilation
-- **Various @types packages** - TypeScript definitions
-
----
+**External** — Tiingo (market data).
 
 ## Acknowledgments
 
-This project was built using amazing open-source tools and third-party services:
-
-- **TradingView** - For the Lightweight Charts library (forked and extended)
-- **Tiingo** - For providing comprehensive financial market data APIs
-- **Vue.js, Node.js, and MongoDB communities** - For excellent documentation and support
-- All the open-source maintainers of the dependencies listed above
+- **TradingView** — for Lightweight Charts, forked and extended here
+- **Tiingo** — for the market data APIs
+- The Vue, Node and MongoDB communities, and the maintainers of everything above
 
 ## Contact
 
-For questions, collaboration, or commercial licensing inquiries:
-
 - **GitHub:** [@larrydarko1](https://github.com/larrydarko1)
-- **Email:** Open an issue on GitHub for contact
 
 ## License
 
-⚠️ **This project is licensed under CC BY-NC-SA 4.0 — Non-commercial use only.**
+⚠️ **CC BY-NC-SA 4.0 — non-commercial use only.**
 
-You may **NOT** use this code for:
+You may **NOT** use this code for commercial products or services, SaaS platforms,
+revenue-generating applications, or reselling / repackaging / sublicensing.
 
-- Commercial products or services
-- SaaS platforms or hosted services
-- Revenue-generating applications
-- Reselling, repackaging, or sublicensing
+You **MAY** use it for learning, portfolio review and technical interviews, personal
+non-commercial projects.
 
-You **MAY** use this code for:
-
-- Learning and educational purposes
-- Portfolio review and technical interviews
-- Personal, non-commercial projects
-- Contributing improvements back via pull requests
-
-See [LICENSE.md](LICENSE.md) for complete terms.
-
-For commercial licensing inquiries, please open an issue on GitHub.
+See [LICENSE.md](LICENSE.md) for complete terms. For commercial licensing, open an issue.
 
 ---
 
-_Built with 🖤 as a learning journey into full-stack development_
+_Built as a learning project. Currently being rebuilt to the standard I wish I'd had when
+I started it._

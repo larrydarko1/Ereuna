@@ -456,7 +456,7 @@ onMounted(() => {
 
 .watchlist__row {
     display: flex;
-    gap: $space-1;
+    margin: $space-1 0;
     align-items: center;
     border-radius: $radius-sm;
 

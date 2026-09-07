@@ -97,7 +97,7 @@ function onKeydown(event: KeyboardEvent): void {
                     <th
                         scope="col"
                         class="results-table__th results-table__th--actions">
-                        <span class="visually-hidden">{{ t('screener.hideColumn') }}</span>
+                        <span>{{ t('screener.hideColumn') }}</span>
                     </th>
                     <th
                         scope="col"
