@@ -13,6 +13,7 @@ const screenerService = {
     deleteScreener: vi.fn(),
     runScreener: vi.fn(),
     runIncludedScreeners: vi.fn(),
+    runHiddenSymbols: vi.fn(),
     tryGetBounds: vi.fn(),
     getRangeBounds: vi.fn(),
     getDateBounds: vi.fn(),
@@ -50,6 +51,7 @@ beforeEach(async () => {
     screenerService.deleteScreener.mockResolvedValue(undefined);
     screenerService.runScreener.mockResolvedValue({ items: [], total: 0 });
     screenerService.runIncludedScreeners.mockResolvedValue({ items: [], total: 0 });
+    screenerService.runHiddenSymbols.mockResolvedValue({ items: [], total: 0 });
     screenerService.tryGetBounds.mockResolvedValue({ min: 0, max: 100 });
     screenerService.getEnumOptions.mockResolvedValue(['Technology']);
     for (const setter of [
@@ -166,6 +168,24 @@ describe('results', () => {
         const response = await harness.call('/api/screeners/Value/results?limit=201');
 
         expect(response.status).toBe(422);
+    });
+
+    it('serves the hidden list through the same columns as any other page', async () => {
+        const response = await harness.call('/api/screeners/hidden/results');
+
+        expect(response.status).toBe(200);
+        expect(screenerService.runHiddenSymbols).toHaveBeenCalledWith(USER_ID, {
+            page: 1,
+            limit: 50,
+            columns: ['Price'],
+            hiddenSymbols: ['XYZ'],
+        });
+    });
+
+    it('is not read as a screener named "hidden"', async () => {
+        await harness.call('/api/screeners/hidden/results');
+
+        expect(screenerService.runScreener).not.toHaveBeenCalled();
     });
 });
 

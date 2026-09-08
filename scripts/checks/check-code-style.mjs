@@ -49,7 +49,6 @@ const LINE_CAP = 400;
  */
 const LENGTH_BASELINE = {
     'frontend/src/components/charts/PriceChart.vue': 741,
-    'frontend/src/views/Screener.vue': 447,
     'packages/shared/src/screener/filters.ts': 472,
 };
 

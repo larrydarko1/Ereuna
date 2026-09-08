@@ -4,6 +4,7 @@
  * POST   /api/screeners                          — create a screener
  * GET    /api/screeners/filters                  — the filter registry with bounds and options
  * GET    /api/screeners/results                  — combined results across included screeners
+ * GET    /api/screeners/hidden/results           — the hidden symbols, as full result rows
  * GET    /api/screeners/:name                    — one screener with its filters
  * PATCH  /api/screeners/:name                    — rename, or include/exclude from combined results
  * DELETE /api/screeners/:name                    — delete a screener
@@ -167,6 +168,25 @@ router.get(
 
         res.json(
             await screenerService.runIncludedScreeners(userId, {
+                page,
+                limit,
+                columns: prefs.screenerColumns,
+                hiddenSymbols: prefs.hiddenSymbols,
+            }),
+        );
+    }),
+);
+
+/** Registered before `/:name` so `hidden` is not read as a screener name. */
+router.get(
+    '/hidden/results',
+    ...validated({ query: resultsQuery }, async (req, res): Promise<void> => {
+        const userId = authedUserId(req);
+        const { page, limit } = req.validatedQuery;
+        const prefs = await getPreferences(userId);
+
+        res.json(
+            await screenerService.runHiddenSymbols(userId, {
                 page,
                 limit,
                 columns: prefs.screenerColumns,

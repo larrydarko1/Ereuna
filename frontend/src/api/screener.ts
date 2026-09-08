@@ -46,6 +46,7 @@ export type ScreenerResult = {
     assetType: string | null;
     sector: string | null;
     exchange: string | null;
+    screeners?: string[]; // Combined results only: the included screeners this symbol matched
 } & Record<string, unknown>;
 
 export type ScreenerResultPage = {
@@ -84,6 +85,11 @@ export function getFilterRegistry(): ApiResult<{ items: FilterDescriptor[] }> {
 /** Results across every screener the user has switched on. */
 export function getCombinedResults(query: ResultsQuery = {}): ApiResult<ScreenerResultPage> {
     return api.get<ScreenerResultPage>('/screeners/results', { params: query });
+}
+
+/** The hidden symbols, projected through the same columns as any other page. */
+export function getHiddenResults(query: ResultsQuery = {}): ApiResult<ScreenerResultPage> {
+    return api.get<ScreenerResultPage>('/screeners/hidden/results', { params: query });
 }
 
 export function getScreener(name: string): ApiResult<ScreenerDetail> {

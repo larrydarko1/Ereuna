@@ -14,6 +14,7 @@ export type WatchlistSummary = {
     name: string;
     position: number;
     tickerCount: number;
+    tickers: string[]; // Membership, so "add to list" can be shown as a toggle
     updatedAt: string;
 };
 

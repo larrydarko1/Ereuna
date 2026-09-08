@@ -46,6 +46,7 @@ export type UseWatchlistsReturn = {
     addTickers: (symbols: readonly string[]) => Promise<ImportResult>;
     removeTicker: (symbol: string) => Promise<void>;
     reorderTickers: (tickers: readonly string[]) => Promise<void>;
+    toggleMembership: (listName: string, symbol: string) => Promise<void>;
 };
 
 /** What an import did: how many symbols went in, and which the API refused. */
@@ -170,6 +171,27 @@ export function useWatchlists(): UseWatchlistsReturn {
         return { added, rejected };
     }
 
+    /**
+     * Add or drop one symbol on any list, open or not.
+     * The screener works down a table of symbols and files them as it goes, so
+     * it addresses a list by name; `addTicker` above is the chart view's case,
+     * where the list under the pointer is by definition the open one.
+     */
+    async function toggleMembership(listName: string, symbol: string): Promise<void> {
+        const list = lists.value.find((entry) => entry.name === listName);
+        if (list === undefined) return;
+
+        const { data } = list.tickers.includes(symbol)
+            ? await removeTickerRequest(listName, symbol)
+            : await addTickerRequest(listName, symbol);
+
+        const tickers = data.list.map((entry) => entry.ticker);
+        lists.value = lists.value.map((entry) =>
+            entry.name === listName ? { ...entry, tickers, tickerCount: tickers.length } : entry,
+        );
+        if (listName === activeName.value) await refresh();
+    }
+
     async function reorderTickers(tickers: readonly string[]): Promise<void> {
         if (activeName.value === null) return;
         const previous = rows.value;
@@ -201,6 +223,7 @@ export function useWatchlists(): UseWatchlistsReturn {
         addTickers,
         removeTicker,
         reorderTickers,
+        toggleMembership,
     };
 }
 

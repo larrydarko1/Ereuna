@@ -244,8 +244,16 @@ onMounted(async () => {
     font-size: $font-size-sm;
 }
 
+// Four fifths of the viewport once there is room for the three-column layout:
+// the chart is what the page is for, and a fixed 384px left two thirds of a
+// large screen empty. The fraction rather than the whole leaves the replay bar
+// and the toolbar above it on screen at the same time.
 .charts__canvas {
     flex: 1;
     min-height: 384px;
+
+    @include above($bp-lg) {
+        min-height: 80dvh;
+    }
 }
 </style>

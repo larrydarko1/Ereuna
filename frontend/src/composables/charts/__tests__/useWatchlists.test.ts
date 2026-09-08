@@ -7,11 +7,12 @@ import { useWatchlists } from '@/composables/charts/useWatchlists';
 const mock = mockApi();
 const watchlists = useWatchlists();
 
-const summary = (name: string, position = 0, tickerCount = 0): Record<string, unknown> => ({
+const summary = (name: string, position = 0, tickerCount = 0, tickers: string[] = []): Record<string, unknown> => ({
     id: name,
     name,
     position,
     tickerCount,
+    tickers,
     updatedAt: '2026-03-02T00:00:00.000Z',
 });
 
@@ -340,5 +341,44 @@ describe('the session ending', () => {
         expect(watchlists.rows.value).toEqual([]);
         expect(watchlists.activeName.value).toBeNull();
         expect(watchlists.loaded.value).toBe(false);
+    });
+});
+
+/**
+ * The screener works down a table of symbols and files them as it goes, so it
+ * addresses a list by name rather than by whichever one happens to be open.
+ */
+describe('toggleMembership', () => {
+    it('adds a symbol to a list that is not the open one', async () => {
+        mock.on('GET /api/watchlists', { items: [summary('Tech'), summary('Energy', 1)] });
+        mock.on('GET /api/watchlists/Tech', detail('Tech', []));
+        mock.on('POST /api/watchlists/Energy/tickers', { list: [{ ticker: 'XOM', exchange: 'NYSE' }] });
+        await watchlists.load();
+
+        await watchlists.toggleMembership('Energy', 'XOM');
+
+        expect(watchlists.activeName.value).toBe('Tech');
+        expect(watchlists.lists.value[1]).toMatchObject({ tickers: ['XOM'], tickerCount: 1 });
+    });
+
+    it('removes a symbol the list already holds', async () => {
+        mock.on('GET /api/watchlists', { items: [summary('Tech', 0, 1, ['AAPL'])] });
+        mock.on('GET /api/watchlists/Tech', detail('Tech', ['AAPL']));
+        mock.on('DELETE /api/watchlists/Tech/tickers/AAPL', { list: [] });
+        await watchlists.load();
+        mock.on('GET /api/watchlists/Tech', detail('Tech', []));
+
+        await watchlists.toggleMembership('Tech', 'AAPL');
+
+        expect(watchlists.lists.value[0]).toMatchObject({ tickers: [], tickerCount: 0 });
+        expect(watchlists.rows.value).toHaveLength(0);
+    });
+
+    it('does nothing for a list it does not know', async () => {
+        mock.on('GET /api/watchlists', { items: [summary('Tech')] });
+        mock.on('GET /api/watchlists/Tech', detail('Tech', []));
+        await watchlists.load();
+
+        await expect(watchlists.toggleMembership('Gone', 'AAPL')).resolves.toBeUndefined();
     });
 });

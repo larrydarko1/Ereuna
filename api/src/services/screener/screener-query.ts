@@ -3,7 +3,7 @@
  * Owns: query construction and result retrieval.
  * Does NOT own: filter storage (screener-filters.ts) or bounds (screener-bounds.ts).
  */
-import type { Document, Filter } from 'mongodb';
+import type { Document, Filter, WithId } from 'mongodb';
 import { type ObjectId } from 'mongodb';
 import {
     DATE_FILTERS,
@@ -32,8 +32,12 @@ type ScreenerResult = {
     assetType: string | null;
     sector: string | null;
     exchange: string | null;
+    screeners?: string[]; // Combined results only — which included screens matched
     [column: string]: unknown;
 };
+
+/** One branch of the combined query, tagged with the screener that produced it. */
+type TaggedAsset = AssetInfoDoc & { screeners: string[] };
 
 /** Columns every result carries, on top of whatever the user has selected. */
 const BASE_PROJECTION = {
@@ -131,18 +135,90 @@ export async function runIncludedScreeners(
 
     if (screeners.length === 0) return { items: [], total: 0, page, pages: 0 };
 
-    const branches = screeners.map((screener) => buildQuery(screener.filters, hiddenSymbols));
-    // A screener with no filters matches everything, which would make the whole
-    // $or match everything — so an empty branch collapses the union to itself.
-    const query: Filter<AssetInfoDoc> = branches.some((branch) => Object.keys(branch).length === 0)
-        ? {}
-        : { $or: branches };
-
     return withCache(
         userKey(userId.toHexString(), 'screener', 'combined', String(page), String(limit)),
-        () => executeQuery(query, { page, limit, columns }),
+        () => executeCombined(screeners, { page, limit, columns, hiddenSymbols }),
         { dataType: 'price' },
     );
+}
+
+/**
+ * The hidden list, as full rows rather than bare symbols.
+ * It is the same projection every other result page gets, because the point of
+ * the list is deciding whether something still deserves to be hidden — and a
+ * column of symbols with nothing beside them cannot answer that.
+ */
+export async function runHiddenSymbols(
+    userId: ObjectId,
+    options: { page: number; limit: number; columns?: string[]; hiddenSymbols?: string[] },
+): Promise<ScreenerResultPage> {
+    const { page, limit, columns = [], hiddenSymbols = [] } = options;
+    if (hiddenSymbols.length === 0) return { items: [], total: 0, page, pages: 0 };
+
+    return withCache(
+        userKey(userId.toHexString(), 'screener', 'hidden', String(page), String(limit)),
+        () => executeQuery({ Symbol: { $in: hiddenSymbols } }, { page, limit, columns }),
+        { dataType: 'price' },
+    );
+}
+
+/**
+ * The union of every included screener, annotated with which of them matched.
+ * A single `$or` cannot say that: it answers whether a symbol matched at all,
+ * and the whole value of the combined list is that a symbol several screens
+ * agree on deserves to be looked at first. So each screener runs as its own
+ * `$match`, is tagged with its name, and the branches are grouped back together
+ * by symbol — which is also what makes a symbol matched twice appear once.
+ */
+async function executeCombined(
+    screeners: WithId<ScreenerDoc>[],
+    options: { page: number; limit: number; columns: string[]; hiddenSymbols: string[] },
+): Promise<ScreenerResultPage> {
+    const { page, limit, columns, hiddenSymbols } = options;
+    const projection = buildProjection(columns);
+
+    const branch = (screener: WithId<ScreenerDoc>): Document[] => [
+        { $match: buildQuery(screener.filters, hiddenSymbols) },
+        { $project: { ...projection, matchedBy: { $literal: screener.name } } },
+    ];
+
+    const [first, ...rest] = screeners;
+    if (first === undefined) return { items: [], total: 0, page, pages: 0 };
+
+    const [result] = await getDb()
+        .collection<AssetInfoDoc>('AssetInfo')
+        .aggregate<{ items: TaggedAsset[]; total: { value: number }[] }>(
+            [
+                ...branch(first),
+                ...rest.map((screener) => ({ $unionWith: { coll: 'AssetInfo', pipeline: branch(screener) } })),
+                { $group: { _id: '$Symbol', asset: { $first: '$$ROOT' }, screeners: { $addToSet: '$matchedBy' } } },
+                {
+                    $replaceWith: {
+                        $mergeObjects: ['$asset', { screeners: '$screeners', matches: { $size: '$screeners' } }],
+                    },
+                },
+                // Symbols several screens agree on lead; the rest keep the
+                // alphabetical order every other result page uses.
+                { $sort: { matches: -1, Symbol: 1 } },
+                {
+                    $facet: {
+                        items: [
+                            { $skip: (page - 1) * limit },
+                            { $limit: limit },
+                            { $unset: ['_id', 'matchedBy', 'matches'] },
+                        ],
+                        total: [{ $count: 'value' }],
+                    },
+                },
+            ],
+            // The group and the sort are both blocking, and the widest possible
+            // union is the whole universe — spilling beats failing at 100MB.
+            { allowDiskUse: true },
+        )
+        .toArray();
+
+    const total = result?.total[0]?.value ?? 0;
+    return { items: (result?.items ?? []).map(toResult), total, page, pages: Math.ceil(total / limit) };
 }
 
 async function executeQuery(

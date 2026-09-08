@@ -8,6 +8,7 @@ import { type ObjectId } from 'mongodb';
 import type { UserDoc } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { getDb } from '@/lib/db.js';
+import { invalidateResults } from '@/services/screener/screener-crud.js';
 
 export type Preferences = Pick<
     UserDoc,
@@ -52,6 +53,10 @@ export async function updatePreferences(userId: ObjectId, patch: Partial<Prefere
         throw new AppError(404, 'USER_NOT_FOUND', `user ${userId.toHexString()} not found`);
     }
 
+    // The column selection is part of the screener's projection, so a cached
+    // page written before the change is missing the columns just asked for.
+    if (patch.screenerColumns !== undefined) await invalidateResults(userId);
+
     return getPreferences(userId);
 }
 
@@ -60,13 +65,20 @@ export async function hideSymbol(userId: ObjectId, symbol: string): Promise<stri
     await getDb()
         .collection<UserDoc>('Users')
         .updateOne({ _id: userId }, { $addToSet: { hiddenSymbols: symbol }, $set: { updatedAt: new Date() } });
+    await invalidateResults(userId);
     return (await getPreferences(userId)).hiddenSymbols;
 }
 
-/** Un-hide a symbol. Idempotent — pulling a symbol that is not there is a no-op. */
+/**
+ * Un-hide a symbol. Idempotent — pulling a symbol that is not there is a no-op.
+ * Like `hideSymbol` this drops the cached result pages: the hidden list is an
+ * input to every screener query, so leaving them would answer the next request
+ * with the set that was cached before the symbol moved.
+ */
 export async function unhideSymbol(userId: ObjectId, symbol: string): Promise<string[]> {
     await getDb()
         .collection<UserDoc>('Users')
         .updateOne({ _id: userId }, { $pull: { hiddenSymbols: symbol }, $set: { updatedAt: new Date() } });
+    await invalidateResults(userId);
     return (await getPreferences(userId)).hiddenSymbols;
 }

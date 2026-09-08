@@ -4,8 +4,15 @@ import type { UserDoc } from '@ereuna/shared';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
+const cache: { invalidated: string[] } = { invalidated: [] };
 
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+vi.mock('@/services/screener/screener-crud.js', () => ({
+    invalidateResults: (userId: { toHexString: () => string }) => {
+        cache.invalidated.push(userId.toHexString());
+        return Promise.resolve();
+    },
+}));
 
 const { getPreferences, hideSymbol, unhideSymbol, updatePreferences } =
     await import('@/services/user/user-preferences.js');
@@ -31,6 +38,7 @@ const setOf = (): Record<string, unknown> =>
 
 beforeEach(() => {
     db.current = fakeDb({ Users: [user()] });
+    cache.invalidated = [];
 });
 
 describe('getPreferences', () => {
@@ -98,6 +106,18 @@ describe('updatePreferences', () => {
             code: 'USER_NOT_FOUND',
         });
     });
+
+    // The column selection is part of the screener's projection, so a page
+    // cached before the change is missing the column just asked for.
+    it('drops the cached result pages when the column selection changes', async () => {
+        await updatePreferences(USER_ID, { screenerColumns: ['PERatio'] });
+        expect(cache.invalidated).toEqual([USER_ID.toHexString()]);
+    });
+
+    it('leaves them alone for a preference the screener does not read', async () => {
+        await updatePreferences(USER_ID, { theme: 'dark' });
+        expect(cache.invalidated).toEqual([]);
+    });
 });
 
 describe('hideSymbol', () => {
@@ -111,6 +131,16 @@ describe('hideSymbol', () => {
         db.current = fakeDb({ Users: [user({ hiddenSymbols: ['AAPL'] })] });
         await expect(hideSymbol(USER_ID, 'AAPL')).resolves.toEqual(['AAPL']);
     });
+
+    /**
+     * The hidden list is an input to every screener query, and those pages are
+     * cached under a key that does not mention it. Without this the symbol goes
+     * on appearing in results until the entry expires — the button looked dead.
+     */
+    it('drops the cached result pages, which were built before the symbol moved', async () => {
+        await hideSymbol(USER_ID, 'AAPL');
+        expect(cache.invalidated).toEqual([USER_ID.toHexString()]);
+    });
 });
 
 describe('unhideSymbol', () => {
@@ -122,5 +152,10 @@ describe('unhideSymbol', () => {
 
     it('returns the hidden set', async () => {
         await expect(unhideSymbol(USER_ID, 'AAPL')).resolves.toEqual([]);
+    });
+
+    it('drops the cached result pages too, so the symbol comes back', async () => {
+        await unhideSymbol(USER_ID, 'AAPL');
+        expect(cache.invalidated).toEqual([USER_ID.toHexString()]);
     });
 });

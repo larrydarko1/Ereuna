@@ -5,7 +5,7 @@ import AppHeader from '@/components/Header.vue';
 
 const route = useRoute();
 
-const showHeader = computed(() => route.meta.public !== true);
+const showHeader = computed(() => route.meta.bare !== true);
 </script>
 
 <template>

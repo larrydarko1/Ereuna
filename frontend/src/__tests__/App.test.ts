@@ -8,11 +8,14 @@ import App from '@/App.vue';
 
 mockApi();
 
+/** The routes the app renders without its header. */
+const BARE = new Set(['Login', 'SignUp', 'Recovery', 'SetPassword']);
+
 const shell = async (path: string): Promise<{ wrapper: VueWrapper; router: Router }> => {
     const router = testRouter();
-    // The header is hidden on public routes, which the app marks in its meta.
+    // The header is hidden on the routes the app marks `bare` in their meta.
     router.getRoutes().forEach((route) => {
-        if (route.name === 'Login' || route.name === 'SignUp') route.meta.public = true;
+        if (typeof route.name === 'string' && BARE.has(route.name)) route.meta.bare = true;
     });
     await router.push(path);
     await router.isReady();
@@ -38,13 +41,21 @@ describe('App', () => {
         expect(wrapper.find('.header').exists()).toBe(false);
     });
 
+    // The session behind this page has no password until the form is submitted,
+    // so the guard bounces every link the header would offer.
+    it('hides the header while a recovered session is still setting a password', async () => {
+        const { wrapper } = await shell('/set-password');
+
+        expect(wrapper.find('.header').exists()).toBe(false);
+    });
+
     it('renders whatever the route resolved to', async () => {
         const { wrapper } = await shell('/dashboard');
 
         expect(wrapper.findComponent({ name: 'RouterView' }).exists()).toBe(true);
     });
 
-    it('follows the route, showing the header the moment one is not public', async () => {
+    it('follows the route, showing the header the moment one is not bare', async () => {
         const { wrapper, router } = await shell('/login');
         expect(wrapper.find('.header').exists()).toBe(false);
 

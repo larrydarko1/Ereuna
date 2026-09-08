@@ -18,6 +18,13 @@ export type ColumnFormat = 'text' | 'number' | 'compact' | 'percent' | 'date';
 /** Which list the results table is showing: one screener, all of them, or the hidden set. */
 export type ListMode = (typeof LIST_MODES)[number];
 
+/**
+ * Which modal the screener view has open.
+ * Named here rather than in the view because the dialog component and the view
+ * that drives it both need it, and an SFC cannot export a type.
+ */
+export type ScreenerDialog = 'create' | 'rename' | 'delete' | 'reset' | 'columns' | null;
+
 export type ColumnSpec = {
     path: string; // The AssetInfo path the API projects and keys the row by
     filterKey: string; // The filter this column came from — and so its label

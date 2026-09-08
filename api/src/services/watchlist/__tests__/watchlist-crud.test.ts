@@ -41,10 +41,13 @@ beforeEach(() => {
 });
 
 describe('listWatchlists', () => {
-    it('summarises each list with its ticker count rather than its tickers', async () => {
+    it('summarises each list with its symbols, not the stored entries', async () => {
         db.current = fakeDb({ Watchlists: [watchlist()] });
         const rows = await listWatchlists(USER_ID);
         expect(rows[0]).toMatchObject({ name: 'Tech', position: 0, tickerCount: 1 });
+        // Membership travels with the summary so a caller offering "add to
+        // list" does not have to read every list to know which already hold it.
+        expect(rows[0]?.tickers).toEqual(['AAPL']);
         expect(rows[0]).not.toHaveProperty('list');
     });
 

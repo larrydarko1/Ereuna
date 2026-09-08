@@ -3,37 +3,25 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { getProfile } from '@/api/chart';
 import { hideSymbol, unhideSymbol } from '@/api/preferences';
-import { getCombinedResults, getScreenerResults, type FilterValue, type ScreenerResult } from '@/api/screener';
-import PriceChart from '@/components/charts/PriceChart.vue';
-import ColumnsDialog from '@/components/screener/ColumnsDialog.vue';
+import type { FilterValue } from '@/api/screener';
 import FilterPanel from '@/components/screener/FilterPanel.vue';
 import ResultsTable from '@/components/screener/ResultsTable.vue';
 import ResultsToolbar from '@/components/screener/ResultsToolbar.vue';
+import ScreenerCharts from '@/components/screener/ScreenerCharts.vue';
+import ScreenerDialogs from '@/components/screener/ScreenerDialogs.vue';
 import ScreenerPicker from '@/components/screener/ScreenerPicker.vue';
-import AppDialog from '@/components/ui/AppDialog.vue';
+import WatchlistDialog from '@/components/screener/WatchlistDialog.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
-import PromptDialog from '@/components/ui/PromptDialog.vue';
 import { useResource } from '@/composables/data/useResource';
 import { adoptPreferences, loadPreferences, patchPreferences, usePreferences } from '@/composables/data/usePreferences';
 import { useFilterRegistry } from '@/composables/screener/useFilterRegistry';
+import { EXPORT_LIMIT, useScreenerExport } from '@/composables/screener/useScreenerExport';
 import { useScreenerFilters } from '@/composables/screener/useScreenerFilters';
 import { useScreenerResults, type ResultsSource } from '@/composables/screener/useScreenerResults';
 import { useScreeners } from '@/composables/screener/useScreeners';
-import { DEFAULT_COLUMNS, findColumn, readColumn, type ListMode } from '@/constants/screener';
-import { CSV_TYPE, toCsv } from '@/utils/csv';
-import { downloadFile } from '@/utils/download';
+import { DEFAULT_COLUMNS, findColumn, type ListMode, type ScreenerDialog } from '@/constants/screener';
 
 type Pane = 'filters' | 'results' | 'chart';
-type Dialog = 'create' | 'rename' | 'delete' | 'reset' | 'columns' | null;
-
-/**
- * Export as far as the cap allows.
- * A loose screener matches tens of thousands of symbols, and walking every page
- * of that is a denial of service pointed at the user's own API. The cap is
- * stated on the button, so a truncated file is not a surprise.
- */
-const EXPORT_LIMIT = 5000;
-const EXPORT_PAGE = 200;
 
 /**
  * Autoplay walks the selection down the list so charts can be reviewed without
@@ -64,7 +52,8 @@ const filters = useScreenerFilters(selected);
 
 const pane = ref<Pane>('results');
 const mode = ref<ListMode>('screener');
-const dialog = ref<Dialog>(null);
+const dialog = ref<ScreenerDialog>(null);
+const watchlistFor = ref<string | null>(null);
 const selectedSymbol = ref('');
 const dialogError = ref<string | null>(null);
 
@@ -83,22 +72,16 @@ const columns = computed(() => {
 
 const hiddenSymbols = computed(() => preferences.value?.hiddenSymbols ?? []);
 
-const source = computed<ResultsSource>(() =>
-    mode.value === 'combined' ? { kind: 'combined' } : { kind: 'screener', name: selected.value },
-);
+const source = computed<ResultsSource>(() => {
+    if (mode.value === 'combined') return { kind: 'combined' };
+    if (mode.value === 'hidden') return { kind: 'hidden' };
+    return { kind: 'screener', name: selected.value };
+});
 
 const results = useScreenerResults(
     () => source.value,
     () => revision.value,
 );
-
-/** The hidden list is the preference itself — there is no query behind it. */
-const hiddenRows = computed<ScreenerResult[]>(() =>
-    hiddenSymbols.value.map((symbol) => ({ symbol, name: null, assetType: null, sector: null, exchange: null })),
-);
-
-const rows = computed(() => (mode.value === 'hidden' ? hiddenRows.value : results.items.value));
-const total = computed(() => (mode.value === 'hidden' ? hiddenSymbols.value.length : results.total.value));
 
 const profile = useResource(
     () => selectedSymbol.value,
@@ -106,7 +89,11 @@ const profile = useResource(
     { enabled: (symbol): boolean => symbol !== '' },
 );
 
-const exporting = ref(false);
+const exportCsv = useScreenerExport({
+    source: (): ResultsSource => source.value,
+    columns: (): readonly string[] => columns.value,
+    filename: (): string => (mode.value === 'screener' ? selected.value : t(`screener.modes.${mode.value}`)),
+});
 
 /** The reason the last toolbar action failed, cleared by the next attempt. */
 const actionError = ref<string | null>(null);
@@ -148,6 +135,17 @@ async function runNamed(action: () => Promise<void>, failure: string): Promise<v
     }
 }
 
+/**
+ * Chart the row, and remember it as the account's default symbol.
+ * The screener is where a symbol is picked out; opening the chart view straight
+ * afterwards and finding the previous one there is the reason this exists. The
+ * write is fire-and-forget — the chart beside the table has already moved.
+ */
+function selectSymbol(symbol: string): void {
+    selectedSymbol.value = symbol;
+    if (symbol !== '') patchPreferences({ defaultSymbol: symbol }).catch(() => undefined);
+}
+
 async function toggleHidden(symbol: string): Promise<void> {
     const hidden = hiddenSymbols.value.includes(symbol);
     actionError.value = null;
@@ -174,66 +172,9 @@ async function saveColumns(next: string[]): Promise<void> {
     }
 }
 
-async function collectForExport(): Promise<ScreenerResult[]> {
-    const collected: ScreenerResult[] = [];
-
-    for (let page = 1; collected.length < EXPORT_LIMIT; page += 1) {
-        const query = { page, limit: EXPORT_PAGE };
-        const { data } =
-            source.value.kind === 'combined'
-                ? await getCombinedResults(query)
-                : await getScreenerResults(source.value.name, query);
-
-        collected.push(...data.items);
-        if (page >= data.pages || data.items.length === 0) break;
-    }
-
-    return collected.slice(0, EXPORT_LIMIT);
-}
-
-async function exportCsv(): Promise<void> {
-    if (mode.value === 'hidden') {
-        downloadFile(
-            'hidden.csv',
-            toCsv(
-                [t('screener.symbol')],
-                hiddenSymbols.value.map((symbol) => [symbol]),
-            ),
-            CSV_TYPE,
-        );
-        return;
-    }
-
-    exporting.value = true;
-    actionError.value = null;
-    try {
-        const collected = await collectForExport();
-        const headers = [
-            t('screener.symbol'),
-            t('screener.name'),
-            ...columns.value.map((path) => t(`screener.fields.${findColumn(path)?.filterKey ?? path}`)),
-        ];
-        const body = collected.map((row) => [
-            row.symbol,
-            row.name,
-            ...columns.value.map((path) => {
-                const value = readColumn(row, path);
-                return typeof value === 'string' || typeof value === 'number' ? value : null;
-            }),
-        ]);
-
-        const name = mode.value === 'combined' ? t('screener.modes.combined') : selected.value;
-        downloadFile(`${name}.csv`, toCsv(headers, body), CSV_TYPE);
-    } catch {
-        actionError.value = t('screener.exportFailed');
-    } finally {
-        exporting.value = false;
-    }
-}
-
 // The chart follows the list: a screener whose first row was never selected
 // left the chart pane empty, which was the old view's usual first impression.
-watch(rows, (current) => {
+watch(results.items, (current) => {
     if (current.length === 0) {
         selectedSymbol.value = '';
         return;
@@ -253,12 +194,14 @@ watch(autoplay, (on) => {
     if (!on) return;
 
     timer = setInterval(() => {
-        const index = rows.value.findIndex((row) => row.symbol === selectedSymbol.value);
-        const next = rows.value[index + 1];
+        const index = results.items.value.findIndex((row) => row.symbol === selectedSymbol.value);
+        const next = results.items.value[index + 1];
         if (next === undefined) {
             autoplay.value = false;
             return;
         }
+        // Deliberately not `selectSymbol`: a timer must not rewrite the account
+        // default four seconds at a time.
         selectedSymbol.value = next.symbol;
     }, AUTOPLAY_MS);
 });
@@ -335,17 +278,17 @@ onUnmounted(() => {
                 <ResultsToolbar
                     v-model:mode="mode"
                     v-model:autoplay="autoplay"
-                    :total="total"
+                    :total="results.total.value"
                     :export-limit="EXPORT_LIMIT"
-                    :exporting="exporting"
+                    :exporting="exportCsv.exporting.value"
                     @columns="dialog = 'columns'"
-                    @export="exportCsv" />
+                    @export="exportCsv.run()" />
 
                 <p
-                    v-if="actionError !== null"
+                    v-if="actionError !== null || exportCsv.error.value !== null"
                     class="screener__error"
                     role="alert"
-                    >{{ actionError }}</p
+                    >{{ actionError ?? exportCsv.error.value }}</p
                 >
 
                 <p
@@ -369,27 +312,28 @@ onUnmounted(() => {
                 </EmptyState>
 
                 <EmptyState
-                    v-else-if="rows.length === 0 && !results.pending.value"
+                    v-else-if="results.items.value.length === 0 && !results.pending.value"
                     :title="mode === 'hidden' ? t('screener.noHidden') : t('screener.noResults')"
                     :body="mode === 'hidden' ? t('screener.noHiddenHint') : t('screener.noResultsHint')" />
 
                 <ResultsTable
                     v-else
-                    :items="rows"
-                    :columns="mode === 'hidden' ? [] : columns"
+                    :items="results.items.value"
+                    :columns="columns"
                     :selected="selectedSymbol"
                     :hidden-symbols="hiddenSymbols"
                     :pending="results.pending.value"
-                    @select="selectedSymbol = $event"
-                    @toggle-hidden="toggleHidden" />
+                    @select="selectSymbol"
+                    @toggle-hidden="toggleHidden"
+                    @watchlist="watchlistFor = $event" />
 
                 <nav
-                    v-if="mode !== 'hidden' && results.pages.value > 1"
+                    v-if="results.pages.value > 1"
                     class="screener__pager"
                     :aria-label="t('screener.results')">
                     <button
                         type="button"
-                        class="screener__action"
+                        class="btn btn--small"
                         :disabled="results.page.value <= 1"
                         @click="results.goTo(results.page.value - 1)">
                         {{ t('common.previous') }}
@@ -399,7 +343,7 @@ onUnmounted(() => {
                     </span>
                     <button
                         type="button"
-                        class="screener__action"
+                        class="btn btn--small"
                         :disabled="results.page.value >= results.pages.value"
                         @click="results.goTo(results.page.value + 1)">
                         {{ t('common.next') }}
@@ -410,97 +354,42 @@ onUnmounted(() => {
             <aside
                 class="screener__column screener__column--chart"
                 :class="{ 'screener__column--hidden': pane !== 'chart' }">
-                <p
-                    v-if="selectedSymbol === ''"
-                    class="screener__empty"
-                    >{{ t('screener.selectRow') }}</p
-                >
-                <PriceChart
-                    v-else
+                <ScreenerCharts
                     :symbol="selectedSymbol"
                     :profile="profile.data.value" />
             </aside>
         </div>
 
-        <PromptDialog
-            v-if="dialog === 'create'"
-            :title="t('screener.createTitle')"
-            :label="t('screener.nameLabel')"
-            :max-length="20"
-            :error="dialogError"
-            @submit="runNamed(() => createScreener($event), 'screener.createFailed')"
-            @close="dialog = null" />
-
-        <PromptDialog
-            v-else-if="dialog === 'rename'"
-            :title="t('screener.renameTitle')"
-            :label="t('screener.nameLabel')"
-            :initial="selected"
-            :max-length="20"
-            :error="dialogError"
-            @submit="runNamed(() => renameScreener($event), 'screener.renameFailed')"
-            @close="dialog = null" />
-
-        <AppDialog
-            v-else-if="dialog === 'delete'"
-            :title="t('screener.deleteTitle')"
-            size="sm"
-            @close="dialog = null">
-            <p>{{ t('screener.deleteMessage', { name: selected }) }}</p>
-            <template #footer>
-                <button
-                    type="button"
-                    class="screener__action"
-                    @click="dialog = null"
-                    >{{ t('common.cancel') }}</button
-                >
-                <button
-                    type="button"
-                    class="screener__action screener__action--danger"
-                    @click="runNamed(() => removeScreener(selected), 'screener.deleteFailed')">
-                    {{ t('common.delete') }}
-                </button>
-            </template>
-        </AppDialog>
-
-        <AppDialog
-            v-else-if="dialog === 'reset'"
-            :title="t('screener.resetTitle')"
-            size="sm"
-            @close="dialog = null">
-            <p>{{ t('screener.resetMessage') }}</p>
-            <p class="screener__warning">{{ t('screener.resetWarning') }}</p>
-            <template #footer>
-                <button
-                    type="button"
-                    class="screener__action"
-                    @click="dialog = null"
-                    >{{ t('common.cancel') }}</button
-                >
-                <button
-                    type="button"
-                    class="screener__action screener__action--danger"
-                    @click="resetFilters">
-                    {{ t('screener.resetConfirm') }}
-                </button>
-            </template>
-        </AppDialog>
-
-        <ColumnsDialog
-            v-else-if="dialog === 'columns'"
+        <ScreenerDialogs
+            :dialog="dialog"
+            :selected="selected"
             :columns="columns"
-            @save="saveColumns"
-            @close="dialog = null" />
+            :error="dialogError"
+            @close="dialog = null"
+            @create="runNamed(() => createScreener($event), 'screener.createFailed')"
+            @rename="runNamed(() => renameScreener($event), 'screener.renameFailed')"
+            @remove="runNamed(() => removeScreener(selected), 'screener.deleteFailed')"
+            @reset="resetFilters"
+            @save-columns="saveColumns" />
+
+        <WatchlistDialog
+            v-if="watchlistFor !== null"
+            :symbol="watchlistFor"
+            @close="watchlistFor = null" />
     </div>
 </template>
 
 <style lang="scss" scoped>
+/* –––––– Frame –––––– */
+
 .screener {
     display: flex;
     flex-direction: column;
     gap: $space-2;
     padding: $space-2;
 }
+
+/* –––––– Pane switcher –––––– */
 
 .screener__tabs {
     display: flex;
@@ -527,6 +416,8 @@ onUnmounted(() => {
     background: $color-elevated;
     color: $color-text;
 }
+
+/* –––––– Columns –––––– */
 
 .screener__grid {
     display: grid;
@@ -573,30 +464,7 @@ onUnmounted(() => {
     padding: $space-2;
 }
 
-.screener__action {
-    padding: $space-1 $space-3;
-    border: $border-width solid $color-elevated;
-    border-radius: $radius-sm;
-    background: $color-surface;
-    color: $color-text;
-    font-family: inherit;
-    font-size: $font-size-xs;
-    cursor: pointer;
-
-    &:hover:not(:disabled) {
-        background: $color-elevated;
-    }
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: default;
-    }
-}
-
-.screener__action--danger {
-    border-color: $color-negative;
-    color: $color-negative;
-}
+/* –––––– Messages and paging –––––– */
 
 .screener__error {
     margin: 0;
@@ -613,19 +481,6 @@ onUnmounted(() => {
     font: inherit;
     text-decoration: underline;
     cursor: pointer;
-}
-
-.screener__empty {
-    margin: 0;
-    padding: $space-5;
-    color: $color-text-muted;
-    font-size: $font-size-sm;
-    text-align: center;
-}
-
-.screener__warning {
-    color: $color-text-muted;
-    font-size: $font-size-sm;
 }
 
 .screener__pager {

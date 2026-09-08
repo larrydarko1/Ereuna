@@ -1,11 +1,18 @@
-/** useScreenerResults — one page of matches, for one screener or for all of them. */
+/** useScreenerResults — one page of matches, for one screener, all of them, or the hidden set. */
 import { computed, ref, watch, type ComputedRef, type Ref } from 'vue';
-import { apiErrorMessage } from '@/api/client';
-import { getCombinedResults, getScreenerResults, type ScreenerResult } from '@/api/screener';
+import { apiErrorMessage, type ApiResult } from '@/api/client';
+import {
+    getCombinedResults,
+    getHiddenResults,
+    getScreenerResults,
+    type ResultsQuery,
+    type ScreenerResult,
+    type ScreenerResultPage,
+} from '@/api/screener';
 import { i18n } from '@/i18n';
 
-/** Which set of matches to read: the named screener, or every included one. */
-export type ResultsSource = { kind: 'screener'; name: string } | { kind: 'combined' };
+/** Which set of matches to read: the named screener, every included one, or the hidden list. */
+export type ResultsSource = { kind: 'screener'; name: string } | { kind: 'combined' } | { kind: 'hidden' };
 
 export type UseScreenerResultsReturn = {
     items: Ref<ScreenerResult[]>;
@@ -20,6 +27,22 @@ export type UseScreenerResultsReturn = {
 };
 
 const PAGE_SIZE = 100;
+
+/**
+ * The endpoint behind one source.
+ * Exported because the CSV export walks the same three sources page by page,
+ * and a second copy of this switch is a second place to forget a source.
+ */
+export function fetchResults(source: ResultsSource, query: ResultsQuery): ApiResult<ScreenerResultPage> {
+    switch (source.kind) {
+        case 'combined':
+            return getCombinedResults(query);
+        case 'hidden':
+            return getHiddenResults(query);
+        case 'screener':
+            return getScreenerResults(source.name, query);
+    }
+}
 
 export function useScreenerResults(source: () => ResultsSource, revision: () => number): UseScreenerResultsReturn {
     const items = ref<ScreenerResult[]>([]);
@@ -46,11 +69,7 @@ export function useScreenerResults(source: () => ResultsSource, revision: () => 
         error.value = null;
 
         try {
-            const query = { page: page.value, limit: PAGE_SIZE };
-            const { data } =
-                current.kind === 'combined'
-                    ? await getCombinedResults(query)
-                    : await getScreenerResults(current.name, query);
+            const { data } = await fetchResults(current, { page: page.value, limit: PAGE_SIZE });
 
             if (ticket !== sequence) return;
             items.value = data.items;
@@ -71,9 +90,8 @@ export function useScreenerResults(source: () => ResultsSource, revision: () => 
     // page change keeps the position it just asked for.
     watch(
         // One string rather than a tuple: a tuple is a new array on every
-        // evaluation, so anything that merely re-ran this getter — switching the
-        // list to the hidden symbols, say — re-queried a match set that had not
-        // changed.
+        // evaluation, so anything that merely re-ran this getter re-queried a
+        // match set that had not changed.
         () => `${JSON.stringify(source())}|${String(revision())}`,
         () => {
             page.value = 1;

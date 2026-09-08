@@ -23,6 +23,7 @@ const {
 const emit = defineEmits<{
     select: [symbol: string];
     toggleHidden: [symbol: string];
+    watchlist: [symbol: string];
 }>();
 
 const PLACEHOLDER = '—';
@@ -34,6 +35,16 @@ const resolved = computed(() => columns.map((path) => findColumn(path)).filter((
 
 function header(filterKey: string): string {
     return t(`screener.fields.${filterKey}`);
+}
+
+/**
+ * The screeners a combined-list row matched, once there is more than one.
+ * One match is the normal case and marking it would mark every row; the mark
+ * exists to say that several screens independently agreed on this symbol.
+ */
+function agreedBy(row: ScreenerResult): readonly string[] {
+    const screeners = row.screeners ?? [];
+    return screeners.length > 1 ? screeners : [];
 }
 
 function cell(row: ScreenerResult, path: string, format: ColumnFormat): string {
@@ -144,8 +155,24 @@ function onKeydown(event: KeyboardEvent): void {
                             @click.stop="emit('toggleHidden', row.symbol)">
                             <AppIcon :name="hiddenSymbols.includes(row.symbol) ? 'eye' : 'eye-off'" />
                         </button>
+                        <button
+                            type="button"
+                            class="results-table__action"
+                            :aria-label="t('screener.addToWatchlist', { symbol: row.symbol })"
+                            @click.stop="emit('watchlist', row.symbol)">
+                            <AppIcon name="star" />
+                        </button>
                     </td>
-                    <td class="results-table__td results-table__td--symbol">{{ row.symbol }}</td>
+                    <td class="results-table__td results-table__td--symbol">
+                        {{ row.symbol }}
+                        <!-- Matched by more than one included screener -->
+                        <span
+                            v-if="agreedBy(row).length > 0"
+                            class="results-table__agreed"
+                            :title="`${t('screener.appearsIn')}\n${agreedBy(row).join('\n')}`"
+                            >{{ t('screener.agreedCount', { count: agreedBy(row).length }) }}</span
+                        >
+                    </td>
                     <td class="results-table__td results-table__td--name">{{ row.name ?? PLACEHOLDER }}</td>
                     <td
                         v-for="column in resolved"
@@ -196,17 +223,18 @@ function onKeydown(event: KeyboardEvent): void {
     text-align: left;
 }
 
-// The hide toggle leads the row and stays put through a horizontal scroll.
-// As the last column it was off-screen the moment a screener chose more than a
-// handful of figures, which is what made the hidden list look unreachable.
+// The row actions lead the row and stay put through a horizontal scroll.
+// As the last column they were off-screen the moment a screener chose more than
+// a handful of figures, which is what made the hidden list look unreachable.
 .results-table__th--actions,
 .results-table__td--actions {
     position: sticky;
     left: 0;
     z-index: $z-sticky;
-    width: 32px;
+    width: 56px;
     padding: 0 $space-1;
     background: $color-surface;
+    white-space: nowrap;
 }
 
 .results-table__th--actions {
@@ -268,7 +296,7 @@ function onKeydown(event: KeyboardEvent): void {
 }
 
 .results-table__action {
-    display: grid;
+    display: inline-grid;
     place-items: center;
     padding: $space-1;
     border: none;
@@ -276,6 +304,7 @@ function onKeydown(event: KeyboardEvent): void {
     color: $color-text-muted;
     line-height: 1;
     cursor: pointer;
+    vertical-align: middle;
 
     &:hover {
         color: $color-text;
@@ -284,5 +313,18 @@ function onKeydown(event: KeyboardEvent): void {
 
 .results-table__action--on {
     color: $color-accent-1;
+}
+
+/* –––––– Multi-screener agreement –––––– */
+
+.results-table__agreed {
+    margin-left: $space-1;
+    padding: 0 $space-1;
+    border-radius: $radius-sm;
+    background: $color-accent-1;
+    color: $color-text-inverted;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
+    cursor: help;
 }
 </style>

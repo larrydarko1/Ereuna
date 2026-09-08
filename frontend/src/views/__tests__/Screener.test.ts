@@ -13,7 +13,11 @@ vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket'))
  * no layout to draw into under jsdom. This view owns the list and the wiring
  * around it; PriceChart has its own suite.
  */
-const PriceChartStub = { name: 'PriceChart', props: ['symbol', 'profile'], template: '<div class="stub-chart" />' };
+const PriceChartStub = {
+    name: 'PriceChart',
+    props: ['symbol', 'profile', 'initialTimeframe'],
+    template: '<div class="stub-chart" />',
+};
 
 const api = mockApi();
 
@@ -96,6 +100,8 @@ beforeEach(() => {
     api.on('GET /api/screeners/Growth/results', page(['AAPL', 'MSFT']));
     api.on('GET /api/screeners/Value/results', page(['NVDA']));
     api.on('GET /api/screeners/results', page(['AAPL', 'MSFT', 'NVDA']));
+    api.on('GET /api/screeners/hidden/results', page([]));
+    api.on('GET /api/watchlists', { items: [] });
     api.on('GET /api/charts/AAPL/profile', { symbol: 'AAPL', name: 'Apple Inc', exchange: 'NASDAQ' });
     api.on('GET /api/charts/MSFT/profile', { symbol: 'MSFT', name: 'Microsoft', exchange: 'NASDAQ' });
     api.on('GET /api/charts/NVDA/profile', { symbol: 'NVDA', name: 'Nvidia', exchange: 'NASDAQ' });
@@ -156,18 +162,20 @@ describe('Screener', () => {
         expect(wrapper.findAll('.results-table__row')).toHaveLength(3);
     });
 
-    it('lists the hidden symbols from the preference itself, with no screener query behind it', async () => {
+    // Bare symbols could not answer the only question the hidden list is for —
+    // whether something still deserves to be hidden — so it is a query like
+    // any other, projected through the same columns.
+    it('reads the hidden list from its own route, with the columns every other list has', async () => {
         api.on('GET /api/preferences', preferences({ hiddenSymbols: ['TSLA'] }));
+        api.on('GET /api/screeners/hidden/results', page(['TSLA']));
         api.on('GET /api/charts/TSLA/profile', { symbol: 'TSLA', name: 'Tesla', exchange: 'NASDAQ' });
         const wrapper = await view();
-        const before = api.calls.length;
 
         await click(mode(wrapper, 2));
 
+        expect(api.calls.some((call) => call.path === '/api/screeners/hidden/results')).toBe(true);
         expect(wrapper.findAll('.results-table__row')).toHaveLength(1);
-        // The chart still follows the selection, and the results composable keeps
-        // its own key warm; what the hidden list must not do is ask for matches
-        expect(api.calls.slice(before).filter((call) => call.path.endsWith('/results'))).toHaveLength(0);
+        expect(wrapper.findAll('.results-table__th--figure')).toHaveLength(DEFAULT_COLUMNS.length);
     });
 
     it('says the list is empty rather than drawing an empty table', async () => {
@@ -264,7 +272,7 @@ describe('Screener', () => {
         const wrapper = await view();
 
         await click(wrapper.findAll('.picker__button')[3]?.element as HTMLElement);
-        await click($('.dialog__footer .screener__action:last-child'));
+        await click($('.dialog__footer .btn--danger'));
 
         expect(api.calls.some((call) => call.method === 'DELETE')).toBe(true);
         wrapper.unmount();
@@ -287,8 +295,9 @@ describe('Screener', () => {
         vi.restoreAllMocks();
     });
 
-    it('exports the hidden list straight from the preference', async () => {
+    it('exports the hidden list through the same walk as any other list', async () => {
         api.on('GET /api/preferences', preferences({ hiddenSymbols: ['TSLA'] }));
+        api.on('GET /api/screeners/hidden/results', page(['TSLA']));
         const anchor = document.createElement('a');
         vi.spyOn(anchor, 'click').mockImplementation(() => {});
         vi.spyOn(document, 'createElement').mockImplementation((tag: string) =>
@@ -298,12 +307,10 @@ describe('Screener', () => {
         URL.revokeObjectURL = vi.fn();
         const wrapper = await view();
         await click(mode(wrapper, 2));
-        const before = api.calls.length;
 
         await click(action(wrapper, i18n.global.t('common.download')));
 
-        expect(anchor.download).toBe('hidden.csv');
-        expect(api.calls).toHaveLength(before);
+        expect(anchor.download).toBe(`${i18n.global.t('screener.modes.hidden')}.csv`);
         vi.restoreAllMocks();
     });
 
@@ -359,5 +366,70 @@ describe('Screener', () => {
         const wrapper = await view();
 
         expect(wrapper.get('[role="alert"]').text()).toBe(i18n.global.t('errors.INTERNAL'));
+    });
+
+    // Picking a symbol here is picking the symbol; the chart view opening on
+    // the previous one was the whole complaint.
+    it('makes the clicked row the account default symbol', async () => {
+        const wrapper = await view();
+
+        await wrapper.findAll('.results-table__row')[1]?.trigger('click');
+        await flushPromises();
+
+        const patch = api.calls.filter((call) => call.method === 'PATCH').pop();
+        expect(patch?.body).toEqual({ defaultSymbol: 'MSFT' });
+    });
+
+    it('leaves the default symbol alone while autoplay walks the list', async () => {
+        vi.useFakeTimers();
+        const wrapper = await view();
+        await click(action(wrapper, i18n.global.t('screener.autoplay')));
+        const before = api.calls.filter((call) => call.method === 'PATCH').length;
+
+        await vi.advanceTimersByTimeAsync(4000);
+
+        expect(api.calls.filter((call) => call.method === 'PATCH')).toHaveLength(before);
+        vi.useRealTimers();
+    });
+
+    it('files a symbol into a watchlist without leaving the table', async () => {
+        api.on('GET /api/watchlists', {
+            items: [{ id: '1', name: 'Longs', position: 0, tickerCount: 0, tickers: [], updatedAt: '2026-03-01' }],
+        });
+        api.on('GET /api/watchlists/Longs', { name: 'Longs', rows: [] });
+        api.on('POST /api/watchlists/Longs/tickers', { list: [{ ticker: 'AAPL', exchange: 'NASDAQ' }] });
+        const wrapper = await view();
+
+        await click(wrapper.findAll('.results-table__action')[1]?.element as HTMLElement);
+        await click($('.watchlist-dialog__item'));
+
+        expect(api.calls.some((call) => call.path === '/api/watchlists/Longs/tickers')).toBe(true);
+        wrapper.unmount();
+    });
+
+    it('marks a combined-list symbol that more than one screener matched', async () => {
+        api.on('GET /api/screeners/results', {
+            items: [
+                { symbol: 'AAPL', name: 'Apple', assetType: null, sector: null, exchange: null, screeners: ['A', 'B'] },
+                { symbol: 'MSFT', name: 'Microsoft', assetType: null, sector: null, exchange: null, screeners: ['A'] },
+            ],
+            total: 2,
+            page: 1,
+            pages: 1,
+        });
+        const wrapper = await view();
+
+        await click(mode(wrapper, 1));
+
+        const marks = wrapper.findAll('.results-table__agreed');
+        expect(marks).toHaveLength(1);
+        expect(marks[0]?.attributes('title')).toContain('A');
+    });
+
+    it('stacks a daily and a weekly chart beside the list', async () => {
+        const wrapper = await view();
+
+        const charts = wrapper.findAllComponents(PriceChartStub);
+        expect(charts.map((chart) => chart.props('initialTimeframe'))).toEqual(['daily', 'weekly']);
     });
 });

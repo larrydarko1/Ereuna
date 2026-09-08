@@ -10,6 +10,7 @@ export type WatchlistSummary = {
     name: string;
     position: number;
     tickerCount: number;
+    tickers: string[]; // Membership, so a caller can offer "add to list" without reading every list
     updatedAt: Date;
 };
 
@@ -101,6 +102,7 @@ function toSummary(doc: WithId<WatchlistDoc>): WatchlistSummary {
         name: doc.name,
         position: doc.position,
         tickerCount: doc.list.length,
+        tickers: doc.list.map((entry) => entry.ticker),
         updatedAt: doc.updatedAt,
     };
 }

@@ -13,26 +13,30 @@ const routes: RouteRecordRaw[] = [
         path: '/login',
         name: 'Login',
         component: async () => import('@/views/Login.vue'),
-        meta: { public: true, guestOnly: true },
+        meta: { public: true, guestOnly: true, bare: true },
     },
     {
         path: '/signup',
         name: 'SignUp',
         component: async () => import('@/views/SignUp.vue'),
-        meta: { public: true, guestOnly: true },
+        meta: { public: true, guestOnly: true, bare: true },
     },
     {
         path: '/recovery',
         name: 'Recovery',
         component: async () => import('@/views/Recovery.vue'),
-        meta: { public: true, guestOnly: true },
+        meta: { public: true, guestOnly: true, bare: true },
     },
     {
         // Signed in, but on a session a recovery code opened. The guard below
-        // holds every other route until a password exists again
+        // holds every other route until a password exists again, and `bare`
+        // keeps the app header off it — a nav bar around a page whose whole
+        // point is that the account has no password yet invites a click that
+        // the guard then bounces straight back.
         path: '/set-password',
         name: 'SetPassword',
         component: async () => import('@/views/SetPassword.vue'),
+        meta: { bare: true },
     },
     {
         path: '/dashboard',
@@ -76,8 +80,9 @@ const router = createRouter({
 
 declare module 'vue-router' {
     interface RouteMeta {
-        public?: boolean;
-        guestOnly?: boolean;
+        public?: boolean; // Reachable signed out
+        guestOnly?: boolean; // Redirects to the dashboard when a session already exists
+        bare?: boolean; // Rendered without the app header
     }
 }
 

@@ -13,7 +13,7 @@ test.describe('Screener', () => {
         const asset = await seedAsset({ Name: 'Screenable E2E Corp' });
 
         await page.goto('/screener');
-        await page.getByRole('button', { name: 'Add' }).click();
+        await page.getByRole('button', { name: 'Add', exact: true }).click();
         await page.getByLabel('Screener Name').fill(`e2e ${Date.now().toString(36)}`);
         await page.getByRole('button', { name: 'Save' }).click();
 
@@ -25,7 +25,7 @@ test.describe('Screener', () => {
         const asset = await seedAsset({ Name: 'Hideable E2E Corp' });
 
         await page.goto('/screener');
-        await page.getByRole('button', { name: 'Add' }).click();
+        await page.getByRole('button', { name: 'Add', exact: true }).click();
         await page.getByLabel('Screener Name').fill(`e2e ${Date.now().toString(36)}`);
         await page.getByRole('button', { name: 'Save' }).click();
         await expect(page.getByRole('cell', { name: asset.symbol, exact: true })).toBeVisible();
