@@ -42,6 +42,7 @@ const busy = ref(false);
 const error = ref<string | null>(null);
 const notice = ref<string | null>(null);
 const fileInput = useTemplateRef<HTMLInputElement>('fileInput');
+const rowButtons = useTemplateRef<HTMLButtonElement[]>('rowButtons');
 
 const tickers = computed(() => rows.value.map((row) => row.ticker));
 
@@ -131,6 +132,19 @@ function exportList(): void {
     anchor.download = `${activeName.value}.txt`;
     anchor.click();
     URL.revokeObjectURL(url);
+}
+
+function onKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+
+    const index = tickers.value.indexOf(symbol);
+    const next = event.key === 'ArrowDown' ? index + 1 : index - 1;
+    const target = tickers.value[next];
+    if (target === undefined) return;
+
+    event.preventDefault();
+    emit('select', target);
+    rowButtons.value?.[next]?.focus();
 }
 
 function changeTone(value: number | null): string {
@@ -269,9 +283,12 @@ onMounted(() => {
                 class="watchlist__row"
                 :class="{ 'watchlist__row--active': row.ticker === symbol }">
                 <button
+                    ref="rowButtons"
                     type="button"
                     class="watchlist__symbol"
-                    @click="emit('select', row.ticker)">
+                    :aria-current="row.ticker === symbol"
+                    @click="emit('select', row.ticker)"
+                    @keydown="onKeydown">
                     <span class="watchlist__ticker">{{ row.ticker }}</span>
                     <span class="watchlist__price">
                         {{ row.quote === null ? '—' : formatNumber(row.quote.close, 2) }}

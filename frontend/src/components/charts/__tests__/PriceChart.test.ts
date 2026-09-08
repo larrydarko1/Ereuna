@@ -319,6 +319,25 @@ describe('PriceChart', () => {
         );
     });
 
+    it('opens on the timeframe it was given rather than always on daily', async () => {
+        api.on('GET /api/charts/AAPL', { ...series(), timeframe: 'weekly' });
+
+        await chart({ initialTimeframe: 'weekly' });
+
+        const read = api.calls.find((call) => call.path === '/api/charts/AAPL');
+        expect(read?.search.get('timeframe')).toBe('weekly');
+    });
+
+    // Two of these stack beside the screener's results table, where the drawing
+    // tools have nothing to draw on and two toolbars is one too many.
+    it('drops the toolbar when it is compact, and keeps the timeframes', async () => {
+        const wrapper = await chart({ profile: profile(), compact: true });
+
+        expect(wrapper.find('.toolbar').exists()).toBe(false);
+        expect(timeframes(wrapper).length).toBeGreaterThan(0);
+        wrapper.unmount();
+    });
+
     it('tears the chart down when it goes away', async () => {
         const wrapper = await chart({ profile: profile() });
 

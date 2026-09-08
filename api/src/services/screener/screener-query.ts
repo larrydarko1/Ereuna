@@ -40,6 +40,9 @@ type ScreenerResult = {
 type TaggedAsset = AssetInfoDoc & { screeners: string[] };
 
 /** Columns every result carries, on top of whatever the user has selected. */
+/** A column path that steps through an array index, like `quarterlyFinancials.0.roe`. */
+const INDEXED_COLUMN = /^(?<array>[^.]+)\.(?<index>\d+)\.(?<field>.+)$/;
+
 const BASE_PROJECTION = {
     _id: 0,
     Symbol: 1,
@@ -229,14 +232,20 @@ async function executeQuery(
     const assets = getDb().collection<AssetInfoDoc>('AssetInfo');
     const projection = buildProjection(columns);
 
+    // An aggregation rather than a find: the projection carries expressions,
+    // which a find projection cannot evaluate. `$project` comes after the page
+    // has been cut, so only the rows being returned are ever reshaped.
     // Count and page are independent, so they go in parallel rather than
     // waiting on each other — the count is the slower of the two.
     const [items, total] = await Promise.all([
         assets
-            .find(query, { projection })
-            .sort({ Symbol: 1 })
-            .skip((page - 1) * limit)
-            .limit(limit)
+            .aggregate<AssetInfoDoc>([
+                { $match: query },
+                { $sort: { Symbol: 1 } },
+                { $skip: (page - 1) * limit },
+                { $limit: limit },
+                { $project: projection },
+            ])
             .toArray(),
         assets.countDocuments(query),
     ]);
@@ -249,18 +258,72 @@ async function executeQuery(
     };
 }
 
-function buildProjection(columns: string[]): Record<string, 0 | 1> {
+function buildProjection(columns: string[]): Record<string, unknown> {
     const allowed = new Set<string>([
         ...RANGE_FILTERS.map((spec) => spec.queryPath),
         ...ENUM_FILTERS.map((spec) => spec.queryPath),
         ...MA_FILTERS.map((spec) => spec.path),
     ]);
 
-    const projection: Record<string, 0 | 1> = { ...BASE_PROJECTION };
+    const projection: Record<string, unknown> = { ...BASE_PROJECTION };
+    // Array name → index → the fields wanted from that element. Several columns
+    // out of the same quarter cost one rebuilt element between them, not one
+    // copy of the array each.
+    const indexed = new Map<string, Map<number, Set<string>>>();
+
     for (const column of columns) {
-        if (allowed.has(column)) projection[column] = 1;
+        if (!allowed.has(column)) continue;
+
+        const parsed = parseIndexedColumn(column);
+        if (parsed === null) {
+            projection[column] = 1;
+            continue;
+        }
+
+        const { array, index, field } = parsed;
+        const slots = indexed.get(array) ?? new Map<number, Set<string>>();
+        const fields = slots.get(index) ?? new Set<string>();
+        fields.add(field);
+        slots.set(index, fields);
+        indexed.set(array, slots);
     }
+
+    for (const [array, slots] of indexed) {
+        const highest = Math.max(...slots.keys());
+        projection[array] = Array.from({ length: highest + 1 }, (_slot, index) =>
+            pickElementFields(array, index, slots.get(index)),
+        );
+    }
+
     return projection;
+}
+
+/** `quarterlyFinancials.0.roe` split into its parts, or null when the path is a plain one. */
+function parseIndexedColumn(column: string): { array: string; index: number; field: string } | null {
+    const groups = INDEXED_COLUMN.exec(column)?.groups;
+    if (groups === undefined) return null;
+
+    const { array, index, field } = groups;
+    if (array === undefined || index === undefined || field === undefined) return null;
+
+    return { array, index: Number(index), field };
+}
+
+/**
+ * The requested fields of one array element.
+ * The element is taken first and read second: `$quarterlyFinancials.roe` maps
+ * the field across the whole array and drops the elements that do not carry it,
+ * so its index no longer lines up with the quarter that was asked for.
+ */
+function pickElementFields(array: string, index: number, fields: Set<string> | undefined): Record<string, unknown> {
+    if (fields === undefined) return { $literal: {} };
+
+    return {
+        $let: {
+            vars: { element: { $arrayElemAt: [`$${array}`, index] } },
+            in: Object.fromEntries([...fields].map((field) => [field, `$$element.${field}`])),
+        },
+    };
 }
 
 function toResult(doc: AssetInfoDoc): ScreenerResult {

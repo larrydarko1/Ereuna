@@ -52,6 +52,24 @@ describe('withCache', () => {
         expect(fetcher).not.toHaveBeenCalled();
     });
 
+    // A `null` fetcher result is a document the ingestor has not written yet.
+    // Storing it made the API answer 404 for the whole TTL after the document
+    // finally arrived — a full day, for the holiday calendar.
+    it('does not cache an absent value', async () => {
+        await expect(withCache('m:stats:Holidays', () => Promise.resolve(null))).resolves.toBeNull();
+        expect(redis.current.setex).not.toHaveBeenCalled();
+        expect(redis.current.store.has('m:stats:Holidays')).toBe(false);
+    });
+
+    it('runs the fetcher again once an absent value has been written', async () => {
+        const fetcher = vi.fn<() => Promise<{ ok: boolean } | null>>();
+        fetcher.mockResolvedValueOnce(null).mockResolvedValueOnce({ ok: true });
+
+        await expect(withCache('m:stats:Holidays', fetcher)).resolves.toBeNull();
+        await expect(withCache('m:stats:Holidays', fetcher)).resolves.toEqual({ ok: true });
+        expect(fetcher).toHaveBeenCalledTimes(2);
+    });
+
     it('takes an explicit ttl over the smart one', async () => {
         await withCache('m:AAPL', () => Promise.resolve(1), { ttl: 7 });
         expect(redis.current.setex).toHaveBeenCalledWith('m:AAPL', 7, '1');

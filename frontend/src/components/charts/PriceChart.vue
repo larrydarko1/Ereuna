@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, useId, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { ChartTimeframe } from '@ereuna/shared';
 import { CHART_TIMEFRAMES } from '@ereuna/shared';
@@ -56,26 +56,50 @@ import {
 import { closes, heikinAshi, relativeVolume } from '@/utils/candles';
 import { timeToIsoDate, timeValue } from '@/utils/chartTime';
 
-const { symbol, profile = null } = defineProps<{
+const {
+    symbol,
+    profile = null,
+    initialTimeframe = 'daily',
+    compact = false,
+} = defineProps<{
     symbol: string;
     profile?: AssetProfile | null;
+    initialTimeframe?: ChartTimeframe; // Which timeframe the chart opens on
+    compact?: boolean; // Drop the toolbar and shrink the frame, for a chart shown beside something else
 }>();
-
-/** The screenshot manager finds the canvas layers by the container's id. */
-const CANVAS_ID = 'price-chart-canvas';
 
 const overlaySeries: ISeriesApi<'Line'>[] = [];
 
+/**
+ * The screenshot manager finds the canvas layers by the container's id, and the
+ * screener stacks two of these charts, so the id has to be per instance —
+ * a constant would have both screenshots reading the first chart's canvas.
+ */
+const canvasId = `price-chart-${useId()}`;
+
 const { t } = useI18n();
 const { palette } = useChartTheme();
-const { settings } = useChartSettings();
+const { settings, indicatorsFor } = useChartSettings();
 const { preferences } = usePreferences();
 
-const timeframe = ref<ChartTimeframe>('daily');
+const timeframe = ref<ChartTimeframe>(initialTimeframe);
 const series = useChartSeries(() => ({ symbol, timeframe: timeframe.value, overlays: overlaySignature() }));
 const replay = useChartReplay(series.bars, series.volume, series.overlays);
 const drawings = useChartDrawings();
 const market = useMarketStatus(() => profile?.exchange === 'CRYPTO');
+
+/**
+ * True when the ingestor only carries end-of-day bars for this listing.
+ * Intraday collections cover the two US exchanges; anything else has a daily
+ * bar at best, so offering a five-minute timeframe would return an empty chart.
+ * Declared before the live feed that reads it: the feed's enabled getter runs
+ * during setup, and a `const` referenced before its own line is a dead zone,
+ * not a hoisted binding.
+ */
+const isEodOnly = computed(() => {
+    const exchange = profile?.exchange;
+    return exchange !== null && exchange !== undefined && exchange !== 'NASDAQ' && exchange !== 'NYSE';
+});
 
 /**
  * The live feed, subscribed only while it can say anything.
@@ -167,16 +191,6 @@ const badges = computed(() => {
     if (preferences.value?.hiddenSymbols.includes(symbol) === true) flags.push(t('charts.hidden'));
     if (isEodOnly.value) flags.push(t('charts.eodOnly'));
     return flags;
-});
-
-/**
- * True when the ingestor only carries end-of-day bars for this listing.
- * Intraday collections cover the two US exchanges; anything else has a daily
- * bar at best, so offering a five-minute timeframe would return an empty chart.
- */
-const isEodOnly = computed(() => {
-    const exchange = profile?.exchange;
-    return exchange !== null && exchange !== undefined && exchange !== 'NASDAQ' && exchange !== 'NYSE';
 });
 
 const timeframes = computed(() => (isEodOnly.value ? EOD_TIMEFRAMES : CHART_TIMEFRAMES));
@@ -333,7 +347,7 @@ function syncOverlays(): void {
  * the window is re-read with the new lines on it.
  */
 function overlaySignature(): string {
-    return settings.value.indicators
+    return indicatorsFor(timeframe.value)
         .filter((indicator) => indicator.visible)
         .map((indicator) => `${indicator.type}${indicator.period}`)
         .join(',');
@@ -565,7 +579,7 @@ onMounted(() => {
     });
     volumeSeries.priceScale().applyOptions({ scaleMargins: { top: 0.9, bottom: 0 } });
 
-    screenshotManager = new ChartScreenshot(chart, CANVAS_ID);
+    screenshotManager = new ChartScreenshot(chart, canvasId);
 
     buildMainSeries();
     syncOverlays();
@@ -640,7 +654,9 @@ watch(isEodOnly, (eodOnly) => {
 </script>
 
 <template>
-    <section class="price-chart">
+    <section
+        class="price-chart"
+        :class="{ 'price-chart--compact': compact }">
         <div class="price-chart__controls">
             <div
                 class="price-chart__timeframes"
@@ -660,6 +676,7 @@ watch(isEodOnly, (eodOnly) => {
             </div>
 
             <ChartToolbar
+                v-if="!compact"
                 v-model="tool"
                 :has-drawings="drawings.hasDrawings.value"
                 :has-signals="(profile?.signals.length ?? 0) > 0"
@@ -684,7 +701,7 @@ watch(isEodOnly, (eodOnly) => {
 
         <div class="price-chart__frame">
             <div
-                :id="CANVAS_ID"
+                :id="canvasId"
                 ref="container"
                 class="price-chart__canvas"></div>
 
@@ -720,6 +737,7 @@ watch(isEodOnly, (eodOnly) => {
 
         <ChartSettingsDialog
             v-if="dialog === 'settings'"
+            :timeframe="timeframe"
             @close="dialog = null" />
 
         <PatternsDialog
@@ -828,6 +846,15 @@ watch(isEodOnly, (eodOnly) => {
 .price-chart__canvas {
     position: absolute;
     inset: 0;
+}
+
+/* –––––– Compact –––––– */
+
+// Beside a results table there is no room for a 320px floor: the pane is sized
+// by the grid row it sits in, and a floor taller than that row is exactly what
+// pushed a stacked pair past the panel it was supposed to fit inside.
+.price-chart--compact .price-chart__frame {
+    min-height: 0;
 }
 
 .price-chart__confirm {

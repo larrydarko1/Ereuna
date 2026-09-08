@@ -27,6 +27,11 @@ const screener = (name: string, filters: ScreenerDoc['filters'] = {}): ScreenerD
 const pipeline = (): Record<string, unknown>[] =>
     db.current.of('AssetInfo').aggregate.mock.calls[0]?.[0] as Record<string, unknown>[];
 
+const stage = <T>(name: string): T => (pipeline().find((entry) => name in entry) as Record<string, T>)[name] as T;
+
+const matchStage = (): Record<string, unknown> => stage<Record<string, unknown>>('$match');
+const projectStage = (): Record<string, unknown> => stage<Record<string, unknown>>('$project');
+
 beforeEach(() => {
     db.current = fakeDb();
 });
@@ -158,7 +163,7 @@ describe('runHiddenSymbols', () => {
     it('queries the hidden symbols as full rows', async () => {
         await runHiddenSymbols(USER_ID, { page: 1, limit: 10, hiddenSymbols: ['AAPL', 'MSFT'] });
 
-        expect(db.current.of('AssetInfo').filters[0]).toEqual({ Symbol: { $in: ['AAPL', 'MSFT'] } });
+        expect(matchStage()).toEqual({ Symbol: { $in: ['AAPL', 'MSFT'] } });
     });
 
     it('projects the columns the account asked for, and refuses anything else', async () => {
@@ -169,9 +174,49 @@ describe('runHiddenSymbols', () => {
             columns: ['PERatio', 'NotAColumn'],
         });
 
-        const [, options] = db.current.of('AssetInfo').find.mock.calls[0] ?? [];
-        const projection = (options as { projection: Record<string, number> }).projection;
-        expect(projection).toHaveProperty('PERatio', 1);
-        expect(projection).not.toHaveProperty('NotAColumn');
+        expect(projectStage()).toHaveProperty('PERatio', 1);
+        expect(projectStage()).not.toHaveProperty('NotAColumn');
+    });
+
+    // `quarterlyFinancials.0.assetsCurrent` as a projection path selects a field
+    // literally named `0`. Nothing has one, so the column arrived empty and the
+    // whole array rode along with it, one `{}` per quarter.
+    it('rebuilds an array-indexed column instead of projecting its dotted path', async () => {
+        await runHiddenSymbols(USER_ID, {
+            page: 1,
+            limit: 10,
+            hiddenSymbols: ['AAPL'],
+            columns: ['quarterlyFinancials.0.roe'],
+        });
+
+        const projection = projectStage();
+        expect(projection).not.toHaveProperty(['quarterlyFinancials.0.roe']);
+        expect(projection.quarterlyFinancials).toEqual([
+            {
+                $let: {
+                    vars: { element: { $arrayElemAt: ['$quarterlyFinancials', 0] } },
+                    in: { roe: '$$element.roe' },
+                },
+            },
+        ]);
+    });
+
+    it('reads several fields of one quarter off a single element', async () => {
+        await runHiddenSymbols(USER_ID, {
+            page: 1,
+            limit: 10,
+            hiddenSymbols: ['AAPL'],
+            columns: ['quarterlyFinancials.0.roe', 'quarterlyFinancials.0.assetsCurrent'],
+        });
+
+        const element = (projectStage().quarterlyFinancials as { $let: { in: Record<string, string> } }[])[0];
+        expect(element?.$let.in).toEqual({ roe: '$$element.roe', assetsCurrent: '$$element.assetsCurrent' });
+    });
+
+    it('cuts the page before reshaping it, so only the returned rows are projected', async () => {
+        await runHiddenSymbols(USER_ID, { page: 1, limit: 10, hiddenSymbols: ['AAPL'] });
+
+        const stages = pipeline().map((stage) => Object.keys(stage)[0]);
+        expect(stages.indexOf('$limit')).toBeLessThan(stages.indexOf('$project'));
     });
 });

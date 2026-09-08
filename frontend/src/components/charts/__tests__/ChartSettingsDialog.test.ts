@@ -1,10 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
-import { CHART_STYLES } from '@ereuna/shared';
+import { CHART_STYLES, type ChartTimeframe } from '@ereuna/shared';
 import { clearAuth } from '@/api/client';
 import { i18n } from '@/i18n';
 import { mockApi } from '@/__tests__/support/msw';
-import { DEFAULT_CHART_SETTINGS, MAX_INDICATOR_PERIOD } from '@/composables/charts/useChartSettings';
+import {
+    DEFAULT_CHART_SETTINGS,
+    DEFAULT_INDICATORS,
+    MAX_INDICATOR_PERIOD,
+} from '@/composables/charts/useChartSettings';
 import { loadPreferences } from '@/composables/data/usePreferences';
 import ChartSettingsDialog from '@/components/charts/ChartSettingsDialog.vue';
 
@@ -20,7 +24,8 @@ const preferences = (chartSettings: Record<string, unknown> | null): Record<stri
     screenerColumns: [],
 });
 
-const open = (): VueWrapper => mount(ChartSettingsDialog, { attachTo: document.body });
+const open = (timeframe: ChartTimeframe = 'daily'): VueWrapper =>
+    mount(ChartSettingsDialog, { attachTo: document.body, props: { timeframe } });
 
 const $ = (selector: string): HTMLElement => {
     const element = document.body.querySelector<HTMLElement>(selector);
@@ -68,7 +73,7 @@ describe('ChartSettingsDialog', () => {
         open();
 
         expect(($('.chart-settings__select') as HTMLSelectElement).value).toBe(DEFAULT_CHART_SETTINGS.style);
-        expect(periods()).toEqual(DEFAULT_CHART_SETTINGS.indicators.map((one) => String(one.period)));
+        expect(periods()).toEqual(DEFAULT_INDICATORS.map((one) => String(one.period)));
     });
 
     it('opens on the account’s own settings when there are some', async () => {
@@ -113,8 +118,27 @@ describe('ChartSettingsDialog', () => {
         await click($('.chart-settings__save'));
 
         expect(api.last().body).toMatchObject({
-            chartSettings: { indicators: [{ period: 1, type: 'SMA', visible: true }, {}, {}, {}] },
+            chartSettings: { indicators: { daily: [{ period: 1, type: 'SMA', visible: true }, {}, {}, {}] } },
         });
+    });
+
+    // The screener stacks a daily and a weekly chart, and one overlay set for
+    // both is what made an edit on either move the lines on both.
+    it('writes the overlays under the timeframe it was opened on, leaving the rest alone', async () => {
+        api.on(
+            'GET /api/preferences',
+            preferences({ style: 'candlestick', indicators: { daily: [{ type: 'SMA', period: 10, visible: true }] } }),
+        );
+        await loadPreferences(true);
+        open('weekly');
+
+        await set(all('.chart-settings__number')[0], '30');
+        await click($('.chart-settings__save'));
+
+        const { indicators } = (api.last().body as { chartSettings: { indicators: Record<string, unknown[]> } })
+            .chartSettings;
+        expect(indicators.weekly?.[0]).toMatchObject({ period: 30 });
+        expect(indicators.daily).toEqual([{ type: 'SMA', period: 10, visible: true }]);
     });
 
     it('puts the shipped settings back in the draft without storing them', async () => {

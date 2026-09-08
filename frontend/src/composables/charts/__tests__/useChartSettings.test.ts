@@ -1,12 +1,17 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { ChartSettings } from '@ereuna/shared';
+import type { ChartIndicator, ChartSettings, ChartTimeframe } from '@ereuna/shared';
 import { mockApi } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
 import { loadPreferences } from '@/composables/data/usePreferences';
-import { DEFAULT_CHART_SETTINGS, MAX_INDICATOR_PERIOD, useChartSettings } from '@/composables/charts/useChartSettings';
+import {
+    DEFAULT_CHART_SETTINGS,
+    DEFAULT_INDICATORS,
+    MAX_INDICATOR_PERIOD,
+    useChartSettings,
+} from '@/composables/charts/useChartSettings';
 
 const mock = mockApi();
-const { settings, save } = useChartSettings();
+const { settings, indicatorsFor, save, saveIndicators } = useChartSettings();
 
 const preferences = (chartSettings: ChartSettings | null): Record<string, unknown> => ({
     language: 'en',
@@ -18,13 +23,13 @@ const preferences = (chartSettings: ChartSettings | null): Record<string, unknow
     screenerColumns: [],
 });
 
-const draft = (indicators: ChartSettings['indicators']): ChartSettings => ({
+const draft = (indicators: ChartIndicator[]): ChartSettings => ({
     ...DEFAULT_CHART_SETTINGS,
-    indicators,
+    indicators: { daily: indicators },
 });
 
-const savedIndicators = (): ChartSettings['indicators'] =>
-    (mock.last().body as { chartSettings: ChartSettings }).chartSettings.indicators;
+const savedIndicators = (timeframe: ChartTimeframe = 'daily'): ChartIndicator[] =>
+    (mock.last().body as { chartSettings: ChartSettings }).chartSettings.indicators[timeframe] ?? [];
 
 beforeEach(() => {
     clearAuth();
@@ -36,7 +41,7 @@ describe('settings', () => {
     });
 
     it('defaults to the four averages the API also computes', () => {
-        expect(DEFAULT_CHART_SETTINGS.indicators.map((one) => one.period)).toEqual([10, 20, 50, 200]);
+        expect(DEFAULT_INDICATORS.map((one) => one.period)).toEqual([10, 20, 50, 200]);
     });
 
     it('answers with the stored settings once they are loaded', async () => {
@@ -101,5 +106,41 @@ describe('save', () => {
         await save(draft([{ type: 'EMA', period: 21, visible: false }]));
 
         expect(savedIndicators()[0]).toEqual({ type: 'EMA', period: 21, visible: false });
+    });
+});
+
+describe('indicatorsFor', () => {
+    it('defaults a timeframe nobody has configured', () => {
+        expect(indicatorsFor('weekly')).toEqual([...DEFAULT_INDICATORS]);
+    });
+
+    // Fifty bars is fifty days on the daily chart and a year on the weekly one,
+    // and the screener draws the two side by side.
+    it('reads each timeframe its own set', async () => {
+        mock.on(
+            'GET /api/preferences',
+            preferences({ style: 'candlestick', indicators: { weekly: [{ type: 'EMA', period: 9, visible: true }] } }),
+        );
+
+        await loadPreferences();
+
+        expect(indicatorsFor('weekly')).toEqual([{ type: 'EMA', period: 9, visible: true }]);
+        expect(indicatorsFor('daily')).toEqual([...DEFAULT_INDICATORS]);
+    });
+});
+
+describe('saveIndicators', () => {
+    it('carries the other timeframes through, because PATCH replaces the whole object', async () => {
+        mock.on(
+            'GET /api/preferences',
+            preferences({ style: 'candlestick', indicators: { weekly: [{ type: 'EMA', period: 9, visible: true }] } }),
+        );
+        await loadPreferences();
+        mock.on('PATCH /api/preferences', preferences(DEFAULT_CHART_SETTINGS));
+
+        await saveIndicators('daily', [{ type: 'SMA', period: 5, visible: true }]);
+
+        expect(savedIndicators('daily')).toEqual([{ type: 'SMA', period: 5, visible: true }]);
+        expect(savedIndicators('weekly')).toEqual([{ type: 'EMA', period: 9, visible: true }]);
     });
 });

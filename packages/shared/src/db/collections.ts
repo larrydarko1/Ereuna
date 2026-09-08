@@ -26,8 +26,16 @@ export type UserDoc = {
 
 export type ChartSettings = {
     style: ChartStyle; // How a bar is drawn
-    indicators: ChartIndicator[];
+    indicators: ChartOverlaySets;
 };
+
+/**
+ * The overlay averages, one set per timeframe.
+ * A 50-bar average means fifty days on the daily chart and a year on the
+ * weekly one, so a single list cannot serve both — and the screener draws the
+ * two side by side. A timeframe with no entry here uses the defaults.
+ */
+export type ChartOverlaySets = Partial<Record<ChartTimeframe, ChartIndicator[]>>;
 
 export type ChartStyle = (typeof CHART_STYLES)[number];
 

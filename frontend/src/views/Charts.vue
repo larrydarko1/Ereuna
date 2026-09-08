@@ -177,14 +177,16 @@ onMounted(async () => {
     }
 }
 
-// The info column is as tall as its sections; the chart is not. Left to grow
-// it pushed the page down and scrolled the chart out of view, so above the
-// three-column breakpoint it pins itself and scrolls inside its own box.
-.charts__column--info {
+// The side columns are as tall as their sections; the chart is not. Left to
+// grow they pushed the page down and scrolled the chart out of view, so above
+// the three-column breakpoint each pins itself and scrolls inside its own box —
+// the same 80dvh the canvas between them takes, so the three line up.
+.charts__column--info,
+.charts__column--watchlist {
     @include above($bp-lg) {
         position: sticky;
         top: $space-2;
-        max-height: calc(100dvh - #{$space-4});
+        height: 90dvh;
         overflow-y: auto;
         overscroll-behavior: contain;
     }

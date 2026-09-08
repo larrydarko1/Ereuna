@@ -15,7 +15,7 @@ vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket'))
  */
 const PriceChartStub = {
     name: 'PriceChart',
-    props: ['symbol', 'profile', 'initialTimeframe'],
+    props: ['symbol', 'profile', 'initialTimeframe', 'compact'],
     template: '<div class="stub-chart" />',
 };
 
@@ -423,7 +423,14 @@ describe('Screener', () => {
 
         const marks = wrapper.findAll('.results-table__agreed');
         expect(marks).toHaveLength(1);
-        expect(marks[0]?.attributes('title')).toContain('A');
+
+        // The names arrive in a bubble teleported out of the table: the results
+        // column scrolls horizontally and clips anything drawn inside it.
+        await marks[0]?.trigger('mouseenter');
+        await flushPromises();
+
+        expect(document.body.querySelector('.app-tooltip__bubble')?.textContent).toContain('A');
+        wrapper.unmount();
     });
 
     it('stacks a daily and a weekly chart beside the list', async () => {

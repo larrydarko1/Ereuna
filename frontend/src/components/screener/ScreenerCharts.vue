@@ -27,12 +27,14 @@ const { t } = useI18n();
             :symbol="symbol"
             :profile="profile"
             initial-timeframe="daily"
+            compact
             class="screener-charts__pane" />
         <PriceChart
             :key="`${symbol}-weekly`"
             :symbol="symbol"
             :profile="profile"
             initial-timeframe="weekly"
+            compact
             class="screener-charts__pane" />
     </div>
 </template>
@@ -42,16 +44,20 @@ const { t } = useI18n();
 
 .screener-charts {
     display: grid;
-    gap: $space-3;
+    flex: 1;
+    gap: $space-2;
     grid-template-rows: 1fr 1fr;
-
-    @include above($bp-lg) {
-        height: 80dvh;
-    }
+    min-height: 0;
 }
 
 .screener-charts__pane {
     min-height: 260px;
+
+    // The row is the whole budget above the breakpoint: two panes share the
+    // panel's height, so neither may insist on a floor taller than half of it.
+    @include above($bp-lg) {
+        min-height: 0;
+    }
 }
 
 /* –––––– Placeholder –––––– */

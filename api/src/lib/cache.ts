@@ -38,6 +38,12 @@ export async function withCache<T>(
 
     const data = await fetcher();
 
+    // An absent value is never cached. A fetcher answering `null` means the
+    // document is not there yet, and its caller turns that into a 404 — storing
+    // it would keep answering 404 for the whole TTL after the ingestor finally
+    // wrote the document, which for the holiday calendar is a full day.
+    if (data === null || data === undefined) return data;
+
     try {
         await getRedis().setex(key, ttl ?? getSmartTtl(dataType), JSON.stringify(data));
     } catch (err) {

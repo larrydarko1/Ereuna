@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { ScreenerResult } from '@/api/screener';
 import AppIcon from '@/components/ui/AppIcon.vue';
+import AppTooltip from '@/components/ui/AppTooltip.vue';
 import { findColumn, readColumn, type ColumnFormat } from '@/constants/screener';
 import { formatCompact, formatNumber } from '@/utils/formatters';
 
@@ -166,12 +167,17 @@ function onKeydown(event: KeyboardEvent): void {
                     <td class="results-table__td results-table__td--symbol">
                         {{ row.symbol }}
                         <!-- Matched by more than one included screener -->
-                        <span
+                        <AppTooltip
                             v-if="agreedBy(row).length > 0"
-                            class="results-table__agreed"
-                            :title="`${t('screener.appearsIn')}\n${agreedBy(row).join('\n')}`"
-                            >{{ t('screener.agreedCount', { count: agreedBy(row).length }) }}</span
-                        >
+                            class="results-table__agreed">
+                            <span class="results-table__agreed-count">
+                                {{ t('screener.agreedCount', { count: agreedBy(row).length }) }}
+                            </span>
+                            <template #content>
+                                <strong>{{ t('screener.appearsIn') }}</strong
+                                >{{ `\n${agreedBy(row).join('\n')}` }}
+                            </template>
+                        </AppTooltip>
                     </td>
                     <td class="results-table__td results-table__td--name">{{ row.name ?? PLACEHOLDER }}</td>
                     <td
@@ -319,12 +325,15 @@ function onKeydown(event: KeyboardEvent): void {
 
 .results-table__agreed {
     margin-left: $space-1;
+    vertical-align: middle;
+}
+
+.results-table__agreed-count {
     padding: 0 $space-1;
     border-radius: $radius-sm;
     background: $color-accent-1;
     color: $color-text-inverted;
     font-size: $font-size-xs;
     font-weight: $font-weight-bold;
-    cursor: help;
 }
 </style>

@@ -345,6 +345,36 @@ describe('WatchlistPanel', () => {
         expect(wrapper.findAll('.watchlist__tools button')[4]?.attributes('disabled')).toBeDefined();
     });
 
+    // The screener's results table has had this since it was written; the
+    // watchlist beside the chart is the other list a symbol is picked from.
+    it('walks the list with the arrow keys', async () => {
+        seed(['AAPL', 'MSFT', 'NVDA']);
+        const wrapper = await panel({ symbol: 'AAPL' });
+
+        await wrapper.findAll('.watchlist__symbol')[0]?.trigger('keydown', { key: 'ArrowDown' });
+
+        expect(wrapper.emitted('select')?.at(-1)).toEqual(['MSFT']);
+    });
+
+    it('stops at the ends rather than wrapping round', async () => {
+        seed(['AAPL', 'MSFT']);
+        const wrapper = await panel({ symbol: 'AAPL' });
+
+        await wrapper.findAll('.watchlist__symbol')[0]?.trigger('keydown', { key: 'ArrowUp' });
+
+        expect(wrapper.emitted('select')).toBeUndefined();
+    });
+
+    it('moves focus with the selection, so the next row scrolls into view', async () => {
+        seed(['AAPL', 'MSFT']);
+        const wrapper = await panel({ symbol: 'AAPL' });
+
+        await wrapper.findAll('.watchlist__symbol')[0]?.trigger('keydown', { key: 'ArrowDown' });
+
+        expect(document.activeElement).toBe(wrapper.findAll('.watchlist__symbol')[1]?.element);
+        wrapper.unmount();
+    });
+
     it('reports a failed read rather than an empty panel', async () => {
         api.on('GET /api/watchlists', { error: 'INTERNAL' }, { status: 500 });
 

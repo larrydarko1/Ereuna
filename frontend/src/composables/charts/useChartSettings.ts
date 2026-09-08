@@ -10,28 +10,33 @@
  * had been sending it as one.
  */
 import { computed, type ComputedRef } from 'vue';
-import type { ChartIndicator, ChartSettings } from '@ereuna/shared';
+import type { ChartIndicator, ChartSettings, ChartTimeframe } from '@ereuna/shared';
 import { patchPreferences, usePreferences } from '@/composables/data/usePreferences';
 
 export type UseChartSettingsReturn = {
     settings: ComputedRef<ChartSettings>;
+    indicatorsFor: (timeframe: ChartTimeframe) => ChartIndicator[];
     save: (next: ChartSettings) => Promise<void>;
+    saveIndicators: (timeframe: ChartTimeframe, indicators: ChartIndicator[]) => Promise<void>;
 };
 
 /**
- * What a chart looks like before anyone has configured one.
- * The four averages match the API's own defaults in `chart-data.ts`: until the
- * user saves something, the overlays the server computes and the legend the
- * client draws have to agree on what they are.
+ * The averages a timeframe carries until the user configures that timeframe.
+ * These match the API's own defaults in `chart-data.ts`: until something is
+ * saved, the overlays the server computes and the legend the client draws have
+ * to agree on what they are.
  */
+export const DEFAULT_INDICATORS: readonly ChartIndicator[] = [
+    { type: 'SMA', period: 10, visible: true },
+    { type: 'SMA', period: 20, visible: true },
+    { type: 'SMA', period: 50, visible: true },
+    { type: 'SMA', period: 200, visible: true },
+];
+
+/** What a chart looks like before anyone has configured one. */
 export const DEFAULT_CHART_SETTINGS: ChartSettings = {
     style: 'candlestick',
-    indicators: [
-        { type: 'SMA', period: 10, visible: true },
-        { type: 'SMA', period: 20, visible: true },
-        { type: 'SMA', period: 50, visible: true },
-        { type: 'SMA', period: 200, visible: true },
-    ],
+    indicators: {},
 };
 
 /** `config.limits.maxIndicatorPeriod` on the API side. */
@@ -54,11 +59,26 @@ export function useChartSettings(): UseChartSettingsReturn {
         () => (preferences.value?.chartSettings as ChartSettings | null | undefined) ?? DEFAULT_CHART_SETTINGS,
     );
 
+    /** The averages drawn on one timeframe, defaulted rather than empty. */
+    function indicatorsFor(timeframe: ChartTimeframe): ChartIndicator[] {
+        const configured = settings.value.indicators[timeframe];
+        return (configured ?? DEFAULT_INDICATORS).map((indicator) => ({ ...indicator }));
+    }
+
     async function save(next: ChartSettings): Promise<void> {
         await patchPreferences({ chartSettings: normalise(next) });
     }
 
-    return { settings, save };
+    // A write of one timeframe's set has to carry the others, because PATCH
+    // replaces `chartSettings` whole rather than merging into it.
+    async function saveIndicators(timeframe: ChartTimeframe, indicators: ChartIndicator[]): Promise<void> {
+        await save({
+            ...settings.value,
+            indicators: { ...settings.value.indicators, [timeframe]: indicators },
+        });
+    }
+
+    return { settings, indicatorsFor, save, saveIndicators };
 }
 
 /**
@@ -68,10 +88,10 @@ export function useChartSettings(): UseChartSettingsReturn {
  * would come back 400 and lose the rest of the form with it.
  */
 function normalise(settings: ChartSettings): ChartSettings {
-    return {
-        ...settings,
-        indicators: settings.indicators.slice(0, MAX_INDICATORS).map(normaliseIndicator),
-    };
+    const entries = Object.entries(settings.indicators).flatMap(([timeframe, list]) =>
+        list === undefined ? [] : [[timeframe, list.slice(0, MAX_INDICATORS).map(normaliseIndicator)] as const],
+    );
+    return { ...settings, indicators: Object.fromEntries(entries) };
 }
 
 function normaliseIndicator(indicator: ChartIndicator): ChartIndicator {

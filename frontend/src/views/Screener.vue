@@ -429,39 +429,47 @@ onUnmounted(() => {
     }
 }
 
+// Every column is a flex column, so `display` is declared once here and the
+// modifiers below never restate it — a modifier that set its own `display`
+// outranked the pane switcher by source order and stayed on screen when the
+// tabs said to hide it.
 .screener__column {
+    display: flex;
+    flex-direction: column;
     min-width: 0;
     border: $border-width solid $color-elevated;
     border-radius: $radius-md;
     background: $color-surface;
-
-    @include above($bp-lg) {
-        display: block;
-    }
 }
 
 .screener__column--hidden {
     display: none;
 
     @include above($bp-lg) {
-        display: block;
+        display: flex;
     }
 }
 
 .screener__column--filters {
-    max-height: 80vh;
+    max-height: 90dvh;
     overflow-y: auto;
 }
 
 .screener__column--results {
-    display: flex;
-    flex-direction: column;
-    max-height: 80vh;
+    max-height: 90dvh;
     overflow: hidden;
 }
 
+// The panel owns the height and the charts fill it. The other way round — the
+// charts sized to 80dvh inside a padded column — made the column 80dvh plus its
+// own padding, which is the overflow.
 .screener__column--chart {
     padding: $space-2;
+    overflow: hidden;
+
+    @include above($bp-lg) {
+        height: 90dvh;
+    }
 }
 
 /* –––––– Messages and paging –––––– */

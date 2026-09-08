@@ -1,6 +1,6 @@
 /** Shared Zod schemas for request validation — the vocabulary route schemas are built from. */
 import { z } from 'zod';
-import { CHART_STYLES, PANEL_SECTIONS, SUMMARY_FIELDS } from '@ereuna/shared';
+import { CHART_STYLES, CHART_TIMEFRAMES, PANEL_SECTIONS, SUMMARY_FIELDS } from '@ereuna/shared';
 import { config } from '@/lib/config.js';
 
 export type PaginationQuerySchema = z.ZodObject<{
@@ -51,17 +51,20 @@ export const portfolioNumberSchema = z.coerce
     .min(0, 'Portfolio must be a slot number')
     .max(config.limits.portfolioSlots - 1, 'Portfolio must be a slot number');
 
+const chartIndicatorSchema = z.object({
+    type: z.enum(['SMA', 'EMA']),
+    period: z.number().int().min(1).max(config.limits.maxIndicatorPeriod),
+    visible: z.boolean(),
+});
+
+// Partial, not exhaustive: a client that has only ever configured the daily
+// chart sends the one key it has, and every other timeframe keeps the defaults.
 export const chartSettingsSchema = z.object({
     style: z.enum(CHART_STYLES),
-    indicators: z
-        .array(
-            z.object({
-                type: z.enum(['SMA', 'EMA']),
-                period: z.number().int().min(1).max(config.limits.maxIndicatorPeriod),
-                visible: z.boolean(),
-            }),
-        )
-        .max(config.limits.indicatorsPerChart),
+    indicators: z.partialRecord(
+        z.enum(CHART_TIMEFRAMES),
+        z.array(chartIndicatorSchema).max(config.limits.indicatorsPerChart),
+    ),
 });
 
 /** A key listed twice would render one row in two places. */

@@ -1,23 +1,28 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { CHART_STYLES, type ChartIndicator, type ChartSettings } from '@ereuna/shared';
+import { CHART_STYLES, type ChartIndicator, type ChartTimeframe } from '@ereuna/shared';
 import { apiErrorMessage } from '@/api/client';
 import AppDialog from '@/components/ui/AppDialog.vue';
 import { useChartTheme } from '@/composables/charts/useChartTheme';
-import { DEFAULT_CHART_SETTINGS, MAX_INDICATOR_PERIOD, useChartSettings } from '@/composables/charts/useChartSettings';
+import { DEFAULT_INDICATORS, MAX_INDICATOR_PERIOD, useChartSettings } from '@/composables/charts/useChartSettings';
+
+// The overlays belong to one timeframe, so the dialog edits the set of the
+// chart it was opened from and leaves every other timeframe alone.
+const { timeframe } = defineProps<{ timeframe: ChartTimeframe }>();
 
 const emit = defineEmits<{ close: [] }>();
 
 const OVERLAY_TYPES = ['SMA', 'EMA'] as const;
 
 const { t } = useI18n();
-const { settings, save } = useChartSettings();
+const { settings, indicatorsFor, save } = useChartSettings();
 const { palette } = useChartTheme();
 
 // A working copy: nothing reaches the account until Save, so Escape is a real
 // cancel rather than an undo of writes already made.
-const draft = ref<ChartSettings>(clone(settings.value));
+const chartStyle = ref(settings.value.style);
+const indicators = ref<ChartIndicator[]>(indicatorsFor(timeframe));
 const saving = ref(false);
 const error = ref<string | null>(null);
 
@@ -25,7 +30,10 @@ async function submit(): Promise<void> {
     saving.value = true;
     error.value = null;
     try {
-        await save(draft.value);
+        await save({
+            style: chartStyle.value,
+            indicators: { ...settings.value.indicators, [timeframe]: indicators.value },
+        });
         emit('close');
     } catch (err) {
         error.value = apiErrorMessage(err, t('charts.settings.saveFailed'));
@@ -35,14 +43,8 @@ async function submit(): Promise<void> {
 }
 
 function restoreDefaults(): void {
-    draft.value = clone(DEFAULT_CHART_SETTINGS);
-}
-
-function clone(settings: ChartSettings): ChartSettings {
-    return {
-        ...settings,
-        indicators: settings.indicators.map((indicator) => ({ ...indicator })),
-    };
+    chartStyle.value = 'candlestick';
+    indicators.value = DEFAULT_INDICATORS.map((indicator) => ({ ...indicator }));
 }
 
 /**
@@ -67,7 +69,7 @@ function setPeriod(indicator: ChartIndicator, value: string): void {
             <label class="chart-settings__row">
                 <span class="chart-settings__label">{{ t('charts.settings.style') }}</span>
                 <select
-                    v-model="draft.style"
+                    v-model="chartStyle"
                     class="chart-settings__select">
                     <option
                         v-for="style in CHART_STYLES"
@@ -79,10 +81,12 @@ function setPeriod(indicator: ChartIndicator, value: string): void {
             </label>
 
             <fieldset class="chart-settings__group">
-                <legend class="chart-settings__legend">{{ t('charts.settings.overlays') }}</legend>
+                <legend class="chart-settings__legend">
+                    {{ t('charts.settings.overlays') }} · {{ t(`charts.timeframes.${timeframe}`) }}
+                </legend>
 
                 <div
-                    v-for="(indicator, index) in draft.indicators"
+                    v-for="(indicator, index) in indicators"
                     :key="index"
                     class="chart-settings__indicator">
                     <label class="chart-settings__toggle">

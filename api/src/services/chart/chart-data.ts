@@ -22,7 +22,7 @@ export type ChartSeries = BarSeries & {
     overlays: ChartOverlay[];
 };
 
-/** Overlays used until the user configures their own. */
+/** Overlays used for a timeframe the user has not configured. */
 const DEFAULT_INDICATORS: ChartIndicator[] = [
     { type: 'SMA', period: 10, visible: true },
     { type: 'SMA', period: 20, visible: true },
@@ -38,8 +38,10 @@ export async function getChartSeries(
 ): Promise<ChartSeries> {
     const [series, preferences] = await Promise.all([barSeries(symbol, timeframe, options), getPreferences(userId)]);
 
-    const settings = preferences.chartSettings;
-    const indicators = (settings?.indicators ?? DEFAULT_INDICATORS).filter((indicator) => indicator.visible);
+    // The averages are read per timeframe: fifty bars is fifty days on the daily
+    // chart and a year on the weekly one, so the two carry their own sets.
+    const configured = preferences.chartSettings?.indicators[timeframe];
+    const indicators = (configured ?? DEFAULT_INDICATORS).filter((indicator) => indicator.visible);
     const bars = series.candles.map((candle) => ({ time: candle.time, close: candle.close }));
 
     return {

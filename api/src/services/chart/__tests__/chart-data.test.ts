@@ -62,19 +62,31 @@ describe('getChartSeries', () => {
 
     it("overlays the user's own indicators instead, once they have some", async () => {
         state.preferences = {
-            chartSettings: { indicators: [{ type: 'EMA', period: 9, visible: true }] },
+            chartSettings: { indicators: { daily: [{ type: 'EMA', period: 9, visible: true }] } },
         };
         const result = await getChartSeries(USER_ID, 'AAPL', 'daily');
         expect(result.overlays.map((o) => `${o.type}${o.period}`)).toEqual(['EMA9']);
     });
 
+    // Fifty bars is fifty days here and a year on the weekly chart, so a set
+    // saved against one timeframe must not be drawn on the other.
+    it('leaves a timeframe the user has not configured on the defaults', async () => {
+        state.preferences = {
+            chartSettings: { indicators: { daily: [{ type: 'EMA', period: 9, visible: true }] } },
+        };
+        const result = await getChartSeries(USER_ID, 'AAPL', 'weekly');
+        expect(result.overlays.map((o) => `${o.type}${o.period}`)).toEqual(['SMA10', 'SMA20', 'SMA50', 'SMA200']);
+    });
+
     it('leaves out an indicator the user has hidden', async () => {
         state.preferences = {
             chartSettings: {
-                indicators: [
-                    { type: 'SMA', period: 10, visible: true },
-                    { type: 'SMA', period: 20, visible: false },
-                ],
+                indicators: {
+                    daily: [
+                        { type: 'SMA', period: 10, visible: true },
+                        { type: 'SMA', period: 20, visible: false },
+                    ],
+                },
             },
         };
         const result = await getChartSeries(USER_ID, 'AAPL', 'daily');

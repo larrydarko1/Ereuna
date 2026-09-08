@@ -112,7 +112,7 @@ describe('portfolioNumberSchema', () => {
 describe('chartSettingsSchema', () => {
     const valid = {
         style: CHART_STYLES[0],
-        indicators: [{ type: 'SMA' as const, period: 20, visible: true }],
+        indicators: { daily: [{ type: 'SMA' as const, period: 20, visible: true }] },
     };
 
     it('accepts a complete settings object', () => {
@@ -125,12 +125,12 @@ describe('chartSettingsSchema', () => {
 
     it('bounds the indicator period at the configured maximum', () => {
         const over = { type: 'SMA' as const, period: config.limits.maxIndicatorPeriod + 1, visible: true };
-        expect(chartSettingsSchema.safeParse({ ...valid, indicators: [over] }).success).toBe(false);
+        expect(chartSettingsSchema.safeParse({ ...valid, indicators: { daily: [over] } }).success).toBe(false);
     });
 
     it('bounds how many indicators one chart may carry', () => {
-        const many = Array.from({ length: config.limits.indicatorsPerChart + 1 }, () => valid.indicators[0]);
-        expect(chartSettingsSchema.safeParse({ ...valid, indicators: many }).success).toBe(false);
+        const many = Array.from({ length: config.limits.indicatorsPerChart + 1 }, () => valid.indicators.daily[0]);
+        expect(chartSettingsSchema.safeParse({ ...valid, indicators: { daily: many } }).success).toBe(false);
     });
 
     // A field required here that the client does not send 400s every save, and
@@ -138,6 +138,13 @@ describe('chartSettingsSchema', () => {
     it('requires nothing beyond the style and the indicators', () => {
         const parsed = chartSettingsSchema.parse(valid);
         expect(Object.keys(parsed).sort()).toEqual(['indicators', 'style']);
+    });
+
+    // A client that has only ever configured the daily chart sends the one key
+    // it has; demanding all seven would 400 every save it makes.
+    it('takes the timeframes the client has configured, and only those', () => {
+        expect(chartSettingsSchema.safeParse({ ...valid, indicators: {} }).success).toBe(true);
+        expect(chartSettingsSchema.safeParse({ ...valid, indicators: { hourly: [] } }).success).toBe(false);
     });
 });
 
