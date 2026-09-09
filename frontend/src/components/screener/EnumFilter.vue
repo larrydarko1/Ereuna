@@ -14,8 +14,11 @@ const {
 
 const emit = defineEmits<{ apply: [{ values: string[] }] }>();
 
-/** Below this a search box is more chrome than help. */
-const SEARCHABLE_FROM = 12;
+/**
+ * Below this a search box is more chrome than help — but the list scrolls
+ * inside a fixed box that fits about eight rows, so anything longer needs one.
+ */
+const SEARCHABLE_FROM = 8;
 
 const { t } = useI18n();
 
@@ -24,10 +27,15 @@ const query = ref('');
 
 const searchable = computed(() => options.length >= SEARCHABLE_FROM);
 
+const ordered = computed(() => {
+    const applied = new Set(value?.values ?? []);
+    return [...options.filter((option) => applied.has(option)), ...options.filter((option) => !applied.has(option))];
+});
+
 const visible = computed(() => {
     const needle = query.value.trim().toLowerCase();
-    if (needle === '') return options;
-    return options.filter((option) => option.toLowerCase().includes(needle));
+    if (needle === '') return ordered.value;
+    return ordered.value.filter((option) => option.toLowerCase().includes(needle));
 });
 
 const dirty = computed(() => {
