@@ -1,6 +1,6 @@
 {
     "name": "ingestor",
-    "version": "2026.7",
+    "version": "2026.8",
     "description": "Ereuna ingestor service — Tiingo websocket intake fanned into Redis for the aggregator.",
     "license": "UNLICENSED",
     "author": "Lorenzo Mazzola",

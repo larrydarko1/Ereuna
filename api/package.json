@@ -1,6 +1,6 @@
 {
     "name": "api",
-    "version": "2026.7",
+    "version": "2026.8",
     "description": "Ereuna REST API — Express, MongoDB, Redis, and JWT auth with refresh-token rotation.",
     "license": "UNLICENSED",
     "author": "Lorenzo Mazzola",

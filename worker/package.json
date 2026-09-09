@@ -1,6 +1,6 @@
 {
     "name": "worker",
-    "version": "2026.7",
+    "version": "2026.8",
     "description": "Ereuna worker — the live trade aggregator and the nightly derived-data batch, scoped by WORKER_ROLE.",
     "license": "UNLICENSED",
     "author": "Lorenzo Mazzola",

@@ -1,6 +1,6 @@
 {
     "name": "db",
-    "version": "2026.7",
+    "version": "2026.8",
     "description": "Ereuna database migrations, schema documentation and example documents. Indexes are not declared here — they live in the shared manifest.",
     "license": "UNLICENSED",
     "author": "Lorenzo Mazzola",

@@ -28,7 +28,7 @@ browser, a Python service doing a job that had no reason to be a separate langua
 It worked, and I could no longer defend how it worked.
 
 So I'm rewriting it, domain by domain, against a written standard I wrote first. That
-rewrite is what you're looking at. As of **2026-09-07**, batches 1–8b are done —
+rewrite is what you're looking at. As of **2026-09-09**, batches 1–8b are done —
 foundation, auth and app shell, charts, screener, portfolio, frontend restructuring,
 and the realtime services rebuilt in Node.
 
@@ -250,7 +250,7 @@ Ereuna/                              # npm workspaces monorepo
 ├── db/                              # forward-only migrations + schema docs
 ├── e2e/                             # Playwright specs
 ├── eslint/                          # 15 composed rule packs
-└── scripts/checks/                  # the 16 custom gates
+└── scripts/checks/                  # the 17 custom gates
 ```
 
 ### The realtime path

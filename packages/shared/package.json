@@ -1,6 +1,6 @@
 {
     "name": "@ereuna/shared",
-    "version": "2026.7",
+    "version": "2026.8",
     "description": "Cross-workspace contracts shared by the Ereuna api, ingestor, aggregator and frontend — error codes, env schema fragments, collection types, the realtime feed contract, and the screener filter registry.",
     "license": "UNLICENSED",
     "author": "Lorenzo Mazzola",
