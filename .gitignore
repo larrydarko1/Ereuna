@@ -24,6 +24,9 @@ mongodb-init
 __pycache__/
 __pycache__
 db/dump/
+# Ticker marks are not distributed with this repo — see api/assets/logos/README.md.
+# Drop your own in and they stay out of the tree.
+api/assets/logos/**/*.svg
 Instuctions.md
 scripts/funds
 certs/

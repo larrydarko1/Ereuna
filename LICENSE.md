@@ -88,6 +88,7 @@ You are responsible for compliance with all third-party licenses when using this
 - **Sample data** included in this repository is for **educational demonstration only**
 - Third-party API integrations (Tiingo) require your own API keys and compliance with their respective Terms of Service
 - No financial data redistribution rights are granted
+- **No ticker logos or company marks are distributed with this repository.** `api/assets/logos/` ships empty; see the README there. Supplying marks is the operator's responsibility, as is compliance with the terms of whatever source they come from. Company names and logos are trademarks of their respective owners, and their use to identify an asset implies no affiliation or endorsement.
 
 ---
 
