@@ -64,8 +64,8 @@ No patent license is granted by this license. If you have patent claims that wou
 
 ### Commercial Use
 
-**Commercial use is strictly prohibited** without prior written permission. For commercial licensing inquiries, contact the author by opening an issue at:  
-**https://github.com/larrydarko1/Ereuna/issues**
+**Commercial use is strictly prohibited** without prior written permission. For commercial licensing inquiries, contact the author by email at:  
+**hello@larrydarko.dev**
 
 ---
 
@@ -104,4 +104,4 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 Copyright is automatically protected under EU and international copyright law (Berne Convention). Unauthorized commercial use, removal of attribution, or violation of license terms may result in legal action.
 
-**Questions?** Open an issue on GitHub: https://github.com/larrydarko1/Ereuna/issues
+**Questions?** Email the author: hello@larrydarko.dev

@@ -11,11 +11,11 @@
         "typescript"
     ],
     "homepage": "https://github.com/larrydarko1/Ereuna#readme",
-    "bugs": {
-        "url": "https://github.com/larrydarko1/Ereuna/issues"
-    },
     "license": "SEE LICENSE IN LICENSE.md",
-    "author": "Lorenzo Mazzola",
+    "author": {
+        "name": "Lorenzo Mazzola",
+        "email": "hello@larrydarko.dev"
+    },
     "type": "module",
     "repository": {
         "type": "git",

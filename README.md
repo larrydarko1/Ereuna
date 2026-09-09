@@ -346,6 +346,7 @@ tsx, tsc-alias.
 
 ## Contact
 
+- **Email:** [hello@larrydarko.dev](mailto:hello@larrydarko.dev)
 - **GitHub:** [@larrydarko1](https://github.com/larrydarko1)
 
 ## License
@@ -358,7 +359,7 @@ revenue-generating applications, or reselling / repackaging / sublicensing.
 You **MAY** use it for learning, portfolio review and technical interviews, personal
 non-commercial projects.
 
-See [LICENSE.md](LICENSE.md) for complete terms. For commercial licensing, open an issue.
+See [LICENSE.md](LICENSE.md) for complete terms. For commercial licensing, email hello@larrydarko.dev.
 
 ---
 
