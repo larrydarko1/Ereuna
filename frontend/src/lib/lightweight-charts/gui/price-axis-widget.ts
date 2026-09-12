@@ -9,7 +9,7 @@ import {
     tryCreateCanvasRenderingTarget2D,
 } from 'fancy-canvas';
 
-import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { clearRect, clearRectWithGradient } from '@/lib/lightweight-charts/helpers/canvas-helpers';
 import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
 import { makeFont } from '@/lib/lightweight-charts/helpers/make-font';
@@ -81,7 +81,7 @@ function recalculateOverlapping(
     }
     let currentGroupStart = 0;
 
-    const initLabelHeight = firstView.height(rendererOptions, true);
+    const initLabelHeight = firstView.height(rendererOptions);
     let spaceBeforeCurrentGroup =
         direction === 1
             ? scaleHeight / 2 - (firstView.getFixedCoordinate() - initLabelHeight / 2)
@@ -93,7 +93,7 @@ function recalculateOverlapping(
         const prev = views[i - 1];
         if (view === undefined || prev === undefined) continue;
 
-        const height = prev.height(rendererOptions, false);
+        const height = prev.height(rendererOptions);
         const coordinate = view.getFixedCoordinate();
         const prevFixedCoordinate = prev.getFixedCoordinate();
 
@@ -106,12 +106,10 @@ function recalculateOverlapping(
             const edgePoint = fixedCoordinate - (direction * height) / 2;
             const outOfViewport = direction === 1 ? edgePoint < 0 : edgePoint > scaleHeight;
             if (outOfViewport && spaceBeforeCurrentGroup > 0) {
-                // shift the whole group up or down
                 const desiredGroupShift = direction === 1 ? -1 - edgePoint : edgePoint - scaleHeight;
                 const possibleShift = Math.min(desiredGroupShift, spaceBeforeCurrentGroup);
-                for (const grouped of views.slice(currentGroupStart)) {
-                    grouped.setFixedCoordinate(grouped.getFixedCoordinate() + direction * possibleShift);
-                }
+
+                shiftGroup(views.slice(currentGroupStart), direction * possibleShift);
                 spaceBeforeCurrentGroup -= possibleShift;
             }
         } else {
@@ -121,6 +119,16 @@ function recalculateOverlapping(
                     ? prevFixedCoordinate - height - coordinate
                     : coordinate - (prevFixedCoordinate + height);
         }
+    }
+}
+
+/**
+ * Moves a run of already-placed labels together, so that pushing one clear of
+ * the viewport edge does not leave it overlapping the ones it was stacked with.
+ */
+function shiftGroup(views: readonly IPriceAxisView[], shift: number): void {
+    for (const view of views) {
+        view.setFixedCoordinate(view.getFixedCoordinate() + shift);
     }
 }
 
@@ -205,8 +213,8 @@ export class PriceAxisWidget implements IDestroyable {
             mouseLeaveEvent: this._mouseLeaveEvent.bind(this),
         };
         this._mouseEventHandler = new MouseEventHandler(this._topCanvasBinding.canvasElement, handler, {
-            treatVertTouchDragAsPageScroll: () => !this._options.handleScroll.vertTouchDrag,
-            treatHorzTouchDragAsPageScroll: () => true,
+            treatVertTouchDragAsPageScroll: (): boolean => !this._options.handleScroll.vertTouchDrag,
+            treatHorzTouchDragAsPageScroll: (): boolean => true,
         });
     }
 
@@ -256,7 +264,7 @@ export class PriceAxisWidget implements IDestroyable {
         let tickMarkMaxWidth = 0;
         const rendererOptions = this.rendererOptions();
 
-        const ctx = ensureNotNull(this._canvasBinding.canvasElement.getContext('2d'));
+        const ctx = getNotNull(this._canvasBinding.canvasElement.getContext('2d'));
         ctx.save();
 
         const tickMarks = this._priceScale.marks();
@@ -305,7 +313,7 @@ export class PriceAxisWidget implements IDestroyable {
 
         ctx.restore();
 
-        const resultTickMarksMaxWidth = tickMarkMaxWidth || Constants.DefaultOptimalWidth;
+        const resultTickMarksMaxWidth = tickMarkMaxWidth === 0 ? Constants.DefaultOptimalWidth : tickMarkMaxWidth;
         const res = Math.ceil(
             rendererOptions.borderSize +
                 rendererOptions.tickLength +
@@ -334,7 +342,7 @@ export class PriceAxisWidget implements IDestroyable {
     }
 
     public getWidth(): number {
-        return ensureNotNull(this._size).width;
+        return getNotNull(this._size).width;
     }
 
     public setPriceScale(priceScale: PriceScale): void {
@@ -347,7 +355,7 @@ export class PriceAxisWidget implements IDestroyable {
         }
 
         this._priceScale = priceScale;
-        priceScale.onMarksChanged().subscribe(this._onMarksChanged.bind(this), this);
+        priceScale.onMarksChanged().subscribe(this._onMarksChanged.bind(this), { linkedObject: this });
     }
 
     public priceScale(): PriceScale | null {
@@ -357,7 +365,7 @@ export class PriceAxisWidget implements IDestroyable {
     public reset(): void {
         const pane = this._pane.state();
         const model = this._pane.chart().model();
-        model.resetPriceScale(pane, ensureNotNull(this.priceScale()));
+        model.resetPriceScale(pane, getNotNull(this.priceScale()));
     }
 
     public paint(type: InvalidationLevel): void {
@@ -489,7 +497,7 @@ export class PriceAxisWidget implements IDestroyable {
 
         const priceScale = this._priceScale === null ? undefined : this._priceScale;
 
-        const addViewsForSources = (sources: readonly IDataSource[]) => {
+        const addViewsForSources = (sources: readonly IDataSource[]): void => {
             for (const source of sources) {
                 res.push(...source.priceAxisViews(this._pane.state(), priceScale));
             }
@@ -511,7 +519,7 @@ export class PriceAxisWidget implements IDestroyable {
         if (topColor === bottomColor) {
             clearRect(ctx, 0, 0, width, height, topColor);
         } else {
-            clearRectWithGradient(ctx, 0, 0, width, height, topColor, bottomColor);
+            clearRectWithGradient(ctx, { x: 0, y: 0, width, height }, { topColor, bottomColor });
         }
     }
 
@@ -617,7 +625,7 @@ export class PriceAxisWidget implements IDestroyable {
         const centerSource = this._priceScale.dataSources()[0];
         const priceScale = this._priceScale;
 
-        const updateForSources = (sources: IDataSource[]) => {
+        const updateForSources = (sources: IDataSource[]): void => {
             sources.forEach((source: IDataSource) => {
                 const sourceViews = source.priceAxisViews(paneState, priceScale);
                 // never align selected sources
@@ -665,7 +673,7 @@ export class PriceAxisWidget implements IDestroyable {
 
         // share center label
         const centerLabel = top[0];
-        if (centerLabel !== undefined && bottom.length) {
+        if (centerLabel !== undefined && bottom.length > 0) {
             bottom.push(centerLabel);
         }
 
@@ -699,7 +707,7 @@ export class PriceAxisWidget implements IDestroyable {
 
         views.forEach((view: IPriceAxisView) => {
             if (view.isAxisLabelVisible()) {
-                const renderer = view.renderer(ensureNotNull(this._priceScale));
+                const renderer = view.renderer(getNotNull(this._priceScale));
                 renderer.draw(target, rendererOptions, this._widthCache, align);
             }
         });
@@ -715,9 +723,9 @@ export class PriceAxisWidget implements IDestroyable {
         const views: IPriceAxisViewArray[] = []; // array of arrays
         const pane = this._pane.state();
 
-        const v = model.crosshairSource().priceAxisViews(pane, this._priceScale);
-        if (v.length) {
-            views.push(v);
+        const crosshairViews = model.crosshairSource().priceAxisViews(pane, this._priceScale);
+        if (crosshairViews.length > 0) {
+            views.push(crosshairViews);
         }
 
         const ro = this.rendererOptions();
@@ -725,7 +733,7 @@ export class PriceAxisWidget implements IDestroyable {
 
         views.forEach((arr: IPriceAxisViewArray) => {
             arr.forEach((view: IPriceAxisView) => {
-                view.renderer(ensureNotNull(this._priceScale)).draw(target, ro, this._widthCache, align);
+                view.renderer(getNotNull(this._priceScale)).draw(target, ro, this._widthCache, align);
             });
         });
     }
@@ -746,7 +754,7 @@ export class PriceAxisWidget implements IDestroyable {
         this._prevOptimalWidth = width;
     }
 
-    private readonly _canvasSuggestedBitmapSizeChangedHandler = () => {
+    private readonly _canvasSuggestedBitmapSizeChangedHandler = (): void => {
         if (this._isSettingSize) {
             return;
         }
@@ -754,7 +762,7 @@ export class PriceAxisWidget implements IDestroyable {
         this._pane.chart().model().lightUpdate();
     };
 
-    private readonly _topCanvasSuggestedBitmapSizeChangedHandler = () => {
+    private readonly _topCanvasSuggestedBitmapSizeChangedHandler = (): void => {
         if (this._isSettingSize) {
             return;
         }

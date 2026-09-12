@@ -11,4 +11,4 @@
  */
 export type IDestroyable = {
     destroy(): void;
-}
+};

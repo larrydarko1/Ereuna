@@ -14,7 +14,7 @@
  * type TagName = Nominal<string, 'TagName'>;
  * ```
  */
-export type Nominal<T, Name extends string> = T & {
+export type Nominal<T, TName extends string> = T & {
     /** The 'name' or species of the nominal. */
-    [Symbol.species]: Name;
+    [Symbol.species]: TName;
 };

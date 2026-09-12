@@ -1,4 +1,4 @@
-import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
+import { getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 
 export function clamp(value: number, minVal: number, maxVal: number): number {
     return Math.min(Math.max(value, minVal), maxVal);
@@ -32,7 +32,7 @@ export function min(arr: number[]): number {
         throw Error('array is empty');
     }
 
-    let minVal = ensureDefined(arr[0]);
+    let minVal = getDefined(arr[0]);
     for (const value of arr) {
         if (value < minVal) {
             minVal = value;

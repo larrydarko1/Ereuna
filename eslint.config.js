@@ -62,14 +62,7 @@ const runtimeOnly = (entries) => entries.map((entry) => ({ ...entry, allowTypeIm
 
 export default [
     {
-        ignores: [
-            '**/dist/',
-            '**/node_modules/',
-            'backups/',
-            'coverage/',
-            'playwright-report/',
-            'test-results/'
-        ],
+        ignores: ['**/dist/', '**/node_modules/', 'backups/', 'coverage/', 'playwright-report/', 'test-results/'],
     },
     {
         files: ['scripts/**/*.{js,mjs}', 'db/**/*.js'],
@@ -118,6 +111,20 @@ export default [
                 'error',
                 { allowTypedFunctionExpressions: false, allowIIFEs: true },
             ],
+        },
+    },
+    /**
+     * The charting fork arrived carrying `// eslint-disable-next-line deprecation/deprecation`
+     * on two calls. That plugin is not installed here, so the directives were
+     * reporting "rule not found" rather than protecting anything, and deleting
+     * them would have dropped the only marker on a deprecated API. This is the
+     * live replacement: typescript-eslint's own rule, which reads the same
+     * `@deprecated` tags the plugin did.
+     */
+    {
+        files: TYPED_SOURCE,
+        rules: {
+            '@typescript-eslint/no-deprecated': 'error',
         },
     },
     {

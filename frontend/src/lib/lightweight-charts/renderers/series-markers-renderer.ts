@@ -10,7 +10,7 @@ import { TextWidthCache } from '@/lib/lightweight-charts/model/text-width-cache'
 import { type SeriesItemsIndexesRange, type TimedValue } from '@/lib/lightweight-charts/model/time-data';
 
 import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
-import { drawArrow, hitTestArrow } from '@/lib/lightweight-charts/renderers/series-markers-arrow';
+import { drawArrowDown, drawArrowUp, hitTestArrow } from '@/lib/lightweight-charts/renderers/series-markers-arrow';
 import { drawCircle, hitTestCircle } from '@/lib/lightweight-charts/renderers/series-markers-circle';
 import { drawSquare, hitTestSquare } from '@/lib/lightweight-charts/renderers/series-markers-square';
 import {
@@ -26,7 +26,7 @@ export type SeriesMarkerText = {
     y: Coordinate;
     width: number;
     height: number;
-}
+};
 
 export type SeriesMarkerRendererDataItem = {
     y: Coordinate;
@@ -37,12 +37,12 @@ export type SeriesMarkerRendererDataItem = {
     externalId?: string | undefined;
     text?: SeriesMarkerText | undefined;
     textColor?: string | undefined;
-} & TimedValue
+} & TimedValue;
 
 export type SeriesMarkerRendererData = {
     items: SeriesMarkerRendererDataItem[];
     visibleRange: SeriesItemsIndexesRange | null;
-}
+};
 
 export class SeriesMarkersRenderer extends BitmapCoordinatesPaneRenderer {
     private _data: SeriesMarkerRendererData | null = null;
@@ -82,11 +82,11 @@ export class SeriesMarkersRenderer extends BitmapCoordinatesPaneRenderer {
         return null;
     }
 
-    protected _drawImpl(
-        { context: ctx, horizontalPixelRatio, verticalPixelRatio }: BitmapCoordinatesRenderingScope,
-        _isHovered: boolean,
-        _hitTestData?: unknown,
-    ): void {
+    protected _drawImpl({
+        context: ctx,
+        horizontalPixelRatio,
+        verticalPixelRatio,
+    }: BitmapCoordinatesRenderingScope): void {
         if (this._data === null || this._data.visibleRange === null) {
             return;
         }
@@ -159,10 +159,10 @@ function drawShape(
 
     switch (item.shape) {
         case 'arrowDown':
-            drawArrow(false, ctx, coordinates, item.size);
+            drawArrowDown(ctx, coordinates, item.size);
             return;
         case 'arrowUp':
-            drawArrow(true, ctx, coordinates, item.size);
+            drawArrowUp(ctx, coordinates, item.size);
             return;
         case 'circle':
             drawCircle(ctx, coordinates, item.size);
@@ -196,9 +196,9 @@ function hitTestShape(item: SeriesMarkerRendererDataItem, x: Coordinate, y: Coor
 
     switch (item.shape) {
         case 'arrowDown':
-            return hitTestArrow(true, item.x, item.y, item.size, x, y);
+            return hitTestArrow(item.x, item.y, item.size, x, y);
         case 'arrowUp':
-            return hitTestArrow(false, item.x, item.y, item.size, x, y);
+            return hitTestArrow(item.x, item.y, item.size, x, y);
         case 'circle':
             return hitTestCircle(item.x, item.y, item.size, x, y);
         case 'square':

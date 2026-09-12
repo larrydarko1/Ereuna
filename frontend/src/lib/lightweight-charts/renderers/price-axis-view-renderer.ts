@@ -41,7 +41,7 @@ type Geometry = {
         xText: number;
         textMidCorrection: number;
     };
-}
+};
 
 export class PriceAxisViewRenderer implements IPriceAxisViewRenderer {
     private _data!: PriceAxisViewRendererData;
@@ -56,7 +56,7 @@ export class PriceAxisViewRenderer implements IPriceAxisViewRenderer {
         this._commonData = commonData;
     }
 
-    public height(rendererOptions: PriceAxisViewRendererOptions, _useSecondLine: boolean): number {
+    public height(rendererOptions: PriceAxisViewRendererOptions): number {
         if (!this._data.visible) {
             return 0;
         }
@@ -91,26 +91,34 @@ export class PriceAxisViewRenderer implements IPriceAxisViewRenderer {
                 if (geom.alignRight) {
                     drawRoundRectWithBorder(
                         ctx,
-                        gb.xOutside,
-                        gb.yTop,
-                        gb.totalWidth,
-                        gb.totalHeight,
-                        labelBackgroundColor,
-                        gb.horzBorder,
-                        [gb.radius, 0, 0, gb.radius],
-                        labelBorderColor,
+                        {
+                            left: gb.xOutside,
+                            top: gb.yTop,
+                            width: gb.totalWidth,
+                            height: gb.totalHeight,
+                            outerRadius: [gb.radius, 0, 0, gb.radius],
+                        },
+                        {
+                            backgroundColor: labelBackgroundColor,
+                            borderColor: labelBorderColor ?? '',
+                            borderWidth: gb.horzBorder,
+                        },
                     );
                 } else {
                     drawRoundRectWithBorder(
                         ctx,
-                        gb.xInside,
-                        gb.yTop,
-                        gb.totalWidth,
-                        gb.totalHeight,
-                        labelBackgroundColor,
-                        gb.horzBorder,
-                        [0, gb.radius, gb.radius, 0],
-                        labelBorderColor,
+                        {
+                            left: gb.xInside,
+                            top: gb.yTop,
+                            width: gb.totalWidth,
+                            height: gb.totalHeight,
+                            outerRadius: [0, gb.radius, gb.radius, 0],
+                        },
+                        {
+                            backgroundColor: labelBackgroundColor,
+                            borderColor: labelBorderColor ?? '',
+                            borderWidth: gb.horzBorder,
+                        },
                     );
                 }
             };
@@ -225,7 +233,7 @@ export class PriceAxisViewRenderer implements IPriceAxisViewRenderer {
                 yBottom: yBottomBitmap,
                 totalWidth: totalWidthBitmap,
                 totalHeight: totalHeightBitmap,
-                // TODO: it is better to have different horizontal and vertical radii
+                // Upstream note: horizontal and vertical radii would be better kept apart
                 radius: 2 * horizontalPixelRatio,
                 horzBorder: horzBorderBitmap,
                 xOutside: xOutsideBitmap,

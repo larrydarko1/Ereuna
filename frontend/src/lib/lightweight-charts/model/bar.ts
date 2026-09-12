@@ -27,7 +27,7 @@ export type BarPrices = {
      * The close price.
      */
     close: BarPrice;
-}
+};
 
 /**
  * Represents the y-axis coordinates of a bar's open, high, low, close prices.
@@ -37,4 +37,4 @@ export type BarCoordinates = {
     highY: Coordinate;
     lowY: Coordinate;
     closeY: Coordinate;
-}
+};

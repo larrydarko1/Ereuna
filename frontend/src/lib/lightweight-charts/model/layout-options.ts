@@ -22,7 +22,7 @@ export type SolidColor = {
      * Color.
      */
     color: string;
-}
+};
 
 /**
  * Represents a vertical gradient of two colors.
@@ -42,7 +42,7 @@ export type VerticalGradientColor = {
      * Bottom color
      */
     bottomColor: string;
-}
+};
 
 /**
  * Represents the background color of the chart.
@@ -78,4 +78,4 @@ export type LayoutOptions = {
      * @defaultValue `-apple-system, BlinkMacSystemFont, 'Trebuchet MS', Roboto, Ubuntu, sans-serif`
      */
     fontFamily: string;
-}
+};

@@ -1,4 +1,4 @@
-import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { type Crosshair, CrosshairMode } from '@/lib/lightweight-charts/model/crosshair';
 import { CrosshairRenderer, type CrosshairRendererData } from '@/lib/lightweight-charts/renderers/crosshair-renderer';
@@ -46,7 +46,7 @@ export class CrosshairPaneView implements IPaneView {
 
     private _updateImpl(): void {
         const visible = this._source.visible();
-        const pane = ensureNotNull(this._source.pane());
+        const pane = getNotNull(this._source.pane());
         const crosshairOptions = pane.model().options().crosshair;
 
         const data = this._rendererData;

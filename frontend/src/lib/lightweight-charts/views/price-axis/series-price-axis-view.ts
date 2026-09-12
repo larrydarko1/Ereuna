@@ -9,6 +9,16 @@ import {
 
 import { PriceAxisView } from '@/lib/lightweight-charts/views/price-axis/price-axis-view';
 
+/**
+ * Which pieces the last-value label is built from. All three come off the same
+ * `seriesLastValueMode` reading, so they travel together.
+ */
+type LabelParts = {
+    showSeriesLastValue: boolean;
+    showSymbolLabel?: boolean;
+    showPriceAndPercentage: boolean;
+};
+
 export class SeriesPriceAxisView extends PriceAxisView {
     private readonly _source: ISeries<SeriesType>;
 
@@ -44,17 +54,16 @@ export class SeriesPriceAxisView extends PriceAxisView {
         }
 
         if (showSeriesLastValue) {
-            axisRendererData.text = this._axisText(lastValueData, showSeriesLastValue, showPriceAndPercentage);
+            axisRendererData.text = this._axisText(lastValueData, { showSeriesLastValue, showPriceAndPercentage });
             axisRendererData.visible = axisRendererData.text.length !== 0;
         }
 
         if (showSymbolLabel || showPriceAndPercentage) {
-            paneRendererData.text = this._paneText(
-                lastValueData,
+            paneRendererData.text = this._paneText(lastValueData, {
                 showSeriesLastValue,
                 showSymbolLabel,
                 showPriceAndPercentage,
-            );
+            });
             paneRendererData.visible = paneRendererData.text.length > 0;
         }
 
@@ -71,21 +80,16 @@ export class SeriesPriceAxisView extends PriceAxisView {
         paneRendererData.color = colors.foreground;
     }
 
-    protected _paneText(
-        lastValue: LastValueDataResultWithData,
-        showSeriesLastValue: boolean,
-        showSymbolLabel: boolean,
-        showPriceAndPercentage: boolean,
-    ): string {
+    protected _paneText(lastValue: LastValueDataResultWithData, shows: LabelParts): string {
         let result = '';
 
         const title = this._source.title();
 
-        if (showSymbolLabel && title.length !== 0) {
+        if (shows.showSymbolLabel === true && title.length !== 0) {
             result += `${title} `;
         }
 
-        if (showSeriesLastValue && showPriceAndPercentage) {
+        if (shows.showSeriesLastValue && shows.showPriceAndPercentage) {
             result += this._source.priceScale().isPercentage()
                 ? lastValue.formattedPriceAbsolute
                 : lastValue.formattedPricePercentage;
@@ -94,16 +98,12 @@ export class SeriesPriceAxisView extends PriceAxisView {
         return result.trim();
     }
 
-    protected _axisText(
-        lastValueData: LastValueDataResultWithData,
-        showSeriesLastValue: boolean,
-        showPriceAndPercentage: boolean,
-    ): string {
-        if (!showSeriesLastValue) {
+    protected _axisText(lastValueData: LastValueDataResultWithData, shows: LabelParts): string {
+        if (!shows.showSeriesLastValue) {
             return '';
         }
 
-        if (!showPriceAndPercentage) {
+        if (!shows.showPriceAndPercentage) {
             return lastValueData.text;
         }
 

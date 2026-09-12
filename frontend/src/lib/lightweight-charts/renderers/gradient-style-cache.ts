@@ -11,7 +11,7 @@ export type GradientCacheParams = {
     bottomColor2: string;
     baseLevelCoordinate?: Coordinate | null;
     bottom: Coordinate;
-}
+};
 
 export class GradientStyleCache {
     private _params?: GradientCacheParams;

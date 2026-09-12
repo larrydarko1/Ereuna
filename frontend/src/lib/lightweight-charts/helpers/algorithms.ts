@@ -1,4 +1,4 @@
-import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
+import { getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 export type BoundComparatorType<TArrayElementType, TValueType> = (a: TArrayElementType, b: TValueType) => boolean;
 
 /**
@@ -7,36 +7,46 @@ export type BoundComparatorType<TArrayElementType, TValueType> = (a: TArrayEleme
  * The function shall not modify any of its arguments.
  */
 
-function boundCompare<TArrayElementType, TValueType>(
-    lower: boolean,
+/**
+ * Walks a sorted range, halving it each step, and returns the index the search
+ * settled on. `goRight` decides which half to keep: it is what separates a
+ * lower bound from an upper one.
+ */
+function binarySearch<TArrayElementType>(
     arr: readonly TArrayElementType[],
-    value: TValueType,
-    compare: BoundComparatorType<TArrayElementType, TValueType>,
-    start = 0,
-    to: number = arr.length,
+    start: number,
+    to: number,
+    goRight: (element: TArrayElementType) => boolean,
 ): number {
     let count: number = to - start;
     while (0 < count) {
-        const count2: number = count >> 1;
-        const mid: number = start + count2;
-        if (compare(ensureDefined(arr[mid]), value) === lower) {
+        const half: number = count >> 1;
+        const mid: number = start + half;
+        if (goRight(getDefined(arr[mid]))) {
             start = mid + 1;
-            count -= count2 + 1;
+            count -= half + 1;
         } else {
-            count = count2;
+            count = half;
         }
     }
 
     return start;
 }
 
-type BoundCompareFunctionDefinition = <TArrayElementType, TValueType>(
+/** The first index whose element does not compare before `value`. */
+export function lowerBound<TArrayElementType, TValueType>(
     arr: readonly TArrayElementType[],
     value: TValueType,
     compare: BoundComparatorType<TArrayElementType, TValueType>,
-    start?: number,
-    to?: number,
-) => number;
+): number {
+    return binarySearch(arr, 0, arr.length, (element: TArrayElementType) => compare(element, value));
+}
 
-export const lowerBound = boundCompare.bind(null, true) as BoundCompareFunctionDefinition;
-export const upperBound = boundCompare.bind(null, false) as BoundCompareFunctionDefinition;
+/** The first index whose element compares after `value`. */
+export function upperBound<TArrayElementType, TValueType>(
+    arr: readonly TArrayElementType[],
+    value: TValueType,
+    compare: BoundComparatorType<TArrayElementType, TValueType>,
+): number {
+    return binarySearch(arr, 0, arr.length, (element: TArrayElementType) => !compare(element, value));
+}

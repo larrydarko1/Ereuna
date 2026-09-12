@@ -9,7 +9,7 @@ import { type BarCandlestickItemBase } from '@/lib/lightweight-charts/renderers/
 import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
 import { optimalCandlestickWidth } from '@/lib/lightweight-charts/renderers/optimal-bar-width';
 
-export type CandlestickItem = {} & BarCandlestickItemBase & CandlesticksColorerStyle
+export type CandlestickItem = {} & BarCandlestickItemBase & CandlesticksColorerStyle;
 
 export type PaneRendererCandlesticksData = {
     bars: readonly CandlestickItem[];
@@ -20,7 +20,7 @@ export type PaneRendererCandlesticksData = {
     borderVisible: boolean;
 
     visibleRange: SeriesItemsIndexesRange | null;
-}
+};
 
 const Constants = {
     BarBorderWidth: 1,

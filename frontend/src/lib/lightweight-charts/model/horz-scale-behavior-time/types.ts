@@ -39,7 +39,7 @@ export type BusinessDay = {
      * The day.
      */
     day: number;
-}
+};
 
 /**
  * The Time type is used to represent the time of data items.
@@ -58,7 +58,7 @@ export type Time = UTCTimestamp | BusinessDay | string;
 export type TimePoint = {
     timestamp: UTCTimestamp;
     businessDay?: BusinessDay;
-}
+};
 
 /**
  * Check if a time value is a business day object.

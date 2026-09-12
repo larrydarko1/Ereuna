@@ -1,17 +1,17 @@
 import { numberToStringWithLeadingZero as numToStr } from '@/lib/lightweight-charts/formatters/price-formatter';
 
-const getMonth = (date: Date) => date.getUTCMonth() + 1;
-const getDay = (date: Date) => date.getUTCDate();
-const getYear = (date: Date) => date.getUTCFullYear();
+const getMonth = (date: Date): number => date.getUTCMonth() + 1;
+const getDay = (date: Date): number => date.getUTCDate();
+const getYear = (date: Date): number => date.getUTCFullYear();
 
-const dd = (date: Date) => numToStr(getDay(date), 2);
-const MMMM = (date: Date, locale: string) =>
+const dd = (date: Date): string => numToStr(getDay(date), 2);
+const MMMM = (date: Date, locale: string): string =>
     new Date(date.getUTCFullYear(), date.getUTCMonth(), 1).toLocaleString(locale, { month: 'long' });
-const MMM = (date: Date, locale: string) =>
+const MMM = (date: Date, locale: string): string =>
     new Date(date.getUTCFullYear(), date.getUTCMonth(), 1).toLocaleString(locale, { month: 'short' });
-const MM = (date: Date) => numToStr(getMonth(date), 2);
-const yy = (date: Date) => numToStr(getYear(date) % 100, 2);
-const yyyy = (date: Date) => numToStr(getYear(date), 4);
+const MM = (date: Date): string => numToStr(getMonth(date), 2);
+const yy = (date: Date): string => numToStr(getYear(date) % 100, 2);
+const yyyy = (date: Date): string => numToStr(getYear(date), 4);
 
 export function formatDate(date: Date, format: string, locale: string): string {
     return format

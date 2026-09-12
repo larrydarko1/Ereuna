@@ -1,6 +1,6 @@
 import { type IChartWidgetBase } from '@/lib/lightweight-charts/gui/chart-widget';
 
-import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { type DeepPartial } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
 import { isDefaultPriceScale } from '@/lib/lightweight-charts/model/default-price-scale';
@@ -34,6 +34,6 @@ export class PriceScaleApi implements IPriceScaleApi {
     }
 
     private _priceScale(): PriceScale {
-        return ensureNotNull(this._chartWidget.model().findPriceScale(this._priceScaleId)).priceScale;
+        return getNotNull(this._chartWidget.model().findPriceScale(this._priceScaleId)).priceScale;
     }
 }

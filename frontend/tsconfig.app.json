@@ -11,7 +11,10 @@
         "paths": {
             "@/*": ["./src/*"]
         },
-        "types": ["vite/client"]
+        /* `node` is here for packages/shared, not for anything in src/: the
+           shared package is consumed as TypeScript source, so this project
+           type-checks its files, and its env config reads `process.env`. */
+        "types": ["vite/client", "node"]
     },
     "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
 }

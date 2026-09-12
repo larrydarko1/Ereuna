@@ -8,42 +8,42 @@ import { type Range } from '@/lib/lightweight-charts/model/time-data';
 /**
  * Represents a whitespace data item, which is a data point without a value.
  */
-export type CustomSeriesWhitespaceData<HorzScaleItem> = {
+export type CustomSeriesWhitespaceData<THorzScaleItem> = {
     /**
      * The time of the data.
      */
-    time: HorzScaleItem;
+    time: THorzScaleItem;
 
     /**
      * Additional custom values which will be ignored by the library, but
      * could be used by plugins.
      */
     customValues?: Record<string, unknown> | undefined;
-}
+};
 
 /**
- * Base structure describing a single item of data for a custom series.
+ * TBase structure describing a single item of data for a custom series.
  *
  * This type allows for any properties to be defined
  * within the interface. It is recommended that you extend this interface with
  * the required data structure.
  */
-export type CustomData<HorzScaleItem = Time> = {
+export type CustomData<THorzScaleItem = Time> = {
     /**
      * If defined then this color will be used for the price line and price scale line
      * for this specific data item of the custom series.
      */
     color?: string;
-} & CustomSeriesWhitespaceData<HorzScaleItem>
+} & CustomSeriesWhitespaceData<THorzScaleItem>;
 
-export type WhitespaceCheck<HorzScaleItem, TData extends CustomData<HorzScaleItem> = CustomData<HorzScaleItem>> = (
-    bar: TData | CustomSeriesWhitespaceData<HorzScaleItem>,
-) => bar is CustomSeriesWhitespaceData<HorzScaleItem>;
+export type WhitespaceCheck<THorzScaleItem, TData extends CustomData<THorzScaleItem> = CustomData<THorzScaleItem>> = (
+    bar: TData | CustomSeriesWhitespaceData<THorzScaleItem>,
+) => bar is CustomSeriesWhitespaceData<THorzScaleItem>;
 
 /**
  * Renderer data for an item within the custom series.
  */
-export type CustomBarItemData<HorzScaleItem, TData extends CustomData<HorzScaleItem> = CustomData<HorzScaleItem>> = {
+export type CustomBarItemData<THorzScaleItem, TData extends CustomData<THorzScaleItem> = CustomData<THorzScaleItem>> = {
     /**
      * Horizontal coordinate for the item. Measured from the left edge of the pane in pixels.
      */
@@ -60,17 +60,17 @@ export type CustomBarItemData<HorzScaleItem, TData extends CustomData<HorzScaleI
      * Color assigned for the item, typically used for price line and price scale label.
      */
     barColor: string;
-}
+};
 
 /**
  * Data provide to the custom series pane view which can be used within the renderer
  * for drawing the series data.
  */
-export type PaneRendererCustomData<HorzScaleItem, TData extends CustomData<HorzScaleItem>> = {
+export type PaneRendererCustomData<THorzScaleItem, TData extends CustomData<THorzScaleItem>> = {
     /**
      * List of all the series' items and their x coordinates.
      */
-    bars: readonly CustomBarItemData<HorzScaleItem, TData>[];
+    bars: readonly CustomBarItemData<THorzScaleItem, TData>[];
     /**
      * Spacing between consecutive bars.
      */
@@ -79,7 +79,7 @@ export type PaneRendererCustomData<HorzScaleItem, TData extends CustomData<HorzS
      * The current visible range of items on the chart.
      */
     visibleRange: Range<number> | null;
-}
+};
 
 /**
  * Converter function for changing prices into vertical coordinate values.
@@ -108,7 +108,7 @@ export type ICustomSeriesPaneRenderer = {
         isHovered: boolean,
         hitTestData?: unknown,
     ): void;
-}
+};
 
 /**
  * Price values for the custom series. This list should include the largest, smallest, and current price values for the data point.
@@ -125,8 +125,8 @@ export type CustomSeriesPricePlotValues = number[];
  * This interface represents the view for the custom series
  */
 export type ICustomSeriesPaneView<
-    HorzScaleItem = Time,
-    TData extends CustomData<HorzScaleItem> = CustomData<HorzScaleItem>,
+    THorzScaleItem = Time,
+    TData extends CustomData<THorzScaleItem> = CustomData<THorzScaleItem>,
     TSeriesOptions extends CustomSeriesOptions = CustomSeriesOptions,
 > = {
     /**
@@ -141,7 +141,7 @@ export type ICustomSeriesPaneView<
      * This method will be called with the latest data for the renderer to use
      * during the next paint.
      */
-    update(data: PaneRendererCustomData<HorzScaleItem, TData>, seriesOptions: TSeriesOptions): void;
+    update(data: PaneRendererCustomData<THorzScaleItem, TData>, seriesOptions: TSeriesOptions): void;
 
     /**
      * A function for interpreting the custom series data and returning an array of numbers
@@ -159,8 +159,8 @@ export type ICustomSeriesPaneView<
      * @param data - data point to be tested
      */
     isWhitespace(
-        data: TData | CustomSeriesWhitespaceData<HorzScaleItem>,
-    ): data is CustomSeriesWhitespaceData<HorzScaleItem>;
+        data: TData | CustomSeriesWhitespaceData<THorzScaleItem>,
+    ): data is CustomSeriesWhitespaceData<THorzScaleItem>;
 
     /**
      * Default options
@@ -176,4 +176,4 @@ export type ICustomSeriesPaneView<
      * to other objects, and resetting any values or properties that were modified during the lifetime of the object.
      */
     destroy?(): void;
-}
+};

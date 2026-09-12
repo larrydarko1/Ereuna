@@ -64,27 +64,25 @@ export function convertTime(time: Time): InternalHorzScaleItem {
 }
 
 export function stringToBusinessDay(value: string): BusinessDay {
-    if (process.env.NODE_ENV === 'development') {
-        // in some browsers (I look at your Chrome) the Date constructor may accept invalid date string
-        // but parses them in 'implementation specific' way
-        // for example 2019-1-1 isn't the same as 2019-01-01 (for Chrome both are 'valid' date strings)
-        // see https://bugs.chromium.org/p/chromium/issues/detail?id=968939
-        // so, we need to be sure that date has valid format to avoid strange behavior and hours of debugging
-        // but let's do this in development build only because of perf
-        if (!validDateRegex.test(value)) {
-            throw new Error(`Invalid date string=${value}, expected format=yyyy-mm-dd`);
-        }
+    // Chrome's Date constructor accepts a malformed date string and parses it in
+    // an implementation-specific way — 2019-1-1 is not read as 2019-01-01 — so
+    // the format is checked before the date is. Upstream ran this in development
+    // builds only, on perf grounds; one regex per business day is not worth a
+    // date that silently means something else.
+    // https://bugs.chromium.org/p/chromium/issues/detail?id=968939
+    if (!validDateRegex.test(value)) {
+        throw new Error(`Invalid date string=${value}, expected format=yyyy-mm-dd`);
     }
 
-    const d = new Date(value);
-    if (isNaN(d.getTime())) {
+    const parsed = new Date(value);
+    if (isNaN(parsed.getTime())) {
         throw new Error(`Invalid date string=${value}, expected format=yyyy-mm-dd`);
     }
 
     return {
-        day: d.getUTCDate(),
-        month: d.getUTCMonth() + 1,
-        year: d.getUTCFullYear(),
+        day: parsed.getUTCDate(),
+        month: parsed.getUTCMonth() + 1,
+        year: parsed.getUTCFullYear(),
     };
 }
 

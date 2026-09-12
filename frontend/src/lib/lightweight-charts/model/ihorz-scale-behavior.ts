@@ -17,12 +17,12 @@ export type InternalHorzScaleItem = Nominal<unknown, 'InternalHorzScaleItem'>;
 /**
  * Function for converting a horizontal scale item to an internal item.
  */
-export type HorzScaleItemConverterToInternalObj<HorzScaleItem> = (time: HorzScaleItem) => InternalHorzScaleItem;
+export type HorzScaleItemConverterToInternalObj<THorzScaleItem> = (time: THorzScaleItem) => InternalHorzScaleItem;
 
 /**
  * Represents the type of data that a series contains.
  */
-export type DataItem<HorzScaleItem> = SeriesDataItemTypeMap<HorzScaleItem>[SeriesType];
+export type DataItem<THorzScaleItem> = SeriesDataItemTypeMap<THorzScaleItem>[SeriesType];
 
 /**
  * Index key for a horizontal scale item.
@@ -32,13 +32,13 @@ export type InternalHorzScaleItemKey = Nominal<number, 'InternalHorzScaleItemKey
 /**
  * Class interface for Horizontal scale behavior
  */
-export type IHorzScaleBehavior<HorzScaleItem> = {
+export type IHorzScaleBehavior<THorzScaleItem> = {
     /**
      * Structure describing options of the chart.
      *
      * @returns ChartOptionsBase
      */
-    options(): ChartOptionsImpl<HorzScaleItem>;
+    options(): ChartOptionsImpl<THorzScaleItem>;
     /**
      * Set the chart options. Note that this is different to `applyOptions` since the provided options will overwrite the current options
      * instead of merging with the current options.
@@ -46,21 +46,21 @@ export type IHorzScaleBehavior<HorzScaleItem> = {
      * @param options - Chart options to be set
      * @returns void
      */
-    setOptions(options: ChartOptionsImpl<HorzScaleItem>): void;
+    setOptions(options: ChartOptionsImpl<THorzScaleItem>): void;
     /**
      * Method to preprocess the data.
      *
      * @param data - Data items for the series
      * @returns void
      */
-    preprocessData(data: DataItem<HorzScaleItem> | DataItem<HorzScaleItem>[]): void;
+    preprocessData(data: DataItem<THorzScaleItem> | DataItem<THorzScaleItem>[]): void;
     /**
      * Convert horizontal scale item into an internal horizontal scale item.
      *
      * @param item - item to be converted
      * @returns InternalHorzScaleItem
      */
-    convertHorzItemToInternal(item: HorzScaleItem): InternalHorzScaleItem;
+    convertHorzItemToInternal(item: THorzScaleItem): InternalHorzScaleItem;
     /**
      * Creates and returns a converter for changing series data into internal horizontal scale items.
      *
@@ -68,15 +68,15 @@ export type IHorzScaleBehavior<HorzScaleItem> = {
      * @returns HorzScaleItemConverterToInternalObj
      */
     createConverterToInternalObj(
-        data: SeriesDataItemTypeMap<HorzScaleItem>[SeriesType][],
-    ): HorzScaleItemConverterToInternalObj<HorzScaleItem>;
+        data: SeriesDataItemTypeMap<THorzScaleItem>[SeriesType][],
+    ): HorzScaleItemConverterToInternalObj<THorzScaleItem>;
     /**
      * Returns the key for the specified horizontal scale item.
      *
      * @param internalItem - horizontal scale item for which the key should be returned
      * @returns InternalHorzScaleItemKey
      */
-    key(internalItem: InternalHorzScaleItem | HorzScaleItem): InternalHorzScaleItemKey;
+    key(internalItem: InternalHorzScaleItem | THorzScaleItem): InternalHorzScaleItemKey;
     /**
      * Returns the cache key for the specified horizontal scale item.
      *
@@ -90,7 +90,7 @@ export type IHorzScaleBehavior<HorzScaleItem> = {
      * @param options - Localization options
      * @returns void
      */
-    updateFormatter(options: LocalizationOptions<HorzScaleItem>): void;
+    updateFormatter(options: LocalizationOptions<THorzScaleItem>): void;
     /**
      * Format the horizontal scale item into a display string.
      *
@@ -105,7 +105,7 @@ export type IHorzScaleBehavior<HorzScaleItem> = {
      * @param localizationOptions - Localization options
      * @returns string
      */
-    formatTickmark(item: TickMark, localizationOptions: LocalizationOptions<HorzScaleItem>): string;
+    formatTickmark(item: TickMark, localizationOptions: LocalizationOptions<THorzScaleItem>): string;
     /**
      * Returns the maximum tickmark weight value for the specified tickmarks on the time scale.
      *
@@ -131,4 +131,4 @@ export type IHorzScaleBehavior<HorzScaleItem> = {
      * @returns boolean
      */
     shouldResetTickmarkLabels?(tickMarks: readonly TickMark[]): boolean;
-}
+};

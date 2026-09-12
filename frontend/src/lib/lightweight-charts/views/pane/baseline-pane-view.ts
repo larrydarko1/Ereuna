@@ -74,7 +74,7 @@ export class SeriesBaselinePaneView extends LinePaneViewBase<
             lineStyle: options.lineStyle,
             lineType: options.lineVisible ? options.lineType : undefined,
             pointMarkersRadius: options.pointMarkersVisible
-                ? options.pointMarkersRadius || options.lineWidth / 2 + 2
+                ? (options.pointMarkersRadius ?? options.lineWidth / 2 + 2)
                 : undefined,
 
             baseLevelCoordinate,

@@ -20,10 +20,10 @@ export const tradeInputSchema = z
     .object({
         action: z.enum(['buy', 'sell', 'short', 'cover', 'deposit', 'withdrawal']),
         symbol: symbolSchema.nullish(),
-        shares: z.number().finite().positive().max(1e9).optional(),
-        price: z.number().finite().positive().max(1e9).optional(),
-        total: z.number().finite().positive().max(1e12),
-        commission: z.number().finite().nonnegative().max(config.limits.maxCommission).optional(),
+        shares: z.number().positive().max(1e9).optional(),
+        price: z.number().positive().max(1e9).optional(),
+        total: z.number().positive().max(1e12),
+        commission: z.number().nonnegative().max(config.limits.maxCommission).optional(),
         tradeDate: z.iso.datetime({ offset: true }).or(z.iso.date()),
     })
     .superRefine((body, ctx) => {

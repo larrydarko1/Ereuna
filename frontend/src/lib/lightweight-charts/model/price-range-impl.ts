@@ -15,7 +15,11 @@ function computeFiniteResult(
         return method(valueOne, valueTwo);
     }
 
-    return !firstFinite && !secondFinite ? fallback : firstFinite ? valueOne : valueTwo;
+    // Exactly one of them is finite by here, or neither
+    if (firstFinite) return valueOne;
+    if (secondFinite) return valueTwo;
+
+    return fallback;
 }
 
 export class PriceRangeImpl {

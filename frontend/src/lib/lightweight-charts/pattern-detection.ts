@@ -7,7 +7,7 @@ export type PivotPoint = {
     index: number;
     time: number;
     price: number;
-}
+};
 
 export type PatternMatch = {
     type: PatternType;
@@ -15,7 +15,7 @@ export type PatternMatch = {
     confidence: number;
     description: string;
     timeframe: { start: number; end: number };
-}
+};
 
 export type PatternType =
     | 'doubleTop'
@@ -36,16 +36,28 @@ export type OHLCData = {
     high: number;
     low: number;
     close: number;
-}
+};
+
+// Two peaks closer together than this are one peak with noise on it, not a
+// double top or bottom
+const MIN_PEAK_SEPARATION = 5;
+
+// A head within 2% of the shoulder line is a flat triple top, not head and
+// shoulders — the prominence is what makes the pattern readable
+const MIN_HEAD_PROMINENCE = 0.02;
+
+// Share of a match's span that may overlap a higher-confidence match before the
+// two are the same finding reported twice
+const MAX_PATTERN_OVERLAP = 0.6;
 
 /**
  * Find pivot highs and lows in price data
  */
-export function findPivots(
+export function getPivots(
     data: OHLCData[],
-    leftBars = 5,
-    rightBars = 5,
+    options: { leftBars?: number; rightBars?: number } = {},
 ): { highs: PivotPoint[]; lows: PivotPoint[] } {
+    const { leftBars = 5, rightBars = 5 } = options;
     const highs: PivotPoint[] = [];
     const lows: PivotPoint[] = [];
 
@@ -109,20 +121,17 @@ export function detectDoubleTops(highs: PivotPoint[], tolerance = 0.02): Pattern
             const avgPrice = (first.price + second.price) / 2;
             const priceDeviation = priceDiff / avgPrice;
 
-            // Check if the two peaks are at similar levels
-            if (priceDeviation <= tolerance) {
-                // Require some time separation between peaks
-                const timeSeparation = second.index - first.index;
-                if (timeSeparation >= 5) {
-                    patterns.push({
-                        type: 'doubleTop',
-                        points: [first, second],
-                        confidence: 1 - priceDeviation / tolerance,
-                        description: 'Double Top - Bearish Reversal',
-                        timeframe: { start: first.time, end: second.time },
-                    });
-                }
-            }
+            // The two peaks have to sit at similar levels, far enough apart
+            if (priceDeviation > tolerance) continue;
+            if (second.index - first.index < MIN_PEAK_SEPARATION) continue;
+
+            patterns.push({
+                type: 'doubleTop',
+                points: [first, second],
+                confidence: 1 - priceDeviation / tolerance,
+                description: 'Double Top - Bearish Reversal',
+                timeframe: { start: first.time, end: second.time },
+            });
         }
     }
 
@@ -147,18 +156,16 @@ export function detectDoubleBottoms(lows: PivotPoint[], tolerance = 0.02): Patte
             const avgPrice = (first.price + second.price) / 2;
             const priceDeviation = priceDiff / avgPrice;
 
-            if (priceDeviation <= tolerance) {
-                const timeSeparation = second.index - first.index;
-                if (timeSeparation >= 5) {
-                    patterns.push({
-                        type: 'doubleBottom',
-                        points: [first, second],
-                        confidence: 1 - priceDeviation / tolerance,
-                        description: 'Double Bottom - Bullish Reversal',
-                        timeframe: { start: first.time, end: second.time },
-                    });
-                }
-            }
+            if (priceDeviation > tolerance) continue;
+            if (second.index - first.index < MIN_PEAK_SEPARATION) continue;
+
+            patterns.push({
+                type: 'doubleBottom',
+                points: [first, second],
+                confidence: 1 - priceDeviation / tolerance,
+                description: 'Double Bottom - Bullish Reversal',
+                timeframe: { start: first.time, end: second.time },
+            });
         }
     }
 
@@ -168,6 +175,8 @@ export function detectDoubleBottoms(lows: PivotPoint[], tolerance = 0.02): Patte
 /**
  * Detect Head and Shoulders pattern
  */
+// "Head and shoulders" is one pattern's proper name, not two jobs joined
+// eslint-disable-next-line contracts/name-contract
 export function detectHeadAndShoulders(highs: PivotPoint[], tolerance = 0.03): PatternMatch[] {
     const patterns: PatternMatch[] = [];
 
@@ -179,26 +188,24 @@ export function detectHeadAndShoulders(highs: PivotPoint[], tolerance = 0.03): P
         if (leftShoulder === undefined || head === undefined || rightShoulder === undefined) continue;
 
         // Head should be higher than both shoulders
-        if (head.price > leftShoulder.price && head.price > rightShoulder.price) {
-            // Shoulders should be roughly at the same level
-            const shoulderDiff = Math.abs(leftShoulder.price - rightShoulder.price);
-            const avgShoulderPrice = (leftShoulder.price + rightShoulder.price) / 2;
-            const shoulderDeviation = shoulderDiff / avgShoulderPrice;
+        if (head.price <= leftShoulder.price || head.price <= rightShoulder.price) continue;
 
-            if (shoulderDeviation <= tolerance) {
-                // Head should be significantly higher than shoulders (at least 2% higher)
-                const headHeight = (head.price - avgShoulderPrice) / avgShoulderPrice;
-                if (headHeight >= 0.02) {
-                    patterns.push({
-                        type: 'headAndShoulders',
-                        points: [leftShoulder, head, rightShoulder],
-                        confidence: Math.min(1, 1 - shoulderDeviation / tolerance),
-                        description: 'Head and Shoulders - Bearish Reversal',
-                        timeframe: { start: leftShoulder.time, end: rightShoulder.time },
-                    });
-                }
-            }
-        }
+        // Shoulders should be roughly at the same level
+        const shoulderDiff = Math.abs(leftShoulder.price - rightShoulder.price);
+        const avgShoulderPrice = (leftShoulder.price + rightShoulder.price) / 2;
+        const shoulderDeviation = shoulderDiff / avgShoulderPrice;
+        if (shoulderDeviation > tolerance) continue;
+
+        const headHeight = (head.price - avgShoulderPrice) / avgShoulderPrice;
+        if (headHeight < MIN_HEAD_PROMINENCE) continue;
+
+        patterns.push({
+            type: 'headAndShoulders',
+            points: [leftShoulder, head, rightShoulder],
+            confidence: Math.min(1, 1 - shoulderDeviation / tolerance),
+            description: 'Head and Shoulders - Bearish Reversal',
+            timeframe: { start: leftShoulder.time, end: rightShoulder.time },
+        });
     }
 
     return patterns;
@@ -207,6 +214,8 @@ export function detectHeadAndShoulders(highs: PivotPoint[], tolerance = 0.03): P
 /**
  * Detect Inverse Head and Shoulders pattern
  */
+// "Head and shoulders" is one pattern's proper name, not two jobs joined
+// eslint-disable-next-line contracts/name-contract
 export function detectInverseHeadAndShoulders(lows: PivotPoint[], tolerance = 0.03): PatternMatch[] {
     const patterns: PatternMatch[] = [];
 
@@ -217,24 +226,23 @@ export function detectInverseHeadAndShoulders(lows: PivotPoint[], tolerance = 0.
         if (leftShoulder === undefined || head === undefined || rightShoulder === undefined) continue;
 
         // Head should be lower than both shoulders
-        if (head.price < leftShoulder.price && head.price < rightShoulder.price) {
-            const shoulderDiff = Math.abs(leftShoulder.price - rightShoulder.price);
-            const avgShoulderPrice = (leftShoulder.price + rightShoulder.price) / 2;
-            const shoulderDeviation = shoulderDiff / avgShoulderPrice;
+        if (head.price >= leftShoulder.price || head.price >= rightShoulder.price) continue;
 
-            if (shoulderDeviation <= tolerance) {
-                const headDepth = (avgShoulderPrice - head.price) / avgShoulderPrice;
-                if (headDepth >= 0.02) {
-                    patterns.push({
-                        type: 'inverseHeadAndShoulders',
-                        points: [leftShoulder, head, rightShoulder],
-                        confidence: Math.min(1, 1 - shoulderDeviation / tolerance),
-                        description: 'Inverse Head and Shoulders - Bullish Reversal',
-                        timeframe: { start: leftShoulder.time, end: rightShoulder.time },
-                    });
-                }
-            }
-        }
+        const shoulderDiff = Math.abs(leftShoulder.price - rightShoulder.price);
+        const avgShoulderPrice = (leftShoulder.price + rightShoulder.price) / 2;
+        const shoulderDeviation = shoulderDiff / avgShoulderPrice;
+        if (shoulderDeviation > tolerance) continue;
+
+        const headDepth = (avgShoulderPrice - head.price) / avgShoulderPrice;
+        if (headDepth < MIN_HEAD_PROMINENCE) continue;
+
+        patterns.push({
+            type: 'inverseHeadAndShoulders',
+            points: [leftShoulder, head, rightShoulder],
+            confidence: Math.min(1, 1 - shoulderDeviation / tolerance),
+            description: 'Inverse Head and Shoulders - Bullish Reversal',
+            timeframe: { start: leftShoulder.time, end: rightShoulder.time },
+        });
     }
 
     return patterns;
@@ -246,7 +254,7 @@ export function detectInverseHeadAndShoulders(lows: PivotPoint[], tolerance = 0.
 function calculateSlope(points: PivotPoint[]): number {
     if (points.length < 2) return 0;
 
-    const n = points.length;
+    const count = points.length;
     let sumX = 0,
         sumY = 0,
         sumXY = 0,
@@ -259,7 +267,7 @@ function calculateSlope(points: PivotPoint[]): number {
         sumX2 += idx * idx;
     });
 
-    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const slope = (count * sumXY - sumX * sumY) / (count * sumX2 - sumX * sumX);
     return slope;
 }
 
@@ -344,7 +352,7 @@ export function detectFlags(data: OHLCData[], highs: PivotPoint[], lows: PivotPo
     const consolidationStart = data[data.length - recentBars];
     const lastBar = data[data.length - 1];
 
-    if (!trendStart || !consolidationStart || !lastBar) return patterns;
+    if (trendStart === undefined || consolidationStart === undefined || lastBar === undefined) return patterns;
 
     const trendMove = (consolidationStart.close - trendStart.close) / trendStart.close;
 
@@ -429,7 +437,7 @@ export function detectAllPatterns(
 
     if (data.length < 20) return [];
 
-    const { highs, lows } = findPivots(data, minBarsForPivot, minBarsForPivot);
+    const { highs, lows } = getPivots(data, { leftBars: minBarsForPivot, rightBars: minBarsForPivot });
     const allPatterns: PatternMatch[] = [];
 
     // Detect each pattern type if enabled
@@ -478,29 +486,24 @@ function deduplicatePatterns(patterns: PatternMatch[]): PatternMatch[] {
     const result: PatternMatch[] = [];
 
     for (const pattern of sorted) {
-        let overlaps = false;
-
-        for (const existing of result) {
-            // Check if patterns overlap significantly in time
-            const overlapStart = Math.max(pattern.timeframe.start, existing.timeframe.start);
-            const overlapEnd = Math.min(pattern.timeframe.end, existing.timeframe.end);
-
-            if (overlapStart < overlapEnd) {
-                const overlapDuration = overlapEnd - overlapStart;
-                const patternDuration = pattern.timeframe.end - pattern.timeframe.start;
-
-                // If more than 60% overlap, consider it duplicate
-                if (overlapDuration / patternDuration > 0.6) {
-                    overlaps = true;
-                    break;
-                }
-            }
-        }
-
-        if (!overlaps) {
+        if (!result.some((existing) => isOverlapping(pattern, existing))) {
             result.push(pattern);
         }
     }
 
     return result;
+}
+
+/**
+ * Two matches covering mostly the same bars are one finding reported twice
+ */
+function isOverlapping(pattern: PatternMatch, existing: PatternMatch): boolean {
+    const overlapStart = Math.max(pattern.timeframe.start, existing.timeframe.start);
+    const overlapEnd = Math.min(pattern.timeframe.end, existing.timeframe.end);
+    if (overlapStart >= overlapEnd) return false;
+
+    const overlapDuration = overlapEnd - overlapStart;
+    const patternDuration = pattern.timeframe.end - pattern.timeframe.start;
+
+    return overlapDuration / patternDuration > MAX_PATTERN_OVERLAP;
 }

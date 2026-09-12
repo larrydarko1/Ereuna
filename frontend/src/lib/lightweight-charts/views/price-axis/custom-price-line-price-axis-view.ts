@@ -38,8 +38,8 @@ export class CustomPriceLinePriceAxisView extends PriceAxisView {
             return;
         }
 
-        const y = this._priceLine.yCoord();
-        if (y === null) {
+        const coordinate = this._priceLine.yCoord();
+        if (coordinate === null) {
             return;
         }
 
@@ -50,19 +50,19 @@ export class CustomPriceLinePriceAxisView extends PriceAxisView {
 
         paneRendererData.borderColor = series
             .model()
-            .backgroundColorAtYPercentFromTop(y / series.priceScale().height());
+            .backgroundColorAtYPercentFromTop(coordinate / series.priceScale().height());
 
         axisRendererData.text = this._formatPrice(options.price);
         axisRendererData.visible = true;
 
-        const colors = generateContrastColors(options.axisLabelColor || options.color);
+        const colors = generateContrastColors(options.axisLabelColor === '' ? options.color : options.axisLabelColor);
         commonData.background = colors.background;
 
-        const textColor = options.axisLabelTextColor || colors.foreground;
+        const textColor = options.axisLabelTextColor === '' ? colors.foreground : options.axisLabelTextColor;
         axisRendererData.color = textColor; // price text
         paneRendererData.color = textColor; // title text
 
-        commonData.coordinate = y;
+        commonData.coordinate = coordinate;
     }
 
     private _formatPrice(price: number): string {

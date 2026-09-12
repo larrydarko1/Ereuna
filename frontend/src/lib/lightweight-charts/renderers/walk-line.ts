@@ -1,20 +1,22 @@
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
+import { getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 import { type SeriesItemsIndexesRange } from '@/lib/lightweight-charts/model/time-data';
 
 import { type LinePoint, LineType } from '@/lib/lightweight-charts/renderers/draw-line';
 
-export function walkLine<
-    TItem extends LinePoint,
-    TStyle extends CanvasRenderingContext2D['fillStyle']  ,
->(
+/** The stroke to walk: which points, in what shape, over which range. */
+export type LinePath<TItem extends LinePoint> = {
+    items: readonly TItem[];
+    lineType: LineType;
+    visibleRange: SeriesItemsIndexesRange;
+    barWidth: number;
+};
+
+export function walkLine<TItem extends LinePoint, TStyle extends CanvasRenderingContext2D['fillStyle']>(
     renderingScope: BitmapCoordinatesRenderingScope,
-    items: readonly TItem[],
-    lineType: LineType,
-    visibleRange: SeriesItemsIndexesRange,
-    barWidth: number,
+    path: LinePath<TItem>,
     // the values returned by styleGetter are compared using the operator !==,
     // so if styleGetter returns objects, then styleGetter should return the same object for equal styles
     styleGetter: (renderingScope: BitmapCoordinatesRenderingScope, item: TItem) => TStyle,
@@ -25,6 +27,8 @@ export function walkLine<
         newAreaFirstItem: LinePoint,
     ) => void,
 ): void {
+    const { items, lineType, visibleRange, barWidth } = path;
+
     if (items.length === 0 || visibleRange.from >= items.length || visibleRange.to <= 0) {
         return;
     }
@@ -52,12 +56,47 @@ export function walkLine<
 
         finishStyledArea(renderingScope, currentStyle, item1, item2);
     } else {
-        const changeStyle = (newStyle: TStyle, currentItem: TItem) => {
+        const changeStyle = (newStyle: TStyle, currentItem: TItem): void => {
             finishStyledArea(renderingScope, currentStyle, currentStyleFirstItem, currentItem);
 
             ctx.beginPath();
             currentStyle = newStyle;
             currentStyleFirstItem = currentItem;
+        };
+
+        // One segment of the stroke. A style change mid-step has to be made
+        // between the two halves of the step, which is why WithSteps handles it
+        // here rather than leaving it to the caller below.
+        const appendSegment = (index: number, item: TItem, previous: TItem, itemStyle: TStyle): void => {
+            switch (lineType) {
+                case LineType.Simple:
+                    ctx.lineTo(item.x * horizontalPixelRatio, item.y * verticalPixelRatio);
+                    return;
+
+                case LineType.WithSteps:
+                    ctx.lineTo(item.x * horizontalPixelRatio, previous.y * verticalPixelRatio);
+
+                    if (itemStyle !== currentStyle) {
+                        changeStyle(itemStyle, item);
+                        ctx.lineTo(item.x * horizontalPixelRatio, previous.y * verticalPixelRatio);
+                    }
+
+                    ctx.lineTo(item.x * horizontalPixelRatio, item.y * verticalPixelRatio);
+                    return;
+
+                case LineType.Curved: {
+                    const [cp1, cp2] = getControlPoints(items, index - 1, index);
+                    ctx.bezierCurveTo(
+                        cp1.x * horizontalPixelRatio,
+                        cp1.y * verticalPixelRatio,
+                        cp2.x * horizontalPixelRatio,
+                        cp2.y * verticalPixelRatio,
+                        item.x * horizontalPixelRatio,
+                        item.y * verticalPixelRatio,
+                    );
+                    return;
+                }
+            }
         };
 
         let currentItem = currentStyleFirstItem;
@@ -73,33 +112,7 @@ export function walkLine<
             currentItem = item;
             const itemStyle = styleGetter(renderingScope, currentItem);
 
-            switch (lineType) {
-                case LineType.Simple:
-                    ctx.lineTo(currentItem.x * horizontalPixelRatio, currentItem.y * verticalPixelRatio);
-                    break;
-                case LineType.WithSteps:
-                    ctx.lineTo(currentItem.x * horizontalPixelRatio, previous.y * verticalPixelRatio);
-
-                    if (itemStyle !== currentStyle) {
-                        changeStyle(itemStyle, currentItem);
-                        ctx.lineTo(currentItem.x * horizontalPixelRatio, previous.y * verticalPixelRatio);
-                    }
-
-                    ctx.lineTo(currentItem.x * horizontalPixelRatio, currentItem.y * verticalPixelRatio);
-                    break;
-                case LineType.Curved: {
-                    const [cp1, cp2] = getControlPoints(items, i - 1, i);
-                    ctx.bezierCurveTo(
-                        cp1.x * horizontalPixelRatio,
-                        cp1.y * verticalPixelRatio,
-                        cp2.x * horizontalPixelRatio,
-                        cp2.y * verticalPixelRatio,
-                        currentItem.x * horizontalPixelRatio,
-                        currentItem.y * verticalPixelRatio,
-                    );
-                    break;
-                }
-            }
+            appendSegment(i, currentItem, previous, itemStyle);
 
             if (lineType !== LineType.WithSteps && itemStyle !== currentStyle) {
                 changeStyle(itemStyle, currentItem);
@@ -140,10 +153,10 @@ export function getControlPoints(
 ): [LinePoint, LinePoint] {
     // The indices are clamped into range above, so the only way one of these is
     // undefined is an empty `points`, which is not a case this can answer
-    const from = ensureDefined(points[fromPointIndex]);
-    const to = ensureDefined(points[toPointIndex]);
-    const beforeFrom = ensureDefined(points[Math.max(0, fromPointIndex - 1)]);
-    const afterTo = ensureDefined(points[Math.min(points.length - 1, toPointIndex + 1)]);
+    const from = getDefined(points[fromPointIndex]);
+    const to = getDefined(points[toPointIndex]);
+    const beforeFrom = getDefined(points[Math.max(0, fromPointIndex - 1)]);
+    const afterTo = getDefined(points[Math.min(points.length - 1, toPointIndex + 1)]);
 
     const cp1 = add(from, divide(subtract(to, beforeFrom), curveTension));
     const cp2 = subtract(to, divide(subtract(afterTo, from), curveTension));

@@ -32,7 +32,7 @@ export class GridPaneView implements IUpdatablePaneView {
                 priceMarks: this._pane.defaultPriceScale().marks(),
                 // need this conversiom because TimeMark is a part of external interface
                 // and fields inside TimeMark are not minified
-                timeMarks: (this._pane.model().timeScale().marks() || []).map((tm: TimeMark) => {
+                timeMarks: (this._pane.model().timeScale().marks() ?? []).map((tm: TimeMark) => {
                     return { coord: tm.coord };
                 }),
             };

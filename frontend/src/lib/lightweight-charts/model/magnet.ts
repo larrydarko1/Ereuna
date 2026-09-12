@@ -1,4 +1,4 @@
-import { ensure } from '@/lib/lightweight-charts/helpers/assertions';
+import { getPresent } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 import { CrosshairMode, type CrosshairOptions } from '@/lib/lightweight-charts/model/crosshair';
@@ -29,14 +29,12 @@ export class Magnet {
             return res;
         }
 
-        const y = defaultPriceScale.priceToCoordinate(price, firstValue);
+        const priceCoordinate = defaultPriceScale.priceToCoordinate(price, firstValue);
 
         // get all serieses from the pane
         const serieses: readonly ISeries<SeriesType>[] = pane
             .dataSources()
-            .filter(
-                ((ds: IPriceDataSource) => ds instanceof Series) as (ds: IPriceDataSource) => ds is Series<SeriesType>,
-            );
+            .filter((source: IPriceDataSource): source is Series<SeriesType> => source instanceof Series);
 
         const candidates = serieses.reduce((acc: Coordinate[], series: ISeries<SeriesType>) => {
             if (pane.isOverlay(series) || !series.visible()) {
@@ -54,7 +52,7 @@ export class Magnet {
             }
 
             // convert bar to pixels
-            const firstPrice = ensure(series.firstValue());
+            const firstPrice = getPresent(series.firstValue());
             return acc.concat([ps.priceToCoordinate(bar.value[PlotRowValueIndex.Close], firstPrice.value)]);
         }, [] as Coordinate[]);
 
@@ -62,7 +60,9 @@ export class Magnet {
             return res;
         }
 
-        candidates.sort((y1: Coordinate, y2: Coordinate) => Math.abs(y1 - y) - Math.abs(y2 - y));
+        candidates.sort(
+            (y1: Coordinate, y2: Coordinate) => Math.abs(y1 - priceCoordinate) - Math.abs(y2 - priceCoordinate),
+        );
 
         const nearest = candidates[0];
         if (nearest === undefined) {

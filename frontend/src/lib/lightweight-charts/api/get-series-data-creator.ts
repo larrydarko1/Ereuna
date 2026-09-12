@@ -21,14 +21,14 @@ import {
 } from '@/lib/lightweight-charts/model/series-data';
 import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 
-type SeriesPlotRowToDataMap<HorzScaleItem> = {
-    [T in keyof SeriesDataItemTypeMap]: (plotRow: SeriesPlotRow<T>) => SeriesDataItemTypeMap<HorzScaleItem>[T];
+type SeriesPlotRowToDataMap<THorzScaleItem> = {
+    [T in keyof SeriesDataItemTypeMap]: (plotRow: SeriesPlotRow<T>) => SeriesDataItemTypeMap<THorzScaleItem>[T];
 };
 
-function singleValueData<HorzScaleItem>(plotRow: PlotRow): SingleValueData<HorzScaleItem> {
-    const data: SingleValueData<HorzScaleItem> = {
+function singleValueData<THorzScaleItem>(plotRow: PlotRow): SingleValueData<THorzScaleItem> {
+    const data: SingleValueData<THorzScaleItem> = {
         value: plotRow.value[PlotRowValueIndex.Close],
-        time: plotRow.originalTime as HorzScaleItem,
+        time: plotRow.originalTime as THorzScaleItem,
     };
     if (plotRow.customValues !== undefined) {
         data.customValues = plotRow.customValues;
@@ -36,8 +36,8 @@ function singleValueData<HorzScaleItem>(plotRow: PlotRow): SingleValueData<HorzS
     return data;
 }
 
-function lineData<HorzScaleItem>(plotRow: LinePlotRow): LineData<HorzScaleItem> {
-    const result: LineData<HorzScaleItem> = singleValueData(plotRow);
+function lineData<THorzScaleItem>(plotRow: LinePlotRow): LineData<THorzScaleItem> {
+    const result: LineData<THorzScaleItem> = singleValueData(plotRow);
 
     if (plotRow.color !== undefined) {
         result.color = plotRow.color;
@@ -46,8 +46,8 @@ function lineData<HorzScaleItem>(plotRow: LinePlotRow): LineData<HorzScaleItem> 
     return result;
 }
 
-function areaData<HorzScaleItem>(plotRow: AreaPlotRow): AreaData<HorzScaleItem> {
-    const result: AreaData<HorzScaleItem> = singleValueData(plotRow);
+function areaData<THorzScaleItem>(plotRow: AreaPlotRow): AreaData<THorzScaleItem> {
+    const result: AreaData<THorzScaleItem> = singleValueData(plotRow);
 
     if (plotRow.lineColor !== undefined) {
         result.lineColor = plotRow.lineColor;
@@ -64,8 +64,8 @@ function areaData<HorzScaleItem>(plotRow: AreaPlotRow): AreaData<HorzScaleItem> 
     return result;
 }
 
-function baselineData<HorzScaleItem>(plotRow: BaselinePlotRow): BaselineData<HorzScaleItem> {
-    const result: BaselineData<HorzScaleItem> = singleValueData(plotRow);
+function baselineData<THorzScaleItem>(plotRow: BaselinePlotRow): BaselineData<THorzScaleItem> {
+    const result: BaselineData<THorzScaleItem> = singleValueData(plotRow);
 
     if (plotRow.topLineColor !== undefined) {
         result.topLineColor = plotRow.topLineColor;
@@ -94,13 +94,13 @@ function baselineData<HorzScaleItem>(plotRow: BaselinePlotRow): BaselineData<Hor
     return result;
 }
 
-function ohlcData<HorzScaleItem>(plotRow: PlotRow): OhlcData<HorzScaleItem> {
-    const data: OhlcData<HorzScaleItem> = {
+function ohlcData<THorzScaleItem>(plotRow: PlotRow): OhlcData<THorzScaleItem> {
+    const data: OhlcData<THorzScaleItem> = {
         open: plotRow.value[PlotRowValueIndex.Open],
         high: plotRow.value[PlotRowValueIndex.High],
         low: plotRow.value[PlotRowValueIndex.Low],
         close: plotRow.value[PlotRowValueIndex.Close],
-        time: plotRow.originalTime as HorzScaleItem,
+        time: plotRow.originalTime as THorzScaleItem,
     };
     if (plotRow.customValues !== undefined) {
         data.customValues = plotRow.customValues;
@@ -108,8 +108,8 @@ function ohlcData<HorzScaleItem>(plotRow: PlotRow): OhlcData<HorzScaleItem> {
     return data;
 }
 
-function barData<HorzScaleItem>(plotRow: BarPlotRow): BarData<HorzScaleItem> {
-    const result: BarData<HorzScaleItem> = ohlcData<HorzScaleItem>(plotRow);
+function barData<THorzScaleItem>(plotRow: BarPlotRow): BarData<THorzScaleItem> {
+    const result: BarData<THorzScaleItem> = ohlcData<THorzScaleItem>(plotRow);
 
     if (plotRow.color !== undefined) {
         result.color = plotRow.color;
@@ -118,8 +118,8 @@ function barData<HorzScaleItem>(plotRow: BarPlotRow): BarData<HorzScaleItem> {
     return result;
 }
 
-function candlestickData<HorzScaleItem>(plotRow: CandlestickPlotRow): CandlestickData<HorzScaleItem> {
-    const result: CandlestickData<HorzScaleItem> = ohlcData(plotRow);
+function candlestickData<THorzScaleItem>(plotRow: CandlestickPlotRow): CandlestickData<THorzScaleItem> {
+    const result: CandlestickData<THorzScaleItem> = ohlcData(plotRow);
     const { color, borderColor, wickColor } = plotRow;
 
     if (color !== undefined) {
@@ -137,23 +137,23 @@ function candlestickData<HorzScaleItem>(plotRow: CandlestickPlotRow): Candlestic
     return result;
 }
 
-export function getSeriesDataCreator<TSeriesType extends SeriesType, HorzScaleItem>(
+export function getSeriesDataCreator<TSeriesType extends SeriesType, THorzScaleItem>(
     seriesType: TSeriesType,
-): (plotRow: SeriesPlotRow<TSeriesType>) => SeriesDataItemTypeMap<HorzScaleItem>[TSeriesType] {
-    const seriesPlotRowToDataMap: SeriesPlotRowToDataMap<HorzScaleItem> = {
-        Area: areaData<HorzScaleItem>,
-        Line: lineData<HorzScaleItem>,
-        Baseline: baselineData<HorzScaleItem>,
-        Histogram: lineData<HorzScaleItem>,
-        Bar: barData<HorzScaleItem>,
-        Candlestick: candlestickData<HorzScaleItem>,
-        Custom: customData<HorzScaleItem>,
+): (plotRow: SeriesPlotRow<TSeriesType>) => SeriesDataItemTypeMap<THorzScaleItem>[TSeriesType] {
+    const seriesPlotRowToDataMap: SeriesPlotRowToDataMap<THorzScaleItem> = {
+        Area: areaData<THorzScaleItem>,
+        Line: lineData<THorzScaleItem>,
+        Baseline: baselineData<THorzScaleItem>,
+        Histogram: lineData<THorzScaleItem>,
+        Bar: barData<THorzScaleItem>,
+        Candlestick: candlestickData<THorzScaleItem>,
+        Custom: customData<THorzScaleItem>,
     };
     return seriesPlotRowToDataMap[seriesType];
 }
 
-function customData<HorzScaleItem>(plotRow: CustomPlotRow): CustomData<HorzScaleItem> {
-    const time = plotRow.originalTime as HorzScaleItem;
+function customData<THorzScaleItem>(plotRow: CustomPlotRow): CustomData<THorzScaleItem> {
+    const time = plotRow.originalTime as THorzScaleItem;
     return {
         ...plotRow.data,
         time,

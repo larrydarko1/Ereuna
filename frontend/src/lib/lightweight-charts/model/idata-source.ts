@@ -13,7 +13,7 @@ import { type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
 
 export type ZOrdered = {
     zorder(): number | null;
-}
+};
 /**
  * Prefix meanings:
  * - bottom: Pane views that are painted at the bottom (above background color, below grid lines)
@@ -24,7 +24,7 @@ type IPluginPaneViews = {
     pricePaneViews?(zOrder: SeriesPrimitivePaneViewZOrder): readonly IAxisView[];
     timePaneViews?(zOrder: SeriesPrimitivePaneViewZOrder): readonly IAxisView[];
     primitiveHitTest?(x: Coordinate, y: Coordinate): PrimitiveHoveredItem[];
-}
+};
 
 type IDataSourcePaneViews = {
     paneViews(pane: Pane): readonly IPaneView[];
@@ -34,7 +34,7 @@ type IDataSourcePaneViews = {
      * Pane views that are painted on the most top layer
      */
     topPaneViews?(pane: Pane): readonly IPaneView[];
-} & IPluginPaneViews
+} & IPluginPaneViews;
 
 export type DataSourcePaneViewGetterNames = keyof IDataSourcePaneViews;
 
@@ -58,4 +58,5 @@ export type IDataSource = {
     visible(): boolean;
 
     destroy?(): void;
-} & IDataSourcePaneViews & ZOrdered
+} & IDataSourcePaneViews &
+    ZOrdered;

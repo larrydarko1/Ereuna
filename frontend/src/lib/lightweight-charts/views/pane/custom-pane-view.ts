@@ -18,7 +18,7 @@ import { type Series } from '@/lib/lightweight-charts/model/series';
 import { type SeriesPlotRow } from '@/lib/lightweight-charts/model/series-data';
 import { type TimedValue } from '@/lib/lightweight-charts/model/time-data';
 import { type ITimeScale } from '@/lib/lightweight-charts/model/time-scale';
-import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
+import { type HoverState, type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 
 import { SeriesPaneViewBase } from '@/lib/lightweight-charts/views/pane/series-pane-view-base';
 
@@ -27,7 +27,7 @@ type CustomBarItemBase = TimedValue;
 type CustomBarItem = {
     barColor: string;
     originalData?: Record<string, unknown>;
-} & CustomBarItemBase
+} & CustomBarItemBase;
 
 class CustomSeriesPaneRendererWrapper implements IPaneRenderer {
     private _sourceRenderer: ICustomSeriesPaneRenderer;
@@ -37,8 +37,8 @@ class CustomSeriesPaneRendererWrapper implements IPaneRenderer {
         this._priceScale = priceScale;
     }
 
-    public draw(target: CanvasRenderingTarget2D, isHovered: boolean, hitTestData?: unknown): void {
-        this._sourceRenderer.draw(target, this._priceScale, isHovered, hitTestData);
+    public draw(target: CanvasRenderingTarget2D, hover: HoverState): void {
+        this._sourceRenderer.draw(target, this._priceScale, hover.isHovered, hover.hitTestData);
     }
 }
 
@@ -47,15 +47,19 @@ export class SeriesCustomPaneView extends SeriesPaneViewBase<'Custom', CustomBar
     private readonly _paneView: ICustomSeriesPaneView<unknown>;
 
     public constructor(series: Series<'Custom'>, model: IChartModelBase, paneView: ICustomSeriesPaneView<unknown>) {
-        super(series, model, false);
+        super(series, model, { extendedVisibleRange: false });
         this._paneView = paneView;
-        this._renderer = new CustomSeriesPaneRendererWrapper(this._paneView.renderer(), (price: number) => {
-            const firstValue = series.firstValue();
-            if (firstValue === null) {
-                return null;
-            }
-            return series.priceScale().priceToCoordinate(price, firstValue.value);
-        });
+        this._renderer = new CustomSeriesPaneRendererWrapper(
+            this._paneView.renderer(),
+            (price: number): Coordinate | null => {
+                const firstValue = series.firstValue();
+                if (firstValue === null) {
+                    return null;
+                }
+
+                return series.priceScale().priceToCoordinate(price, firstValue.value);
+            },
+        );
     }
 
     public priceValueBuilder(

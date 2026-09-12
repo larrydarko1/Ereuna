@@ -12,9 +12,15 @@ import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-ren
 
 import { type IUpdatablePaneView, type UpdateType } from '@/lib/lightweight-charts/views/pane/iupdatable-pane-view';
 
+export type SeriesPaneViewOptions = {
+    // Whether the visible range is widened by one item at each end, so that a
+    // line drawn to an off-screen neighbour still enters from the right place
+    extendedVisibleRange: boolean;
+};
+
 export abstract class SeriesPaneViewBase<
     TSeriesType extends SeriesType,
-    ItemType extends TimedValue,
+    TItemType extends TimedValue,
     TRenderer extends IPaneRenderer,
 > implements IUpdatablePaneView {
     protected readonly _series: ISeries<TSeriesType>;
@@ -22,15 +28,15 @@ export abstract class SeriesPaneViewBase<
     protected _invalidated = true;
     protected _dataInvalidated = true;
     protected _optionsInvalidated = true;
-    protected _items: ItemType[] = [];
+    protected _items: TItemType[] = [];
     protected _itemsVisibleRange: SeriesItemsIndexesRange | null = null;
     protected abstract readonly _renderer: TRenderer;
     private readonly _extendedVisibleRange: boolean;
 
-    public constructor(series: ISeries<TSeriesType>, model: IChartModelBase, extendedVisibleRange: boolean) {
+    public constructor(series: ISeries<TSeriesType>, model: IChartModelBase, options: SeriesPaneViewOptions) {
         this._series = series;
         this._model = model;
-        this._extendedVisibleRange = extendedVisibleRange;
+        this._extendedVisibleRange = options.extendedVisibleRange;
     }
 
     public update(updateType?: UpdateType): void {
@@ -56,7 +62,7 @@ export abstract class SeriesPaneViewBase<
     protected abstract _fillRawPoints(): void;
 
     protected _updateOptions(): void {
-        this._items = this._items.map((item: ItemType) => ({
+        this._items = this._items.map((item: TItemType) => ({
             ...item,
             ...this._series.barColorer().barStyle(item.time),
         }));
@@ -111,7 +117,9 @@ export abstract class SeriesPaneViewBase<
             return;
         }
 
-        this._itemsVisibleRange = visibleTimedValues(this._items, visibleBars, this._extendedVisibleRange);
+        this._itemsVisibleRange = visibleTimedValues(this._items, visibleBars, {
+            extended: this._extendedVisibleRange,
+        });
         this._convertToCoordinates(priceScale, timeScale, firstValue.value);
 
         this._prepareRendererData();

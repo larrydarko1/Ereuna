@@ -39,12 +39,18 @@ export type BitmapShapeItemCoordinates = {
     x: number;
     y: number;
     pixelRatio: number;
-}
+};
 
-export function calculateAdjustedMargin(margin: number, hasSide: boolean, hasInBar: boolean): number {
-    if (hasSide) {
+/**
+ * How much room the markers need above or below the bars: the full margin when
+ * something sits outside the bar on that side, half when it only sits inside it.
+ */
+export function calculateAdjustedMargin(margin: number, placement: { hasSide: boolean; hasInBar: boolean }): number {
+    if (placement.hasSide) {
         return margin;
-    } if (hasInBar) {
+    }
+
+    if (placement.hasInBar) {
         return Math.ceil(margin / 2);
     }
 

@@ -1,6 +1,6 @@
 import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
-import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
+import { type HoverState, type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 
 export class CompositeRenderer implements IPaneRenderer {
     private _renderers: readonly IPaneRenderer[] = [];
@@ -9,9 +9,9 @@ export class CompositeRenderer implements IPaneRenderer {
         this._renderers = renderers;
     }
 
-    public draw(target: CanvasRenderingTarget2D, isHovered: boolean, hitTestData?: unknown): void {
-        this._renderers.forEach((r: IPaneRenderer) => {
-            r.draw(target, isHovered, hitTestData);
+    public draw(target: CanvasRenderingTarget2D, hover: HoverState): void {
+        this._renderers.forEach((renderer: IPaneRenderer) => {
+            renderer.draw(target, hover);
         });
     }
 }

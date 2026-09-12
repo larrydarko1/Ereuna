@@ -4,7 +4,7 @@ export class TimeFormatter {
     private _formatStr: string;
 
     public constructor(format?: string) {
-        this._formatStr = format || '%h:%m:%s';
+        this._formatStr = format ?? '%h:%m:%s';
     }
 
     public format(date: Date): string {

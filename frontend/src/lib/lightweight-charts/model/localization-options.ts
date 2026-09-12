@@ -4,7 +4,7 @@ import { type PercentageFormatterFn, type PriceFormatterFn } from '@/lib/lightwe
 /**
  * A custom function used to override formatting of a time to a string.
  */
-export type TimeFormatterFn<HorzScaleItem = Time> = (time: HorzScaleItem) => string;
+export type TimeFormatterFn<THorzScaleItem = Time> = (time: THorzScaleItem) => string;
 
 /**
  * Represents basic localization options
@@ -32,18 +32,18 @@ export type LocalizationOptionsBase = {
      * @defaultValue `undefined`
      */
     percentageFormatter?: PercentageFormatterFn | undefined;
-}
+};
 
 /**
  * Represents options for formatting dates, times, and prices according to a locale.
  */
-export type LocalizationOptions<HorzScaleItem> = {
+export type LocalizationOptions<THorzScaleItem> = {
     /**
      * Override formatting of the time scale crosshair label.
      *
      * @defaultValue `undefined`
      */
-    timeFormatter?: TimeFormatterFn<HorzScaleItem> | undefined;
+    timeFormatter?: TimeFormatterFn<THorzScaleItem> | undefined;
 
     /**
      * Date formatting string.
@@ -55,4 +55,4 @@ export type LocalizationOptions<HorzScaleItem> = {
      * @defaultValue `'dd MMM \'yy'`
      */
     dateFormat: string;
-} & LocalizationOptionsBase
+} & LocalizationOptionsBase;

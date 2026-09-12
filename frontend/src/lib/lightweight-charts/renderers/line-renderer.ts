@@ -9,7 +9,7 @@ import {
 } from '@/lib/lightweight-charts/renderers/line-renderer-base';
 
 export type LineStrokeItem = LineItemBase & LineStrokeColorerStyle;
-export type PaneRendererLineData = {} & PaneRendererLineDataBase<LineStrokeItem>
+export type PaneRendererLineData = {} & PaneRendererLineDataBase<LineStrokeItem>;
 
 export class PaneRendererLine extends PaneRendererLineBase<PaneRendererLineData> {
     protected override _strokeStyle(

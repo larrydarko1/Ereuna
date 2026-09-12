@@ -33,23 +33,24 @@ class SeriesPrimitiveRendererWrapper implements IPaneRenderer {
         this._baseRenderer = baseRenderer;
     }
 
-    public draw(target: CanvasRenderingTarget2D, _isHovered: boolean, _hitTestData?: unknown): void {
+    // A primitive paints the same whether or not the pointer is over it
+    public draw(target: CanvasRenderingTarget2D): void {
         this._baseRenderer.draw(target);
     }
 
-    public drawBackground?(target: CanvasRenderingTarget2D, _isHovered: boolean, _hitTestData?: unknown): void {
+    public drawBackground?(target: CanvasRenderingTarget2D): void {
         this._baseRenderer.drawBackground?.(target);
     }
 }
 
-type RendererCache<Base, Wrapper> = {
-    base: Base;
-    wrapper: Wrapper;
-}
+type RendererCache<TBase, TWrapper> = {
+    base: TBase;
+    wrapper: TWrapper;
+};
 
 export type ISeriesPrimitivePaneViewWrapper = {
     zOrder(): SeriesPrimitivePaneViewZOrder;
-} & IPaneView
+} & IPaneView;
 
 class SeriesPrimitivePaneViewWrapper implements IPaneView {
     private readonly _paneView: ISeriesPrimitivePaneView;
@@ -88,7 +89,7 @@ type AxisViewData = {
     background: string;
     visible: boolean;
     tickVisible: boolean;
-}
+};
 
 function getAxisViewData(baseView: ISeriesPrimitiveAxisView): AxisViewData {
     return {

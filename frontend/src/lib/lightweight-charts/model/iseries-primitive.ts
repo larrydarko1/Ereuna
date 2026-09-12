@@ -49,7 +49,7 @@ export type ISeriesPrimitiveAxisView = {
      * @returns whether the tick mark line should be visible (default: `true`)
      */
     tickVisible?(): boolean;
-}
+};
 
 /**
  * This interface represents rendering some element on the canvas
@@ -71,7 +71,7 @@ export type ISeriesPrimitivePaneRenderer = {
      * @param target - canvas context to draw on, refer FancyCanvas library for more details about this class
      */
     drawBackground?(target: CanvasRenderingTarget2D): void;
-}
+};
 
 /**
  * Defines where in the visual layer stack the renderer should be executed.
@@ -98,7 +98,7 @@ export type ISeriesPrimitivePaneView = {
      * @returns an renderer object to be used for drawing, or `null` if we have nothing to draw.
      */
     renderer(): ISeriesPrimitivePaneRenderer | null;
-}
+};
 
 /**
  * Data representing the currently hovered object from the Hit test.
@@ -121,10 +121,10 @@ export type PrimitiveHoveredItem = {
      * Set to true if the object is rendered using `drawBackground` instead of `draw`.
      */
     isBackground?: boolean;
-}
+};
 
 /**
- * Base interface for series primitives. It must be implemented to add some external graphics to series
+ * TBase interface for series primitives. It must be implemented to add some external graphics to series
  */
 export type ISeriesPrimitiveBase<TSeriesAttachedParameters = unknown> = {
     /**
@@ -222,4 +222,4 @@ export type ISeriesPrimitiveBase<TSeriesAttachedParameters = unknown> = {
      * @param y - y Coordinate of mouse event
      */
     hitTest?(x: number, y: number): PrimitiveHoveredItem | null;
-}
+};

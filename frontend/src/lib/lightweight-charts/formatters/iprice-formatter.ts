@@ -7,4 +7,4 @@ export type IPriceFormatter = {
      * @returns Formatted price
      */
     format(price: number): string;
-}
+};

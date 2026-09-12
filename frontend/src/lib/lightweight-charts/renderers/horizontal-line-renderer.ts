@@ -19,7 +19,7 @@ export type HorizontalLineRendererData = {
     y: Coordinate;
     visible?: boolean;
     externalId?: string | undefined;
-}
+};
 
 const Constants = {
     HitTestThreshold: 7,
@@ -34,7 +34,7 @@ export class HorizontalLineRenderer extends BitmapCoordinatesPaneRenderer {
     }
 
     public hitTest(_x: Coordinate, y: Coordinate): HoveredObject | null {
-        if (!this._data?.visible) {
+        if (this._data?.visible !== true) {
             return null;
         }
 
@@ -67,8 +67,8 @@ export class HorizontalLineRenderer extends BitmapCoordinatesPaneRenderer {
             return;
         }
 
-        const y = Math.round(this._data.y * verticalPixelRatio);
-        if (y < 0 || y > bitmapSize.height) {
+        const top = Math.round(this._data.y * verticalPixelRatio);
+        if (top < 0 || top > bitmapSize.height) {
             return;
         }
 
@@ -76,6 +76,6 @@ export class HorizontalLineRenderer extends BitmapCoordinatesPaneRenderer {
         ctx.strokeStyle = this._data.color;
         ctx.lineWidth = Math.floor(this._data.lineWidth * horizontalPixelRatio);
         setLineStyle(ctx, this._data.lineStyle);
-        drawHorizontalLine(ctx, y, 0, bitmapSize.width);
+        drawHorizontalLine(ctx, top, 0, bitmapSize.width);
     }
 }

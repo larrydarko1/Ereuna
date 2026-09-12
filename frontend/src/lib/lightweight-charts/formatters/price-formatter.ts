@@ -37,17 +37,12 @@ export class PriceFormatter implements IPriceFormatter {
     private readonly _priceScale: number;
     private readonly _minMove: number;
 
-    public constructor(priceScale?: number, minMove?: number) {
-        if (!minMove) {
-            minMove = 1;
-        }
-
-        if (!isNumber(priceScale) || !isInteger(priceScale)) {
-            priceScale = 100;
-        }
-
-        if (priceScale < 0) {
-            throw new TypeError('invalid base');
+    public constructor(priceScale: number, minMove: number) {
+        // `priceScale` is 10 ** precision, and precision comes straight off a
+        // caller-supplied option — a fractional or negative one would produce a
+        // formatter that silently mangles every price
+        if (!isNumber(priceScale) || !isInteger(priceScale) || priceScale < 0) {
+            throw new TypeError(`invalid price scale base: ${priceScale}`);
         }
 
         this._priceScale = priceScale;

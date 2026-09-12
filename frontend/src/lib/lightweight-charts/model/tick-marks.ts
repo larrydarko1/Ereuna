@@ -1,5 +1,5 @@
 import { lowerBound } from '@/lib/lightweight-charts/helpers/algorithms';
-import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
+import { getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { type InternalHorzScaleItem } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
 import {
@@ -20,11 +20,38 @@ export type TickMark = {
     weight: TickMarkWeightValue;
     /** Original value for the `time` property */
     originalTime: unknown;
-}
+};
 
 type MarksCache = {
     maxIndexesPerMark: number;
     marks: readonly TickMark[];
+};
+
+/**
+ * Moves every already-placed mark that sits left of `currentIndex` across to the
+ * new list, and reports the index of the first one that does not — which is the
+ * right-hand neighbour `currentIndex` has to clear.
+ */
+function carryMarksBefore(
+    prevMarks: readonly TickMark[],
+    pointer: number,
+    currentIndex: TimePointIndex,
+): { pointer: number; moved: TickMark[]; rightIndex: number } {
+    const moved: TickMark[] = [];
+
+    while (pointer < prevMarks.length) {
+        const lastMark = prevMarks[pointer];
+        if (lastMark === undefined) break;
+
+        if (lastMark.index >= currentIndex) {
+            return { pointer, moved, rightIndex: lastMark.index };
+        }
+
+        pointer++;
+        moved.push(lastMark);
+    }
+
+    return { pointer, moved, rightIndex: Infinity };
 }
 
 export class TickMarks {
@@ -102,7 +129,8 @@ export class TickMarks {
         let marks: TickMark[] = [];
 
         for (const weight of Array.from(this._marksByWeight.keys()).sort((a: number, b: number) => b - a)) {
-            if (!this._marksByWeight.get(weight)) {
+            const currentWeight = this._marksByWeight.get(weight);
+            if (currentWeight === undefined) {
                 continue;
             }
 
@@ -112,10 +140,8 @@ export class TickMarks {
 
             const prevMarksLength = prevMarks.length;
             let prevMarksPointer = 0;
-            const currentWeight = ensureDefined(this._marksByWeight.get(weight));
             const currentWeightLength = currentWeight.length;
 
-            let rightIndex = Infinity;
             let leftIndex = -Infinity;
             for (let i = 0; i < currentWeightLength; i++) {
                 const mark = currentWeight[i];
@@ -123,38 +149,33 @@ export class TickMarks {
 
                 const currentIndex = mark.index;
 
-                // Determine indexes with which current index will be compared
-                // All marks to the right is moved to new array
-                while (prevMarksPointer < prevMarksLength) {
-                    const lastMark = prevMarks[prevMarksPointer];
-                    if (lastMark === undefined) break;
+                // Carry over every heavier mark that sits left of this one, so
+                // that the gaps either side of it can be measured
+                const carried = carryMarksBefore(prevMarks, prevMarksPointer, currentIndex);
+                prevMarksPointer = carried.pointer;
+                marks.push(...carried.moved);
+                if (carried.moved.length > 0) {
+                    leftIndex = getDefined(carried.moved[carried.moved.length - 1]).index;
+                }
+                const fits =
+                    carried.rightIndex - currentIndex >= maxIndexesPerMark &&
+                    currentIndex - leftIndex >= maxIndexesPerMark;
 
-                    const lastIndex = lastMark.index;
-                    if (lastIndex < currentIndex) {
-                        prevMarksPointer++;
-                        marks.push(lastMark);
-                        leftIndex = lastIndex;
-                        rightIndex = Infinity;
-                    } else {
-                        rightIndex = lastIndex;
-                        break;
-                    }
+                // A mark that does not fit is dropped — unless the caller asked
+                // for uniform spacing, in which case this whole weight is
+                // abandoned and the heavier one stands
+                if (!fits && this._uniformDistribution) {
+                    return prevMarks;
                 }
 
-                if (rightIndex - currentIndex >= maxIndexesPerMark && currentIndex - leftIndex >= maxIndexesPerMark) {
-                    // TickMark fits. Place it into new array
-                    marks.push(mark);
-                    leftIndex = currentIndex;
-                } else {
-                    if (this._uniformDistribution) {
-                        return prevMarks;
-                    }
-                }
+                if (!fits) continue;
+
+                marks.push(mark);
+                leftIndex = currentIndex;
             }
 
             // Place all unused tickMarks into new array;
             marks.push(...prevMarks.slice(prevMarksPointer, prevMarksLength));
-            prevMarksPointer = prevMarksLength;
         }
 
         return marks;

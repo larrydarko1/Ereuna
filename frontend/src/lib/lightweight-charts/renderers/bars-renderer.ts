@@ -1,6 +1,6 @@
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { type BarCoordinates, type BarPrices } from '@/lib/lightweight-charts/model/bar';
 import { type BarColorerStyle } from '@/lib/lightweight-charts/model/series-bar-colorer';
@@ -11,7 +11,7 @@ import { optimalBarWidth } from '@/lib/lightweight-charts/renderers/optimal-bar-
 
 export type BarCandlestickItemBase = TimedValue & BarPrices & BarCoordinates;
 
-export type BarItem = {} & BarCandlestickItemBase & BarColorerStyle
+export type BarItem = {} & BarCandlestickItemBase & BarColorerStyle;
 
 export type PaneRendererBarsData = {
     bars: readonly BarItem[];
@@ -20,6 +20,19 @@ export type PaneRendererBarsData = {
     thinBars: boolean;
 
     visibleRange: SeriesItemsIndexesRange | null;
+};
+
+/**
+ * The open/close nub sits `height` pixels tall at `top`, but never past the
+ * bottom of the bar's own body — a nub hanging off the end reads as a longer bar.
+ */
+function clampNub(top: number, height: number, bodyBottom: number): { top: number; bottom: number } {
+    const bottom = top + height - 1;
+    if (bottom <= bodyBottom) {
+        return { top, bottom };
+    }
+
+    return { top: bodyBottom - height + 1, bottom: bodyBottom };
 }
 
 export class PaneRendererBars extends BitmapCoordinatesPaneRenderer {
@@ -93,30 +106,28 @@ export class PaneRendererBars extends BitmapCoordinatesPaneRenderer {
             if (drawOpenClose) {
                 if (this._data.openVisible) {
                     const openLeft = bodyCenter - sideWidth;
-                    let openTop = Math.max(bodyTop, Math.round(bar.openY * verticalPixelRatio) - bodyWidthHalf);
-                    let openBottom = openTop + bodyWidth - 1;
-                    if (openBottom > bodyTop + bodyHeight - 1) {
-                        openBottom = bodyTop + bodyHeight - 1;
-                        openTop = openBottom - bodyWidth + 1;
-                    }
-                    ctx.fillRect(openLeft, openTop, bodyLeft - openLeft, openBottom - openTop + 1);
+                    const open = clampNub(
+                        Math.max(bodyTop, Math.round(bar.openY * verticalPixelRatio) - bodyWidthHalf),
+                        bodyWidth,
+                        bodyTop + bodyHeight - 1,
+                    );
+                    ctx.fillRect(openLeft, open.top, bodyLeft - openLeft, open.bottom - open.top + 1);
                 }
 
                 const closeRight = bodyCenter + sideWidth;
-                let closeTop = Math.max(bodyTop, Math.round(bar.closeY * verticalPixelRatio) - bodyWidthHalf);
-                let closeBottom = closeTop + bodyWidth - 1;
-                if (closeBottom > bodyTop + bodyHeight - 1) {
-                    closeBottom = bodyTop + bodyHeight - 1;
-                    closeTop = closeBottom - bodyWidth + 1;
-                }
+                const close = clampNub(
+                    Math.max(bodyTop, Math.round(bar.closeY * verticalPixelRatio) - bodyWidthHalf),
+                    bodyWidth,
+                    bodyTop + bodyHeight - 1,
+                );
 
-                ctx.fillRect(bodyRight + 1, closeTop, closeRight - bodyRight, closeBottom - closeTop + 1);
+                ctx.fillRect(bodyRight + 1, close.top, closeRight - bodyRight, close.bottom - close.top + 1);
             }
         }
     }
 
     private _calcBarWidth(pixelRatio: number): number {
         const limit = Math.floor(pixelRatio);
-        return Math.max(limit, Math.floor(optimalBarWidth(ensureNotNull(this._data).barSpacing, pixelRatio)));
+        return Math.max(limit, Math.floor(optimalBarWidth(getNotNull(this._data).barSpacing, pixelRatio)));
     }
 }

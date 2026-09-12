@@ -2,4 +2,4 @@ import { type IAxisRenderer } from '@/lib/lightweight-charts/renderers/iaxis-vie
 
 export type IAxisView = {
     renderer(): IAxisRenderer | null;
-}
+};

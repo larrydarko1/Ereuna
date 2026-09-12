@@ -1,5 +1,7 @@
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
+import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 import { type BaselineStrokeColorerStyle } from '@/lib/lightweight-charts/model/series-bar-colorer';
 
@@ -13,7 +15,7 @@ import {
 export type BaselineStrokeItem = LineStrokeItemBase & BaselineStrokeColorerStyle;
 export type PaneRendererBaselineLineData = {
     baseLevelCoordinate: Coordinate;
-} & PaneRendererLineDataBase<BaselineStrokeItem>
+} & PaneRendererLineDataBase<BaselineStrokeItem>;
 
 export class PaneRendererBaselineLine extends PaneRendererLineBase<PaneRendererBaselineLineData> {
     private readonly _strokeCache: GradientStyleCache = new GradientStyleCache();
@@ -22,7 +24,9 @@ export class PaneRendererBaselineLine extends PaneRendererLineBase<PaneRendererB
         renderingScope: BitmapCoordinatesRenderingScope,
         item: BaselineStrokeItem,
     ): CanvasRenderingContext2D['strokeStyle'] {
-        const data = this._data!;
+        // _fillStyle/_strokeStyle only run from inside _drawImpl, which has
+        // already bailed when there is no data
+        const data = getNotNull(this._data);
 
         return this._strokeCache.get(renderingScope, {
             topColor1: item.topLineColor,

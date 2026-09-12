@@ -1,11 +1,11 @@
-import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
 type TimeAndPosition = {
     time: number;
     position: Coordinate;
-}
+};
 
 const Constants = {
     MaxStartDelay: 50,
@@ -88,27 +88,23 @@ export class KineticAnimation {
         const distanceItems = [distance1];
         totalDistance += distance1;
 
-        if (this._position3 !== null) {
-            const speed2 = speedPxPerMSec(this._position2, this._position3, this._maxSpeed);
-            // stop at this moment if direction of the segment is opposite
-            if (Math.sign(speed2) === Math.sign(speed1)) {
-                const distance2 = distanceBetweenPoints(this._position2, this._position3);
+        // Each older segment counts only while the gesture has not doubled back:
+        // the first one that reverses ends the run, and everything behind it too
+        const olderSegments: [TimeAndPosition | null, TimeAndPosition | null][] = [
+            [this._position2, this._position3],
+            [this._position3, this._position4],
+        ];
 
-                speedItems.push(speed2);
-                distanceItems.push(distance2);
-                totalDistance += distance2;
+        for (const [from, to] of olderSegments) {
+            if (from === null || to === null) break;
 
-                if (this._position4 !== null) {
-                    const speed3 = speedPxPerMSec(this._position3, this._position4, this._maxSpeed);
-                    if (Math.sign(speed3) === Math.sign(speed1)) {
-                        const distance3 = distanceBetweenPoints(this._position3, this._position4);
+            const speed = speedPxPerMSec(from, to, this._maxSpeed);
+            if (Math.sign(speed) !== Math.sign(speed1)) break;
 
-                        speedItems.push(speed3);
-                        distanceItems.push(distance3);
-                        totalDistance += distance3;
-                    }
-                }
-            }
+            const distance = distanceBetweenPoints(from, to);
+            speedItems.push(speed);
+            distanceItems.push(distance);
+            totalDistance += distance;
         }
 
         let resultSpeed = 0;
@@ -126,7 +122,7 @@ export class KineticAnimation {
     }
 
     public getPosition(time: number): Coordinate {
-        const startPosition = ensureNotNull(this._animationStartPosition);
+        const startPosition = getNotNull(this._animationStartPosition);
         const durationMsecs = time - startPosition.time;
         return (startPosition.position +
             (this._speedPxPerMsec * (Math.pow(this._dumpingCoeff, durationMsecs) - 1)) /
@@ -138,7 +134,7 @@ export class KineticAnimation {
     }
 
     private _progressDuration(time: number): number {
-        const startPosition = ensureNotNull(this._animationStartPosition);
+        const startPosition = getNotNull(this._animationStartPosition);
         const progress = time - startPosition.time;
         return Math.min(progress, this._durationMsecs);
     }

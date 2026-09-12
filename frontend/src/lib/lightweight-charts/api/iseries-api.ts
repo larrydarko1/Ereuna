@@ -33,7 +33,7 @@ export type DataChangedHandler = (scope: DataChangedScope) => void;
  */
 // actually range might be either exist or not
 // but to avoid hard-readable type let's say every part of range is optional
-export type BarsInfo<HorzScaleItem> = {
+export type BarsInfo<THorzScaleItem> = {
     /**
      * The number of bars before the start of the range.
      * Positive value means that there are some bars before (out of logical range from the left) the {@link Range.from} logical index in the series.
@@ -47,15 +47,15 @@ export type BarsInfo<HorzScaleItem> = {
      * Negative value means that the last series' bar is inside the passed logical range, and between the last series' bar and the {@link Range.to} logical index are some bars.
      */
     barsAfter: number;
-} & Partial<Range<HorzScaleItem>>
+} & Partial<Range<THorzScaleItem>>;
 
 /**
  * Represents the interface for interacting with series.
  */
 export type ISeriesApi<
     TSeriesType extends SeriesType,
-    HorzScaleItem = Time,
-    TData = SeriesDataItemTypeMap<HorzScaleItem>[TSeriesType],
+    THorzScaleItem = Time,
+    TData = SeriesDataItemTypeMap<THorzScaleItem>[TSeriesType],
     TOptions = SeriesOptionsMap[TSeriesType],
     TPartialOptions = SeriesPartialOptionsMap[TSeriesType],
 > = {
@@ -90,7 +90,7 @@ export type ISeriesApi<
      * @returns The bars info for the given logical range.
      * @example Getting bars info for current visible range
      * ```js
-     * const barsInfo = series.barsInLogicalRange(chart.timeScale().getVisibleLogicalRange());
+     * const barsInfo = series.barsInLogicalRange(chart.timeScale().findVisibleLogicalRange());
      * console.log(barsInfo);
      * ```
      * @example Implementing downloading historical data while scrolling
@@ -106,7 +106,7 @@ export type ISeriesApi<
      * chart.timeScale().subscribeVisibleLogicalRangeChange(onVisibleLogicalRangeChanged);
      * ```
      */
-    barsInLogicalRange(range: Range<number>): BarsInfo<HorzScaleItem> | null;
+    barsInLogicalRange(range: Range<number>): BarsInfo<THorzScaleItem> | null;
 
     /**
      * Applies new options to the existing series
@@ -269,12 +269,12 @@ export type ISeriesApi<
      * });
      * ```
      */
-    setMarkers(data: SeriesMarker<HorzScaleItem>[]): void;
+    setMarkers(data: SeriesMarker<THorzScaleItem>[]): void;
 
     /**
      * Returns an array of series markers.
      */
-    markers(): SeriesMarker<HorzScaleItem>[];
+    markers(): SeriesMarker<THorzScaleItem>[];
 
     /**
      * Creates a new price line
@@ -326,7 +326,7 @@ export type ISeriesApi<
      *
      * @param primitive - any implementation of ISeriesPrimitive interface
      */
-    attachPrimitive(primitive: ISeriesPrimitive<HorzScaleItem>): void;
+    attachPrimitive(primitive: ISeriesPrimitive<THorzScaleItem>): void;
 
     /**
      * Detaches additional drawing primitive from the series
@@ -334,5 +334,5 @@ export type ISeriesApi<
      * @param primitive - implementation of ISeriesPrimitive interface attached before
      * Does nothing if specified primitive was not attached
      */
-    detachPrimitive(primitive: ISeriesPrimitive<HorzScaleItem>): void;
-}
+    detachPrimitive(primitive: ISeriesPrimitive<THorzScaleItem>): void;
+};

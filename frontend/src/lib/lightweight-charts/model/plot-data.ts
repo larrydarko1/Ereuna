@@ -25,4 +25,4 @@ export type PlotRow = {
     readonly originalTime: unknown;
     readonly value: PlotRowValue;
     readonly customValues?: Record<string, unknown> | undefined;
-}
+};

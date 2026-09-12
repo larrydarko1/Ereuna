@@ -1,4 +1,4 @@
-import { ensure, ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getPresent, getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { PlotRowValueIndex } from '@/lib/lightweight-charts/model/plot-data';
 import { type Series } from '@/lib/lightweight-charts/model/series';
@@ -19,47 +19,49 @@ import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 export type PrecomputedBars = {
     value: SeriesPlotRow;
     previousValue?: SeriesPlotRow;
-}
+};
 
 export type CommonBarColorerStyle = {
     barColor: string;
-}
+};
 
 export type LineStrokeColorerStyle = {
     lineColor: string;
-}
+};
 
-export type LineBarColorerStyle = {} & CommonBarColorerStyle & LineStrokeColorerStyle
+export type LineBarColorerStyle = {} & CommonBarColorerStyle & LineStrokeColorerStyle;
 
-export type HistogramBarColorerStyle = {} & CommonBarColorerStyle
+export type HistogramBarColorerStyle = {} & CommonBarColorerStyle;
 export type AreaFillColorerStyle = {
     topColor: string;
     bottomColor: string;
-}
-export type AreaBarColorerStyle = {} & CommonBarColorerStyle & AreaFillColorerStyle & LineStrokeColorerStyle
+};
+export type AreaBarColorerStyle = {} & CommonBarColorerStyle & AreaFillColorerStyle & LineStrokeColorerStyle;
 
 export type BaselineStrokeColorerStyle = {
     topLineColor: string;
     bottomLineColor: string;
-}
+};
 
 export type BaselineFillColorerStyle = {
     topFillColor1: string;
     topFillColor2: string;
     bottomFillColor2: string;
     bottomFillColor1: string;
-}
+};
 
-export type BaselineBarColorerStyle = {} & CommonBarColorerStyle & BaselineStrokeColorerStyle & BaselineFillColorerStyle
+export type BaselineBarColorerStyle = {} & CommonBarColorerStyle &
+    BaselineStrokeColorerStyle &
+    BaselineFillColorerStyle;
 
-export type BarColorerStyle = {} & CommonBarColorerStyle
+export type BarColorerStyle = {} & CommonBarColorerStyle;
 
 export type CandlesticksColorerStyle = {
     barBorderColor: string;
     barWickColor: string;
-} & CommonBarColorerStyle
+} & CommonBarColorerStyle;
 
-export type CustomBarColorerStyle = {} & CommonBarColorerStyle
+export type CustomBarColorerStyle = {} & CommonBarColorerStyle;
 
 export type BarStylesMap = {
     Bar: BarColorerStyle;
@@ -69,7 +71,7 @@ export type BarStylesMap = {
     Line: LineBarColorerStyle;
     Histogram: HistogramBarColorerStyle;
     Custom: CustomBarColorerStyle;
-}
+};
 
 type FindBarFn = (barIndex: TimePointIndex, precomputedBars?: PrecomputedBars) => SeriesPlotRow<SeriesType> | null;
 
@@ -86,8 +88,15 @@ type BarStylesFnMap = {
 
 export type ISeriesBarColorer<T extends SeriesType> = {
     barStyle(barIndex: TimePointIndex, precomputedBars?: PrecomputedBars): BarStylesMap[T];
-}
+};
 
+/*
+ * The keys below are the `SeriesType` union itself — 'Bar', 'Candlestick', and
+ * the rest — so they are PascalCase by definition, and the map is typed as
+ * `BarStylesFnMap`, which requires exactly those names. Renaming them to
+ * camelCase would stop the map from satisfying its own type.
+ */
+/* eslint-disable @typescript-eslint/naming-convention */
 const barStyleFnMap: BarStylesFnMap = {
     Bar: (
         findBar: FindBarFn,
@@ -98,9 +107,10 @@ const barStyleFnMap: BarStylesFnMap = {
         const upColor = barStyle.upColor;
         const downColor = barStyle.downColor;
 
-        const currentBar = ensureNotNull(findBar(barIndex, precomputedBars)) as SeriesPlotRow<'Bar'>;
+        const currentBar = getNotNull(findBar(barIndex, precomputedBars)) as SeriesPlotRow<'Bar'>;
         const isUp =
-            ensure(currentBar.value[PlotRowValueIndex.Open]) <= ensure(currentBar.value[PlotRowValueIndex.Close]);
+            getPresent(currentBar.value[PlotRowValueIndex.Open]) <=
+            getPresent(currentBar.value[PlotRowValueIndex.Close]);
 
         return {
             barColor: currentBar.color ?? (isUp ? upColor : downColor),
@@ -121,9 +131,10 @@ const barStyleFnMap: BarStylesFnMap = {
         const wickUpColor = candlestickStyle.wickUpColor;
         const wickDownColor = candlestickStyle.wickDownColor;
 
-        const currentBar = ensureNotNull(findBar(barIndex, precomputedBars)) as SeriesPlotRow<'Candlestick'>;
+        const currentBar = getNotNull(findBar(barIndex, precomputedBars)) as SeriesPlotRow<'Candlestick'>;
         const isUp =
-            ensure(currentBar.value[PlotRowValueIndex.Open]) <= ensure(currentBar.value[PlotRowValueIndex.Close]);
+            getPresent(currentBar.value[PlotRowValueIndex.Open]) <=
+            getPresent(currentBar.value[PlotRowValueIndex.Close]);
 
         return {
             barColor: currentBar.color ?? (isUp ? upColor : downColor),
@@ -138,7 +149,7 @@ const barStyleFnMap: BarStylesFnMap = {
         barIndex: TimePointIndex,
         precomputedBars?: PrecomputedBars,
     ): CustomBarColorerStyle => {
-        const currentBar = ensureNotNull(findBar(barIndex, precomputedBars)) as SeriesPlotRow<'Line'>;
+        const currentBar = getNotNull(findBar(barIndex, precomputedBars)) as SeriesPlotRow<'Line'>;
 
         return {
             barColor: currentBar.color ?? customStyle.color,
@@ -151,7 +162,7 @@ const barStyleFnMap: BarStylesFnMap = {
         barIndex: TimePointIndex,
         precomputedBars?: PrecomputedBars,
     ): AreaBarColorerStyle => {
-        const currentBar = ensureNotNull(findBar(barIndex, precomputedBars)) as SeriesPlotRow<'Area'>;
+        const currentBar = getNotNull(findBar(barIndex, precomputedBars)) as SeriesPlotRow<'Area'>;
         return {
             barColor: currentBar.lineColor ?? areaStyle.lineColor,
             lineColor: currentBar.lineColor ?? areaStyle.lineColor,
@@ -166,7 +177,7 @@ const barStyleFnMap: BarStylesFnMap = {
         barIndex: TimePointIndex,
         precomputedBars?: PrecomputedBars,
     ): BaselineBarColorerStyle => {
-        const currentBar = ensureNotNull(findBar(barIndex, precomputedBars)) as SeriesPlotRow<'Baseline'>;
+        const currentBar = getNotNull(findBar(barIndex, precomputedBars)) as SeriesPlotRow<'Baseline'>;
         const isAboveBaseline = currentBar.value[PlotRowValueIndex.Close] >= baselineStyle.baseValue.price;
 
         return {
@@ -186,7 +197,7 @@ const barStyleFnMap: BarStylesFnMap = {
         barIndex: TimePointIndex,
         precomputedBars?: PrecomputedBars,
     ): LineBarColorerStyle => {
-        const currentBar = ensureNotNull(findBar(barIndex, precomputedBars)) as SeriesPlotRow<'Line'>;
+        const currentBar = getNotNull(findBar(barIndex, precomputedBars)) as SeriesPlotRow<'Line'>;
 
         return {
             barColor: currentBar.color ?? lineStyle.color,
@@ -200,7 +211,7 @@ const barStyleFnMap: BarStylesFnMap = {
         barIndex: TimePointIndex,
         precomputedBars?: PrecomputedBars,
     ): HistogramBarColorerStyle => {
-        const currentBar = ensureNotNull(findBar(barIndex, precomputedBars)) as SeriesPlotRow<'Histogram'>;
+        const currentBar = getNotNull(findBar(barIndex, precomputedBars)) as SeriesPlotRow<'Histogram'>;
         return {
             barColor: currentBar.color ?? histogramStyle.color,
         };

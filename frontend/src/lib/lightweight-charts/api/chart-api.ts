@@ -4,9 +4,9 @@ import {
     type MouseEventParamsImplSupplier,
 } from '@/lib/lightweight-charts/gui/chart-widget';
 
-import { assert, ensure, ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
+import { assert, getPresent, getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
-import { warn } from '@/lib/lightweight-charts/helpers/logger';
+import { rejectOptions } from '@/lib/lightweight-charts/helpers/logger';
 import { clone, type DeepPartial, isBoolean, merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
 import { type ChartOptionsImpl, type ChartOptionsInternal } from '@/lib/lightweight-charts/model/chart-model';
@@ -77,7 +77,7 @@ function patchPriceFormat(priceFormat?: DeepPartial<PriceFormat>): void {
     }
 }
 
-function migrateHandleScaleScrollOptions<HorzScaleItem>(options: DeepPartial<ChartOptionsImpl<HorzScaleItem>>): void {
+function migrateHandleScaleScrollOptions<THorzScaleItem>(options: DeepPartial<ChartOptionsImpl<THorzScaleItem>>): void {
     if (isBoolean(options.handleScale)) {
         const handleScale = options.handleScale;
         options.handleScale = {
@@ -119,64 +119,73 @@ function migrateHandleScaleScrollOptions<HorzScaleItem>(options: DeepPartial<Cha
     }
 }
 
-function toInternalOptions<HorzScaleItem>(
-    options: DeepPartial<ChartOptionsImpl<HorzScaleItem>>,
-): DeepPartial<ChartOptionsInternal<HorzScaleItem>> {
+function toInternalOptions<THorzScaleItem>(
+    options: DeepPartial<ChartOptionsImpl<THorzScaleItem>>,
+): DeepPartial<ChartOptionsInternal<THorzScaleItem>> {
     migrateHandleScaleScrollOptions(options);
 
-    return options as DeepPartial<ChartOptionsInternal<HorzScaleItem>>;
+    return options as DeepPartial<ChartOptionsInternal<THorzScaleItem>>;
 }
 
-export type IPriceScaleApiProvider<HorzScaleItem> = Pick<IChartApiBase<HorzScaleItem>, 'priceScale'>;
+export type IPriceScaleApiProvider<THorzScaleItem> = Pick<IChartApiBase<THorzScaleItem>, 'priceScale'>;
 
-export class ChartApi<HorzScaleItem>
-    implements IChartApiBase<HorzScaleItem>, DataUpdatesConsumer<SeriesType, HorzScaleItem>
+export class ChartApi<THorzScaleItem>
+    implements IChartApiBase<THorzScaleItem>, DataUpdatesConsumer<SeriesType, THorzScaleItem>
 {
-    private _chartWidget: ChartWidget<HorzScaleItem>;
-    private _dataLayer: DataLayer<HorzScaleItem>;
-    private readonly _seriesMap = new Map<SeriesApi<SeriesType, HorzScaleItem>, Series<SeriesType>>();
-    private readonly _seriesMapReversed = new Map<Series<SeriesType>, SeriesApi<SeriesType, HorzScaleItem>>();
+    private _chartWidget: ChartWidget<THorzScaleItem>;
+    private _dataLayer: DataLayer<THorzScaleItem>;
+    private readonly _seriesMap = new Map<SeriesApi<SeriesType, THorzScaleItem>, Series<SeriesType>>();
+    private readonly _seriesMapReversed = new Map<Series<SeriesType>, SeriesApi<SeriesType, THorzScaleItem>>();
 
-    private readonly _clickedDelegate = new Delegate<MouseEventParams<HorzScaleItem>>();
-    private readonly _dblClickedDelegate = new Delegate<MouseEventParams<HorzScaleItem>>();
-    private readonly _crosshairMovedDelegate = new Delegate<MouseEventParams<HorzScaleItem>>();
+    private readonly _clickedDelegate = new Delegate<MouseEventParams<THorzScaleItem>>();
+    private readonly _dblClickedDelegate = new Delegate<MouseEventParams<THorzScaleItem>>();
+    private readonly _crosshairMovedDelegate = new Delegate<MouseEventParams<THorzScaleItem>>();
 
-    private readonly _timeScaleApi: TimeScaleApi<HorzScaleItem>;
+    private readonly _timeScaleApi: TimeScaleApi<THorzScaleItem>;
 
-    private readonly _horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>;
+    private readonly _horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>;
 
     public constructor(
         container: HTMLElement,
-        horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>,
-        options?: DeepPartial<ChartOptionsImpl<HorzScaleItem>>,
+        horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>,
+        options?: DeepPartial<ChartOptionsImpl<THorzScaleItem>>,
     ) {
-        this._dataLayer = new DataLayer<HorzScaleItem>(horzScaleBehavior);
+        this._dataLayer = new DataLayer<THorzScaleItem>(horzScaleBehavior);
         const internalOptions =
             options === undefined
-                ? clone(chartOptionsDefaults<HorzScaleItem>())
+                ? clone(chartOptionsDefaults<THorzScaleItem>())
                 : (merge(
                       clone(chartOptionsDefaults()),
                       toInternalOptions(options),
-                  ) as ChartOptionsInternal<HorzScaleItem>);
+                  ) as ChartOptionsInternal<THorzScaleItem>);
 
         this._horzScaleBehavior = horzScaleBehavior;
         this._chartWidget = new ChartWidget(container, internalOptions, horzScaleBehavior);
 
-        this._chartWidget.clicked().subscribe((paramSupplier: MouseEventParamsImplSupplier) => {
-            if (this._clickedDelegate.hasListeners()) {
-                this._clickedDelegate.fire(this._convertMouseParams(paramSupplier()));
-            }
-        }, this);
-        this._chartWidget.dblClicked().subscribe((paramSupplier: MouseEventParamsImplSupplier) => {
-            if (this._dblClickedDelegate.hasListeners()) {
-                this._dblClickedDelegate.fire(this._convertMouseParams(paramSupplier()));
-            }
-        }, this);
-        this._chartWidget.crosshairMoved().subscribe((paramSupplier: MouseEventParamsImplSupplier) => {
-            if (this._crosshairMovedDelegate.hasListeners()) {
-                this._crosshairMovedDelegate.fire(this._convertMouseParams(paramSupplier()));
-            }
-        }, this);
+        this._chartWidget.clicked().subscribe(
+            (paramSupplier: MouseEventParamsImplSupplier) => {
+                if (this._clickedDelegate.hasListeners()) {
+                    this._clickedDelegate.fire(this._convertMouseParams(paramSupplier()));
+                }
+            },
+            { linkedObject: this },
+        );
+        this._chartWidget.dblClicked().subscribe(
+            (paramSupplier: MouseEventParamsImplSupplier) => {
+                if (this._dblClickedDelegate.hasListeners()) {
+                    this._dblClickedDelegate.fire(this._convertMouseParams(paramSupplier()));
+                }
+            },
+            { linkedObject: this },
+        );
+        this._chartWidget.crosshairMoved().subscribe(
+            (paramSupplier: MouseEventParamsImplSupplier) => {
+                if (this._crosshairMovedDelegate.hasListeners()) {
+                    this._crosshairMovedDelegate.fire(this._convertMouseParams(paramSupplier()));
+                }
+            },
+            { linkedObject: this },
+        );
 
         const model = this._chartWidget.model();
         this._timeScaleApi = new TimeScaleApi(model, this._chartWidget.timeAxisWidget(), this._horzScaleBehavior);
@@ -199,62 +208,66 @@ export class ChartApi<HorzScaleItem>
         this._dataLayer.destroy();
     }
 
-    public resize(width: number, height: number, forceRepaint?: boolean): void {
+    public resize(width: number, height: number): void {
+        // Rejected here rather than inside _chartWidget.resize, because the
+        // observer's own resize calls are legitimate and go through that
         if (this.autoSizeActive()) {
-            // We return early here instead of checking this within the actual _chartWidget.resize method
-            // because this should only apply to external resize requests.
-            warn(`Height and width values ignored because 'autoSize' option is enabled.`);
-            return;
+            rejectOptions("Height and width are ignored while 'autoSize' is enabled — turn it off first");
         }
-        this._chartWidget.resize(width, height, forceRepaint);
+        this._chartWidget.resize(width, height);
     }
 
     public addCustomSeries<
-        TData extends CustomData<HorzScaleItem>,
+        TData extends CustomData<THorzScaleItem>,
         TOptions extends CustomSeriesOptions,
         TPartialOptions extends CustomSeriesPartialOptions = SeriesPartialOptions<TOptions>,
     >(
-        customPaneView: ICustomSeriesPaneView<HorzScaleItem, TData, TOptions>,
+        customPaneView: ICustomSeriesPaneView<THorzScaleItem, TData, TOptions>,
         options?: SeriesPartialOptions<TOptions>,
-    ): ISeriesApi<'Custom', HorzScaleItem, TData, TOptions, TPartialOptions> {
-        const paneView = ensure(customPaneView);
+    ): ISeriesApi<'Custom', THorzScaleItem, TData, TOptions, TPartialOptions> {
+        const paneView = getPresent(customPaneView);
         const defaults = {
             ...customStyleDefaults,
             ...paneView.defaultOptions(),
         };
-        return this._addSeriesImpl<'Custom', TData, TOptions, TPartialOptions>('Custom', defaults, options, paneView);
+        return this._addSeriesImpl<'Custom', TData, TOptions, TPartialOptions>({
+            type: 'Custom',
+            styleDefaults: defaults,
+            options,
+            customPaneView: paneView,
+        });
     }
 
-    public addAreaSeries(options?: AreaSeriesPartialOptions): ISeriesApi<'Area', HorzScaleItem> {
-        return this._addSeriesImpl('Area', areaStyleDefaults, options);
+    public addAreaSeries(options?: AreaSeriesPartialOptions): ISeriesApi<'Area', THorzScaleItem> {
+        return this._addSeriesImpl({ type: 'Area', styleDefaults: areaStyleDefaults, options });
     }
 
-    public addBaselineSeries(options?: BaselineSeriesPartialOptions): ISeriesApi<'Baseline', HorzScaleItem> {
-        return this._addSeriesImpl('Baseline', baselineStyleDefaults, options);
+    public addBaselineSeries(options?: BaselineSeriesPartialOptions): ISeriesApi<'Baseline', THorzScaleItem> {
+        return this._addSeriesImpl({ type: 'Baseline', styleDefaults: baselineStyleDefaults, options });
     }
 
-    public addBarSeries(options?: BarSeriesPartialOptions): ISeriesApi<'Bar', HorzScaleItem> {
-        return this._addSeriesImpl('Bar', barStyleDefaults, options);
+    public addBarSeries(options?: BarSeriesPartialOptions): ISeriesApi<'Bar', THorzScaleItem> {
+        return this._addSeriesImpl({ type: 'Bar', styleDefaults: barStyleDefaults, options });
     }
 
     public addCandlestickSeries(
         options: CandlestickSeriesPartialOptions = {},
-    ): ISeriesApi<'Candlestick', HorzScaleItem> {
+    ): ISeriesApi<'Candlestick', THorzScaleItem> {
         fillUpDownCandlesticksColors(options);
 
-        return this._addSeriesImpl('Candlestick', candlestickStyleDefaults, options);
+        return this._addSeriesImpl({ type: 'Candlestick', styleDefaults: candlestickStyleDefaults, options });
     }
 
-    public addHistogramSeries(options?: HistogramSeriesPartialOptions): ISeriesApi<'Histogram', HorzScaleItem> {
-        return this._addSeriesImpl('Histogram', histogramStyleDefaults, options);
+    public addHistogramSeries(options?: HistogramSeriesPartialOptions): ISeriesApi<'Histogram', THorzScaleItem> {
+        return this._addSeriesImpl({ type: 'Histogram', styleDefaults: histogramStyleDefaults, options });
     }
 
-    public addLineSeries(options?: LineSeriesPartialOptions): ISeriesApi<'Line', HorzScaleItem> {
-        return this._addSeriesImpl('Line', lineStyleDefaults, options);
+    public addLineSeries(options?: LineSeriesPartialOptions): ISeriesApi<'Line', THorzScaleItem> {
+        return this._addSeriesImpl({ type: 'Line', styleDefaults: lineStyleDefaults, options });
     }
 
-    public removeSeries(seriesApi: SeriesApi<SeriesType, HorzScaleItem>): void {
-        const series = ensureDefined(this._seriesMap.get(seriesApi));
+    public removeSeries(seriesApi: SeriesApi<SeriesType, THorzScaleItem>): void {
+        const series = getDefined(this._seriesMap.get(seriesApi));
 
         const update = this._dataLayer.removeSeries(series);
         const model = this._chartWidget.model();
@@ -268,39 +281,39 @@ export class ChartApi<HorzScaleItem>
 
     public applyNewData<TSeriesType extends SeriesType>(
         series: Series<TSeriesType>,
-        data: SeriesDataItemTypeMap<HorzScaleItem>[TSeriesType][],
+        data: SeriesDataItemTypeMap<THorzScaleItem>[TSeriesType][],
     ): void {
         this._sendUpdateToChart(this._dataLayer.setSeriesData(series, data));
     }
 
     public updateData<TSeriesType extends SeriesType>(
         series: Series<TSeriesType>,
-        data: SeriesDataItemTypeMap<HorzScaleItem>[TSeriesType],
+        data: SeriesDataItemTypeMap<THorzScaleItem>[TSeriesType],
     ): void {
         this._sendUpdateToChart(this._dataLayer.updateSeriesData(series, data));
     }
 
-    public subscribeClick(handler: MouseEventHandler<HorzScaleItem>): void {
+    public subscribeClick(handler: MouseEventHandler<THorzScaleItem>): void {
         this._clickedDelegate.subscribe(handler);
     }
 
-    public unsubscribeClick(handler: MouseEventHandler<HorzScaleItem>): void {
+    public unsubscribeClick(handler: MouseEventHandler<THorzScaleItem>): void {
         this._clickedDelegate.unsubscribe(handler);
     }
 
-    public subscribeCrosshairMove(handler: MouseEventHandler<HorzScaleItem>): void {
+    public subscribeCrosshairMove(handler: MouseEventHandler<THorzScaleItem>): void {
         this._crosshairMovedDelegate.subscribe(handler);
     }
 
-    public unsubscribeCrosshairMove(handler: MouseEventHandler<HorzScaleItem>): void {
+    public unsubscribeCrosshairMove(handler: MouseEventHandler<THorzScaleItem>): void {
         this._crosshairMovedDelegate.unsubscribe(handler);
     }
 
-    public subscribeDblClick(handler: MouseEventHandler<HorzScaleItem>): void {
+    public subscribeDblClick(handler: MouseEventHandler<THorzScaleItem>): void {
         this._dblClickedDelegate.subscribe(handler);
     }
 
-    public unsubscribeDblClick(handler: MouseEventHandler<HorzScaleItem>): void {
+    public unsubscribeDblClick(handler: MouseEventHandler<THorzScaleItem>): void {
         this._dblClickedDelegate.unsubscribe(handler);
     }
 
@@ -308,15 +321,15 @@ export class ChartApi<HorzScaleItem>
         return new PriceScaleApi(this._chartWidget, priceScaleId);
     }
 
-    public timeScale(): ITimeScaleApi<HorzScaleItem> {
+    public timeScale(): ITimeScaleApi<THorzScaleItem> {
         return this._timeScaleApi;
     }
 
-    public applyOptions(options: DeepPartial<ChartOptionsImpl<HorzScaleItem>>): void {
+    public applyOptions(options: DeepPartial<ChartOptionsImpl<THorzScaleItem>>): void {
         this._chartWidget.applyOptions(toInternalOptions(options));
     }
 
-    public options(): Readonly<ChartOptionsImpl<HorzScaleItem>> {
+    public options(): Readonly<ChartOptionsImpl<THorzScaleItem>> {
         return this._chartWidget.options();
     }
 
@@ -342,10 +355,10 @@ export class ChartApi<HorzScaleItem>
 
     public setCrosshairPosition(
         price: number,
-        horizontalPosition: HorzScaleItem,
-        seriesApi: ISeriesApi<SeriesType, HorzScaleItem>,
+        horizontalPosition: THorzScaleItem,
+        seriesApi: ISeriesApi<SeriesType, THorzScaleItem>,
     ): void {
-        const series = this._seriesMap.get(seriesApi as SeriesApi<SeriesType, HorzScaleItem>);
+        const series = this._seriesMap.get(seriesApi as SeriesApi<SeriesType, THorzScaleItem>);
 
         if (series === undefined) {
             return;
@@ -357,7 +370,7 @@ export class ChartApi<HorzScaleItem>
             return;
         }
 
-        this._chartWidget.model().setAndSaveSyntheticPosition(price, horizontalPosition, pane);
+        this._chartWidget.model().placeCrosshairAt(price, horizontalPosition, pane);
     }
 
     public clearCrosshairPosition(): void {
@@ -366,15 +379,18 @@ export class ChartApi<HorzScaleItem>
 
     private _addSeriesImpl<
         TSeries extends SeriesType,
-        TData extends WhitespaceData<HorzScaleItem> = SeriesDataItemTypeMap<HorzScaleItem>[TSeries],
+        TData extends WhitespaceData<THorzScaleItem> = SeriesDataItemTypeMap<THorzScaleItem>[TSeries],
         TOptions extends SeriesOptionsMap[TSeries] = SeriesOptionsMap[TSeries],
         TPartialOptions extends SeriesPartialOptionsMap[TSeries] = SeriesPartialOptionsMap[TSeries],
-    >(
-        type: TSeries,
-        styleDefaults: SeriesStyleOptionsMap[TSeries],
-        options: SeriesPartialOptionsMap[TSeries] = {},
-        customPaneView?: ICustomSeriesPaneView<HorzScaleItem>,
-    ): ISeriesApi<TSeries, HorzScaleItem, TData, TOptions, TPartialOptions> {
+    >(spec: {
+        type: TSeries;
+        styleDefaults: SeriesStyleOptionsMap[TSeries];
+        options?: SeriesPartialOptionsMap[TSeries] | undefined;
+        customPaneView?: ICustomSeriesPaneView<THorzScaleItem> | undefined;
+    }): ISeriesApi<TSeries, THorzScaleItem, TData, TOptions, TPartialOptions> {
+        const { type, styleDefaults, customPaneView } = spec;
+        const options: SeriesPartialOptionsMap[TSeries] = spec.options ?? {};
+
         patchPriceFormat(options.priceFormat);
 
         const strictOptions = merge(
@@ -384,7 +400,7 @@ export class ChartApi<HorzScaleItem>
         ) as SeriesOptionsMap[TSeries];
         const series = this._chartWidget.model().createSeries(type, strictOptions, customPaneView);
 
-        const res = new SeriesApi<TSeries, HorzScaleItem, TData, TOptions, TPartialOptions>(
+        const res = new SeriesApi<TSeries, THorzScaleItem, TData, TOptions, TPartialOptions>(
             series,
             this,
             this,
@@ -400,11 +416,7 @@ export class ChartApi<HorzScaleItem>
     private _sendUpdateToChart(update: DataUpdateResponse): void {
         const model = this._chartWidget.model();
 
-        model.updateTimeScale(
-            update.timeScale.baseIndex,
-            update.timeScale.points,
-            update.timeScale.firstChangedPointIndex,
-        );
+        model.updateTimeScale(update.timeScale);
         update.series.forEach((value: SeriesChanges, series: Series<SeriesType>) =>
             series.setData(value.data, value.info),
         );
@@ -412,20 +424,20 @@ export class ChartApi<HorzScaleItem>
         model.recalculateAllPanes();
     }
 
-    private _mapSeriesToApi(series: Series<SeriesType>): ISeriesApi<SeriesType, HorzScaleItem> {
-        return ensureDefined(this._seriesMapReversed.get(series));
+    private _mapSeriesToApi(series: Series<SeriesType>): ISeriesApi<SeriesType, THorzScaleItem> {
+        return getDefined(this._seriesMapReversed.get(series));
     }
 
-    private _convertMouseParams(param: MouseEventParamsImpl): MouseEventParams<HorzScaleItem> {
-        const seriesData: MouseEventParams<HorzScaleItem>['seriesData'] = new Map();
+    private _convertMouseParams(param: MouseEventParamsImpl): MouseEventParams<THorzScaleItem> {
+        const seriesData: MouseEventParams<THorzScaleItem>['seriesData'] = new Map();
         param.seriesData.forEach((plotRow: SeriesPlotRow<SeriesType>, series: Series<SeriesType>) => {
             const seriesType = series.seriesType();
-            const data = getSeriesDataCreator<SeriesType, HorzScaleItem>(seriesType)(plotRow);
+            const data = getSeriesDataCreator<SeriesType, THorzScaleItem>(seriesType)(plotRow);
             if (seriesType !== 'Custom') {
                 assert(isFulfilledData(data));
             } else {
                 const customWhitespaceChecker = series.customSeriesWhitespaceCheck();
-                assert(!customWhitespaceChecker || customWhitespaceChecker(data) === false);
+                assert(customWhitespaceChecker === undefined || customWhitespaceChecker(data) === false);
             }
             seriesData.set(this._mapSeriesToApi(series), data);
         });
@@ -436,7 +448,7 @@ export class ChartApi<HorzScaleItem>
                 : this._mapSeriesToApi(param.hoveredSeries);
 
         return {
-            time: param.originalTime as HorzScaleItem,
+            time: param.originalTime as THorzScaleItem,
             logical: param.index as Logical | undefined,
             point: param.point,
             hoveredSeries,

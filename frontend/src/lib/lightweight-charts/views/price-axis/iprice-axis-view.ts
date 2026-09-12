@@ -7,7 +7,7 @@ import {
 export type IPriceAxisView = {
     coordinate(): number;
     getFixedCoordinate(): number;
-    height(rendererOptions: PriceAxisViewRendererOptions, useSecondLine?: boolean): number;
+    height(rendererOptions: PriceAxisViewRendererOptions): number;
     isVisible(): boolean;
     isAxisLabelVisible(): boolean;
     renderer(priceScale: PriceScale): IPriceAxisViewRenderer;
@@ -15,4 +15,4 @@ export type IPriceAxisView = {
     setFixedCoordinate(value: number | null): void;
     text(): string;
     update(): void;
-}
+};

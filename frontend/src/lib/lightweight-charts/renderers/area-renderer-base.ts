@@ -27,7 +27,7 @@ export type PaneRendererAreaDataBase<TItem extends AreaFillItemBase = AreaFillIt
     barWidth: number;
 
     visibleRange: SeriesItemsIndexesRange | null;
-}
+};
 
 function finishStyledArea(
     baseLevelCoordinate: Coordinate,
@@ -79,10 +79,7 @@ export abstract class PaneRendererAreaBase<
 
         walkLine(
             renderingScope,
-            items,
-            lineType,
-            visibleRange,
-            barWidth,
+            { items, lineType, visibleRange, barWidth },
             this._fillStyle.bind(this),
             finishStyledArea.bind(null, baseLevelCoordinate),
         );

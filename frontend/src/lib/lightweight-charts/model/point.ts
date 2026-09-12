@@ -12,4 +12,4 @@ export type Point = {
      * The y coordinate.
      */
     readonly y: Coordinate;
-}
+};

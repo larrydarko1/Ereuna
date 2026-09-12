@@ -20,7 +20,7 @@ export type TimeScalePoint = {
     readonly time: InternalHorzScaleItem;
     /** Original time for the point */
     readonly originalTime: unknown;
-}
+};
 
 /**
  * Represents a generic range `from` one value `to` another.
@@ -34,7 +34,7 @@ export type Range<T> = {
      * The to value. The end of the range.
      */
     to: T;
-}
+};
 
 export type TimePointsRange = Range<Omit<TimeScalePoint, 'timeWeight'>>;
 
@@ -65,7 +65,7 @@ export type LogicalRange = Range<Logical>;
 export type TimedValue = {
     time: TimePointIndex;
     x: Coordinate;
-}
+};
 
 export type SeriesItemsIndexesRange = Range<number>;
 
@@ -80,7 +80,7 @@ function upperBoundItemsCompare(item: TimedValue, time: TimePointIndex): boolean
 export function visibleTimedValues(
     items: TimedValue[],
     range: RangeImpl<TimePointIndex>,
-    extendedRange: boolean,
+    options: { extended: boolean },
 ): SeriesItemsIndexesRange {
     const firstBar = range.left();
     const lastBar = range.right();
@@ -88,7 +88,7 @@ export function visibleTimedValues(
     const from = lowerBound(items, firstBar, lowerBoundItemsCompare);
     const to = upperBound(items, lastBar, upperBoundItemsCompare);
 
-    if (!extendedRange) {
+    if (!options.extended) {
         return { from, to };
     }
 

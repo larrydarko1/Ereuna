@@ -1,5 +1,5 @@
 import { lowerBound, upperBound } from '@/lib/lightweight-charts/helpers/algorithms';
-import { ensureDefined, ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getDefined, getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { type Nominal } from '@/lib/lightweight-charts/helpers/nominal';
 
 import { type PlotRow, type PlotRowValueIndex } from '@/lib/lightweight-charts/model/plot-data';
@@ -27,24 +27,24 @@ export type MismatchDirection = (typeof MismatchDirection)[keyof typeof Mismatch
 export type MinMax = {
     min: number;
     max: number;
-}
+};
 
 type PlotRowIndex = Nominal<number, 'PlotRowIndex'>;
 
-// TODO: think about changing it dynamically
+// Fixed for now; upstream wondered about sizing it to the data
 const CHUNK_SIZE = 30;
 
 /**
  * PlotList is an array of plot rows
  * each plot row consists of key (index in timescale) and plot value map
  */
-export class PlotList<PlotRowType extends PlotRow = PlotRow> {
-    private _items: readonly PlotRowType[] = [];
+export class PlotList<TPlotRowType extends PlotRow = PlotRow> {
+    private _items: readonly TPlotRowType[] = [];
     private _minMaxCache = new Map<PlotRowValueIndex, Map<number, MinMax | null>>();
-    private _rowSearchCache = new Map<TimePointIndex, Map<MismatchDirection, PlotRowType>>();
+    private _rowSearchCache = new Map<TimePointIndex, Map<MismatchDirection, TPlotRowType>>();
 
     // @returns Last row
-    public last(): PlotRowType | null {
+    public last(): TPlotRowType | null {
         return this._items[this._items.length - 1] ?? null;
     }
 
@@ -68,11 +68,11 @@ export class PlotList<PlotRowType extends PlotRow = PlotRow> {
         return this._search(index, MismatchDirection.None) !== null;
     }
 
-    public valueAt(index: TimePointIndex): PlotRowType | null {
+    public valueAt(index: TimePointIndex): TPlotRowType | null {
         return this.search(index);
     }
 
-    public search(index: TimePointIndex, searchMode: MismatchDirection = MismatchDirection.None): PlotRowType | null {
+    public search(index: TimePointIndex, searchMode: MismatchDirection = MismatchDirection.None): TPlotRowType | null {
         const pos = this._search(index, searchMode);
         if (pos === null) {
             return null;
@@ -84,7 +84,7 @@ export class PlotList<PlotRowType extends PlotRow = PlotRow> {
         };
     }
 
-    public rows(): readonly PlotRowType[] {
+    public rows(): readonly TPlotRowType[] {
         return this._items;
     }
 
@@ -110,7 +110,7 @@ export class PlotList<PlotRowType extends PlotRow = PlotRow> {
         return result;
     }
 
-    public setData(plotRows: readonly PlotRowType[]): void {
+    public setData(plotRows: readonly TPlotRowType[]): void {
         this._rowSearchCache.clear();
         this._minMaxCache.clear();
 
@@ -118,11 +118,11 @@ export class PlotList<PlotRowType extends PlotRow = PlotRow> {
     }
 
     private _indexAt(offset: PlotRowIndex): TimePointIndex {
-        return ensureDefined(this._items[offset]).index;
+        return getDefined(this._items[offset]).index;
     }
 
-    private _valueAt(offset: PlotRowIndex): PlotRowType {
-        return ensureDefined(this._items[offset]);
+    private _valueAt(offset: PlotRowIndex): TPlotRowType {
+        return getDefined(this._items[offset]);
     }
 
     private _search(index: TimePointIndex, searchMode: MismatchDirection): PlotRowIndex | null {
@@ -171,11 +171,11 @@ export class PlotList<PlotRowType extends PlotRow = PlotRow> {
     }
 
     private _lowerbound(index: TimePointIndex): number {
-        return lowerBound(this._items, index, (a: PlotRowType, b: TimePointIndex) => a.index < b);
+        return lowerBound(this._items, index, (a: TPlotRowType, b: TimePointIndex) => a.index < b);
     }
 
     private _upperbound(index: TimePointIndex): number {
-        return upperBound(this._items, index, (a: PlotRowType, b: TimePointIndex) => a.index > b);
+        return upperBound(this._items, index, (a: TPlotRowType, b: TimePointIndex) => a.index > b);
     }
 
     private _plotMinMax(
@@ -189,21 +189,16 @@ export class PlotList<PlotRowType extends PlotRow = PlotRow> {
             const item = this._items[i];
             if (item === undefined) continue;
 
-            const v = item.value[plotIndex];
-            if (Number.isNaN(v)) {
+            const plotValue = item.value[plotIndex];
+            if (Number.isNaN(plotValue)) {
                 continue;
             }
 
             if (result === null) {
-                result = { min: v, max: v };
+                result = { min: plotValue, max: plotValue };
             } else {
-                if (v < result.min) {
-                    result.min = v;
-                }
-
-                if (v > result.max) {
-                    result.max = v;
-                }
+                result.min = Math.min(result.min, plotValue);
+                result.max = Math.max(result.max, plotValue);
             }
         }
 
@@ -225,18 +220,18 @@ export class PlotList<PlotRowType extends PlotRow = PlotRow> {
         let result: MinMax | null = null;
 
         // assume that bar indexes only increase
-        const firstIndex = ensureNotNull(this.firstIndex());
-        const lastIndex = ensureNotNull(this.lastIndex());
+        const firstIndex = getNotNull(this.firstIndex());
+        const lastIndex = getNotNull(this.lastIndex());
 
-        const s = Math.max(start, firstIndex);
-        const e = Math.min(end, lastIndex);
+        const clampedStart = Math.max(start, firstIndex);
+        const clampedEnd = Math.min(end, lastIndex);
 
-        const cachedLow = Math.ceil(s / CHUNK_SIZE) * CHUNK_SIZE;
-        const cachedHigh = Math.max(cachedLow, Math.floor(e / CHUNK_SIZE) * CHUNK_SIZE);
+        const cachedLow = Math.ceil(clampedStart / CHUNK_SIZE) * CHUNK_SIZE;
+        const cachedHigh = Math.max(cachedLow, Math.floor(clampedEnd / CHUNK_SIZE) * CHUNK_SIZE);
 
         {
-            const startIndex = this._lowerbound(s as TimePointIndex);
-            const endIndex = this._upperbound(Math.min(e, cachedLow, end) as TimePointIndex); // non-inclusive end
+            const startIndex = this._lowerbound(clampedStart as TimePointIndex);
+            const endIndex = this._upperbound(Math.min(clampedEnd, cachedLow, end) as TimePointIndex); // non-inclusive end
             const plotMinMax = this._plotMinMax(startIndex as PlotRowIndex, endIndex as PlotRowIndex, plotIndex);
             result = mergeMinMax(result, plotMinMax);
         }
@@ -249,8 +244,8 @@ export class PlotList<PlotRowType extends PlotRow = PlotRow> {
         }
 
         // now go cached
-        for (let c = Math.max(cachedLow + 1, s); c < cachedHigh; c += CHUNK_SIZE) {
-            const chunkIndex = Math.floor(c / CHUNK_SIZE);
+        for (let index = Math.max(cachedLow + 1, clampedStart); index < cachedHigh; index += CHUNK_SIZE) {
+            const chunkIndex = Math.floor(index / CHUNK_SIZE);
 
             let chunkMinMax = minMaxCache.get(chunkIndex);
             if (chunkMinMax === undefined) {
@@ -266,7 +261,7 @@ export class PlotList<PlotRowType extends PlotRow = PlotRow> {
         // tail
         {
             const startIndex = this._lowerbound(cachedHigh as TimePointIndex);
-            const endIndex = this._upperbound(e as TimePointIndex); // non-inclusive end
+            const endIndex = this._upperbound(clampedEnd as TimePointIndex); // non-inclusive end
             const plotMinMax = this._plotMinMax(startIndex as PlotRowIndex, endIndex as PlotRowIndex, plotIndex);
             result = mergeMinMax(result, plotMinMax);
         }
@@ -278,14 +273,12 @@ export class PlotList<PlotRowType extends PlotRow = PlotRow> {
 function mergeMinMax(first: MinMax | null, second: MinMax | null): MinMax | null {
     if (first === null) {
         return second;
-    } 
-        if (second === null) {
-            return first;
-        } 
-            // merge MinMax values
-            const min = Math.min(first.min, second.min);
-            const max = Math.max(first.max, second.max);
-            return { min: min, max: max };
-        
-    
+    }
+    if (second === null) {
+        return first;
+    }
+    // merge MinMax values
+    const min = Math.min(first.min, second.min);
+    const max = Math.max(first.max, second.max);
+    return { min: min, max: max };
 }

@@ -1,3 +1,6 @@
+import { traceRoundedRect } from '@/lib/lightweight-charts/canvas-path';
+import { getThemeColor } from '@/lib/lightweight-charts/theme-color';
+
 export type ScreenshotConfig = {
     includeWatermark: boolean;
     includeLogo: boolean;
@@ -7,7 +10,7 @@ export type ScreenshotConfig = {
     websiteUrl: string;
     backgroundColor: string;
     watermarkOpacity: number;
-}
+};
 
 export type ChartInfo = {
     symbol: string;
@@ -17,10 +20,35 @@ export type ChartInfo = {
     change?: string;
     changePercent?: string;
     date: string;
-}
+};
+
+type HeaderLayout = {
+    ctx: CanvasRenderingContext2D;
+    chartInfo: ChartInfo;
+    config: ScreenshotConfig;
+    x: number;
+    width: number;
+    dpr: number;
+};
+
+// The full wordmark, from public/ — the URL is stable in dev and in the build
+// and needs no bundler entry. The logo is drawn at a fixed height and its
+// intrinsic ratio decides the width.
+const LOGO_URL = '/logo.svg';
+const LOGO_HEIGHT = 90;
+
+// Header is taller when it carries the ticker line under the wordmark
+const HEADER_HEIGHT_WITH_INFO = 70;
+const HEADER_HEIGHT_LOGO_ONLY = 45;
+
+// An export wider than this is a screen artefact, not a chart
+const MAX_CHART_HEIGHT = 1080;
+
+const POSITIVE_CHANGE_COLOR = '#10b981';
+const NEGATIVE_CHANGE_COLOR = '#ef4444';
 
 export class ChartScreenshot {
-    private chartContainer: HTMLElement | null = null;
+    private chartContainer: HTMLElement;
     private defaultConfig: ScreenshotConfig = {
         includeWatermark: true,
         includeLogo: true,
@@ -31,49 +59,40 @@ export class ChartScreenshot {
         watermarkOpacity: 0.8,
     };
 
-    // Captures the canvas out of the DOM, so it never needs the chart instance
-    constructor(containerId = 'wk-chart') {
-        this.chartContainer = document.getElementById(containerId);
+    // Reads the canvas layers straight out of the container, so it never needs
+    // the chart instance
+    constructor(container: HTMLElement) {
+        this.chartContainer = container;
     }
 
     public async takeScreenshot(chartInfo: ChartInfo, config: Partial<ScreenshotConfig> = {}): Promise<void> {
         const finalConfig = { ...this.defaultConfig, ...config };
 
-        if (!this.chartContainer) {
-            console.error('Chart container not found');
-            return;
-        }
+        const chartCanvas = this.captureChartCanvas();
+        const finalCanvas = await this.createBrandedCanvas(chartCanvas, chartInfo, finalConfig);
 
-        try {
-            // Get the chart canvas
-            const chartCanvas = await this.captureChartCanvas();
-            if (!chartCanvas) {
-                console.error('Failed to capture chart');
-                return;
-            }
-
-            // Create final canvas with branding
-            const finalCanvas = await this.createBrandedCanvas(chartCanvas, chartInfo, finalConfig);
-
-            // Download the image
-            this.downloadCanvas(finalCanvas, chartInfo.symbol);
-        } catch (error) {
-            console.error('Error taking screenshot:', error);
-        }
+        await this.downloadCanvas(finalCanvas, chartInfo.symbol);
     }
 
-    private async captureChartCanvas(): Promise<HTMLCanvasElement | null> {
-        if (!this.chartContainer) return null;
-
-        // Get all canvas elements to calculate the total height
+    /**
+     * Flattens the chart's stacked canvas layers into one bitmap.
+     *
+     * The library paints the panes, the crosshair and every overlay onto
+     * separate canvases; an export has to composite them in DOM order or it
+     * captures only whichever layer happens to be read.
+     */
+    private captureChartCanvas(): HTMLCanvasElement {
         const canvases = Array.from(this.chartContainer.querySelectorAll('canvas'));
-        if (canvases.length === 0) return null;
+        if (canvases.length === 0) {
+            throw new Error('Chart container holds no canvas to capture');
+        }
 
         const rect = this.chartContainer.getBoundingClientRect();
         let maxBottom = 0;
         let minTop = Infinity;
 
-        // Find the actual bounds by checking all canvases
+        // The layers do not all start at the container's top edge, so the real
+        // bounds come from the layers themselves
         canvases.forEach((canvas) => {
             const canvasRect = canvas.getBoundingClientRect();
             minTop = Math.min(minTop, canvasRect.top - rect.top);
@@ -81,34 +100,32 @@ export class ChartScreenshot {
         });
 
         const width = rect.width;
-        const height = maxBottom - minTop; // Use actual height from canvases
+        const height = maxBottom - minTop;
 
-        // Create a new canvas
         const combinedCanvas = document.createElement('canvas');
-        const dpr = window.devicePixelRatio || 1;
+        const dpr = window.devicePixelRatio;
         combinedCanvas.width = width * dpr;
         combinedCanvas.height = height * dpr;
+
         const ctx = combinedCanvas.getContext('2d');
+        if (ctx === null) {
+            throw new Error('Could not acquire a 2d context for the capture canvas');
+        }
 
-        if (!ctx) return null;
-
-        // Scale for device pixel ratio
         ctx.scale(dpr, dpr);
 
-        // Draw background
-        const styles = getComputedStyle(document.documentElement);
-        const bgColor = styles.getPropertyValue('--color-bg').trim() || '#1a1b26';
-        ctx.fillStyle = bgColor;
+        ctx.fillStyle = getThemeColor('--color-bg');
         ctx.fillRect(0, 0, width, height);
 
-        // Draw each canvas layer in order, adjusted for the minTop offset
         canvases.forEach((canvas) => {
             const canvasRect = canvas.getBoundingClientRect();
-            const x = canvasRect.left - rect.left;
-            const y = canvasRect.top - rect.top - minTop; // Adjust for the offset
-
-            // Draw canvas at its relative position
-            ctx.drawImage(canvas, x, y, canvasRect.width, canvasRect.height);
+            ctx.drawImage(
+                canvas,
+                canvasRect.left - rect.left,
+                canvasRect.top - rect.top - minTop,
+                canvasRect.width,
+                canvasRect.height,
+            );
         });
 
         return combinedCanvas;
@@ -119,10 +136,13 @@ export class ChartScreenshot {
         chartInfo: ChartInfo,
         config: ScreenshotConfig,
     ): Promise<HTMLCanvasElement> {
-        const dpr = window.devicePixelRatio || 1;
-        const padding = 40 * dpr; // Reduced padding
-        const headerHeight = config.includeChartInfo ? 70 * dpr : config.includeLogo ? 45 * dpr : 0;
-        const chartPadding = 10 * dpr; // Minimal padding around chart
+        const dpr = window.devicePixelRatio;
+        const padding = 40 * dpr;
+        const chartPadding = 10 * dpr;
+
+        let headerHeight = 0;
+        if (config.includeChartInfo) headerHeight = HEADER_HEIGHT_WITH_INFO * dpr;
+        else if (config.includeLogo) headerHeight = HEADER_HEIGHT_LOGO_ONLY * dpr;
 
         const finalWidth = chartCanvas.width + padding * 2;
         const finalHeight = chartCanvas.height + headerHeight + chartPadding * 2 + padding;
@@ -130,48 +150,41 @@ export class ChartScreenshot {
         const finalCanvas = document.createElement('canvas');
         finalCanvas.width = finalWidth;
         finalCanvas.height = finalHeight;
+
         const ctx = finalCanvas.getContext('2d');
+        if (ctx === null) {
+            throw new Error('Could not acquire a 2d context for the export canvas');
+        }
 
-        if (!ctx) return chartCanvas;
-
-        // Scale for better quality
-        ctx.scale(1, 1);
-
-        // Fill background
         ctx.fillStyle = config.backgroundColor;
         ctx.fillRect(0, 0, finalWidth, finalHeight);
 
-        // Draw header with branding and chart info
         if (config.includeChartInfo || config.includeLogo) {
-            await this.drawHeader(ctx, chartInfo, config, padding, finalWidth, dpr);
+            await this.drawHeader({ ctx, chartInfo, config, x: padding, width: finalWidth, dpr });
         }
 
-        // Create a slightly darker box for the chart itself
-        const chartBoxX = padding;
         const chartBoxY = headerHeight + chartPadding;
         const chartBoxWidth = finalWidth - padding * 2;
         const chartBoxHeight = chartCanvas.height + chartPadding * 2;
-        const borderRadius = 16 * dpr;
 
-        // Draw chart background box with rounded corners - same color as inner canvas
-        const styles = getComputedStyle(document.documentElement);
-        const bgColor = styles.getPropertyValue('--color-bg').trim() || '#1a1b26';
-        ctx.fillStyle = bgColor;
-        this.roundRect(ctx, chartBoxX, chartBoxY, chartBoxWidth, chartBoxHeight, borderRadius);
+        // The chart sits in its own rounded panel, painted the page ground so
+        // the plot reads as inset rather than floating on the export's border
+        ctx.fillStyle = getThemeColor('--color-bg');
+        traceRoundedRect(ctx, {
+            x: padding,
+            y: chartBoxY,
+            width: chartBoxWidth,
+            height: chartBoxHeight,
+            radius: 16 * dpr,
+        });
         ctx.fill();
 
-        // Calculate chart dimensions to fit within the box
-        const maxChartWidth = chartBoxWidth - chartPadding * 2;
-        const maxChartHeight = chartBoxHeight - chartPadding * 2;
+        const chartDrawWidth = Math.min(chartCanvas.width, chartBoxWidth - chartPadding * 2);
+        const chartDrawHeight = Math.min(
+            Math.min(chartCanvas.height, MAX_CHART_HEIGHT * dpr),
+            chartBoxHeight - chartPadding * 2,
+        );
 
-        // Limit chart height to maintain 5% margin from top (simulating space above highest candle)
-        const maxAllowedHeight = 1080 * dpr; // Target max height for professional look
-        const adjustedChartHeight = Math.min(chartCanvas.height, maxAllowedHeight);
-
-        const chartDrawWidth = Math.min(chartCanvas.width, maxChartWidth);
-        const chartDrawHeight = Math.min(adjustedChartHeight, maxChartHeight);
-
-        // Draw the chart centered in its box
         ctx.drawImage(
             chartCanvas,
             0,
@@ -179,7 +192,7 @@ export class ChartScreenshot {
             chartCanvas.width,
             chartCanvas.height,
             padding + chartPadding,
-            headerHeight + chartPadding + chartPadding,
+            headerHeight + chartPadding * 2,
             chartDrawWidth,
             chartDrawHeight,
         );
@@ -187,269 +200,181 @@ export class ChartScreenshot {
         return finalCanvas;
     }
 
-    private async drawHeader(
-        ctx: CanvasRenderingContext2D,
-        chartInfo: ChartInfo,
-        config: ScreenshotConfig,
-        x: number,
-        width: number,
-        dpr = 1,
-    ): Promise<void> {
-        // Get colors with proper contrast for the screenshot background
-        const colors = this.getContrastColors(config.backgroundColor);
-        const textColor = colors.textColor;
-        const textColorSecondary = colors.textColorSecondary;
+    private async drawHeader(layout: HeaderLayout): Promise<void> {
+        const { ctx, chartInfo, config, x, width, dpr } = layout;
+
+        // The export's background is the caller's choice, not the theme's, so
+        // the text colour is derived from it rather than read off the document
+        const { textColor, textColorSecondary } = this.getContrastColors(config.backgroundColor);
 
         ctx.fillStyle = textColor;
         ctx.textBaseline = 'top';
 
-        // First line: Logo (left) and Date/Timeframe (right)
+        // First line: the wordmark on the left, date and timeframe on the right
         const firstLineY = 6 * dpr;
 
-        // The wordmark, not the square icon: an export is branded, and a bare
-        // glyph 90px tall said less than the whole name at a third of that.
         if (config.includeLogo) {
-            await this.drawLogo(ctx, x, firstLineY, 90 * dpr, textColor, dpr);
+            await this.drawLogo({ ctx, x, y: firstLineY, height: LOGO_HEIGHT * dpr, color: textColor });
         }
 
         if (!config.includeChartInfo) return;
 
-        // Draw timeframe and date on the right side of first line
         ctx.textAlign = 'right';
         ctx.font = `${15 * dpr}px Arial`;
         ctx.fillStyle = textColorSecondary;
         ctx.fillText(chartInfo.timeframe, width - x, firstLineY + 18 * dpr);
 
-        // Measure timeframe width to position date
         const timeframeWidth = ctx.measureText(chartInfo.timeframe).width;
         ctx.fillText(chartInfo.date, width - x - timeframeWidth - 20 * dpr, firstLineY + 18 * dpr);
 
-        // Second line: Ticker, Company Name, Price, Change (below date/timeframe on the right)
-        const secondLineY = firstLineY + 40 * dpr; // Position below date/timeframe
-
-        // Build the info text from right to left for right alignment
-        let priceText = '';
-        let changeText = '';
-
-        // Prepare change text
-        if (chartInfo.change && chartInfo.changePercent) {
-            changeText = `${chartInfo.change} (${chartInfo.changePercent})`;
-        }
-
-        // Prepare price text
-        if (chartInfo.price) {
-            priceText = chartInfo.price;
-        }
-
-        // Draw price
-        if (priceText) {
-            ctx.textAlign = 'right';
-            ctx.font = `bold ${20 * dpr}px Arial`;
-            ctx.fillStyle = textColor;
-            let rightX = width - x;
-
-            // Draw change first (rightmost)
-            if (changeText) {
-                const isPositive = !chartInfo.change!.startsWith('-');
-                ctx.fillStyle = isPositive ? '#10b981' : '#ef4444';
-                ctx.font = `${15 * dpr}px Arial`;
-                ctx.fillText(changeText, rightX, secondLineY + 2 * dpr);
-                rightX -= ctx.measureText(changeText).width + 10 * dpr;
-
-                // Draw price
-                ctx.font = `bold ${20 * dpr}px Arial`;
-                ctx.fillStyle = textColor;
-            }
-
-            ctx.fillText(priceText, rightX, secondLineY);
-            rightX -= ctx.measureText(priceText).width + 14 * dpr;
-
-            // Draw company name
-            ctx.font = `${14 * dpr}px Arial`;
-            ctx.fillStyle = textColorSecondary;
-            const availableWidth = rightX - x - 14 * dpr; // Space for name
-            const truncatedName = this.truncateText(ctx, chartInfo.name, availableWidth);
-            ctx.fillText(truncatedName, rightX, secondLineY + 3 * dpr);
-            rightX -= ctx.measureText(truncatedName).width + 14 * dpr;
-
-            // Draw ticker symbol (leftmost)
-            ctx.font = `bold ${20 * dpr}px Arial`;
-            ctx.fillStyle = textColor;
-            ctx.fillText(chartInfo.symbol, rightX, secondLineY);
-        }
+        this.drawQuoteLine(layout, firstLineY + 40 * dpr, textColor, textColorSecondary);
     }
 
-    private async drawLogo(
-        ctx: CanvasRenderingContext2D,
-        x: number,
-        y: number,
-        height: number,
-        color: string,
-        _dpr = 1,
-    ): Promise<void> {
-        return new Promise((resolve) => {
+    /**
+     * Ticker, company name, price and change, laid out right to left because the
+     * change is the rightmost element and every other width depends on it
+     */
+    private drawQuoteLine(layout: HeaderLayout, lineY: number, textColor: string, textColorSecondary: string): void {
+        const { ctx, chartInfo, x, width, dpr } = layout;
+
+        const priceText = chartInfo.price ?? '';
+        if (priceText === '') return;
+
+        const change = chartInfo.change ?? '';
+        const changePercent = chartInfo.changePercent ?? '';
+        const changeText = change === '' || changePercent === '' ? '' : `${change} (${changePercent})`;
+
+        ctx.textAlign = 'right';
+        let rightX = width - x;
+
+        if (changeText !== '') {
+            ctx.fillStyle = change.startsWith('-') ? NEGATIVE_CHANGE_COLOR : POSITIVE_CHANGE_COLOR;
+            ctx.font = `${15 * dpr}px Arial`;
+            ctx.fillText(changeText, rightX, lineY + 2 * dpr);
+            rightX -= ctx.measureText(changeText).width + 10 * dpr;
+        }
+
+        ctx.font = `bold ${20 * dpr}px Arial`;
+        ctx.fillStyle = textColor;
+        ctx.fillText(priceText, rightX, lineY);
+        rightX -= ctx.measureText(priceText).width + 14 * dpr;
+
+        ctx.font = `${14 * dpr}px Arial`;
+        ctx.fillStyle = textColorSecondary;
+        const truncatedName = this.truncateText(ctx, chartInfo.name, rightX - x - 14 * dpr);
+        ctx.fillText(truncatedName, rightX, lineY + 3 * dpr);
+        rightX -= ctx.measureText(truncatedName).width + 14 * dpr;
+
+        ctx.font = `bold ${20 * dpr}px Arial`;
+        ctx.fillStyle = textColor;
+        ctx.fillText(chartInfo.symbol, rightX, lineY);
+    }
+
+    private async drawLogo(logo: {
+        ctx: CanvasRenderingContext2D;
+        x: number;
+        y: number;
+        height: number;
+        color: string;
+    }): Promise<void> {
+        const { ctx, x, y, height, color } = logo;
+
+        const img = await this.loadLogo();
+        const logoWidth = height * (img.width / img.height);
+
+        // The wordmark is a single-colour glyph recoloured to the export's text
+        // colour, so one asset covers both light and dark backgrounds
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = logoWidth;
+        tempCanvas.height = height;
+
+        const tempCtx = tempCanvas.getContext('2d');
+        if (tempCtx === null) {
+            throw new Error('Could not acquire a 2d context to recolour the logo');
+        }
+
+        tempCtx.drawImage(img, 0, 0, logoWidth, height);
+        tempCtx.globalCompositeOperation = 'source-in';
+        tempCtx.fillStyle = color;
+        tempCtx.fillRect(0, 0, logoWidth, height);
+
+        ctx.drawImage(tempCanvas, x, y, logoWidth, height);
+    }
+
+    private async loadLogo(): Promise<HTMLImageElement> {
+        return new Promise<HTMLImageElement>((resolve, reject): void => {
             const img = new Image();
-            img.onload = () => {
-                const aspectRatio = img.width / img.height;
-                const logoWidth = height * aspectRatio;
-
-                // Create temporary canvas to apply color (theme-adaptable)
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = logoWidth;
-                tempCanvas.height = height;
-                const tempCtx = tempCanvas.getContext('2d');
-
-                if (tempCtx) {
-                    tempCtx.drawImage(img, 0, 0, logoWidth, height);
-
-                    // Apply color overlay to make it theme-adaptable
-                    tempCtx.globalCompositeOperation = 'source-in';
-                    tempCtx.fillStyle = color; // Uses current theme text color
-                    tempCtx.fillRect(0, 0, logoWidth, height);
-
-                    // Draw to main canvas
-                    ctx.drawImage(tempCanvas, x, y, logoWidth, height);
-                }
-                resolve();
-            };
-            img.onerror = () => resolve(); // Fail gracefully
-            // The full wordmark, 1280x720, from public/ — the URL is stable in
-            // dev and in the build and needs no bundler entry. `drawLogo` reads
-            // the intrinsic ratio, so the width follows the height it is given.
-            img.src = '/logo.svg';
+            img.onload = (): void => resolve(img);
+            img.onerror = (): void => reject(new Error(`Could not load the wordmark from ${LOGO_URL}`));
+            img.src = LOGO_URL;
         });
     }
 
     private truncateText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
-        const metrics = ctx.measureText(text);
-        if (metrics.width <= maxWidth) {
+        if (ctx.measureText(text).width <= maxWidth) {
             return text;
         }
 
         let truncated = text;
-        while (ctx.measureText(truncated + '...').width > maxWidth && truncated.length > 0) {
+        while (truncated.length > 0 && ctx.measureText(`${truncated}...`).width > maxWidth) {
             truncated = truncated.slice(0, -1);
         }
-        return truncated + '...';
+
+        return `${truncated}...`;
     }
 
-    private roundRect(
-        ctx: CanvasRenderingContext2D,
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-        radius: number,
-    ): void {
-        ctx.beginPath();
-        ctx.moveTo(x + radius, y);
-        ctx.lineTo(x + width - radius, y);
-        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-        ctx.lineTo(x + width, y + height - radius);
-        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-        ctx.lineTo(x + radius, y + height);
-        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-        ctx.lineTo(x, y + radius);
-        ctx.quadraticCurveTo(x, y, x + radius, y);
-        ctx.closePath();
+    /**
+     * The export's background is a colour the caller picked, which may be light
+     * or dark, so the header text is chosen against its luminance
+     */
+    private getContrastColors(backgroundColor: string): { textColor: string; textColorSecondary: string } {
+        if (this.isLightColor(backgroundColor)) {
+            return { textColor: '#1a1b26', textColorSecondary: '#6b7280' };
+        }
+
+        return { textColor: '#ffffff', textColorSecondary: '#9ca3af' };
     }
 
     private isLightColor(color: string): boolean {
-        // Convert hex to RGB and calculate relative luminance
-        let r = 0,
-            g = 0,
-            b = 0;
+        if (!color.startsWith('#')) return false;
 
-        if (color.startsWith('#')) {
-            const hex = color.slice(1);
-            if (hex.length === 3) {
-                r = parseInt(hex.slice(0, 1).repeat(2), 16);
-                g = parseInt(hex.slice(1, 2).repeat(2), 16);
-                b = parseInt(hex.slice(2, 3).repeat(2), 16);
-            } else {
-                r = parseInt(hex.slice(0, 2), 16);
-                g = parseInt(hex.slice(2, 4), 16);
-                b = parseInt(hex.slice(4, 6), 16);
-            }
-        }
+        const hex = color.slice(1);
+        const isShorthand = hex.length === 3;
 
-        // Calculate relative luminance using the formula
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        return luminance > 0.5; // Light if luminance > 0.5
+        const readChannel = (index: number): number =>
+            isShorthand
+                ? parseInt(hex.slice(index, index + 1).repeat(2), 16)
+                : parseInt(hex.slice(index * 2, index * 2 + 2), 16);
+
+        const red = readChannel(0);
+        const green = readChannel(1);
+        const blue = readChannel(2);
+
+        // Rec. 601 luma, which is what the eye reads as brightness
+        return (0.299 * red + 0.587 * green + 0.114 * blue) / 255 > 0.5;
     }
 
-    private getContrastColors(backgroundColor: string): { textColor: string; textColorSecondary: string } {
-        // Override colors based on background brightness for proper contrast
-        const isLight = this.isLightColor(backgroundColor);
+    private async downloadCanvas(canvas: HTMLCanvasElement, symbol: string): Promise<void> {
+        const blob = await this.encodePng(canvas);
 
-        if (isLight) {
-            // Dark text for light backgrounds
-            return {
-                textColor: '#1a1b26',
-                textColorSecondary: '#6b7280',
-            };
-        } 
-            // Light text for dark backgrounds
-            return {
-                textColor: '#ffffff',
-                textColorSecondary: '#9ca3af',
-            };
-        
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = `${symbol}_chart_${new Date().toISOString().slice(0, 10)}.png`;
+        link.href = url;
+        link.click();
+        URL.revokeObjectURL(url);
     }
 
-    private downloadCanvas(canvas: HTMLCanvasElement, symbol: string): void {
-        canvas.toBlob((blob) => {
-            if (!blob) {
-                console.error('Failed to create blob');
-                return;
-            }
+    private async encodePng(canvas: HTMLCanvasElement): Promise<Blob> {
+        return new Promise<Blob>((resolve, reject): void => {
+            canvas.toBlob((blob): void => {
+                if (blob === null) {
+                    reject(new Error('Canvas could not be encoded as PNG'));
+                    return;
+                }
 
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            const timestamp = new Date().toISOString().split('T')[0];
-            link.download = `${symbol}_chart_${timestamp}.png`;
-            link.href = url;
-            link.click();
-            URL.revokeObjectURL(url);
-        }, 'image/png');
-    }
-
-    public async copyToClipboard(chartInfo: ChartInfo, config: Partial<ScreenshotConfig> = {}): Promise<boolean> {
-        const finalConfig = { ...this.defaultConfig, ...config };
-
-        if (!this.chartContainer) {
-            console.error('Chart container not found');
-            return false;
-        }
-
-        try {
-            const chartCanvas = await this.captureChartCanvas();
-            if (!chartCanvas) {
-                console.error('Failed to capture chart');
-                return false;
-            }
-
-            const finalCanvas = await this.createBrandedCanvas(chartCanvas, chartInfo, finalConfig);
-
-            return new Promise((resolve) => {
-                finalCanvas.toBlob(async (blob) => {
-                    if (!blob) {
-                        resolve(false);
-                        return;
-                    }
-
-                    try {
-                        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-                        resolve(true);
-                    } catch (error) {
-                        console.error('Failed to copy to clipboard:', error);
-                        resolve(false);
-                    }
-                }, 'image/png');
-            });
-        } catch (error) {
-            console.error('Error copying to clipboard:', error);
-            return false;
-        }
+                resolve(blob);
+            }, 'image/png');
+        });
     }
 }

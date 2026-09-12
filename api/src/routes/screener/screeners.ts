@@ -53,8 +53,8 @@ const updateBody = z
  * rejected there with the filter named.
  */
 const filterBody = z.object({
-    min: z.number().finite().optional(),
-    max: z.number().finite().optional(),
+    min: z.number().optional(),
+    max: z.number().optional(),
     values: z.array(z.string().trim().min(1).max(120)).max(500).optional(),
     from: z.iso.datetime({ offset: true }).or(z.iso.date()).optional(),
     to: z.iso.datetime({ offset: true }).or(z.iso.date()).optional(),

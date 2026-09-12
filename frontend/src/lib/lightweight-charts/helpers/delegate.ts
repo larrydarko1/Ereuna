@@ -1,21 +1,24 @@
-import { type Callback, type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
+import {
+    type Callback,
+    type ISubscription,
+    type SubscribeOptions,
+} from '@/lib/lightweight-charts/helpers/isubscription';
 
 type Listener<T1, T2, T3> = {
     callback: Callback<T1, T2, T3>;
     linkedObject?: unknown;
     singleshot: boolean;
-}
+};
 
 export class Delegate<T1 = void, T2 = void, T3 = void> implements ISubscription<T1, T2, T3> {
     private _listeners: Listener<T1, T2, T3>[] = [];
 
-    public subscribe(callback: Callback<T1, T2, T3>, linkedObject?: unknown, singleshot?: boolean): void {
-        const listener: Listener<T1, T2, T3> = {
+    public subscribe(callback: Callback<T1, T2, T3>, options: SubscribeOptions = {}): void {
+        this._listeners.push({
             callback,
-            linkedObject,
-            singleshot: singleshot === true,
-        };
-        this._listeners.push(listener);
+            linkedObject: options.linkedObject,
+            singleshot: options.singleshot === true,
+        });
     }
 
     public unsubscribe(callback: Callback<T1, T2, T3>): void {

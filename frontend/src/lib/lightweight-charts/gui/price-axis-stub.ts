@@ -19,7 +19,7 @@ import { type PriceAxisWidgetSide } from '@/lib/lightweight-charts/gui/price-axi
 
 export type PriceAxisStubParams = {
     rendererOptionsProvider: PriceAxisRendererOptionsProvider;
-}
+};
 
 export type BorderVisibleGetter = () => boolean;
 export type ColorGetter = () => string;
@@ -144,5 +144,5 @@ export class PriceAxisStub implements IDestroyable {
         clearRect(ctx, 0, 0, bitmapSize.width, bitmapSize.height, this._bottomColor());
     }
 
-    private readonly _canvasSuggestedBitmapSizeChangedHandler = () => this.paint(InvalidationLevel.Full);
+    private readonly _canvasSuggestedBitmapSizeChangedHandler = (): void => this.paint(InvalidationLevel.Full);
 }

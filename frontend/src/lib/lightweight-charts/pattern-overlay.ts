@@ -9,11 +9,11 @@ import type { Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-ti
 import type { SeriesMarker } from '@/lib/lightweight-charts/model/series-markers';
 import { LineStyle } from '@/lib/lightweight-charts/renderers/draw-line';
 import { type PatternMatch } from '@/lib/lightweight-charts/pattern-detection';
+import { timeToTimestamp } from '@/lib/lightweight-charts/time-conversion';
 
 type PatternVisual = {
     pattern: PatternMatch;
-    shapes: any[]; // Store references to drawn shapes
-}
+};
 
 export class PatternOverlayManager {
     private chart: IChartApi;
@@ -43,10 +43,7 @@ export class PatternOverlayManager {
      * Draw a single pattern on the chart
      */
     private drawPattern(pattern: PatternMatch): void {
-        const visual: PatternVisual = {
-            pattern,
-            shapes: [],
-        };
+        const visual: PatternVisual = { pattern };
 
         // Draw based on pattern type
         switch (pattern.type) {
@@ -110,6 +107,8 @@ export class PatternOverlayManager {
     /**
      * Draw head and shoulders pattern
      */
+    // "Head and shoulders" is one pattern's proper name, not two jobs joined
+    // eslint-disable-next-line contracts/name-contract
     private drawHeadAndShoulders(pattern: PatternMatch): void {
         const [leftShoulder, head, rightShoulder] = pattern.points;
         if (leftShoulder === undefined || head === undefined || rightShoulder === undefined) return;
@@ -260,29 +259,16 @@ export class PatternOverlayManager {
      * Apply all markers to the main series
      */
     private applyMarkers(): void {
-        if (this.markers.length > 0) {
-            // Sort markers by time in ascending order
-            const sortedMarkers = [...this.markers].sort((a, b) => {
-                const timeA =
-                    typeof a.time === 'number'
-                        ? a.time
-                        : typeof a.time === 'string'
-                          ? new Date(a.time).getTime() / 1000
-                          : new Date((a.time as any).year, (a.time as any).month - 1, (a.time as any).day).getTime() /
-                            1000;
-                const timeB =
-                    typeof b.time === 'number'
-                        ? b.time
-                        : typeof b.time === 'string'
-                          ? new Date(b.time).getTime() / 1000
-                          : new Date((b.time as any).year, (b.time as any).month - 1, (b.time as any).day).getTime() /
-                            1000;
-                return timeA - timeB;
-            });
-
-            const existingMarkers = (this.mainSeries as any).markers?.() || [];
-            this.mainSeries.setMarkers([...existingMarkers, ...sortedMarkers]);
+        if (this.markers.length === 0) {
+            return;
         }
+
+        // setMarkers requires ascending time order
+        const sortedMarkers = [...this.markers].sort(
+            (first, second) => timeToTimestamp(first.time) - timeToTimestamp(second.time),
+        );
+
+        this.mainSeries.setMarkers([...this.mainSeries.markers(), ...sortedMarkers]);
     }
 
     /**
@@ -326,16 +312,18 @@ export class PatternOverlayManager {
             type === 'bullishFlag'
         ) {
             return '#26a69a'; // Bullish patterns - green
-        } if (
+        }
+
+        if (
             type.includes('Top') ||
             type === 'headAndShoulders' ||
             type === 'descendingTriangle' ||
             type === 'bearishFlag'
         ) {
             return '#ef5350'; // Bearish patterns - red
-        } 
-            return '#ffa726'; // Neutral - orange
-        
+        }
+
+        return '#ffa726'; // Neutral - orange
     }
 
     /**
@@ -356,7 +344,7 @@ export class PatternOverlayManager {
             wedgeFalling: '◇↘',
         };
 
-        return labels[type] || '?';
+        return labels[type] ?? '?';
     }
 
     /**

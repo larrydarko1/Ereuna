@@ -1,4 +1,4 @@
-import { assert, ensureDefined, ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { assert, getDefined, getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
 import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
 import { type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
@@ -24,7 +24,7 @@ export type PriceScalePosition = 'left' | 'right' | 'overlay';
 type MinMaxOrderInfo = {
     minZOrder: number;
     maxZOrder: number;
-}
+};
 
 export class Pane implements IDestroyable {
     private readonly _timeScale: ITimeScale;
@@ -56,31 +56,31 @@ export class Pane implements IDestroyable {
 
         this._leftPriceScale
             .modeChanged()
-            .subscribe(this._onPriceScaleModeChanged.bind(this, this._leftPriceScale), this);
+            .subscribe(this._onPriceScaleModeChanged.bind(this, this._leftPriceScale), { linkedObject: this });
         this._rightPriceScale
             .modeChanged()
-            .subscribe(this._onPriceScaleModeChanged.bind(this, this._rightPriceScale), this);
+            .subscribe(this._onPriceScaleModeChanged.bind(this, this._rightPriceScale), { linkedObject: this });
 
         this.applyScaleOptions(options);
     }
 
     public applyScaleOptions(options: DeepPartial<ChartOptionsBase>): void {
-        if (options.leftPriceScale) {
+        if (options.leftPriceScale !== undefined) {
             this._leftPriceScale.applyOptions(options.leftPriceScale);
         }
-        if (options.rightPriceScale) {
+        if (options.rightPriceScale !== undefined) {
             this._rightPriceScale.applyOptions(options.rightPriceScale);
         }
-        if (options.localization) {
+        if (options.localization !== undefined) {
             this._leftPriceScale.updateFormatter();
             this._rightPriceScale.updateFormatter();
         }
-        if (options.overlayPriceScales) {
+        if (options.overlayPriceScales !== undefined) {
             const sourceArrays = Array.from(this._overlaySourcesByScaleId.values());
-            for (const arr of sourceArrays) {
-                const priceScale = ensureNotNull(ensureDefined(arr[0]).priceScale());
+            for (const sources of sourceArrays) {
+                const priceScale = getNotNull(getDefined(sources[0]).priceScale());
                 priceScale.applyOptions(options.overlayPriceScales);
-                if (options.localization) {
+                if (options.localization !== undefined) {
                     priceScale.updateFormatter();
                 }
             }
@@ -97,7 +97,7 @@ export class Pane implements IDestroyable {
             }
         }
         if (this._overlaySourcesByScaleId.has(id)) {
-            return ensureDefined(ensureDefined(this._overlaySourcesByScaleId.get(id))[0]).priceScale();
+            return getDefined(getDefined(this._overlaySourcesByScaleId.get(id))[0]).priceScale();
         }
         return null;
     }
@@ -109,9 +109,7 @@ export class Pane implements IDestroyable {
         this._rightPriceScale.modeChanged().unsubscribeAll(this);
 
         this._dataSources.forEach((source: IPriceDataSource) => {
-            if (source.destroy) {
-                source.destroy();
-            }
+            source.destroy?.();
         });
         this._destroyed.fire();
     }
@@ -183,9 +181,9 @@ export class Pane implements IDestroyable {
 
         this._dataSources.splice(index, 1);
 
-        const priceScaleId = ensureNotNull(source.priceScale()).id();
+        const priceScaleId = getNotNull(source.priceScale()).id();
         if (this._overlaySourcesByScaleId.has(priceScaleId)) {
-            const overlaySources = ensureDefined(this._overlaySourcesByScaleId.get(priceScaleId));
+            const overlaySources = getDefined(this._overlaySourcesByScaleId.get(priceScaleId));
             const overlayIndex = overlaySources.indexOf(source);
             if (overlayIndex !== -1) {
                 overlaySources.splice(overlayIndex, 1);
@@ -198,7 +196,7 @@ export class Pane implements IDestroyable {
         const priceScale = source.priceScale();
         // if source has owner, it returns owner's price scale
         // and it does not have source in their list
-        if (priceScale && priceScale.dataSources().indexOf(source) >= 0) {
+        if (priceScale !== null && priceScale.dataSources().indexOf(source) >= 0) {
             priceScale.removeDataSource(source);
         }
 
@@ -236,7 +234,7 @@ export class Pane implements IDestroyable {
     public scalePriceTo(priceScale: PriceScale, x: number): void {
         priceScale.scaleTo(x);
 
-        // TODO: be more smart and update only affected views
+        // Upstream note: this could update only the views the scale affects
         this.updateAllSources();
     }
 
@@ -264,7 +262,7 @@ export class Pane implements IDestroyable {
     }
 
     public defaultPriceScale(): PriceScale {
-        let priceScale: PriceScale | null = null;
+        let priceScale: PriceScale | null;
 
         if (this._model.options().rightPriceScale.visible && this._rightPriceScale.dataSources().length !== 0) {
             priceScale = this._rightPriceScale;
@@ -274,11 +272,9 @@ export class Pane implements IDestroyable {
             priceScale = this._dataSources[0]?.priceScale() ?? null;
         }
 
-        if (priceScale === null) {
-            priceScale = this._rightPriceScale;
-        }
-
-        return priceScale;
+        // With no visible scale and no sources, the right one still has to be
+        // the answer: every pane has a default scale
+        return priceScale ?? this._rightPriceScale;
     }
 
     public defaultVisiblePriceScale(): PriceScale | null {
@@ -345,10 +341,9 @@ export class Pane implements IDestroyable {
     }
 
     private _recalculatePriceScaleImpl(priceScale: PriceScale): void {
-        // TODO: can use this checks
         const sourceForAutoScale = priceScale.sourcesForAutoScale();
 
-        if (sourceForAutoScale && sourceForAutoScale.length > 0 && !this._timeScale.isEmpty()) {
+        if (sourceForAutoScale.length > 0 && !this._timeScale.isEmpty()) {
             const visibleBars = this._timeScale.visibleStrictRange();
             if (visibleBars !== null) {
                 priceScale.recalculatePriceRange(visibleBars);
@@ -391,7 +386,7 @@ export class Pane implements IDestroyable {
 
         this._dataSources.push(source);
         if (!isDefaultPriceScale(priceScaleId)) {
-            const overlaySources = this._overlaySourcesByScaleId.get(priceScaleId) || [];
+            const overlaySources = this._overlaySourcesByScaleId.get(priceScaleId) ?? [];
             overlaySources.push(source);
             this._overlaySourcesByScaleId.set(priceScaleId, overlaySources);
         }

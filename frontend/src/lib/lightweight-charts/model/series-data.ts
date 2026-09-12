@@ -4,13 +4,13 @@ import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 
 export type LinePlotRow = {
     readonly color?: string | undefined;
-} & PlotRow
+} & PlotRow;
 
 export type AreaPlotRow = {
     lineColor?: string;
     topColor?: string;
     bottomColor?: string;
-} & PlotRow
+} & PlotRow;
 
 export type BaselinePlotRow = {
     topFillColor1?: string;
@@ -19,27 +19,27 @@ export type BaselinePlotRow = {
     bottomFillColor1?: string;
     bottomFillColor2?: string;
     bottomLineColor?: string;
-} & PlotRow
+} & PlotRow;
 
 export type HistogramPlotRow = {
     readonly color?: string | undefined;
-} & PlotRow
+} & PlotRow;
 
 export type BarPlotRow = {
     readonly color?: string | undefined;
-} & PlotRow
+} & PlotRow;
 
 export type CandlestickPlotRow = {
     readonly color?: string | undefined;
     readonly borderColor?: string;
     readonly wickColor?: string;
-} & PlotRow
+} & PlotRow;
 
 export type CustomPlotRow = {
     // Used to store the original data values
     data: Record<string, unknown>;
     readonly color?: string | undefined;
-} & PlotRow
+} & PlotRow;
 
 export type SeriesPlotRowTypeAtTypeMap = {
     Bar: BarPlotRow;
@@ -49,7 +49,7 @@ export type SeriesPlotRowTypeAtTypeMap = {
     Line: LinePlotRow;
     Histogram: HistogramPlotRow;
     Custom: CustomPlotRow;
-}
+};
 
 export type SeriesPlotRow<T extends SeriesType = SeriesType> = SeriesPlotRowTypeAtTypeMap[T];
 export type SeriesPlotList<T extends SeriesType = SeriesType> = PlotList<SeriesPlotRow<T>>;

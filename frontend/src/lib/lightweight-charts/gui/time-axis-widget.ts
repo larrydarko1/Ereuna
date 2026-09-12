@@ -57,8 +57,8 @@ const sourcePaneViews = buildTimeAxisViewsGetter('normal');
 const sourceTopPaneViews = buildTimeAxisViewsGetter('top');
 const sourceBottomPaneViews = buildTimeAxisViewsGetter('bottom');
 
-export class TimeAxisWidget<HorzScaleItem> implements MouseEventHandlers, IDestroyable {
-    private readonly _chart: ChartWidget<HorzScaleItem>;
+export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDestroyable {
+    private readonly _chart: ChartWidget<THorzScaleItem>;
     private readonly _options: LayoutOptions;
     private readonly _element: HTMLElement;
     private readonly _leftStubCell: HTMLElement;
@@ -77,9 +77,12 @@ export class TimeAxisWidget<HorzScaleItem> implements MouseEventHandlers, IDestr
     private readonly _widthCache: TextWidthCache = new TextWidthCache(5);
     private _isSettingSize = false;
 
-    private readonly _horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>;
+    private readonly _horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>;
 
-    public constructor(chartWidget: ChartWidget<HorzScaleItem>, horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>) {
+    public constructor(
+        chartWidget: ChartWidget<THorzScaleItem>,
+        horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>,
+    ) {
         this._chart = chartWidget;
         this._horzScaleBehavior = horzScaleBehavior;
         this._options = chartWidget.options().layout;
@@ -124,11 +127,14 @@ export class TimeAxisWidget<HorzScaleItem> implements MouseEventHandlers, IDestr
         this._element.appendChild(this._rightStubCell);
 
         this._recreateStubs();
-        this._chart.model().priceScalesOptionsChanged().subscribe(this._recreateStubs.bind(this), this);
+        this._chart
+            .model()
+            .priceScalesOptionsChanged()
+            .subscribe(this._recreateStubs.bind(this), { linkedObject: this });
 
         this._mouseEventHandler = new MouseEventHandler(this._topCanvasBinding.canvasElement, this, {
-            treatVertTouchDragAsPageScroll: () => true,
-            treatHorzTouchDragAsPageScroll: () => !this._chart.options().handleScroll.horzTouchDrag,
+            treatVertTouchDragAsPageScroll: (): boolean => true,
+            treatHorzTouchDragAsPageScroll: (): boolean => !this._chart.options().handleScroll.horzTouchDrag,
         });
     }
 
@@ -343,7 +349,7 @@ export class TimeAxisWidget<HorzScaleItem> implements MouseEventHandlers, IDestr
         for (const source of sources) {
             drawSourcePaneViews(
                 axisViewsGetter,
-                (renderer: IPaneRenderer) => drawBackground(renderer, target, false, undefined),
+                (renderer: IPaneRenderer) => drawBackground(renderer, target, { isHovered: false }),
                 source,
                 undefined as unknown as Pane,
             );
@@ -352,7 +358,7 @@ export class TimeAxisWidget<HorzScaleItem> implements MouseEventHandlers, IDestr
         for (const source of sources) {
             drawSourcePaneViews(
                 axisViewsGetter,
-                (renderer: IPaneRenderer) => drawForeground(renderer, target, false, undefined),
+                (renderer: IPaneRenderer) => drawForeground(renderer, target, { isHovered: false }),
                 source,
                 undefined as unknown as Pane,
             );
@@ -377,7 +383,7 @@ export class TimeAxisWidget<HorzScaleItem> implements MouseEventHandlers, IDestr
         const timeScale = this._chart.model().timeScale();
         const tickMarks = timeScale.marks();
 
-        if (!tickMarks || tickMarks.length === 0) {
+        if (tickMarks === null || tickMarks.length === 0) {
             return;
         }
 
@@ -398,8 +404,8 @@ export class TimeAxisWidget<HorzScaleItem> implements MouseEventHandlers, IDestr
                     ctx.beginPath();
                     const tickLen = Math.round(rendererOptions.tickLength * verticalPixelRatio);
                     for (const tickMark of tickMarks) {
-                        const x = Math.round(tickMark.coord * horizontalPixelRatio);
-                        ctx.rect(x - tickOffset, 0, tickWidth, tickLen);
+                        const left = Math.round(tickMark.coord * horizontalPixelRatio);
+                        ctx.rect(left - tickOffset, 0, tickWidth, tickLen);
                     }
 
                     ctx.fill();
@@ -545,11 +551,11 @@ export class TimeAxisWidget<HorzScaleItem> implements MouseEventHandlers, IDestr
             rendererOptionsProvider: rendererOptionsProvider,
         };
 
-        const borderVisibleGetter = () => {
+        const borderVisibleGetter = (): boolean => {
             return options.leftPriceScale.borderVisible && model.timeScale().options().borderVisible;
         };
 
-        const bottomColorGetter = () => model.backgroundBottomColor();
+        const bottomColorGetter = (): string => model.backgroundBottomColor();
 
         if (options.leftPriceScale.visible && this._leftStub === null) {
             this._leftStub = new PriceAxisStub('left', options, params, borderVisibleGetter, bottomColorGetter);
@@ -561,13 +567,13 @@ export class TimeAxisWidget<HorzScaleItem> implements MouseEventHandlers, IDestr
         }
     }
 
-    private readonly _canvasSuggestedBitmapSizeChangedHandler = () => {
+    private readonly _canvasSuggestedBitmapSizeChangedHandler = (): void => {
         if (!this._isSettingSize) {
             this._chart.model().lightUpdate();
         }
     };
 
-    private readonly _topCanvasSuggestedBitmapSizeChangedHandler = () => {
+    private readonly _topCanvasSuggestedBitmapSizeChangedHandler = (): void => {
         if (!this._isSettingSize) {
             this._chart.model().lightUpdate();
         }

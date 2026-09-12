@@ -1,4 +1,4 @@
-import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { type BarPrice } from '@/lib/lightweight-charts/model/bar';
 import { type ISeriesBarColorer } from '@/lib/lightweight-charts/model/series-bar-colorer';
@@ -32,7 +32,7 @@ export class SeriesHistogramPaneView extends LinePaneViewBase<'Histogram', Histo
             visibleRange: this._itemsVisibleRange,
             histogramBase: this._series
                 .priceScale()
-                .priceToCoordinate(this._series.options().base, ensureNotNull(this._series.firstValue()).value),
+                .priceToCoordinate(this._series.options().base, getNotNull(this._series.firstValue()).value),
         };
 
         this._renderer.setData(data);

@@ -12,7 +12,7 @@ export type MarksRendererData = {
     backColor: string;
     radius: number;
     visibleRange: SeriesItemsIndexesRange | null;
-}
+};
 
 export class PaneRendererMarks extends BitmapCoordinatesPaneRenderer {
     protected _data: MarksRendererData | null = null;
@@ -36,7 +36,7 @@ export class PaneRendererMarks extends BitmapCoordinatesPaneRenderer {
         const tickWidth = Math.max(1, Math.floor(horizontalPixelRatio));
         const correction = (tickWidth % 2) / 2;
 
-        const draw = (radiusMedia: number) => {
+        const draw = (radiusMedia: number): void => {
             ctx.beginPath();
 
             for (let i = visibleRange.to - 1; i >= visibleRange.from; --i) {

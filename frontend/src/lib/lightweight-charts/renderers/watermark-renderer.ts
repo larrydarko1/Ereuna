@@ -8,7 +8,7 @@ export type WatermarkRendererLineData = {
     lineHeight: number;
     vertOffset: number;
     zoom: number;
-}
+};
 
 /**
  * Represents a horizontal alignment.
@@ -25,7 +25,7 @@ export type WatermarkRendererData = {
     visible: boolean;
     horzAlign: HorzAlign;
     vertAlign: VertAlign;
-}
+};
 
 export class WatermarkRenderer extends MediaCoordinatesPaneRenderer {
     private readonly _data: WatermarkRendererData;
@@ -36,7 +36,9 @@ export class WatermarkRenderer extends MediaCoordinatesPaneRenderer {
         this._data = data;
     }
 
-    protected _drawImpl(_renderingScope: MediaCoordinatesRenderingScope): void {}
+    protected _drawImpl(_renderingScope: MediaCoordinatesRenderingScope): void {
+        // The watermark is painted behind the series, by _drawBackgroundImpl
+    }
 
     protected override _drawBackgroundImpl(renderingScope: MediaCoordinatesRenderingScope): void {
         if (!this._data.visible) {

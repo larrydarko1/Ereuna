@@ -13,7 +13,7 @@ export type TimeScaleOptions = {
      * @defaultValue `undefined`
      */
     tickMarkFormatter?: TickMarkFormatter;
-} & HorzScaleOptions
+} & HorzScaleOptions;
 
 /**
  * Options for chart with time at the horizontal scale
@@ -23,4 +23,4 @@ export type TimeChartOptions = {
      * Extended time scale options with option to override tickMarkFormatter
      */
     timeScale: TimeScaleOptions;
-} & ChartOptionsImpl<Time>
+} & ChartOptionsImpl<Time>;

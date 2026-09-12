@@ -2,4 +2,4 @@ import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-ren
 
 export type IPaneView = {
     renderer(addAnchors?: boolean): IPaneRenderer | null;
-}
+};

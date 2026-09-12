@@ -1,4 +1,4 @@
-import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { type BarPrice } from '@/lib/lightweight-charts/model/bar';
 import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
@@ -96,7 +96,7 @@ export class CrosshairMarksPaneView implements IUpdatablePaneView {
                 return;
             }
 
-            const firstValue = ensureNotNull(s.firstValue());
+            const firstValue = getNotNull(s.firstValue());
             data.lineColor = seriesData.backgroundColor;
             data.radius = seriesData.radius;
             data.lineWidth = seriesData.borderWidth;

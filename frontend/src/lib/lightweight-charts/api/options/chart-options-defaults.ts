@@ -9,7 +9,7 @@ import { priceScaleOptionsDefaults } from '@/lib/lightweight-charts/api/options/
 import { timeScaleOptionsDefaults } from '@/lib/lightweight-charts/api/options/time-scale-options-defaults';
 import { watermarkOptionsDefaults } from '@/lib/lightweight-charts/api/options/watermark-options-defaults';
 
-export function chartOptionsDefaults<HorzScaleItem>(): ChartOptionsInternal<HorzScaleItem> {
+export function chartOptionsDefaults<THorzScaleItem>(): ChartOptionsInternal<THorzScaleItem> {
     return {
         width: 0,
         height: 0,

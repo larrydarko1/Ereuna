@@ -2,7 +2,8 @@ import { PriceFormatter } from '@/lib/lightweight-charts/formatters/price-format
 
 export class PercentageFormatter extends PriceFormatter {
     public constructor(priceScale = 100) {
-        super(priceScale);
+        // A percentage is shown to the same precision as a price, stepping by one
+        super(priceScale, 1);
     }
 
     public override format(price: number): string {

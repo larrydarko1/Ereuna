@@ -26,7 +26,7 @@ export type GridLineOptions = {
      * @defaultValue `true`
      */
     visible: boolean;
-}
+};
 
 /** Structure describing grid options. */
 export type GridOptions = {
@@ -39,7 +39,7 @@ export type GridOptions = {
      * Horizontal grid line options.
      */
     horzLines: GridLineOptions;
-}
+};
 
 export class Grid {
     private _paneView: GridPaneView;

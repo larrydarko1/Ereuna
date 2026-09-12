@@ -9,7 +9,7 @@ import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 export type FirstValue = {
     value: number;
     timePoint: InternalHorzScaleItem;
-}
+};
 
 export type IPriceDataSource = {
     firstValue(): FirstValue | null;
@@ -18,4 +18,4 @@ export type IPriceDataSource = {
     minMove(): number;
     autoscaleInfo(startTimePoint: TimePointIndex, endTimePoint: TimePointIndex): AutoscaleInfoImpl | null;
     model(): IChartModelBase;
-} & IDataSource
+} & IDataSource;

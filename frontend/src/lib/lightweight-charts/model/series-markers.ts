@@ -11,11 +11,11 @@ export type SeriesMarkerShape = 'circle' | 'square' | 'arrowUp' | 'arrowDown' | 
 /**
  * Represents a series marker.
  */
-export type SeriesMarker<TimeType> = {
+export type SeriesMarker<TTimeType> = {
     /**
      * The time of the marker.
      */
-    time: TimeType;
+    time: TTimeType;
     /**
      * The position of the marker.
      */
@@ -51,23 +51,24 @@ export type SeriesMarker<TimeType> = {
      * @internal
      */
     originalTime: unknown;
-}
+};
 
-export type InternalSeriesMarker<TimeType> = {
+export type InternalSeriesMarker<TTimeType> = {
     internalId: number;
-} & SeriesMarker<TimeType>
+} & SeriesMarker<TTimeType>;
 
-export function convertSeriesMarker<InTimeType, OutTimeType>(
-    sm: SeriesMarker<InTimeType>,
-    newTime: OutTimeType,
+export function convertSeriesMarker<TInTimeType, TOutTimeType>(
+    sm: SeriesMarker<TInTimeType>,
+    newTime: TOutTimeType,
     originalTime?: unknown,
-): SeriesMarker<OutTimeType> {
-    const { time: inTime, originalTime: inOriginalTime, ...values } = sm;
+): SeriesMarker<TOutTimeType> {
+    // Both times are dropped: the caller supplies the replacements
+    const { time: _time, originalTime: _originalTime, ...values } = sm;
 
     const res = {
         time: newTime,
         ...values,
-    } as SeriesMarker<OutTimeType>;
+    } as SeriesMarker<TOutTimeType>;
 
     if (originalTime !== undefined) {
         res.originalTime = originalTime;

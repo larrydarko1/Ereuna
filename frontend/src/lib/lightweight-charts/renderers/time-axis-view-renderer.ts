@@ -4,7 +4,7 @@ import {
     type MediaCoordinatesRenderingScope,
 } from 'fancy-canvas';
 
-import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
 import {
     type ITimeAxisViewRenderer,
@@ -19,7 +19,7 @@ export type TimeAxisViewRendererData = {
     background: string;
     visible: boolean;
     tickVisible: boolean;
-}
+};
 
 const optimizationReplacementRe = /[1-9]/g;
 
@@ -44,7 +44,7 @@ export class TimeAxisViewRenderer implements ITimeAxisViewRenderer {
         const textWidth = target.useMediaCoordinateSpace(({ context: ctx }: MediaCoordinatesRenderingScope) => {
             ctx.font = rendererOptions.font;
             return Math.round(
-                rendererOptions.widthCache.measureText(ctx, ensureNotNull(this._data).text, optimizationReplacementRe),
+                rendererOptions.widthCache.measureText(ctx, getNotNull(this._data).text, optimizationReplacementRe),
             );
         });
         if (textWidth <= 0) {
@@ -80,7 +80,7 @@ export class TimeAxisViewRenderer implements ITimeAxisViewRenderer {
 
         target.useBitmapCoordinateSpace(
             ({ context: ctx, horizontalPixelRatio, verticalPixelRatio }: BitmapCoordinatesRenderingScope) => {
-                const data = ensureNotNull(this._data);
+                const data = getNotNull(this._data);
 
                 ctx.fillStyle = data.background;
 
@@ -112,7 +112,7 @@ export class TimeAxisViewRenderer implements ITimeAxisViewRenderer {
         );
 
         target.useMediaCoordinateSpace(({ context: ctx }: MediaCoordinatesRenderingScope) => {
-            const data = ensureNotNull(this._data);
+            const data = getNotNull(this._data);
 
             const yText =
                 y1 +

@@ -81,13 +81,15 @@ export function drawRoundRect(
      * be able to switch to the native version soon.
      */
     ctx.beginPath();
-    if (ctx.roundRect) {
+
+    // `CanvasRenderingContext2D.roundRect` landed in Safari 16 and the
+    // browserslist floor here is Safari 14, so the type claiming it is always
+    // present is a lie on the oldest browser this ships to — hence the trace below
+    if (typeof ctx.roundRect === 'function') {
         ctx.roundRect(x, y, w, h, radii);
         return;
     }
-    /*
-     * Deprecate the rest in v5.
-     */
+
     ctx.lineTo(x + w - radii[1], y);
     if (radii[1] !== 0) {
         ctx.arcTo(x + w, y, x + w, y + radii[1], radii[1]);
@@ -118,21 +120,32 @@ export function drawRoundRect(
  * @param outerBorderRadius - The radius of the border (outer edge)
  */
 
-export function drawRoundRectWithBorder(
-    ctx: CanvasRenderingContext2D,
-    left: number,
-    top: number,
-    width: number,
-    height: number,
-    backgroundColor: string,
-    borderWidth = 0,
-    outerBorderRadius: LeftTopRightTopRightBottomLeftBottomRadii = [0, 0, 0, 0],
-    borderColor = '',
-): void {
+export type RoundRectBox = {
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+
+    // The radius of each corner of the OUTER edge, clockwise from the top-left
+    outerRadius: LeftTopRightTopRightBottomLeftBottomRadii;
+};
+
+export type RoundRectStyle = {
+    backgroundColor: string;
+    borderColor: string;
+    borderWidth: number;
+};
+
+export function drawRoundRectWithBorder(ctx: CanvasRenderingContext2D, box: RoundRectBox, style: RoundRectStyle): void {
+    const { left, top, width, height, outerRadius } = box;
+    const { backgroundColor, borderColor, borderWidth } = style;
+
     ctx.save();
 
-    if (!borderWidth || !borderColor || borderColor === backgroundColor) {
-        drawRoundRect(ctx, left, top, width, height, outerBorderRadius);
+    // Nothing to inset for: with no border, or one the same colour as the fill,
+    // the whole shape is one solid area
+    if (borderWidth === 0 || borderColor === '' || borderColor === backgroundColor) {
+        drawRoundRect(ctx, left, top, width, height, outerRadius);
         ctx.fillStyle = backgroundColor;
         ctx.fill();
         ctx.restore();
@@ -140,7 +153,7 @@ export function drawRoundRectWithBorder(
     }
 
     const halfBorderWidth = borderWidth / 2;
-    const radii = changeBorderRadius(outerBorderRadius, -halfBorderWidth);
+    const radii = changeBorderRadius(outerRadius, -halfBorderWidth);
 
     drawRoundRect(ctx, left + halfBorderWidth, top + halfBorderWidth, width - borderWidth, height - borderWidth, radii);
 
@@ -161,21 +174,17 @@ export function drawRoundRectWithBorder(
 
 export function clearRectWithGradient(
     ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-    topColor: string,
-    bottomColor: string,
+    rect: { x: number; y: number; width: number; height: number },
+    colors: { topColor: string; bottomColor: string },
 ): void {
     ctx.save();
 
     ctx.globalCompositeOperation = 'copy';
-    const gradient = ctx.createLinearGradient(0, 0, 0, h);
-    gradient.addColorStop(0, topColor);
-    gradient.addColorStop(1, bottomColor);
+    const gradient = ctx.createLinearGradient(0, 0, 0, rect.height);
+    gradient.addColorStop(0, colors.topColor);
+    gradient.addColorStop(1, colors.bottomColor);
     ctx.fillStyle = gradient;
-    ctx.fillRect(x, y, w, h);
+    ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
 
     ctx.restore();
 }

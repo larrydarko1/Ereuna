@@ -1,11 +1,11 @@
 import { type Size, size } from 'fancy-canvas';
 
-import { ensureDefined, ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getDefined, getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { isChromiumBased, isWindows } from '@/lib/lightweight-charts/helpers/browsers';
 import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
 import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
 import { type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
-import { warn } from '@/lib/lightweight-charts/helpers/logger';
+import { rejectOptions } from '@/lib/lightweight-charts/helpers/logger';
 import { type DeepPartial } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
 import {
@@ -46,11 +46,14 @@ export type MouseEventParamsImpl = {
     hoveredSeries?: Series<SeriesType> | undefined;
     hoveredObject?: string | undefined;
     touchMouseEventData?: TouchMouseEventData | undefined;
-}
+};
 
 export type MouseEventParamsImplSupplier = () => MouseEventParamsImpl;
 
 const windowsChrome = isChromiumBased() && isWindows();
+
+// A pane squeezed to nothing still has to leave the separator somewhere to sit
+const MIN_PANE_HEIGHT = 2;
 
 export type IChartWidgetBase = {
     getPriceAxisWidth(position: DefaultPriceScaleId): number;
@@ -58,13 +61,13 @@ export type IChartWidgetBase = {
     paneWidgets(): PaneWidget[];
     options(): ChartOptionsInternalBase;
     setCursorStyle(style: string | null): void;
-}
+};
 
-export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBase {
-    private readonly _options: ChartOptionsInternal<HorzScaleItem>;
+export class ChartWidget<THorzScaleItem> implements IDestroyable, IChartWidgetBase {
+    private readonly _options: ChartOptionsInternal<THorzScaleItem>;
     private _paneWidgets: PaneWidget[] = [];
     // private _paneSeparators: PaneSeparator[] = [];
-    private readonly _model: ChartModel<HorzScaleItem>;
+    private readonly _model: ChartModel<THorzScaleItem>;
     private _drawRafId = 0;
     private _height = 0;
     private _width = 0;
@@ -72,7 +75,7 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
     private _rightPriceAxisWidth = 0;
     private _element: HTMLDivElement;
     private readonly _tableElement: HTMLElement;
-    private _timeAxisWidget: TimeAxisWidget<HorzScaleItem>;
+    private _timeAxisWidget: TimeAxisWidget<THorzScaleItem>;
     private _invalidateMask: InvalidateMask | null = null;
     private _drawPlanned = false;
     private _clicked = new Delegate<MouseEventParamsImplSupplier>();
@@ -84,12 +87,12 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
     private _container: HTMLElement;
     private _cursorStyleOverride: string | null = null;
 
-    private readonly _horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>;
+    private readonly _horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>;
 
     public constructor(
         container: HTMLElement,
-        options: ChartOptionsInternal<HorzScaleItem>,
-        horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>,
+        options: ChartOptionsInternal<THorzScaleItem>,
+        horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>,
     ) {
         this._container = container;
         this._options = options;
@@ -112,12 +115,15 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
             this._setMouseWheelEventListener(true);
         }
         this._model = new ChartModel(this._invalidateHandler.bind(this), this._options, horzScaleBehavior);
-        this.model().crosshairMoved().subscribe(this._onPaneWidgetCrosshairMoved.bind(this), this);
+        this.model().crosshairMoved().subscribe(this._onPaneWidgetCrosshairMoved.bind(this), { linkedObject: this });
 
         this._timeAxisWidget = new TimeAxisWidget(this, this._horzScaleBehavior);
         this._tableElement.appendChild(this._timeAxisWidget.getElement());
 
-        const usedObserver = options.autoSize && this._installObserver();
+        const usedObserver = options.autoSize === true;
+        if (usedObserver) {
+            this._installObserver();
+        }
 
         // observer could not fire event immediately for some cases
         // so we have to set initial size manually
@@ -127,8 +133,8 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         // however respect options if installing resize observer failed
         if (usedObserver || width === 0 || height === 0) {
             const containerRect = container.getBoundingClientRect();
-            width = width || containerRect.width;
-            height = height || containerRect.height;
+            width = width === 0 ? containerRect.width : width;
+            height = height === 0 ? containerRect.height : height;
         }
 
         // BEWARE: resize must be called BEFORE _syncGuiWithModel (in constructor only)
@@ -139,15 +145,20 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
 
         container.appendChild(this._element);
         this._updateTimeAxisVisibility();
-        this._model.timeScale().optionsApplied().subscribe(this._model.fullUpdate.bind(this._model), this);
-        this._model.priceScalesOptionsChanged().subscribe(this._model.fullUpdate.bind(this._model), this);
+        this._model
+            .timeScale()
+            .optionsApplied()
+            .subscribe(this._model.fullUpdate.bind(this._model), { linkedObject: this });
+        this._model
+            .priceScalesOptionsChanged()
+            .subscribe(this._model.fullUpdate.bind(this._model), { linkedObject: this });
     }
 
-    public model(): ChartModel<HorzScaleItem> {
+    public model(): ChartModel<THorzScaleItem> {
         return this._model;
     }
 
-    public options(): Readonly<ChartOptionsInternal<HorzScaleItem>> {
+    public options(): Readonly<ChartOptionsInternal<THorzScaleItem>> {
         return this._options;
     }
 
@@ -155,7 +166,7 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         return this._paneWidgets;
     }
 
-    public timeAxisWidget(): TimeAxisWidget<HorzScaleItem> {
+    public timeAxisWidget(): TimeAxisWidget<THorzScaleItem> {
         return this._timeAxisWidget;
     }
 
@@ -183,7 +194,7 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         // }
         // this._paneSeparators = [];
 
-        ensureNotNull(this._timeAxisWidget).destroy();
+        getNotNull(this._timeAxisWidget).destroy();
 
         if (this._element.parentElement !== null) {
             this._element.parentElement.removeChild(this._element);
@@ -209,8 +220,8 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         const heightStr = this._height + 'px';
         const widthStr = this._width + 'px';
 
-        ensureNotNull(this._element).style.height = heightStr;
-        ensureNotNull(this._element).style.width = widthStr;
+        getNotNull(this._element).style.height = heightStr;
+        getNotNull(this._element).style.width = widthStr;
 
         this._tableElement.style.height = heightStr;
         this._tableElement.style.width = widthStr;
@@ -236,7 +247,7 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         }
     }
 
-    public applyOptions(options: DeepPartial<ChartOptionsInternal<HorzScaleItem>>): void {
+    public applyOptions(options: DeepPartial<ChartOptionsInternal<THorzScaleItem>>): void {
         const currentlyHasMouseWheelListener = shouldSubscribeMouseWheel(this._options);
 
         // we don't need to merge options here because it's done in chart model
@@ -277,7 +288,7 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         screenshotCanvas.width = screeshotBitmapSize.width;
         screenshotCanvas.height = screeshotBitmapSize.height;
 
-        const ctx = ensureNotNull(screenshotCanvas.getContext('2d'));
+        const ctx = getNotNull(screenshotCanvas.getContext('2d'));
         this._traverseLayout(ctx);
 
         return screenshotCanvas;
@@ -299,10 +310,10 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         // we don't need to worry about exactly pane widget here
         // because all pane widgets have the same width of price axis widget
         // see _adjustSizeImpl
-        const firstPane = ensureDefined(this._paneWidgets[0]);
+        const firstPane = getDefined(this._paneWidgets[0]);
         const priceAxisWidget =
             position === 'left' ? firstPane.leftPriceAxisWidget() : firstPane.rightPriceAxisWidget();
-        return ensureNotNull(priceAxisWidget).getWidth();
+        return getNotNull(priceAxisWidget).getWidth();
     }
 
     public autoSizeActive(): boolean {
@@ -315,34 +326,29 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
 
     public setCursorStyle(style: string | null): void {
         this._cursorStyleOverride = style;
-        if (this._cursorStyleOverride) {
+        if (this._cursorStyleOverride !== null && this._cursorStyleOverride !== '') {
             this.element().style.setProperty('cursor', style);
         } else {
             this.element().style.removeProperty('cursor');
         }
     }
 
-    public getCursorOverrideStyle(): string | null {
-        return this._cursorStyleOverride;
-    }
-
     public paneSize(): Size {
         // we currently only support a single pane.
-        return ensureDefined(this._paneWidgets[0]).getSize();
+        return getDefined(this._paneWidgets[0]).getSize();
     }
 
-    private _applyAutoSizeOptions(options: DeepPartial<ChartOptionsInternal<HorzScaleItem>>): void {
+    private _applyAutoSizeOptions(options: DeepPartial<ChartOptionsInternal<THorzScaleItem>>): void {
         if (
             options.autoSize === undefined &&
-            this._observer &&
+            this._observer !== null &&
             (options.width !== undefined || options.height !== undefined)
         ) {
-            warn(
-                `You should turn autoSize off explicitly before specifying sizes; try adding options.autoSize: false to new options`,
+            rejectOptions(
+                'Turn autoSize off explicitly before specifying sizes: add options.autoSize: false to the new options',
             );
-            return;
         }
-        if (options.autoSize && !this._observer) {
+        if (options.autoSize === true && this._observer === null) {
             // installing observer will override resize if successful
             this._installObserver();
         }
@@ -351,8 +357,12 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
             this._uninstallObserver();
         }
 
-        if (!options.autoSize && (options.width !== undefined || options.height !== undefined)) {
-            this.resize(options.width || this._width, options.height || this._height);
+        if (options.autoSize !== true && (options.width !== undefined || options.height !== undefined)) {
+            // A zero here means "leave that dimension alone" rather than "collapse
+            // the chart", which is what the `||` this replaced was doing
+            const width = options.width === undefined || options.width === 0 ? this._width : options.width;
+            const height = options.height === undefined || options.height === 0 ? this._height : options.height;
+            this.resize(width, height);
         }
     }
 
@@ -367,12 +377,12 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         let totalWidth = 0;
         let totalHeight = 0;
 
-        const firstPane = ensureDefined(this._paneWidgets[0]);
+        const firstPane = getDefined(this._paneWidgets[0]);
 
-        const drawPriceAxises = (position: 'left' | 'right', targetX: number) => {
+        const drawPriceAxises = (position: 'left' | 'right', targetX: number): void => {
             let targetY = 0;
             for (const paneWidget of this._paneWidgets) {
-                const priceAxisWidget = ensureNotNull(
+                const priceAxisWidget = getNotNull(
                     position === 'left' ? paneWidget.leftPriceAxisWidget() : paneWidget.rightPriceAxisWidget(),
                 );
                 const bitmapSize = priceAxisWidget.getBitmapSize();
@@ -394,7 +404,7 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         // draw left price scale if exists
         if (this._isLeftAxisVisible()) {
             drawPriceAxises('left', 0);
-            const leftAxisBitmapWidth = ensureNotNull(firstPane.leftPriceAxisWidget()).getBitmapSize().width;
+            const leftAxisBitmapWidth = getNotNull(firstPane.leftPriceAxisWidget()).getBitmapSize().width;
             totalWidth += leftAxisBitmapWidth;
         }
         for (const paneWidget of this._paneWidgets) {
@@ -418,15 +428,15 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         // draw right price scale if exists
         if (this._isRightAxisVisible()) {
             drawPriceAxises('right', totalWidth);
-            const rightAxisBitmapWidth = ensureNotNull(firstPane.rightPriceAxisWidget()).getBitmapSize().width;
+            const rightAxisBitmapWidth = getNotNull(firstPane.rightPriceAxisWidget()).getBitmapSize().width;
             totalWidth += rightAxisBitmapWidth;
         }
 
-        const drawStub = (position: 'left' | 'right', targetX: number, targetY: number) => {
-            const stub = ensureNotNull(
+        const drawStub = (position: 'left' | 'right', targetX: number, targetY: number): void => {
+            const stub = getNotNull(
                 position === 'left' ? this._timeAxisWidget.leftStub() : this._timeAxisWidget.rightStub(),
             );
-            stub.drawBitmap(ensureNotNull(ctx), targetX, targetY);
+            stub.drawBitmap(getNotNull(ctx), targetX, targetY);
         };
 
         // draw time scale and stubs
@@ -437,7 +447,7 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
                 let targetX = 0;
                 if (this._isLeftAxisVisible()) {
                     drawStub('left', targetX, totalHeight);
-                    targetX = ensureNotNull(firstPane.leftPriceAxisWidget()).getBitmapSize().width;
+                    targetX = getNotNull(firstPane.leftPriceAxisWidget()).getBitmapSize().width;
                 }
 
                 this._timeAxisWidget.drawBitmap(ctx, targetX, totalHeight);
@@ -466,14 +476,14 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
             if (this._isLeftAxisVisible()) {
                 leftPriceAxisWidth = Math.max(
                     leftPriceAxisWidth,
-                    ensureNotNull(paneWidget.leftPriceAxisWidget()).optimalWidth(),
+                    getNotNull(paneWidget.leftPriceAxisWidget()).optimalWidth(),
                     this._options.leftPriceScale.minimumWidth,
                 );
             }
             if (this._isRightAxisVisible()) {
                 rightPriceAxisWidth = Math.max(
                     rightPriceAxisWidth,
-                    ensureNotNull(paneWidget.rightPriceAxisWidget()).optimalWidth(),
+                    getNotNull(paneWidget.rightPriceAxisWidget()).optimalWidth(),
                     this._options.rightPriceScale.minimumWidth,
                 );
             }
@@ -505,16 +515,14 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         for (const [paneIndex, paneWidget] of this._paneWidgets.entries()) {
             paneWidget.setState(this._model.panes()[paneIndex] ?? null);
 
-            let paneHeight = 0;
-            let calculatePaneHeight = 0;
+            // The last pane takes whatever rounding left over, so the panes
+            // always add up to the height they were given
+            const requestedHeight =
+                paneIndex === this._paneWidgets.length - 1
+                    ? totalPaneHeight - accumulatedHeight
+                    : Math.round(paneWidget.stretchFactor() * stretchPixels);
 
-            if (paneIndex === this._paneWidgets.length - 1) {
-                calculatePaneHeight = totalPaneHeight - accumulatedHeight;
-            } else {
-                calculatePaneHeight = Math.round(paneWidget.stretchFactor() * stretchPixels);
-            }
-
-            paneHeight = Math.max(calculatePaneHeight, 2);
+            const paneHeight = Math.max(requestedHeight, MIN_PANE_HEIGHT);
 
             accumulatedHeight += paneHeight;
 
@@ -526,9 +534,7 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
                 paneWidget.setPriceAxisSize(rightPriceAxisWidth, 'right');
             }
 
-            if (paneWidget.state()) {
-                this._model.setPaneHeight(paneWidget.state(), paneHeight);
-            }
+            this._model.setPaneHeight(paneWidget.state(), paneHeight);
         }
 
         this._timeAxisWidget.setSizes(
@@ -650,7 +656,7 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
 
     private _applyMomentaryAutoScale(invalidateMask: InvalidateMask): void {
         for (const [i, pane] of this._model.panes().entries()) {
-            if (invalidateMask.invalidateForPane(i).autoScale) {
+            if (invalidateMask.invalidateForPane(i).autoScale === true) {
                 pane.momentaryAutoScale();
             }
         }
@@ -730,7 +736,7 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
 
         // Remove (if needed) pane widgets and separators
         for (let i = targetPaneWidgetsCount; i < actualPaneWidgetsCount; i++) {
-            const paneWidget = ensureDefined(this._paneWidgets.pop());
+            const paneWidget = getDefined(this._paneWidgets.pop());
             this._tableElement.removeChild(paneWidget.getElement());
             paneWidget.clicked().unsubscribeAll(this);
             paneWidget.dblClicked().unsubscribeAll(this);
@@ -744,9 +750,9 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
 
         // Create (if needed) new pane widgets and separators
         for (let i = actualPaneWidgetsCount; i < targetPaneWidgetsCount; i++) {
-            const paneWidget = new PaneWidget(this, ensureDefined(panes[i]));
-            paneWidget.clicked().subscribe(this._onPaneWidgetClicked.bind(this), this);
-            paneWidget.dblClicked().subscribe(this._onPaneWidgetDblClicked.bind(this), this);
+            const paneWidget = new PaneWidget(this, getDefined(panes[i]));
+            paneWidget.clicked().subscribe(this._onPaneWidgetClicked.bind(this), { linkedObject: this });
+            paneWidget.dblClicked().subscribe(this._onPaneWidgetDblClicked.bind(this), { linkedObject: this });
 
             this._paneWidgets.push(paneWidget);
 
@@ -763,7 +769,7 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
 
         for (let i = 0; i < targetPaneWidgetsCount; i++) {
             const state = panes[i] ?? null;
-            const paneWidget = ensureDefined(this._paneWidgets[i]);
+            const paneWidget = getDefined(this._paneWidgets[i]);
             if (paneWidget.state() !== state) {
                 paneWidget.setState(state);
             } else {
@@ -784,14 +790,14 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         if (index !== null) {
             const serieses = this._model.serieses();
             serieses.forEach((s: Series<SeriesType>) => {
-                // TODO: replace with search left
+                // Upstream note: this wants a search-left rather than an exact hit
                 const data = s.bars().search(index);
                 if (data !== null) {
                     seriesData.set(s, data);
                 }
             });
         }
-        let clientTime: unknown | undefined;
+        let clientTime: unknown;
         if (index !== null) {
             const timePoint = this._model.timeScale().indexToTimeScalePoint(index)?.originalTime;
             if (timePoint !== undefined) {
@@ -844,30 +850,26 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
     }
 
     private _isLeftAxisVisible(): boolean {
-        return ensureDefined(this._paneWidgets[0]).state().leftPriceScale().options().visible;
+        return getDefined(this._paneWidgets[0]).state().leftPriceScale().options().visible;
     }
 
     private _isRightAxisVisible(): boolean {
-        return ensureDefined(this._paneWidgets[0]).state().rightPriceScale().options().visible;
+        return getDefined(this._paneWidgets[0]).state().rightPriceScale().options().visible;
     }
 
-    private _installObserver(): boolean {
+    private _installObserver(): void {
         if (!('ResizeObserver' in window)) {
-            warn(
-                'Options contains "autoSize" flag, but the browser does not support ResizeObserver feature. Please provide polyfill.',
-            );
-            return false;
-        } 
-            this._observer = new ResizeObserver((entries: ResizeObserverEntry[]) => {
-                const containerEntry = entries.find((entry: ResizeObserverEntry) => entry.target === this._container);
-                if (!containerEntry) {
-                    return;
-                }
-                this.resize(containerEntry.contentRect.width, containerEntry.contentRect.height);
-            });
-            this._observer.observe(this._container, { box: 'border-box' });
-            return true;
-        
+            rejectOptions('Options set "autoSize", but this browser has no ResizeObserver');
+        }
+
+        this._observer = new ResizeObserver((entries: ResizeObserverEntry[]): void => {
+            const containerEntry = entries.find((entry: ResizeObserverEntry) => entry.target === this._container);
+            if (containerEntry === undefined) {
+                return;
+            }
+            this.resize(containerEntry.contentRect.width, containerEntry.contentRect.height);
+        });
+        this._observer.observe(this._container, { box: 'border-box' });
     }
 
     private _uninstallObserver(): void {
@@ -878,18 +880,23 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
     }
 }
 
+/**
+ * Dragging the chart must not sweep a text selection across the page.
+ *
+ * The prefixed properties are set through `setProperty` rather than as typed
+ * members: `style.webkitUserSelect` is marked deprecated, and the other three
+ * are not in the CSSStyleDeclaration type at all, so as members they each cost
+ * a cast. `-webkit-user-select` still earns its place — the browserslist floor
+ * is Safari 14, which does not honour the unprefixed property.
+ */
 function disableSelection(element: HTMLElement): void {
     element.style.userSelect = 'none';
-    // eslint-disable-next-line deprecation/deprecation
-    element.style.webkitUserSelect = 'none';
-
-    (element.style as any).msUserSelect = 'none';
-
-    (element.style as any).MozUserSelect = 'none';
-
-    (element.style as any).webkitTapHighlightColor = 'transparent';
+    element.style.setProperty('-webkit-user-select', 'none');
+    element.style.setProperty('-ms-user-select', 'none');
+    element.style.setProperty('-moz-user-select', 'none');
+    element.style.setProperty('-webkit-tap-highlight-color', 'transparent');
 }
 
-function shouldSubscribeMouseWheel<HorzScaleItem>(options: ChartOptionsInternal<HorzScaleItem>): boolean {
+function shouldSubscribeMouseWheel<THorzScaleItem>(options: ChartOptionsInternal<THorzScaleItem>): boolean {
     return Boolean(options.handleScroll.mouseWheel || options.handleScale.mouseWheel);
 }

@@ -6,5 +6,4 @@
  * thus, this allows use the navigator on the top level and being imported in server-side context as well
  * See issue #446
  */
-// eslint-disable-next-line @typescript-eslint/tslint/config
 export const isRunningOnClientSide = typeof window !== 'undefined';

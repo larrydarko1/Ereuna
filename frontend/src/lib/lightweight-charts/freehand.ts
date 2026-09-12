@@ -1,11 +1,19 @@
-import { type IChartApi, type MouseEventParams, type Time } from '@/lib/lightweight-charts/index';
+import {
+    type IChartApi,
+    type ISeriesApi,
+    type MouseEventParams,
+    type SeriesType,
+    type Time,
+} from '@/lib/lightweight-charts/index';
+import { type CanvasPoint, distanceToSegment } from '@/lib/lightweight-charts/geometry';
+import { getThemeColor } from '@/lib/lightweight-charts/theme-color';
 
 export type FreehandPoint = {
     time: Time;
     price: number;
     x: number;
     y: number;
-}
+};
 
 export type FreehandPath = {
     id: string;
@@ -13,393 +21,92 @@ export type FreehandPath = {
     color: string;
     lineWidth: number;
     locked: boolean;
-}
+};
+
+const DEFAULT_LINE_WIDTH = 1.5;
+
+// How close a click has to land to any segment of a stroke to select it
+const PATH_HIT_TOLERANCE = 8;
+const ENDPOINT_DOT_RADIUS = 3;
+
+// A stroke of one point is a stray click, not a drawing
+const MIN_PATH_POINTS = 2;
 
 export class FreehandManager {
     private chart: IChartApi;
-    private mainSeries: any = null;
+    private mainSeries: ISeriesApi<SeriesType>;
     private canvas: HTMLCanvasElement | null = null;
     private ctx: CanvasRenderingContext2D | null = null;
     private isActive = false;
     private paths: FreehandPath[] = [];
     private selectedPathId: string | null = null;
-    private isDrawing = false;
-    private isDragging = false;
-    private dragOffset: { x: number; y: number } | null = null;
+
+    // Drawing and dragging are each in flight exactly while their own state is
+    // set, so there is no separate flag to fall out of step with them
     private currentPath: FreehandPath | null = null;
-    private moveHandler: ((param: MouseEventParams<Time>) => void) | null = null;
-    private mouseDownHandler: ((param: MouseEventParams<Time>) => void) | null = null;
-    private mouseUpHandler: (() => void) | null = null;
-    private defaultLineWidth = 1.5;
-    private visibleRangeChangeHandler: (() => void) | null = null;
+    private dragFrom: CanvasPoint | null = null;
     private onChangeCallback: (() => void) | null = null;
     private onActivateCallback: (() => void) | null = null;
-    private globalClickHandler: ((param: MouseEventParams<Time>) => void) | null = null;
-    private keyDownHandler: ((event: KeyboardEvent) => void) | null = null;
 
-    constructor(chart: IChartApi, mainSeries?: any) {
+    constructor(chart: IChartApi, mainSeries: ISeriesApi<SeriesType>) {
         this.chart = chart;
         this.mainSeries = mainSeries;
+
         this.setupCanvas();
-        this.subscribeToChartEvents();
+        this.chart.timeScale().subscribeVisibleLogicalRangeChange(this.handleVisibleRangeChange);
 
-        // Always listen for clicks to detect path selection
-        this.setupGlobalClickListener();
-
-        // Always listen for keyboard events (for deletion)
-        this.keyDownHandler = this.handleKeyDown.bind(this);
-        document.addEventListener('keydown', this.keyDownHandler);
+        // Selecting a stroke and deleting it both work whether or not the tool
+        // is the active one, so these two listeners outlive activate/deactivate
+        this.chart.subscribeClick(this.handleGlobalClick);
+        document.addEventListener('keydown', this.handleKeyDown);
     }
 
-    /**
-     * Set callback to be called when drawings change
-     */
     public onChange(callback: () => void): void {
         this.onChangeCallback = callback;
     }
 
     /**
-     * Set callback to be called when tool should be auto-activated
+     * Registers the callback that asks the toolbar to switch to this tool,
+     * which is what clicking an existing stroke does.
      */
     public onActivate(callback: () => void): void {
         this.onActivateCallback = callback;
-    }
-
-    /**
-     * Trigger onChange callback if set
-     */
-    private triggerChange(): void {
-        if (this.onChangeCallback) {
-            this.onChangeCallback();
-        }
-    }
-
-    private subscribeToChartEvents(): void {
-        // Subscribe to visible range changes (pan/zoom)
-        this.visibleRangeChangeHandler = () => {
-            this.draw();
-        };
-        this.chart.timeScale().subscribeVisibleLogicalRangeChange(this.visibleRangeChangeHandler);
-    }
-
-    private setupGlobalClickListener(): void {
-        // This handler is always active to detect clicks on paths
-        this.globalClickHandler = (param: MouseEventParams<Time>) => {
-            if (this.isActive) return; // Don't interfere when tool is already active
-            if (!param.point) return;
-
-            // Check if clicking on an existing path
-            const pathHit = this.hitTestPath(param.point.x, param.point.y);
-            if (pathHit) {
-                this.selectedPathId = pathHit;
-                this.draw();
-                // Auto-activate the tool
-                if (this.onActivateCallback) {
-                    this.onActivateCallback();
-                }
-            }
-        };
-        this.chart.subscribeClick(this.globalClickHandler);
-    }
-
-    private handleKeyDown(event: KeyboardEvent): void {
-        // Check if Backspace or Delete key was pressed
-        if (event.key === 'Backspace' || event.key === 'Delete') {
-            // Don't delete if user is typing in an input field
-            const target = event.target as HTMLElement;
-            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-                return;
-            }
-
-            // Delete the selected path if there is one
-            if (this.selectedPathId) {
-                event.preventDefault();
-                this.removeSelectedPath();
-            }
-        }
-    }
-
-    public setMainSeries(series: any): void {
-        this.mainSeries = series;
-    }
-
-    private setupCanvas(): void {
-        const chartContainer = (this.chart as any).chartElement?.() || document.querySelector('#wk-chart');
-        if (!chartContainer) return;
-
-        this.canvas = document.createElement('canvas');
-        this.canvas.style.position = 'absolute';
-        this.canvas.style.top = '0';
-        this.canvas.style.left = '0';
-        this.canvas.style.pointerEvents = 'none';
-        this.canvas.style.zIndex = '97'; // Below boxes
-
-        chartContainer.appendChild(this.canvas);
-        this.ctx = this.canvas.getContext('2d');
-
-        this.resizeCanvas();
-        window.addEventListener('resize', () => this.resizeCanvas());
-    }
-
-    private resizeCanvas(): void {
-        if (!this.canvas) return;
-        const chartContainer = this.canvas.parentElement;
-        if (!chartContainer) return;
-
-        const rect = chartContainer.getBoundingClientRect();
-        this.canvas.width = rect.width * window.devicePixelRatio;
-        this.canvas.height = rect.height * window.devicePixelRatio;
-        this.canvas.style.width = `${rect.width}px`;
-        this.canvas.style.height = `${rect.height}px`;
-
-        if (this.ctx) {
-            this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-        }
-
-        this.draw();
-    }
-
-    private getPriceFromY(y: number): number | null {
-        if (!this.mainSeries) return null;
-        try {
-            return this.mainSeries.coordinateToPrice(y);
-        } catch (e) {
-            return null;
-        }
-    }
-
-    private getTimeFromX(x: number): Time | null {
-        const timeScale = this.chart.timeScale();
-        try {
-            return timeScale.coordinateToTime(x);
-        } catch (e) {
-            return null;
-        }
-    }
-
-    private getXFromTime(time: Time): number | null {
-        const timeScale = this.chart.timeScale();
-        try {
-            return timeScale.timeToCoordinate(time) ?? null;
-        } catch (e) {
-            return null;
-        }
-    }
-
-    private getYFromPrice(price: number): number | null {
-        if (!this.mainSeries) return null;
-        try {
-            return this.mainSeries.priceToCoordinate(price) ?? null;
-        } catch (e) {
-            return null;
-        }
     }
 
     public activate(): void {
         if (this.isActive) return;
 
         this.isActive = true;
-        this.isDrawing = false;
-        this.isDragging = false;
         this.currentPath = null;
+        this.dragFrom = null;
 
-        // Mouse down starts drawing or selects path
-        this.mouseDownHandler = (param: MouseEventParams<Time>) => {
-            if (!param.point || !param.time) return;
+        if (this.canvas === null) return;
 
-            const price = this.getPriceFromY(param.point.y);
-            if (price === null || price === undefined) return;
-
-            // Check if clicking on an existing path
-            const pathId = this.hitTestPath(param.point.x, param.point.y);
-
-            if (pathId && this.selectedPathId === pathId) {
-                // Start dragging selected path. The grab point is recorded relative
-                // to the path's anchor so the first move translates by how far the
-                // cursor travelled, not by the gap between cursor and anchor
-                const anchor = this.paths.find((p) => p.id === pathId)?.points[0];
-                if (!anchor) return;
-
-                this.isDragging = true;
-                this.dragOffset = { x: param.point.x - anchor.x, y: param.point.y - anchor.y };
-                return;
-            }
-
-            if (pathId) {
-                // Select the path
-                this.selectedPathId = pathId;
-                this.draw();
-                return;
-            }
-
-            // Start new drawing
-            this.isDrawing = true;
-            this.selectedPathId = null;
-
-            const styles = getComputedStyle(document.documentElement);
-            const color = styles.getPropertyValue('--color-text-muted').trim() || '#ffffff';
-
-            this.currentPath = {
-                id: this.generateId(),
-                points: [
-                    {
-                        time: param.time,
-                        price: price,
-                        x: param.point.x,
-                        y: param.point.y,
-                    },
-                ],
-                color: color,
-                lineWidth: this.defaultLineWidth,
-                locked: false,
-            };
-        };
-
-        // Mouse move adds points while drawing or moves path while dragging
-        this.moveHandler = (param: MouseEventParams<Time>) => {
-            if (!param.point || !param.time) return;
-
-            const price = this.getPriceFromY(param.point.y);
-            if (price === null || price === undefined) return;
-
-            if (this.isDrawing && this.currentPath) {
-                // Add point to current path
-                this.currentPath.points.push({
-                    time: param.time,
-                    price: price,
-                    x: param.point.x,
-                    y: param.point.y,
-                });
-                this.draw();
-            } else if (this.isDragging && this.selectedPathId && this.dragOffset) {
-                // Move entire path
-                const offset = this.dragOffset;
-                const path = this.paths.find((p) => p.id === this.selectedPathId);
-                const firstPoint = path?.points[0];
-                if (path && firstPoint && !path.locked) {
-                    const deltaX = param.point.x - offset.x - firstPoint.x;
-                    const deltaY = param.point.y - offset.y - firstPoint.y;
-
-                    // Update all points in the path
-                    path.points = path.points.map((point) => ({
-                        ...point,
-                        time: this.getTimeFromX(point.x + deltaX) || point.time,
-                        price: this.getPriceFromY(point.y + deltaY) || point.price,
-                        x: point.x + deltaX,
-                        y: point.y + deltaY,
-                    }));
-
-                    this.draw();
-                }
-            }
-        };
-
-        // Mouse up finishes drawing or dragging
-        this.mouseUpHandler = () => {
-            if (this.isDrawing && this.currentPath) {
-                if (this.currentPath.points.length > 1) {
-                    // Only save if we have more than one point
-                    this.paths.push(this.currentPath);
-                    this.selectedPathId = null; // Don't keep it selected after creation
-                    this.triggerChange(); // Trigger auto-save
-                }
-                this.currentPath = null;
-                this.isDrawing = false;
-                this.draw();
-            }
-
-            if (this.isDragging) {
-                this.isDragging = false;
-                this.dragOffset = null;
-            }
-        };
-
-        // Subscribe to events
-        if (this.canvas) {
-            this.canvas.style.pointerEvents = 'auto'; // Enable mouse events on canvas
-            this.canvas.addEventListener('mousedown', this.handleCanvasMouseDown);
-            this.canvas.addEventListener('mousemove', this.handleCanvasMouseMove);
-            this.canvas.addEventListener('mouseup', this.handleCanvasMouseUp);
-            this.canvas.addEventListener('mouseleave', this.handleCanvasMouseLeave);
-        }
-
-        this.chart.subscribeCrosshairMove(this.moveHandler);
+        // Freehand is the one tool that needs the raw pointer: the chart only
+        // reports discrete clicks and crosshair moves, and a stroke is a drag.
+        // Taking the events means the overlay has to stop being transparent to
+        // them for as long as the tool is up.
+        this.canvas.style.pointerEvents = 'auto';
+        this.canvas.addEventListener('mousedown', this.handlePointerDown);
+        this.canvas.addEventListener('mousemove', this.handlePointerMove);
+        this.canvas.addEventListener('mouseup', this.handlePointerUp);
+        this.canvas.addEventListener('mouseleave', this.handlePointerUp);
     }
-
-    // Canvas event handlers that convert to chart coordinates
-    private handleCanvasMouseDown = (e: MouseEvent) => {
-        const rect = this.canvas?.getBoundingClientRect();
-        if (!rect) return;
-
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const time = this.getTimeFromX(x);
-        const price = this.getPriceFromY(y);
-
-        if (this.mouseDownHandler && time !== null && price !== null) {
-            this.mouseDownHandler({
-                time: time,
-                point: { x, y },
-                seriesData: new Map(),
-            } as MouseEventParams<Time>);
-        }
-    };
-
-    private handleCanvasMouseMove = (e: MouseEvent) => {
-        const rect = this.canvas?.getBoundingClientRect();
-        if (!rect) return;
-
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const time = this.getTimeFromX(x);
-        const price = this.getPriceFromY(y);
-
-        if (this.moveHandler && time !== null && price !== null) {
-            this.moveHandler({
-                time: time,
-                point: { x, y },
-                seriesData: new Map(),
-            } as MouseEventParams<Time>);
-        }
-    };
-
-    private handleCanvasMouseUp = () => {
-        if (this.mouseUpHandler) {
-            this.mouseUpHandler();
-        }
-    };
-
-    private handleCanvasMouseLeave = () => {
-        // Treat leaving canvas as mouse up
-        if (this.isDrawing || this.isDragging) {
-            this.handleCanvasMouseUp();
-        }
-    };
 
     public deactivate(): void {
         if (!this.isActive) return;
 
         this.isActive = false;
-        this.isDrawing = false;
-        this.isDragging = false;
         this.currentPath = null;
-        this.dragOffset = null;
+        this.dragFrom = null;
 
-        if (this.canvas) {
-            this.canvas.style.pointerEvents = 'none';
-            this.canvas.removeEventListener('mousedown', this.handleCanvasMouseDown);
-            this.canvas.removeEventListener('mousemove', this.handleCanvasMouseMove);
-            this.canvas.removeEventListener('mouseup', this.handleCanvasMouseUp);
-            this.canvas.removeEventListener('mouseleave', this.handleCanvasMouseLeave);
-        }
+        if (this.canvas === null) return;
 
-        if (this.moveHandler) {
-            this.chart.unsubscribeCrosshairMove(this.moveHandler);
-            this.moveHandler = null;
-        }
-
-        this.mouseDownHandler = null;
-        this.mouseUpHandler = null;
+        this.canvas.style.pointerEvents = 'none';
+        this.canvas.removeEventListener('mousedown', this.handlePointerDown);
+        this.canvas.removeEventListener('mousemove', this.handlePointerMove);
+        this.canvas.removeEventListener('mouseup', this.handlePointerUp);
+        this.canvas.removeEventListener('mouseleave', this.handlePointerUp);
     }
 
     public toggle(): void {
@@ -415,142 +122,12 @@ export class FreehandManager {
     }
 
     public removeSelectedPath(): void {
-        if (this.selectedPathId) {
-            this.paths = this.paths.filter((p) => p.id !== this.selectedPathId);
-            this.selectedPathId = null;
-            this.draw();
-            this.triggerChange(); // Trigger auto-save
-        }
-    }
+        if (this.selectedPathId === null) return;
 
-    public removeAllPaths(): void {
-        this.paths = [];
+        this.paths = this.paths.filter((path) => path.id !== this.selectedPathId);
         this.selectedPathId = null;
-        this.currentPath = null;
         this.draw();
-        this.triggerChange(); // Trigger auto-save
-    }
-
-    private generateId(): string {
-        return `freehand_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    }
-
-    private hitTestPath(x: number, y: number): string | null {
-        const tolerance = 8; // Pixels
-
-        for (const path of this.paths) {
-            this.updatePathCoordinates(path);
-
-            // Check if click is near any segment of the path
-            for (let i = 0; i < path.points.length - 1; i++) {
-                const p1 = path.points[i];
-                const p2 = path.points[i + 1];
-                if (p1 === undefined || p2 === undefined) continue;
-
-                const distance = this.pointToSegmentDistance(x, y, p1.x, p1.y, p2.x, p2.y);
-                if (distance <= tolerance) {
-                    return path.id;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private pointToSegmentDistance(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
-        const dx = x2 - x1;
-        const dy = y2 - y1;
-        const lengthSquared = dx * dx + dy * dy;
-
-        if (lengthSquared === 0) {
-            // Segment is a point
-            return Math.sqrt((px - x1) * (px - x1) + (py - y1) * (py - y1));
-        }
-
-        // Calculate projection parameter
-        let t = ((px - x1) * dx + (py - y1) * dy) / lengthSquared;
-        t = Math.max(0, Math.min(1, t));
-
-        // Find closest point on segment
-        const closestX = x1 + t * dx;
-        const closestY = y1 + t * dy;
-
-        // Return distance to closest point
-        return Math.sqrt((px - closestX) * (px - closestX) + (py - closestY) * (py - closestY));
-    }
-
-    private updatePathCoordinates(path: FreehandPath): void {
-        path.points.forEach((point) => {
-            const x = this.getXFromTime(point.time);
-            const y = this.getYFromPrice(point.price);
-
-            if (x !== null) point.x = x;
-            if (y !== null) point.y = y;
-        });
-    }
-
-    private clear(): void {
-        if (!this.ctx || !this.canvas) return;
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    }
-
-    public draw(): void {
-        this.clear();
-        if (!this.ctx) return;
-
-        // Draw all paths
-        for (const path of this.paths) {
-            this.updatePathCoordinates(path);
-            const isSelected = path.id === this.selectedPathId;
-            this.drawPath(path, isSelected);
-        }
-
-        // Draw current path being drawn
-        if (this.isDrawing && this.currentPath && this.currentPath.points.length > 0) {
-            this.drawPath(this.currentPath, false);
-        }
-    }
-
-    private drawPath(path: FreehandPath, isSelected: boolean): void {
-        if (!this.ctx || path.points.length < 2) return;
-
-        const ctx = this.ctx;
-        const styles = getComputedStyle(document.documentElement);
-        const color = styles.getPropertyValue('--color-text-muted').trim() || path.color;
-
-        ctx.beginPath();
-        ctx.strokeStyle = color;
-        ctx.lineWidth = path.lineWidth;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        // Move to first point
-        const [start, ...rest] = path.points;
-        if (start === undefined) return;
-
-        ctx.moveTo(start.x, start.y);
-
-        // Draw lines through all points
-        for (const point of rest) {
-            ctx.lineTo(point.x, point.y);
-        }
-
-        ctx.stroke();
-
-        // If selected AND actively dragging, draw small circles at endpoints
-        if (isSelected && this.isDragging) {
-            ctx.fillStyle = color;
-            const firstPoint = start;
-            const lastPoint = path.points[path.points.length - 1] ?? start;
-
-            ctx.beginPath();
-            ctx.arc(firstPoint.x, firstPoint.y, 3, 0, 2 * Math.PI);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(lastPoint.x, lastPoint.y, 3, 0, 2 * Math.PI);
-            ctx.fill();
-        }
+        this.notifyChange();
     }
 
     public getPaths(): FreehandPath[] {
@@ -562,33 +139,302 @@ export class FreehandManager {
         this.draw();
     }
 
+    public draw(): void {
+        this.clear();
+        if (this.ctx === null) return;
+
+        for (const path of this.paths) {
+            this.updatePathCoordinates(path);
+            this.drawPath(path);
+        }
+
+        // The stroke under the pointer right now
+        if (this.currentPath !== null) this.drawPath(this.currentPath);
+    }
+
     public destroy(): void {
         this.deactivate();
 
-        if (this.visibleRangeChangeHandler) {
-            this.chart.timeScale().unsubscribeVisibleLogicalRangeChange(this.visibleRangeChangeHandler);
-            this.visibleRangeChangeHandler = null;
-        }
+        this.chart.timeScale().unsubscribeVisibleLogicalRangeChange(this.handleVisibleRangeChange);
+        this.chart.unsubscribeClick(this.handleGlobalClick);
+        document.removeEventListener('keydown', this.handleKeyDown);
+        window.removeEventListener('resize', this.handleResize);
 
-        // Remove global click handler
-        if (this.globalClickHandler) {
-            this.chart.unsubscribeClick(this.globalClickHandler);
-            this.globalClickHandler = null;
-        }
-
-        // Remove keyboard handler
-        if (this.keyDownHandler) {
-            document.removeEventListener('keydown', this.keyDownHandler);
-            this.keyDownHandler = null;
-        }
-
-        if (this.canvas && this.canvas.parentElement) {
-            this.canvas.parentElement.removeChild(this.canvas);
-        }
+        this.canvas?.parentElement?.removeChild(this.canvas);
 
         this.canvas = null;
         this.ctx = null;
         this.paths = [];
         this.selectedPathId = null;
     }
+
+    // The handlers are arrow properties so that `this` survives being handed to
+    // addEventListener and to the chart's own subscriptions, and so that the
+    // reference passed to remove is the one that was added
+    private handleVisibleRangeChange = (): void => {
+        this.draw();
+    };
+
+    private handleResize = (): void => {
+        this.resizeCanvas();
+    };
+
+    /**
+     * Clicking a stroke picks it up even when another tool is in front, which
+     * is the only way to reach one without first hunting for the right toolbar
+     * button.
+     */
+    private handleGlobalClick = (param: MouseEventParams<Time>): void => {
+        if (this.isActive || param.point === undefined) return;
+
+        const pathId = this.hitTestPath(param.point);
+        if (pathId === null) return;
+
+        this.selectedPathId = pathId;
+        this.draw();
+        this.onActivateCallback?.();
+    };
+
+    private handleKeyDown = (event: KeyboardEvent): void => {
+        if (event.key !== 'Backspace' && event.key !== 'Delete') return;
+
+        // Not while the caret is in a field — there the key means "erase a
+        // character"
+        const target = event.target as HTMLElement;
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+            return;
+        }
+
+        if (this.selectedPathId !== null) {
+            event.preventDefault(); // Backspace would otherwise navigate back
+            this.removeSelectedPath();
+        }
+    };
+
+    private handlePointerDown = (event: MouseEvent): void => {
+        const pointer = this.readCanvasPointer(event);
+        if (pointer === null) return;
+
+        const pathId = this.hitTestPath(pointer);
+
+        // A second press on an already-selected stroke moves it; the first only
+        // selects, so that drawing over an existing stroke stays possible
+        if (pathId !== null && pathId === this.selectedPathId) {
+            this.dragFrom = pointer;
+            return;
+        }
+
+        if (pathId !== null) {
+            this.selectedPathId = pathId;
+            this.draw();
+            return;
+        }
+
+        const start = this.readPoint(pointer);
+        if (start === null) return;
+
+        this.selectedPathId = null;
+        this.currentPath = {
+            id: generatePathId(),
+            points: [start],
+            color: getThemeColor('--color-text-muted'),
+            lineWidth: DEFAULT_LINE_WIDTH,
+            locked: false,
+        };
+    };
+
+    private handlePointerMove = (event: MouseEvent): void => {
+        const pointer = this.readCanvasPointer(event);
+        if (pointer === null) return;
+
+        if (this.currentPath !== null) {
+            const point = this.readPoint(pointer);
+            if (point === null) return;
+
+            this.currentPath.points.push(point);
+            this.draw();
+            return;
+        }
+
+        if (this.dragFrom !== null) this.movePath(pointer);
+    };
+
+    private handlePointerUp = (): void => {
+        this.dragFrom = null;
+
+        const path = this.currentPath;
+        this.currentPath = null;
+        if (path === null) return;
+
+        if (path.points.length >= MIN_PATH_POINTS) {
+            this.paths.push(path);
+
+            // Left unselected, so the next press starts a new stroke rather
+            // than grabbing the one just drawn
+            this.selectedPathId = null;
+            this.notifyChange();
+        }
+
+        this.draw();
+    };
+
+    private setupCanvas(): void {
+        // An overlay canvas below the boxes' own
+        const chartContainer = this.chart.chartElement();
+
+        this.canvas = document.createElement('canvas');
+        this.canvas.style.position = 'absolute';
+        this.canvas.style.top = '0';
+        this.canvas.style.left = '0';
+        this.canvas.style.pointerEvents = 'none';
+        this.canvas.style.zIndex = '97';
+
+        chartContainer.appendChild(this.canvas);
+        this.ctx = this.canvas.getContext('2d');
+
+        this.resizeCanvas();
+        window.addEventListener('resize', this.handleResize);
+    }
+
+    private resizeCanvas(): void {
+        const chartContainer = this.canvas?.parentElement;
+        if (this.canvas === null || chartContainer === null || chartContainer === undefined) return;
+
+        const rect = chartContainer.getBoundingClientRect();
+        this.canvas.width = rect.width * window.devicePixelRatio;
+        this.canvas.height = rect.height * window.devicePixelRatio;
+        this.canvas.style.width = `${rect.width}px`;
+        this.canvas.style.height = `${rect.height}px`;
+
+        this.ctx?.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+        this.draw();
+    }
+
+    /** Where on the overlay canvas a raw mouse event landed. */
+    private readCanvasPointer(event: MouseEvent): CanvasPoint | null {
+        const rect = this.canvas?.getBoundingClientRect();
+        if (rect === undefined) return null;
+
+        return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    }
+
+    /**
+     * Anchors a canvas position to the bar and price under it, which is what a
+     * stroke is stored as — pixels mean nothing once the chart pans.
+     */
+    private readPoint(pointer: CanvasPoint): FreehandPoint | null {
+        const time = this.chart.timeScale().coordinateToTime(pointer.x);
+        const price = this.mainSeries.coordinateToPrice(pointer.y);
+        if (time === null || price === null) return null;
+
+        return { time, price, x: pointer.x, y: pointer.y };
+    }
+
+    /** Translates the selected stroke by how far the pointer moved this frame. */
+    private movePath(pointer: CanvasPoint): void {
+        const from = this.dragFrom;
+        if (from === null) return;
+
+        this.dragFrom = pointer;
+
+        const path = this.paths.find((candidate) => candidate.id === this.selectedPathId);
+        if (path === undefined || path.locked) return;
+
+        const deltaX = pointer.x - from.x;
+        const deltaY = pointer.y - from.y;
+
+        path.points = path.points.map((point) => {
+            // A point dragged past the edge of a scale has no bar and no price
+            // to be stored against, so it stays where it was
+            const moved = this.readPoint({ x: point.x + deltaX, y: point.y + deltaY });
+            return moved ?? point;
+        });
+
+        this.draw();
+        this.notifyChange();
+    }
+
+    private hitTestPath(pointer: CanvasPoint): string | null {
+        for (const path of this.paths) {
+            this.updatePathCoordinates(path);
+
+            for (let i = 0; i < path.points.length - 1; i++) {
+                const from = path.points[i];
+                const to = path.points[i + 1];
+                if (from === undefined || to === undefined) continue;
+
+                if (distanceToSegment(pointer, from, to) <= PATH_HIT_TOLERANCE) return path.id;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Re-derives a stroke's pixels from the times and prices it is stored in,
+     * which the chart invalidates on every pan and every scale change.
+     */
+    private updatePathCoordinates(path: FreehandPath): void {
+        const timeScale = this.chart.timeScale();
+
+        for (const point of path.points) {
+            const left = timeScale.timeToCoordinate(point.time);
+            const top = this.mainSeries.priceToCoordinate(point.price);
+
+            // A point scrolled off a scale keeps its last coordinate rather
+            // than collapsing the stroke onto the axis
+            if (left !== null) point.x = left;
+            if (top !== null) point.y = top;
+        }
+    }
+
+    private clear(): void {
+        if (this.ctx === null || this.canvas === null) return;
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    private drawPath(path: FreehandPath): void {
+        const ctx = this.ctx;
+        const [start, ...rest] = path.points;
+        if (ctx === null || start === undefined || rest.length === 0) return;
+
+        // The stored colour is deliberately not read: a stroke follows whichever
+        // theme is on now, so one drawn in a dark theme is still legible in a
+        // light one
+        const color = getThemeColor('--color-text-muted');
+
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = path.lineWidth;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        ctx.moveTo(start.x, start.y);
+        for (const point of rest) {
+            ctx.lineTo(point.x, point.y);
+        }
+        ctx.stroke();
+
+        // Endpoint dots only while the stroke is actually being moved — they
+        // are a grab affordance, not decoration
+        if (path.id !== this.selectedPathId || this.dragFrom === null) return;
+
+        const end = rest[rest.length - 1] ?? start;
+        ctx.fillStyle = color;
+
+        for (const point of [start, end]) {
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, ENDPOINT_DOT_RADIUS, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+    }
+
+    private notifyChange(): void {
+        this.onChangeCallback?.();
+    }
+}
+
+function generatePathId(): string {
+    return `freehand_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }

@@ -29,7 +29,7 @@ export type PaneRendererLineDataBase<TItem extends LineItemBase = LineItemBase> 
     visibleRange: SeriesItemsIndexesRange | null;
 
     pointMarkersRadius?: number | undefined;
-}
+};
 
 function finishStyledArea(
     scope: BitmapCoordinatesRenderingScope,
@@ -72,10 +72,10 @@ export abstract class PaneRendererLineBase<
         const styleGetter = this._strokeStyle.bind(this);
 
         if (lineType !== undefined) {
-            walkLine(renderingScope, items, lineType, visibleRange, barWidth, styleGetter, finishStyledArea);
+            walkLine(renderingScope, { items, lineType, visibleRange, barWidth }, styleGetter, finishStyledArea);
         }
 
-        if (pointMarkersRadius) {
+        if (pointMarkersRadius !== undefined && pointMarkersRadius > 0) {
             drawSeriesPointMarkers(renderingScope, items, pointMarkersRadius, visibleRange, styleGetter);
         }
     }

@@ -1,5 +1,5 @@
 import { lowerBound } from '@/lib/lightweight-charts/helpers/algorithms';
-import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
 import { type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
 import { clamp } from '@/lib/lightweight-charts/helpers/mathex';
@@ -41,7 +41,7 @@ type Constants = (typeof Constants)[keyof typeof Constants];
 type TransitionState = {
     barSpacing: number;
     rightOffset: number;
-}
+};
 
 /**
  * Represents a tick mark on the horizontal (time) scale.
@@ -55,7 +55,7 @@ export type TimeMark = {
     label: string;
     /** Weight of the time mark */
     weight: TickMarkWeightValue;
-}
+};
 
 export function markWithGreaterWeight(a: TimeMark, b: TimeMark): TimeMark {
     return a.weight > b.weight ? a : b;
@@ -207,7 +207,7 @@ export type HorzScaleOptions = {
      * @defaultValue true
      */
     allowBoldLabels: boolean;
-}
+};
 
 export type ITimeScale = {
     marks(): TimeMark[] | null;
@@ -217,7 +217,8 @@ export type ITimeScale = {
     indexToCoordinate(index: TimePointIndex): Coordinate;
     visibleStrictRange(): RangeImpl<TimePointIndex> | null;
     hasPoints(): boolean;
-    timeToIndex(time: InternalHorzScaleItem, findNearest: boolean): TimePointIndex | null;
+    timeToIndex(time: InternalHorzScaleItem): TimePointIndex | null;
+    timeToNearestIndex(time: InternalHorzScaleItem): TimePointIndex | null;
 
     barSpacing(): number;
     rightOffset(): number;
@@ -228,12 +229,15 @@ export type ITimeScale = {
     coordinateToIndex(x: Coordinate): TimePointIndex;
 
     options(): Readonly<HorzScaleOptions>;
-}
+};
 
-export class TimeScale<HorzScaleItem> implements ITimeScale {
+/** Where a time landed in the bar list, and whether a bar sits on it exactly. */
+type IndexSearch = { index: TimePointIndex; exact: boolean };
+
+export class TimeScale<THorzScaleItem> implements ITimeScale {
     private readonly _options: HorzScaleOptions;
-    private readonly _model: ChartModel<HorzScaleItem>;
-    private readonly _localizationOptions: LocalizationOptions<HorzScaleItem>;
+    private readonly _model: ChartModel<THorzScaleItem>;
+    private readonly _localizationOptions: LocalizationOptions<THorzScaleItem>;
 
     private _width = 0;
     private _baseIndexOrNull: TimePointIndex | null = null;
@@ -243,7 +247,7 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
     private _scrollStartPoint: Coordinate | null = null;
     private _scaleStartPoint: Coordinate | null = null;
     private readonly _tickMarks: TickMarks = new TickMarks();
-    private _formattedByWeight = new Map<number, FormattedLabelsCache<HorzScaleItem>>();
+    private _formattedByWeight = new Map<number, FormattedLabelsCache<THorzScaleItem>>();
 
     private _visibleRange: TimeScaleVisibleRange = TimeScaleVisibleRange.invalid();
     private _visibleRangeInvalidated = true;
@@ -257,13 +261,13 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
 
     private _labels: TimeMark[] = [];
 
-    private readonly _horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>;
+    private readonly _horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>;
 
     public constructor(
-        model: ChartModel<HorzScaleItem>,
+        model: ChartModel<THorzScaleItem>,
         options: HorzScaleOptions,
-        localizationOptions: LocalizationOptions<HorzScaleItem>,
-        horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>,
+        localizationOptions: LocalizationOptions<THorzScaleItem>,
+        horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>,
     ) {
         this._options = options;
         this._localizationOptions = localizationOptions;
@@ -282,7 +286,7 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
         return this._options;
     }
 
-    public applyLocalizationOptions(localizationOptions: DeepPartial<LocalizationOptions<HorzScaleItem>>): void {
+    public applyLocalizationOptions(localizationOptions: DeepPartial<LocalizationOptions<THorzScaleItem>>): void {
         merge(this._localizationOptions, localizationOptions);
 
         this._invalidateTickMarks();
@@ -291,7 +295,7 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
 
     public applyOptions(
         options: DeepPartial<HorzScaleOptions>,
-        _localizationOptions?: DeepPartial<LocalizationOptions<HorzScaleItem>>,
+        _localizationOptions?: DeepPartial<LocalizationOptions<THorzScaleItem>>,
     ): void {
         merge(this._options, options);
 
@@ -332,7 +336,22 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
         return this._points[index] ?? null;
     }
 
-    public timeToIndex(time: InternalHorzScaleItem, findNearest: boolean): TimePointIndex | null {
+    /** The index of the bar sitting at exactly this time, or `null` if none is. */
+    public timeToIndex(time: InternalHorzScaleItem): TimePointIndex | null {
+        const found = this._searchIndex(time);
+        return found !== null && found.exact ? found.index : null;
+    }
+
+    /**
+     * The index of the bar at this time, or of the first one after it — and of
+     * the last bar when the time is past the end of the data. `null` only when
+     * there are no bars at all.
+     */
+    public timeToNearestIndex(time: InternalHorzScaleItem): TimePointIndex | null {
+        return this._searchIndex(time)?.index ?? null;
+    }
+
+    private _searchIndex(time: InternalHorzScaleItem): IndexSearch | null {
         if (this._points.length < 1) {
             // no time points available
             return null;
@@ -343,8 +362,9 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
             lastPoint !== undefined &&
             this._horzScaleBehavior.key(time) > this._horzScaleBehavior.key(lastPoint.time)
         ) {
-            // special case
-            return findNearest ? ((this._points.length - 1) as TimePointIndex) : null;
+            // Past the end of the data: the last bar is the nearest one, and
+            // nothing sits on the time itself
+            return { index: (this._points.length - 1) as TimePointIndex, exact: false };
         }
 
         const index = lowerBound(
@@ -353,15 +373,14 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
             (a: TimeScalePoint, b: InternalHorzScaleItemKey) => this._horzScaleBehavior.key(a.time) < b,
         );
 
+        // lowerBound lands on the first bar at or after `time`, so it is an
+        // exact hit only when that bar's own time is not later
         const pointAtIndex = this._points[index];
-        if (
-            pointAtIndex === undefined ||
-            this._horzScaleBehavior.key(time) < this._horzScaleBehavior.key(pointAtIndex.time)
-        ) {
-            return findNearest ? (index as TimePointIndex) : null;
-        }
+        const exact =
+            pointAtIndex !== undefined &&
+            this._horzScaleBehavior.key(time) >= this._horzScaleBehavior.key(pointAtIndex.time);
 
-        return index as TimePointIndex;
+        return { index: index as TimePointIndex, exact };
     }
 
     public isEmpty(): boolean {
@@ -401,19 +420,19 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
         const from = Math.round(range.from);
         const to = Math.round(range.to);
 
-        const firstIndex = ensureNotNull(this._firstIndex());
-        const lastIndex = ensureNotNull(this._lastIndex());
+        const firstIndex = getNotNull(this._firstIndex());
+        const lastIndex = getNotNull(this._lastIndex());
 
         return {
-            from: ensureNotNull(this.indexToTimeScalePoint(Math.max(firstIndex, from) as TimePointIndex)),
-            to: ensureNotNull(this.indexToTimeScalePoint(Math.min(lastIndex, to) as TimePointIndex)),
+            from: getNotNull(this.indexToTimeScalePoint(Math.max(firstIndex, from) as TimePointIndex)),
+            to: getNotNull(this.indexToTimeScalePoint(Math.min(lastIndex, to) as TimePointIndex)),
         };
     }
 
     public logicalRangeForTimeRange(range: Range<InternalHorzScaleItem>): LogicalRange {
         return {
-            from: ensureNotNull(this.timeToIndex(range.from, true)) as number as Logical,
-            to: ensureNotNull(this.timeToIndex(range.to, true)) as number as Logical,
+            from: getNotNull(this.timeToNearestIndex(range.from)) as number as Logical,
+            to: getNotNull(this.timeToNearestIndex(range.to)) as number as Logical,
         };
     }
 
@@ -536,10 +555,10 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
         const pixelsPer8Characters = (fontSize + 4) * 5;
         const pixelsPerCharacter = pixelsPer8Characters / defaultTickMarkMaxCharacterLength;
         const maxLabelWidth =
-            pixelsPerCharacter * (this._options.tickMarkMaxCharacterLength || defaultTickMarkMaxCharacterLength);
+            pixelsPerCharacter * (this._options.tickMarkMaxCharacterLength ?? defaultTickMarkMaxCharacterLength);
         const indexPerLabel = Math.round(maxLabelWidth / spacing);
 
-        const visibleBars = ensureNotNull(this.visibleStrictRange());
+        const visibleBars = getNotNull(this.visibleStrictRange());
 
         const firstBar = Math.max(visibleBars.left(), visibleBars.left() - indexPerLabel);
         const lastBar = Math.max(visibleBars.right(), visibleBars.right() - indexPerLabel);
@@ -552,7 +571,7 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
         // according to indexPerLabel value this value means "earliest index which _might be_ used as the second last label on time scale"
         const indexOfSecondLastLabel = (this._lastIndex() as number) - indexPerLabel;
 
-        const isAllScalingAndScrollingDisabled = this._isAllScalingAndScrollingDisabled();
+        const isAllScalingAndScrollingDisabled = this._isInteractionDisabled();
         const isLeftEdgeFixed = this._options.fixLeftEdge || isAllScalingAndScrollingDisabled;
         const isRightEdgeFixed = this._options.fixRightEdge || isAllScalingAndScrollingDisabled;
 
@@ -639,7 +658,7 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
     }
 
     public startScale(x: Coordinate): void {
-        if (this._scrollStartPoint) {
+        if (this._scrollStartPoint !== null) {
             this.endScroll();
         }
 
@@ -661,7 +680,7 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
         }
 
         const startLengthFromRight = clamp(this._width - x, 0, this._width);
-        const currentLengthFromRight = clamp(this._width - ensureNotNull(this._scaleStartPoint), 0, this._width);
+        const currentLengthFromRight = clamp(this._width - getNotNull(this._scaleStartPoint), 0, this._width);
         if (startLengthFromRight === 0 || currentLengthFromRight === 0) {
             return;
         }
@@ -699,7 +718,7 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
         }
 
         const shiftInLogical = (this._scrollStartPoint - x) / this.barSpacing();
-        this._rightOffset = ensureNotNull(this._commonTransitionStartState).rightOffset + shiftInLogical;
+        this._rightOffset = getNotNull(this._commonTransitionStartState).rightOffset + shiftInLogical;
         this._visibleRangeInvalidated = true;
 
         // do not allow scroll out of visible bars
@@ -735,8 +754,8 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
         const animationStart = performance.now();
 
         this._model.setTimeScaleAnimation({
-            finished: (time: number) => (time - animationStart) / animationDuration >= 1,
-            getPosition: (time: number) => {
+            finished: (time: number): boolean => (time - animationStart) / animationDuration >= 1,
+            getPosition: (time: number): number => {
                 const animationProgress = (time - animationStart) / animationDuration;
                 const finishAnimation = animationProgress >= 1;
                 return finishAnimation ? offset : source + (offset - source) * animationProgress;
@@ -769,7 +788,7 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
         // so in methods which should known whether it is set or not
         // we should check field `_baseIndexOrNull` instead of getter `baseIndex()`
         // see minRightOffset for example
-        return this._baseIndexOrNull || (0 as TimePointIndex);
+        return this._baseIndexOrNull ?? (0 as TimePointIndex);
     }
 
     public setVisibleRange(range: RangeImpl<TimePointIndex>): void {
@@ -799,13 +818,13 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
 
     public formatDateTime(timeScalePoint: TimeScalePoint): string {
         if (this._localizationOptions.timeFormatter !== undefined) {
-            return this._localizationOptions.timeFormatter(timeScalePoint.originalTime as HorzScaleItem);
+            return this._localizationOptions.timeFormatter(timeScalePoint.originalTime as THorzScaleItem);
         }
 
         return this._horzScaleBehavior.formatHorzItem(timeScalePoint.time);
     }
 
-    private _isAllScalingAndScrollingDisabled(): boolean {
+    private _isInteractionDisabled(): boolean {
         const { handleScroll, handleScale } = this._model.options();
         return (
             !handleScroll.horzTouchDrag &&
@@ -953,7 +972,7 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
     private _formatLabel(tickMark: TickMark): string {
         let formatter = this._formattedByWeight.get(tickMark.weight);
         if (formatter === undefined) {
-            formatter = new FormattedLabelsCache((mark: TickMark) => {
+            formatter = new FormattedLabelsCache((mark: TickMark): string => {
                 return this._formatLabelImpl(mark);
             }, this._horzScaleBehavior);
 
@@ -979,7 +998,7 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
             this._logicalRangeChanged.fire();
         }
 
-        // TODO: reset only coords in case when this._visibleBars has not been changed
+        // Upstream note: could reset only the coordinates when _visibleBars is unchanged
         this._resetTimeMarksCache();
     }
 

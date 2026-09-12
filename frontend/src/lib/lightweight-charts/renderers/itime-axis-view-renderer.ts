@@ -13,8 +13,8 @@ export type TimeAxisViewRendererOptions = {
     paddingHorizontal: number;
     widthCache: TextWidthCache;
     labelBottomOffset: number;
-}
+};
 
 export type ITimeAxisViewRenderer = {
     draw(target: CanvasRenderingTarget2D, rendererOptions: TimeAxisViewRendererOptions): void;
-}
+};

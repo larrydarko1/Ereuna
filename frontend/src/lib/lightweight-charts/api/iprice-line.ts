@@ -25,4 +25,4 @@ export type IPriceLine = {
      * Get the currently applied options.
      */
     options(): Readonly<PriceLineOptions>;
-}
+};

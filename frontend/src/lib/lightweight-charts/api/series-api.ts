@@ -1,6 +1,6 @@
 import { type IPriceFormatter } from '@/lib/lightweight-charts/formatters/iprice-formatter';
 
-import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
 import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
 import { clone, merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
@@ -52,27 +52,27 @@ import { PriceLine } from '@/lib/lightweight-charts/api/price-line-api';
 
 export class SeriesApi<
     TSeriesType extends SeriesType,
-    HorzScaleItem,
-    TData extends WhitespaceData<HorzScaleItem> = SeriesDataItemTypeMap<HorzScaleItem>[TSeriesType],
+    THorzScaleItem,
+    TData extends WhitespaceData<THorzScaleItem> = SeriesDataItemTypeMap<THorzScaleItem>[TSeriesType],
     TOptions extends SeriesOptionsMap[TSeriesType] = SeriesOptionsMap[TSeriesType],
     TPartialOptions extends SeriesPartialOptionsMap[TSeriesType] = SeriesPartialOptionsMap[TSeriesType],
 >
-    implements ISeriesApi<TSeriesType, HorzScaleItem, TData, TOptions, TPartialOptions>, IDestroyable
+    implements ISeriesApi<TSeriesType, THorzScaleItem, TData, TOptions, TPartialOptions>, IDestroyable
 {
     protected _series: Series<TSeriesType>;
-    protected _dataUpdatesConsumer: DataUpdatesConsumer<TSeriesType, HorzScaleItem>;
-    protected readonly _chartApi: IChartApiBase<HorzScaleItem>;
+    protected _dataUpdatesConsumer: DataUpdatesConsumer<TSeriesType, THorzScaleItem>;
+    protected readonly _chartApi: IChartApiBase<THorzScaleItem>;
 
-    private readonly _priceScaleApiProvider: IPriceScaleApiProvider<HorzScaleItem>;
-    private readonly _horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>;
+    private readonly _priceScaleApiProvider: IPriceScaleApiProvider<THorzScaleItem>;
+    private readonly _horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>;
     private readonly _dataChangedDelegate = new Delegate<DataChangedScope>();
 
     public constructor(
         series: Series<TSeriesType>,
-        dataUpdatesConsumer: DataUpdatesConsumer<TSeriesType, HorzScaleItem>,
-        priceScaleApiProvider: IPriceScaleApiProvider<HorzScaleItem>,
-        chartApi: IChartApiBase<HorzScaleItem>,
-        horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>,
+        dataUpdatesConsumer: DataUpdatesConsumer<TSeriesType, THorzScaleItem>,
+        priceScaleApiProvider: IPriceScaleApiProvider<THorzScaleItem>,
+        chartApi: IChartApiBase<THorzScaleItem>,
+        horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>,
     ) {
         this._series = series;
         this._dataUpdatesConsumer = dataUpdatesConsumer;
@@ -106,7 +106,7 @@ export class SeriesApi<
         return this._series.priceScale().coordinateToPrice(coordinate as Coordinate, firstValue.value);
     }
 
-    public barsInLogicalRange(range: Range<number> | null): BarsInfo<HorzScaleItem> | null {
+    public barsInLogicalRange(range: Range<number> | null): BarsInfo<THorzScaleItem> | null {
         if (range === null) {
             return null;
         }
@@ -124,8 +124,8 @@ export class SeriesApi<
         const dataFirstBarInRange = bars.search(correctedRange.left(), MismatchDirection.NearestRight);
         const dataLastBarInRange = bars.search(correctedRange.right(), MismatchDirection.NearestLeft);
 
-        const dataFirstIndex = ensureNotNull(bars.firstIndex());
-        const dataLastIndex = ensureNotNull(bars.lastIndex());
+        const dataFirstIndex = getNotNull(bars.firstIndex());
+        const dataLastIndex = getNotNull(bars.lastIndex());
 
         // this means that we request data in the data gap
         // e.g. let's say we have series with data [0..10, 30..60]
@@ -152,12 +152,12 @@ export class SeriesApi<
                 ? dataLastIndex - range.to
                 : dataLastIndex - dataLastBarInRange.index;
 
-        const result: BarsInfo<HorzScaleItem> = { barsBefore, barsAfter };
+        const result: BarsInfo<THorzScaleItem> = { barsBefore, barsAfter };
 
         // actually they can't exist separately
         if (dataFirstBarInRange !== null && dataLastBarInRange !== null) {
-            result.from = dataFirstBarInRange.originalTime as HorzScaleItem;
-            result.to = dataLastBarInRange.originalTime as HorzScaleItem;
+            result.from = dataFirstBarInRange.originalTime as THorzScaleItem;
+            result.to = dataLastBarInRange.originalTime as THorzScaleItem;
         }
 
         return result;
@@ -185,7 +185,7 @@ export class SeriesApi<
             return null;
         }
 
-        const creator = getSeriesDataCreator<TSeriesType, HorzScaleItem>(this.seriesType());
+        const creator = getSeriesDataCreator<TSeriesType, THorzScaleItem>(this.seriesType());
         return creator(data) as TData | null;
     }
 
@@ -203,11 +203,11 @@ export class SeriesApi<
         this._dataChangedDelegate.unsubscribe(handler);
     }
 
-    public setMarkers(data: SeriesMarker<HorzScaleItem>[]): void {
+    public setMarkers(data: SeriesMarker<THorzScaleItem>[]): void {
         checkItemsAreOrdered(data, this._horzScaleBehavior, true);
 
-        const convertedMarkers = data.map((marker: SeriesMarker<HorzScaleItem>) =>
-            convertSeriesMarker<HorzScaleItem, InternalHorzScaleItem>(
+        const convertedMarkers = data.map((marker: SeriesMarker<THorzScaleItem>) =>
+            convertSeriesMarker<THorzScaleItem, InternalHorzScaleItem>(
                 marker,
                 this._horzScaleBehavior.convertHorzItemToInternal(marker.time),
                 marker.time,
@@ -216,13 +216,13 @@ export class SeriesApi<
         this._series.setMarkers(convertedMarkers);
     }
 
-    public markers(): SeriesMarker<HorzScaleItem>[] {
+    public markers(): SeriesMarker<THorzScaleItem>[] {
         return this._series
             .markers()
-            .map<SeriesMarker<HorzScaleItem>>((internalItem: SeriesMarker<InternalHorzScaleItem>) => {
-                return convertSeriesMarker<InternalHorzScaleItem, HorzScaleItem>(
+            .map<SeriesMarker<THorzScaleItem>>((internalItem: SeriesMarker<InternalHorzScaleItem>) => {
+                return convertSeriesMarker<InternalHorzScaleItem, THorzScaleItem>(
                     internalItem,
-                    internalItem.originalTime as HorzScaleItem,
+                    internalItem.originalTime as THorzScaleItem,
                     undefined,
                 );
             });
@@ -256,22 +256,22 @@ export class SeriesApi<
         return this._series.seriesType();
     }
 
-    public attachPrimitive(primitive: ISeriesPrimitive<HorzScaleItem>): void {
+    public attachPrimitive(primitive: ISeriesPrimitive<THorzScaleItem>): void {
         // at this point we cast the generic to unknown because we
         // don't want the model to know the types of the API (◑_◑)
         this._series.attachPrimitive(primitive);
-        if (primitive.attached) {
+        if (primitive.attached !== undefined) {
             primitive.attached({
                 chart: this._chartApi,
                 series: this,
-                requestUpdate: () => this._series.model().fullUpdate(),
+                requestUpdate: (): void => this._series.model().fullUpdate(),
             });
         }
     }
 
-    public detachPrimitive(primitive: ISeriesPrimitive<HorzScaleItem>): void {
+    public detachPrimitive(primitive: ISeriesPrimitive<THorzScaleItem>): void {
         this._series.detachPrimitive(primitive);
-        if (primitive.detached) {
+        if (primitive.detached !== undefined) {
             primitive.detached();
         }
     }

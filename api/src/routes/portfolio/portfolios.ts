@@ -22,21 +22,23 @@ import { tradeInputSchema, toTradeInput } from '@/routes/portfolio/trades.js';
 
 const numberParam = z.object({ number: portfolioNumberSchema });
 
-const baseValueBody = z.object({ baseValue: z.number().finite().nonnegative().max(1e12) });
-const leverageBody = z.object({ leverage: z.number().finite().min(1).max(config.limits.maxLeverage) });
+const baseValueBody = z.object({ baseValue: z.number().nonnegative().max(1e12) });
+const leverageBody = z.object({ leverage: z.number().min(1).max(config.limits.maxLeverage) });
 const commissionBody = z.object({
-    commission: z.number().finite().nonnegative().max(config.limits.maxCommission),
+    commission: z.number().nonnegative().max(config.limits.maxCommission),
 });
 const benchmarksBody = z.object({ symbols: z.array(symbolSchema).max(config.limits.benchmarksPerPortfolio) });
 
 const extremeSchema = z.object({
     ticker: z.string().max(32),
-    amount: z.number().finite(),
+    amount: z.number(),
     tradeCount: z.number().int().nonnegative(),
 });
 
-const finite = z.number().finite();
-const nullableFinite = z.number().finite().nullable();
+// `z.number()` already rejects Infinity and NaN in Zod 4 — `.finite()` there is
+// a documented no-op, so these names say what the schema does, not what it calls
+const finite = z.number();
+const nullableFinite = z.number().nullable();
 
 const statsSchema = z.object({
     realizedPL: finite,
@@ -85,9 +87,9 @@ const importBody = z.object({
     trades: z.array(tradeInputSchema).max(config.limits.importRows),
     portfolio: z
         .object({
-            baseValue: z.number().finite().nonnegative().max(1e12).optional(),
-            leverage: z.number().finite().min(1).max(config.limits.maxLeverage).optional(),
-            defaultCommission: z.number().finite().nonnegative().max(config.limits.maxCommission).optional(),
+            baseValue: z.number().nonnegative().max(1e12).optional(),
+            leverage: z.number().min(1).max(config.limits.maxLeverage).optional(),
+            defaultCommission: z.number().nonnegative().max(config.limits.maxCommission).optional(),
             benchmarks: z.array(symbolSchema).max(config.limits.benchmarksPerPortfolio).optional(),
             stats: statsSchema.nullish(),
             valueHistory: valueHistorySchema.optional(),

@@ -11,7 +11,7 @@ export type LastPriceCircleRendererData = {
     seriesLineColor: string;
     seriesLineWidth: number;
     center: Point;
-}
+};
 
 export class SeriesLastPriceAnimationRenderer extends BitmapCoordinatesPaneRenderer {
     private _data: LastPriceCircleRendererData | null = null;
@@ -42,7 +42,7 @@ export class SeriesLastPriceAnimationRenderer extends BitmapCoordinatesPaneRende
 
         ctx.fillStyle = data.seriesLineColor;
         ctx.beginPath();
-        // TODO: it is better to have different horizontal and vertical radii
+        // Upstream note: horizontal and vertical radii would be better kept apart
         const centerPointRadius = Math.max(2, data.seriesLineWidth * 1.5) * horizontalPixelRatio;
         ctx.arc(centerX, centerY, centerPointRadius, 0, 2 * Math.PI, false);
         ctx.fill();

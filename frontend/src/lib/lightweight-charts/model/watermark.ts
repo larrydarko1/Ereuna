@@ -63,7 +63,7 @@ export type WatermarkOptions = {
      * @defaultValue `'center'`
      */
     vertAlign: VertAlign;
-}
+};
 
 export class Watermark extends DataSource {
     private readonly _paneView: WatermarkPaneView;

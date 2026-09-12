@@ -1,11 +1,19 @@
-import { type IChartApi, type MouseEventParams, type Time } from '@/lib/lightweight-charts/index';
+import {
+    type IChartApi,
+    type ISeriesApi,
+    type MouseEventParams,
+    type SeriesType,
+    type Time,
+} from '@/lib/lightweight-charts/index';
+import { type CanvasPoint, distanceToSegment } from '@/lib/lightweight-charts/geometry';
+import { getThemeColor } from '@/lib/lightweight-charts/theme-color';
 
 export type TrendLinePoint = {
     time: Time;
     price: number;
     x: number;
     y: number;
-}
+};
 
 export type TrendLine = {
     id: string;
@@ -15,12 +23,31 @@ export type TrendLine = {
     lineWidth: number;
     lineStyle: 'solid' | 'dashed' | 'dotted';
     locked: boolean;
-    extended: boolean; // Whether to extend the line beyond the two points
-}
+    extended: boolean; // Drawn out to the canvas edges rather than stopping at the two points
+};
+
+type DragTarget = { lineId: string; pointIndex: 1 | 2 };
+
+const DEFAULT_LINE_WIDTH = 1;
+
+// How close a click has to land to grab an endpoint, and to select the line itself
+const POINT_HIT_RADIUS = 8;
+const LINE_HIT_DISTANCE = 6;
+const CONTROL_POINT_RADIUS = 5;
+
+const DASH_PATTERNS: Record<TrendLine['lineStyle'], number[]> = {
+    solid: [],
+    dashed: [8, 4],
+    dotted: [2, 3],
+};
+
+// The half-drawn line carries an id no real line can collide with, so it never
+// matches the selection and never picks up the selected styling
+const PREVIEW_LINE_ID = 'preview';
 
 export class TrendLineManager {
     private chart: IChartApi;
-    private mainSeries: any = null;
+    private mainSeries: ISeriesApi<SeriesType>;
     private canvas: HTMLCanvasElement | null = null;
     private ctx: CanvasRenderingContext2D | null = null;
     private isActive = false;
@@ -30,164 +57,36 @@ export class TrendLineManager {
         point2: null,
     };
     private selectedLineId: string | null = null;
-    private isDragging = false;
-    private dragTarget: { lineId: string; pointIndex: 1 | 2 } | null = null;
-    private clickHandler: ((param: MouseEventParams<Time>) => void) | null = null;
-    private moveHandler: ((param: MouseEventParams<Time>) => void) | null = null;
-    private defaultColor = '#2962FF';
-    private defaultLineWidth = 1;
-    private visibleRangeChangeHandler: (() => void) | null = null;
+
+    // A drag is in flight exactly while this is set — there is no separate flag
+    // to fall out of step with it
+    private dragTarget: DragTarget | null = null;
     private onChangeCallback: (() => void) | null = null;
     private onActivateCallback: (() => void) | null = null;
-    private globalClickHandler: ((param: MouseEventParams<Time>) => void) | null = null;
-    private keyDownHandler: ((event: KeyboardEvent) => void) | null = null;
 
-    constructor(chart: IChartApi, mainSeries?: any) {
+    constructor(chart: IChartApi, mainSeries: ISeriesApi<SeriesType>) {
         this.chart = chart;
         this.mainSeries = mainSeries;
+
         this.setupCanvas();
-        this.subscribeToChartEvents();
+        this.chart.timeScale().subscribeVisibleLogicalRangeChange(this.handleVisibleRangeChange);
 
-        // Always listen for clicks to detect trendline selection
-        this.setupGlobalClickListener();
-
-        // Always listen for keyboard events (for deletion)
-        this.keyDownHandler = this.handleKeyDown.bind(this);
-        document.addEventListener('keydown', this.keyDownHandler);
+        // Selecting a line and deleting it both work whether or not the tool is
+        // the active one, so these two listeners outlive activate/deactivate
+        this.chart.subscribeClick(this.handleGlobalClick);
+        document.addEventListener('keydown', this.handleKeyDown);
     }
 
-    /**
-     * Set callback to be called when drawings change
-     */
     public onChange(callback: () => void): void {
         this.onChangeCallback = callback;
     }
 
     /**
-     * Set callback to be called when tool should be auto-activated
+     * Registers the callback that asks the toolbar to switch to this tool,
+     * which is what clicking an existing line does.
      */
     public onActivate(callback: () => void): void {
         this.onActivateCallback = callback;
-    }
-
-    /**
-     * Trigger onChange callback if set
-     */
-    private triggerChange(): void {
-        if (this.onChangeCallback) {
-            this.onChangeCallback();
-        }
-    }
-
-    private subscribeToChartEvents(): void {
-        // Subscribe to visible range changes (pan/zoom)
-        this.visibleRangeChangeHandler = () => {
-            this.draw();
-        };
-        this.chart.timeScale().subscribeVisibleLogicalRangeChange(this.visibleRangeChangeHandler);
-    }
-
-    private setupGlobalClickListener(): void {
-        // This handler is always active to detect clicks on trendlines
-        this.globalClickHandler = (param: MouseEventParams<Time>) => {
-            if (this.isActive) return; // Don't interfere when tool is already active
-            if (!param.point) return;
-
-            // Check if clicking on an existing line
-            const lineHit = this.hitTestLine(param.point.x, param.point.y);
-            if (lineHit) {
-                this.selectedLineId = lineHit;
-                this.draw();
-                // Auto-activate the tool
-                if (this.onActivateCallback) {
-                    this.onActivateCallback();
-                }
-            }
-        };
-        this.chart.subscribeClick(this.globalClickHandler);
-    }
-
-    private handleKeyDown(event: KeyboardEvent): void {
-        // Check if Backspace or Delete key was pressed
-        if (event.key === 'Backspace' || event.key === 'Delete') {
-            // Don't delete if user is typing in an input field
-            const target = event.target as HTMLElement;
-            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-                return;
-            }
-
-            // Delete the selected line if there is one
-            if (this.selectedLineId) {
-                event.preventDefault();
-                this.removeSelectedLine();
-            }
-        }
-    }
-
-    public setMainSeries(series: any): void {
-        this.mainSeries = series;
-    }
-
-    private setupCanvas(): void {
-        const chartContainer = (this.chart as any).chartElement?.() || document.querySelector('#wk-chart');
-        if (!chartContainer) return;
-
-        this.canvas = document.createElement('canvas');
-        this.canvas.style.position = 'absolute';
-        this.canvas.style.top = '0';
-        this.canvas.style.left = '0';
-        this.canvas.style.pointerEvents = 'none';
-        this.canvas.style.zIndex = '99';
-
-        chartContainer.appendChild(this.canvas);
-        this.ctx = this.canvas.getContext('2d');
-
-        this.resizeCanvas();
-        window.addEventListener('resize', () => this.resizeCanvas());
-    }
-
-    private resizeCanvas(): void {
-        if (!this.canvas) return;
-        const chartContainer = this.canvas.parentElement;
-        if (!chartContainer) return;
-
-        const rect = chartContainer.getBoundingClientRect();
-        this.canvas.width = rect.width * window.devicePixelRatio;
-        this.canvas.height = rect.height * window.devicePixelRatio;
-        this.canvas.style.width = `${rect.width}px`;
-        this.canvas.style.height = `${rect.height}px`;
-
-        if (this.ctx) {
-            this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-        }
-
-        this.draw();
-    }
-
-    private getPriceFromY(y: number): number | null {
-        if (!this.mainSeries) return null;
-        try {
-            return this.mainSeries.coordinateToPrice(y);
-        } catch (e) {
-            return null;
-        }
-    }
-
-    private getYFromPrice(price: number): number | null {
-        if (!this.mainSeries) return null;
-        try {
-            return this.mainSeries.priceToCoordinate(price);
-        } catch (e) {
-            return null;
-        }
-    }
-
-    private getXFromTime(time: Time): number | null {
-        try {
-            return this.chart.timeScale().timeToCoordinate(time);
-        } catch (e) {
-            return null;
-        }
     }
 
     public activate(): void {
@@ -196,116 +95,8 @@ export class TrendLineManager {
         this.isActive = true;
         this.currentLine = { point1: null, point2: null };
 
-        this.clickHandler = (param: MouseEventParams<Time>) => {
-            if (!param.point || !param.time) return;
-
-            const price = this.getPriceFromY(param.point.y);
-            if (price === null || price === undefined) return;
-
-            // If we're currently dragging, stop dragging on this click
-            if (this.isDragging) {
-                this.isDragging = false;
-                this.dragTarget = null;
-                this.draw();
-                return;
-            }
-
-            // Check if clicking near an existing line's endpoint to start dragging
-            const hitTest = this.hitTestPoint(param.point.x, param.point.y);
-            if (hitTest) {
-                this.dragTarget = hitTest;
-                this.isDragging = true;
-                this.selectedLineId = hitTest.lineId;
-                this.draw();
-                return;
-            }
-
-            // Check if clicking on an existing line to select it
-            const lineHit = this.hitTestLine(param.point.x, param.point.y);
-            if (lineHit) {
-                this.selectedLineId = lineHit;
-                this.draw();
-                return;
-            }
-
-            // Otherwise, we're drawing a new line
-            if (!this.currentLine.point1) {
-                // First click: Set first point
-                this.currentLine.point1 = {
-                    time: param.time,
-                    price: price,
-                    x: param.point.x,
-                    y: param.point.y,
-                };
-                this.selectedLineId = null;
-            } else {
-                // Second click: Set second point and create the line
-                this.currentLine.point2 = {
-                    time: param.time,
-                    price: price,
-                    x: param.point.x,
-                    y: param.point.y,
-                };
-
-                // Create the trendline with theme-aware color
-                const styles = getComputedStyle(document.documentElement);
-                const themeColor = styles.getPropertyValue('--color-text-muted').trim() || this.defaultColor;
-
-                const newLine: TrendLine = {
-                    id: this.generateId(),
-                    point1: { ...this.currentLine.point1 },
-                    point2: { ...this.currentLine.point2 },
-                    color: themeColor,
-                    lineWidth: this.defaultLineWidth,
-                    lineStyle: 'solid',
-                    locked: false,
-                    extended: false,
-                };
-                this.trendLines.push(newLine);
-                this.currentLine = { point1: null, point2: null };
-                this.selectedLineId = null; // Don't keep it selected after creation
-                this.triggerChange(); // Trigger auto-save
-            }
-
-            this.draw();
-        };
-
-        this.moveHandler = (param: MouseEventParams<Time>) => {
-            if (!param.point || !param.time) return;
-
-            const price = this.getPriceFromY(param.point.y);
-            if (price === null || price === undefined) return;
-
-            // If dragging a point, update it
-            if (this.isDragging && this.dragTarget) {
-                const line = this.trendLines.find((l) => l.id === this.dragTarget!.lineId);
-                if (line && !line.locked) {
-                    const pointKey = this.dragTarget.pointIndex === 1 ? 'point1' : 'point2';
-                    line[pointKey] = {
-                        time: param.time,
-                        price: price,
-                        x: param.point.x,
-                        y: param.point.y,
-                    };
-                    this.draw();
-                }
-                return;
-            }
-
-            // If drawing a new line, track the second point (preview)
-            if (this.currentLine.point1) {
-                this.currentLine.point2 = {
-                    time: param.time,
-                    price: price,
-                    x: param.point.x,
-                    y: param.point.y,
-                };
-                this.draw();
-            }
-        };
-
-        this.chart.subscribeClick(this.clickHandler);
-        this.chart.subscribeCrosshairMove(this.moveHandler);
+        this.chart.subscribeClick(this.handleClick);
+        this.chart.subscribeCrosshairMove(this.handleCrosshairMove);
     }
 
     public deactivate(): void {
@@ -313,18 +104,10 @@ export class TrendLineManager {
 
         this.isActive = false;
         this.currentLine = { point1: null, point2: null };
-        this.isDragging = false;
         this.dragTarget = null;
 
-        if (this.clickHandler) {
-            this.chart.unsubscribeClick(this.clickHandler);
-            this.clickHandler = null;
-        }
-
-        if (this.moveHandler) {
-            this.chart.unsubscribeCrosshairMove(this.moveHandler);
-            this.moveHandler = null;
-        }
+        this.chart.unsubscribeClick(this.handleClick);
+        this.chart.unsubscribeCrosshairMove(this.handleCrosshairMove);
     }
 
     public toggle(): void {
@@ -340,264 +123,12 @@ export class TrendLineManager {
     }
 
     public removeSelectedLine(): void {
-        if (this.selectedLineId) {
-            this.trendLines = this.trendLines.filter((l) => l.id !== this.selectedLineId);
-            this.selectedLineId = null;
-            this.draw();
-            this.triggerChange(); // Trigger auto-save
-        }
-    }
+        if (this.selectedLineId === null) return;
 
-    public removeAllLines(): void {
-        this.trendLines = [];
+        this.trendLines = this.trendLines.filter((line) => line.id !== this.selectedLineId);
         this.selectedLineId = null;
-        this.currentLine = { point1: null, point2: null };
         this.draw();
-        this.triggerChange(); // Trigger auto-save
-    }
-
-    public updateSelectedLineColor(color: string): void {
-        if (this.selectedLineId) {
-            const line = this.trendLines.find((l) => l.id === this.selectedLineId);
-            if (line) {
-                line.color = color;
-                this.draw();
-            }
-        }
-    }
-
-    public toggleSelectedLineExtension(): void {
-        if (this.selectedLineId) {
-            const line = this.trendLines.find((l) => l.id === this.selectedLineId);
-            if (line) {
-                line.extended = !line.extended;
-                this.draw();
-            }
-        }
-    }
-
-    public setDefaultColor(color: string): void {
-        this.defaultColor = color;
-    }
-
-    private generateId(): string {
-        return `tl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    }
-
-    private hitTestPoint(x: number, y: number): { lineId: string; pointIndex: 1 | 2 } | null {
-        const hitRadius = 8; // pixels
-
-        for (const line of this.trendLines) {
-            if (line.locked) continue;
-
-            // Update coordinates based on current chart state
-            this.updateLineCoordinates(line);
-
-            const dist1 = Math.sqrt(Math.pow(line.point1.x - x, 2) + Math.pow(line.point1.y - y, 2));
-            if (dist1 <= hitRadius) {
-                return { lineId: line.id, pointIndex: 1 };
-            }
-
-            const dist2 = Math.sqrt(Math.pow(line.point2.x - x, 2) + Math.pow(line.point2.y - y, 2));
-            if (dist2 <= hitRadius) {
-                return { lineId: line.id, pointIndex: 2 };
-            }
-        }
-
-        return null;
-    }
-
-    private hitTestLine(x: number, y: number): string | null {
-        const hitDistance = 6; // pixels
-
-        for (const line of this.trendLines) {
-            // Update coordinates based on current chart state
-            this.updateLineCoordinates(line);
-
-            const distance = this.distanceToLine(x, y, line.point1.x, line.point1.y, line.point2.x, line.point2.y);
-
-            if (distance <= hitDistance) {
-                return line.id;
-            }
-        }
-
-        return null;
-    }
-
-    private distanceToLine(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
-        const A = px - x1;
-        const B = py - y1;
-        const C = x2 - x1;
-        const D = y2 - y1;
-
-        const dot = A * C + B * D;
-        const lenSq = C * C + D * D;
-        let param = -1;
-
-        if (lenSq !== 0) {
-            param = dot / lenSq;
-        }
-
-        let xx, yy;
-
-        if (param < 0) {
-            xx = x1;
-            yy = y1;
-        } else if (param > 1) {
-            xx = x2;
-            yy = y2;
-        } else {
-            xx = x1 + param * C;
-            yy = y1 + param * D;
-        }
-
-        const dx = px - xx;
-        const dy = py - yy;
-
-        return Math.sqrt(dx * dx + dy * dy);
-    }
-
-    private updateLineCoordinates(line: TrendLine): void {
-        // Update x,y coordinates based on current time/price values
-        const x1 = this.getXFromTime(line.point1.time);
-        const y1 = this.getYFromPrice(line.point1.price);
-        const x2 = this.getXFromTime(line.point2.time);
-        const y2 = this.getYFromPrice(line.point2.price);
-
-        if (x1 !== null) line.point1.x = x1;
-        if (y1 !== null) line.point1.y = y1;
-        if (x2 !== null) line.point2.x = x2;
-        if (y2 !== null) line.point2.y = y2;
-    }
-
-    private clear(): void {
-        if (!this.ctx || !this.canvas) return;
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    }
-
-    public draw(): void {
-        this.clear();
-        if (!this.ctx) return;
-
-        for (const line of this.trendLines) {
-            // Update coordinates
-            this.updateLineCoordinates(line);
-
-            const isSelected = line.id === this.selectedLineId;
-            this.drawTrendLine(line, isSelected);
-        }
-
-        // Draw the line being created
-        if (this.currentLine.point1 && this.currentLine.point2) {
-            // Get theme color for temporary line
-            const styles = getComputedStyle(document.documentElement);
-            const themeColor = styles.getPropertyValue('--color-text-muted').trim() || this.defaultColor;
-
-            const tempLine: TrendLine = {
-                id: 'temp',
-                point1: this.currentLine.point1,
-                point2: this.currentLine.point2,
-                color: themeColor,
-                lineWidth: this.defaultLineWidth,
-                lineStyle: 'dashed',
-                locked: false,
-                extended: false,
-            };
-            this.drawTrendLine(tempLine, false);
-        }
-    }
-
-    private drawTrendLine(line: TrendLine, isSelected: boolean): void {
-        if (!this.ctx || !this.canvas) return;
-
-        const ctx = this.ctx;
-        const { point1, point2, color, lineWidth, lineStyle, extended } = line;
-
-        // Get CSS variable for theming (use --text2 as neutral color)
-        const styles = getComputedStyle(document.documentElement);
-        const themeColor = styles.getPropertyValue('--color-text-muted').trim() || color;
-
-        // Set line style
-        ctx.strokeStyle = themeColor;
-        ctx.lineWidth = isSelected ? lineWidth + 1 : lineWidth;
-
-        // Set dash pattern
-        switch (lineStyle) {
-            case 'dashed':
-                ctx.setLineDash([8, 4]);
-                break;
-            case 'dotted':
-                ctx.setLineDash([2, 3]);
-                break;
-            default:
-                ctx.setLineDash([]);
-        }
-
-        // Draw the line
-        ctx.beginPath();
-
-        if (extended && this.canvas) {
-            // Calculate extended line points
-            const dx = point2.x - point1.x;
-            const dy = point2.y - point1.y;
-            const length = Math.sqrt(dx * dx + dy * dy);
-
-            if (length > 0) {
-                const unitX = dx / length;
-                const unitY = dy / length;
-
-                // Extend to canvas edges
-                const canvasWidth = this.canvas.width / window.devicePixelRatio;
-                const canvasHeight = this.canvas.height / window.devicePixelRatio;
-                const extension = Math.max(canvasWidth, canvasHeight) * 2;
-
-                const startX = point1.x - unitX * extension;
-                const startY = point1.y - unitY * extension;
-                const endX = point2.x + unitX * extension;
-                const endY = point2.y + unitY * extension;
-
-                ctx.moveTo(startX, startY);
-                ctx.lineTo(endX, endY);
-            }
-        } else {
-            ctx.moveTo(point1.x, point1.y);
-            ctx.lineTo(point2.x, point2.y);
-        }
-
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Draw control points only if selected AND actively being dragged/edited
-        if (isSelected && !line.locked && this.isDragging) {
-            this.drawControlPoint(point1.x, point1.y, color);
-            this.drawControlPoint(point2.x, point2.y, color);
-        }
-    }
-
-    private drawControlPoint(x: number, y: number, color: string): void {
-        if (!this.ctx) return;
-
-        const ctx = this.ctx;
-        const radius = 5;
-
-        // Get CSS variable for theming
-        const styles = getComputedStyle(document.documentElement);
-        const themeColor = styles.getPropertyValue('--color-text-muted').trim() || color;
-
-        // Outer circle
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, 2 * Math.PI);
-        ctx.fillStyle = themeColor;
-        ctx.fill();
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // Inner circle
-        ctx.beginPath();
-        ctx.arc(x, y, radius - 2, 0, 2 * Math.PI);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fill();
+        this.notifyChange();
     }
 
     public getTrendLines(): TrendLine[] {
@@ -609,30 +140,363 @@ export class TrendLineManager {
         this.draw();
     }
 
+    public draw(): void {
+        this.clear();
+        if (this.ctx === null) return;
+
+        for (const line of this.trendLines) {
+            this.updateLineCoordinates(line);
+            this.drawTrendLine(line);
+        }
+
+        // The line being drawn right now, following the pointer
+        const { point1, point2 } = this.currentLine;
+        if (point1 === null || point2 === null) return;
+
+        this.drawTrendLine({
+            id: PREVIEW_LINE_ID,
+            point1,
+            point2,
+            color: getThemeColor('--color-text-muted'),
+            lineWidth: DEFAULT_LINE_WIDTH,
+            lineStyle: 'dashed', // Dashed while it is still provisional
+            locked: false,
+            extended: false,
+        });
+    }
+
     public destroy(): void {
         this.deactivate();
 
-        // Unsubscribe from visible range changes
-        if (this.visibleRangeChangeHandler) {
-            this.chart.timeScale().unsubscribeVisibleLogicalRangeChange(this.visibleRangeChangeHandler);
-            this.visibleRangeChangeHandler = null;
-        }
+        this.chart.timeScale().unsubscribeVisibleLogicalRangeChange(this.handleVisibleRangeChange);
+        this.chart.unsubscribeClick(this.handleGlobalClick);
+        document.removeEventListener('keydown', this.handleKeyDown);
+        window.removeEventListener('resize', this.handleResize);
 
-        // Remove global click handler
-        if (this.globalClickHandler) {
-            this.chart.unsubscribeClick(this.globalClickHandler);
-            this.globalClickHandler = null;
-        }
+        this.canvas?.parentElement?.removeChild(this.canvas);
 
-        // Remove keyboard handler
-        if (this.keyDownHandler) {
-            document.removeEventListener('keydown', this.keyDownHandler);
-            this.keyDownHandler = null;
-        }
-
-        if (this.canvas && this.canvas.parentElement) {
-            this.canvas.parentElement.removeChild(this.canvas);
-        }
-        window.removeEventListener('resize', () => this.resizeCanvas());
+        this.canvas = null;
+        this.ctx = null;
     }
+
+    // The handlers are arrow properties so that `this` survives being handed to
+    // addEventListener and to the chart's own subscriptions, and so that the
+    // reference passed to unsubscribe is the one that was subscribed
+    private handleVisibleRangeChange = (): void => {
+        this.draw();
+    };
+
+    private handleResize = (): void => {
+        this.resizeCanvas();
+    };
+
+    /**
+     * Clicking a line picks it up even when another tool is in front, which is
+     * the only way to reach one without first hunting for the right toolbar
+     * button.
+     */
+    private handleGlobalClick = (param: MouseEventParams<Time>): void => {
+        if (this.isActive || param.point === undefined) return;
+
+        const lineId = this.hitTestLine(param.point);
+        if (lineId === null) return;
+
+        this.selectedLineId = lineId;
+        this.draw();
+        this.onActivateCallback?.();
+    };
+
+    private handleKeyDown = (event: KeyboardEvent): void => {
+        if (event.key !== 'Backspace' && event.key !== 'Delete') return;
+
+        // Not while the caret is in a field — there the key means "erase a
+        // character"
+        const target = event.target as HTMLElement;
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+            return;
+        }
+
+        if (this.selectedLineId !== null) {
+            event.preventDefault(); // Backspace would otherwise navigate back
+            this.removeSelectedLine();
+        }
+    };
+
+    private handleClick = (param: MouseEventParams<Time>): void => {
+        const pointer = this.readPoint(param);
+        if (pointer === null) return;
+
+        // A click is also what ends a drag: the chart reports clicks and
+        // crosshair moves, never a mouseup
+        if (this.dragTarget !== null) {
+            this.dragTarget = null;
+            this.draw();
+            return;
+        }
+
+        const endpoint = this.hitTestPoint(pointer);
+        if (endpoint !== null) {
+            this.dragTarget = endpoint;
+            this.selectedLineId = endpoint.lineId;
+            this.draw();
+            return;
+        }
+
+        const lineId = this.hitTestLine(pointer);
+        if (lineId !== null) {
+            this.selectedLineId = lineId;
+            this.draw();
+            return;
+        }
+
+        this.placePoint(pointer);
+        this.draw();
+    };
+
+    private handleCrosshairMove = (param: MouseEventParams<Time>): void => {
+        const pointer = this.readPoint(param);
+        if (pointer === null) return;
+
+        if (this.dragTarget !== null) {
+            this.dragEndpoint(pointer);
+            return;
+        }
+
+        // Half-drawn: the far end follows the pointer as a preview
+        if (this.currentLine.point1 !== null) {
+            this.currentLine.point2 = pointer;
+            this.draw();
+        }
+    };
+
+    private setupCanvas(): void {
+        // An overlay canvas above the boxes' own
+        const chartContainer = this.chart.chartElement();
+
+        this.canvas = document.createElement('canvas');
+        this.canvas.style.position = 'absolute';
+        this.canvas.style.top = '0';
+        this.canvas.style.left = '0';
+        this.canvas.style.pointerEvents = 'none';
+        this.canvas.style.zIndex = '99';
+
+        chartContainer.appendChild(this.canvas);
+        this.ctx = this.canvas.getContext('2d');
+
+        this.resizeCanvas();
+        window.addEventListener('resize', this.handleResize);
+    }
+
+    private resizeCanvas(): void {
+        const chartContainer = this.canvas?.parentElement;
+        if (this.canvas === null || chartContainer === null || chartContainer === undefined) return;
+
+        const rect = chartContainer.getBoundingClientRect();
+        this.canvas.width = rect.width * window.devicePixelRatio;
+        this.canvas.height = rect.height * window.devicePixelRatio;
+        this.canvas.style.width = `${rect.width}px`;
+        this.canvas.style.height = `${rect.height}px`;
+
+        this.ctx?.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+        this.draw();
+    }
+
+    /**
+     * Turns a crosshair event into a point on the plot, or `null` when it did
+     * not land on one — off the edge there is no bar and no price.
+     */
+    private readPoint(param: MouseEventParams<Time>): TrendLinePoint | null {
+        if (param.point === undefined || param.time === undefined) return null;
+
+        const price = this.mainSeries.coordinateToPrice(param.point.y);
+        if (price === null) return null;
+
+        return { time: param.time, price, x: param.point.x, y: param.point.y };
+    }
+
+    /**
+     * A trendline is drawn in two clicks: the first pins one end, the second
+     * closes it.
+     */
+    private placePoint(pointer: TrendLinePoint): void {
+        if (this.currentLine.point1 === null) {
+            this.currentLine.point1 = pointer;
+            this.selectedLineId = null;
+            return;
+        }
+
+        this.trendLines.push({
+            id: generateLineId(),
+            point1: { ...this.currentLine.point1 },
+            point2: { ...pointer },
+            color: getThemeColor('--color-text-muted'),
+            lineWidth: DEFAULT_LINE_WIDTH,
+            lineStyle: 'solid',
+            locked: false,
+            extended: false,
+        });
+
+        this.currentLine = { point1: null, point2: null };
+
+        // Left unselected, so the next click starts a new line rather than
+        // grabbing the one just finished
+        this.selectedLineId = null;
+        this.notifyChange();
+    }
+
+    private dragEndpoint(pointer: TrendLinePoint): void {
+        const target = this.dragTarget;
+        if (target === null) return;
+
+        const line = this.trendLines.find((candidate) => candidate.id === target.lineId);
+        if (line === undefined || line.locked) return;
+
+        if (target.pointIndex === 1) {
+            line.point1 = pointer;
+        } else {
+            line.point2 = pointer;
+        }
+
+        this.draw();
+    }
+
+    private hitTestPoint(pointer: CanvasPoint): DragTarget | null {
+        for (const line of this.trendLines) {
+            if (line.locked) continue;
+
+            this.updateLineCoordinates(line);
+
+            if (Math.hypot(line.point1.x - pointer.x, line.point1.y - pointer.y) <= POINT_HIT_RADIUS) {
+                return { lineId: line.id, pointIndex: 1 };
+            }
+
+            if (Math.hypot(line.point2.x - pointer.x, line.point2.y - pointer.y) <= POINT_HIT_RADIUS) {
+                return { lineId: line.id, pointIndex: 2 };
+            }
+        }
+
+        return null;
+    }
+
+    private hitTestLine(pointer: CanvasPoint): string | null {
+        for (const line of this.trendLines) {
+            this.updateLineCoordinates(line);
+
+            if (distanceToSegment(pointer, line.point1, line.point2) <= LINE_HIT_DISTANCE) {
+                return line.id;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Re-derives a line's pixel endpoints from the time and price it is stored
+     * in, which the chart invalidates on every pan and every scale change.
+     */
+    private updateLineCoordinates(line: TrendLine): void {
+        const timeScale = this.chart.timeScale();
+        const x1 = timeScale.timeToCoordinate(line.point1.time);
+        const y1 = this.mainSeries.priceToCoordinate(line.point1.price);
+        const x2 = timeScale.timeToCoordinate(line.point2.time);
+        const y2 = this.mainSeries.priceToCoordinate(line.point2.price);
+
+        // An end scrolled off the scale keeps its last coordinate rather than
+        // collapsing the line onto the axis
+        if (x1 !== null) line.point1.x = x1;
+        if (y1 !== null) line.point1.y = y1;
+        if (x2 !== null) line.point2.x = x2;
+        if (y2 !== null) line.point2.y = y2;
+    }
+
+    private clear(): void {
+        if (this.ctx === null || this.canvas === null) return;
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    private drawTrendLine(line: TrendLine): void {
+        const ctx = this.ctx;
+        if (ctx === null) return;
+
+        // The stored colour is deliberately not read: a line follows whichever
+        // theme is on now, so one drawn in a dark theme is still legible in a
+        // light one
+        const themeColor = getThemeColor('--color-text-muted');
+        const isSelected = line.id === this.selectedLineId;
+
+        ctx.strokeStyle = themeColor;
+        ctx.lineWidth = isSelected ? line.lineWidth + 1 : line.lineWidth;
+        ctx.setLineDash(DASH_PATTERNS[line.lineStyle]);
+
+        const [start, end] = line.extended ? this.extendToEdges(line) : [line.point1, line.point2];
+
+        ctx.beginPath();
+        ctx.moveTo(start.x, start.y);
+        ctx.lineTo(end.x, end.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Handles only while the line is actually being edited — two dots on
+        // every selected line is noise
+        if (!isSelected || line.locked || this.dragTarget === null) return;
+
+        this.drawControlPoint(line.point1, themeColor);
+        this.drawControlPoint(line.point2, themeColor);
+    }
+
+    /**
+     * Walks an extended line's two ends out past the canvas in both directions,
+     * so the visible segment is the whole of what the viewport can show.
+     */
+    private extendToEdges(line: TrendLine): [CanvasPoint, CanvasPoint] {
+        const runX = line.point2.x - line.point1.x;
+        const runY = line.point2.y - line.point1.y;
+        const length = Math.hypot(runX, runY);
+
+        // Both ends on the same pixel give no direction to extend along
+        if (length === 0 || this.canvas === null) return [line.point1, line.point2];
+
+        const canvasWidth = this.canvas.width / window.devicePixelRatio;
+        const canvasHeight = this.canvas.height / window.devicePixelRatio;
+        const extension = Math.max(canvasWidth, canvasHeight) * 2;
+
+        const unitX = runX / length;
+        const unitY = runY / length;
+
+        return [
+            { x: line.point1.x - unitX * extension, y: line.point1.y - unitY * extension },
+            { x: line.point2.x + unitX * extension, y: line.point2.y + unitY * extension },
+        ];
+    }
+
+    private drawControlPoint(point: CanvasPoint, color: string): void {
+        const ctx = this.ctx;
+        if (ctx === null) return;
+
+        // The handle reads as a ring cut out of the chart, which only works if
+        // the middle is the chart's own background
+        const holeColor = getThemeColor('--color-bg');
+
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, CONTROL_POINT_RADIUS, 0, 2 * Math.PI);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = holeColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, CONTROL_POINT_RADIUS - 2, 0, 2 * Math.PI);
+        ctx.fillStyle = holeColor;
+        ctx.fill();
+    }
+
+    private notifyChange(): void {
+        this.onChangeCallback?.();
+    }
+}
+
+function generateLineId(): string {
+    return `tl_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }

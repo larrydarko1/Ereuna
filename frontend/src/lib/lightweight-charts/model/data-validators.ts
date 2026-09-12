@@ -1,4 +1,4 @@
-import { assert, ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
+import { assert, getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { isFulfilledData, type SeriesDataItemTypeMap } from '@/lib/lightweight-charts/model/data-consumer';
 import { type IHorzScaleBehavior } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
@@ -7,31 +7,22 @@ import { type SeriesMarker } from '@/lib/lightweight-charts/model/series-markers
 import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 
 export function checkPriceLineOptions(options: CreatePriceLineOptions): void {
-    if (process.env.NODE_ENV === 'production') {
-        return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/tslint/config
     assert(
         typeof options.price === 'number',
         `the type of 'price' price line's property must be a number, got '${typeof options.price}'`,
     );
 }
 
-export function checkItemsAreOrdered<HorzScaleItem>(
-    data: readonly (SeriesMarker<HorzScaleItem> | SeriesDataItemTypeMap<HorzScaleItem>[SeriesType])[],
-    bh: IHorzScaleBehavior<HorzScaleItem>,
+export function checkItemsAreOrdered<THorzScaleItem>(
+    data: readonly (SeriesMarker<THorzScaleItem> | SeriesDataItemTypeMap<THorzScaleItem>[SeriesType])[],
+    bh: IHorzScaleBehavior<THorzScaleItem>,
     allowDuplicates = false,
 ): void {
-    if (process.env.NODE_ENV === 'production') {
-        return;
-    }
-
     if (data.length === 0) {
         return;
     }
 
-    let prevTime = bh.key(ensureDefined(data[0]).time);
+    let prevTime = bh.key(getDefined(data[0]).time);
     for (let i = 1; i < data.length; ++i) {
         const item = data[i];
         if (item === undefined) continue;
@@ -43,20 +34,16 @@ export function checkItemsAreOrdered<HorzScaleItem>(
     }
 }
 
-export function checkSeriesValuesType<HorzScaleItem>(
+export function checkSeriesValuesType<THorzScaleItem>(
     type: SeriesType,
-    data: readonly SeriesDataItemTypeMap<HorzScaleItem>[SeriesType][],
+    data: readonly SeriesDataItemTypeMap<THorzScaleItem>[SeriesType][],
 ): void {
-    if (process.env.NODE_ENV === 'production') {
-        return;
-    }
-
-    data.forEach(getChecker<HorzScaleItem>(type));
+    data.forEach(getChecker<THorzScaleItem>(type));
 }
 
-type Checker<HorzScaleItem> = (item: SeriesDataItemTypeMap<HorzScaleItem>[SeriesType]) => void;
+type Checker<THorzScaleItem> = (item: SeriesDataItemTypeMap<THorzScaleItem>[SeriesType]) => void;
 
-export function getChecker<HorzScaleItem>(type: SeriesType): Checker<HorzScaleItem> {
+export function getChecker<THorzScaleItem>(type: SeriesType): Checker<THorzScaleItem> {
     switch (type) {
         case 'Bar':
         case 'Candlestick':
@@ -73,54 +60,49 @@ export function getChecker<HorzScaleItem>(type: SeriesType): Checker<HorzScaleIt
     }
 }
 
-function checkBarItem<HorzScaleItem>(
+function checkBarItem<THorzScaleItem>(
     type: 'Bar' | 'Candlestick',
-    barItem: SeriesDataItemTypeMap<HorzScaleItem>[typeof type],
+    barItem: SeriesDataItemTypeMap<THorzScaleItem>[typeof type],
 ): void {
     if (!isFulfilledData(barItem)) {
         return;
     }
 
     assert(
-        // eslint-disable-next-line @typescript-eslint/tslint/config
         typeof barItem.open === 'number',
         `${type} series item data value of open must be a number, got=${typeof barItem.open}, value=${barItem.open}`,
     );
     assert(
-        // eslint-disable-next-line @typescript-eslint/tslint/config
         typeof barItem.high === 'number',
         `${type} series item data value of high must be a number, got=${typeof barItem.high}, value=${barItem.high}`,
     );
     assert(
-        // eslint-disable-next-line @typescript-eslint/tslint/config
         typeof barItem.low === 'number',
         `${type} series item data value of low must be a number, got=${typeof barItem.low}, value=${barItem.low}`,
     );
     assert(
-        // eslint-disable-next-line @typescript-eslint/tslint/config
         typeof barItem.close === 'number',
         `${type} series item data value of close must be a number, got=${typeof barItem.close}, value=${barItem.close}`,
     );
 }
 
-function checkLineItem<HorzScaleItem>(
+function checkLineItem<THorzScaleItem>(
     type: 'Area' | 'Baseline' | 'Line' | 'Histogram',
-    lineItem: SeriesDataItemTypeMap<HorzScaleItem>[typeof type],
+    lineItem: SeriesDataItemTypeMap<THorzScaleItem>[typeof type],
 ): void {
     if (!isFulfilledData(lineItem)) {
         return;
     }
 
     assert(
-        // eslint-disable-next-line @typescript-eslint/tslint/config
         typeof lineItem.value === 'number',
         `${type} series item data value must be a number, got=${typeof lineItem.value}, value=${lineItem.value}`,
     );
 }
 
-function checkCustomItem<HorzScaleItem>(
+function checkCustomItem<THorzScaleItem>(
     _type: 'Custom',
-    _customItem: SeriesDataItemTypeMap<HorzScaleItem>['Custom'],
+    _customItem: SeriesDataItemTypeMap<THorzScaleItem>['Custom'],
 ): void {
     // Nothing to check yet...
     return;

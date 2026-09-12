@@ -22,24 +22,24 @@ export function drawSeriesPointMarkers<TItem extends LinePoint, TStyle extends C
     const radius = pointMarkersRadius * verticalPixelRatio + correction;
     for (let i = visibleRange.to - 1; i >= visibleRange.from; --i) {
         const point = items[i];
-        if (point) {
-            const style = styleGetter(renderingScope, point);
-            if (style !== prevStyle) {
-                context.beginPath();
-                if (prevStyle !== null) {
-                    context.fill();
-                }
+        if (point === undefined) continue;
 
-                context.fillStyle = style;
-                prevStyle = style;
-            }
+        // A marker in a new style starts a new path, so that the one built up
+        // so far is filled in the style it was drawn for
+        const style = styleGetter(renderingScope, point);
+        if (style !== prevStyle) {
+            if (prevStyle !== null) context.fill();
 
-            const centerX = Math.round(point.x * horizontalPixelRatio) + correction; // correct x coordinate only
-            const centerY = point.y * verticalPixelRatio;
-
-            context.moveTo(centerX, centerY);
-            context.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            context.beginPath();
+            context.fillStyle = style;
+            prevStyle = style;
         }
+
+        const centerX = Math.round(point.x * horizontalPixelRatio) + correction; // correct x coordinate only
+        const centerY = point.y * verticalPixelRatio;
+
+        context.moveTo(centerX, centerY);
+        context.arc(centerX, centerY, radius, 0, Math.PI * 2);
     }
 
     context.fill();

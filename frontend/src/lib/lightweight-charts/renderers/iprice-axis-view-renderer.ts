@@ -11,7 +11,7 @@ export type PriceAxisViewRendererCommonData = {
     fixedCoordinate?: number | undefined;
     additionalPaddingTop: number;
     additionalPaddingBottom: number;
-}
+};
 
 export type PriceAxisViewRendererData = {
     visible: boolean;
@@ -23,7 +23,7 @@ export type PriceAxisViewRendererData = {
     lineWidth?: LineWidth;
     borderVisible: boolean;
     separatorVisible: boolean;
-}
+};
 
 export type PriceAxisViewRendererOptions = {
     baselineOffset: number;
@@ -38,7 +38,7 @@ export type PriceAxisViewRendererOptions = {
     paddingOuter: number;
     paddingTop: number;
     tickLength: number;
-}
+};
 
 export type IPriceAxisViewRenderer = {
     draw(
@@ -48,9 +48,9 @@ export type IPriceAxisViewRenderer = {
         align: 'left' | 'right',
     ): void;
 
-    height(rendererOptions: PriceAxisViewRendererOptions, useSecondLine: boolean): number;
+    height(rendererOptions: PriceAxisViewRendererOptions): number;
     setData(data: PriceAxisViewRendererData, commonData: PriceAxisViewRendererCommonData): void;
-}
+};
 
 export type IPriceAxisViewRendererConstructor = new (
     data: PriceAxisViewRendererData,

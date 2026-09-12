@@ -1,6 +1,6 @@
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { type PriceMark } from '@/lib/lightweight-charts/model/price-scale';
 
@@ -9,7 +9,7 @@ import { type LineStyle, setLineStyle, strokeInPixel } from '@/lib/lightweight-c
 
 export type GridMarks = {
     coord: number;
-}
+};
 export type GridRendererData = {
     vertLinesVisible: boolean;
     vertLinesColor: string;
@@ -20,7 +20,7 @@ export type GridRendererData = {
     horzLinesColor: string;
     horzLineStyle: LineStyle;
     priceMarks: PriceMark[];
-}
+};
 
 export class GridRenderer extends BitmapCoordinatesPaneRenderer {
     private _data: GridRendererData | null = null;
@@ -43,15 +43,15 @@ export class GridRenderer extends BitmapCoordinatesPaneRenderer {
         ctx.lineWidth = lineWidth;
 
         strokeInPixel(ctx, () => {
-            const data = ensureNotNull(this._data);
+            const data = getNotNull(this._data);
             if (data.vertLinesVisible) {
                 ctx.strokeStyle = data.vertLinesColor;
                 setLineStyle(ctx, data.vertLineStyle);
                 ctx.beginPath();
                 for (const timeMark of data.timeMarks) {
-                    const x = Math.round(timeMark.coord * horizontalPixelRatio);
-                    ctx.moveTo(x, -lineWidth);
-                    ctx.lineTo(x, bitmapSize.height + lineWidth);
+                    const left = Math.round(timeMark.coord * horizontalPixelRatio);
+                    ctx.moveTo(left, -lineWidth);
+                    ctx.lineTo(left, bitmapSize.height + lineWidth);
                 }
                 ctx.stroke();
             }
@@ -60,9 +60,9 @@ export class GridRenderer extends BitmapCoordinatesPaneRenderer {
                 setLineStyle(ctx, data.horzLineStyle);
                 ctx.beginPath();
                 for (const priceMark of data.priceMarks) {
-                    const y = Math.round(priceMark.coord * verticalPixelRatio);
-                    ctx.moveTo(-lineWidth, y);
-                    ctx.lineTo(bitmapSize.width + lineWidth, y);
+                    const top = Math.round(priceMark.coord * verticalPixelRatio);
+                    ctx.moveTo(-lineWidth, top);
+                    ctx.lineTo(bitmapSize.width + lineWidth, top);
                 }
                 ctx.stroke();
             }

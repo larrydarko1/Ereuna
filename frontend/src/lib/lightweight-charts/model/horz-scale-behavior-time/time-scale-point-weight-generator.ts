@@ -19,7 +19,7 @@ function seconds(count: number): number {
 type WeightDivisor = {
     divisor: number;
     weight: TickMarkWeight;
-}
+};
 
 const intradayWeightDivisors: WeightDivisor[] = [
     { divisor: seconds(1), weight: TickMarkWeight.Second },
@@ -35,9 +35,11 @@ const intradayWeightDivisors: WeightDivisor[] = [
 function weightByTime(currentDate: Date, prevDate: Date): TickMarkWeight {
     if (currentDate.getUTCFullYear() !== prevDate.getUTCFullYear()) {
         return TickMarkWeight.Year;
-    } if (currentDate.getUTCMonth() !== prevDate.getUTCMonth()) {
+    }
+    if (currentDate.getUTCMonth() !== prevDate.getUTCMonth()) {
         return TickMarkWeight.Month;
-    } if (currentDate.getUTCDate() !== prevDate.getUTCDate()) {
+    }
+    if (currentDate.getUTCDate() !== prevDate.getUTCDate()) {
         return TickMarkWeight.Day;
     }
 
@@ -54,10 +56,7 @@ function cast(t: InternalHorzScaleItem): TimePoint {
     return t as unknown as TimePoint;
 }
 
-export function fillWeightsForPoints(
-    sortedTimePoints: readonly Mutable<TimeScalePoint>[],
-    startIndex = 0,
-): void {
+export function fillWeightsForPoints(sortedTimePoints: readonly Mutable<TimeScalePoint>[], startIndex = 0): void {
     if (sortedTimePoints.length === 0) {
         return;
     }
@@ -78,7 +77,7 @@ export function fillWeightsForPoints(
             currentPoint.timeWeight = weightByTime(currentDate, prevDate) as TickMarkWeightValue;
         }
 
-        totalTimeDiff += cast(currentPoint.time).timestamp - (prevTime || cast(currentPoint.time).timestamp);
+        totalTimeDiff += cast(currentPoint.time).timestamp - (prevTime ?? cast(currentPoint.time).timestamp);
 
         prevTime = cast(currentPoint.time).timestamp;
         prevDate = currentDate;

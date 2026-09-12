@@ -19,58 +19,58 @@ import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
  * ];
  * ```
  */
-export type WhitespaceData<HorzScaleItem = Time> = {
+export type WhitespaceData<THorzScaleItem = Time> = {
     /**
      * The time of the data.
      */
-    time: HorzScaleItem;
+    time: THorzScaleItem;
 
     /**
      * Additional custom values which will be ignored by the library, but
      * could be used by plugins.
      */
     customValues?: Record<string, unknown> | undefined;
-}
+};
 
 /**
  * A base interface for a data point of single-value series.
  */
-export type SingleValueData<HorzScaleItem = Time> = {
+export type SingleValueData<THorzScaleItem = Time> = {
     /**
      * The time of the data.
      */
-    time: HorzScaleItem;
+    time: THorzScaleItem;
 
     /**
      * Price value of the data.
      */
     value: number;
-} & WhitespaceData<HorzScaleItem>
+} & WhitespaceData<THorzScaleItem>;
 
 /**
  * Structure describing a single item of data for line series
  */
-export type LineData<HorzScaleItem = Time> = {
+export type LineData<THorzScaleItem = Time> = {
     /**
      * Optional color value for certain data item. If missed, color from options is used
      */
     color?: string;
-} & SingleValueData<HorzScaleItem>
+} & SingleValueData<THorzScaleItem>;
 
 /**
  * Structure describing a single item of data for histogram series
  */
-export type HistogramData<HorzScaleItem = Time> = {
+export type HistogramData<THorzScaleItem = Time> = {
     /**
      * Optional color value for certain data item. If missed, color from options is used
      */
     color?: string;
-} & SingleValueData<HorzScaleItem>
+} & SingleValueData<THorzScaleItem>;
 
 /**
  * Structure describing a single item of data for area series
  */
-export type AreaData<HorzScaleItem = Time> = {
+export type AreaData<THorzScaleItem = Time> = {
     /**
      * Optional line color value for certain data item. If missed, color from options is used
      */
@@ -85,12 +85,12 @@ export type AreaData<HorzScaleItem = Time> = {
      * Optional bottom color value for certain data item. If missed, color from options is used
      */
     bottomColor?: string;
-} & SingleValueData<HorzScaleItem>
+} & SingleValueData<THorzScaleItem>;
 
 /**
  * Structure describing a single item of data for baseline series
  */
-export type BaselineData<HorzScaleItem = Time> = {
+export type BaselineData<THorzScaleItem = Time> = {
     /**
      * Optional top area top fill color value for certain data item. If missed, color from options is used
      */
@@ -120,16 +120,16 @@ export type BaselineData<HorzScaleItem = Time> = {
      * Optional bottom area line color value for certain data item. If missed, color from options is used
      */
     bottomLineColor?: string;
-} & SingleValueData<HorzScaleItem>
+} & SingleValueData<THorzScaleItem>;
 
 /**
  * Represents a bar with a {@link Time} and open, high, low, and close prices.
  */
-export type OhlcData<HorzScaleItem = Time> = {
+export type OhlcData<THorzScaleItem = Time> = {
     /**
      * The bar time.
      */
-    time: HorzScaleItem;
+    time: THorzScaleItem;
 
     /**
      * The open price.
@@ -147,22 +147,22 @@ export type OhlcData<HorzScaleItem = Time> = {
      * The close price.
      */
     close: number;
-} & WhitespaceData<HorzScaleItem>
+} & WhitespaceData<THorzScaleItem>;
 
 /**
  * Structure describing a single item of data for bar series
  */
-export type BarData<HorzScaleItem = Time> = {
+export type BarData<THorzScaleItem = Time> = {
     /**
      * Optional color value for certain data item. If missed, color from options is used
      */
     color?: string;
-} & OhlcData<HorzScaleItem>
+} & OhlcData<THorzScaleItem>;
 
 /**
  * Structure describing a single item of data for candlestick series
  */
-export type CandlestickData<HorzScaleItem = Time> = {
+export type CandlestickData<THorzScaleItem = Time> = {
     /**
      * Optional color value for certain data item. If missed, color from options is used
      */
@@ -175,23 +175,23 @@ export type CandlestickData<HorzScaleItem = Time> = {
      * Optional wick color value for certain data item. If missed, color from options is used
      */
     wickColor?: string;
-} & OhlcData<HorzScaleItem>
+} & OhlcData<THorzScaleItem>;
 
-export function isWhitespaceData<HorzScaleItem = Time>(
-    data: SeriesDataItemTypeMap<HorzScaleItem>[SeriesType],
-): data is WhitespaceData<HorzScaleItem> {
+export function isWhitespaceData<THorzScaleItem = Time>(
+    data: SeriesDataItemTypeMap<THorzScaleItem>[SeriesType],
+): data is WhitespaceData<THorzScaleItem> {
     return (
-        (data as Partial<BarData<HorzScaleItem>>).open === undefined &&
-        (data as Partial<LineData<HorzScaleItem>>).value === undefined
+        (data as Partial<BarData<THorzScaleItem>>).open === undefined &&
+        (data as Partial<LineData<THorzScaleItem>>).value === undefined
     );
 }
 
-export function isFulfilledData<HorzScaleItem, T extends SeriesDataItemTypeMap<HorzScaleItem>[SeriesType]>(
+export function isFulfilledData<THorzScaleItem, T extends SeriesDataItemTypeMap<THorzScaleItem>[SeriesType]>(
     data: T,
-): data is Extract<T, BarData<HorzScaleItem> | LineData<HorzScaleItem> | HistogramData<HorzScaleItem>> {
+): data is Extract<T, BarData<THorzScaleItem> | LineData<THorzScaleItem> | HistogramData<THorzScaleItem>> {
     return (
-        (data as Partial<BarData<HorzScaleItem>>).open !== undefined ||
-        (data as Partial<LineData<HorzScaleItem>>).value !== undefined
+        (data as Partial<BarData<THorzScaleItem>>).open !== undefined ||
+        (data as Partial<LineData<THorzScaleItem>>).value !== undefined
     );
 }
 
@@ -200,38 +200,38 @@ export function isFulfilledData<HorzScaleItem, T extends SeriesDataItemTypeMap<H
  *
  * For example a bar series contains {@link BarData} or {@link WhitespaceData}.
  */
-export type SeriesDataItemTypeMap<HorzScaleItem = Time> = {
+export type SeriesDataItemTypeMap<THorzScaleItem = Time> = {
     /**
      * The types of bar series data.
      */
-    Bar: BarData<HorzScaleItem> | WhitespaceData<HorzScaleItem>;
+    Bar: BarData<THorzScaleItem> | WhitespaceData<THorzScaleItem>;
     /**
      * The types of candlestick series data.
      */
-    Candlestick: CandlestickData<HorzScaleItem> | WhitespaceData<HorzScaleItem>;
+    Candlestick: CandlestickData<THorzScaleItem> | WhitespaceData<THorzScaleItem>;
     /**
      * The types of area series data.
      */
-    Area: AreaData<HorzScaleItem> | WhitespaceData<HorzScaleItem>;
+    Area: AreaData<THorzScaleItem> | WhitespaceData<THorzScaleItem>;
     /**
      * The types of baseline series data.
      */
-    Baseline: BaselineData<HorzScaleItem> | WhitespaceData<HorzScaleItem>;
+    Baseline: BaselineData<THorzScaleItem> | WhitespaceData<THorzScaleItem>;
     /**
      * The types of line series data.
      */
-    Line: LineData<HorzScaleItem> | WhitespaceData<HorzScaleItem>;
+    Line: LineData<THorzScaleItem> | WhitespaceData<THorzScaleItem>;
     /**
      * The types of histogram series data.
      */
-    Histogram: HistogramData<HorzScaleItem> | WhitespaceData<HorzScaleItem>;
+    Histogram: HistogramData<THorzScaleItem> | WhitespaceData<THorzScaleItem>;
     /**
      * The base types of an custom series data.
      */
-    Custom: CustomData<HorzScaleItem> | CustomSeriesWhitespaceData<HorzScaleItem>;
-}
+    Custom: CustomData<THorzScaleItem> | CustomSeriesWhitespaceData<THorzScaleItem>;
+};
 
-export type DataUpdatesConsumer<TSeriesType extends SeriesType, HorzScaleItem = Time> = {
-    applyNewData(series: Series<TSeriesType>, data: SeriesDataItemTypeMap<HorzScaleItem>[TSeriesType][]): void;
-    updateData(series: Series<TSeriesType>, data: SeriesDataItemTypeMap<HorzScaleItem>[TSeriesType]): void;
-}
+export type DataUpdatesConsumer<TSeriesType extends SeriesType, THorzScaleItem = Time> = {
+    applyNewData(series: Series<TSeriesType>, data: SeriesDataItemTypeMap<THorzScaleItem>[TSeriesType][]): void;
+    updateData(series: Series<TSeriesType>, data: SeriesDataItemTypeMap<THorzScaleItem>[TSeriesType]): void;
+};

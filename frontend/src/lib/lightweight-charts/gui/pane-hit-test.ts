@@ -13,24 +13,28 @@ export type HitTestResult = {
     object?: HoveredObject | undefined;
     view?: IPaneView | undefined;
     cursorStyle?: string | undefined;
-}
+};
 
 export type HitTestPaneViewResult = {
     view: IPaneView;
     object?: HoveredObject;
-}
+};
 
 type BestPrimitiveHit = {
     hit: PrimitiveHoveredItem;
     source: IPriceDataSource;
-}
+};
 
 // returns true if item is above reference
 function comparePrimitiveZOrder(
     item: SeriesPrimitivePaneViewZOrder,
     reference?: SeriesPrimitivePaneViewZOrder,
 ): boolean {
-    return !reference || (item === 'top' && reference !== 'top') || (item === 'normal' && reference === 'bottom');
+    return (
+        reference === undefined ||
+        (item === 'top' && reference !== 'top') ||
+        (item === 'normal' && reference === 'bottom')
+    );
 }
 
 function findBestPrimitiveHitTest(
@@ -49,7 +53,7 @@ function findBestPrimitiveHitTest(
             }
         }
     }
-    if (!bestPrimitiveHit || !bestHitSource) {
+    if (bestPrimitiveHit === undefined || bestHitSource === undefined) {
         return null;
     }
     return {
@@ -76,7 +80,7 @@ function convertPrimitiveHitResult(primitiveHit: BestPrimitiveHit): HitTestResul
 function hitTestPaneView(paneViews: readonly IPaneView[], x: Coordinate, y: Coordinate): HitTestPaneViewResult | null {
     for (const paneView of paneViews) {
         const renderer = paneView.renderer();
-        if (renderer !== null && renderer.hitTest) {
+        if (renderer !== null && renderer.hitTest !== undefined) {
             const result = renderer.hitTest(x, y);
             if (result !== null) {
                 return {
@@ -100,10 +104,10 @@ export function hitTestPane(pane: Pane, x: Coordinate, y: Coordinate): HitTestRe
     }
     for (const source of sources) {
         if (
-            bestPrimitiveHit &&
+            bestPrimitiveHit !== null &&
             bestPrimitiveHit.source === source &&
             bestPrimitiveHit.hit.zOrder !== 'bottom' &&
-            !bestPrimitiveHit.hit.isBackground
+            bestPrimitiveHit.hit.isBackground !== true
         ) {
             // a primitive will be drawn above a built-in item like a series marker
             // therefore it takes precedence here.
@@ -115,19 +119,22 @@ export function hitTestPane(pane: Pane, x: Coordinate, y: Coordinate): HitTestRe
                 source: source,
                 view: sourceResult.view,
                 object: sourceResult.object,
-                cursorStyle: sourceResult.object?.externalId ? 'pointer' : undefined,
+                cursorStyle:
+                    sourceResult.object?.externalId === undefined || sourceResult.object.externalId === ''
+                        ? undefined
+                        : 'pointer',
             };
         }
         if (
-            bestPrimitiveHit &&
+            bestPrimitiveHit !== null &&
             bestPrimitiveHit.source === source &&
             bestPrimitiveHit.hit.zOrder !== 'bottom' &&
-            bestPrimitiveHit.hit.isBackground
+            bestPrimitiveHit.hit.isBackground === true
         ) {
             return convertPrimitiveHitResult(bestPrimitiveHit);
         }
     }
-    if (bestPrimitiveHit?.hit) {
+    if (bestPrimitiveHit !== null) {
         // return primitive hits for the 'bottom' layer
         return convertPrimitiveHitResult(bestPrimitiveHit);
     }

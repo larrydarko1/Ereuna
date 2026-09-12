@@ -16,7 +16,7 @@ function higherLevel(a: InvalidationLevel, b: InvalidationLevel): InvalidationLe
 export type PaneInvalidation = {
     level: InvalidationLevel;
     autoScale?: boolean | undefined;
-}
+};
 
 function mergePaneInvalidation(
     beforeValue: PaneInvalidation | undefined,
@@ -26,7 +26,7 @@ function mergePaneInvalidation(
         return newValue;
     }
     const level = higherLevel(beforeValue.level, newValue.level);
-    const autoScale = beforeValue.autoScale || newValue.autoScale;
+    const autoScale = beforeValue.autoScale === true || newValue.autoScale === true;
     return { level, autoScale };
 }
 
@@ -44,38 +44,38 @@ export type TimeScaleInvalidationType = (typeof TimeScaleInvalidationType)[keyof
 export type TimeScaleApplyRangeInvalidation = {
     type: typeof TimeScaleInvalidationType.ApplyRange;
     value: LogicalRange;
-}
+};
 
 export type TimeScaleFitContentInvalidation = {
     type: typeof TimeScaleInvalidationType.FitContent;
-}
+};
 
 export type TimeScaleApplyRightOffsetInvalidation = {
     type: typeof TimeScaleInvalidationType.ApplyRightOffset;
     value: number;
-}
+};
 
 export type TimeScaleApplyBarSpacingInvalidation = {
     type: typeof TimeScaleInvalidationType.ApplyBarSpacing;
     value: number;
-}
+};
 
 export type TimeScaleResetInvalidation = {
     type: typeof TimeScaleInvalidationType.Reset;
-}
+};
 
 export type ITimeScaleAnimation = {
     getPosition(time: number): number;
     finished(time: number): boolean;
-}
+};
 export type StartTimeScaleAnimationInvalidation = {
     type: typeof TimeScaleInvalidationType.Animation;
     value: ITimeScaleAnimation;
-}
+};
 
 export type StopTimeScaleAnimationInvalidation = {
     type: typeof TimeScaleInvalidationType.StopAnimation;
-}
+};
 
 export type TimeScaleInvalidation =
     | TimeScaleApplyRangeInvalidation

@@ -1,23 +1,46 @@
-import { type IChartApi, type MouseEventParams } from '@/lib/lightweight-charts/index';
+import {
+    type IChartApi,
+    type IPriceLine,
+    type ISeriesApi,
+    LineStyle,
+    type MouseEventParams,
+    type SeriesType,
+} from '@/lib/lightweight-charts/index';
+import { type LineWidth } from '@/lib/lightweight-charts/renderers/draw-line';
 
 export type PriceLevelData = {
     id: string;
     price: number;
     color: string;
     text: string;
-    lineWidth: number;
-    lineStyle: number; // 0 = solid, 1 = dotted, 2 = dashed
-}
+    lineWidth: LineWidth;
+    lineStyle: LineStyle;
+};
+
+// The only three styles the dialog offers — the library knows two more, but a
+// level is a single reference price and does not need them
+const OFFERED_LINE_STYLES = [LineStyle.Solid, LineStyle.Dotted, LineStyle.Dashed] as const;
+
+// English, because this dialog is built in the DOM and cannot reach i18n. It
+// belongs in the locale files, which means the dialog belongs in a component.
+const LINE_STYLE_LABELS: Record<(typeof OFFERED_LINE_STYLES)[number], string> = {
+    [LineStyle.Solid]: 'Solid',
+    [LineStyle.Dotted]: 'Dotted',
+    [LineStyle.Dashed]: 'Dashed',
+};
+
+const DEFAULT_LINE_WIDTH: LineWidth = 2;
+const DEFAULT_LEVEL_COLOR = '#2962FF';
 
 type PriceLevelLine = {
     data: PriceLevelData;
-    priceLine: any;
+    priceLine: IPriceLine;
     labelDiv: HTMLDivElement;
-}
+};
 
 export class PriceLevelManager {
     private chart: IChartApi;
-    private series: any;
+    private series: ISeriesApi<SeriesType>;
     private container: HTMLElement;
     private isActive = false;
     private levels = new Map<string, PriceLevelLine>();
@@ -26,47 +49,32 @@ export class PriceLevelManager {
     private inputDialog: HTMLDivElement | null = null;
     private onChangeCallback: (() => void) | null = null;
     private selectedLevelId: string | null = null;
-    private keyDownHandler: ((event: KeyboardEvent) => void) | null = null;
     private isDeserializing = false;
     private isClearing = false;
 
-    constructor(chart: IChartApi, series: any, container: HTMLElement) {
+    constructor(chart: IChartApi, series: ISeriesApi<SeriesType>, container: HTMLElement) {
         this.chart = chart;
         this.series = series;
         this.container = container;
 
-        // Bind methods
-        this.handleClick = this.handleClick.bind(this);
-        this.handleDocumentClick = this.handleDocumentClick.bind(this);
-        this.handleKeyDown = this.handleKeyDown.bind(this);
-
-        // Always listen for keyboard events (for deletion)
-        this.keyDownHandler = this.handleKeyDown;
-        document.addEventListener('keydown', this.keyDownHandler);
+        // Deleting a level is a keyboard shortcut whether or not the tool is the
+        // active one, so this listener outlives activate/deactivate
+        document.addEventListener('keydown', this.handleKeyDown);
     }
 
     public onChange(callback: () => void): void {
         this.onChangeCallback = callback;
     }
 
-    private notifyChange(): void {
-        if (this.onChangeCallback && !this.isDeserializing && !this.isClearing) {
-            this.onChangeCallback();
-        }
-    }
-
     public activate(): void {
         if (this.isActive) return;
         this.isActive = true;
 
-        // Subscribe to chart clicks
         this.clickHandler = this.handleClick;
         this.chart.subscribeClick(this.clickHandler);
 
-        // Change cursor
         this.container.style.cursor = 'crosshair';
 
-        // Add document click handler to close context menus
         document.addEventListener('click', this.handleDocumentClick);
     }
 
@@ -74,19 +82,15 @@ export class PriceLevelManager {
         if (!this.isActive) return;
         this.isActive = false;
 
-        // Unsubscribe from chart clicks
-        if (this.clickHandler) {
+        if (this.clickHandler !== null) {
             this.chart.unsubscribeClick(this.clickHandler);
             this.clickHandler = null;
         }
 
-        // Reset cursor
         this.container.style.cursor = 'default';
 
-        // Remove document click handler
         document.removeEventListener('click', this.handleDocumentClick);
 
-        // Close any open dialogs
         this.closeInputDialog();
         this.closeContextMenu();
     }
@@ -95,51 +99,45 @@ export class PriceLevelManager {
         return this.isActive;
     }
 
-    public setMainSeries(series: any): void {
-        this.series = series;
-        // Recreate all price lines with the new series
-        const levelsArray = Array.from(this.levels.entries());
-        this.levels.clear();
-
-        levelsArray.forEach(([_id, level]) => {
-            this.addPriceLevelToChart(level.data);
-        });
+    private notifyChange(): void {
+        if (this.onChangeCallback !== null && !this.isDeserializing && !this.isClearing) {
+            this.onChangeCallback();
+        }
     }
 
-    private handleClick(param: MouseEventParams): void {
-        if (!param.point || !param.seriesData || !this.isActive) return;
+    // The three DOM handlers are arrow properties so that `this` survives being
+    // handed to addEventListener and to the chart's own subscription
+    private handleClick = (param: MouseEventParams): void => {
+        if (param.point === undefined || !this.isActive) return;
 
-        // Get the price at the clicked point
         const price = this.series.coordinateToPrice(param.point.y);
         if (price === null) return;
 
-        // Create a new price level
         this.createPriceLevel(price);
-    }
+    };
 
-    private handleDocumentClick(event: MouseEvent): void {
-        // Close context menu if clicking outside of it
-        if (this.contextMenuDiv && !this.contextMenuDiv.contains(event.target as Node)) {
+    private handleDocumentClick = (event: MouseEvent): void => {
+        // A click anywhere but inside the menu dismisses it
+        if (this.contextMenuDiv !== null && !this.contextMenuDiv.contains(event.target as Node)) {
             this.closeContextMenu();
         }
-    }
+    };
 
-    private handleKeyDown(event: KeyboardEvent): void {
-        // Check if Backspace or Delete key was pressed
-        if (event.key === 'Backspace' || event.key === 'Delete') {
-            // Don't delete if user is typing in an input field
-            const target = event.target as HTMLElement;
-            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-                return;
-            }
+    private handleKeyDown = (event: KeyboardEvent): void => {
+        if (event.key !== 'Backspace' && event.key !== 'Delete') return;
 
-            // Delete the selected level if there is one
-            if (this.selectedLevelId) {
-                event.preventDefault(); // Prevent browser back navigation on Backspace
-                this.removePriceLevel(this.selectedLevelId);
-            }
+        // Not while the caret is in a field — there the key means "erase a
+        // character", including inside this tool's own dialog
+        const target = event.target as HTMLElement;
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+            return;
         }
-    }
+
+        if (this.selectedLevelId !== null) {
+            event.preventDefault(); // Backspace would otherwise navigate back
+            this.removePriceLevel(this.selectedLevelId);
+        }
+    };
 
     private createPriceLevel(price: number): void {
         const id = `level-${Date.now()}-${Math.random()}`;
@@ -147,10 +145,10 @@ export class PriceLevelManager {
         const levelData: PriceLevelData = {
             id,
             price,
-            color: '#2962FF',
+            color: DEFAULT_LEVEL_COLOR,
             text: '',
-            lineWidth: 2,
-            lineStyle: 0, // solid
+            lineWidth: DEFAULT_LINE_WIDTH,
+            lineStyle: LineStyle.Solid,
         };
 
         // Show dialog first, only add to chart after confirmation
@@ -158,30 +156,22 @@ export class PriceLevelManager {
     }
 
     private addPriceLevelToChart(levelData: PriceLevelData): void {
-        // Create price line
         const priceLine = this.series.createPriceLine({
             price: levelData.price,
             color: levelData.color,
             lineWidth: levelData.lineWidth,
             lineStyle: levelData.lineStyle,
             axisLabelVisible: true,
-            title: levelData.text || '',
+            title: levelData.text,
         });
 
-        // Create label div for text display on chart
-        const labelDiv = this.createLabelDiv(levelData);
-
-        // Store the level
         this.levels.set(levelData.id, {
             data: levelData,
             priceLine,
-            labelDiv,
+            labelDiv: this.createLabelDiv(levelData),
         });
 
-        // Update label position
         this.updateLabelPosition(levelData.id);
-
-        // Notify change for auto-save
         this.notifyChange();
     }
 
@@ -200,27 +190,27 @@ export class PriceLevelManager {
         labelDiv.style.cursor = 'pointer';
         labelDiv.style.whiteSpace = 'nowrap';
         labelDiv.style.userSelect = 'none';
-        labelDiv.textContent = levelData.text || levelData.price.toFixed(2);
+        labelDiv.textContent = levelData.text === '' ? levelData.price.toFixed(2) : levelData.text;
 
         // Click to select
-        labelDiv.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+        labelDiv.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
             this.selectLevel(levelData.id);
         });
 
         // Right-click context menu
-        labelDiv.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+        labelDiv.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
             this.selectLevel(levelData.id);
-            this.showContextMenu(levelData.id, e.clientX, e.clientY);
+            this.showContextMenu(levelData.id, event.clientX, event.clientY);
         });
 
         // Double-click to edit
-        labelDiv.addEventListener('dblclick', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+        labelDiv.addEventListener('dblclick', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
             this.selectLevel(levelData.id);
             this.showInputDialog(levelData.id);
         });
@@ -230,19 +220,17 @@ export class PriceLevelManager {
     }
 
     private selectLevel(id: string): void {
-        // Deselect previous level
-        if (this.selectedLevelId && this.selectedLevelId !== id) {
-            const prevLevel = this.levels.get(this.selectedLevelId);
-            if (prevLevel) {
-                prevLevel.labelDiv.style.border = 'none';
-                prevLevel.labelDiv.style.boxShadow = 'none';
+        if (this.selectedLevelId !== null && this.selectedLevelId !== id) {
+            const previousLevel = this.levels.get(this.selectedLevelId);
+            if (previousLevel !== undefined) {
+                previousLevel.labelDiv.style.border = 'none';
+                previousLevel.labelDiv.style.boxShadow = 'none';
             }
         }
 
-        // Select new level
         this.selectedLevelId = id;
         const level = this.levels.get(id);
-        if (level) {
+        if (level !== undefined) {
             level.labelDiv.style.border = '2px solid #ffffff';
             level.labelDiv.style.boxShadow = '0 0 8px rgba(255, 255, 255, 0.5)';
         }
@@ -250,52 +238,30 @@ export class PriceLevelManager {
 
     private updateLabelPosition(id: string): void {
         const level = this.levels.get(id);
-        if (!level) return;
+        if (level === undefined) return;
 
-        const y = this.series.priceToCoordinate(level.data.price);
+        const coordinate = this.series.priceToCoordinate(level.data.price);
+        const chartHeight = this.container.getBoundingClientRect().height;
 
-        // Hide label if price is not visible or coordinate is invalid
-        if (y === null || isNaN(y) || y < 0) {
+        // A level whose price has scrolled off the visible scale has no
+        // coordinate to pin the label to
+        if (coordinate === null || isNaN(coordinate) || coordinate < 0 || coordinate > chartHeight) {
             level.labelDiv.style.display = 'none';
             return;
         }
 
-        // Get chart container dimensions to check bounds
-        const containerRect = this.container.getBoundingClientRect();
-        const chartHeight = containerRect.height;
-
-        // Hide label if it's outside the visible chart bounds (with some padding)
-        if (y < 0 || y > chartHeight) {
-            level.labelDiv.style.display = 'none';
-            return;
-        }
-
-        // Show and position label
         level.labelDiv.style.display = 'block';
         level.labelDiv.style.left = '10px';
-        level.labelDiv.style.top = `${y - 10}px`;
-    }
-
-    private updateAllLabelPositions(): void {
-        this.levels.forEach((_, id) => {
-            this.updateLabelPosition(id);
-        });
+        level.labelDiv.style.top = `${coordinate - 10}px`;
     }
 
     private showInputDialog(levelId: string, newLevelData?: PriceLevelData): void {
         this.closeInputDialog();
 
-        // For existing levels, get from map; for new levels, use provided data
-        const level = this.levels.get(levelId);
-        let levelData: PriceLevelData;
-
-        if (level) {
-            levelData = level.data;
-        } else if (newLevelData) {
-            levelData = newLevelData;
-        } else {
-            return; // No data available
-        }
+        // An existing level edits what is on the chart; a new one is still only
+        // the caller's draft and has nothing in the map yet
+        const levelData = this.levels.get(levelId)?.data ?? newLevelData;
+        if (levelData === undefined) return;
 
         // Create dialog
         const dialog = document.createElement('div');
@@ -398,20 +364,12 @@ export class PriceLevelManager {
             lineStyleSelect.style.backgroundColor = 'var(--color-bg)';
         });
 
-        const solidOption = document.createElement('option');
-        solidOption.value = '0';
-        solidOption.textContent = 'Solid';
-        lineStyleSelect.appendChild(solidOption);
-
-        const dottedOption = document.createElement('option');
-        dottedOption.value = '1';
-        dottedOption.textContent = 'Dotted';
-        lineStyleSelect.appendChild(dottedOption);
-
-        const dashedOption = document.createElement('option');
-        dashedOption.value = '2';
-        dashedOption.textContent = 'Dashed';
-        lineStyleSelect.appendChild(dashedOption);
+        OFFERED_LINE_STYLES.forEach((style) => {
+            const option = document.createElement('option');
+            option.value = style.toString();
+            option.textContent = LINE_STYLE_LABELS[style];
+            lineStyleSelect.appendChild(option);
+        });
 
         lineStyleSelect.value = levelData.lineStyle.toString();
         lineStyleContainer.appendChild(lineStyleSelect);
@@ -570,29 +528,24 @@ export class PriceLevelManager {
             saveButton.style.backgroundColor = 'var(--color-accent-1)';
         });
         saveButton.addEventListener('click', () => {
-            const isNewLevel = !this.levels.has(levelId);
+            // The options were appended from OFFERED_LINE_STYLES in order, so
+            // the selected index is the style
+            const lineStyle = OFFERED_LINE_STYLES[lineStyleSelect.selectedIndex];
+            if (lineStyle === undefined) return;
 
-            if (isNewLevel) {
-                // Create new level
-                const newLevelData: PriceLevelData = {
-                    id: levelId,
-                    price: parseFloat(priceInput.value),
-                    text: textInput.value,
-                    color: colorInput.value,
-                    lineWidth: 2,
-                    lineStyle: parseInt(lineStyleSelect.value),
-                };
-                this.addPriceLevelToChart(newLevelData);
+            const edited = {
+                price: parseFloat(priceInput.value),
+                text: textInput.value,
+                color: colorInput.value,
+                lineStyle,
+            };
+
+            if (this.levels.has(levelId)) {
+                this.updatePriceLevel(levelId, edited);
             } else {
-                // Update existing level
-                this.updatePriceLevel(
-                    levelId,
-                    parseFloat(priceInput.value),
-                    textInput.value,
-                    colorInput.value,
-                    parseInt(lineStyleSelect.value),
-                );
+                this.addPriceLevelToChart({ id: levelId, lineWidth: DEFAULT_LINE_WIDTH, ...edited });
             }
+
             this.closeInputDialog();
         });
         buttonsDiv.appendChild(saveButton);
@@ -625,54 +578,35 @@ export class PriceLevelManager {
     }
 
     private closeInputDialog(): void {
-        if (this.inputDialog) {
-            this.inputDialog.remove();
-            this.inputDialog = null;
-        }
-        // Remove overlay
-        const overlay = document.querySelector('.price-level-overlay');
-        if (overlay) {
-            overlay.remove();
-        }
+        this.inputDialog?.remove();
+        this.inputDialog = null;
+
+        document.querySelector('.price-level-overlay')?.remove();
     }
 
-    private updatePriceLevel(
-        id: string,
-        newPrice: number,
-        newText: string,
-        newColor: string,
-        newLineStyle: number,
-    ): void {
+    private updatePriceLevel(id: string, edited: Omit<PriceLevelData, 'id' | 'lineWidth'>): void {
         const level = this.levels.get(id);
-        if (!level) return;
+        if (level === undefined) return;
 
-        // Remove old price line
+        // A price line's options are fixed at creation, so a style change means
+        // a new line rather than a mutation
         this.series.removePriceLine(level.priceLine);
 
-        // Update data
-        level.data.price = newPrice;
-        level.data.text = newText;
-        level.data.color = newColor;
-        level.data.lineStyle = newLineStyle;
+        level.data = { ...level.data, ...edited };
 
-        // Create new price line with updated settings
         level.priceLine = this.series.createPriceLine({
             price: level.data.price,
             color: level.data.color,
             lineWidth: level.data.lineWidth,
             lineStyle: level.data.lineStyle,
             axisLabelVisible: true,
-            title: level.data.text || '',
+            title: level.data.text,
         });
 
-        // Update label
-        level.labelDiv.style.backgroundColor = newColor;
-        level.labelDiv.textContent = newText || newPrice.toFixed(2);
+        level.labelDiv.style.backgroundColor = level.data.color;
+        level.labelDiv.textContent = level.data.text === '' ? level.data.price.toFixed(2) : level.data.text;
 
-        // Update position
         this.updateLabelPosition(id);
-
-        // Notify change for auto-save
         this.notifyChange();
     }
 
@@ -741,42 +675,34 @@ export class PriceLevelManager {
     }
 
     private closeContextMenu(): void {
-        if (this.contextMenuDiv) {
-            this.contextMenuDiv.remove();
-            this.contextMenuDiv = null;
-        }
+        this.contextMenuDiv?.remove();
+        this.contextMenuDiv = null;
     }
 
     private removePriceLevel(id: string): void {
         const level = this.levels.get(id);
-        if (!level) return;
+        if (level === undefined) return;
 
-        // Remove price line
         this.series.removePriceLine(level.priceLine);
-
-        // Remove label
         level.labelDiv.remove();
-
-        // Remove from map
         this.levels.delete(id);
 
-        // Clear selection if this was the selected level
         if (this.selectedLevelId === id) {
             this.selectedLevelId = null;
         }
 
-        // Notify change for auto-save
         this.notifyChange();
     }
 
     public removeSelectedLevel(): void {
-        if (this.selectedLevelId) {
+        if (this.selectedLevelId !== null) {
             this.removePriceLevel(this.selectedLevelId);
         }
     }
 
     public clear(): void {
-        // Remove all price levels without triggering auto-save
+        // The chart is being emptied on purpose, so the per-level change
+        // notifications must not each trigger a save of a half-cleared chart
         this.isClearing = true;
         this.levels.forEach((_level, id) => {
             this.removePriceLevel(id);
@@ -789,22 +715,15 @@ export class PriceLevelManager {
         this.deactivate();
         this.clear();
 
-        // Remove keyboard handler on destroy
-        if (this.keyDownHandler) {
-            document.removeEventListener('keydown', this.keyDownHandler);
-            this.keyDownHandler = null;
-        }
+        document.removeEventListener('keydown', this.handleKeyDown);
     }
 
     public serialize(): PriceLevelData[] {
-        const data: PriceLevelData[] = [];
-        this.levels.forEach((level) => {
-            data.push({ ...level.data });
-        });
-        return data;
+        return Array.from(this.levels.values(), (level) => ({ ...level.data }));
     }
 
     public deserialize(data: PriceLevelData[]): void {
+        // Loading what the server already holds is not a change to save back
         this.isDeserializing = true;
         this.clear();
         data.forEach((levelData) => {
@@ -813,8 +732,10 @@ export class PriceLevelManager {
         this.isDeserializing = false;
     }
 
-    // Update label positions when chart is resized or scrolled
+    /** Called when the chart is resized or scrolled and the labels have drifted */
     public updatePositions(): void {
-        this.updateAllLabelPositions();
+        this.levels.forEach((_level, id) => {
+            this.updateLabelPosition(id);
+        });
     }
 }

@@ -1,4 +1,4 @@
-import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
+import { getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 import { type Nominal } from '@/lib/lightweight-charts/helpers/nominal';
 
 /**
@@ -192,7 +192,8 @@ function normalizeRgbComponent<T extends RedComponent | GreenComponent | BlueCom
         return 255 as T;
     }
     // NaN values are treated as 0
-    return (Math.round(component) || 0) as T;
+    const rounded = Math.round(component);
+    return (Number.isNaN(rounded) ? 0 : rounded) as T;
 }
 
 function normalizeAlphaComponent(component: AlphaComponent): AlphaComponent {
@@ -254,9 +255,9 @@ function colorStringToRgba(colorString: string): Rgba {
         if (matches !== null) {
             const [, red, green, blue, alpha] = matches;
             return [
-                normalizeRgbComponent<RedComponent>(parseInt(ensureDefined(red), 10)),
-                normalizeRgbComponent<GreenComponent>(parseInt(ensureDefined(green), 10)),
-                normalizeRgbComponent<BlueComponent>(parseInt(ensureDefined(blue), 10)),
+                normalizeRgbComponent<RedComponent>(parseInt(getDefined(red), 10)),
+                normalizeRgbComponent<GreenComponent>(parseInt(getDefined(green), 10)),
+                normalizeRgbComponent<BlueComponent>(parseInt(getDefined(blue), 10)),
                 normalizeAlphaComponent((alpha === undefined ? 1 : parseFloat(alpha)) as AlphaComponent),
             ];
         }
@@ -267,9 +268,9 @@ function colorStringToRgba(colorString: string): Rgba {
         if (matches !== null) {
             const [, red, green, blue] = matches;
             return [
-                normalizeRgbComponent<RedComponent>(parseInt(ensureDefined(red), 16)),
-                normalizeRgbComponent<GreenComponent>(parseInt(ensureDefined(green), 16)),
-                normalizeRgbComponent<BlueComponent>(parseInt(ensureDefined(blue), 16)),
+                normalizeRgbComponent<RedComponent>(parseInt(getDefined(red), 16)),
+                normalizeRgbComponent<GreenComponent>(parseInt(getDefined(green), 16)),
+                normalizeRgbComponent<BlueComponent>(parseInt(getDefined(blue), 16)),
                 1 as AlphaComponent,
             ];
         }
@@ -280,9 +281,9 @@ function colorStringToRgba(colorString: string): Rgba {
         if (matches !== null) {
             const [, red, green, blue] = matches;
             return [
-                normalizeRgbComponent<RedComponent>(parseInt(ensureDefined(red), 16) * 0x11),
-                normalizeRgbComponent<GreenComponent>(parseInt(ensureDefined(green), 16) * 0x11),
-                normalizeRgbComponent<BlueComponent>(parseInt(ensureDefined(blue), 16) * 0x11),
+                normalizeRgbComponent<RedComponent>(parseInt(getDefined(red), 16) * 0x11),
+                normalizeRgbComponent<GreenComponent>(parseInt(getDefined(green), 16) * 0x11),
+                normalizeRgbComponent<BlueComponent>(parseInt(getDefined(blue), 16) * 0x11),
                 1 as AlphaComponent,
             ];
         }
@@ -319,7 +320,7 @@ export function applyAlpha(color: string, alpha: number): string {
 export type ContrastColors = {
     foreground: string;
     background: string;
-}
+};
 
 export function generateContrastColors(backgroundColor: string): ContrastColors {
     const rgb = colorStringToRgba(backgroundColor);

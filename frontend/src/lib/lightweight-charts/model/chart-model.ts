@@ -1,4 +1,4 @@
-import { assert, ensureDefined, ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { assert, getDefined, getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { gradientColorAtPercent } from '@/lib/lightweight-charts/helpers/color';
 import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
 import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
@@ -34,7 +34,8 @@ import { type Point } from '@/lib/lightweight-charts/model/point';
 import { type PriceScale, type PriceScaleOptions } from '@/lib/lightweight-charts/model/price-scale';
 import { type ISeries, Series, type SeriesOptionsInternal } from '@/lib/lightweight-charts/model/series';
 import { type SeriesOptionsMap, type SeriesType } from '@/lib/lightweight-charts/model/series-options';
-import { type LogicalRange, type TimePointIndex, type TimeScalePoint } from '@/lib/lightweight-charts/model/time-data';
+import { type TimeScaleChanges } from '@/lib/lightweight-charts/model/data-layer';
+import { type LogicalRange, type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 import { type HorzScaleOptions, type ITimeScale, TimeScale } from '@/lib/lightweight-charts/model/time-scale';
 import { type TouchMouseEventData } from '@/lib/lightweight-charts/model/touch-mouse-event-data';
 import { Watermark, type WatermarkOptions } from '@/lib/lightweight-charts/model/watermark';
@@ -74,7 +75,7 @@ export type HandleScrollOptions = {
      * @defaultValue `true`
      */
     vertTouchDrag: boolean;
-}
+};
 
 /**
  * Represents options for how the chart is scaled by the mouse and touch gestures.
@@ -103,7 +104,7 @@ export type HandleScaleOptions = {
      * Enable resetting scaling by double-clicking the left mouse button.
      */
     axisDoubleClickReset: AxisDoubleClickOptions | boolean;
-}
+};
 
 /**
  * Represents options for enabling or disabling kinetic scrolling with mouse and touch gestures.
@@ -122,7 +123,7 @@ export type KineticScrollOptions = {
      * @defaultValue `false`
      */
     mouse: boolean;
-}
+};
 
 type HandleScaleOptionsInternal = Omit<HandleScaleOptions, 'axisPressedMouseMove' | 'axisDoubleClickReset'> & {
     /** @public */
@@ -149,7 +150,7 @@ export type AxisPressedMouseMoveOptions = {
      * @defaultValue `true`
      */
     price: boolean;
-}
+};
 
 /**
  * Represents options for how the time and price axes react to mouse double click.
@@ -168,22 +169,22 @@ export type AxisDoubleClickOptions = {
      * @defaultValue `true`
      */
     price: boolean;
-}
+};
 
 export type HoveredObject = {
     hitTestData?: unknown;
     externalId?: string | undefined;
-}
+};
 
 export type HoveredSource = {
     source: IPriceDataSource;
     object?: HoveredObject | undefined;
-}
+};
 
 export type PriceScaleOnPane = {
     priceScale: PriceScale;
     pane: Pane;
-}
+};
 
 const BackgroundColorSide = {
     Top: 0,
@@ -231,13 +232,12 @@ export type TrackingModeExitMode = (typeof TrackingModeExitMode)[keyof typeof Tr
  * and make it possible to check values and dates.
  */
 export type TrackingModeOptions = {
-    // eslint-disable-next-line tsdoc/syntax
     /** @inheritDoc TrackingModeExitMode
      *
      * @defaultValue {@link TrackingModeExitMode.OnNextTap}
      */
     exitMode: TrackingModeExitMode;
-}
+};
 
 /**
  * Represents common chart options
@@ -334,7 +334,6 @@ export type ChartOptionsBase = {
      */
     kineticScroll: KineticScrollOptions;
 
-    // eslint-disable-next-line tsdoc/syntax
     /** @inheritDoc TrackingModeOptions
      */
     trackingMode: TrackingModeOptions;
@@ -343,17 +342,17 @@ export type ChartOptionsBase = {
      * Basic localization options
      */
     localization: LocalizationOptionsBase;
-}
+};
 
 /**
  * Structure describing options of the chart. Series options are to be set separately
  */
-export type ChartOptionsImpl<HorzScaleItem> = {
+export type ChartOptionsImpl<THorzScaleItem> = {
     /**
      * Localization options.
      */
-    localization: LocalizationOptions<HorzScaleItem>;
-} & ChartOptionsBase
+    localization: LocalizationOptions<THorzScaleItem>;
+} & ChartOptionsBase;
 
 export type ChartOptionsInternalBase = Omit<ChartOptionsBase, 'handleScroll' | 'handleScale' | 'layout'> & {
     /** @public */
@@ -364,8 +363,8 @@ export type ChartOptionsInternalBase = Omit<ChartOptionsBase, 'handleScroll' | '
     layout: LayoutOptions;
 };
 
-export type ChartOptionsInternal<HorzScaleItem> = Omit<
-    ChartOptionsImpl<HorzScaleItem>,
+export type ChartOptionsInternal<THorzScaleItem> = Omit<
+    ChartOptionsImpl<THorzScaleItem>,
     'handleScroll' | 'handleScale' | 'layout'
 > & {
     /** @public */
@@ -380,7 +379,7 @@ type GradientColorsCache = {
     topColor: string;
     bottomColor: string;
     colors: Map<number, string>;
-}
+};
 
 export type IChartModelBase = {
     applyPriceScaleOptions(priceScaleId: string, options: DeepPartial<PriceScaleOptions>): void;
@@ -393,7 +392,7 @@ export type IChartModelBase = {
     updateCrosshair(): void;
     cursorUpdate(): void;
     clearCurrentPosition(): void;
-    setAndSaveCurrentPosition(x: Coordinate, y: Coordinate, event: TouchMouseEventData | null, pane: Pane): void;
+    moveCrosshairTo(move: CrosshairMove): void;
 
     recalculatePane(pane: Pane | null): void;
 
@@ -435,15 +434,28 @@ export type IChartModelBase = {
     setTimeScaleAnimation(animation: ITimeScaleAnimation): void;
 
     stopTimeScaleAnimation(): void;
-}
+};
 
-export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase {
-    private readonly _options: ChartOptionsInternal<HorzScaleItem>;
+/** One move of the crosshair, as `moveCrosshairTo` takes it. */
+export type CrosshairMove = {
+    x: Coordinate;
+    y: Coordinate;
+    pane: Pane;
+    event: TouchMouseEventData | null;
+
+    // Set when the move did not come from a pointer, so no crosshairMoved event
+    // is raised — a subscriber would otherwise see its own programmatic call
+    // arrive as if it were user input
+    silent?: boolean;
+};
+
+export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase {
+    private readonly _options: ChartOptionsInternal<THorzScaleItem>;
     private readonly _invalidateHandler: InvalidateHandler;
 
     private readonly _rendererOptionsProvider: PriceAxisRendererOptionsProvider;
 
-    private readonly _timeScale: TimeScale<HorzScaleItem>;
+    private readonly _timeScale: TimeScale<THorzScaleItem>;
     private readonly _panes: Pane[] = [];
     private readonly _crosshair: Crosshair;
     private readonly _magnet: Magnet;
@@ -460,12 +472,12 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
     private _backgroundBottomColor: string;
     private _gradientColorsCache: GradientColorsCache | null = null;
 
-    private readonly _horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>;
+    private readonly _horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>;
 
     public constructor(
         invalidateHandler: InvalidateHandler,
-        options: ChartOptionsInternal<HorzScaleItem>,
-        horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>,
+        options: ChartOptionsInternal<THorzScaleItem>,
+        horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>,
     ) {
         this._invalidateHandler = invalidateHandler;
         this._options = options;
@@ -479,7 +491,7 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
         this._watermark = new Watermark(this, options.watermark);
 
         this.createPane();
-        ensureDefined(this._panes[0]).setStretchFactor(DEFAULT_STRETCH_FACTOR * 2);
+        getDefined(this._panes[0]).setStretchFactor(DEFAULT_STRETCH_FACTOR * 2);
 
         this._backgroundTopColor = this._getBackgroundColor(BackgroundColorSide.Top);
         this._backgroundBottomColor = this._getBackgroundColor(BackgroundColorSide.Bottom);
@@ -517,11 +529,11 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
         }
     }
 
-    public options(): Readonly<ChartOptionsInternal<HorzScaleItem>> {
+    public options(): Readonly<ChartOptionsInternal<THorzScaleItem>> {
         return this._options;
     }
 
-    public applyOptions(options: DeepPartial<ChartOptionsInternal<HorzScaleItem>>): void {
+    public applyOptions(options: DeepPartial<ChartOptionsInternal<THorzScaleItem>>): void {
         merge(this._options, options);
 
         this._panes.forEach((p: Pane) => p.applyScaleOptions(options));
@@ -534,7 +546,7 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
             this._timeScale.applyLocalizationOptions(options.localization);
         }
 
-        if (options.leftPriceScale || options.rightPriceScale) {
+        if (options.leftPriceScale !== undefined || options.rightPriceScale !== undefined) {
             this._priceScalesOptionsChanged.fire();
         }
 
@@ -550,7 +562,8 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
                 leftPriceScale: options,
             });
             return;
-        } if (priceScaleId === DefaultPriceScaleId.Right) {
+        }
+        if (priceScaleId === DefaultPriceScaleId.Right) {
             this.applyOptions({
                 rightPriceScale: options,
             });
@@ -559,12 +572,11 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
 
         const res = this.findPriceScale(priceScaleId);
 
+        // Upstream threw here in development builds and returned silently in
+        // production. An unknown id is a mistake at the call site either way,
+        // and swallowing it applies none of the options the caller asked for
         if (res === null) {
-            if (process.env.NODE_ENV === 'development') {
-                throw new Error(`Trying to apply price scale options with incorrect ID: ${priceScaleId}`);
-            }
-
-            return;
+            throw new Error(`Trying to apply price scale options with incorrect ID: ${priceScaleId}`);
         }
 
         res.priceScale.applyOptions(options);
@@ -584,7 +596,7 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
         return null;
     }
 
-    public timeScale(): TimeScale<HorzScaleItem> {
+    public timeScale(): TimeScale<THorzScaleItem> {
         return this._timeScale;
     }
 
@@ -744,13 +756,14 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
         return this._serieses;
     }
 
-    public setAndSaveCurrentPosition(
-        x: Coordinate,
-        y: Coordinate,
-        event: TouchMouseEventData | null,
-        pane: Pane,
-        skipEvent?: boolean,
-    ): void {
+    /**
+     * Moves the crosshair to a point on a pane, recording where it came from so
+     * that a later magnet re-alignment can work from the raw coordinate rather
+     * than the snapped one.
+     */
+    public moveCrosshairTo(move: CrosshairMove): void {
+        const { x, y, pane, event } = move;
+
         this._crosshair.saveOriginCoord(x, y);
         let price = NaN;
         let index = this._timeScale.coordinateToIndex(x);
@@ -770,26 +783,30 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
         this._crosshair.setPosition(index, price, pane);
 
         this.cursorUpdate();
-        if (!skipEvent) {
+        if (move.silent !== true) {
             this._crosshairMoved.fire(this._crosshair.appliedIndex(), { x, y }, event);
         }
     }
 
-    // A position provided external (not from an internal event listener)
-    public setAndSaveSyntheticPosition(price: number, horizontalPosition: HorzScaleItem, pane: Pane): void {
+    /**
+     * Puts the crosshair on a price and a time rather than on a coordinate —
+     * this is the path for a caller placing it deliberately, not for a pointer.
+     */
+    public placeCrosshairAt(price: number, horizontalPosition: THorzScaleItem, pane: Pane): void {
         const priceScale = pane.defaultPriceScale();
         const firstValue = priceScale.firstValue();
-        const y = priceScale.priceToCoordinate(price, ensureNotNull(firstValue));
-        const index = this._timeScale.timeToIndex(horizontalPosition as InternalHorzScaleItem, true);
-        const x = this._timeScale.indexToCoordinate(ensureNotNull(index));
-        this.setAndSaveCurrentPosition(x, y, null, pane, true);
+        const coordinateY = priceScale.priceToCoordinate(price, getNotNull(firstValue));
+        const index = this._timeScale.timeToNearestIndex(horizontalPosition as InternalHorzScaleItem);
+        const coordinateX = this._timeScale.indexToCoordinate(getNotNull(index));
+
+        this.moveCrosshairTo({ x: coordinateX, y: coordinateY, pane, event: null, silent: true });
     }
 
     public clearCurrentPosition(skipEvent?: boolean): void {
         const crosshair = this.crosshairSource();
         crosshair.clearPosition();
         this.cursorUpdate();
-        if (!skipEvent) {
+        if (skipEvent !== true) {
             this._crosshairMoved.fire(null, null, null);
         }
     }
@@ -798,19 +815,19 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
         // apply magnet
         const pane = this._crosshair.pane();
         if (pane !== null) {
-            const x = this._crosshair.originCoordX();
-            const y = this._crosshair.originCoordY();
-            this.setAndSaveCurrentPosition(x, y, null, pane);
+            this.moveCrosshairTo({
+                x: this._crosshair.originCoordX(),
+                y: this._crosshair.originCoordY(),
+                pane,
+                event: null,
+            });
         }
 
         this._crosshair.updateAllViews();
     }
 
-    public updateTimeScale(
-        newBaseIndex: TimePointIndex | null,
-        newPoints?: readonly TimeScalePoint[],
-        firstChangedPointIndex?: number,
-    ): void {
+    public updateTimeScale(changes: TimeScaleChanges): void {
+        const { baseIndex: newBaseIndex, points: newPoints, firstChangedPointIndex } = changes;
         const oldFirstTime = this._timeScale.indexToTime(0 as TimePointIndex);
 
         if (newPoints !== undefined && firstChangedPointIndex !== undefined) {
@@ -890,9 +907,9 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
     public createSeries<T extends SeriesType>(
         seriesType: T,
         options: SeriesOptionsMap[T],
-        customPaneView?: ICustomSeriesPaneView<HorzScaleItem>,
+        customPaneView?: ICustomSeriesPaneView<THorzScaleItem>,
     ): Series<T> {
-        const pane = ensureDefined(this._panes[0]);
+        const pane = getDefined(this._panes[0]);
         const series = this._createSeries(options, seriesType, pane, customPaneView);
         this._serieses.push(series);
 
@@ -913,14 +930,12 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
         assert(seriesIndex !== -1, 'Series not found');
 
         this._serieses.splice(seriesIndex, 1);
-        ensureNotNull(pane).removeDataSource(series);
-        if (series.destroy) {
-            series.destroy();
-        }
+        getNotNull(pane).removeDataSource(series);
+        series.destroy();
     }
 
     public moveSeriesToScale(series: Series<SeriesType>, targetScaleId: string): void {
-        const pane = ensureNotNull(this.paneForSource(series));
+        const pane = getNotNull(this.paneForSource(series));
         pane.removeDataSource(series);
 
         // check if targetScaleId exists
@@ -1047,9 +1062,7 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
     }
 
     private _invalidate(mask: InvalidateMask): void {
-        if (this._invalidateHandler) {
-            this._invalidateHandler(mask);
-        }
+        this._invalidateHandler(mask);
 
         this._panes.forEach((pane: Pane) => pane.grid().paneView().update());
     }
@@ -1058,9 +1071,9 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
         options: SeriesOptionsInternal<T>,
         seriesType: T,
         pane: Pane,
-        customPaneView?: ICustomSeriesPaneView<HorzScaleItem>,
+        customPaneView?: ICustomSeriesPaneView<THorzScaleItem>,
     ): Series<T> {
-        const series = new Series<T>(this, options, seriesType, pane, customPaneView);
+        const series = new Series<T>(this, options, seriesType, customPaneView);
 
         const targetScaleId =
             options.priceScaleId !== undefined ? options.priceScaleId : this.defaultVisiblePriceScaleId();

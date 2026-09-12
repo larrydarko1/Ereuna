@@ -9,7 +9,7 @@ export type AutoScaleMargins = {
     below: number;
     /** The number of pixels for top margin */
     above: number;
-}
+};
 
 export class AutoscaleInfoImpl {
     private readonly _priceRange: PriceRangeImpl | null;
@@ -17,7 +17,7 @@ export class AutoscaleInfoImpl {
 
     public constructor(priceRange: PriceRangeImpl | null, margins?: AutoScaleMargins | null) {
         this._priceRange = priceRange;
-        this._margins = margins || null;
+        this._margins = margins ?? null;
     }
 
     public priceRange(): PriceRangeImpl | null {
@@ -34,7 +34,7 @@ export class AutoscaleInfoImpl {
         }
         return {
             priceRange: this._priceRange.toRaw(),
-            margins: this._margins || undefined,
+            margins: this._margins ?? undefined,
         };
     }
 

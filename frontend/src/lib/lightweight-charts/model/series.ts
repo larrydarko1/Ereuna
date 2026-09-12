@@ -3,7 +3,7 @@ import { PercentageFormatter } from '@/lib/lightweight-charts/formatters/percent
 import { PriceFormatter } from '@/lib/lightweight-charts/formatters/price-formatter';
 import { VolumeFormatter } from '@/lib/lightweight-charts/formatters/volume-formatter';
 
-import { ensureDefined, ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getDefined, getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
 import { isInteger, merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
@@ -100,13 +100,13 @@ function primitiveTimePaneViewsExtractor(wrapper: SeriesPrimitiveWrapper): reado
     return wrapper.timeAxisPaneViews();
 }
 
-type CustomDataToPlotRowValueConverter<HorzScaleItem> = (
-    item: CustomData<HorzScaleItem> | CustomSeriesWhitespaceData<HorzScaleItem>,
+type CustomDataToPlotRowValueConverter<THorzScaleItem> = (
+    item: CustomData<THorzScaleItem> | CustomSeriesWhitespaceData<THorzScaleItem>,
 ) => number[];
 
 export type LastValueDataResultWithoutData = {
     noData: true;
-}
+};
 
 export type LastValueDataResultWithData = {
     noData: false;
@@ -118,7 +118,7 @@ export type LastValueDataResultWithData = {
     color: string;
     coordinate: Coordinate;
     index: TimePointIndex;
-}
+};
 
 export type LastValueDataResult = LastValueDataResultWithoutData | LastValueDataResultWithData;
 
@@ -128,7 +128,7 @@ export type MarkerData = {
     borderColor: string | null;
     borderWidth: number;
     backgroundColor: string;
-}
+};
 
 export type SeriesDataAtTypeMap = {
     Bar: BarPrices;
@@ -138,11 +138,11 @@ export type SeriesDataAtTypeMap = {
     Line: BarPrice;
     Histogram: BarPrice;
     Custom: BarPrice;
-}
+};
 
 export type SeriesUpdateInfo = {
     lastBarUpdatedOrNewBarsAddedToTheRight: boolean;
-}
+};
 
 // note that if would like to use `Omit` here - you can't due https://github.com/microsoft/TypeScript/issues/36981
 export type SeriesOptionsInternal<T extends SeriesType = SeriesType> = SeriesOptionsMap[T];
@@ -159,7 +159,7 @@ export type ISeries<T extends SeriesType> = {
     barColorer(): ISeriesBarColorer<T>;
     markerDataAtIndex(index: TimePointIndex): MarkerData | null;
     dataAt(time: TimePointIndex): SeriesDataAtTypeMap[SeriesType] | null;
-} & IPriceDataSource
+} & IPriceDataSource;
 
 export class Series<T extends SeriesType> extends PriceDataSource implements IDestroyable, ISeries<SeriesType> {
     private readonly _seriesType: T;
@@ -186,7 +186,6 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
         model: IChartModelBase,
         options: SeriesOptionsInternal<T>,
         seriesType: T,
-        _pane?: Pane,
         customPaneView?: ICustomSeriesPaneView<unknown>,
     ) {
         super(model);
@@ -216,7 +215,7 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
     }
 
     public priceLineColor(lastBarColor: string): string {
-        return this._options.priceLineColor || lastBarColor;
+        return this._options.priceLineColor === '' ? lastBarColor : this._options.priceLineColor;
     }
 
     public lastValueData(globalLast: boolean): LastValueDataResult {
@@ -235,7 +234,6 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
         }
 
         // find range of bars inside range
-        // TODO: make it more optimal
         let bar: SeriesPlotRow<T> | null;
         let lastIndex: TimePointIndex;
         if (globalLast) {
@@ -325,7 +323,7 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
         this._markersPaneView.update('data');
 
         if (this._lastPriceAnimationPaneView !== null) {
-            if (updateInfo && updateInfo.lastBarUpdatedOrNewBarsAddedToTheRight) {
+            if (updateInfo?.lastBarUpdatedOrNewBarsAddedToTheRight === true) {
                 this._lastPriceAnimationPaneView.onNewRealtimeDataReceived();
             } else if (data.length === 0) {
                 this._lastPriceAnimationPaneView.onDataCleared();
@@ -415,9 +413,8 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
                 low: prices.value[PlotRowValueIndex.Low] as BarPrice,
                 close: prices.value[PlotRowValueIndex.Close] as BarPrice,
             };
-        } 
-            return prices.value[PlotRowValueIndex.Close] as BarPrice;
-        
+        }
+        return prices.value[PlotRowValueIndex.Close] as BarPrice;
     }
 
     public topPaneViews(_pane: Pane): readonly IPaneView[] {
@@ -543,7 +540,7 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
     }
 
     public override priceScale(): PriceScale {
-        return ensureNotNull(super.priceScale());
+        return getNotNull(super.priceScale());
     }
 
     public markerDataAtIndex(index: TimePointIndex): MarkerData | null {
@@ -586,18 +583,18 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
         if (this._paneView instanceof SeriesCustomPaneView === false) {
             return undefined;
         }
-        return (data: CustomData<unknown> | CustomSeriesWhitespaceData<unknown>) => {
+        return (data: CustomData<unknown> | CustomSeriesWhitespaceData<unknown>): number[] => {
             return (this._paneView as SeriesCustomPaneView).priceValueBuilder(data);
         };
     }
 
-    public customSeriesWhitespaceCheck<HorzScaleItem>(): WhitespaceCheck<HorzScaleItem> | undefined {
+    public customSeriesWhitespaceCheck<THorzScaleItem>(): WhitespaceCheck<THorzScaleItem> | undefined {
         if (this._paneView instanceof SeriesCustomPaneView === false) {
             return undefined;
         }
         return (
-            data: CustomData<HorzScaleItem> | CustomSeriesWhitespaceData<HorzScaleItem>,
-        ): data is CustomSeriesWhitespaceData<HorzScaleItem> => {
+            data: CustomData<THorzScaleItem> | CustomSeriesWhitespaceData<THorzScaleItem>,
+        ): data is CustomSeriesWhitespaceData<THorzScaleItem> => {
             return (this._paneView as SeriesCustomPaneView).isWhitespace(data);
         };
     }
@@ -612,7 +609,6 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
             return null;
         }
 
-        // TODO: refactor this
         // series data is strongly hardcoded to keep bars
         const plots =
             this._seriesType === 'Line' ||
@@ -636,15 +632,16 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
         this._primitives.forEach((primitive: SeriesPrimitiveWrapper) => {
             const primitiveAutoscale = primitive.autoscaleInfo(startTimePoint, endTimePoint);
 
-            if (primitiveAutoscale?.priceRange) {
+            if (primitiveAutoscale !== null) {
                 const primitiveRange = new PriceRangeImpl(
                     primitiveAutoscale.priceRange.minValue,
                     primitiveAutoscale.priceRange.maxValue,
                 );
                 range = range !== null ? range.merge(primitiveRange) : primitiveRange;
-            }
-            if (primitiveAutoscale?.margins) {
-                margins = mergeMargins(margins, primitiveAutoscale.margins);
+
+                if (primitiveAutoscale.margins !== undefined) {
+                    margins = mergeMargins(margins, primitiveAutoscale.margins);
+                }
             }
         });
 
@@ -741,17 +738,17 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
             return;
         }
 
-        const firstDataIndex = ensureNotNull(this._data.firstIndex());
+        const firstDataIndex = getNotNull(this._data.firstIndex());
 
         this._indexedMarkers = this._markers.map<InternalSeriesMarker<TimePointIndex>>(
             (marker: SeriesMarker<InternalHorzScaleItem>, index: number) => {
                 // the first find index on the time scale (across all series)
-                const timePointIndex = ensureNotNull(timeScale.timeToIndex(marker.time, true));
+                const timePointIndex = getNotNull(timeScale.timeToNearestIndex(marker.time));
 
                 // and then search that index inside the series data
                 const searchMode =
                     timePointIndex < firstDataIndex ? MismatchDirection.NearestRight : MismatchDirection.NearestLeft;
-                const seriesDataIndex = ensureNotNull(this._data.search(timePointIndex, searchMode)).index;
+                const seriesDataIndex = getNotNull(this._data.search(timePointIndex, searchMode)).index;
                 return {
                     time: seriesDataIndex,
                     position: marker.position,
@@ -790,7 +787,7 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
                 this._paneView = new SeriesCustomPaneView(
                     this as Series<'Custom'>,
                     this.model(),
-                    ensureDefined(customPaneView),
+                    getDefined(customPaneView),
                 );
                 break;
             }

@@ -9,22 +9,47 @@ export type DeepPartial<T> = {
           : DeepPartial<T[P]>;
 };
 
-export function merge(dst: Record<string, any>, ...sources: Record<string, any>[]): Record<string, any> {
+type PlainObject = Record<string, unknown>;
+
+/**
+ * Deep-merges each source into `dst`, in place, and hands `dst` back.
+ *
+ * This is what lays a `DeepPartial<Options>` over the chart's defaults, so an
+ * option the caller did not name has to survive untouched — which is why a
+ * nested object is recursed into rather than replaced wholesale.
+ */
+export function merge(dst: PlainObject, ...sources: PlainObject[]): PlainObject {
     for (const src of sources) {
-        for (const i in src) {
-            if (src[i] === undefined) {
+        for (const key in src) {
+            const value = src[key];
+            if (value === undefined) {
                 continue;
             }
 
-            if ('object' !== typeof src[i] || dst[i] === undefined || Array.isArray(src[i])) {
-                dst[i] = src[i];
+            const existing = dst[key];
+
+            // An array or a primitive replaces what was there outright; only a
+            // nested object that the target already has is merged into
+            if (isMergeable(value) && existing !== undefined) {
+                merge(existing as PlainObject, value);
             } else {
-                merge(dst[i], src[i]);
+                dst[key] = value;
             }
         }
     }
 
     return dst;
+}
+
+/**
+ * Whether a value is merged into what is already there rather than replacing it.
+ *
+ * `null` counts, which preserves the `typeof x === 'object'` test this replaced:
+ * merging null into an object iterates nothing, so a null in a partial options
+ * object leaves the existing value alone instead of erasing it.
+ */
+function isMergeable(value: unknown): value is PlainObject {
+    return typeof value === 'object' && !Array.isArray(value);
 }
 
 export function isNumber(value: unknown): value is number {
@@ -43,35 +68,26 @@ export function isBoolean(value: unknown): value is boolean {
     return typeof value === 'boolean';
 }
 
+/**
+ * A structural deep copy. The public API hands options objects out and takes
+ * them in; copying detaches them, so a caller holding on to one cannot reach
+ * into the chart's own state by mutating it later.
+ */
 export function clone<T>(object: T): T {
-    const o = object as any;
-    if (!o || 'object' !== typeof o) {
-        return o;
+    if (typeof object !== 'object' || object === null) {
+        return object;
     }
 
-    let c: any;
-
-    if (Array.isArray(o)) {
-        c = [];
-    } else {
-        c = {};
+    if (Array.isArray(object)) {
+        return object.map((item: unknown) => clone(item)) as T;
     }
 
-    let p;
-    let v;
-
-    for (p in o) {
-        if (o.hasOwnProperty(p)) {
-            v = o[p];
-            if (v && 'object' === typeof v) {
-                c[p] = clone(v);
-            } else {
-                c[p] = v;
-            }
-        }
+    const copy: PlainObject = {};
+    for (const key of Object.keys(object)) {
+        copy[key] = clone((object as PlainObject)[key]);
     }
 
-    return c;
+    return copy as T;
 }
 
 export function notNull<T>(t: T | null): t is T {

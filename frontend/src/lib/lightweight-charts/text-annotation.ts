@@ -1,11 +1,20 @@
-import { type IChartApi, type MouseEventParams, type Time } from '@/lib/lightweight-charts/index';
+import {
+    type IChartApi,
+    type ISeriesApi,
+    type MouseEventParams,
+    type SeriesType,
+    type Time,
+} from '@/lib/lightweight-charts/index';
+import { traceRoundedRect } from '@/lib/lightweight-charts/canvas-path';
+import { type CanvasPoint } from '@/lib/lightweight-charts/geometry';
+import { getThemeColor, hexToRgba } from '@/lib/lightweight-charts/theme-color';
 
 export type TextAnnotationPoint = {
     time: Time;
     price: number;
     x: number;
     y: number;
-}
+};
 
 export type TextAnnotation = {
     id: string;
@@ -16,175 +25,61 @@ export type TextAnnotation = {
     backgroundColor: string;
     backgroundOpacity: number;
     locked: boolean;
-}
+};
+
+type AnnotationBounds = { x: number; y: number; width: number; height: number };
+
+const DEFAULT_FONT_SIZE = 11;
+const DEFAULT_BACKGROUND_OPACITY = 0.7;
+const FONT_FAMILY = 'Arial, sans-serif';
+const LINE_HEIGHT_RATIO = 1.2;
+const BOX_PADDING = 6;
+const BOX_RADIUS = 4;
+
+// English, because this input is built in the DOM and cannot reach i18n. It
+// belongs in the locale files, which means the input belongs in a component.
+const TEXT_INPUT_PLACEHOLDER = 'Enter text...';
 
 export class TextAnnotationManager {
     private chart: IChartApi;
-    private mainSeries: any = null;
+    private mainSeries: ISeriesApi<SeriesType>;
     private canvas: HTMLCanvasElement | null = null;
     private ctx: CanvasRenderingContext2D | null = null;
     private isActive = false;
     private annotations: TextAnnotation[] = [];
     private selectedAnnotationId: string | null = null;
-    private isDragging = false;
-    private dragOffset: { x: number; y: number } | null = null;
-    private clickHandler: ((param: MouseEventParams<Time>) => void) | null = null;
-    private moveHandler: ((param: MouseEventParams<Time>) => void) | null = null;
-    private defaultFontSize = 11;
-    private defaultBackgroundOpacity = 0.7;
+
+    // A drag is in flight exactly while this is set — there is no separate flag
+    // to fall out of step with it
+    private dragOffset: CanvasPoint | null = null;
     private textInput: HTMLInputElement | null = null;
-    private visibleRangeChangeHandler: (() => void) | null = null;
     private onChangeCallback: (() => void) | null = null;
     private onActivateCallback: (() => void) | null = null;
-    private globalClickHandler: ((param: MouseEventParams<Time>) => void) | null = null;
-    private keyDownHandler: ((event: KeyboardEvent) => void) | null = null;
 
-    constructor(chart: IChartApi, mainSeries?: any) {
+    constructor(chart: IChartApi, mainSeries: ISeriesApi<SeriesType>) {
         this.chart = chart;
         this.mainSeries = mainSeries;
+
         this.setupCanvas();
-        this.subscribeToChartEvents();
+        this.chart.timeScale().subscribeVisibleLogicalRangeChange(this.handleVisibleRangeChange);
 
-        // Always listen for clicks to detect annotation selection
-        this.setupGlobalClickListener();
-
-        // Always listen for keyboard events (for deletion)
-        this.keyDownHandler = this.handleKeyDown.bind(this);
-        document.addEventListener('keydown', this.keyDownHandler);
+        // Selecting an annotation and deleting it both work whether or not the
+        // tool is the active one, so these two listeners outlive
+        // activate/deactivate
+        this.chart.subscribeClick(this.handleGlobalClick);
+        document.addEventListener('keydown', this.handleKeyDown);
     }
 
-    /**
-     * Set callback to be called when drawings change
-     */
     public onChange(callback: () => void): void {
         this.onChangeCallback = callback;
     }
 
     /**
-     * Set callback to be called when tool should be auto-activated
+     * Registers the callback that asks the toolbar to switch to this tool,
+     * which is what clicking an existing annotation does.
      */
     public onActivate(callback: () => void): void {
         this.onActivateCallback = callback;
-    }
-
-    /**
-     * Trigger onChange callback if set
-     */
-    private triggerChange(): void {
-        if (this.onChangeCallback) {
-            this.onChangeCallback();
-        }
-    }
-
-    private subscribeToChartEvents(): void {
-        // Subscribe to visible range changes (pan/zoom)
-        this.visibleRangeChangeHandler = () => {
-            this.draw();
-        };
-        this.chart.timeScale().subscribeVisibleLogicalRangeChange(this.visibleRangeChangeHandler);
-    }
-
-    private setupGlobalClickListener(): void {
-        // This handler is always active to detect clicks on annotations
-        this.globalClickHandler = (param: MouseEventParams<Time>) => {
-            if (this.isActive) return; // Don't interfere when tool is already active
-            if (!param.point) return;
-
-            // Check if clicking on an existing annotation
-            const annotationHit = this.hitTestAnnotation(param.point.x, param.point.y);
-            if (annotationHit) {
-                this.selectedAnnotationId = annotationHit;
-                this.draw();
-                // Auto-activate the tool
-                if (this.onActivateCallback) {
-                    this.onActivateCallback();
-                }
-            }
-        };
-        this.chart.subscribeClick(this.globalClickHandler);
-    }
-
-    private handleKeyDown(event: KeyboardEvent): void {
-        // Check if Backspace or Delete key was pressed
-        if (event.key === 'Backspace' || event.key === 'Delete') {
-            // Don't delete if user is typing in an input field
-            const target = event.target as HTMLElement;
-            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-                return;
-            }
-
-            // Delete the selected annotation if there is one
-            if (this.selectedAnnotationId) {
-                event.preventDefault();
-                this.removeSelectedAnnotation();
-            }
-        }
-    }
-
-    public setMainSeries(series: any): void {
-        this.mainSeries = series;
-    }
-
-    private setupCanvas(): void {
-        const chartContainer = (this.chart as any).chartElement?.() || document.querySelector('#wk-chart');
-        if (!chartContainer) return;
-
-        this.canvas = document.createElement('canvas');
-        this.canvas.style.position = 'absolute';
-        this.canvas.style.top = '0';
-        this.canvas.style.left = '0';
-        this.canvas.style.pointerEvents = 'none';
-        this.canvas.style.zIndex = '100'; // Above trendlines and boxes
-
-        chartContainer.appendChild(this.canvas);
-        this.ctx = this.canvas.getContext('2d');
-
-        this.resizeCanvas();
-        window.addEventListener('resize', () => this.resizeCanvas());
-    }
-
-    private resizeCanvas(): void {
-        if (!this.canvas) return;
-        const chartContainer = this.canvas.parentElement;
-        if (!chartContainer) return;
-
-        const rect = chartContainer.getBoundingClientRect();
-        this.canvas.width = rect.width * window.devicePixelRatio;
-        this.canvas.height = rect.height * window.devicePixelRatio;
-        this.canvas.style.width = `${rect.width}px`;
-        this.canvas.style.height = `${rect.height}px`;
-
-        if (this.ctx) {
-            this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-        }
-
-        this.draw();
-    }
-
-    private getPriceFromY(y: number): number | null {
-        if (!this.mainSeries) return null;
-        try {
-            return this.mainSeries.coordinateToPrice(y);
-        } catch (e) {
-            return null;
-        }
-    }
-
-    private getYFromPrice(price: number): number | null {
-        if (!this.mainSeries) return null;
-        try {
-            return this.mainSeries.priceToCoordinate(price);
-        } catch (e) {
-            return null;
-        }
-    }
-
-    private getXFromTime(time: Time): number | null {
-        try {
-            return this.chart.timeScale().timeToCoordinate(time);
-        } catch (e) {
-            return null;
-        }
     }
 
     public activate(): void {
@@ -192,115 +87,19 @@ export class TextAnnotationManager {
 
         this.isActive = true;
 
-        this.clickHandler = (param: MouseEventParams<Time>) => {
-            if (!param.point || !param.time) return;
-
-            const price = this.getPriceFromY(param.point.y);
-            if (price === null || price === undefined) return;
-
-            // If we're currently dragging, stop dragging on this click
-            if (this.isDragging) {
-                this.isDragging = false;
-                this.dragOffset = null;
-                this.draw();
-                return;
-            }
-
-            // Check if clicking on an existing annotation
-            const annotationHit = this.hitTestAnnotation(param.point.x, param.point.y);
-            if (annotationHit) {
-                this.selectedAnnotationId = annotationHit;
-                this.isDragging = true;
-
-                const annotation = this.annotations.find((a) => a.id === annotationHit);
-                if (annotation) {
-                    this.dragOffset = {
-                        x: param.point.x - annotation.point.x,
-                        y: param.point.y - annotation.point.y,
-                    };
-                }
-                this.draw();
-                return;
-            }
-
-            // Create new annotation
-            this.promptForText(
-                (text) => {
-                    if (text && text.trim()) {
-                        const styles = getComputedStyle(document.documentElement);
-                        const textColor = styles.getPropertyValue('--color-text').trim() || '#ffffff';
-                        const bgColor = styles.getPropertyValue('--color-elevated').trim() || '#414868';
-
-                        const newAnnotation: TextAnnotation = {
-                            id: this.generateId(),
-                            point: {
-                                time: param.time!,
-                                price: price,
-                                x: param.point!.x,
-                                y: param.point!.y,
-                            },
-                            text: text.trim(),
-                            fontSize: this.defaultFontSize,
-                            textColor: textColor,
-                            backgroundColor: bgColor,
-                            backgroundOpacity: this.defaultBackgroundOpacity,
-                            locked: false,
-                        };
-
-                        this.annotations.push(newAnnotation);
-                        this.selectedAnnotationId = null; // Don't keep it selected after creation
-                        this.draw();
-                        this.triggerChange(); // Trigger auto-save
-                    }
-                },
-                '',
-                param.point.x,
-                param.point.y,
-            );
-        };
-
-        this.moveHandler = (param: MouseEventParams<Time>) => {
-            if (!param.point || !param.time) return;
-
-            const price = this.getPriceFromY(param.point.y);
-            if (price === null || price === undefined) return;
-
-            // If dragging an annotation, update its position
-            if (this.isDragging && this.selectedAnnotationId && this.dragOffset) {
-                const annotation = this.annotations.find((a) => a.id === this.selectedAnnotationId);
-                if (annotation && !annotation.locked) {
-                    annotation.point = {
-                        time: param.time,
-                        price: price,
-                        x: param.point.x - this.dragOffset.x,
-                        y: param.point.y - this.dragOffset.y,
-                    };
-                    this.draw();
-                }
-            }
-        };
-
-        this.chart.subscribeClick(this.clickHandler);
-        this.chart.subscribeCrosshairMove(this.moveHandler);
+        this.chart.subscribeClick(this.handleClick);
+        this.chart.subscribeCrosshairMove(this.handleCrosshairMove);
     }
 
     public deactivate(): void {
         if (!this.isActive) return;
 
         this.isActive = false;
-        this.isDragging = false;
         this.dragOffset = null;
         this.removeTextInput();
 
-        if (this.clickHandler) {
-            this.chart.unsubscribeClick(this.clickHandler);
-            this.clickHandler = null;
-        }
-
-        if (this.moveHandler) {
-            this.chart.unsubscribeCrosshairMove(this.moveHandler);
-            this.moveHandler = null;
-        }
+        this.chart.unsubscribeClick(this.handleClick);
+        this.chart.unsubscribeCrosshairMove(this.handleCrosshairMove);
     }
 
     public toggle(): void {
@@ -316,242 +115,12 @@ export class TextAnnotationManager {
     }
 
     public removeSelectedAnnotation(): void {
-        if (this.selectedAnnotationId) {
-            this.annotations = this.annotations.filter((a) => a.id !== this.selectedAnnotationId);
-            this.selectedAnnotationId = null;
-            this.draw();
-            this.triggerChange(); // Trigger auto-save
-        }
-    }
+        if (this.selectedAnnotationId === null) return;
 
-    public removeAllAnnotations(): void {
-        this.annotations = [];
+        this.annotations = this.annotations.filter((annotation) => annotation.id !== this.selectedAnnotationId);
         this.selectedAnnotationId = null;
         this.draw();
-        this.triggerChange(); // Trigger auto-save
-    }
-
-    public editSelectedAnnotation(): void {
-        if (this.selectedAnnotationId) {
-            const annotation = this.annotations.find((a) => a.id === this.selectedAnnotationId);
-            if (annotation) {
-                this.updateAnnotationCoordinates(annotation);
-                this.promptForText(
-                    (text) => {
-                        if (text && text.trim()) {
-                            annotation.text = text.trim();
-                            this.draw();
-                        }
-                    },
-                    annotation.text,
-                    annotation.point.x,
-                    annotation.point.y,
-                );
-            }
-        }
-    }
-
-    private promptForText(callback: (text: string) => void, defaultText = '', x?: number, y?: number): void {
-        // Remove any existing input
-        this.removeTextInput();
-
-        const chartContainer = (this.chart as any).chartElement?.() || document.querySelector('#wk-chart');
-        if (!chartContainer) return;
-
-        // Create input element
-        this.textInput = document.createElement('input');
-        this.textInput.type = 'text';
-        this.textInput.value = defaultText;
-        this.textInput.placeholder = 'Enter text...';
-
-        // Style the input
-        const styles = getComputedStyle(document.documentElement);
-        const textColor = styles.getPropertyValue('--color-text').trim() || '#ffffff';
-        const bgColor = styles.getPropertyValue('--color-elevated').trim() || '#414868';
-
-        Object.assign(this.textInput.style, {
-            position: 'absolute',
-            left: `${x || 100}px`,
-            top: `${y || 100}px`,
-            fontSize: '11px',
-            padding: '4px 8px',
-            border: `1px solid ${textColor}`,
-            borderRadius: '3px',
-            background: bgColor,
-            color: textColor,
-            outline: 'none',
-            zIndex: '1000',
-            fontFamily: 'Arial, sans-serif',
-            minWidth: '120px',
-        });
-
-        chartContainer.appendChild(this.textInput);
-        this.textInput.focus();
-        this.textInput.select();
-
-        // Handle submission
-        const handleSubmit = () => {
-            const text = this.textInput?.value || '';
-            this.removeTextInput();
-            callback(text);
-        };
-
-        // Handle cancel
-        const handleCancel = () => {
-            this.removeTextInput();
-        };
-
-        // Enter key submits
-        this.textInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                handleSubmit();
-            } else if (e.key === 'Escape') {
-                e.preventDefault();
-                handleCancel();
-            }
-        });
-
-        // Blur submits
-        this.textInput.addEventListener('blur', handleSubmit);
-    }
-
-    private removeTextInput(): void {
-        if (this.textInput && this.textInput.parentElement) {
-            this.textInput.remove();
-            this.textInput = null;
-        }
-    }
-
-    private generateId(): string {
-        return `txt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    }
-
-    private hitTestAnnotation(x: number, y: number): string | null {
-        for (const annotation of this.annotations) {
-            this.updateAnnotationCoordinates(annotation);
-
-            const bounds = this.getAnnotationBounds(annotation);
-            if (x >= bounds.x && x <= bounds.x + bounds.width && y >= bounds.y && y <= bounds.y + bounds.height) {
-                return annotation.id;
-            }
-        }
-
-        return null;
-    }
-
-    private getAnnotationBounds(annotation: TextAnnotation): { x: number; y: number; width: number; height: number } {
-        if (!this.ctx) return { x: 0, y: 0, width: 0, height: 0 };
-
-        const ctx = this.ctx;
-
-        ctx.font = `${annotation.fontSize}px Arial`;
-        const metrics = ctx.measureText(annotation.text);
-        const textWidth = metrics.width;
-        const textHeight = annotation.fontSize * 1.2;
-
-        const padding = 6;
-        const width = textWidth + padding * 2;
-        const height = textHeight + padding * 2;
-
-        return {
-            x: annotation.point.x,
-            y: annotation.point.y - height / 2,
-            width: width,
-            height: height,
-        };
-    }
-
-    private updateAnnotationCoordinates(annotation: TextAnnotation): void {
-        const x = this.getXFromTime(annotation.point.time);
-        const y = this.getYFromPrice(annotation.point.price);
-
-        if (x !== null) annotation.point.x = x;
-        if (y !== null) annotation.point.y = y;
-    }
-
-    private clear(): void {
-        if (!this.ctx || !this.canvas) return;
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    }
-
-    public draw(): void {
-        this.clear();
-        if (!this.ctx) return;
-
-        for (const annotation of this.annotations) {
-            this.updateAnnotationCoordinates(annotation);
-            const isSelected = annotation.id === this.selectedAnnotationId;
-            this.drawAnnotation(annotation, isSelected);
-        }
-    }
-
-    private drawAnnotation(annotation: TextAnnotation, isSelected: boolean): void {
-        if (!this.ctx) return;
-
-        const ctx = this.ctx;
-        const styles = getComputedStyle(document.documentElement);
-        const textColor = styles.getPropertyValue('--color-text').trim() || annotation.textColor;
-        const bgColor = styles.getPropertyValue('--color-elevated').trim() || annotation.backgroundColor;
-
-        ctx.font = `${annotation.fontSize}px Arial`;
-        const metrics = ctx.measureText(annotation.text);
-        const textWidth = metrics.width;
-        const textHeight = annotation.fontSize * 1.2;
-
-        const padding = 6;
-        const boxWidth = textWidth + padding * 2;
-        const boxHeight = textHeight + padding * 2;
-        const boxX = annotation.point.x;
-        const boxY = annotation.point.y - boxHeight / 2;
-
-        // Draw background with rounded corners
-        ctx.fillStyle = this.hexToRgba(bgColor, annotation.backgroundOpacity);
-        this.roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 4);
-        ctx.fill();
-
-        // Draw border only if selected AND actively being dragged
-        if (isSelected && this.isDragging) {
-            ctx.strokeStyle = textColor;
-            ctx.lineWidth = 2;
-            this.roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 4);
-            ctx.stroke();
-        }
-
-        // Draw text
-        ctx.fillStyle = textColor;
-        ctx.textBaseline = 'middle';
-        ctx.textAlign = 'left';
-        ctx.fillText(annotation.text, boxX + padding, annotation.point.y);
-    }
-
-    private roundRect(
-        ctx: CanvasRenderingContext2D,
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-        radius: number,
-    ): void {
-        ctx.beginPath();
-        ctx.moveTo(x + radius, y);
-        ctx.lineTo(x + width - radius, y);
-        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-        ctx.lineTo(x + width, y + height - radius);
-        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-        ctx.lineTo(x + radius, y + height);
-        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-        ctx.lineTo(x, y + radius);
-        ctx.quadraticCurveTo(x, y, x + radius, y);
-        ctx.closePath();
-    }
-
-    private hexToRgba(hex: string, alpha: number): string {
-        hex = hex.replace('#', '');
-        const r = parseInt(hex.substring(0, 2), 16);
-        const g = parseInt(hex.substring(2, 4), 16);
-        const b = parseInt(hex.substring(4, 6), 16);
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        this.notifyChange();
     }
 
     public getAnnotations(): TextAnnotation[] {
@@ -563,30 +132,351 @@ export class TextAnnotationManager {
         this.draw();
     }
 
+    public draw(): void {
+        this.clear();
+        if (this.ctx === null) return;
+
+        for (const annotation of this.annotations) {
+            this.updateAnnotationCoordinates(annotation);
+            this.drawAnnotation(annotation);
+        }
+    }
+
     public destroy(): void {
         this.deactivate();
         this.removeTextInput();
 
-        if (this.visibleRangeChangeHandler) {
-            this.chart.timeScale().unsubscribeVisibleLogicalRangeChange(this.visibleRangeChangeHandler);
-            this.visibleRangeChangeHandler = null;
-        }
+        this.chart.timeScale().unsubscribeVisibleLogicalRangeChange(this.handleVisibleRangeChange);
+        this.chart.unsubscribeClick(this.handleGlobalClick);
+        document.removeEventListener('keydown', this.handleKeyDown);
+        window.removeEventListener('resize', this.handleResize);
 
-        // Remove global click handler
-        if (this.globalClickHandler) {
-            this.chart.unsubscribeClick(this.globalClickHandler);
-            this.globalClickHandler = null;
-        }
+        this.canvas?.parentElement?.removeChild(this.canvas);
 
-        // Remove keyboard handler
-        if (this.keyDownHandler) {
-            document.removeEventListener('keydown', this.keyDownHandler);
-            this.keyDownHandler = null;
-        }
-
-        if (this.canvas && this.canvas.parentElement) {
-            this.canvas.parentElement.removeChild(this.canvas);
-        }
-        window.removeEventListener('resize', () => this.resizeCanvas());
+        this.canvas = null;
+        this.ctx = null;
     }
+
+    // The handlers are arrow properties so that `this` survives being handed to
+    // addEventListener and to the chart's own subscriptions, and so that the
+    // reference passed to unsubscribe is the one that was subscribed
+    private handleVisibleRangeChange = (): void => {
+        this.draw();
+    };
+
+    private handleResize = (): void => {
+        this.resizeCanvas();
+    };
+
+    /**
+     * Clicking an annotation picks it up even when another tool is in front,
+     * which is the only way to reach one without first hunting for the right
+     * toolbar button.
+     */
+    private handleGlobalClick = (param: MouseEventParams<Time>): void => {
+        if (this.isActive || param.point === undefined) return;
+
+        const annotationId = this.hitTestAnnotation(param.point);
+        if (annotationId === null) return;
+
+        this.selectedAnnotationId = annotationId;
+        this.draw();
+        this.onActivateCallback?.();
+    };
+
+    private handleKeyDown = (event: KeyboardEvent): void => {
+        if (event.key !== 'Backspace' && event.key !== 'Delete') return;
+
+        // Not while the caret is in a field — there the key means "erase a
+        // character", including inside this tool's own text input
+        const target = event.target as HTMLElement;
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+            return;
+        }
+
+        if (this.selectedAnnotationId !== null) {
+            event.preventDefault(); // Backspace would otherwise navigate back
+            this.removeSelectedAnnotation();
+        }
+    };
+
+    private handleClick = (param: MouseEventParams<Time>): void => {
+        if (param.point === undefined) return;
+
+        // A click is also what ends a drag: the chart reports clicks and
+        // crosshair moves, never a mouseup
+        if (this.dragOffset !== null) {
+            this.dragOffset = null;
+            this.draw();
+            return;
+        }
+
+        const annotationId = this.hitTestAnnotation(param.point);
+        if (annotationId !== null) {
+            this.grabAnnotation(annotationId, param.point);
+            return;
+        }
+
+        const anchor = this.readAt(param.point);
+        if (anchor === null) return;
+
+        this.openTextInput(param.point, (text) => {
+            this.addAnnotation(anchor, text);
+        });
+    };
+
+    private handleCrosshairMove = (param: MouseEventParams<Time>): void => {
+        const offset = this.dragOffset;
+        if (offset === null || param.point === undefined) return;
+
+        const annotation = this.annotations.find((candidate) => candidate.id === this.selectedAnnotationId);
+        if (annotation === undefined || annotation.locked) return;
+
+        // The anchor is re-read at the shifted position rather than at the
+        // pointer, or the annotation would jump by the grab offset the next
+        // time it is drawn from its stored time and price
+        const moved = this.readAt({ x: param.point.x - offset.x, y: param.point.y - offset.y });
+        if (moved === null) return;
+
+        annotation.point = moved;
+        this.draw();
+    };
+
+    private setupCanvas(): void {
+        // An overlay canvas above the trendlines' and the boxes' own
+        const chartContainer = this.chart.chartElement();
+
+        this.canvas = document.createElement('canvas');
+        this.canvas.style.position = 'absolute';
+        this.canvas.style.top = '0';
+        this.canvas.style.left = '0';
+        this.canvas.style.pointerEvents = 'none';
+        this.canvas.style.zIndex = '100';
+
+        chartContainer.appendChild(this.canvas);
+        this.ctx = this.canvas.getContext('2d');
+
+        this.resizeCanvas();
+        window.addEventListener('resize', this.handleResize);
+    }
+
+    private resizeCanvas(): void {
+        const chartContainer = this.canvas?.parentElement;
+        if (this.canvas === null || chartContainer === null || chartContainer === undefined) return;
+
+        const rect = chartContainer.getBoundingClientRect();
+        this.canvas.width = rect.width * window.devicePixelRatio;
+        this.canvas.height = rect.height * window.devicePixelRatio;
+        this.canvas.style.width = `${rect.width}px`;
+        this.canvas.style.height = `${rect.height}px`;
+
+        this.ctx?.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+        this.draw();
+    }
+
+    /**
+     * Anchors a canvas position to the bar and price under it, which is what an
+     * annotation is stored as — pixels mean nothing once the chart pans.
+     */
+    private readAt(pointer: CanvasPoint): TextAnnotationPoint | null {
+        const time = this.chart.timeScale().coordinateToTime(pointer.x);
+        const price = this.mainSeries.coordinateToPrice(pointer.y);
+        if (time === null || price === null) return null;
+
+        return { time, price, x: pointer.x, y: pointer.y };
+    }
+
+    private grabAnnotation(annotationId: string, pointer: CanvasPoint): void {
+        this.selectedAnnotationId = annotationId;
+
+        const annotation = this.annotations.find((candidate) => candidate.id === annotationId);
+        if (annotation !== undefined) {
+            // Where inside the label the grab landed, so it does not jump its
+            // corner to the pointer
+            this.dragOffset = { x: pointer.x - annotation.point.x, y: pointer.y - annotation.point.y };
+        }
+
+        this.draw();
+    }
+
+    private addAnnotation(anchor: TextAnnotationPoint, text: string): void {
+        this.annotations.push({
+            id: generateAnnotationId(),
+            point: anchor,
+            text,
+            fontSize: DEFAULT_FONT_SIZE,
+            textColor: getThemeColor('--color-text'),
+            backgroundColor: getThemeColor('--color-elevated'),
+            backgroundOpacity: DEFAULT_BACKGROUND_OPACITY,
+            locked: false,
+        });
+
+        // Left unselected, so the next click starts a new annotation rather
+        // than grabbing the one just written
+        this.selectedAnnotationId = null;
+        this.draw();
+        this.notifyChange();
+    }
+
+    /**
+     * Floats a text field over the chart at the click, and hands back whatever
+     * was typed. Empty text is a cancellation, not an empty annotation.
+     */
+    private openTextInput(at: CanvasPoint, onSubmit: (text: string) => void): void {
+        this.removeTextInput();
+
+        const textColor = getThemeColor('--color-text');
+        const backgroundColor = getThemeColor('--color-elevated');
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = TEXT_INPUT_PLACEHOLDER;
+
+        Object.assign(input.style, {
+            position: 'absolute',
+            left: `${at.x}px`,
+            top: `${at.y}px`,
+            fontSize: `${DEFAULT_FONT_SIZE}px`,
+            fontFamily: FONT_FAMILY,
+            padding: '4px 8px',
+            border: `1px solid ${textColor}`,
+            borderRadius: `${BOX_RADIUS}px`,
+            background: backgroundColor,
+            color: textColor,
+            outline: 'none',
+            zIndex: '1000',
+            minWidth: '120px',
+        });
+
+        this.textInput = input;
+        this.chart.chartElement().appendChild(input);
+        input.focus();
+        input.select();
+
+        // Committing removes the field, which blurs it and would commit a second
+        // time — so whichever of the three ways out fires first is the only one
+        // that counts
+        let settled = false;
+        const settle = (text: string): void => {
+            if (settled) return;
+            settled = true;
+
+            this.removeTextInput();
+            if (text !== '') onSubmit(text);
+        };
+
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                settle(input.value.trim());
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                settle('');
+            }
+        });
+
+        input.addEventListener('blur', () => {
+            settle(input.value.trim());
+        });
+    }
+
+    private removeTextInput(): void {
+        this.textInput?.remove();
+        this.textInput = null;
+    }
+
+    private hitTestAnnotation(pointer: CanvasPoint): string | null {
+        const ctx = this.ctx;
+        if (ctx === null) return null;
+
+        for (const annotation of this.annotations) {
+            this.updateAnnotationCoordinates(annotation);
+            const bounds = measureAnnotation(ctx, annotation);
+
+            const inside =
+                pointer.x >= bounds.x &&
+                pointer.x <= bounds.x + bounds.width &&
+                pointer.y >= bounds.y &&
+                pointer.y <= bounds.y + bounds.height;
+
+            if (inside) return annotation.id;
+        }
+
+        return null;
+    }
+
+    /**
+     * Re-derives an annotation's pixels from the time and price it is stored in,
+     * which the chart invalidates on every pan and every scale change.
+     */
+    private updateAnnotationCoordinates(annotation: TextAnnotation): void {
+        const left = this.chart.timeScale().timeToCoordinate(annotation.point.time);
+        const top = this.mainSeries.priceToCoordinate(annotation.point.price);
+
+        // An annotation scrolled off a scale keeps its last coordinate rather
+        // than collapsing onto the axis
+        if (left !== null) annotation.point.x = left;
+        if (top !== null) annotation.point.y = top;
+    }
+
+    private clear(): void {
+        if (this.ctx === null || this.canvas === null) return;
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    private drawAnnotation(annotation: TextAnnotation): void {
+        const ctx = this.ctx;
+        if (ctx === null) return;
+
+        // The stored colours are deliberately not read: an annotation follows
+        // whichever theme is on now, so one written in a dark theme is still
+        // legible in a light one
+        const textColor = getThemeColor('--color-text');
+        const backgroundColor = getThemeColor('--color-elevated');
+        const bounds = measureAnnotation(ctx, annotation);
+
+        ctx.fillStyle = hexToRgba(backgroundColor, annotation.backgroundOpacity);
+        traceRoundedRect(ctx, { ...bounds, radius: BOX_RADIUS });
+        ctx.fill();
+
+        // An outline only while the annotation is actually being moved — it is
+        // a grab affordance, not decoration
+        if (annotation.id === this.selectedAnnotationId && this.dragOffset !== null) {
+            ctx.strokeStyle = textColor;
+            ctx.lineWidth = 2;
+            traceRoundedRect(ctx, { ...bounds, radius: BOX_RADIUS });
+            ctx.stroke();
+        }
+
+        ctx.fillStyle = textColor;
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'left';
+        ctx.fillText(annotation.text, bounds.x + BOX_PADDING, annotation.point.y);
+    }
+
+    private notifyChange(): void {
+        this.onChangeCallback?.();
+    }
+}
+
+/**
+ * The label's box, measured against the canvas — the text's own width is the
+ * only thing that decides it, so it has to be asked for rather than stored.
+ *
+ * Sets `ctx.font` as a side effect, which is also what the caller needs set
+ * before it draws the text.
+ */
+function measureAnnotation(ctx: CanvasRenderingContext2D, annotation: TextAnnotation): AnnotationBounds {
+    ctx.font = `${annotation.fontSize}px ${FONT_FAMILY}`;
+
+    const width = ctx.measureText(annotation.text).width + BOX_PADDING * 2;
+    const height = annotation.fontSize * LINE_HEIGHT_RATIO + BOX_PADDING * 2;
+
+    // The anchor is the box's left edge, vertically centred on the price it marks
+    return { x: annotation.point.x, y: annotation.point.y - height / 2, width, height };
+}
+
+function generateAnnotationId(): string {
+    return `txt_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }

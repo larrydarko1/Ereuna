@@ -33,21 +33,32 @@ type Constants = (typeof Constants)[keyof typeof Constants];
 type Offsets = {
     aboveBar: number;
     belowBar: number;
-}
+};
 
 type MarkerPositions = Record<SeriesMarkerPosition, boolean>;
 
-function fillSizeAndY(
+/** What the marker is being placed against: the bar, the scales, the layout. */
+type MarkerContext = {
+    seriesData: BarPrices | BarPrice;
+    offsets: Offsets;
+    textHeight: number;
+    shapeMargin: number;
+    priceScale: PriceScale;
+    timeScale: ITimeScale;
+    firstValue: number;
+};
+
+/**
+ * Sizes the marker from the bar spacing and drops it onto its price, which is
+ * one job: a marker's height is what decides where it can sit.
+ */
+function placeMarker(
     rendererItem: SeriesMarkerRendererDataItem,
     marker: InternalSeriesMarker<TimePointIndex>,
-    seriesData: BarPrices | BarPrice,
-    offsets: Offsets,
-    textHeight: number,
-    shapeMargin: number,
-    priceScale: PriceScale,
-    timeScale: ITimeScale,
-    firstValue: number,
+    context: MarkerContext,
 ): void {
+    const { seriesData, offsets, textHeight, shapeMargin, priceScale, timeScale, firstValue } = context;
+
     const inBarPrice = isNumber(seriesData) ? seriesData : seriesData.close;
     const highPrice = isNumber(seriesData) ? seriesData : seriesData.high;
     const lowPrice = isNumber(seriesData) ? seriesData : seriesData.low;
@@ -159,8 +170,14 @@ export class SeriesMarkersPaneView implements IUpdatablePaneView {
                 const positions = this._getMarkerPositions();
 
                 this._autoScaleMargins = {
-                    above: calculateAdjustedMargin(marginValue, positions.aboveBar, positions.inBar),
-                    below: calculateAdjustedMargin(marginValue, positions.belowBar, positions.inBar),
+                    above: calculateAdjustedMargin(marginValue, {
+                        hasSide: positions.aboveBar,
+                        hasInBar: positions.inBar,
+                    }),
+                    below: calculateAdjustedMargin(marginValue, {
+                        hasSide: positions.belowBar,
+                        hasInBar: positions.inBar,
+                    }),
                 };
             } else {
                 this._autoScaleMargins = null;
@@ -233,7 +250,7 @@ export class SeriesMarkersPaneView implements IUpdatablePaneView {
             aboveBar: shapeMargin,
             belowBar: shapeMargin,
         };
-        this._data.visibleRange = visibleTimedValues(this._data.items, visibleBars, true);
+        this._data.visibleRange = visibleTimedValues(this._data.items, visibleBars, { extended: true });
         for (let index = this._data.visibleRange.from; index < this._data.visibleRange.to; index++) {
             const marker = seriesMarkers[index];
             const rendererItem = this._data.items[index];
@@ -260,17 +277,15 @@ export class SeriesMarkersPaneView implements IUpdatablePaneView {
             if (dataAt === null) {
                 continue;
             }
-            fillSizeAndY(
-                rendererItem,
-                marker,
-                dataAt,
+            placeMarker(rendererItem, marker, {
+                seriesData: dataAt,
                 offsets,
-                layoutOptions.fontSize,
+                textHeight: layoutOptions.fontSize,
                 shapeMargin,
                 priceScale,
                 timeScale,
-                firstValue.value,
-            );
+                firstValue: firstValue.value,
+            });
         }
         this._invalidated = false;
     }

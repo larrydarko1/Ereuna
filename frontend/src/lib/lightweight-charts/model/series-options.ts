@@ -78,7 +78,7 @@ export type CandlestickStyleOptions = {
      * @defaultValue `'#ef5350'`
      */
     wickDownColor: string;
-}
+};
 
 export function fillUpDownCandlesticksColors(options: Partial<CandlestickStyleOptions>): void {
     if (options.borderColor !== undefined) {
@@ -141,7 +141,7 @@ export type BarStyleOptions = {
      * @defaultValue `true`
      */
     thinBars: boolean;
-}
+};
 
 /**
  * Represents style options for a line series.
@@ -232,7 +232,7 @@ export type LineStyleOptions = {
      * @defaultValue {@link LastPriceAnimationMode.Disabled}
      */
     lastPriceAnimation: LastPriceAnimationMode;
-}
+};
 
 /**
  * Represents style options for an area series.
@@ -344,7 +344,7 @@ export type AreaStyleOptions = {
      * @defaultValue {@link LastPriceAnimationMode.Disabled}
      */
     lastPriceAnimation: LastPriceAnimationMode;
-}
+};
 
 /**
  * Represents a type of priced base value of baseline series type.
@@ -359,7 +359,7 @@ export type BaseValuePrice = {
      * Price value.
      */
     price: number;
-}
+};
 
 /**
  * Represents a type of a base value of baseline series type.
@@ -371,7 +371,7 @@ export type BaseValueType = BaseValuePrice;
  */
 export type BaselineStyleOptions = {
     /**
-     * Base value of the series.
+     * TBase value of the series.
      *
      * @defaultValue `{ type: 'price', price: 0 }`
      */
@@ -491,7 +491,7 @@ export type BaselineStyleOptions = {
      * @defaultValue {@link LastPriceAnimationMode.Disabled}
      */
     lastPriceAnimation: LastPriceAnimationMode;
-}
+};
 
 /**
  * Represents style options for a histogram series.
@@ -510,7 +510,7 @@ export type HistogramStyleOptions = {
      * @defaultValue `0`
      */
     base: number;
-}
+};
 
 /**
  * Represents style options for a custom series.
@@ -520,7 +520,7 @@ export type CustomStyleOptions = {
      * Color used for the price line and price scale label.
      */
     color: string;
-}
+};
 
 /**
  * Represents series value formatting options.
@@ -556,7 +556,7 @@ export type PriceFormatBuiltIn = {
      * @defaultValue `0.01`
      */
     minMove: number;
-}
+};
 
 /**
  * Represents series value formatting options.
@@ -578,7 +578,7 @@ export type PriceFormatCustom = {
      * @defaultValue `0.01`
      */
     minMove: number;
-}
+};
 
 /**
  * Represents information used to format prices.
@@ -635,7 +635,7 @@ export type PriceRange = {
      * Minimum value in the range.
      */
     maxValue: number;
-}
+};
 
 /**
  * Represents information used to update a price scale.
@@ -650,7 +650,7 @@ export type AutoscaleInfo = {
      * Scale margins.
      */
     margins?: AutoScaleMargins | undefined;
-}
+};
 
 /**
  * A custom function used to get autoscale information.
@@ -756,14 +756,14 @@ export type SeriesOptionsCommon = {
     baseLineColor: string;
 
     /**
-     * Base line width. Suitable for percentage and `IndexedTo10` scales.
+     * TBase line width. Suitable for percentage and `IndexedTo10` scales.
      *
      * @defaultValue `1`
      */
     baseLineWidth: LineWidth;
 
     /**
-     * Base line style. Suitable for percentage and indexedTo100 scales.
+     * TBase line style. Suitable for percentage and indexedTo100 scales.
      *
      * @defaultValue {@link LineStyle.Solid}
      */
@@ -816,7 +816,7 @@ export type SeriesOptionsCommon = {
      * ```
      */
     autoscaleInfoProvider?: AutoscaleInfoProvider;
-}
+};
 
 /**
  * Represents the intersection of a series type `T`'s options and common series options.
@@ -926,7 +926,7 @@ export type SeriesStyleOptionsMap = {
      * The type of a custom series' style options.
      */
     Custom: CustomStyleOptions;
-}
+};
 
 /**
  * Represents the type of options for each series type.
@@ -962,7 +962,7 @@ export type SeriesOptionsMap = {
      * The type of a custom series options.
      */
     Custom: CustomSeriesOptions;
-}
+};
 
 /**
  * Represents the type of partial options for each series type.
@@ -998,7 +998,7 @@ export type SeriesPartialOptionsMap = {
      * The type of a custom series partial options.
      */
     Custom: CustomSeriesPartialOptions;
-}
+};
 
 /**
  * Represents a type of series.

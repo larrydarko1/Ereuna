@@ -1,4 +1,5 @@
 import { type Time } from '@/lib/lightweight-charts/index';
+import { timeToTimestamp } from '@/lib/lightweight-charts/time-conversion';
 
 export type OHLCData = {
     time: Time;
@@ -6,7 +7,7 @@ export type OHLCData = {
     high: number;
     low: number;
     close: number;
-}
+};
 
 export type ReplayState = {
     isActive: boolean;
@@ -15,7 +16,7 @@ export type ReplayState = {
     speed: number; // bars per second
     startIndex: number;
     endIndex: number;
-}
+};
 
 export type ReplayCallback = (index: number, date: string) => void;
 
@@ -95,7 +96,7 @@ export class ReplayManager {
         let minDiff = Infinity;
 
         for (const [i, bar] of this.fullData.entries()) {
-            const barTime = this.getBarTimestamp(bar.time);
+            const barTime = timeToTimestamp(bar.time);
             const diff = Math.abs(barTime - timestamp);
 
             if (diff < minDiff) {
@@ -202,7 +203,7 @@ export class ReplayManager {
             const bar = this.fullData[i];
             if (bar === undefined) continue;
 
-            const barTime = this.getBarTimestamp(bar.time);
+            const barTime = timeToTimestamp(bar.time);
             const diff = Math.abs(barTime - timestamp);
 
             if (diff < minDiff) {
@@ -253,7 +254,7 @@ export class ReplayManager {
             return '';
         }
 
-        const timestamp = this.getBarTimestamp(currentBar.time);
+        const timestamp = timeToTimestamp(currentBar.time);
 
         const date = new Date(timestamp * 1000);
 
@@ -288,7 +289,7 @@ export class ReplayManager {
         this.callbacks.add(callback);
 
         // Return unsubscribe function
-        return () => {
+        return (): void => {
             this.callbacks.delete(callback);
         };
     }
@@ -326,30 +327,6 @@ export class ReplayManager {
             clearInterval(this.intervalId);
             this.intervalId = null;
         }
-    }
-
-    /**
-     * Helper to extract timestamp from Time type
-     */
-    private getBarTimestamp(time: Time): number {
-        if (typeof time === 'number') {
-            return time;
-        }
-        if (typeof time === 'string') {
-            // Handle string dates like "2024-01-01"
-            return Math.floor(new Date(time).getTime() / 1000);
-        }
-        // Handle object with timestamp or year/month/day properties
-        if (typeof time === 'object' && time !== null) {
-            if ('timestamp' in time) {
-                return (time as any).timestamp;
-            }
-            if ('year' in time && 'month' in time && 'day' in time) {
-                const t = time as any;
-                return Math.floor(new Date(t.year, t.month - 1, t.day).getTime() / 1000);
-            }
-        }
-        return 0;
     }
 
     /**

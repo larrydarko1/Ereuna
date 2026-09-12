@@ -7,5 +7,5 @@
         { "path": "./helpers/tsconfig.composite.json" },
         { "path": "./tsconfig.model.json" }
     ],
-    "include": ["./index.ts", "./standalone.ts"]
+    "include": ["./index.ts"]
 }

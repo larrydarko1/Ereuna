@@ -2,4 +2,4 @@ import { type TimeAxisViewRenderer } from '@/lib/lightweight-charts/renderers/ti
 
 export type ITimeAxisView = {
     renderer(): TimeAxisViewRenderer;
-}
+};

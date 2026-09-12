@@ -45,8 +45,10 @@ export abstract class PriceAxisView implements IPriceAxisView {
     private _invalidated = true;
 
     public constructor(ctor?: IPriceAxisViewRendererConstructor) {
-        this._axisRenderer = new (ctor || PriceAxisViewRenderer)(this._axisRendererData, this._commonRendererData);
-        this._paneRenderer = new (ctor || PriceAxisViewRenderer)(this._paneRendererData, this._commonRendererData);
+        const Renderer = ctor ?? PriceAxisViewRenderer;
+
+        this._axisRenderer = new Renderer(this._axisRendererData, this._commonRendererData);
+        this._paneRenderer = new Renderer(this._paneRendererData, this._commonRendererData);
     }
 
     public text(): string {
@@ -63,15 +65,12 @@ export abstract class PriceAxisView implements IPriceAxisView {
         this._invalidated = true;
     }
 
-    public height(rendererOptions: PriceAxisViewRendererOptions, useSecondLine = false): number {
-        return Math.max(
-            this._axisRenderer.height(rendererOptions, useSecondLine),
-            this._paneRenderer.height(rendererOptions, useSecondLine),
-        );
+    public height(rendererOptions: PriceAxisViewRendererOptions): number {
+        return Math.max(this._axisRenderer.height(rendererOptions), this._paneRenderer.height(rendererOptions));
     }
 
     public getFixedCoordinate(): number {
-        return this._commonRendererData.fixedCoordinate || 0;
+        return this._commonRendererData.fixedCoordinate ?? 0;
     }
 
     public setFixedCoordinate(value: number): void {

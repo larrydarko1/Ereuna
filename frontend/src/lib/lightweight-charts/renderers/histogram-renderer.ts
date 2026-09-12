@@ -14,7 +14,8 @@ const alignToMinimalWidthLimit = 4;
 
 export type HistogramItem = {
     barColor: string;
-} & PricedValue & TimedValue
+} & PricedValue &
+    TimedValue;
 
 export type PaneRendererHistogramData = {
     items: HistogramItem[];
@@ -23,7 +24,7 @@ export type PaneRendererHistogramData = {
     histogramBase: number;
 
     visibleRange: SeriesItemsIndexesRange | null;
-}
+};
 
 type PrecalculatedItemCoordinates = {
     left: number;
@@ -31,7 +32,7 @@ type PrecalculatedItemCoordinates = {
     roundedCenter: number;
     center: number;
     time: TimePointIndex;
-}
+};
 
 export class PaneRendererHistogram extends BitmapCoordinatesPaneRenderer {
     private _data: PaneRendererHistogramData | null = null;
@@ -50,7 +51,7 @@ export class PaneRendererHistogram extends BitmapCoordinatesPaneRenderer {
         if (this._data === null || this._data.items.length === 0 || this._data.visibleRange === null) {
             return;
         }
-        if (!this._precalculatedCache.length) {
+        if (this._precalculatedCache.length === 0) {
             this._fillPrecalculatedCache(horizontalPixelRatio);
         }
 
@@ -64,18 +65,18 @@ export class PaneRendererHistogram extends BitmapCoordinatesPaneRenderer {
             const current = this._precalculatedCache[i - this._data.visibleRange.from];
             if (item === undefined || current === undefined) continue;
 
-            const y = Math.round(item.y * verticalPixelRatio);
+            const barTop = Math.round(item.y * verticalPixelRatio);
             ctx.fillStyle = item.barColor;
 
             let top: number;
             let bottom: number;
 
-            if (y <= topHistogramBase) {
-                top = y;
+            if (barTop <= topHistogramBase) {
+                top = barTop;
                 bottom = bottomHistogramBase;
             } else {
                 top = topHistogramBase;
-                bottom = y - Math.floor(tickWidth / 2) + tickWidth;
+                bottom = barTop - Math.floor(tickWidth / 2) + tickWidth;
             }
 
             ctx.fillRect(current.left, top, current.right - current.left + 1, bottom - top);
@@ -93,30 +94,32 @@ export class PaneRendererHistogram extends BitmapCoordinatesPaneRenderer {
                 : Math.max(1, Math.floor(pixelRatio));
         const columnWidth = Math.round(this._data.barSpacing * pixelRatio) - spacing;
 
-        this._precalculatedCache = new Array(this._data.visibleRange.to - this._data.visibleRange.from);
+        this._precalculatedCache = new Array<PrecalculatedItemCoordinates>(
+            this._data.visibleRange.to - this._data.visibleRange.from,
+        );
 
         for (let i = this._data.visibleRange.from; i < this._data.visibleRange.to; i++) {
             const item = this._data.items[i];
             if (item === undefined) continue;
 
-            const x = Math.round(item.x * pixelRatio);
+            const center = Math.round(item.x * pixelRatio);
             let left: number;
             let right: number;
 
-            if (columnWidth % 2) {
+            if (columnWidth % 2 !== 0) {
                 const halfWidth = (columnWidth - 1) / 2;
-                left = x - halfWidth;
-                right = x + halfWidth;
+                left = center - halfWidth;
+                right = center + halfWidth;
             } else {
                 // shift pixel to left
                 const halfWidth = columnWidth / 2;
-                left = x - halfWidth;
-                right = x + halfWidth - 1;
+                left = center - halfWidth;
+                right = center + halfWidth - 1;
             }
             this._precalculatedCache[i - this._data.visibleRange.from] = {
                 left,
                 right,
-                roundedCenter: x,
+                roundedCenter: center,
                 center: item.x * pixelRatio,
                 time: item.time,
             };
@@ -162,12 +165,14 @@ export class PaneRendererHistogram extends BitmapCoordinatesPaneRenderer {
                 if (current === undefined) continue;
 
                 const width = current.right - current.left + 1;
-                if (width > minWidth) {
-                    if (current.roundedCenter > current.center) {
-                        current.right -= 1;
-                    } else {
-                        current.left += 1;
-                    }
+                if (width === minWidth) continue;
+
+                // Shave the pixel off whichever side the rounding pushed the
+                // column away from, so the bar stays centred on its bar spacing
+                if (current.roundedCenter > current.center) {
+                    current.right -= 1;
+                } else {
+                    current.left += 1;
                 }
             }
         }

@@ -32,20 +32,20 @@ const Constants = {
 } as const;
 type Constants = (typeof Constants)[keyof typeof Constants];
 
-export class TimeScaleApi<HorzScaleItem> implements ITimeScaleApi<HorzScaleItem>, IDestroyable {
-    private _model: ChartModel<HorzScaleItem>;
-    private _timeScale: TimeScale<HorzScaleItem>;
-    private readonly _timeAxisWidget: TimeAxisWidget<HorzScaleItem>;
-    private readonly _timeRangeChanged = new Delegate<Range<HorzScaleItem> | null>();
+export class TimeScaleApi<THorzScaleItem> implements ITimeScaleApi<THorzScaleItem>, IDestroyable {
+    private _model: ChartModel<THorzScaleItem>;
+    private _timeScale: TimeScale<THorzScaleItem>;
+    private readonly _timeAxisWidget: TimeAxisWidget<THorzScaleItem>;
+    private readonly _timeRangeChanged = new Delegate<Range<THorzScaleItem> | null>();
     private readonly _logicalRangeChanged = new Delegate<LogicalRange | null>();
     private readonly _sizeChanged = new Delegate<number, number>();
 
-    private readonly _horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>;
+    private readonly _horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>;
 
     public constructor(
-        model: ChartModel<HorzScaleItem>,
-        timeAxisWidget: TimeAxisWidget<HorzScaleItem>,
-        horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>,
+        model: ChartModel<THorzScaleItem>,
+        timeAxisWidget: TimeAxisWidget<THorzScaleItem>,
+        horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>,
     ) {
         this._model = model;
         this._timeScale = model.timeScale();
@@ -70,12 +70,12 @@ export class TimeScaleApi<HorzScaleItem> implements ITimeScaleApi<HorzScaleItem>
         return this._timeScale.rightOffset();
     }
 
-    public scrollToPosition(position: number, animated: boolean): void {
-        if (!animated) {
-            this._model.setRightOffset(position);
-            return;
-        }
+    public scrollToPosition(position: number): void {
+        this._model.setRightOffset(position);
+    }
 
+    /** The same move, eased over {@link Constants.AnimationDurationMs}. */
+    public scrollToPositionAnimated(position: number): void {
         this._timeScale.scrollToOffsetAnimated(position, Constants.AnimationDurationMs);
     }
 
@@ -83,7 +83,7 @@ export class TimeScaleApi<HorzScaleItem> implements ITimeScaleApi<HorzScaleItem>
         this._timeScale.scrollToRealTime();
     }
 
-    public getVisibleRange(): Range<HorzScaleItem> | null {
+    public findVisibleRange(): Range<THorzScaleItem> | null {
         const timeRange = this._timeScale.visibleTimeRange();
 
         if (timeRange === null) {
@@ -91,12 +91,12 @@ export class TimeScaleApi<HorzScaleItem> implements ITimeScaleApi<HorzScaleItem>
         }
 
         return {
-            from: timeRange.from.originalTime as HorzScaleItem,
-            to: timeRange.to.originalTime as HorzScaleItem,
+            from: timeRange.from.originalTime as THorzScaleItem,
+            to: timeRange.to.originalTime as THorzScaleItem,
         };
     }
 
-    public setVisibleRange(range: Range<HorzScaleItem>): void {
+    public setVisibleRange(range: Range<THorzScaleItem>): void {
         const convertedRange: Range<InternalHorzScaleItem> = {
             from: this._horzScaleBehavior.convertHorzItemToInternal(range.from),
             to: this._horzScaleBehavior.convertHorzItemToInternal(range.to),
@@ -106,7 +106,7 @@ export class TimeScaleApi<HorzScaleItem> implements ITimeScaleApi<HorzScaleItem>
         this._model.setTargetLogicalRange(logicalRange);
     }
 
-    public getVisibleLogicalRange(): LogicalRange | null {
+    public findVisibleLogicalRange(): LogicalRange | null {
         const logicalRange = this._timeScale.visibleLogicalRange();
         if (logicalRange === null) {
             return null;
@@ -136,22 +136,20 @@ export class TimeScaleApi<HorzScaleItem> implements ITimeScaleApi<HorzScaleItem>
 
         if (timeScale.isEmpty()) {
             return null;
-        } 
-            return timeScale.indexToCoordinate(logical as unknown as TimePointIndex);
-        
+        }
+        return timeScale.indexToCoordinate(logical as unknown as TimePointIndex);
     }
 
     public coordinateToLogical(x: number): Logical | null {
         if (this._timeScale.isEmpty()) {
             return null;
-        } 
-            return this._timeScale.coordinateToIndex(x as Coordinate) as unknown as Logical;
-        
+        }
+        return this._timeScale.coordinateToIndex(x as Coordinate) as unknown as Logical;
     }
 
-    public timeToCoordinate(time: HorzScaleItem): Coordinate | null {
+    public timeToCoordinate(time: THorzScaleItem): Coordinate | null {
         const timePoint = this._horzScaleBehavior.convertHorzItemToInternal(time);
-        const timePointIndex = this._timeScale.timeToIndex(timePoint, false);
+        const timePointIndex = this._timeScale.timeToIndex(timePoint);
         if (timePointIndex === null) {
             return null;
         }
@@ -159,7 +157,7 @@ export class TimeScaleApi<HorzScaleItem> implements ITimeScaleApi<HorzScaleItem>
         return this._timeScale.indexToCoordinate(timePointIndex);
     }
 
-    public coordinateToTime(x: number): HorzScaleItem | null {
+    public coordinateToTime(x: number): THorzScaleItem | null {
         const timeScale = this._model.timeScale();
         const timePointIndex = timeScale.coordinateToIndex(x as Coordinate);
         const timePoint = timeScale.indexToTimeScalePoint(timePointIndex);
@@ -167,7 +165,7 @@ export class TimeScaleApi<HorzScaleItem> implements ITimeScaleApi<HorzScaleItem>
             return null;
         }
 
-        return timePoint.originalTime as HorzScaleItem;
+        return timePoint.originalTime as THorzScaleItem;
     }
 
     public width(): number {
@@ -178,11 +176,11 @@ export class TimeScaleApi<HorzScaleItem> implements ITimeScaleApi<HorzScaleItem>
         return this._timeAxisWidget.getSize().height;
     }
 
-    public subscribeVisibleTimeRangeChange(handler: TimeRangeChangeEventHandler<HorzScaleItem>): void {
+    public subscribeVisibleTimeRangeChange(handler: TimeRangeChangeEventHandler<THorzScaleItem>): void {
         this._timeRangeChanged.subscribe(handler);
     }
 
-    public unsubscribeVisibleTimeRangeChange(handler: TimeRangeChangeEventHandler<HorzScaleItem>): void {
+    public unsubscribeVisibleTimeRangeChange(handler: TimeRangeChangeEventHandler<THorzScaleItem>): void {
         this._timeRangeChanged.unsubscribe(handler);
     }
 
@@ -215,13 +213,13 @@ export class TimeScaleApi<HorzScaleItem> implements ITimeScaleApi<HorzScaleItem>
 
     private _onVisibleBarsChanged(): void {
         if (this._timeRangeChanged.hasListeners()) {
-            this._timeRangeChanged.fire(this.getVisibleRange());
+            this._timeRangeChanged.fire(this.findVisibleRange());
         }
     }
 
     private _onVisibleLogicalRangeChanged(): void {
         if (this._logicalRangeChanged.hasListeners()) {
-            this._logicalRangeChanged.fire(this.getVisibleLogicalRange());
+            this._logicalRangeChanged.fire(this.findVisibleLogicalRange());
         }
     }
 

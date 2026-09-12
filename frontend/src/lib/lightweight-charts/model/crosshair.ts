@@ -1,4 +1,4 @@
-import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { notNull } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
 import { type LineStyle, type LineWidth } from '@/lib/lightweight-charts/renderers/draw-line';
@@ -25,12 +25,12 @@ import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 export type CrosshairPriceAndCoordinate = {
     price: number;
     coordinate: number;
-}
+};
 
 export type CrosshairTimeAndCoordinate = {
     time: InternalHorzScaleItem;
     coordinate: number;
-}
+};
 
 export type PriceAndCoordinateProvider = (priceScale: PriceScale) => CrosshairPriceAndCoordinate;
 export type TimeAndCoordinateProvider = () => CrosshairTimeAndCoordinate | null;
@@ -103,7 +103,7 @@ export type CrosshairLineOptions = {
      * @defaultValue `'#4c525e'`
      */
     labelBackgroundColor: string;
-}
+};
 
 /** Structure describing crosshair options  */
 export type CrosshairOptions = {
@@ -123,7 +123,7 @@ export type CrosshairOptions = {
      * Horizontal line options.
      */
     horzLine: CrosshairLineOptions;
-}
+};
 
 type RawPriceProvider = () => BarPrice;
 type RawCoordinateProvider = () => Coordinate;
@@ -159,18 +159,18 @@ export class Crosshair extends DataSource {
             rawPriceProvider: RawPriceProvider,
             rawCoordinateProvider: RawCoordinateProvider,
         ) => {
-            return (priceScale: PriceScale) => {
+            return (priceScale: PriceScale): CrosshairPriceAndCoordinate => {
                 const coordinate = rawCoordinateProvider();
                 const rawPrice = rawPriceProvider();
-                if (priceScale === ensureNotNull(this._pane).defaultPriceScale()) {
-                    // price must be defined
-                    return { price: rawPrice, coordinate: coordinate };
-                } 
-                    // always convert from coordinate
-                    const firstValue = ensureNotNull(priceScale.firstValue());
-                    const price = priceScale.coordinateToPrice(coordinate, firstValue);
-                    return { price: price, coordinate: coordinate };
-                
+
+                // The pane's own default scale already holds the price; any
+                // other scale has to be read back out of the coordinate
+                if (priceScale === getNotNull(this._pane).defaultPriceScale()) {
+                    return { price: rawPrice, coordinate };
+                }
+
+                const firstValue = getNotNull(priceScale.firstValue());
+                return { price: priceScale.coordinateToPrice(coordinate, firstValue), coordinate };
             };
         };
 
@@ -178,10 +178,10 @@ export class Crosshair extends DataSource {
             rawIndexProvider: RawIndexProvider,
             rawCoordinateProvider: RawCoordinateProvider,
         ) => {
-            return () => {
+            return (): CrosshairTimeAndCoordinate | null => {
                 const time = this._model.timeScale().indexToTime(rawIndexProvider());
                 const coordinate = rawCoordinateProvider();
-                if (!time || !Number.isFinite(coordinate)) {
+                if (time === null || !Number.isFinite(coordinate)) {
                     return null;
                 }
                 return {
@@ -309,11 +309,7 @@ export class Crosshair extends DataSource {
     }
 
     private _priceScaleByPane(pane: Pane): PriceScale | null {
-        if (pane && !pane.defaultPriceScale().isEmpty()) {
-            return pane.defaultPriceScale();
-        }
-
-        return null;
+        return pane.defaultPriceScale().isEmpty() ? null : pane.defaultPriceScale();
     }
 
     private _tryToUpdateViews(index: TimePointIndex, price: number, pane: Pane): void {

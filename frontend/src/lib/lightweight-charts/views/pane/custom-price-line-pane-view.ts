@@ -22,13 +22,13 @@ export class CustomPriceLinePaneView extends SeriesHorizontalLinePaneView {
             return;
         }
 
-        const y = this._priceLine.yCoord();
-        if (y === null) {
+        const coordinate = this._priceLine.yCoord();
+        if (coordinate === null) {
             return;
         }
 
         data.visible = true;
-        data.y = y;
+        data.y = coordinate;
         data.color = lineOptions.color;
         data.lineWidth = lineOptions.lineWidth;
         data.lineStyle = lineOptions.lineStyle;

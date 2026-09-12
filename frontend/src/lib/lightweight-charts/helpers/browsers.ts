@@ -11,7 +11,6 @@ export function isIOS(): boolean {
     if (!isRunningOnClientSide) {
         return false;
     }
-    // eslint-disable-next-line deprecation/deprecation
     return /iPhone|iPad|iPod/.test(window.navigator.platform);
 }
 
@@ -28,7 +27,7 @@ export function isWindows(): boolean {
         return false;
     }
     // more accurate if available
-    if (navigator?.userAgentData?.platform) {
+    if (navigator.userAgentData?.platform !== undefined) {
         return navigator.userAgentData.platform === 'Windows';
     }
     return navigator.userAgent.toLowerCase().indexOf('win') >= 0;
@@ -39,7 +38,7 @@ export function isChromiumBased(): boolean {
     if (!isRunningOnClientSide) {
         return false;
     }
-    if (!navigator.userAgentData) {
+    if (navigator.userAgentData === undefined) {
         return false;
     }
     return navigator.userAgentData.brands.some((brand: UADataBrand) => {

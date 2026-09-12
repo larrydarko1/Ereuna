@@ -1,4 +1,4 @@
-import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { generateContrastColors } from '@/lib/lightweight-charts/helpers/color';
 
 import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
@@ -79,7 +79,7 @@ export class CrosshairTimeAxisView implements ITimeAxisView {
 
         data.coordinate = value.coordinate;
         const currentTime = timeScale.indexToTimeScalePoint(this._crosshair.appliedIndex());
-        data.text = timeScale.formatDateTime(ensureNotNull(currentTime));
+        data.text = timeScale.formatDateTime(getNotNull(currentTime));
         data.visible = true;
 
         const colors = generateContrastColors(options.labelBackgroundColor);

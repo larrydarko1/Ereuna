@@ -13,7 +13,7 @@ import { type IChartApiBase } from '@/lib/lightweight-charts/api/ichart-api';
  * This function is the main entry point of the Lightweight Charting Library. If you are using time values
  * for the horizontal scale then it is recommended that you rather use the {@link createChart} function.
  *
- * @template HorzScaleItem - type of points on the horizontal scale
+ * @template THorzScaleItem - type of points on the horizontal scale
  * @template THorzScaleBehavior - type of horizontal axis strategy that encapsulate all the specific behaviors of the horizontal scale type
  *
  * @param container - ID of HTML element or element itself
@@ -21,11 +21,11 @@ import { type IChartApiBase } from '@/lib/lightweight-charts/api/ichart-api';
  * @param options - Any subset of options to be applied at start.
  * @returns An interface to the created chart
  */
-export function createChartEx<HorzScaleItem, THorzScaleBehavior extends IHorzScaleBehavior<HorzScaleItem>>(
+export function createChartEx<THorzScaleItem, THorzScaleBehavior extends IHorzScaleBehavior<THorzScaleItem>>(
     container: string | HTMLElement,
     horzScaleBehavior: THorzScaleBehavior,
     options?: DeepPartial<ReturnType<THorzScaleBehavior['options']>>,
-): IChartApiBase<HorzScaleItem> {
+): IChartApiBase<THorzScaleItem> {
     let htmlElement: HTMLElement;
     if (isString(container)) {
         const element = document.getElementById(container);
@@ -35,7 +35,7 @@ export function createChartEx<HorzScaleItem, THorzScaleBehavior extends IHorzSca
         htmlElement = container;
     }
 
-    const res = new ChartApi<HorzScaleItem>(htmlElement, horzScaleBehavior, options);
+    const res = new ChartApi<THorzScaleItem>(htmlElement, horzScaleBehavior, options);
     horzScaleBehavior.setOptions(res.options());
     return res;
 }
@@ -55,7 +55,7 @@ export type IChartApi = {
      * @param options - Any subset of options.
      */
     applyOptions(options: DeepPartial<ChartOptions>): void;
-} & IChartApiBase<Time>
+} & IChartApiBase<Time>;
 
 /**
  * This function is the simplified main entry point of the Lightweight Charting Library with time points for the horizontal scale.

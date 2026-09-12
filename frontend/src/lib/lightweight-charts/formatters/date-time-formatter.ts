@@ -6,7 +6,7 @@ export type DateTimeFormatterParams = {
     timeFormat: string;
     dateTimeSeparator: string;
     locale: string;
-}
+};
 
 const defaultParams: DateTimeFormatterParams = {
     dateFormat: 'yyyy-MM-dd',

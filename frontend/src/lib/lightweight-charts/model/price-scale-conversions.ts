@@ -3,7 +3,7 @@ import { PriceRangeImpl } from '@/lib/lightweight-charts/model/price-range-impl'
 export type LogFormula = {
     logicalOffset: number;
     coordOffset: number;
-}
+};
 
 const defLogFormula: LogFormula = {
     logicalOffset: 4,
@@ -50,22 +50,22 @@ export function toIndexedTo100Range(priceRange: PriceRangeImpl, baseValue: numbe
 }
 
 export function toLog(price: number, logFormula: LogFormula): number {
-    const m = Math.abs(price);
-    if (m < 1e-15) {
+    const magnitude = Math.abs(price);
+    if (magnitude < 1e-15) {
         return 0;
     }
 
-    const res = Math.log10(m + logFormula.coordOffset) + logFormula.logicalOffset;
+    const res = Math.log10(magnitude + logFormula.coordOffset) + logFormula.logicalOffset;
     return price < 0 ? -res : res;
 }
 
 export function fromLog(logical: number, logFormula: LogFormula): number {
-    const m = Math.abs(logical);
-    if (m < 1e-15) {
+    const magnitude = Math.abs(logical);
+    if (magnitude < 1e-15) {
         return 0;
     }
 
-    const res = Math.pow(10, m - logFormula.logicalOffset) - logFormula.coordOffset;
+    const res = Math.pow(10, magnitude - logFormula.logicalOffset) - logFormula.coordOffset;
     return logical < 0 ? -res : res;
 }
 

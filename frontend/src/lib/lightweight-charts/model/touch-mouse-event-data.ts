@@ -57,4 +57,4 @@ export type TouchMouseEventData = {
      * Windows keyboards, the Windows key (⊞)) was active when the key event was generated.
      */
     readonly metaKey: boolean;
-}
+};

@@ -1,4 +1,4 @@
-import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
+import { getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 import { equal, greaterOrEqual, isBaseDecimal } from '@/lib/lightweight-charts/helpers/mathex';
 
 const Constants = {
@@ -43,7 +43,7 @@ export class PriceTickSpanCalculator {
         let resultTickSpan = Math.pow(10, Math.max(0, Math.ceil(Math.log10(high - low))));
 
         let index = 0;
-        let c = ensureDefined(this._integralDividers[0]);
+        let divider = getDefined(this._integralDividers[0]);
 
         while (true) {
             // the second part is actual for small with very small values like 1e-10
@@ -53,7 +53,7 @@ export class PriceTickSpanCalculator {
                 resultTickSpan > minMovement + Constants.TickSpanEpsilon;
             const resultTickSpanLargerMaxTickSpan = greaterOrEqual(
                 resultTickSpan,
-                maxTickSpan * c,
+                maxTickSpan * divider,
                 Constants.TickSpanEpsilon,
             );
             const resultTickSpanLarger1 = greaterOrEqual(resultTickSpan, 1, Constants.TickSpanEpsilon);
@@ -62,8 +62,8 @@ export class PriceTickSpanCalculator {
             if (!haveToContinue) {
                 break;
             }
-            resultTickSpan /= c;
-            c = ensureDefined(this._integralDividers[++index % this._integralDividers.length]);
+            resultTickSpan /= divider;
+            divider = getDefined(this._integralDividers[++index % this._integralDividers.length]);
         }
 
         if (resultTickSpan <= minMovement + Constants.TickSpanEpsilon) {
@@ -74,13 +74,13 @@ export class PriceTickSpanCalculator {
 
         if (this._fractionalDividers.length > 0 && equal(resultTickSpan, 1, Constants.TickSpanEpsilon)) {
             index = 0;
-            c = ensureDefined(this._fractionalDividers[0]);
+            divider = getDefined(this._fractionalDividers[0]);
             while (
-                greaterOrEqual(resultTickSpan, maxTickSpan * c, Constants.TickSpanEpsilon) &&
+                greaterOrEqual(resultTickSpan, maxTickSpan * divider, Constants.TickSpanEpsilon) &&
                 resultTickSpan > minMovement + Constants.TickSpanEpsilon
             ) {
-                resultTickSpan /= c;
-                c = ensureDefined(this._fractionalDividers[++index % this._fractionalDividers.length]);
+                resultTickSpan /= divider;
+                divider = getDefined(this._fractionalDividers[++index % this._fractionalDividers.length]);
             }
         }
 

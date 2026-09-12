@@ -1,9 +1,14 @@
-import { bindCanvasElementBitmapSizeTo, type CanvasElementBitmapSizeBinding, type Size } from 'fancy-canvas';
+import {
+    bindCanvasElementBitmapSizeTo,
+    type CanvasElementBitmapSizeBinding,
+    size as makeSize,
+    type Size,
+} from 'fancy-canvas';
 
-import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
 export function createBoundCanvas(parentElement: HTMLElement, size: Size): CanvasElementBitmapSizeBinding {
-    const doc = ensureNotNull(parentElement.ownerDocument);
+    const doc = getNotNull(parentElement.ownerDocument);
     const canvas = doc.createElement('canvas');
     parentElement.appendChild(canvas);
 
@@ -12,10 +17,11 @@ export function createBoundCanvas(parentElement: HTMLElement, size: Size): Canva
         options: {
             allowResizeObserver: false,
         },
-        transform: (bitmapSize: Size, canvasElementClientSize: Size) => ({
-            width: Math.max(bitmapSize.width, canvasElementClientSize.width),
-            height: Math.max(bitmapSize.height, canvasElementClientSize.height),
-        }),
+        transform: (bitmapSize: Size, canvasElementClientSize: Size): Size =>
+            makeSize({
+                width: Math.max(bitmapSize.width, canvasElementClientSize.width),
+                height: Math.max(bitmapSize.height, canvasElementClientSize.height),
+            }),
     });
     binding.resizeCanvasElement(size);
     return binding;

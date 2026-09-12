@@ -4,4 +4,4 @@ export type UpdateType = 'data' | 'other' | 'options';
 
 export type IUpdatablePaneView = {
     update(updateType?: UpdateType): void;
-} & IPaneView
+} & IPaneView;

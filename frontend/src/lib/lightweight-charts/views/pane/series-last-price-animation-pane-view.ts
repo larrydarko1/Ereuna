@@ -51,7 +51,7 @@ type AnimationStageData = {
     endFillAlpha: number;
     startStrokeAlpha: number;
     endStrokeAlpha: number;
-}
+};
 
 const animationStagesData: AnimationStageData[] = [
     {
@@ -90,7 +90,7 @@ type AnimationData = {
     radius: number;
     fillColor: string;
     strokeColor: string;
-}
+};
 
 function color(seriesLineColor: string, stage: number, startAlpha: number, endAlpha: number): string {
     const alpha = startAlpha + (endAlpha - startAlpha) * stage;

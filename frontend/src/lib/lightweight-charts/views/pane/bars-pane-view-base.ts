@@ -17,11 +17,11 @@ import { SeriesPaneViewBase } from '@/lib/lightweight-charts/views/pane/series-p
 
 export abstract class BarsPaneViewBase<
     TSeriesType extends 'Bar' | 'Candlestick',
-    ItemType extends BarCandlestickItemBase,
+    TItemType extends BarCandlestickItemBase,
     TRenderer extends IPaneRenderer,
-> extends SeriesPaneViewBase<TSeriesType, ItemType, TRenderer> {
+> extends SeriesPaneViewBase<TSeriesType, TItemType, TRenderer> {
     public constructor(series: ISeries<TSeriesType>, model: IChartModelBase) {
-        super(series, model, false);
+        super(series, model, { extendedVisibleRange: false });
     }
 
     protected _convertToCoordinates(priceScale: PriceScale, timeScale: ITimeScale, firstValue: number): void {
@@ -33,7 +33,7 @@ export abstract class BarsPaneViewBase<
         time: TimePointIndex,
         bar: SeriesPlotRow<TSeriesType>,
         colorer: ISeriesBarColorer<TSeriesType>,
-    ): ItemType;
+    ): TItemType;
 
     protected _createDefaultItem(
         time: TimePointIndex,

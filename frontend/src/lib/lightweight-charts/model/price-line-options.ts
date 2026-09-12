@@ -63,7 +63,7 @@ export type PriceLineOptions = {
      * @defaultValue `''`
      */
     axisLabelTextColor: string;
-}
+};
 
 /**
  * Price line options for the {@link ISeriesApi.createPriceLine} method.

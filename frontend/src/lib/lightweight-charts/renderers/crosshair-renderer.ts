@@ -14,14 +14,14 @@ export type CrosshairLineStyle = {
     lineWidth: LineWidth;
     color: string;
     visible: boolean;
-}
+};
 
 export type CrosshairRendererData = {
     vertLine: CrosshairLineStyle;
     horzLine: CrosshairLineStyle;
     x: number;
     y: number;
-}
+};
 
 export class CrosshairRenderer extends BitmapCoordinatesPaneRenderer {
     private readonly _data: CrosshairRendererData | null;
@@ -48,25 +48,25 @@ export class CrosshairRenderer extends BitmapCoordinatesPaneRenderer {
             return;
         }
 
-        const x = Math.round(this._data.x * horizontalPixelRatio);
-        const y = Math.round(this._data.y * verticalPixelRatio);
+        const left = Math.round(this._data.x * horizontalPixelRatio);
+        const top = Math.round(this._data.y * verticalPixelRatio);
 
         ctx.lineCap = 'butt';
 
-        if (vertLinesVisible && x >= 0) {
+        if (vertLinesVisible && left >= 0) {
             ctx.lineWidth = Math.floor(this._data.vertLine.lineWidth * horizontalPixelRatio);
             ctx.strokeStyle = this._data.vertLine.color;
             ctx.fillStyle = this._data.vertLine.color;
             setLineStyle(ctx, this._data.vertLine.lineStyle);
-            drawVerticalLine(ctx, x, 0, bitmapSize.height);
+            drawVerticalLine(ctx, left, 0, bitmapSize.height);
         }
 
-        if (horzLinesVisible && y >= 0) {
+        if (horzLinesVisible && top >= 0) {
             ctx.lineWidth = Math.floor(this._data.horzLine.lineWidth * verticalPixelRatio);
             ctx.strokeStyle = this._data.horzLine.color;
             ctx.fillStyle = this._data.horzLine.color;
             setLineStyle(ctx, this._data.horzLine.lineStyle);
-            drawHorizontalLine(ctx, y, 0, bitmapSize.width);
+            drawHorizontalLine(ctx, top, 0, bitmapSize.width);
         }
     }
 }

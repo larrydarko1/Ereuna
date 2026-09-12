@@ -1,4 +1,4 @@
-import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
+import { getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { type IHorzScaleBehavior } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
 import { type TickMark } from '@/lib/lightweight-charts/model/tick-marks';
@@ -6,11 +6,11 @@ import { type TickMark } from '@/lib/lightweight-charts/model/tick-marks';
 type CachedTick = {
     string: string;
     tick: number;
-}
+};
 
 export type FormatFunction = (tickMark: TickMark) => string;
 
-export class FormattedLabelsCache<HorzScaleItem> {
+export class FormattedLabelsCache<THorzScaleItem> {
     private readonly _format: FormatFunction;
     private readonly _maxSize: number;
     private _actualSize = 0;
@@ -19,13 +19,9 @@ export class FormattedLabelsCache<HorzScaleItem> {
     private _cache = new Map<number, CachedTick>();
     private _tick2Labels = new Map<number, number>();
 
-    private readonly _horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>;
+    private readonly _horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>;
 
-    public constructor(
-        format: FormatFunction,
-        horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>,
-        size = 50,
-    ) {
+    public constructor(format: FormatFunction, horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>, size = 50) {
         this._format = format;
         this._horzScaleBehavior = horzScaleBehavior;
         this._maxSize = size;
@@ -44,7 +40,7 @@ export class FormattedLabelsCache<HorzScaleItem> {
         if (this._actualSize === this._maxSize) {
             const oldestValue = this._tick2Labels.get(this._oldestTick);
             this._tick2Labels.delete(this._oldestTick);
-            this._cache.delete(ensureDefined(oldestValue));
+            this._cache.delete(getDefined(oldestValue));
             this._oldestTick++;
             this._actualSize--;
         }
