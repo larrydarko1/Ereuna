@@ -104,10 +104,10 @@ describe('splitting the filings', () => {
         vendor.bySymbol.set('AAPL', [filing('2026-06-30', 2), filing('2025-12-31', 0)]);
         await updateFundamentals([asset('AAPL')]);
         const fields = fieldsFor('AAPL');
-        expect((fields.quarterlyFinancials as Statement[]).map((one) => one.fiscalDateEnding)).toEqual([
+        expect((fields['quarterlyFinancials'] as Statement[]).map((one) => one.fiscalDateEnding)).toEqual([
             new Date('2026-06-30'),
         ]);
-        expect((fields.AnnualFinancials as Statement[]).map((one) => one.fiscalDateEnding)).toEqual([
+        expect((fields['AnnualFinancials'] as Statement[]).map((one) => one.fiscalDateEnding)).toEqual([
             new Date('2025-12-31'),
         ]);
     });
@@ -115,7 +115,7 @@ describe('splitting the filings', () => {
     it('sorts each list newest first, whatever order the vendor sent', async () => {
         vendor.bySymbol.set('AAPL', [filing('2025-03-31', 1), filing('2026-06-30', 2), filing('2025-12-31', 4)]);
         await updateFundamentals([asset('AAPL')]);
-        const dates = (fieldsFor('AAPL').quarterlyFinancials as Statement[]).map((one) =>
+        const dates = (fieldsFor('AAPL')['quarterlyFinancials'] as Statement[]).map((one) =>
             one.fiscalDateEnding.toISOString().slice(0, 10),
         );
         expect(dates).toEqual(['2026-06-30', '2025-12-31', '2025-03-31']);
@@ -132,7 +132,7 @@ describe('splitting the filings', () => {
     it('flattens all four sections into one object, the way the screener addresses them', async () => {
         vendor.bySymbol.set('AAPL', [filing('2026-06-30', 2)]);
         await updateFundamentals([asset('AAPL')]);
-        const [latest] = fieldsFor('AAPL').quarterlyFinancials as Statement[];
+        const [latest] = fieldsFor('AAPL')['quarterlyFinancials'] as Statement[];
         expect(latest).toMatchObject({ bookVal: 5, debt: 200, freeCashFlow: 90, cashAndEq: 300 });
     });
 
@@ -140,19 +140,19 @@ describe('splitting the filings', () => {
         const nulled = filing('2026-06-30', 2);
         nulled.statementData = {
             balanceSheet: [{ dataCode: 'bookVal', value: null }],
-        } as VendorStatement['statementData'];
+        } as NonNullable<VendorStatement['statementData']>;
         vendor.bySymbol.set('AAPL', [nulled]);
         await updateFundamentals([asset('AAPL')]);
-        const [latest] = fieldsFor('AAPL').quarterlyFinancials as Statement[];
-        expect(latest?.bookVal).toBe(0);
+        const [latest] = fieldsFor('AAPL')['quarterlyFinancials'] as Statement[];
+        expect(latest?.['bookVal']).toBe(0);
     });
 
     it('ignores an item with no data code', async () => {
         const anonymous = filing('2026-06-30', 2);
-        anonymous.statementData = { balanceSheet: [{ value: 5 }] } as VendorStatement['statementData'];
+        anonymous.statementData = { balanceSheet: [{ value: 5 }] } as NonNullable<VendorStatement['statementData']>;
         vendor.bySymbol.set('AAPL', [anonymous]);
         await updateFundamentals([asset('AAPL')]);
-        const [latest] = fieldsFor('AAPL').quarterlyFinancials as Statement[];
+        const [latest] = fieldsFor('AAPL')['quarterlyFinancials'] as Statement[];
         expect(Object.keys(latest ?? {}).sort()).toEqual([
             'fiscalDateEnding',
             'netIncome',
@@ -163,10 +163,10 @@ describe('splitting the filings', () => {
 
     it('defaults the three headline figures to zero when the vendor omits them', async () => {
         const bare = filing('2026-06-30', 2);
-        bare.statementData = {} as VendorStatement['statementData'];
+        bare.statementData = {} as NonNullable<VendorStatement['statementData']>;
         vendor.bySymbol.set('AAPL', [bare]);
         await updateFundamentals([asset('AAPL')]);
-        const [latest] = fieldsFor('AAPL').quarterlyFinancials as Statement[];
+        const [latest] = fieldsFor('AAPL')['quarterlyFinancials'] as Statement[];
         expect(latest).toMatchObject({ reportedEPS: 0, totalRevenue: 0, netIncome: 0 });
     });
 });
@@ -183,13 +183,13 @@ describe('the derived figures', () => {
         withShares.statementData?.overview?.push({ dataCode: 'sharesBasic', value: 42 });
         vendor.bySymbol.set('AAPL', [withShares]);
         await updateFundamentals([asset('AAPL', 1_000)]);
-        expect(fieldsFor('AAPL').SharesOutstanding).toBe(42);
+        expect(fieldsFor('AAPL')['SharesOutstanding']).toBe(42);
     });
 
     it('falls back to the reference share count when the filing carries none', async () => {
         vendor.bySymbol.set('AAPL', [filing('2026-06-30', 2)]);
         await updateFundamentals([asset('AAPL', 1_000)]);
-        expect(fieldsFor('AAPL').SharesOutstanding).toBe(1_000);
+        expect(fieldsFor('AAPL')['SharesOutstanding']).toBe(1_000);
     });
 
     it('writes no share count at all when neither source has one', async () => {
@@ -201,7 +201,7 @@ describe('the derived figures', () => {
     it('compares consecutive filings for quarter-on-quarter growth', async () => {
         vendor.bySymbol.set('AAPL', [filing('2026-06-30', 2, { eps: 2 }), filing('2026-03-31', 1, { eps: 1 })]);
         await updateFundamentals([asset('AAPL')]);
-        expect(fieldsFor('AAPL').EPSQoQ).toBe(1);
+        expect(fieldsFor('AAPL')['EPSQoQ']).toBe(1);
     });
 
     it('compares against the same quarter a year back for year-on-year growth', async () => {
@@ -213,7 +213,7 @@ describe('the derived figures', () => {
             filing('2025-06-30', 2, { eps: 2 }),
         ]);
         await updateFundamentals([asset('AAPL')]);
-        expect(fieldsFor('AAPL').EPSYoY).toBe(1);
+        expect(fieldsFor('AAPL')['EPSYoY']).toBe(1);
     });
 
     it.each([
@@ -225,7 +225,7 @@ describe('the derived figures', () => {
             filing('2026-03-31', 1, { netinc: previous }),
         ]);
         await updateFundamentals([asset('AAPL')]);
-        expect(fieldsFor('AAPL').EarningsQoQ).toBeNull();
+        expect(fieldsFor('AAPL')['EarningsQoQ']).toBeNull();
     });
 
     it('reports no growth when there is no earlier filing to compare with', async () => {
@@ -238,7 +238,7 @@ describe('the derived figures', () => {
         vendor.bySymbol.set('AAPL', [filing('2025-12-31', 0)]);
         await updateFundamentals([asset('AAPL')]);
         const fields = fieldsFor('AAPL');
-        expect(fields.quarterlyFinancials).toEqual([]);
+        expect(fields['quarterlyFinancials']).toEqual([]);
         expect(fields).not.toHaveProperty('EPS');
     });
 });

@@ -8,8 +8,11 @@
  */
 import { vi, type Mock } from 'vitest';
 
+/** The driver methods this double records a write for. */
+type WriteMethod = 'updateOne' | 'updateMany' | 'insertMany' | 'deleteMany' | 'bulkWrite' | 'createIndex';
+
 type WriteRecord = {
-    method: string;
+    method: WriteMethod;
     args: unknown[];
 };
 
@@ -22,7 +25,7 @@ export type CollectionStub = {
      * mock itself with `mockResolvedValue` would work too, and would silently
      * stop the call being recorded in `writes`.
      */
-    results: Record<string, unknown>;
+    results: Partial<Record<WriteMethod, unknown>>;
     /** Every read filter this collection was asked for, oldest first. */
     filters: unknown[];
     /** Every write this collection received, oldest first. */
@@ -71,10 +74,10 @@ export function fakeDb(seed: Record<string, unknown[]> = {}): DbStub {
         const rows = seed[name] ?? [];
         const filters: unknown[] = [];
         const writes: WriteRecord[] = [];
-        const results: Record<string, unknown> = {};
+        const results: Partial<Record<WriteMethod, unknown>> = {};
 
         const record =
-            (method: string, fallback: unknown) =>
+            (method: WriteMethod, fallback: unknown) =>
             (...args: unknown[]): Promise<unknown> => {
                 const entry = { method, args };
                 writes.push(entry);

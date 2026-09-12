@@ -39,14 +39,14 @@ const VERDICTS: OutlookVerdict[] = ['bullish', 'neutral', 'bearish'];
 export function toMarketOverview(doc: StatsDoc): MarketOverview {
     return {
         updatedAt: readDate(doc.updatedAt),
-        indexes: readIndexes(record(doc.indexPerformance)),
-        outlook: readOutlook(record(doc.marketOutlook)),
-        breadth: readBreadth(record(doc.advanceDecline), record(doc.newHighsLows)),
+        indexes: readIndexes(record(doc['indexPerformance'])),
+        outlook: readOutlook(record(doc['marketOutlook'])),
+        breadth: readBreadth(record(doc['advanceDecline']), record(doc['newHighsLows'])),
         movingAverages: readMovingAverages(doc),
-        sectors: readTier(doc.sectorTierList, 'sector'),
-        industries: readTier(doc.industryTierList, 'industry'),
-        gainers: readMovers(doc.top10DailyGainers),
-        losers: readMovers(doc.top10DailyLosers),
+        sectors: readTier(doc['sectorTierList'], 'sector'),
+        industries: readTier(doc['industryTierList'], 'industry'),
+        gainers: readMovers(doc['top10DailyGainers']),
+        losers: readMovers(doc['top10DailyLosers']),
     };
 }
 
@@ -79,12 +79,12 @@ function readIndexes(source: Record<string, unknown>): IndexPerformance[] {
         const row = record(value);
         return {
             symbol,
-            lastPrice: num(row.lastPrice),
+            lastPrice: num(row['lastPrice']),
             oneDay: num(row['1D']),
             oneMonth: num(row['1M']),
             fourMonth: num(row['4M']),
             oneYear: num(row['1Y']),
-            yearToDate: num(row.YTD),
+            yearToDate: num(row['YTD']),
         };
     });
 }
@@ -94,8 +94,8 @@ function readOutlook(source: Record<string, unknown>): OutlookReading[] {
 
     for (const term of OUTLOOK_TERMS) {
         const row = record(source[TERM_KEYS[term]]);
-        const verdict = text(row.outlook);
-        const percentUp = num(row.percentageUp);
+        const verdict = text(row['outlook']);
+        const percentUp = num(row['percentageUp']);
         if (verdict === null || percentUp === null) continue;
         if (!VERDICTS.includes(verdict as OutlookVerdict)) continue;
 
@@ -105,7 +105,7 @@ function readOutlook(source: Record<string, unknown>): OutlookReading[] {
             percentUp,
             // The ingestor names the periods "SMA5", "SMA10" — the dashboard
             // shows them as a list of numbers, so they are parsed once here.
-            periods: (Array.isArray(row.smas) ? row.smas : [])
+            periods: (Array.isArray(row['smas']) ? row['smas'] : [])
                 .map((name) => Number.parseInt(String(name).replace(/\D+/gu, ''), 10))
                 .filter((period) => Number.isFinite(period)),
         });
@@ -116,12 +116,12 @@ function readOutlook(source: Record<string, unknown>): OutlookReading[] {
 
 function readBreadth(advanceDecline: Record<string, unknown>, newHighsLows: Record<string, unknown>): BreadthSplit {
     return {
-        advancing: num(advanceDecline.advancing) ?? 0,
-        declining: num(advanceDecline.declining) ?? 0,
-        unchanged: num(advanceDecline.unchanged) ?? 0,
-        newHighs: num(newHighsLows.newHighs) ?? 0,
-        newLows: num(newHighsLows.newLows) ?? 0,
-        neutral: num(newHighsLows.neutral) ?? 0,
+        advancing: num(advanceDecline['advancing']) ?? 0,
+        declining: num(advanceDecline['declining']) ?? 0,
+        unchanged: num(advanceDecline['unchanged']) ?? 0,
+        newHighs: num(newHighsLows['newHighs']) ?? 0,
+        newLows: num(newHighsLows['newLows']) ?? 0,
+        neutral: num(newHighsLows['neutral']) ?? 0,
     };
 }
 
@@ -133,8 +133,8 @@ function readMovingAverages(doc: StatsDoc): Record<BreadthUniverse, MovingAverag
 
         for (const period of MA_PERIODS) {
             const bucket = record(record(doc[`SMA${period}`])[UNIVERSE_KEYS[universe]]);
-            const above = num(bucket.up);
-            const below = num(bucket.down);
+            const above = num(bucket['up']);
+            const below = num(bucket['down']);
             if (above === null || below === null) continue;
             rows.push({ period, above, below });
         }
@@ -151,8 +151,8 @@ function readTier(value: unknown, nameField: string): TierRow[] {
     return value.flatMap((entry) => {
         const row = record(entry);
         const name = text(row[nameField]);
-        const averageReturn = num(row.average_return);
-        const count = num(row.count);
+        const averageReturn = num(row['average_return']);
+        const count = num(row['count']);
         if (name === null || averageReturn === null || count === null) return [];
         return [{ name, averageReturn, count }];
     });
@@ -163,8 +163,8 @@ function readMovers(value: unknown): MoverRow[] {
 
     return value.flatMap((entry) => {
         const row = record(entry);
-        const symbol = text(row.symbol);
-        const dailyReturn = num(row.daily_return);
+        const symbol = text(row['symbol']);
+        const dailyReturn = num(row['daily_return']);
         if (symbol === null || dailyReturn === null) return [];
         return [{ symbol, dailyReturn }];
     });

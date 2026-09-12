@@ -97,9 +97,9 @@ function parseBucket(payload: string): AggregateMessage | null {
     if (typeof parsed !== 'object' || parsed === null) return null;
     const value = parsed as Record<string, unknown>;
 
-    const symbol = value.tickerID;
-    const timeframe = value.timeframe;
-    const timestamp = value.timestamp ?? value.start;
+    const symbol = value['tickerID'];
+    const timeframe = value['timeframe'];
+    const timestamp = value['timestamp'] ?? value['start'];
 
     if (typeof symbol !== 'string' || symbol === '') return null;
     if (typeof timeframe !== 'string' || !TIMEFRAMES.has(timeframe)) return null;
@@ -115,12 +115,12 @@ function parseBucket(payload: string): AggregateMessage | null {
         tickerID: symbol.toUpperCase(),
         timeframe: timeframe as AggregatorTimeframe,
         timestamp: instant,
-        open: value.open as number,
-        high: value.high as number,
-        low: value.low as number,
-        close: value.close as number,
-        volume: typeof value.volume === 'number' && Number.isFinite(value.volume) ? value.volume : 0,
-        final: value.final === true,
+        open: value['open'] as number,
+        high: value['high'] as number,
+        low: value['low'] as number,
+        close: value['close'] as number,
+        volume: typeof value['volume'] === 'number' && Number.isFinite(value['volume']) ? value['volume'] : 0,
+        final: value['final'] === true,
     };
 }
 

@@ -29,7 +29,7 @@ const NY_DATE = new Intl.DateTimeFormat('en-CA', {
 export async function getHolidays(): Promise<readonly string[]> {
     try {
         const document = await getDb().collection<StatsDoc>('Stats').findOne({ _id: 'Holidays' });
-        const holidays = document?.Holidays;
+        const holidays = document?.['Holidays'];
         if (!Array.isArray(holidays)) {
             logger.warn('No holiday calendar in Stats — treating today as a trading day');
             return [];

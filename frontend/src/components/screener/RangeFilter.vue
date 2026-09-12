@@ -44,7 +44,10 @@ function submit(): void {
     }
 
     error.value = null;
-    emit('apply', { min: low, max: high });
+    emit('apply', {
+        ...(low !== undefined ? { min: low } : {}),
+        ...(high !== undefined ? { max: high } : {}),
+    });
 }
 
 function placeholder(side: 'min' | 'max'): string {

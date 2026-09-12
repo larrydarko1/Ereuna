@@ -38,12 +38,14 @@ export type VendorStatement = {
 const waiting: (() => void)[] = [];
 
 class TiingoError extends Error {
-    constructor(
-        readonly status: number,
-        readonly path: string,
-    ) {
+    readonly status: number;
+    readonly path: string;
+
+    constructor(status: number, path: string) {
         super(`Tiingo ${path} responded ${status}`);
         this.name = 'TiingoError';
+        this.status = status;
+        this.path = path;
     }
 }
 

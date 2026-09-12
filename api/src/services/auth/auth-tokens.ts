@@ -111,7 +111,7 @@ export async function registerUser(username: string, password: string): Promise<
     return {
         accessToken: generateAccessToken(userId),
         refreshToken: rawToken,
-        refreshMaxAge: maxAge,
+        ...(maxAge !== undefined ? { refreshMaxAge: maxAge } : {}),
         user: {
             id: userId,
             username,
@@ -171,7 +171,7 @@ export async function issueSession(user: WithId<UserDoc>, options: { rememberMe:
     return {
         accessToken: generateAccessToken(user._id.toHexString()),
         refreshToken: rawToken,
-        refreshMaxAge: maxAge,
+        ...(maxAge !== undefined ? { refreshMaxAge: maxAge } : {}),
         user: toAuthUser(user),
     };
 }
@@ -219,7 +219,7 @@ export async function rotateRefreshToken(
     return {
         accessToken: generateAccessToken(record.userId.toHexString()),
         refreshToken: newRawToken,
-        refreshMaxAge: maxAge,
+        ...(maxAge !== undefined ? { refreshMaxAge: maxAge } : {}),
     };
 }
 
@@ -277,5 +277,9 @@ async function issueRefreshToken(
             createdAt: new Date(),
         });
 
-    return { rawToken, maxAge: rememberMe ? Math.max(0, expiresAt.getTime() - Date.now()) : undefined };
+    // Absent rather than undefined: no maxAge is what makes the cookie a session cookie, and the two are not the same thing to the caller that sets it
+    return {
+        rawToken,
+        ...(rememberMe ? { maxAge: Math.max(0, expiresAt.getTime() - Date.now()) } : {}),
+    };
 }

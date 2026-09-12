@@ -93,7 +93,7 @@ async function enter(): Promise<void> {
  * this page into an open redirect that a phishing link could point anywhere.
  */
 function destination(): { name: string } | string {
-    const target = route.query.redirect;
+    const target = route.query['redirect'];
     if (typeof target === 'string' && target.startsWith('/') && !target.startsWith('//')) return target;
     return { name: 'Dashboard' };
 }

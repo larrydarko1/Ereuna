@@ -9,7 +9,10 @@ const state: { connectError: Error | null; connected: number; closed: number; la
 
 vi.mock('mongodb', () => ({
     MongoClient: class {
-        constructor(readonly uri: string) {
+        readonly uri: string;
+
+        constructor(uri: string) {
+            this.uri = uri;
             state.lastUri = uri;
         }
         connect(): Promise<void> {

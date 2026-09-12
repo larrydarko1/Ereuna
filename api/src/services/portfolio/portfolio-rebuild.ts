@@ -72,7 +72,8 @@ export async function rebuild(userId: ObjectId, portfolioNumber: number): Promis
     ]);
 
     const flows = dividendCashFlows(trades, await dividendSchedules(symbolsOf(trades)));
-    const state = replayTrades(trades, { cashFlows: flows, leverage: portfolio?.leverage });
+    const leverage = portfolio?.leverage;
+    const state = replayTrades(trades, { cashFlows: flows, ...(leverage !== undefined ? { leverage } : {}) });
 
     await persist(userId, portfolioNumber, trades, state, portfolio?.baseValue ?? 0);
     return { ...state, trades };

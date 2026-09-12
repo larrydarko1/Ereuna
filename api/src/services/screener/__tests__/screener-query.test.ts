@@ -191,7 +191,7 @@ describe('runHiddenSymbols', () => {
 
         const projection = projectStage();
         expect(projection).not.toHaveProperty(['quarterlyFinancials.0.roe']);
-        expect(projection.quarterlyFinancials).toEqual([
+        expect(projection['quarterlyFinancials']).toEqual([
             {
                 $let: {
                     vars: { element: { $arrayElemAt: ['$quarterlyFinancials', 0] } },
@@ -209,7 +209,7 @@ describe('runHiddenSymbols', () => {
             columns: ['quarterlyFinancials.0.roe', 'quarterlyFinancials.0.assetsCurrent'],
         });
 
-        const element = (projectStage().quarterlyFinancials as { $let: { in: Record<string, string> } }[])[0];
+        const element = (projectStage()['quarterlyFinancials'] as { $let: { in: Record<string, string> } }[])[0];
         expect(element?.$let.in).toEqual({ roe: '$$element.roe', assetsCurrent: '$$element.assetsCurrent' });
     });
 

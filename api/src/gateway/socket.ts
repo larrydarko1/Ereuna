@@ -98,7 +98,7 @@ export async function initSocket(httpServer: HttpServer): Promise<void> {
     });
 
     io.use((socket: Socket, next) => {
-        const token = socket.handshake.auth?.token as string | undefined;
+        const token = socket.handshake.auth?.['token'] as string | undefined;
         if (token === undefined || token === '') return next(new Error('Missing token'));
 
         try {

@@ -35,7 +35,10 @@ function submit(): void {
     }
 
     error.value = null;
-    emit('apply', { from: start === '' ? undefined : start, to: end === '' ? undefined : end });
+    emit('apply', {
+        ...(start === '' ? {} : { from: start }),
+        ...(end === '' ? {} : { to: end }),
+    });
 }
 
 watch(

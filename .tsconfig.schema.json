@@ -1,0 +1,50 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "TypeScript Configuration Schema",
+    "description": "Validates TypeScript compiler options structure and required strict settings",
+    "type": "object",
+    "required": ["compilerOptions"],
+    "properties": {
+        "extends": {
+            "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }],
+            "description": "Path(s) to base tsconfig(s) to extend; an array applies left to right, later entries winning"
+        },
+        "compilerOptions": {
+            "type": "object",
+            "properties": {
+                "strict": {
+                    "type": "boolean",
+                    "description": "Enable all strict type-checking options"
+                },
+                "exactOptionalPropertyTypes": {
+                    "type": "boolean",
+                    "description": "Enforce that optional properties are truly optional"
+                },
+                "noImplicitOverride": {
+                    "type": "boolean",
+                    "description": "Ensure overridden methods have override keyword"
+                },
+                "noPropertyAccessFromIndexSignature": {
+                    "type": "boolean",
+                    "description": "Access index signature properties via bracket notation"
+                },
+                "noUncheckedIndexedAccess": {
+                    "type": "boolean",
+                    "description": "Add undefined to index signature results"
+                },
+                "noUncheckedSideEffectImports": {
+                    "type": "boolean",
+                    "description": "Check side effect imports"
+                }
+            },
+            "additionalProperties": true
+        },
+        "include": {
+            "oneOf": [{ "type": "array" }, { "type": "string" }]
+        },
+        "exclude": {
+            "oneOf": [{ "type": "array" }, { "type": "string" }]
+        }
+    },
+    "additionalProperties": true
+}

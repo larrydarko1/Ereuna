@@ -36,7 +36,7 @@ const periods = computed<readonly Record<string, unknown>[]>(() => {
 
 const columns = computed<Column[]>(() =>
     periods.value.flatMap((row) => {
-        const date = row.fiscalDateEnding;
+        const date = row['fiscalDateEnding'];
         return typeof date === 'string' ? [{ key: date, label: periodLabel(date) }] : [];
     }),
 );

@@ -1,25 +1,25 @@
 {
-    "extends": "@vue/tsconfig/tsconfig.dom.json",
+    /* The Vue preset supplies the DOM environment (target, lib, jsx); the base
+       config supplies the strictness rules. Later entries win, so the base has
+       the final say on any checking flag the preset also sets. */
+    "extends": ["@vue/tsconfig/tsconfig.dom.json", "../tsconfig.base.json"],
     "compilerOptions": {
+        /* Output & Build */
         "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+
+        /* Paths & Types */
         "paths": {
             "@/*": ["./src/*"]
         },
         "types": ["vite/client"],
+
+        /* Module System */
         // Off because of the vendored lightweight-charts fork, which imports
         // types as values in ~1,300 places. It is frozen third-party code, so
         // rewriting every import in it is precisely what freezing it rules out.
-        // esbuild, which actually performs the transform, resolves these fine.
-        // Turn this back on if the fork is ever rebased or replaced.
-        "verbatimModuleSyntax": false,
-        "resolveJsonModule": true,
-        /* Linting */
-        "strict": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "erasableSyntaxOnly": true,
-        "noFallthroughCasesInSwitch": true,
-        "noUncheckedSideEffectImports": true
+        // The bundler, which actually performs the transform, resolves these
+        // fine. Turn this back on if the fork is ever rebased or replaced.
+        "verbatimModuleSyntax": false
     },
     "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
 }

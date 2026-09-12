@@ -9,7 +9,10 @@ vi.mock('ioredis', () => ({
     Redis: class {
         readonly handlers = new Map<string, Handler>();
 
-        constructor(readonly options: Record<string, unknown>) {
+        readonly options: Record<string, unknown>;
+
+        constructor(options: Record<string, unknown>) {
+            this.options = options;
             built.push(this);
         }
 
@@ -63,7 +66,7 @@ describe('getRedis', () => {
 
     it('never gives up on a request, so a blip does not surface as a timeout', () => {
         redis.getRedis();
-        expect(built[0]?.options.maxRetriesPerRequest).toBeNull();
+        expect(built[0]?.options['maxRetriesPerRequest']).toBeNull();
     });
 
     it('logs a client error rather than dropping the vendor subscription over a blip', () => {

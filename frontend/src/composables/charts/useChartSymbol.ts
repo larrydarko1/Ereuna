@@ -21,7 +21,7 @@ export function useChartSymbol(): UseChartSymbolReturn {
     const { preferences } = usePreferences();
 
     const routeSymbol = computed(() => {
-        const param = route.params.symbol;
+        const param = route.params['symbol'];
         return typeof param === 'string' ? param.trim().toUpperCase() : '';
     });
 

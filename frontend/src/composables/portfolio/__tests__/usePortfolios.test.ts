@@ -110,7 +110,7 @@ describe('reload', () => {
         const release: Record<string, (value: Response) => void> = {};
         mock.server.use(
             http.get(`${ORIGIN}/api/portfolios/:number`, async ({ params }) => {
-                const number = String(params.number);
+                const number = String(params['number']);
                 return new Promise<Response>((resolve) => {
                     release[number] = resolve;
                 });

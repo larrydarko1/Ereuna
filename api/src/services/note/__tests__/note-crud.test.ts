@@ -106,8 +106,8 @@ describe('updateNote', () => {
         db.current = fakeDb({ Notes: [note()] });
         await updateNote(USER_ID, NOTE_ID, 'edited');
         const update = db.current.of('Notes').writes[0]?.args[1] as { $set: Record<string, unknown> };
-        expect(update.$set.message).toBe('edited');
-        expect(update.$set.updatedAt).toBeInstanceOf(Date);
+        expect(update.$set['message']).toBe('edited');
+        expect(update.$set['updatedAt']).toBeInstanceOf(Date);
     });
 
     it("refuses a note that is not the caller's", async () => {

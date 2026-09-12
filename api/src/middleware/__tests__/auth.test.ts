@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
-import { authedUserId, optionalAuth, requireAuth } from '@/middleware/auth.js';
+import { authedUserId, optionalAuth, requireAuth, type AuthRequest } from '@/middleware/auth.js';
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
@@ -115,13 +115,15 @@ describe('authedUserId', () => {
         expect(authedUserId({ userId: USER_ID })).toEqual(new ObjectId(USER_ID));
     });
 
-    it.each([
-        ['undefined', undefined],
-        ['the empty string', ''],
-    ])('throws MISSING_TOKEN when the id is %s', (_label, userId) => {
-        expect(() => authedUserId({ userId })).toThrow(AppError);
+    // The request, not the bare id: an unauthenticated request has no `userId`
+    // key at all, which is a different value from one carrying undefined
+    it.each<[string, Pick<AuthRequest, 'userId'>]>([
+        ['absent', {}],
+        ['the empty string', { userId: '' }],
+    ])('throws MISSING_TOKEN when the id is %s', (_label, request) => {
+        expect(() => authedUserId(request)).toThrow(AppError);
         try {
-            authedUserId({ userId });
+            authedUserId(request);
         } catch (err) {
             expect((err as AppError).code).toBe('MISSING_TOKEN');
             expect((err as AppError).status).toBe(401);

@@ -10,7 +10,10 @@ vi.mock('ioredis', () => ({
     Redis: class {
         readonly handlers = new Map<string, Handler>();
 
-        constructor(readonly options: Record<string, unknown>) {
+        readonly options: Record<string, unknown>;
+
+        constructor(options: Record<string, unknown>) {
+            this.options = options;
             built.push(this);
         }
 
@@ -70,7 +73,7 @@ describe('the two connections', () => {
 
     it('never gives up on a request — ioredis would abort a blocking read as a timeout', () => {
         redis.getConsumer();
-        expect(built[0]?.options.maxRetriesPerRequest).toBeNull();
+        expect(built[0]?.options['maxRetriesPerRequest']).toBeNull();
     });
 
     it('logs a client error rather than letting it reach the process', () => {

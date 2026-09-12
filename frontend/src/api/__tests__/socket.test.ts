@@ -82,7 +82,7 @@ describe('useSocket', () => {
         setSessionUser(user);
         setAccessToken('first');
         const { socket } = useSocket();
-        const auth = (socket as unknown as FakeSocket).options.auth as (cb: (data: unknown) => void) => void;
+        const auth = (socket as unknown as FakeSocket).options['auth'] as (cb: (data: unknown) => void) => void;
 
         let handed: unknown;
         auth((data) => {
@@ -100,7 +100,7 @@ describe('useSocket', () => {
     it('does not connect on its own — the app decides when', () => {
         const { socket } = useSocket();
 
-        expect((socket as unknown as FakeSocket).options.autoConnect).toBe(false);
+        expect((socket as unknown as FakeSocket).options['autoConnect']).toBe(false);
     });
 
     it('tracks whether the connection is up', () => {

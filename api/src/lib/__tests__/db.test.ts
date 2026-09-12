@@ -14,7 +14,10 @@ const state: { connectError: Error | null; closed: number; lastUri: string | nul
 vi.mock('mongodb', async (importOriginal) => ({
     ...(await importOriginal<typeof import('mongodb')>()),
     MongoClient: class {
-        constructor(readonly uri: string) {
+        readonly uri: string;
+
+        constructor(uri: string) {
+            this.uri = uri;
             state.lastUri = uri;
         }
         connect(): Promise<void> {

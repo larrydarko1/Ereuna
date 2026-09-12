@@ -263,8 +263,8 @@ router.put(
 
         if (findRangeFilter(filter) !== null) {
             const screener = await screenerService.setRangeFilter(userId, name, filter, {
-                min: body.min,
-                max: body.max,
+                ...(body.min !== undefined ? { min: body.min } : {}),
+                ...(body.max !== undefined ? { max: body.max } : {}),
             });
             res.json({ filters: screener.filters });
             return;
@@ -279,8 +279,8 @@ router.put(
 
         if (findDateFilter(filter) !== null) {
             const screener = await screenerService.setDateFilter(userId, name, filter, {
-                from: body.from,
-                to: body.to,
+                ...(body.from !== undefined ? { from: body.from } : {}),
+                ...(body.to !== undefined ? { to: body.to } : {}),
             });
             res.json({ filters: screener.filters });
             return;

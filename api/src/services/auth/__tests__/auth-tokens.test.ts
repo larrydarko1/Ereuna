@@ -125,15 +125,15 @@ describe('registerUser', () => {
     it('stores the hash and never the password', async () => {
         await registerUser('Larry', 'Str0ng!pass');
         const document = db.current.of('Users').writes[0]?.args[0] as Record<string, unknown>;
-        expect(document.passwordHash).toBe(hashOf('Str0ng!pass'));
+        expect(document['passwordHash']).toBe(hashOf('Str0ng!pass'));
         expect(JSON.stringify(document)).not.toContain('"Str0ng!pass"');
     });
 
     it('keeps the display case while indexing the lower-cased name', async () => {
         await registerUser('LaRrY', 'Str0ng!pass');
         const document = db.current.of('Users').writes[0]?.args[0] as Record<string, unknown>;
-        expect(document.username).toBe('LaRrY');
-        expect(document.usernameLower).toBe('larry');
+        expect(document['username']).toBe('LaRrY');
+        expect(document['usernameLower']).toBe('larry');
     });
 
     it('starts the account with two-factor off and no codes', async () => {
@@ -151,20 +151,20 @@ describe('registerUser', () => {
     it('returns an access token carrying the new id and nothing else', async () => {
         const result = await registerUser('Larry', 'Str0ng!pass');
         const payload = decode(result.accessToken);
-        expect(payload.sub).toBe(USER_ID.toHexString());
+        expect(payload['sub']).toBe(USER_ID.toHexString());
         expect(Object.keys(payload).sort()).toEqual(['exp', 'iat', 'sub']);
     });
 
     it('opens a remembered session, so a new account survives a browser restart', async () => {
         const result = await registerUser('Larry', 'Str0ng!pass');
-        expect(inserted().rememberMe).toBe(true);
+        expect(inserted()['rememberMe']).toBe(true);
         expect(result.refreshMaxAge).toBeGreaterThan(0);
     });
 
     it('stores only the hash of the refresh token', async () => {
         const result = await registerUser('Larry', 'Str0ng!pass');
-        expect(inserted().tokenHash).toBe(sha256(result.refreshToken));
-        expect(inserted().tokenHash).not.toBe(result.refreshToken);
+        expect(inserted()['tokenHash']).toBe(sha256(result.refreshToken));
+        expect(inserted()['tokenHash']).not.toBe(result.refreshToken);
     });
 });
 
@@ -249,31 +249,31 @@ describe('issueSession', () => {
     it('gives a remembered session a cookie lifetime and a longer expiry', async () => {
         const result = await issueSession(user(), { rememberMe: true });
         expect(result.refreshMaxAge).toBeGreaterThan(0);
-        expect(inserted().rememberMe).toBe(true);
+        expect(inserted()['rememberMe']).toBe(true);
     });
 
     it('gives a session-only login no cookie lifetime, so it dies with the browser', async () => {
         const result = await issueSession(user(), { rememberMe: false });
         expect(result.refreshMaxAge).toBeUndefined();
-        expect(inserted().rememberMe).toBe(false);
+        expect(inserted()['rememberMe']).toBe(false);
     });
 
     it('expires a session-only token sooner than a remembered one', async () => {
         await issueSession(user(), { rememberMe: false });
-        const shortLived = inserted().expiresAt as Date;
+        const shortLived = inserted()['expiresAt'] as Date;
         db.current = fakeDb({ Users: [user()] });
         await issueSession(user(), { rememberMe: true });
-        const longLived = inserted().expiresAt as Date;
+        const longLived = inserted()['expiresAt'] as Date;
 
         expect(shortLived.getTime()).toBeLessThan(longLived.getTime());
     });
 
     it('opens a new token family per login', async () => {
         await issueSession(user(), { rememberMe: true });
-        const first = inserted().familyId;
+        const first = inserted()['familyId'];
         db.current = fakeDb({ Users: [user()] });
         await issueSession(user(), { rememberMe: true });
-        expect(inserted().familyId).not.toBe(first);
+        expect(inserted()['familyId']).not.toBe(first);
     });
 
     it('returns the same user block every auth response carries', async () => {
@@ -295,7 +295,7 @@ describe('rotateRefreshToken', () => {
         };
 
         const result = await rotateRefreshToken('raw-token');
-        expect(decode(result.accessToken).sub).toBe(USER_ID.toHexString());
+        expect(decode(result.accessToken)['sub']).toBe(USER_ID.toHexString());
         expect(result.refreshToken).not.toBe('raw-token');
 
         const [filter, update] = db.current.of('RefreshTokens').writes[0]?.args ?? [];

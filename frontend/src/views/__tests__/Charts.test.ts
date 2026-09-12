@@ -111,7 +111,7 @@ describe('Charts', () => {
     it('rewrites a bare /charts to the account default, so the page can be linked to', async () => {
         const { router } = await view('/charts');
 
-        expect(router.currentRoute.value.params.symbol).toBe('AAPL');
+        expect(router.currentRoute.value.params['symbol']).toBe('AAPL');
     });
 
     it('follows the symbol the search picked', async () => {
@@ -125,7 +125,7 @@ describe('Charts', () => {
         await wrapper.get('[role="option"]').trigger('mousedown');
         await flushPromises();
 
-        expect(router.currentRoute.value.params.symbol).toBe('MSFT');
+        expect(router.currentRoute.value.params['symbol']).toBe('MSFT');
         vi.useRealTimers();
     });
 

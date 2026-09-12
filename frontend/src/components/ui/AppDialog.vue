@@ -119,7 +119,7 @@ onUnmounted(() => {
                 </div>
 
                 <footer
-                    v-if="$slots.footer"
+                    v-if="$slots['footer']"
                     class="dialog__footer">
                     <slot name="footer" />
                 </footer>

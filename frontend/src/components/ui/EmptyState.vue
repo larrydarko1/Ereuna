@@ -14,7 +14,7 @@ const { body = null } = defineProps<{
             >{{ body }}</p
         >
         <div
-            v-if="$slots.default"
+            v-if="$slots['default']"
             class="empty-state__actions">
             <slot />
         </div>

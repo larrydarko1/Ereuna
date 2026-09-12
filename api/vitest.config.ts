@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
-import { sharedEsbuild, sharedTest } from '../vitest.shared.mts';
+import { sharedTest } from '../vitest.shared.mts';
 
 export default defineConfig({
     test: {
@@ -11,7 +11,6 @@ export default defineConfig({
         // Seeds the secrets lib/config.ts requires, before it is first imported.
         setupFiles: ['./vitest.setup.ts'],
     },
-    esbuild: sharedEsbuild,
     resolve: {
         alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
     },

@@ -137,17 +137,17 @@ describe('the derived fields', () => {
 
     it('writes the latest bar as the TimeSeries block, rounded to the cent', async () => {
         await updateDailyMetrics([asset('AAPL')]);
-        expect(fieldsFor('AAPL').TimeSeries).toEqual({ open: 399, high: 400, low: 398, close: 399, volume: 1000 });
+        expect(fieldsFor('AAPL')['TimeSeries']).toEqual({ open: 399, high: 400, low: 398, close: 399, volume: 1000 });
     });
 
     it('derives market capitalisation from the close and the share count', async () => {
         await updateDailyMetrics([asset('AAPL', { sharesOutstanding: 10 })]);
-        expect(fieldsFor('AAPL').MarketCapitalization).toBe(3_990);
+        expect(fieldsFor('AAPL')['MarketCapitalization']).toBe(3_990);
     });
 
     it('leaves market capitalisation null when the share count is unknown', async () => {
         await updateDailyMetrics([asset('AAPL', { sharesOutstanding: null })]);
-        expect(fieldsFor('AAPL').MarketCapitalization).toBeNull();
+        expect(fieldsFor('AAPL')['MarketCapitalization']).toBeNull();
     });
 
     it('writes one moving average per period the breadth panel reads', async () => {
@@ -160,8 +160,8 @@ describe('the derived fields', () => {
         await updateDailyMetrics([asset('AAPL')]);
         const fields = fieldsFor('AAPL');
         // 300 bars, so the window is the last 252: closes 148…399, highs +1
-        expect(fields.fiftytwoWeekHigh).toBe(400);
-        expect(fields.fiftytwoWeekLow).toBe(147);
+        expect(fields['fiftytwoWeekHigh']).toBe(400);
+        expect(fields['fiftytwoWeekLow']).toBe(147);
     });
 
     it('uses the whole history for a symbol with less than a year of bars', async () => {
@@ -170,21 +170,21 @@ describe('the derived fields', () => {
             series(10, (index) => 100 + index),
         );
         await updateDailyMetrics([asset('SHORT')]);
-        expect(fieldsFor('SHORT').fiftytwoWeekLow).toBe(99);
+        expect(fieldsFor('SHORT')['fiftytwoWeekLow']).toBe(99);
     });
 
     it('measures how far the close sits off each extreme', async () => {
         await updateDailyMetrics([asset('AAPL')]);
         const fields = fieldsFor('AAPL');
-        expect(fields.percoff52WeekHigh).toBeCloseTo((399 - 400) / 400, 6);
-        expect(fields.percoff52WeekLow).toBeGreaterThan(0);
+        expect(fields['percoff52WeekHigh']).toBeCloseTo((399 - 400) / 400, 6);
+        expect(fields['percoff52WeekLow']).toBeGreaterThan(0);
     });
 
     it('falls back to the 52-week extremes when the symbol has no lifetime stats', async () => {
         await updateDailyMetrics([asset('AAPL')]);
         const fields = fieldsFor('AAPL');
-        expect(fields.AlltimeHigh).toBe(fields.fiftytwoWeekHigh);
-        expect(fields.AlltimeLow).toBe(fields.fiftytwoWeekLow);
+        expect(fields['AlltimeHigh']).toBe(fields['fiftytwoWeekHigh']);
+        expect(fields['AlltimeLow']).toBe(fields['fiftytwoWeekLow']);
     });
 
     it('prefers the lifetime extremes computed over the whole collection', async () => {
@@ -197,8 +197,8 @@ describe('the derived fields', () => {
             lastTimestamp: new Date('2026-01-01T00:00:00.000Z'),
         });
         await updateDailyMetrics([asset('AAPL')]);
-        expect(fieldsFor('AAPL').AlltimeHigh).toBe(9_999);
-        expect(fieldsFor('AAPL').AlltimeLow).toBe(1);
+        expect(fieldsFor('AAPL')['AlltimeHigh']).toBe(9_999);
+        expect(fieldsFor('AAPL')['AlltimeLow']).toBe(1);
     });
 
     it('reports no growth rate at all without a lifetime record', async () => {
@@ -217,8 +217,8 @@ describe('the derived fields', () => {
         });
         await updateDailyMetrics([asset('AAPL')]);
         const fields = fieldsFor('AAPL');
-        expect(fields.CAGRYears).toBeCloseTo(10, 1);
-        expect(fields.CAGR).toBeCloseTo(4 ** (1 / 10) - 1, 3);
+        expect(fields['CAGRYears']).toBeCloseTo(10, 1);
+        expect(fields['CAGR']).toBeCloseTo(4 ** (1 / 10) - 1, 3);
     });
 
     it('withholds the span when it is too short to mean anything', async () => {
@@ -231,12 +231,12 @@ describe('the derived fields', () => {
             lastTimestamp: new Date('2026-01-20T00:00:00.000Z'),
         });
         await updateDailyMetrics([asset('AAPL')]);
-        expect(fieldsFor('AAPL').CAGRYears).toBeNull();
+        expect(fieldsFor('AAPL')['CAGRYears']).toBeNull();
     });
 
     it('dates the metrics from the last bar rather than the clock', async () => {
         await updateDailyMetrics([asset('AAPL')]);
-        expect(fieldsFor('AAPL').metricsUpdatedAt).toEqual(new Date(Date.UTC(2026, 0, 300)));
+        expect(fieldsFor('AAPL')['metricsUpdatedAt']).toEqual(new Date(Date.UTC(2026, 0, 300)));
     });
 
     it('expresses the gap as a percentage while the change fields stay fractions', async () => {
@@ -246,8 +246,8 @@ describe('the derived fields', () => {
         );
         await updateDailyMetrics([asset('GAP')]);
         const fields = fieldsFor('GAP');
-        expect(fields.Gap).toBeCloseTo(10, 6);
-        expect(fields.todaychange).toBeCloseTo(0.1, 6);
+        expect(fields['Gap']).toBeCloseTo(10, 6);
+        expect(fields['todaychange']).toBeCloseTo(0.1, 6);
     });
 
     it("measures year-to-date from this year's first close, not a fixed number of bars", async () => {
@@ -265,7 +265,7 @@ describe('the derived fields', () => {
         };
         state.series.set('YTD', twoYears);
         await updateDailyMetrics([asset('YTD')]);
-        expect(fieldsFor('YTD').ytdchange).toBeCloseTo(0.2, 6);
+        expect(fieldsFor('YTD')['ytdchange']).toBeCloseTo(0.2, 6);
     });
 
     it("reports no year-to-date when this year's first close is zero", async () => {
@@ -279,7 +279,7 @@ describe('the derived fields', () => {
         };
         state.series.set('ZERO', zeroed);
         await updateDailyMetrics([asset('ZERO')]);
-        expect(fieldsFor('ZERO').ytdchange).toBeNull();
+        expect(fieldsFor('ZERO')['ytdchange']).toBeNull();
     });
 
     it('measures relative volume against a baseline that excludes today', async () => {
@@ -287,7 +287,7 @@ describe('the derived fields', () => {
         spike.volumes = [...Array.from({ length: 9 }, () => 100), 200];
         state.series.set('VOL', spike);
         await updateDailyMetrics([asset('VOL')]);
-        expect(fieldsFor('VOL').RelVolume1W).toBe(2);
+        expect(fieldsFor('VOL')['RelVolume1W']).toBe(2);
     });
 
     it('reports no relative volume without enough history for the baseline', async () => {
@@ -296,7 +296,7 @@ describe('the derived fields', () => {
             series(3, () => 100),
         );
         await updateDailyMetrics([asset('SHORT')]);
-        expect(fieldsFor('SHORT').RelVolume1W).toBeNull();
+        expect(fieldsFor('SHORT')['RelVolume1W']).toBeNull();
     });
 
     it('rounds average volume to a whole share count', async () => {
@@ -304,12 +304,12 @@ describe('the derived fields', () => {
         fractional.volumes = [1, 2, 2, 2, 2, 2, 2, 2, 2, 3];
         state.series.set('VOL', fractional);
         await updateDailyMetrics([asset('VOL')]);
-        expect(Number.isInteger(fieldsFor('VOL').AvgVolume1W)).toBe(true);
+        expect(Number.isInteger(fieldsFor('VOL')['AvgVolume1W'])).toBe(true);
     });
 
     it('attaches the signal set the screener reads', async () => {
         await updateDailyMetrics([asset('AAPL')]);
-        expect(fieldsFor('AAPL').Signals).toBeDefined();
+        expect(fieldsFor('AAPL')['Signals']).toBeDefined();
     });
 });
 
@@ -325,8 +325,8 @@ describe('relative strength', () => {
         );
         await updateDailyMetrics([asset('WEAK'), asset('STRONG')]);
 
-        expect(fieldsFor('WEAK').RSScore1M).toBe(1);
-        expect(fieldsFor('STRONG').RSScore1M).toBe(51);
+        expect(fieldsFor('WEAK')['RSScore1M']).toBe(1);
+        expect(fieldsFor('STRONG')['RSScore1M']).toBe(51);
     });
 
     it('scores each window separately', async () => {
@@ -345,6 +345,6 @@ describe('relative strength', () => {
             series(10, (index) => 100 + index),
         );
         await updateDailyMetrics([asset('AAPL')]);
-        expect(fieldsFor('AAPL').RSScore4M).toBeUndefined();
+        expect(fieldsFor('AAPL')['RSScore4M']).toBeUndefined();
     });
 });

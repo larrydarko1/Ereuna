@@ -54,10 +54,12 @@ export async function financials(symbol: string): Promise<Financials> {
 }
 
 async function statsDocument(id: string): Promise<StatsDoc> {
+    // Holidays is a calendar, not a quote: it is cached for a day and under the static data type, where everything else here follows the price clock
+    const isCalendar = id === 'Holidays';
     const doc = await withCache(
         marketKey('stats', id),
         async () => getDb().collection<StatsDoc>('Stats').findOne({ _id: id }),
-        { ttl: id === 'Holidays' ? DAY_SECONDS : undefined, dataType: id === 'Holidays' ? 'static' : 'price' },
+        { ...(isCalendar ? { ttl: DAY_SECONDS } : {}), dataType: isCalendar ? 'static' : 'price' },
     );
 
     if (doc === null) throw new AppError(404, 'NOT_FOUND', `Stats document ${id} has not been ingested`);

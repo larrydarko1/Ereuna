@@ -72,14 +72,14 @@ describe('changePassword', () => {
 
     it('stores the new hash and dates the change', async () => {
         await changePassword(USER_ID, 'Str0ng!pass', 'New!pass1');
-        expect(setOf().passwordHash).toBe(hashOf('New!pass1'));
-        expect(setOf().passwordChangedAt).toBeInstanceOf(Date);
+        expect(setOf()['passwordHash']).toBe(hashOf('New!pass1'));
+        expect(setOf()['passwordChangedAt']).toBeInstanceOf(Date);
     });
 
     it('clears the reset flag, so a recovery session is back to normal', async () => {
         db.current = fakeDb({ Users: [user({ passwordResetRequired: true })] });
         await changePassword(USER_ID, 'Str0ng!pass', 'New!pass1');
-        expect(setOf().passwordResetRequired).toBe(false);
+        expect(setOf()['passwordResetRequired']).toBe(false);
     });
 
     it('revokes every session, so a stolen refresh token dies with the old password', async () => {
@@ -106,8 +106,8 @@ describe('setPasswordAfterRecovery', () => {
         db.current = fakeDb({ Users: [user({ passwordResetRequired: true })] });
         await setPasswordAfterRecovery(USER_ID, 'New!pass1');
 
-        expect(setOf().passwordHash).toBe(hashOf('New!pass1'));
-        expect(setOf().passwordResetRequired).toBe(false);
+        expect(setOf()['passwordHash']).toBe(hashOf('New!pass1'));
+        expect(setOf()['passwordResetRequired']).toBe(false);
     });
 
     it('revokes every session', async () => {

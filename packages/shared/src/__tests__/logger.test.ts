@@ -36,7 +36,7 @@ describe('createLogger', () => {
     it('carries the name and the level it was given', () => {
         const logger = createLogger('api', { level: 'warn', isDev: false });
         expect(logger.level).toBe('warn');
-        expect(logger.bindings().name).toBe('api');
+        expect(logger.bindings()['name']).toBe('api');
     });
 
     it('drops records below the configured level', () => {
@@ -64,7 +64,7 @@ describe('createLogger', () => {
         const logger = createLogger('api', { level: 'info', isDev: false });
         const lines = collect(logger);
         logger.info({ body: { password: 'hunter2' } }, 'attempt');
-        expect(parse(lines[0]).body).toEqual({ password: '[REDACTED]' });
+        expect(parse(lines[0])['body']).toEqual({ password: '[REDACTED]' });
     });
 
     it('leaves unlisted fields alone', () => {
@@ -72,14 +72,14 @@ describe('createLogger', () => {
         const lines = collect(logger);
         logger.info({ username: 'larry' }, 'attempt');
         const record = parse(lines[0]);
-        expect(record.username).toBe('larry');
-        expect(record.name).toBe('api');
-        expect(record.msg).toBe('attempt');
+        expect(record['username']).toBe('larry');
+        expect(record['name']).toBe('api');
+        expect(record['msg']).toBe('attempt');
     });
 
     it('builds a dev logger with the pretty transport attached', () => {
         const logger = createLogger('worker', { level: 'debug', isDev: true });
         expect(logger.level).toBe('debug');
-        expect(logger.bindings().name).toBe('worker');
+        expect(logger.bindings()['name']).toBe('worker');
     });
 });

@@ -28,7 +28,13 @@ router.get(
     '/',
     ...validated({ query: listQuery }, async (req, res): Promise<void> => {
         const { page, limit, symbol } = req.validatedQuery;
-        res.json(await noteService.getNotePage(authedUserId(req), { page, limit, symbol }));
+        res.json(
+            await noteService.getNotePage(authedUserId(req), {
+                page,
+                limit,
+                ...(symbol !== undefined ? { symbol } : {}),
+            }),
+        );
     }),
 );
 

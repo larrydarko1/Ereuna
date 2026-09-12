@@ -4,7 +4,7 @@ import { config } from '@/lib/config.js';
 
 describe('the API logger', () => {
     it('names every line `api`, so its output is separable from the worker output', () => {
-        expect(logger.bindings().name).toBe('api');
+        expect(logger.bindings()['name']).toBe('api');
     });
 
     it('runs at the configured level', () => {

@@ -5,8 +5,8 @@ export type SeededAsset = {
     name: string;
 };
 
-const uri = process.env.MONGO_URI ?? 'mongodb://localhost:27017';
-const dbName = process.env.MONGO_DB ?? 'ereuna_e2e';
+const uri = process.env['MONGO_URI'] ?? 'mongodb://localhost:27017';
+const dbName = process.env['MONGO_DB'] ?? 'ereuna_e2e';
 
 /**
  * One asset in the reference collection the screener queries and the chart

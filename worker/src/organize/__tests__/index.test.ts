@@ -137,18 +137,18 @@ describe('the nightly line', () => {
         fails.add('prices');
         await runOnce();
         expect(order).toEqual(THE_LINE);
-        expect(seen.splits).toEqual([[]]);
+        expect(seen['splits']).toEqual([[]]);
     });
 
     it('drops the symbols the delisting scan retired before the steps that follow it', async () => {
         await runOnce();
-        expect(seen.metrics).toEqual([[{ symbol: 'AAPL' }]]);
+        expect(seen['metrics']).toEqual([[{ symbol: 'AAPL' }]]);
     });
 
     it('keeps the whole universe when the delisting scan itself failed', async () => {
         fails.add('delist');
         await runOnce();
-        expect(seen.metrics).toEqual([[{ symbol: 'AAPL' }, { symbol: 'GONE' }]]);
+        expect(seen['metrics']).toEqual([[{ symbol: 'AAPL' }, { symbol: 'GONE' }]]);
     });
 });
 

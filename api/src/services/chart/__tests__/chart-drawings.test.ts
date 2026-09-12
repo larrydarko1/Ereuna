@@ -68,7 +68,7 @@ describe('saveDrawings', () => {
             $setOnInsert: Record<string, unknown>;
         };
         expect(update.$setOnInsert).toMatchObject({ userId: USER_ID, symbol: 'AAPL', timeframe: 'daily' });
-        expect(update.$setOnInsert.createdAt).toBeInstanceOf(Date);
+        expect(update.$setOnInsert['createdAt']).toBeInstanceOf(Date);
     });
 
     it('deletes the document rather than storing an empty set', async () => {

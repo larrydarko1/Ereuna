@@ -8,7 +8,7 @@ import { config } from '@/lib/config.js';
  */
 describe('config', () => {
     it('treats anything but production as development', () => {
-        expect(config.isDev).toBe(process.env.NODE_ENV !== 'production');
+        expect(config.isDev).toBe(process.env['NODE_ENV'] !== 'production');
     });
 
     it('carries a mongo and a redis target', () => {

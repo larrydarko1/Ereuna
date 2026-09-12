@@ -2,8 +2,8 @@ import { MongoClient } from 'mongodb';
 import { createRedis, clearRateLimitBuckets } from './rate-limit';
 
 export default async function globalSetup(): Promise<void> {
-    const uri = process.env.MONGO_URI ?? 'mongodb://localhost:27017';
-    const dbName = process.env.MONGO_DB ?? 'ereuna_e2e';
+    const uri = process.env['MONGO_URI'] ?? 'mongodb://localhost:27017';
+    const dbName = process.env['MONGO_DB'] ?? 'ereuna_e2e';
 
     if (!/e2e|test/i.test(dbName)) {
         throw new Error(

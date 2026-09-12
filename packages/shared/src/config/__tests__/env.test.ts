@@ -11,10 +11,10 @@ import {
 } from '#config/env.js';
 import { z } from 'zod';
 
-const originalNodeEnv = process.env.NODE_ENV;
+const originalNodeEnv = process.env['NODE_ENV'];
 
 afterEach(() => {
-    process.env.NODE_ENV = originalNodeEnv;
+    process.env['NODE_ENV'] = originalNodeEnv;
 });
 
 describe('the fragments', () => {
@@ -54,25 +54,25 @@ describe('requiredSecret', () => {
     });
 
     it('accepts a dev placeholder outside production', () => {
-        process.env.NODE_ENV = 'development';
+        process.env['NODE_ENV'] = 'development';
         expect(requiredSecret(4).safeParse('dev_secret_value').success).toBe(true);
     });
 
     it.each(['dev_secret', 'dev-key', 'change-me', 'replace-me', 'replace-with-x', 'your-secret'])(
         'rejects `%s` in production',
         (placeholder) => {
-            process.env.NODE_ENV = 'production';
+            process.env['NODE_ENV'] = 'production';
             expect(requiredSecret(4).safeParse(`${placeholder}-padding`).success).toBe(false);
         },
     );
 
     it('matches a placeholder case-insensitively', () => {
-        process.env.NODE_ENV = 'production';
+        process.env['NODE_ENV'] = 'production';
         expect(requiredSecret(4).safeParse('DEV_SECRET_UPPERCASE').success).toBe(false);
     });
 
     it('accepts a real secret in production', () => {
-        process.env.NODE_ENV = 'production';
+        process.env['NODE_ENV'] = 'production';
         expect(requiredSecret(4).safeParse('a-genuinely-random-value').success).toBe(true);
     });
 });
@@ -100,23 +100,23 @@ describe('hexSecret', () => {
 
 describe('infraDefault', () => {
     it('supplies the default when the variable is absent', () => {
-        process.env.NODE_ENV = 'development';
+        process.env['NODE_ENV'] = 'development';
         expect(infraDefault('localhost').parse(undefined)).toBe('localhost');
     });
 
     it('rejects the untouched default in production', () => {
-        process.env.NODE_ENV = 'production';
+        process.env['NODE_ENV'] = 'production';
         expect(infraDefault('localhost').safeParse(undefined).success).toBe(false);
         expect(infraDefault('localhost').safeParse('localhost').success).toBe(false);
     });
 
     it('accepts an overridden value in production', () => {
-        process.env.NODE_ENV = 'production';
+        process.env['NODE_ENV'] = 'production';
         expect(infraDefault('localhost').safeParse('mongo.internal').success).toBe(true);
     });
 
     it('rejects an empty override in every environment', () => {
-        process.env.NODE_ENV = 'development';
+        process.env['NODE_ENV'] = 'development';
         expect(infraDefault('localhost').safeParse('').success).toBe(false);
     });
 });

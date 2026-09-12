@@ -8,12 +8,30 @@
 import { ObjectId } from 'mongodb';
 import { vi, type Mock } from 'vitest';
 
-type WriteRecord = { method: string; args: unknown[] };
+/** Every driver method this double answers for; `results` is keyed by it. */
+type StubMethod =
+    | 'find'
+    | 'findOne'
+    | 'findOneAndUpdate'
+    | 'aggregate'
+    | 'countDocuments'
+    | 'distinct'
+    | 'insertOne'
+    | 'insertMany'
+    | 'updateOne'
+    | 'updateMany'
+    | 'replaceOne'
+    | 'deleteOne'
+    | 'deleteMany'
+    | 'bulkWrite'
+    | 'createIndex';
+
+type WriteRecord = { method: StubMethod; args: unknown[] };
 
 type CollectionStub = {
     name: string;
     seed: unknown[];
-    results: Record<string, unknown>;
+    results: Partial<Record<StubMethod, unknown>>;
     filters: unknown[];
     writes: WriteRecord[];
     find: Mock;
@@ -60,18 +78,17 @@ export function fakeDb(seed: Record<string, unknown[]> = {}): DbStub {
         const rows = seed[name] ?? [];
         const filters: unknown[] = [];
         const writes: WriteRecord[] = [];
-        const results: Record<string, unknown> = {};
+        const results: Partial<Record<StubMethod, unknown>> = {};
 
         const reader =
-            (method: string, answer: (filter?: unknown) => unknown) =>
-            (filter?: unknown, ...rest: unknown[]): unknown => {
+            (method: StubMethod, answer: (filter?: unknown) => unknown) =>
+            (filter?: unknown, ..._rest: unknown[]): unknown => {
                 filters.push(filter);
                 return results[method] === undefined ? answer(filter) : results[method];
-                void rest;
             };
 
         const writer =
-            (method: string, fallback: unknown) =>
+            (method: StubMethod, fallback: unknown) =>
             (...args: unknown[]): Promise<unknown> => {
                 writes.push({ method, args });
                 return Promise.resolve(results[method] ?? fallback);

@@ -74,4 +74,4 @@ export function infraDefault(defaultValue: string): z.ZodDefault<z.ZodString> {
         });
 }
 
-const isProd = (): boolean => process.env.NODE_ENV === 'production';
+const isProd = (): boolean => process.env['NODE_ENV'] === 'production';

@@ -56,7 +56,7 @@ export function chunk<T>(items: readonly T[], size: number): T[][] {
 }
 
 function toAsset(doc: AssetInfoDoc): Asset {
-    const ipo = doc.IPO;
+    const ipo = doc['IPO'];
 
     return {
         symbol: doc.Symbol,
@@ -65,7 +65,7 @@ function toAsset(doc: AssetInfoDoc): Asset {
         sector: typeof doc.Sector === 'string' ? doc.Sector : '',
         industry: typeof doc.Industry === 'string' ? doc.Industry : '',
         marketCap: typeof doc.MarketCapitalization === 'number' ? doc.MarketCapitalization : null,
-        sharesOutstanding: typeof doc.SharesOutstanding === 'number' ? doc.SharesOutstanding : null,
+        sharesOutstanding: typeof doc['SharesOutstanding'] === 'number' ? doc['SharesOutstanding'] : null,
         ipo: ipo instanceof Date && !Number.isNaN(ipo.getTime()) ? ipo : null,
     };
 }

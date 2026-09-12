@@ -36,8 +36,8 @@ describe('SummaryPanel', () => {
         expect(wrapper.findAll('.summary-row__value').map((node) => node.text())).toEqual(['—', '—', '—']);
     });
 
-    it('dashes a field the profile does not carry', () => {
-        const wrapper = panel(profile({ exchange: undefined }) as AssetProfile, ['exchange']);
+    it('dashes a field the profile has no value for', () => {
+        const wrapper = panel(profile({ exchange: null }), ['exchange']);
 
         expect(wrapper.get('.summary-row__value').text()).toBe('—');
     });

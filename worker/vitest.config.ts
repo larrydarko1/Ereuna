@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import { fileURLToPath } from 'url';
-import { sharedEsbuild, sharedTest } from '../vitest.shared.mts';
+import { sharedTest } from '../vitest.shared.mts';
 
 export default defineConfig({
     test: {
@@ -10,7 +10,6 @@ export default defineConfig({
         include: ['src/**/*.test.ts'],
         env: { WORKER_ROLE: 'all', TIINGO_KEY: 'test-key' },
     },
-    esbuild: sharedEsbuild,
     resolve: {
         alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
     },

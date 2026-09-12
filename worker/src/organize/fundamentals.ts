@@ -117,14 +117,14 @@ function derivedFrom(quarterly: readonly Statement[], asset: Asset): Record<stri
     const latest = quarterly[0];
     if (latest === undefined) return {};
 
-    const shares = numeric(latest.sharesBasic) ?? asset.sharesOutstanding;
-    const cash = numeric(latest.cashAndEq) ?? 0;
-    const debt = numeric(latest.debt) ?? 0;
+    const shares = numeric(latest['sharesBasic']) ?? asset.sharesOutstanding;
+    const cash = numeric(latest['cashAndEq']) ?? 0;
+    const debt = numeric(latest['debt']) ?? 0;
 
     return {
         EPS: latest.reportedEPS,
         ...(shares === null ? {} : { SharesOutstanding: shares }),
-        BookValue: numeric(latest.bookVal),
+        BookValue: numeric(latest['bookVal']),
         NetCash: round(cash - debt, 2),
 
         EPSQoQ: growth(quarterly, 1, 'reportedEPS'),

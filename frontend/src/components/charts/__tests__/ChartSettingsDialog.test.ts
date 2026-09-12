@@ -137,8 +137,8 @@ describe('ChartSettingsDialog', () => {
 
         const { indicators } = (api.last().body as { chartSettings: { indicators: Record<string, unknown[]> } })
             .chartSettings;
-        expect(indicators.weekly?.[0]).toMatchObject({ period: 30 });
-        expect(indicators.daily).toEqual([{ type: 'SMA', period: 10, visible: true }]);
+        expect(indicators['weekly']?.[0]).toMatchObject({ period: 30 });
+        expect(indicators['daily']).toEqual([{ type: 'SMA', period: 10, visible: true }]);
     });
 
     it('puts the shipped settings back in the draft without storing them', async () => {

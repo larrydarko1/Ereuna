@@ -148,7 +148,7 @@ describe('the concurrency limit', () => {
 
         server.use(
             http.get(`${BASE}/tiingo/fundamentals/:symbol/statements`, async ({ params }) => {
-                started.push(String(params.symbol));
+                started.push(String(params['symbol']));
                 // Once released, the ones that were queued must not park again
                 if (!releasing) await new Promise<void>((resolve) => gates.push(resolve));
                 return HttpResponse.json([]);

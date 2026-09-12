@@ -148,7 +148,7 @@ describe('rebuild', () => {
         expect(update.$set).toHaveProperty('cash');
         expect(update.$set).toHaveProperty('valueHistory');
         expect(update.$set).toHaveProperty('stats');
-        expect(update.$set.updatedAt).toBeInstanceOf(Date);
+        expect(update.$set['updatedAt']).toBeInstanceOf(Date);
     });
 
     it('replaces the whole position set rather than diffing it', async () => {

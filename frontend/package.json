@@ -8,7 +8,7 @@
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview",
-        "typecheck": "vue-tsc --noEmit -p tsconfig.app.json",
+        "typecheck": "vue-tsc --noEmit -p tsconfig.app.json && vue-tsc --noEmit -p tsconfig.node.json",
         "stylelint": "stylelint \"src/**/*.scss\" \"src/**/*.vue\" --ignore-pattern \"src/components/charts/**\"",
         "stylelint:fix": "stylelint \"src/**/*.scss\" \"src/**/*.vue\" --ignore-pattern \"src/components/charts/**\" --fix"
     },
@@ -34,7 +34,7 @@
         "stylelint-declaration-strict-value": "^1.12.1",
         "stylelint-scss": "^7.2.0",
         "typescript": "~6.0.2",
-        "vite": "^8.2.2",
+        "vite": "^8.3.0",
         "vue-tsc": "^3.3.11"
     },
     "private": true,

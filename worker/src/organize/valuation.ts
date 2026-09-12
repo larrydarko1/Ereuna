@@ -48,15 +48,15 @@ export async function updateValuations(now = new Date()): Promise<number> {
 }
 
 function valuationFor(doc: AssetInfoDoc, now: Date): Record<string, unknown> {
-    const price = numeric((doc.TimeSeries as { close?: unknown } | undefined)?.close);
-    const shares = numeric(doc.SharesOutstanding);
+    const price = numeric((doc['TimeSeries'] as { close?: unknown } | undefined)?.close);
+    const shares = numeric(doc['SharesOutstanding']);
     const quarterly = Array.isArray(doc.quarterlyFinancials) ? (doc.quarterlyFinancials as Statement[]) : [];
     const latest = quarterly[0];
     const marketCap = price === null || shares === null ? null : price * shares;
 
     return {
         PERatio: ratio(price, numeric(latest?.reportedEPS)),
-        PriceToBookRatio: ratio(price, perShare(numeric(latest?.bookVal), shares)),
+        PriceToBookRatio: ratio(price, perShare(numeric(latest?.['bookVal']), shares)),
         PriceToSalesRatioTTM: ratio(price, perShare(numeric(latest?.totalRevenue), shares)),
         PEGRatio: pegRatio(price, quarterly),
         EV: enterpriseValue(marketCap, latest),
@@ -83,8 +83,8 @@ function pegRatio(price: number | null, quarterly: readonly Statement[]): number
 /** What it would cost to buy the business outright: market cap plus debt, less cash. */
 function enterpriseValue(marketCap: number | null, latest: Statement | undefined): number | null {
     if (marketCap === null || latest === undefined) return null;
-    const debt = numeric(latest.debt);
-    const cash = numeric(latest.cashAndEq);
+    const debt = numeric(latest['debt']);
+    const cash = numeric(latest['cashAndEq']);
     if (debt === null || cash === null) return null;
     return round(marketCap + debt - cash, 2);
 }

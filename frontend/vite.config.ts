@@ -6,10 +6,10 @@ import path from 'path';
 export default defineConfig({
     plugins: [vue()],
     // @ereuna/shared is consumed as TypeScript source and its tsconfig targets
-    // ES2025 for Node, which esbuild does not recognise. The browser target is
-    // this app's to decide, not the shared package's, so state it here — and
-    // state it to match the browserslist field rather than leaving it implied.
-    esbuild: { target: 'es2020' },
+    // Node, not the browser. The browser target is this app's to decide, not the
+    // shared package's, so state it here — and state it to match the
+    // browserslist field rather than leaving it implied.
+    oxc: { target: 'es2020' },
     build: { target: ['es2020', 'safari14'] },
     resolve: {
         alias: {

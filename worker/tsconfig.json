@@ -1,21 +1,18 @@
 {
+    "extends": "../tsconfig.base.json",
     "compilerOptions": {
-        // ES2024, not ES2025: esbuild — which vitest uses to transform, and
-        // which reads this file — does not recognise ES2025 and warns on every
-        // run. `lib` stays ES2025 so the runtime's newer built-ins are still
-        // typed; only the downlevel target moved.
-        "target": "ES2024",
+        /* Output & Build */
+        "outDir": "dist",
+        "rootDir": "src",
+
+        /* Target & Environment */
+        "target": "ES2025",
         "module": "NodeNext",
         "moduleResolution": "NodeNext",
         "lib": ["ES2025"],
+
+        /* Paths & Types */
         "types": ["node"],
-        "outDir": "dist",
-        "rootDir": "src",
-        "strict": true,
-        "noUncheckedIndexedAccess": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "resolveJsonModule": true,
         "paths": {
             "@/*": ["./src/*"]
         }

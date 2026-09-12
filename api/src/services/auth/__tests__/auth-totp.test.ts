@@ -70,7 +70,7 @@ describe('beginTotpEnrolment', () => {
         await beginTotpEnrolment(USER_ID);
 
         const set = written();
-        expect(set.pendingTotpSecretEncrypted).toBeTypeOf('string');
+        expect(set['pendingTotpSecretEncrypted']).toBeTypeOf('string');
         expect(set).not.toHaveProperty('totpEnabled');
         expect(set).not.toHaveProperty('totpSecretEncrypted');
     });
@@ -78,7 +78,7 @@ describe('beginTotpEnrolment', () => {
     it('encrypts the secret at rest', async () => {
         db.current = fakeDb({ Users: [user()] });
         const { secret } = await beginTotpEnrolment(USER_ID);
-        expect(written().pendingTotpSecretEncrypted).not.toContain(secret);
+        expect(written()['pendingTotpSecretEncrypted']).not.toContain(secret);
     });
 
     it('returns a provisioning uri derived on demand, carrying the issuer and the username', async () => {
@@ -112,9 +112,9 @@ describe('confirmTotpEnrolment', () => {
         await confirmTotpEnrolment(USER_ID, liveCode());
 
         const set = written();
-        expect(set.totpEnabled).toBe(true);
-        expect(set.pendingTotpSecretEncrypted).toBeNull();
-        expect(set.totpSecretEncrypted).toBeTypeOf('string');
+        expect(set['totpEnabled']).toBe(true);
+        expect(set['pendingTotpSecretEncrypted']).toBeNull();
+        expect(set['totpSecretEncrypted']).toBeTypeOf('string');
     });
 
     it('issues a recovery set at the same time, shown exactly once', async () => {
@@ -122,7 +122,7 @@ describe('confirmTotpEnrolment', () => {
         await expect(confirmTotpEnrolment(USER_ID, liveCode())).resolves.toEqual({
             recoveryCodes: ['AAAA-BBBB-CCCC'],
         });
-        expect(written().recoveryCodeHashes).toEqual([hashOf('AAAA-BBBB-CCCC')]);
+        expect(written()['recoveryCodeHashes']).toEqual([hashOf('AAAA-BBBB-CCCC')]);
     });
 
     it('refuses a wrong code and changes nothing — a one-step enable can lock a user out', async () => {
@@ -223,7 +223,7 @@ describe('regenerateRecoveryCodes', () => {
     it('replaces the whole set and returns the new codes once', async () => {
         db.current = fakeDb({ Users: [enabled()] });
         await expect(regenerateRecoveryCodes(USER_ID, 'Str0ng!pass')).resolves.toEqual(['AAAA-BBBB-CCCC']);
-        expect(written().recoveryCodeHashes).toEqual([hashOf('AAAA-BBBB-CCCC')]);
+        expect(written()['recoveryCodeHashes']).toEqual([hashOf('AAAA-BBBB-CCCC')]);
     });
 
     it('re-authenticates with the password — an access token alone must not void the written-down set', async () => {

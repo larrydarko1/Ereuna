@@ -9,7 +9,10 @@ vi.mock('ioredis', () => ({
     Redis: class {
         readonly handlers = new Map<string, Handler>();
 
-        constructor(readonly options: Record<string, unknown>) {
+        readonly options: Record<string, unknown>;
+
+        constructor(options: Record<string, unknown>) {
+            this.options = options;
             built.push(this);
         }
 
@@ -67,7 +70,7 @@ describe('getRedis', () => {
 
     it('gives up on a request after a few tries — every caller here fails open', () => {
         redis.getRedis();
-        expect(built[0]?.options.maxRetriesPerRequest).toBe(3);
+        expect(built[0]?.options['maxRetriesPerRequest']).toBe(3);
     });
 
     it('listens for errors, because an ioredis client without a listener takes the process down', () => {

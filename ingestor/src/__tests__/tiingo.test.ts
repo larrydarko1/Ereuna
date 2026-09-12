@@ -17,7 +17,10 @@ class FakeSocket {
     onerror: (() => void) | null = null;
     onclose: (() => void) | null = null;
 
-    constructor(readonly url: string) {
+    readonly url: string;
+
+    constructor(url: string) {
+        this.url = url;
         FakeSocket.last = this;
     }
 

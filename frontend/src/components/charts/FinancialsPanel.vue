@@ -37,7 +37,7 @@ const all = computed<Quarter[]>(() => {
     const values = rows.map((row) => numeric(row[field]));
 
     return rows.flatMap((row, index) => {
-        const date = row.fiscalDateEnding;
+        const date = row['fiscalDateEnding'];
         if (typeof date !== 'string') return [];
 
         return [

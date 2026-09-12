@@ -163,7 +163,7 @@ describe('setBaseValue', () => {
         db.current = fakeDb({ Portfolios: [portfolio()] });
         await setBaseValue(USER_ID, 0, 50_000);
 
-        expect(setOf().baseValue).toBe(50_000);
+        expect(setOf()['baseValue']).toBe(50_000);
         expect(calls.rebuilt).toEqual([[USER_ID.toHexString(), 0]]);
     });
 
@@ -182,7 +182,7 @@ describe('setLeverage', () => {
     it('replays the existing log against the new ratio before writing it', async () => {
         await setLeverage(USER_ID, 0, 2);
         expect(calls.validated).toEqual([{ leverage: 2 }]);
-        expect(setOf().leverage).toBe(2);
+        expect(setOf()['leverage']).toBe(2);
         expect(calls.rebuilt).toHaveLength(1);
     });
 
@@ -212,7 +212,7 @@ describe('setDefaultCommission', () => {
     it('writes the default without replaying anything — settled trades keep their own number', async () => {
         db.current = fakeDb({ Portfolios: [portfolio()] });
         await expect(setDefaultCommission(USER_ID, 0, 4.95)).resolves.toBe(4.95);
-        expect(setOf().defaultCommission).toBe(4.95);
+        expect(setOf()['defaultCommission']).toBe(4.95);
         expect(calls.rebuilt).toEqual([]);
     });
 });
@@ -225,7 +225,7 @@ describe('setBenchmarks', () => {
     it('checks every symbol before the write, so none can silently produce no series', async () => {
         await setBenchmarks(USER_ID, 0, ['SPY', 'QQQ']);
         expect(calls.assets).toEqual(['SPY', 'QQQ']);
-        expect(setOf().benchmarks).toEqual(['SPY', 'QQQ']);
+        expect(setOf()['benchmarks']).toEqual(['SPY', 'QQQ']);
     });
 
     it('de-duplicates', async () => {
@@ -272,7 +272,7 @@ describe('writeSettings', () => {
 
     it('de-duplicates and checks benchmarks it is given', async () => {
         await writeSettings(USER_ID, 0, { benchmarks: ['SPY', 'SPY', 'QQQ'] });
-        expect(setOf().benchmarks).toEqual(['SPY', 'QQQ']);
+        expect(setOf()['benchmarks']).toEqual(['SPY', 'QQQ']);
         expect(calls.assets).toEqual(['SPY', 'QQQ']);
     });
 });
@@ -282,7 +282,7 @@ describe('applyDeclaredState', () => {
         db.current = fakeDb({ Portfolios: [portfolio()] });
         const stats = { totalReturn: 0.42 } as never;
         await applyDeclaredState(USER_ID, 0, { stats });
-        expect(setOf().stats).toBe(stats);
+        expect(setOf()['stats']).toBe(stats);
     });
 
     it('writes nothing when the import declared nothing', async () => {

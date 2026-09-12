@@ -68,7 +68,13 @@ router.get(
     '/',
     ...validated({ params: numberParam, query: listQuery }, async (req, res): Promise<void> => {
         const { page, limit, symbol } = req.validatedQuery;
-        res.json(await portfolioService.getTradePage(authedUserId(req), req.params.number, { page, limit, symbol }));
+        res.json(
+            await portfolioService.getTradePage(authedUserId(req), req.params.number, {
+                page,
+                limit,
+                ...(symbol !== undefined ? { symbol } : {}),
+            }),
+        );
     }),
 );
 

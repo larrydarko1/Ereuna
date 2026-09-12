@@ -109,7 +109,7 @@ describe('an AppError', () => {
             new AppError(401, 'INVALID_TOKEN', 'bad', { securityEvent: true, logContext: { ip: 'forged' } }),
         );
         await call('/boom');
-        expect(logs[0]?.payload.ip).not.toBe('forged');
+        expect(logs[0]?.payload['ip']).not.toBe('forged');
     });
 });
 
@@ -149,7 +149,7 @@ describe('anything else', () => {
         await call('/boom');
         expect(logs[0]?.level).toBe('error');
         expect(logs[0]?.message).toBe('Unhandled error');
-        expect(logs[0]?.payload.err).toBeInstanceOf(TypeError);
+        expect(logs[0]?.payload['err']).toBeInstanceOf(TypeError);
     });
 
     it('handles a thrown non-Error without itself throwing', async () => {

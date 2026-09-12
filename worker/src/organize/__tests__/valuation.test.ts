@@ -89,30 +89,30 @@ describe('updateValuations', () => {
 
 describe('the ratios', () => {
     it('divides the price by the reported EPS', async () => {
-        expect((await fieldsFor()).PERatio).toBe(10);
+        expect((await fieldsFor())['PERatio']).toBe(10);
     });
 
     it('divides the price by book value per share', async () => {
-        expect((await fieldsFor()).PriceToBookRatio).toBe(2.5);
+        expect((await fieldsFor())['PriceToBookRatio']).toBe(2.5);
     });
 
     it('divides the price by revenue per share', async () => {
-        expect((await fieldsFor()).PriceToSalesRatioTTM).toBe(0.5);
+        expect((await fieldsFor())['PriceToSalesRatioTTM']).toBe(0.5);
     });
 
     it.each([
         ['a zero denominator', { reportedEPS: 0 }],
         ['a negative denominator', { reportedEPS: -5 }],
     ])('reports no ratio for %s', async (_label, overrides) => {
-        expect((await fieldsFor({ quarterlyFinancials: [quarter(overrides)] })).PERatio).toBeNull();
+        expect((await fieldsFor({ quarterlyFinancials: [quarter(overrides)] }))['PERatio']).toBeNull();
     });
 
     it('reports no ratio without a price', async () => {
-        expect((await fieldsFor({ TimeSeries: undefined })).PERatio).toBeNull();
+        expect((await fieldsFor({ TimeSeries: undefined }))['PERatio']).toBeNull();
     });
 
     it('reports no per-share ratio without a share count', async () => {
-        expect((await fieldsFor({ SharesOutstanding: null })).PriceToBookRatio).toBeNull();
+        expect((await fieldsFor({ SharesOutstanding: null }))['PriceToBookRatio']).toBeNull();
     });
 
     it('reports nothing at all when the asset has no filings', async () => {
@@ -121,7 +121,7 @@ describe('the ratios', () => {
     });
 
     it('ignores a quarterlyFinancials that is not an array', async () => {
-        expect((await fieldsFor({ quarterlyFinancials: 'nope' })).PERatio).toBeNull();
+        expect((await fieldsFor({ quarterlyFinancials: 'nope' }))['PERatio']).toBeNull();
     });
 });
 
@@ -131,7 +131,7 @@ describe('the PEG ratio', () => {
             quarterlyFinancials: [quarter({ reportedEPS: 5 }), quarter({ reportedEPS: 4 })],
         });
         // P/E 10 over 25% growth
-        expect(fields.PEGRatio).toBe(0.4);
+        expect(fields['PEGRatio']).toBe(0.4);
     });
 
     it.each([
@@ -143,7 +143,7 @@ describe('the PEG ratio', () => {
             const fields = await fieldsFor({
                 quarterlyFinancials: [quarter({ reportedEPS: current }), quarter({ reportedEPS: 5 })],
             });
-            expect(fields.PEGRatio).toBeNull();
+            expect(fields['PEGRatio']).toBeNull();
         },
     );
 
@@ -151,28 +151,28 @@ describe('the PEG ratio', () => {
         const fields = await fieldsFor({
             quarterlyFinancials: [quarter({ reportedEPS: 5 }), quarter({ reportedEPS: -1 })],
         });
-        expect(fields.PEGRatio).toBeNull();
+        expect(fields['PEGRatio']).toBeNull();
     });
 
     it('reports nothing with only one filing to compare', async () => {
-        expect((await fieldsFor()).PEGRatio).toBeNull();
+        expect((await fieldsFor())['PEGRatio']).toBeNull();
     });
 });
 
 describe('enterprise value', () => {
     it('is market cap plus debt less cash', async () => {
-        expect((await fieldsFor()).EV).toBe(50 * 100 + 500 - 300);
+        expect((await fieldsFor())['EV']).toBe(50 * 100 + 500 - 300);
     });
 
     it('is unknown without a market capitalisation to start from', async () => {
-        expect((await fieldsFor({ SharesOutstanding: null })).EV).toBeNull();
+        expect((await fieldsFor({ SharesOutstanding: null }))['EV']).toBeNull();
     });
 
     it.each([
         ['no debt figure', { debt: null }],
         ['no cash figure', { cashAndEq: null }],
     ])('is unknown with %s rather than treating it as zero', async (_label, overrides) => {
-        expect((await fieldsFor({ quarterlyFinancials: [quarter(overrides)] })).EV).toBeNull();
+        expect((await fieldsFor({ quarterlyFinancials: [quarter(overrides)] }))['EV']).toBeNull();
     });
 });
 
@@ -184,7 +184,7 @@ describe('the dividend yield', () => {
                 { date: '2026-03-01', amount: 1.5 },
             ],
         });
-        expect(fields.DividendYield).toBe(0.05);
+        expect(fields['DividendYield']).toBe(0.05);
     });
 
     it('ignores a payment older than the trailing year', async () => {
@@ -194,20 +194,20 @@ describe('the dividend yield', () => {
                 { date: '2020-01-01', amount: 100 },
             ],
         });
-        expect(fields.DividendYield).toBe(0.02);
+        expect(fields['DividendYield']).toBe(0.02);
     });
 
     it('ignores a payment with an unparseable date', async () => {
         const fields = await fieldsFor({ dividends: [{ date: 'whenever', amount: 100 }] });
-        expect(fields.DividendYield).toBeNull();
+        expect(fields['DividendYield']).toBeNull();
     });
 
     it('treats a payment with no amount as nothing', async () => {
-        expect((await fieldsFor({ dividends: [{ date: '2026-06-01' }] })).DividendYield).toBeNull();
+        expect((await fieldsFor({ dividends: [{ date: '2026-06-01' }] }))['DividendYield']).toBeNull();
     });
 
     it('reports nothing for a non-payer rather than zero', async () => {
-        expect((await fieldsFor()).DividendYield).toBeNull();
+        expect((await fieldsFor())['DividendYield']).toBeNull();
     });
 
     it.each([
@@ -216,6 +216,6 @@ describe('the dividend yield', () => {
         ['no dividend array at all', { dividends: undefined }],
     ])('reports nothing with %s', async (_label, overrides) => {
         const fields = await fieldsFor({ dividends: [{ date: '2026-06-01', amount: 1 }], ...overrides });
-        expect(fields.DividendYield).toBeNull();
+        expect(fields['DividendYield']).toBeNull();
     });
 });

@@ -15,6 +15,15 @@ export type Preferences = Pick<
     'language' | 'theme' | 'defaultSymbol' | 'hiddenSymbols' | 'chartSettings' | 'panels' | 'screenerColumns'
 >;
 
+/**
+ * A patch as a validated request body arrives: Zod writes every optional key,
+ * so a field the client omitted is present and explicitly undefined rather than
+ * missing. `updatePreferences` treats the two the same, which is why this is
+ * not `Partial<Preferences>` — under exactOptionalPropertyTypes that would
+ * reject the very shape the router has in hand.
+ */
+type PreferencesPatch = { [K in keyof Preferences]?: Preferences[K] | undefined };
+
 const PREFERENCE_FIELDS = [
     'language',
     'theme',
@@ -42,7 +51,7 @@ export async function getPreferences(userId: ObjectId): Promise<Preferences> {
     };
 }
 
-export async function updatePreferences(userId: ObjectId, patch: Partial<Preferences>): Promise<Preferences> {
+export async function updatePreferences(userId: ObjectId, patch: PreferencesPatch): Promise<Preferences> {
     const update: Record<string, unknown> = { updatedAt: new Date() };
     for (const field of PREFERENCE_FIELDS) {
         if (patch[field] !== undefined) update[field] = patch[field];

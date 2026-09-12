@@ -57,6 +57,7 @@ export async function updateMarketStats(): Promise<void> {
 
     const priced = rows.filter((row) => row.close !== null);
     const movingAverages = breadthByUniverse(priced);
+    const updatedAt = latestBar(rows);
 
     const document: StatsDoc = {
         _id: 'marketStats',
@@ -69,7 +70,7 @@ export async function updateMarketStats(): Promise<void> {
         indexPerformance: indexPerformance(priced),
         top10DailyGainers: movers(priced, 'desc'),
         top10DailyLosers: movers(priced, 'asc'),
-        updatedAt: latestBar(rows) ?? undefined,
+        ...(updatedAt !== null ? { updatedAt } : {}),
     };
 
     await getDb().collection<StatsDoc>('Stats').updateOne({ _id: 'marketStats' }, { $set: document }, { upsert: true });
@@ -110,7 +111,7 @@ async function load(): Promise<Row[]> {
 }
 
 function toRow(doc: AssetInfoDoc): Row {
-    const updatedAt = doc.metricsUpdatedAt;
+    const updatedAt = doc['metricsUpdatedAt'];
 
     return {
         symbol: doc.Symbol,
@@ -118,19 +119,19 @@ function toRow(doc: AssetInfoDoc): Row {
         exchange: typeof doc.Exchange === 'string' ? doc.Exchange : '',
         sector: typeof doc.Sector === 'string' ? doc.Sector : '',
         industry: typeof doc.Industry === 'string' ? doc.Industry : '',
-        close: numeric((doc.TimeSeries as { close?: unknown } | undefined)?.close),
+        close: numeric((doc['TimeSeries'] as { close?: unknown } | undefined)?.close),
         marketCap: numeric(doc.MarketCapitalization),
-        todayChange: numeric(doc.todaychange),
-        quarterChange: numeric(doc.quarterchange),
-        week52High: numeric(doc.fiftytwoWeekHigh),
-        week52Low: numeric(doc.fiftytwoWeekLow),
+        todayChange: numeric(doc['todaychange']),
+        quarterChange: numeric(doc['quarterchange']),
+        week52High: numeric(doc['fiftytwoWeekHigh']),
+        week52Low: numeric(doc['fiftytwoWeekLow']),
         movingAverages: new Map(MA_PERIODS.map((period) => [period, numeric(doc[`MA${period}`])])),
         performance: {
-            '1D': numeric(doc.todaychange),
+            '1D': numeric(doc['todaychange']),
             '1M': numeric(doc['1mchange']),
             '4M': numeric(doc['4mchange']),
             '1Y': numeric(doc['1ychange']),
-            'YTD': numeric(doc.ytdchange),
+            'YTD': numeric(doc['ytdchange']),
         },
         updatedAt: updatedAt instanceof Date ? updatedAt : null,
     };
@@ -207,7 +208,7 @@ function outlook(breadth: Record<number, Record<string, { up: number; down: numb
     const reading: Record<string, unknown> = {};
 
     for (const { key, periods } of OUTLOOK_TERMS) {
-        const average = periods.reduce((sum, period) => sum + (breadth[period]?.ALL?.up ?? 0), 0) / periods.length;
+        const average = periods.reduce((sum, period) => sum + (breadth[period]?.['ALL']?.up ?? 0), 0) / periods.length;
 
         reading[key] = {
             outlook: outlookFor(average),

@@ -36,8 +36,8 @@ export type AppErrorOptions = {
 export class AppError extends Error {
     readonly status: number;
     readonly code: ErrorCode;
-    readonly params?: ErrorParams;
-    readonly logContext?: Record<string, string | number>;
+    readonly params: ErrorParams | undefined;
+    readonly logContext: Record<string, string | number> | undefined;
     readonly securityEvent: boolean;
 
     constructor(status: number, code: ErrorCode, message: string, options: AppErrorOptions = {}) {
