@@ -3,7 +3,7 @@ import { type DeepPartial } from '@/lib/lightweight-charts/helpers/strict-type-c
 import { type PriceScaleOptions } from '@/lib/lightweight-charts/model/price-scale';
 
 /** Interface to control chart's price scale */
-export interface IPriceScaleApi {
+export type IPriceScaleApi = {
     /**
      * Applies new options to the price scale
      *

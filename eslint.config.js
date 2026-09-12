@@ -190,6 +190,13 @@ export default [
         },
     },
     {
+        files: ['**/*.d.ts'],
+        rules: {
+            '@typescript-eslint/consistent-type-definitions': 'off',
+            'no-var': 'off',
+        },
+    },
+    {
         files: ['frontend/src/main.ts'],
         rules: {
             '@typescript-eslint/no-unsafe-argument': 'off',

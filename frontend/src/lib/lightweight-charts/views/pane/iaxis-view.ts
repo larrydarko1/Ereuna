@@ -1,5 +1,5 @@
 import { type IAxisRenderer } from '@/lib/lightweight-charts/renderers/iaxis-view-renderer';
 
-export interface IAxisView {
+export type IAxisView = {
     renderer(): IAxisRenderer | null;
 }

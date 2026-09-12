@@ -19,7 +19,7 @@ export type PlotRowValue = [
     number, // close
 ];
 
-export interface PlotRow {
+export type PlotRow = {
     readonly index: TimePointIndex;
     readonly time: InternalHorzScaleItem;
     readonly originalTime: unknown;

@@ -9,6 +9,6 @@
  * │ destroy()  x 1 │  ┗━━━━━┛           └ ╌╌ ╌┘
  * └────────────────┘
  */
-export interface IDestroyable {
+export type IDestroyable = {
     destroy(): void;
 }

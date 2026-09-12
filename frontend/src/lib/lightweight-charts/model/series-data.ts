@@ -2,46 +2,46 @@ import { type PlotRow } from '@/lib/lightweight-charts/model/plot-data';
 import { PlotList } from '@/lib/lightweight-charts/model/plot-list';
 import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 
-export interface LinePlotRow extends PlotRow {
+export type LinePlotRow = {
     readonly color?: string | undefined;
-}
+} & PlotRow
 
-export interface AreaPlotRow extends PlotRow {
+export type AreaPlotRow = {
     lineColor?: string;
     topColor?: string;
     bottomColor?: string;
-}
+} & PlotRow
 
-export interface BaselinePlotRow extends PlotRow {
+export type BaselinePlotRow = {
     topFillColor1?: string;
     topFillColor2?: string;
     topLineColor?: string;
     bottomFillColor1?: string;
     bottomFillColor2?: string;
     bottomLineColor?: string;
-}
+} & PlotRow
 
-export interface HistogramPlotRow extends PlotRow {
+export type HistogramPlotRow = {
     readonly color?: string | undefined;
-}
+} & PlotRow
 
-export interface BarPlotRow extends PlotRow {
+export type BarPlotRow = {
     readonly color?: string | undefined;
-}
+} & PlotRow
 
-export interface CandlestickPlotRow extends PlotRow {
+export type CandlestickPlotRow = {
     readonly color?: string | undefined;
     readonly borderColor?: string;
     readonly wickColor?: string;
-}
+} & PlotRow
 
-export interface CustomPlotRow extends PlotRow {
+export type CustomPlotRow = {
     // Used to store the original data values
     data: Record<string, unknown>;
     readonly color?: string | undefined;
-}
+} & PlotRow
 
-export interface SeriesPlotRowTypeAtTypeMap {
+export type SeriesPlotRowTypeAtTypeMap = {
     Bar: BarPlotRow;
     Candlestick: CandlestickPlotRow;
     Area: AreaPlotRow;

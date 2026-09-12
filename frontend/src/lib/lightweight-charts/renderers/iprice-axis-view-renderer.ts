@@ -4,7 +4,7 @@ import { type TextWidthCache } from '@/lib/lightweight-charts/model/text-width-c
 
 import { type LineWidth } from '@/lib/lightweight-charts/renderers/draw-line';
 
-export interface PriceAxisViewRendererCommonData {
+export type PriceAxisViewRendererCommonData = {
     activeBackground?: string;
     background: string;
     coordinate: number;
@@ -13,7 +13,7 @@ export interface PriceAxisViewRendererCommonData {
     additionalPaddingBottom: number;
 }
 
-export interface PriceAxisViewRendererData {
+export type PriceAxisViewRendererData = {
     visible: boolean;
     text: string;
     tickVisible: boolean;
@@ -25,7 +25,7 @@ export interface PriceAxisViewRendererData {
     separatorVisible: boolean;
 }
 
-export interface PriceAxisViewRendererOptions {
+export type PriceAxisViewRendererOptions = {
     baselineOffset: number;
     borderSize: number;
     font: string;
@@ -40,7 +40,7 @@ export interface PriceAxisViewRendererOptions {
     tickLength: number;
 }
 
-export interface IPriceAxisViewRenderer {
+export type IPriceAxisViewRenderer = {
     draw(
         target: CanvasRenderingTarget2D,
         rendererOptions: PriceAxisViewRendererOptions,

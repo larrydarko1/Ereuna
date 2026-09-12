@@ -10,7 +10,7 @@ import type { SeriesMarker } from '@/lib/lightweight-charts/model/series-markers
 import { LineStyle } from '@/lib/lightweight-charts/renderers/draw-line';
 import { type PatternMatch } from '@/lib/lightweight-charts/pattern-detection';
 
-interface PatternVisual {
+type PatternVisual = {
     pattern: PatternMatch;
     shapes: any[]; // Store references to drawn shapes
 }
@@ -250,7 +250,7 @@ export class PatternOverlayManager {
             shape: 'circle',
             text: this.getPatternLabel(pattern.type),
             size: 1,
-            originalTime: lastPoint.time as Time,
+            originalTime: lastPoint.time,
         };
 
         this.markers.push(marker);
@@ -326,16 +326,16 @@ export class PatternOverlayManager {
             type === 'bullishFlag'
         ) {
             return '#26a69a'; // Bullish patterns - green
-        } else if (
+        } if (
             type.includes('Top') ||
             type === 'headAndShoulders' ||
             type === 'descendingTriangle' ||
             type === 'bearishFlag'
         ) {
             return '#ef5350'; // Bearish patterns - red
-        } else {
+        } 
             return '#ffa726'; // Neutral - orange
-        }
+        
     }
 
     /**

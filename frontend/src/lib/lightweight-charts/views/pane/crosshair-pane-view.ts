@@ -7,7 +7,7 @@ import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-ren
 import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
 
 export class CrosshairPaneView implements IPaneView {
-    private _invalidated: boolean = true;
+    private _invalidated = true;
     private readonly _source: Crosshair;
     private readonly _rendererData: CrosshairRendererData = {
         vertLine: {

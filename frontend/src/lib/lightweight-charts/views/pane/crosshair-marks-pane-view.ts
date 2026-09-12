@@ -39,7 +39,7 @@ export class CrosshairMarksPaneView implements IUpdatablePaneView {
     private readonly _compositeRenderer: CompositeRenderer = new CompositeRenderer();
     private _markersRenderers: PaneRendererMarks[] = [];
     private _markersData: MarksRendererData[] = [];
-    private _invalidated: boolean = true;
+    private _invalidated = true;
 
     public constructor(chartModel: IChartModelBase, crosshair: Crosshair) {
         this._chartModel = chartModel;

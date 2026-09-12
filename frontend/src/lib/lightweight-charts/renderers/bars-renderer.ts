@@ -11,9 +11,9 @@ import { optimalBarWidth } from '@/lib/lightweight-charts/renderers/optimal-bar-
 
 export type BarCandlestickItemBase = TimedValue & BarPrices & BarCoordinates;
 
-export interface BarItem extends BarCandlestickItemBase, BarColorerStyle {}
+export type BarItem = {} & BarCandlestickItemBase & BarColorerStyle
 
-export interface PaneRendererBarsData {
+export type PaneRendererBarsData = {
     bars: readonly BarItem[];
     barSpacing: number;
     openVisible: boolean;
@@ -24,8 +24,8 @@ export interface PaneRendererBarsData {
 
 export class PaneRendererBars extends BitmapCoordinatesPaneRenderer {
     private _data: PaneRendererBarsData | null = null;
-    private _barWidth: number = 0;
-    private _barLineWidth: number = 0;
+    private _barWidth = 0;
+    private _barLineWidth = 0;
 
     public setData(data: PaneRendererBarsData): void {
         this._data = data;

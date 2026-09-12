@@ -42,7 +42,7 @@ import { Watermark, type WatermarkOptions } from '@/lib/lightweight-charts/model
 /**
  * Represents options for how the chart is scrolled by the mouse and touch gestures.
  */
-export interface HandleScrollOptions {
+export type HandleScrollOptions = {
     /**
      * Enable scrolling with the mouse wheel.
      *
@@ -79,7 +79,7 @@ export interface HandleScrollOptions {
 /**
  * Represents options for how the chart is scaled by the mouse and touch gestures.
  */
-export interface HandleScaleOptions {
+export type HandleScaleOptions = {
     /**
      * Enable scaling with the mouse wheel.
      *
@@ -108,7 +108,7 @@ export interface HandleScaleOptions {
 /**
  * Represents options for enabling or disabling kinetic scrolling with mouse and touch gestures.
  */
-export interface KineticScrollOptions {
+export type KineticScrollOptions = {
     /**
      * Enable kinetic scroll with touch gestures.
      *
@@ -135,7 +135,7 @@ type HandleScaleOptionsInternal = Omit<HandleScaleOptions, 'axisPressedMouseMove
 /**
  * Represents options for how the time and price axes react to mouse movements.
  */
-export interface AxisPressedMouseMoveOptions {
+export type AxisPressedMouseMoveOptions = {
     /**
      * Enable scaling the time axis by holding down the left mouse button and moving the mouse.
      *
@@ -154,7 +154,7 @@ export interface AxisPressedMouseMoveOptions {
 /**
  * Represents options for how the time and price axes react to mouse double click.
  */
-export interface AxisDoubleClickOptions {
+export type AxisDoubleClickOptions = {
     /**
      * Enable resetting scaling the time axis by double-clicking the left mouse button.
      *
@@ -170,17 +170,17 @@ export interface AxisDoubleClickOptions {
     price: boolean;
 }
 
-export interface HoveredObject {
+export type HoveredObject = {
     hitTestData?: unknown;
     externalId?: string | undefined;
 }
 
-export interface HoveredSource {
+export type HoveredSource = {
     source: IPriceDataSource;
     object?: HoveredObject | undefined;
 }
 
-export interface PriceScaleOnPane {
+export type PriceScaleOnPane = {
     priceScale: PriceScale;
     pane: Pane;
 }
@@ -230,7 +230,7 @@ export type TrackingModeExitMode = (typeof TrackingModeExitMode)[keyof typeof Tr
  * To see it, they should enter the tracking mode. The tracking mode will deactivate the scrolling
  * and make it possible to check values and dates.
  */
-export interface TrackingModeOptions {
+export type TrackingModeOptions = {
     // eslint-disable-next-line tsdoc/syntax
     /** @inheritDoc TrackingModeExitMode
      *
@@ -242,7 +242,7 @@ export interface TrackingModeOptions {
 /**
  * Represents common chart options
  */
-export interface ChartOptionsBase {
+export type ChartOptionsBase = {
     /**
      * Width of the chart in pixels
      *
@@ -348,12 +348,12 @@ export interface ChartOptionsBase {
 /**
  * Structure describing options of the chart. Series options are to be set separately
  */
-export interface ChartOptionsImpl<HorzScaleItem> extends ChartOptionsBase {
+export type ChartOptionsImpl<HorzScaleItem> = {
     /**
      * Localization options.
      */
     localization: LocalizationOptions<HorzScaleItem>;
-}
+} & ChartOptionsBase
 
 export type ChartOptionsInternalBase = Omit<ChartOptionsBase, 'handleScroll' | 'handleScale' | 'layout'> & {
     /** @public */
@@ -376,13 +376,13 @@ export type ChartOptionsInternal<HorzScaleItem> = Omit<
     layout: LayoutOptions;
 };
 
-interface GradientColorsCache {
+type GradientColorsCache = {
     topColor: string;
     bottomColor: string;
     colors: Map<number, string>;
 }
 
-export interface IChartModelBase {
+export type IChartModelBase = {
     applyPriceScaleOptions(priceScaleId: string, options: DeepPartial<PriceScaleOptions>): void;
     findPriceScale(priceScaleId: string): PriceScaleOnPane | null;
     options(): Readonly<ChartOptionsInternalBase>;
@@ -451,10 +451,10 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
 
     private _serieses: Series<SeriesType>[] = [];
 
-    private _width: number = 0;
+    private _width = 0;
     private _hoveredSource: HoveredSource | null = null;
     private readonly _priceScalesOptionsChanged: Delegate = new Delegate();
-    private _crosshairMoved: Delegate<TimePointIndex | null, Point | null, TouchMouseEventData | null> = new Delegate();
+    private _crosshairMoved = new Delegate<TimePointIndex | null, Point | null, TouchMouseEventData | null>();
 
     private _backgroundTopColor: string;
     private _backgroundBottomColor: string;
@@ -550,7 +550,7 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
                 leftPriceScale: options,
             });
             return;
-        } else if (priceScaleId === DefaultPriceScaleId.Right) {
+        } if (priceScaleId === DefaultPriceScaleId.Right) {
             this.applyOptions({
                 rightPriceScale: options,
             });

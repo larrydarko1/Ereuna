@@ -42,7 +42,7 @@ const Constants = {
 } as const;
 type Constants = (typeof Constants)[keyof typeof Constants];
 
-interface AnimationStageData {
+type AnimationStageData = {
     start: number;
     end: number;
     startRadius: number;
@@ -86,7 +86,7 @@ const animationStagesData: AnimationStageData[] = [
     },
 ];
 
-interface AnimationData {
+type AnimationData = {
     radius: number;
     fillColor: string;
     strokeColor: string;
@@ -126,8 +126,8 @@ function animationData(durationSinceStart: number, lineColor: string): Animation
 export class SeriesLastPriceAnimationPaneView implements IUpdatablePaneView {
     private readonly _series: ISeries<'Area'> | ISeries<'Line'> | ISeries<'Baseline'>;
     private readonly _renderer: SeriesLastPriceAnimationRenderer = new SeriesLastPriceAnimationRenderer();
-    private _invalidated: boolean = true;
-    private _stageInvalidated: boolean = true;
+    private _invalidated = true;
+    private _stageInvalidated = true;
 
     private _startTime: number = performance.now();
     private _endTime: number = this._startTime - 1;

@@ -3,7 +3,7 @@ import { type LineStyle, type LineWidth } from '@/lib/lightweight-charts/rendere
 /**
  * Represents a price line options.
  */
-export interface PriceLineOptions {
+export type PriceLineOptions = {
     /**
      * The optional ID of this price line.
      */

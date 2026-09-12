@@ -24,10 +24,10 @@ import { SeriesPaneViewBase } from '@/lib/lightweight-charts/views/pane/series-p
 
 type CustomBarItemBase = TimedValue;
 
-interface CustomBarItem extends CustomBarItemBase {
+type CustomBarItem = {
     barColor: string;
     originalData?: Record<string, unknown>;
-}
+} & CustomBarItemBase
 
 class CustomSeriesPaneRendererWrapper implements IPaneRenderer {
     private _sourceRenderer: ICustomSeriesPaneRenderer;

@@ -27,7 +27,7 @@ export type LineType = (typeof LineType)[keyof typeof LineType];
 /**
  * A point on a line.
  */
-export interface LinePoint {
+export type LinePoint = {
     /**
      * The point's x coordinate.
      */

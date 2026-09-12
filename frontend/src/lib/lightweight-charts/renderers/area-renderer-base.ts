@@ -15,7 +15,7 @@ import {
 import { walkLine } from '@/lib/lightweight-charts/renderers/walk-line';
 
 export type AreaFillItemBase = TimedValue & PricedValue & LinePoint;
-export interface PaneRendererAreaDataBase<TItem extends AreaFillItemBase = AreaFillItemBase> {
+export type PaneRendererAreaDataBase<TItem extends AreaFillItemBase = AreaFillItemBase> = {
     items: TItem[];
     lineType: LineType;
     lineWidth: LineWidth;

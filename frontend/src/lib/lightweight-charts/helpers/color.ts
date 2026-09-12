@@ -316,7 +316,7 @@ export function applyAlpha(color: string, alpha: number): string {
     return `rgba(${originRgba[0]}, ${originRgba[1]}, ${originRgba[2]}, ${alpha * originAlpha})`;
 }
 
-export interface ContrastColors {
+export type ContrastColors = {
     foreground: string;
     background: string;
 }

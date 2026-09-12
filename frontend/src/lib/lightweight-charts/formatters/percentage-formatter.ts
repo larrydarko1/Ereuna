@@ -1,7 +1,7 @@
 import { PriceFormatter } from '@/lib/lightweight-charts/formatters/price-formatter';
 
 export class PercentageFormatter extends PriceFormatter {
-    public constructor(priceScale: number = 100) {
+    public constructor(priceScale = 100) {
         super(priceScale);
     }
 

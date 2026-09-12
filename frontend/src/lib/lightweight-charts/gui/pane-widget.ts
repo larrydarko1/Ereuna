@@ -68,11 +68,11 @@ function sourceTopPaneViews(source: IDataSource, pane: Pane): readonly IPaneView
     return source.topPaneViews?.(pane) ?? [];
 }
 
-interface StartScrollPosition extends Point {
+type StartScrollPosition = {
     timestamp: number;
     localX: Coordinate;
     localY: Coordinate;
-}
+} & Point
 
 export class PaneWidget implements IDestroyable, MouseEventHandlers {
     private readonly _chart: IChartWidgetBase;
@@ -88,18 +88,18 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     private readonly _rowElement: HTMLElement;
     private readonly _mouseEventHandler: MouseEventHandler;
     private _startScrollingPos: StartScrollPosition | null = null;
-    private _isScrolling: boolean = false;
-    private _clicked: Delegate<TimePointIndex | null, Point, TouchMouseEventData> = new Delegate();
-    private _dblClicked: Delegate<TimePointIndex | null, Point, TouchMouseEventData> = new Delegate();
-    private _prevPinchScale: number = 0;
-    private _longTap: boolean = false;
+    private _isScrolling = false;
+    private _clicked = new Delegate<TimePointIndex | null, Point, TouchMouseEventData>();
+    private _dblClicked = new Delegate<TimePointIndex | null, Point, TouchMouseEventData>();
+    private _prevPinchScale = 0;
+    private _longTap = false;
     private _startTrackPoint: Point | null = null;
-    private _exitTrackingModeOnNextTry: boolean = false;
+    private _exitTrackingModeOnNextTry = false;
     private _initCrosshairPosition: Point | null = null;
 
     private _scrollXAnimation: KineticAnimation | null = null;
 
-    private _isSettingSize: boolean = false;
+    private _isSettingSize = false;
 
     public constructor(chart: IChartWidgetBase, state: Pane) {
         this._chart = chart;

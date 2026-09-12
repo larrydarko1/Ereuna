@@ -21,7 +21,6 @@ import {
     type IHorzScaleBehavior,
     type InternalHorzScaleItem,
 } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
-import { type ISeriesPrimitiveBase } from '@/lib/lightweight-charts/model/iseries-primitive';
 import { MismatchDirection } from '@/lib/lightweight-charts/model/plot-list';
 import { type CreatePriceLineOptions, type PriceLineOptions } from '@/lib/lightweight-charts/model/price-line-options';
 import { RangeImpl } from '@/lib/lightweight-charts/model/range-impl';
@@ -66,7 +65,7 @@ export class SeriesApi<
 
     private readonly _priceScaleApiProvider: IPriceScaleApiProvider<HorzScaleItem>;
     private readonly _horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>;
-    private readonly _dataChangedDelegate: Delegate<DataChangedScope> = new Delegate();
+    private readonly _dataChangedDelegate = new Delegate<DataChangedScope>();
 
     public constructor(
         series: Series<TSeriesType>,
@@ -260,7 +259,7 @@ export class SeriesApi<
     public attachPrimitive(primitive: ISeriesPrimitive<HorzScaleItem>): void {
         // at this point we cast the generic to unknown because we
         // don't want the model to know the types of the API (◑_◑)
-        this._series.attachPrimitive(primitive as ISeriesPrimitiveBase<unknown>);
+        this._series.attachPrimitive(primitive);
         if (primitive.attached) {
             primitive.attached({
                 chart: this._chartApi,
@@ -271,7 +270,7 @@ export class SeriesApi<
     }
 
     public detachPrimitive(primitive: ISeriesPrimitive<HorzScaleItem>): void {
-        this._series.detachPrimitive(primitive as ISeriesPrimitiveBase<unknown>);
+        this._series.detachPrimitive(primitive);
         if (primitive.detached) {
             primitive.detached();
         }

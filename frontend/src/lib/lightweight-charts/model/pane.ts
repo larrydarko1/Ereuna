@@ -21,7 +21,7 @@ export const DEFAULT_STRETCH_FACTOR = 1000;
 
 export type PriceScalePosition = 'left' | 'right' | 'overlay';
 
-interface MinMaxOrderInfo {
+type MinMaxOrderInfo = {
     minZOrder: number;
     maxZOrder: number;
 }
@@ -32,10 +32,10 @@ export class Pane implements IDestroyable {
     private readonly _grid: Grid;
 
     private _dataSources: IPriceDataSource[] = [];
-    private _overlaySourcesByScaleId: Map<string, IPriceDataSource[]> = new Map();
+    private _overlaySourcesByScaleId = new Map<string, IPriceDataSource[]>();
 
-    private _height: number = 0;
-    private _width: number = 0;
+    private _height = 0;
+    private _width = 0;
     private _stretchFactor: number = DEFAULT_STRETCH_FACTOR;
     private _cachedOrderedSources: readonly IPriceDataSource[] | null = null;
 

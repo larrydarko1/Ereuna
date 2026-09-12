@@ -7,10 +7,10 @@ import { type PriceMark } from '@/lib/lightweight-charts/model/price-scale';
 import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
 import { type LineStyle, setLineStyle, strokeInPixel } from '@/lib/lightweight-charts/renderers/draw-line';
 
-export interface GridMarks {
+export type GridMarks = {
     coord: number;
 }
-export interface GridRendererData {
+export type GridRendererData = {
     vertLinesVisible: boolean;
     vertLinesColor: string;
     vertLineStyle: LineStyle;

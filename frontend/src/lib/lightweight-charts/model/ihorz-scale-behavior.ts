@@ -32,7 +32,7 @@ export type InternalHorzScaleItemKey = Nominal<number, 'InternalHorzScaleItemKey
 /**
  * Class interface for Horizontal scale behavior
  */
-export interface IHorzScaleBehavior<HorzScaleItem> {
+export type IHorzScaleBehavior<HorzScaleItem> = {
     /**
      * Structure describing options of the chart.
      *

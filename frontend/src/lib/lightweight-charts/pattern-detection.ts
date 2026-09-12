@@ -3,13 +3,13 @@
  * Implements geometric/rule-based pattern recognition algorithms
  */
 
-export interface PivotPoint {
+export type PivotPoint = {
     index: number;
     time: number;
     price: number;
 }
 
-export interface PatternMatch {
+export type PatternMatch = {
     type: PatternType;
     points: PivotPoint[];
     confidence: number;
@@ -30,7 +30,7 @@ export type PatternType =
     | 'wedgeRising'
     | 'wedgeFalling';
 
-export interface OHLCData {
+export type OHLCData = {
     time: number;
     open: number;
     high: number;
@@ -43,8 +43,8 @@ export interface OHLCData {
  */
 export function findPivots(
     data: OHLCData[],
-    leftBars: number = 5,
-    rightBars: number = 5,
+    leftBars = 5,
+    rightBars = 5,
 ): { highs: PivotPoint[]; lows: PivotPoint[] } {
     const highs: PivotPoint[] = [];
     const lows: PivotPoint[] = [];
@@ -94,7 +94,7 @@ export function findPivots(
 /**
  * Detect Double Top patterns
  */
-export function detectDoubleTops(highs: PivotPoint[], tolerance: number = 0.02): PatternMatch[] {
+export function detectDoubleTops(highs: PivotPoint[], tolerance = 0.02): PatternMatch[] {
     const patterns: PatternMatch[] = [];
 
     for (let i = 0; i < highs.length - 1; i++) {
@@ -132,7 +132,7 @@ export function detectDoubleTops(highs: PivotPoint[], tolerance: number = 0.02):
 /**
  * Detect Double Bottom patterns
  */
-export function detectDoubleBottoms(lows: PivotPoint[], tolerance: number = 0.02): PatternMatch[] {
+export function detectDoubleBottoms(lows: PivotPoint[], tolerance = 0.02): PatternMatch[] {
     const patterns: PatternMatch[] = [];
 
     for (let i = 0; i < lows.length - 1; i++) {
@@ -168,7 +168,7 @@ export function detectDoubleBottoms(lows: PivotPoint[], tolerance: number = 0.02
 /**
  * Detect Head and Shoulders pattern
  */
-export function detectHeadAndShoulders(highs: PivotPoint[], tolerance: number = 0.03): PatternMatch[] {
+export function detectHeadAndShoulders(highs: PivotPoint[], tolerance = 0.03): PatternMatch[] {
     const patterns: PatternMatch[] = [];
 
     // Need at least 3 peaks for H&S
@@ -207,7 +207,7 @@ export function detectHeadAndShoulders(highs: PivotPoint[], tolerance: number = 
 /**
  * Detect Inverse Head and Shoulders pattern
  */
-export function detectInverseHeadAndShoulders(lows: PivotPoint[], tolerance: number = 0.03): PatternMatch[] {
+export function detectInverseHeadAndShoulders(lows: PivotPoint[], tolerance = 0.03): PatternMatch[] {
     const patterns: PatternMatch[] = [];
 
     for (let i = 0; i < lows.length - 2; i++) {

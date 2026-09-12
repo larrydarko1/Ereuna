@@ -11,7 +11,7 @@ import {
     setLineStyle,
 } from '@/lib/lightweight-charts/renderers/draw-line';
 
-export interface HorizontalLineRendererData {
+export type HorizontalLineRendererData = {
     color: string;
     lineStyle: LineStyle;
     lineWidth: LineWidth;

@@ -22,12 +22,12 @@ import { type ISeries } from '@/lib/lightweight-charts/model/series';
 import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 
-export interface CrosshairPriceAndCoordinate {
+export type CrosshairPriceAndCoordinate = {
     price: number;
     coordinate: number;
 }
 
-export interface CrosshairTimeAndCoordinate {
+export type CrosshairTimeAndCoordinate = {
     time: InternalHorzScaleItem;
     coordinate: number;
 }
@@ -55,7 +55,7 @@ export const CrosshairMode = {
 export type CrosshairMode = (typeof CrosshairMode)[keyof typeof CrosshairMode];
 
 /** Structure describing a crosshair line (vertical or horizontal) */
-export interface CrosshairLineOptions {
+export type CrosshairLineOptions = {
     /**
      * Crosshair line color.
      *
@@ -106,7 +106,7 @@ export interface CrosshairLineOptions {
 }
 
 /** Structure describing crosshair options  */
-export interface CrosshairOptions {
+export type CrosshairOptions = {
     /**
      * Crosshair mode
      *
@@ -131,14 +131,14 @@ type RawIndexProvider = () => TimePointIndex;
 
 export class Crosshair extends DataSource {
     private _pane: Pane | null = null;
-    private _price: number = NaN;
+    private _price = NaN;
     private _index: TimePointIndex = 0 as TimePointIndex;
-    private _visible: boolean = true;
+    private _visible = true;
     private readonly _model: IChartModelBase;
-    private _priceAxisViews: Map<PriceScale, CrosshairPriceAxisView> = new Map();
+    private _priceAxisViews = new Map<PriceScale, CrosshairPriceAxisView>();
     private readonly _timeAxisView: CrosshairTimeAxisView;
     private readonly _markersPaneView: CrosshairMarksPaneView;
-    private _subscribed: boolean = false;
+    private _subscribed = false;
     private readonly _currentPosPriceProvider: PriceAndCoordinateProvider;
     private readonly _options: CrosshairOptions;
     private readonly _paneView: CrosshairPaneView;
@@ -165,12 +165,12 @@ export class Crosshair extends DataSource {
                 if (priceScale === ensureNotNull(this._pane).defaultPriceScale()) {
                     // price must be defined
                     return { price: rawPrice, coordinate: coordinate };
-                } else {
+                } 
                     // always convert from coordinate
                     const firstValue = ensureNotNull(priceScale.firstValue());
                     const price = priceScale.coordinateToPrice(coordinate, firstValue);
                     return { price: price, coordinate: coordinate };
-                }
+                
             };
         };
 

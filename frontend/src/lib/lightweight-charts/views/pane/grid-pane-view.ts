@@ -8,7 +8,7 @@ import { type IUpdatablePaneView } from '@/lib/lightweight-charts/views/pane/iup
 export class GridPaneView implements IUpdatablePaneView {
     private readonly _pane: Pane;
     private readonly _renderer: GridRenderer = new GridRenderer();
-    private _invalidated: boolean = true;
+    private _invalidated = true;
 
     public constructor(pane: Pane) {
         this._pane = pane;

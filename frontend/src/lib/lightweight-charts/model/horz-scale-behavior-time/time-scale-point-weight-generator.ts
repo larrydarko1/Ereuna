@@ -16,7 +16,7 @@ function seconds(count: number): number {
     return count * 1000;
 }
 
-interface WeightDivisor {
+type WeightDivisor = {
     divisor: number;
     weight: TickMarkWeight;
 }
@@ -35,9 +35,9 @@ const intradayWeightDivisors: WeightDivisor[] = [
 function weightByTime(currentDate: Date, prevDate: Date): TickMarkWeight {
     if (currentDate.getUTCFullYear() !== prevDate.getUTCFullYear()) {
         return TickMarkWeight.Year;
-    } else if (currentDate.getUTCMonth() !== prevDate.getUTCMonth()) {
+    } if (currentDate.getUTCMonth() !== prevDate.getUTCMonth()) {
         return TickMarkWeight.Month;
-    } else if (currentDate.getUTCDate() !== prevDate.getUTCDate()) {
+    } if (currentDate.getUTCDate() !== prevDate.getUTCDate()) {
         return TickMarkWeight.Day;
     }
 
@@ -56,7 +56,7 @@ function cast(t: InternalHorzScaleItem): TimePoint {
 
 export function fillWeightsForPoints(
     sortedTimePoints: readonly Mutable<TimeScalePoint>[],
-    startIndex: number = 0,
+    startIndex = 0,
 ): void {
     if (sortedTimePoints.length === 0) {
         return;

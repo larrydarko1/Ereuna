@@ -4,7 +4,7 @@ import { clamp } from '@/lib/lightweight-charts/helpers/mathex';
 
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
-export interface GradientCacheParams {
+export type GradientCacheParams = {
     topColor1: string;
     topColor2: string;
     bottomColor1: string;

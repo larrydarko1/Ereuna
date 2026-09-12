@@ -18,7 +18,7 @@ export type LogicalRangeChangeEventHandler = (logicalRange: LogicalRange | null)
 export type SizeChangeEventHandler = (width: number, height: number) => void;
 
 /** Interface to chart time scale */
-export interface ITimeScaleApi<HorzScaleItem> {
+export type ITimeScaleApi<HorzScaleItem> = {
     /**
      * Return the distance from the right edge of the time scale to the lastest bar of the series measured in bars.
      */

@@ -42,14 +42,14 @@ class SeriesPrimitiveRendererWrapper implements IPaneRenderer {
     }
 }
 
-interface RendererCache<Base, Wrapper> {
+type RendererCache<Base, Wrapper> = {
     base: Base;
     wrapper: Wrapper;
 }
 
-export interface ISeriesPrimitivePaneViewWrapper extends IPaneView {
+export type ISeriesPrimitivePaneViewWrapper = {
     zOrder(): SeriesPrimitivePaneViewZOrder;
-}
+} & IPaneView
 
 class SeriesPrimitivePaneViewWrapper implements IPaneView {
     private readonly _paneView: ISeriesPrimitivePaneView;
@@ -80,7 +80,7 @@ class SeriesPrimitivePaneViewWrapper implements IPaneView {
     }
 }
 
-interface AxisViewData {
+type AxisViewData = {
     text: string;
     coordinate: number;
     fixedCoordinate: number | undefined;

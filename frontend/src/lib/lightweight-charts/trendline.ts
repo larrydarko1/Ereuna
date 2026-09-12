@@ -1,13 +1,13 @@
 import { type IChartApi, type MouseEventParams, type Time } from '@/lib/lightweight-charts/index';
 
-export interface TrendLinePoint {
+export type TrendLinePoint = {
     time: Time;
     price: number;
     x: number;
     y: number;
 }
 
-export interface TrendLine {
+export type TrendLine = {
     id: string;
     point1: TrendLinePoint;
     point2: TrendLinePoint;
@@ -23,19 +23,19 @@ export class TrendLineManager {
     private mainSeries: any = null;
     private canvas: HTMLCanvasElement | null = null;
     private ctx: CanvasRenderingContext2D | null = null;
-    private isActive: boolean = false;
+    private isActive = false;
     private trendLines: TrendLine[] = [];
     private currentLine: { point1: TrendLinePoint | null; point2: TrendLinePoint | null } = {
         point1: null,
         point2: null,
     };
     private selectedLineId: string | null = null;
-    private isDragging: boolean = false;
+    private isDragging = false;
     private dragTarget: { lineId: string; pointIndex: 1 | 2 } | null = null;
     private clickHandler: ((param: MouseEventParams<Time>) => void) | null = null;
     private moveHandler: ((param: MouseEventParams<Time>) => void) | null = null;
-    private defaultColor: string = '#2962FF';
-    private defaultLineWidth: number = 1;
+    private defaultColor = '#2962FF';
+    private defaultLineWidth = 1;
     private visibleRangeChangeHandler: (() => void) | null = null;
     private onChangeCallback: (() => void) | null = null;
     private onActivateCallback: (() => void) | null = null;

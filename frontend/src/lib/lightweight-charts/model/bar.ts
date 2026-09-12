@@ -10,7 +10,7 @@ export type BarPrice = Nominal<number, 'BarPrice'>;
 /**
  * Represents a bar's open, high, low, close (OHLC) prices.
  */
-export interface BarPrices {
+export type BarPrices = {
     /**
      * The open price.
      */
@@ -32,7 +32,7 @@ export interface BarPrices {
 /**
  * Represents the y-axis coordinates of a bar's open, high, low, close prices.
  */
-export interface BarCoordinates {
+export type BarCoordinates = {
     openY: Coordinate;
     highY: Coordinate;
     lowY: Coordinate;

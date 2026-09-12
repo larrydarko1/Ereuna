@@ -3,7 +3,7 @@ import { type PriceLineOptions } from '@/lib/lightweight-charts/model/price-line
 /**
  * Represents the interface for interacting with price lines.
  */
-export interface IPriceLine {
+export type IPriceLine = {
     /**
      * Apply options to the price line.
      *

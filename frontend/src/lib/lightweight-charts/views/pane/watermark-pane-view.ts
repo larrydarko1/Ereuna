@@ -8,7 +8,7 @@ import { type IUpdatablePaneView } from '@/lib/lightweight-charts/views/pane/iup
 
 export class WatermarkPaneView implements IUpdatablePaneView {
     private _source: Watermark;
-    private _invalidated: boolean = true;
+    private _invalidated = true;
 
     private readonly _rendererData: WatermarkRendererData = {
         visible: false,

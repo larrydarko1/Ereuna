@@ -36,9 +36,9 @@ export class TimeScaleApi<HorzScaleItem> implements ITimeScaleApi<HorzScaleItem>
     private _model: ChartModel<HorzScaleItem>;
     private _timeScale: TimeScale<HorzScaleItem>;
     private readonly _timeAxisWidget: TimeAxisWidget<HorzScaleItem>;
-    private readonly _timeRangeChanged: Delegate<Range<HorzScaleItem> | null> = new Delegate();
-    private readonly _logicalRangeChanged: Delegate<LogicalRange | null> = new Delegate();
-    private readonly _sizeChanged: Delegate<number, number> = new Delegate();
+    private readonly _timeRangeChanged = new Delegate<Range<HorzScaleItem> | null>();
+    private readonly _logicalRangeChanged = new Delegate<LogicalRange | null>();
+    private readonly _sizeChanged = new Delegate<number, number>();
 
     private readonly _horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>;
 
@@ -136,17 +136,17 @@ export class TimeScaleApi<HorzScaleItem> implements ITimeScaleApi<HorzScaleItem>
 
         if (timeScale.isEmpty()) {
             return null;
-        } else {
+        } 
             return timeScale.indexToCoordinate(logical as unknown as TimePointIndex);
-        }
+        
     }
 
     public coordinateToLogical(x: number): Logical | null {
         if (this._timeScale.isEmpty()) {
             return null;
-        } else {
+        } 
             return this._timeScale.coordinateToIndex(x as Coordinate) as unknown as Logical;
-        }
+        
     }
 
     public timeToCoordinate(time: HorzScaleItem): Coordinate | null {

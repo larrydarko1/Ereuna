@@ -9,9 +9,9 @@ import { type BarCandlestickItemBase } from '@/lib/lightweight-charts/renderers/
 import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
 import { optimalCandlestickWidth } from '@/lib/lightweight-charts/renderers/optimal-bar-width';
 
-export interface CandlestickItem extends BarCandlestickItemBase, CandlesticksColorerStyle {}
+export type CandlestickItem = {} & BarCandlestickItemBase & CandlesticksColorerStyle
 
-export interface PaneRendererCandlesticksData {
+export type PaneRendererCandlesticksData = {
     bars: readonly CandlestickItem[];
 
     barSpacing: number;
@@ -31,7 +31,7 @@ export class PaneRendererCandlesticks extends BitmapCoordinatesPaneRenderer {
     private _data: PaneRendererCandlesticksData | null = null;
 
     // scaled with pixelRatio
-    private _barWidth: number = 0;
+    private _barWidth = 0;
 
     public setData(data: PaneRendererCandlesticksData): void {
         this._data = data;

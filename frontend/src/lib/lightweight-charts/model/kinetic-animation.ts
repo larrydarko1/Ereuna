@@ -2,7 +2,7 @@ import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
-interface TimeAndPosition {
+type TimeAndPosition = {
     time: number;
     position: Coordinate;
 }
@@ -34,8 +34,8 @@ export class KineticAnimation {
     private _position4: TimeAndPosition | null = null;
 
     private _animationStartPosition: TimeAndPosition | null = null;
-    private _durationMsecs: number = 0;
-    private _speedPxPerMsec: number = 0;
+    private _durationMsecs = 0;
+    private _speedPxPerMsec = 0;
 
     private readonly _minMove: number;
     private readonly _minSpeed: number;

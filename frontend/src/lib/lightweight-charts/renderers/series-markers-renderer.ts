@@ -20,7 +20,7 @@ import {
 import { drawText, hitTestText } from '@/lib/lightweight-charts/renderers/series-markers-text';
 import { type BitmapShapeItemCoordinates } from '@/lib/lightweight-charts/renderers/series-markers-utils';
 
-export interface SeriesMarkerText {
+export type SeriesMarkerText = {
     content: string;
     x: Coordinate;
     y: Coordinate;
@@ -28,7 +28,7 @@ export interface SeriesMarkerText {
     height: number;
 }
 
-export interface SeriesMarkerRendererDataItem extends TimedValue {
+export type SeriesMarkerRendererDataItem = {
     y: Coordinate;
     size: number;
     shape: SeriesMarkerShape;
@@ -37,9 +37,9 @@ export interface SeriesMarkerRendererDataItem extends TimedValue {
     externalId?: string | undefined;
     text?: SeriesMarkerText | undefined;
     textColor?: string | undefined;
-}
+} & TimedValue
 
-export interface SeriesMarkerRendererData {
+export type SeriesMarkerRendererData = {
     items: SeriesMarkerRendererDataItem[];
     visibleRange: SeriesItemsIndexesRange | null;
 }
@@ -47,9 +47,9 @@ export interface SeriesMarkerRendererData {
 export class SeriesMarkersRenderer extends BitmapCoordinatesPaneRenderer {
     private _data: SeriesMarkerRendererData | null = null;
     private _textWidthCache: TextWidthCache = new TextWidthCache();
-    private _fontSize: number = -1;
-    private _fontFamily: string = '';
-    private _font: string = '';
+    private _fontSize = -1;
+    private _fontFamily = '';
+    private _font = '';
 
     public setData(data: SeriesMarkerRendererData): void {
         this._data = data;
@@ -103,7 +103,7 @@ export class SeriesMarkersRenderer extends BitmapCoordinatesPaneRenderer {
                 item.text.width = this._textWidthCache.measureText(ctx, item.text.content);
                 item.text.height = this._fontSize;
                 // Use item.x directly since textAlign is now 'center'
-                item.text.x = item.x as Coordinate;
+                item.text.x = item.x;
             }
             drawItem(item, ctx, horizontalPixelRatio, verticalPixelRatio);
         }

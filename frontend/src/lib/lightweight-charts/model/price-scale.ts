@@ -59,24 +59,24 @@ export const PriceScaleMode = {
 } as const;
 export type PriceScaleMode = (typeof PriceScaleMode)[keyof typeof PriceScaleMode];
 
-export interface PriceScaleState {
+export type PriceScaleState = {
     autoScale: boolean;
     isInverted: boolean;
     mode: PriceScaleMode;
 }
 
-export interface PriceMark {
+export type PriceMark = {
     coord: Coordinate;
     label: string;
 }
 
-export interface PricedValue {
+export type PricedValue = {
     price: BarPrice;
     y: Coordinate;
 }
 
 /** Defines margins of the price scale. */
-export interface PriceScaleMargins {
+export type PriceScaleMargins = {
     /**
      * Top margin in percentages. Must be greater or equal to 0 and less than 1.
      */
@@ -88,7 +88,7 @@ export interface PriceScaleMargins {
 }
 
 /** Structure that describes price scale options */
-export interface PriceScaleOptions {
+export type PriceScaleOptions = {
     /**
      * Autoscaling is a feature that automatically adjusts a price scale to fit the visible range of data.
      * Note that overlay price scales are always auto-scaled.
@@ -193,7 +193,7 @@ export interface PriceScaleOptions {
     minimumWidth: number;
 }
 
-interface RangeCache {
+type RangeCache = {
     isValid: boolean;
     visibleBars: RangeImpl<TimePointIndex> | null;
 }
@@ -204,7 +204,7 @@ type PriceTransformer = (price: BarPrice, baseValue: number) => number;
 const percentageFormatter = new PercentageFormatter();
 const defaultPriceFormatter = new PriceFormatter(100, 1);
 
-interface MarksCache {
+type MarksCache = {
     marks: PriceMark[];
     firstValueIsNull: boolean;
 }
@@ -216,20 +216,20 @@ export class PriceScale {
     private readonly _localizationOptions: LocalizationOptionsBase;
     private readonly _options: PriceScaleOptions;
 
-    private _height: number = 0;
+    private _height = 0;
     private _internalHeightCache: number | null = null;
 
     private _priceRange: PriceRangeImpl | null = null;
     private _priceRangeSnapshot: PriceRangeImpl | null = null;
     private _invalidatedForRange: RangeCache = { isValid: false, visibleBars: null };
 
-    private _marginAbove: number = 0;
-    private _marginBelow: number = 0;
+    private _marginAbove = 0;
+    private _marginBelow = 0;
 
     private _markBuilder: PriceTickMarkBuilder;
     private _onMarksChanged: Delegate = new Delegate();
 
-    private _modeChanged: Delegate<PriceScaleState, PriceScaleState> = new Delegate();
+    private _modeChanged = new Delegate<PriceScaleState, PriceScaleState>();
 
     private _dataSources: IPriceDataSource[] = [];
     private _cachedOrderedSources: IPriceDataSource[] | null = null;
@@ -1039,9 +1039,9 @@ export class PriceScale {
     private _getCoordinateTransformer(): PriceTransformer | null {
         if (this.isPercentage()) {
             return toPercent;
-        } else if (this.isIndexedTo100()) {
+        } if (this.isIndexedTo100()) {
             return toIndexedTo100;
-        } else if (this.isLog()) {
+        } if (this.isLog()) {
             return (price: number) => toLog(price, this._logFormula);
         }
 

@@ -11,9 +11,9 @@ import {
 } from '@/lib/lightweight-charts/renderers/line-renderer-base';
 
 export type BaselineStrokeItem = LineStrokeItemBase & BaselineStrokeColorerStyle;
-export interface PaneRendererBaselineLineData extends PaneRendererLineDataBase<BaselineStrokeItem> {
+export type PaneRendererBaselineLineData = {
     baseLevelCoordinate: Coordinate;
-}
+} & PaneRendererLineDataBase<BaselineStrokeItem>
 
 export class PaneRendererBaselineLine extends PaneRendererLineBase<PaneRendererBaselineLineData> {
     private readonly _strokeCache: GradientStyleCache = new GradientStyleCache();

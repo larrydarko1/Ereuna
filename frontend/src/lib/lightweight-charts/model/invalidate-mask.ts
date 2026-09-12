@@ -13,7 +13,7 @@ function higherLevel(a: InvalidationLevel, b: InvalidationLevel): InvalidationLe
     return a > b ? a : b;
 }
 
-export interface PaneInvalidation {
+export type PaneInvalidation = {
     level: InvalidationLevel;
     autoScale?: boolean | undefined;
 }
@@ -41,39 +41,39 @@ export const TimeScaleInvalidationType = {
 } as const;
 export type TimeScaleInvalidationType = (typeof TimeScaleInvalidationType)[keyof typeof TimeScaleInvalidationType];
 
-export interface TimeScaleApplyRangeInvalidation {
+export type TimeScaleApplyRangeInvalidation = {
     type: typeof TimeScaleInvalidationType.ApplyRange;
     value: LogicalRange;
 }
 
-export interface TimeScaleFitContentInvalidation {
+export type TimeScaleFitContentInvalidation = {
     type: typeof TimeScaleInvalidationType.FitContent;
 }
 
-export interface TimeScaleApplyRightOffsetInvalidation {
+export type TimeScaleApplyRightOffsetInvalidation = {
     type: typeof TimeScaleInvalidationType.ApplyRightOffset;
     value: number;
 }
 
-export interface TimeScaleApplyBarSpacingInvalidation {
+export type TimeScaleApplyBarSpacingInvalidation = {
     type: typeof TimeScaleInvalidationType.ApplyBarSpacing;
     value: number;
 }
 
-export interface TimeScaleResetInvalidation {
+export type TimeScaleResetInvalidation = {
     type: typeof TimeScaleInvalidationType.Reset;
 }
 
-export interface ITimeScaleAnimation {
+export type ITimeScaleAnimation = {
     getPosition(time: number): number;
     finished(time: number): boolean;
 }
-export interface StartTimeScaleAnimationInvalidation {
+export type StartTimeScaleAnimationInvalidation = {
     type: typeof TimeScaleInvalidationType.Animation;
     value: ITimeScaleAnimation;
 }
 
-export interface StopTimeScaleAnimationInvalidation {
+export type StopTimeScaleAnimationInvalidation = {
     type: typeof TimeScaleInvalidationType.StopAnimation;
 }
 
@@ -87,7 +87,7 @@ export type TimeScaleInvalidation =
     | StopTimeScaleAnimationInvalidation;
 
 export class InvalidateMask {
-    private _invalidatedPanes: Map<number, PaneInvalidation> = new Map();
+    private _invalidatedPanes = new Map<number, PaneInvalidation>();
     private _globalLevel: InvalidationLevel;
     private _timeScaleInvalidations: TimeScaleInvalidation[] = [];
 

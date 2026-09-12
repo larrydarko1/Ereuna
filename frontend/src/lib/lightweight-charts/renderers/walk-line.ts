@@ -8,7 +8,7 @@ import { type LinePoint, LineType } from '@/lib/lightweight-charts/renderers/dra
 
 export function walkLine<
     TItem extends LinePoint,
-    TStyle extends CanvasRenderingContext2D['fillStyle'] | CanvasRenderingContext2D['strokeStyle'],
+    TStyle extends CanvasRenderingContext2D['fillStyle']  ,
 >(
     renderingScope: BitmapCoordinatesRenderingScope,
     items: readonly TItem[],

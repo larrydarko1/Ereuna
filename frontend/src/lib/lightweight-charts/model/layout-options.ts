@@ -12,7 +12,7 @@ export type ColorType = (typeof ColorType)[keyof typeof ColorType];
 /**
  * Represents a solid color.
  */
-export interface SolidColor {
+export type SolidColor = {
     /**
      * Type of color.
      */
@@ -27,7 +27,7 @@ export interface SolidColor {
 /**
  * Represents a vertical gradient of two colors.
  */
-export interface VerticalGradientColor {
+export type VerticalGradientColor = {
     /**
      * Type of color.
      */
@@ -50,7 +50,7 @@ export interface VerticalGradientColor {
 export type Background = SolidColor | VerticalGradientColor;
 
 /** Represents layout options */
-export interface LayoutOptions {
+export type LayoutOptions = {
     /**
      * Chart and scales background color.
      *

@@ -12,11 +12,11 @@ import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderer
 const showSpacingMinimalBarWidth = 1;
 const alignToMinimalWidthLimit = 4;
 
-export interface HistogramItem extends PricedValue, TimedValue {
+export type HistogramItem = {
     barColor: string;
-}
+} & PricedValue & TimedValue
 
-export interface PaneRendererHistogramData {
+export type PaneRendererHistogramData = {
     items: HistogramItem[];
 
     barSpacing: number;
@@ -25,7 +25,7 @@ export interface PaneRendererHistogramData {
     visibleRange: SeriesItemsIndexesRange | null;
 }
 
-interface PrecalculatedItemCoordinates {
+type PrecalculatedItemCoordinates = {
     left: number;
     right: number;
     roundedCenter: number;

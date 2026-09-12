@@ -6,13 +6,13 @@ const defaultReplacementRe = /[2-9]/g;
 
 export class TextWidthCache {
     private readonly _maxSize: number;
-    private _actualSize: number = 0;
-    private _usageTick: number = 1;
-    private _oldestTick: number = 1;
+    private _actualSize = 0;
+    private _usageTick = 1;
+    private _oldestTick = 1;
     private _tick2Labels: Record<number, string> = {};
-    private _cache: Map<string, { metrics: TextMetrics; tick: number }> = new Map();
+    private _cache = new Map<string, { metrics: TextMetrics; tick: number }>();
 
-    public constructor(size: number = 50) {
+    public constructor(size = 50) {
         this._maxSize = size;
     }
 

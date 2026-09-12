@@ -17,7 +17,7 @@ import { type PriceAxisRendererOptionsProvider } from '@/lib/lightweight-charts/
 import { createBoundCanvas, releaseCanvas } from '@/lib/lightweight-charts/gui/canvas-utils';
 import { type PriceAxisWidgetSide } from '@/lib/lightweight-charts/gui/price-axis-widget';
 
-export interface PriceAxisStubParams {
+export type PriceAxisStubParams = {
     rendererOptionsProvider: PriceAxisRendererOptionsProvider;
 }
 
@@ -32,7 +32,7 @@ export class PriceAxisStub implements IDestroyable {
 
     private _options: ChartOptionsBase;
 
-    private _invalidated: boolean = true;
+    private _invalidated = true;
 
     private readonly _isLeft: boolean;
     private _size: Size = size({ width: 0, height: 0 });

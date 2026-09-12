@@ -42,7 +42,7 @@ export abstract class PriceAxisView implements IPriceAxisView {
 
     private readonly _axisRenderer: IPriceAxisViewRenderer;
     private readonly _paneRenderer: IPriceAxisViewRenderer;
-    private _invalidated: boolean = true;
+    private _invalidated = true;
 
     public constructor(ctor?: IPriceAxisViewRendererConstructor) {
         this._axisRenderer = new (ctor || PriceAxisViewRenderer)(this._axisRendererData, this._commonRendererData);
@@ -63,7 +63,7 @@ export abstract class PriceAxisView implements IPriceAxisView {
         this._invalidated = true;
     }
 
-    public height(rendererOptions: PriceAxisViewRendererOptions, useSecondLine: boolean = false): number {
+    public height(rendererOptions: PriceAxisViewRendererOptions, useSecondLine = false): number {
         return Math.max(
             this._axisRenderer.height(rendererOptions, useSecondLine),
             this._paneRenderer.height(rendererOptions, useSecondLine),

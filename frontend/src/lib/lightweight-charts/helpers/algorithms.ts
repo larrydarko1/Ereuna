@@ -12,7 +12,7 @@ function boundCompare<TArrayElementType, TValueType>(
     arr: readonly TArrayElementType[],
     value: TValueType,
     compare: BoundComparatorType<TArrayElementType, TValueType>,
-    start: number = 0,
+    start = 0,
     to: number = arr.length,
 ): number {
     let count: number = to - start;

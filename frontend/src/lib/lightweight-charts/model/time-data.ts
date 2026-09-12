@@ -13,7 +13,7 @@ export type TickMarkWeightValue = Nominal<number, 'TickMarkWeightValue'>;
 /**
  * Represents a point on the time scale
  */
-export interface TimeScalePoint {
+export type TimeScalePoint = {
     /** Weight of the point */
     readonly timeWeight: TickMarkWeightValue;
     /** Time of the point */
@@ -25,7 +25,7 @@ export interface TimeScalePoint {
 /**
  * Represents a generic range `from` one value `to` another.
  */
-export interface Range<T> {
+export type Range<T> = {
     /**
      * The from value. The start of the range.
      */
@@ -62,7 +62,7 @@ export type Logical = Nominal<number, 'Logical'>;
  */
 export type LogicalRange = Range<Logical>;
 
-export interface TimedValue {
+export type TimedValue = {
     time: TimePointIndex;
     x: Coordinate;
 }

@@ -9,14 +9,14 @@ import {
     setLineStyle,
 } from '@/lib/lightweight-charts/renderers/draw-line';
 
-export interface CrosshairLineStyle {
+export type CrosshairLineStyle = {
     lineStyle: LineStyle;
     lineWidth: LineWidth;
     color: string;
     visible: boolean;
 }
 
-export interface CrosshairRendererData {
+export type CrosshairRendererData = {
     vertLine: CrosshairLineStyle;
     horzLine: CrosshairLineStyle;
     x: number;

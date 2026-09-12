@@ -8,7 +8,7 @@ import { type PriceFormatterFn } from '@/lib/lightweight-charts/model/price-form
 /**
  * Represents style options for a candlestick series.
  */
-export interface CandlestickStyleOptions {
+export type CandlestickStyleOptions = {
     /**
      * Color of rising candles.
      *
@@ -113,7 +113,7 @@ export type LastPriceAnimationMode = (typeof LastPriceAnimationMode)[keyof typeo
 /**
  * Represents style options for a bar series.
  */
-export interface BarStyleOptions {
+export type BarStyleOptions = {
     /**
      * Color of rising bars.
      *
@@ -146,7 +146,7 @@ export interface BarStyleOptions {
 /**
  * Represents style options for a line series.
  */
-export interface LineStyleOptions {
+export type LineStyleOptions = {
     /**
      * Line color.
      *
@@ -237,7 +237,7 @@ export interface LineStyleOptions {
 /**
  * Represents style options for an area series.
  */
-export interface AreaStyleOptions {
+export type AreaStyleOptions = {
     /**
      * Color of the top part of the area.
      *
@@ -349,7 +349,7 @@ export interface AreaStyleOptions {
 /**
  * Represents a type of priced base value of baseline series type.
  */
-export interface BaseValuePrice {
+export type BaseValuePrice = {
     /**
      * Distinguished type value.
      */
@@ -369,7 +369,7 @@ export type BaseValueType = BaseValuePrice;
 /**
  * Represents style options for a baseline series.
  */
-export interface BaselineStyleOptions {
+export type BaselineStyleOptions = {
     /**
      * Base value of the series.
      *
@@ -496,7 +496,7 @@ export interface BaselineStyleOptions {
 /**
  * Represents style options for a histogram series.
  */
-export interface HistogramStyleOptions {
+export type HistogramStyleOptions = {
     /**
      * Column color.
      *
@@ -515,7 +515,7 @@ export interface HistogramStyleOptions {
 /**
  * Represents style options for a custom series.
  */
-export interface CustomStyleOptions {
+export type CustomStyleOptions = {
     /**
      * Color used for the price line and price scale label.
      */
@@ -533,7 +533,7 @@ export interface CustomStyleOptions {
  * @example
  * `minMove=0.05`, `precision` is not specified - prices will change like 1.10, 1.15, 1.20 etc.
  */
-export interface PriceFormatBuiltIn {
+export type PriceFormatBuiltIn = {
     /**
      * Built-in price formats:
      * - `'price'` is the most common choice; it allows customization of precision and rounding of prices.
@@ -561,7 +561,7 @@ export interface PriceFormatBuiltIn {
 /**
  * Represents series value formatting options.
  */
-export interface PriceFormatCustom {
+export type PriceFormatCustom = {
     /**
      * The custom price format.
      */
@@ -625,7 +625,7 @@ export type PriceLineSource = (typeof PriceLineSource)[keyof typeof PriceLineSou
 /**
  * Represents a price range.
  */
-export interface PriceRange {
+export type PriceRange = {
     /**
      * Maximum value in the range.
      */
@@ -640,7 +640,7 @@ export interface PriceRange {
 /**
  * Represents information used to update a price scale.
  */
-export interface AutoscaleInfo {
+export type AutoscaleInfo = {
     /**
      * Price range.
      */
@@ -662,7 +662,7 @@ type AutoscaleInfoProvider = (baseImplementation: () => AutoscaleInfo | null) =>
 /**
  * Represents options common for all types of series
  */
-export interface SeriesOptionsCommon {
+export type SeriesOptionsCommon = {
     /**
      * Visibility of the label with the latest visible price on the price scale.
      *
@@ -897,7 +897,7 @@ export type LineSeriesPartialOptions = SeriesPartialOptions<LineStyleOptions>;
  *
  * For example a bar series has style options represented by {@link BarStyleOptions}.
  */
-export interface SeriesStyleOptionsMap {
+export type SeriesStyleOptionsMap = {
     /**
      * The type of bar style options.
      */
@@ -933,7 +933,7 @@ export interface SeriesStyleOptionsMap {
  *
  * For example a bar series has options represented by {@link BarSeriesOptions}.
  */
-export interface SeriesOptionsMap {
+export type SeriesOptionsMap = {
     /**
      * The type of bar series options.
      */
@@ -969,7 +969,7 @@ export interface SeriesOptionsMap {
  *
  * For example a bar series has options represented by {@link BarSeriesPartialOptions}.
  */
-export interface SeriesPartialOptionsMap {
+export type SeriesPartialOptionsMap = {
     /**
      * The type of bar series partial options.
      */

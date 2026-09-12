@@ -19,9 +19,9 @@ export abstract class SeriesPaneViewBase<
 > implements IUpdatablePaneView {
     protected readonly _series: ISeries<TSeriesType>;
     protected readonly _model: IChartModelBase;
-    protected _invalidated: boolean = true;
-    protected _dataInvalidated: boolean = true;
-    protected _optionsInvalidated: boolean = true;
+    protected _invalidated = true;
+    protected _dataInvalidated = true;
+    protected _optionsInvalidated = true;
     protected _items: ItemType[] = [];
     protected _itemsVisibleRange: SeriesItemsIndexesRange | null = null;
     protected abstract readonly _renderer: TRenderer;

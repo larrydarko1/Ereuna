@@ -11,7 +11,7 @@ import {
 import { GradientStyleCache } from '@/lib/lightweight-charts/renderers/gradient-style-cache';
 
 export type AreaFillItem = AreaFillItemBase & AreaFillColorerStyle;
-export interface PaneRendererAreaData extends PaneRendererAreaDataBase<AreaFillItem> {}
+export type PaneRendererAreaData = {} & PaneRendererAreaDataBase<AreaFillItem>
 
 export class PaneRendererArea extends PaneRendererAreaBase<PaneRendererAreaData> {
     private readonly _fillCache: GradientStyleCache = new GradientStyleCache();

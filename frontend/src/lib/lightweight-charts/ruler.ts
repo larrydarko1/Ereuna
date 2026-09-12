@@ -1,6 +1,6 @@
 import { type IChartApi, type MouseEventParams, type Time } from '@/lib/lightweight-charts/index';
 
-export interface RulerPoint {
+export type RulerPoint = {
     time: Time;
     price: number;
     x: number;
@@ -12,8 +12,8 @@ export class ChartRuler {
     private mainSeries: any = null;
     private canvas: HTMLCanvasElement | null = null;
     private ctx: CanvasRenderingContext2D | null = null;
-    private isActive: boolean = false;
-    private isLocked: boolean = false;
+    private isActive = false;
+    private isLocked = false;
     private anchorPoint: RulerPoint | null = null;
     private currentPoint: RulerPoint | null = null;
     private clickHandler: ((param: MouseEventParams<Time>) => void) | null = null;
@@ -397,13 +397,13 @@ export class ChartRuler {
 
         if (days > 0) {
             return `${days}d ${hours}h`;
-        } else if (hours > 0) {
+        } if (hours > 0) {
             return `${hours}h ${minutes}m`;
-        } else if (minutes > 0) {
+        } if (minutes > 0) {
             return `${minutes}m`;
-        } else {
+        } 
             return `${Math.floor(diffSeconds)}s`;
-        }
+        
     }
 
     public destroy(): void {

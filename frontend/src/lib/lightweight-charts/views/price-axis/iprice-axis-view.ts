@@ -4,7 +4,7 @@ import {
     type PriceAxisViewRendererOptions,
 } from '@/lib/lightweight-charts/renderers/iprice-axis-view-renderer';
 
-export interface IPriceAxisView {
+export type IPriceAxisView = {
     coordinate(): number;
     getFixedCoordinate(): number;
     height(rendererOptions: PriceAxisViewRendererOptions, useSecondLine?: boolean): number;

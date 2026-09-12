@@ -11,7 +11,7 @@ import {
 import { type Pane } from '@/lib/lightweight-charts/model/pane';
 import { type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
 
-export interface ZOrdered {
+export type ZOrdered = {
     zorder(): number | null;
 }
 /**
@@ -19,14 +19,14 @@ export interface ZOrdered {
  * - bottom: Pane views that are painted at the bottom (above background color, below grid lines)
  * - top: Pane views that are painted on the most top layer and ABOVE the crosshair
  */
-interface IPluginPaneViews {
+type IPluginPaneViews = {
     bottomPaneViews?(pane: Pane): readonly IPaneView[];
     pricePaneViews?(zOrder: SeriesPrimitivePaneViewZOrder): readonly IAxisView[];
     timePaneViews?(zOrder: SeriesPrimitivePaneViewZOrder): readonly IAxisView[];
     primitiveHitTest?(x: Coordinate, y: Coordinate): PrimitiveHoveredItem[];
 }
 
-interface IDataSourcePaneViews extends IPluginPaneViews {
+type IDataSourcePaneViews = {
     paneViews(pane: Pane): readonly IPaneView[];
     labelPaneViews(pane?: Pane): readonly IPaneView[];
 
@@ -34,11 +34,11 @@ interface IDataSourcePaneViews extends IPluginPaneViews {
      * Pane views that are painted on the most top layer
      */
     topPaneViews?(pane: Pane): readonly IPaneView[];
-}
+} & IPluginPaneViews
 
 export type DataSourcePaneViewGetterNames = keyof IDataSourcePaneViews;
 
-export interface IDataSource extends IDataSourcePaneViews, ZOrdered {
+export type IDataSource = {
     setZorder(value: number): void;
     priceScale(): PriceScale | null;
     setPriceScale(scale: PriceScale | null): void;
@@ -58,4 +58,4 @@ export interface IDataSource extends IDataSourcePaneViews, ZOrdered {
     visible(): boolean;
 
     destroy?(): void;
-}
+} & IDataSourcePaneViews & ZOrdered

@@ -3,7 +3,7 @@ import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
 import { type IHorzScaleBehavior } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
 import { type TickMark } from '@/lib/lightweight-charts/model/tick-marks';
 
-interface CachedTick {
+type CachedTick = {
     string: string;
     tick: number;
 }
@@ -13,18 +13,18 @@ export type FormatFunction = (tickMark: TickMark) => string;
 export class FormattedLabelsCache<HorzScaleItem> {
     private readonly _format: FormatFunction;
     private readonly _maxSize: number;
-    private _actualSize: number = 0;
-    private _usageTick: number = 1;
-    private _oldestTick: number = 1;
-    private _cache: Map<number, CachedTick> = new Map();
-    private _tick2Labels: Map<number, number> = new Map();
+    private _actualSize = 0;
+    private _usageTick = 1;
+    private _oldestTick = 1;
+    private _cache = new Map<number, CachedTick>();
+    private _tick2Labels = new Map<number, number>();
 
     private readonly _horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>;
 
     public constructor(
         format: FormatFunction,
         horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>,
-        size: number = 50,
+        size = 50,
     ) {
         this._format = format;
         this._horzScaleBehavior = horzScaleBehavior;

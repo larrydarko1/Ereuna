@@ -21,7 +21,7 @@ export function checkPriceLineOptions(options: CreatePriceLineOptions): void {
 export function checkItemsAreOrdered<HorzScaleItem>(
     data: readonly (SeriesMarker<HorzScaleItem> | SeriesDataItemTypeMap<HorzScaleItem>[SeriesType])[],
     bh: IHorzScaleBehavior<HorzScaleItem>,
-    allowDuplicates: boolean = false,
+    allowDuplicates = false,
 ): void {
     if (process.env.NODE_ENV === 'production') {
         return;

@@ -16,15 +16,15 @@ export class VolumeFormatter implements IPriceFormatter {
 
         if (vol < 995) {
             return sign + this._formatNumber(vol);
-        } else if (vol < 999995) {
+        } if (vol < 999995) {
             return sign + this._formatNumber(vol / 1000) + 'K';
-        } else if (vol < 999999995) {
+        } if (vol < 999999995) {
             vol = 1000 * Math.round(vol / 1000);
             return sign + this._formatNumber(vol / 1000000) + 'M';
-        } else {
+        } 
             vol = 1000000 * Math.round(vol / 1000000);
             return sign + this._formatNumber(vol / 1000000000) + 'B';
-        }
+        
     }
 
     private _formatNumber(value: number): string {

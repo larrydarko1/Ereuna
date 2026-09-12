@@ -1,13 +1,13 @@
 import { type IChartApi, type MouseEventParams, type Time } from '@/lib/lightweight-charts/index';
 
-export interface FreehandPoint {
+export type FreehandPoint = {
     time: Time;
     price: number;
     x: number;
     y: number;
 }
 
-export interface FreehandPath {
+export type FreehandPath = {
     id: string;
     points: FreehandPoint[];
     color: string;
@@ -20,17 +20,17 @@ export class FreehandManager {
     private mainSeries: any = null;
     private canvas: HTMLCanvasElement | null = null;
     private ctx: CanvasRenderingContext2D | null = null;
-    private isActive: boolean = false;
+    private isActive = false;
     private paths: FreehandPath[] = [];
     private selectedPathId: string | null = null;
-    private isDrawing: boolean = false;
-    private isDragging: boolean = false;
+    private isDrawing = false;
+    private isDragging = false;
     private dragOffset: { x: number; y: number } | null = null;
     private currentPath: FreehandPath | null = null;
     private moveHandler: ((param: MouseEventParams<Time>) => void) | null = null;
     private mouseDownHandler: ((param: MouseEventParams<Time>) => void) | null = null;
     private mouseUpHandler: (() => void) | null = null;
-    private defaultLineWidth: number = 1.5;
+    private defaultLineWidth = 1.5;
     private visibleRangeChangeHandler: (() => void) | null = null;
     private onChangeCallback: (() => void) | null = null;
     private onActivateCallback: (() => void) | null = null;
@@ -171,7 +171,7 @@ export class FreehandManager {
     private getTimeFromX(x: number): Time | null {
         const timeScale = this.chart.timeScale();
         try {
-            return timeScale.coordinateToTime(x) as Time;
+            return timeScale.coordinateToTime(x);
         } catch (e) {
             return null;
         }

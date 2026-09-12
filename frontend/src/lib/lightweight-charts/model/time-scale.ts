@@ -38,7 +38,7 @@ const Constants = {
 } as const;
 type Constants = (typeof Constants)[keyof typeof Constants];
 
-interface TransitionState {
+type TransitionState = {
     barSpacing: number;
     rightOffset: number;
 }
@@ -46,7 +46,7 @@ interface TransitionState {
 /**
  * Represents a tick mark on the horizontal (time) scale.
  */
-export interface TimeMark {
+export type TimeMark = {
     /** Does time mark need to be aligned */
     needAlignCoordinate: boolean;
     /** Coordinate for the time mark */
@@ -64,7 +64,7 @@ export function markWithGreaterWeight(a: TimeMark, b: TimeMark): TimeMark {
 /**
  * Options for the time scale; the horizontal scale at the bottom of the chart that displays the time of data.
  */
-export interface HorzScaleOptions {
+export type HorzScaleOptions = {
     /**
      * The margin space in bars from the right side of the chart.
      *
@@ -209,7 +209,7 @@ export interface HorzScaleOptions {
     allowBoldLabels: boolean;
 }
 
-export interface ITimeScale {
+export type ITimeScale = {
     marks(): TimeMark[] | null;
     isEmpty(): boolean;
     width(): number;
@@ -235,7 +235,7 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
     private readonly _model: ChartModel<HorzScaleItem>;
     private readonly _localizationOptions: LocalizationOptions<HorzScaleItem>;
 
-    private _width: number = 0;
+    private _width = 0;
     private _baseIndexOrNull: TimePointIndex | null = null;
     private _rightOffset: number;
     private _points: readonly TimeScalePoint[] = [];
@@ -243,10 +243,10 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
     private _scrollStartPoint: Coordinate | null = null;
     private _scaleStartPoint: Coordinate | null = null;
     private readonly _tickMarks: TickMarks = new TickMarks();
-    private _formattedByWeight: Map<number, FormattedLabelsCache<HorzScaleItem>> = new Map();
+    private _formattedByWeight = new Map<number, FormattedLabelsCache<HorzScaleItem>>();
 
     private _visibleRange: TimeScaleVisibleRange = TimeScaleVisibleRange.invalid();
-    private _visibleRangeInvalidated: boolean = true;
+    private _visibleRangeInvalidated = true;
 
     private readonly _visibleBarsChanged: Delegate = new Delegate();
     private readonly _logicalRangeChanged: Delegate = new Delegate();

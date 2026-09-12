@@ -35,7 +35,7 @@ export function shapeMargin(barSpacing: number): number {
     return Math.max(size(barSpacing, 0.1), Constants.MinShapeMargin);
 }
 
-export interface BitmapShapeItemCoordinates {
+export type BitmapShapeItemCoordinates = {
     x: number;
     y: number;
     pixelRatio: number;
@@ -44,7 +44,7 @@ export interface BitmapShapeItemCoordinates {
 export function calculateAdjustedMargin(margin: number, hasSide: boolean, hasInBar: boolean): number {
     if (hasSide) {
         return margin;
-    } else if (hasInBar) {
+    } if (hasInBar) {
         return Math.ceil(margin / 2);
     }
 

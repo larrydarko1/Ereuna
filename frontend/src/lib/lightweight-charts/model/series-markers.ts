@@ -11,7 +11,7 @@ export type SeriesMarkerShape = 'circle' | 'square' | 'arrowUp' | 'arrowDown' | 
 /**
  * Represents a series marker.
  */
-export interface SeriesMarker<TimeType> {
+export type SeriesMarker<TimeType> = {
     /**
      * The time of the marker.
      */
@@ -53,9 +53,9 @@ export interface SeriesMarker<TimeType> {
     originalTime: unknown;
 }
 
-export interface InternalSeriesMarker<TimeType> extends SeriesMarker<TimeType> {
+export type InternalSeriesMarker<TimeType> = {
     internalId: number;
-}
+} & SeriesMarker<TimeType>
 
 export function convertSeriesMarker<InTimeType, OutTimeType>(
     sm: SeriesMarker<InTimeType>,

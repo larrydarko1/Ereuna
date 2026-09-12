@@ -5,7 +5,7 @@ import { type IUpdatablePaneView } from '@/lib/lightweight-charts/views/pane/iup
 import { type Pane } from '@/lib/lightweight-charts/model/pane';
 
 /** Grid line options. */
-export interface GridLineOptions {
+export type GridLineOptions = {
     /**
      * Line color.
      *
@@ -29,7 +29,7 @@ export interface GridLineOptions {
 }
 
 /** Structure describing grid options. */
-export interface GridOptions {
+export type GridOptions = {
     /**
      * Vertical grid line options.
      */

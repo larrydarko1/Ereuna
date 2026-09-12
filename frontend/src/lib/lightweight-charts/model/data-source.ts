@@ -9,7 +9,7 @@ import { type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
 export abstract class DataSource implements IDataSource {
     protected _priceScale: PriceScale | null = null;
 
-    private _zorder: number = 0;
+    private _zorder = 0;
 
     public zorder(): number {
         return this._zorder;

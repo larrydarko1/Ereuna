@@ -21,13 +21,13 @@ export class PaneSeparator implements IDestroyable {
     private readonly _paneA: PaneWidget;
     private readonly _paneB: PaneWidget;
 
-    private _startY: number = 0;
-    private _deltaY: number = 0;
-    private _totalHeight: number = 0;
-    private _totalStretch: number = 0;
-    private _minPaneHeight: number = 0;
-    private _maxPaneHeight: number = 0;
-    private _pixelStretchFactor: number = 0;
+    private _startY = 0;
+    private _deltaY = 0;
+    private _totalHeight = 0;
+    private _totalStretch = 0;
+    private _minPaneHeight = 0;
+    private _maxPaneHeight = 0;
+    private _pixelStretchFactor = 0;
 
     public constructor(
         chartWidget: IChartWidgetBase,

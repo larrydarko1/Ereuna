@@ -26,7 +26,7 @@ export type UTCTimestamp = Nominal<number, 'UTCTimestamp'>;
  * const day = { year: 2019, month: 6, day: 1 }; // June 1, 2019
  * ```
  */
-export interface BusinessDay {
+export type BusinessDay = {
     /**
      * The year.
      */
@@ -55,7 +55,7 @@ export interface BusinessDay {
  */
 export type Time = UTCTimestamp | BusinessDay | string;
 
-export interface TimePoint {
+export type TimePoint = {
     timestamp: UTCTimestamp;
     businessDay?: BusinessDay;
 }

@@ -6,7 +6,7 @@ import { type Logical } from '@/lib/lightweight-charts/model/time-data';
 /**
  * This interface represents a label on the price or time axis
  */
-export interface ISeriesPrimitiveAxisView {
+export type ISeriesPrimitiveAxisView = {
     /**
      * The desired coordinate for the label. Note that the label will be automatically moved to prevent overlapping with other labels. If you would like the label to be drawn at the
      * exact coordinate under all circumstances then rather use `fixedCoordinate`.
@@ -54,7 +54,7 @@ export interface ISeriesPrimitiveAxisView {
 /**
  * This interface represents rendering some element on the canvas
  */
-export interface ISeriesPrimitivePaneRenderer {
+export type ISeriesPrimitivePaneRenderer = {
     /**
      * Method to draw main content of the element
      *
@@ -85,7 +85,7 @@ export type SeriesPrimitivePaneViewZOrder = 'bottom' | 'normal' | 'top';
 /**
  * This interface represents the primitive for one of the pane of the chart (main chart area, time scale, price scale).
  */
-export interface ISeriesPrimitivePaneView {
+export type ISeriesPrimitivePaneView = {
     /**
      * Defines where in the visual layer stack the renderer should be executed. Default is `'normal'`.
      *
@@ -103,7 +103,7 @@ export interface ISeriesPrimitivePaneView {
 /**
  * Data representing the currently hovered object from the Hit test.
  */
-export interface PrimitiveHoveredItem {
+export type PrimitiveHoveredItem = {
     /**
      * CSS cursor style as defined here: [MDN: CSS Cursor](https://developer.mozilla.org/en-US/docs/Web/CSS/cursor) or `undefined`
      * if you want the library to use the default cursor style instead.
@@ -126,7 +126,7 @@ export interface PrimitiveHoveredItem {
 /**
  * Base interface for series primitives. It must be implemented to add some external graphics to series
  */
-export interface ISeriesPrimitiveBase<TSeriesAttachedParameters = unknown> {
+export type ISeriesPrimitiveBase<TSeriesAttachedParameters = unknown> = {
     /**
      * This method is called when viewport has been changed, so primitive have to recalculate / invalidate its data
      */

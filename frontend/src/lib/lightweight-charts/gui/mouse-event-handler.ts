@@ -12,7 +12,7 @@ export type HandlerTouchEventCallback = (event: MouseEventHandlerTouchEvent) => 
 export type EmptyCallback = () => void;
 export type PinchEventCallback = (middlePoint: Position, scale: number) => void;
 
-export interface MouseEventHandlers {
+export type MouseEventHandlers = {
     pinchStartEvent?: EmptyCallback;
     pinchEvent?: PinchEventCallback;
     pinchEndEvent?: EmptyCallback;
@@ -42,26 +42,26 @@ export interface MouseEventHandlers {
     longTapEvent?: HandlerTouchEventCallback;
 }
 
-export interface MouseEventHandlerEventBase extends TouchMouseEventData {
+export type MouseEventHandlerEventBase = {
     readonly srcType: string;
 
     target: MouseEvent['target'];
     view: MouseEvent['view'];
 
     preventDefault(): void;
-}
+} & TouchMouseEventData
 
-export interface MouseEventHandlerMouseEvent extends MouseEventHandlerEventBase {
+export type MouseEventHandlerMouseEvent = {
     isTouch: false;
-}
+} & MouseEventHandlerEventBase
 
-export interface MouseEventHandlerTouchEvent extends MouseEventHandlerEventBase {
+export type MouseEventHandlerTouchEvent = {
     isTouch: true;
-}
+} & MouseEventHandlerEventBase
 
 export type TouchMouseEvent = MouseEventHandlerMouseEvent | MouseEventHandlerTouchEvent;
 
-export interface Position {
+export type Position = {
     x: number;
     y: number;
 }
@@ -83,12 +83,12 @@ const Constants = {
 } as const;
 type Constants = (typeof Constants)[keyof typeof Constants];
 
-export interface MouseEventHandlerOptions {
+export type MouseEventHandlerOptions = {
     treatVertTouchDragAsPageScroll: () => boolean;
     treatHorzTouchDragAsPageScroll: () => boolean;
 }
 
-interface TouchMouseMoveWithDownInfo {
+type TouchMouseMoveWithDownInfo = {
     xOffset: number;
     yOffset: number;
     manhattanDistance: number;
@@ -101,24 +101,24 @@ export class MouseEventHandler implements IDestroyable {
 
     private readonly _options: MouseEventHandlerOptions;
 
-    private _clickCount: number = 0;
+    private _clickCount = 0;
     private _clickTimeoutId: TimerId | null = null;
     private _clickPosition: Position = { x: Number.NEGATIVE_INFINITY, y: Number.POSITIVE_INFINITY };
 
-    private _tapCount: number = 0;
+    private _tapCount = 0;
     private _tapTimeoutId: TimerId | null = null;
     private _tapPosition: Position = { x: Number.NEGATIVE_INFINITY, y: Number.POSITIVE_INFINITY };
 
     private _longTapTimeoutId: TimerId | null = null;
-    private _longTapActive: boolean = false;
+    private _longTapActive = false;
 
     private _mouseMoveStartPosition: Position | null = null;
 
     private _touchMoveStartPosition: Position | null = null;
-    private _touchMoveExceededManhattanDistance: boolean = false;
+    private _touchMoveExceededManhattanDistance = false;
 
-    private _cancelClick: boolean = false;
-    private _cancelTap: boolean = false;
+    private _cancelClick = false;
+    private _cancelTap = false;
 
     private _unsubscribeOutsideMouseEvents: (() => void) | null = null;
     private _unsubscribeOutsideTouchEvents: (() => void) | null = null;
@@ -130,13 +130,13 @@ export class MouseEventHandler implements IDestroyable {
     private _unsubscribeRootTouchEvents: (() => void) | null = null;
 
     private _startPinchMiddlePoint: Position | null = null;
-    private _startPinchDistance: number = 0;
-    private _pinchPrevented: boolean = false;
-    private _preventTouchDragProcess: boolean = false;
+    private _startPinchDistance = 0;
+    private _pinchPrevented = false;
+    private _preventTouchDragProcess = false;
 
-    private _mousePressed: boolean = false;
+    private _mousePressed = false;
 
-    private _lastTouchEventTimeStamp: number = 0;
+    private _lastTouchEventTimeStamp = 0;
 
     // for touchstart/touchmove/touchend events we handle only first touch
     // i.e. we don't support several active touches at the same time (except pinch event)
@@ -144,7 +144,7 @@ export class MouseEventHandler implements IDestroyable {
 
     // accept all mouse leave events if it's not an iOS device
     // see _mouseEnterHandler, _mouseMoveHandler, _mouseLeaveHandler
-    private _acceptMouseLeave: boolean = !isIOS();
+    private _acceptMouseLeave = !isIOS();
 
     public constructor(target: HTMLElement, handler: MouseEventHandlers, options: MouseEventHandlerOptions) {
         this._target = target;

@@ -4,7 +4,7 @@ import { type AutoscaleInfo } from '@/lib/lightweight-charts/model/series-option
 /**
  * Represents the margin used when updating a price scale.
  */
-export interface AutoScaleMargins {
+export type AutoScaleMargins = {
     /** The number of pixels for bottom margin */
     below: number;
     /** The number of pixels for top margin */

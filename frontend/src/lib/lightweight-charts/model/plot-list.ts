@@ -24,7 +24,7 @@ export const MismatchDirection = {
 } as const;
 export type MismatchDirection = (typeof MismatchDirection)[keyof typeof MismatchDirection];
 
-export interface MinMax {
+export type MinMax = {
     min: number;
     max: number;
 }
@@ -40,8 +40,8 @@ const CHUNK_SIZE = 30;
  */
 export class PlotList<PlotRowType extends PlotRow = PlotRow> {
     private _items: readonly PlotRowType[] = [];
-    private _minMaxCache: Map<PlotRowValueIndex, Map<number, MinMax | null>> = new Map();
-    private _rowSearchCache: Map<TimePointIndex, Map<MismatchDirection, PlotRowType>> = new Map();
+    private _minMaxCache = new Map<PlotRowValueIndex, Map<number, MinMax | null>>();
+    private _rowSearchCache = new Map<TimePointIndex, Map<MismatchDirection, PlotRowType>>();
 
     // @returns Last row
     public last(): PlotRowType | null {
@@ -278,14 +278,14 @@ export class PlotList<PlotRowType extends PlotRow = PlotRow> {
 function mergeMinMax(first: MinMax | null, second: MinMax | null): MinMax | null {
     if (first === null) {
         return second;
-    } else {
+    } 
         if (second === null) {
             return first;
-        } else {
+        } 
             // merge MinMax values
             const min = Math.min(first.min, second.min);
             const max = Math.max(first.max, second.max);
             return { min: min, max: max };
-        }
-    }
+        
+    
 }

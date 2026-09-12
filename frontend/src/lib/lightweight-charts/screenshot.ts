@@ -1,4 +1,4 @@
-export interface ScreenshotConfig {
+export type ScreenshotConfig = {
     includeWatermark: boolean;
     includeLogo: boolean;
     includeChartInfo: boolean;
@@ -9,7 +9,7 @@ export interface ScreenshotConfig {
     watermarkOpacity: number;
 }
 
-export interface ChartInfo {
+export type ChartInfo = {
     symbol: string;
     name: string;
     timeframe: string;
@@ -32,7 +32,7 @@ export class ChartScreenshot {
     };
 
     // Captures the canvas out of the DOM, so it never needs the chart instance
-    constructor(containerId: string = 'wk-chart') {
+    constructor(containerId = 'wk-chart') {
         this.chartContainer = document.getElementById(containerId);
     }
 
@@ -193,7 +193,7 @@ export class ChartScreenshot {
         config: ScreenshotConfig,
         x: number,
         width: number,
-        dpr: number = 1,
+        dpr = 1,
     ): Promise<void> {
         // Get colors with proper contrast for the screenshot background
         const colors = this.getContrastColors(config.backgroundColor);
@@ -285,7 +285,7 @@ export class ChartScreenshot {
         y: number,
         height: number,
         color: string,
-        _dpr: number = 1,
+        _dpr = 1,
     ): Promise<void> {
         return new Promise((resolve) => {
             const img = new Image();
@@ -388,13 +388,13 @@ export class ChartScreenshot {
                 textColor: '#1a1b26',
                 textColorSecondary: '#6b7280',
             };
-        } else {
+        } 
             // Light text for dark backgrounds
             return {
                 textColor: '#ffffff',
                 textColorSecondary: '#9ca3af',
             };
-        }
+        
     }
 
     private downloadCanvas(canvas: HTMLCanvasElement, symbol: string): void {

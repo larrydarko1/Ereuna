@@ -1,13 +1,13 @@
 import { type IChartApi, type MouseEventParams, type Time } from '@/lib/lightweight-charts/index';
 
-export interface TextAnnotationPoint {
+export type TextAnnotationPoint = {
     time: Time;
     price: number;
     x: number;
     y: number;
 }
 
-export interface TextAnnotation {
+export type TextAnnotation = {
     id: string;
     point: TextAnnotationPoint;
     text: string;
@@ -23,15 +23,15 @@ export class TextAnnotationManager {
     private mainSeries: any = null;
     private canvas: HTMLCanvasElement | null = null;
     private ctx: CanvasRenderingContext2D | null = null;
-    private isActive: boolean = false;
+    private isActive = false;
     private annotations: TextAnnotation[] = [];
     private selectedAnnotationId: string | null = null;
-    private isDragging: boolean = false;
+    private isDragging = false;
     private dragOffset: { x: number; y: number } | null = null;
     private clickHandler: ((param: MouseEventParams<Time>) => void) | null = null;
     private moveHandler: ((param: MouseEventParams<Time>) => void) | null = null;
-    private defaultFontSize: number = 11;
-    private defaultBackgroundOpacity: number = 0.7;
+    private defaultFontSize = 11;
+    private defaultBackgroundOpacity = 0.7;
     private textInput: HTMLInputElement | null = null;
     private visibleRangeChangeHandler: (() => void) | null = null;
     private onChangeCallback: (() => void) | null = null;
@@ -254,8 +254,8 @@ export class TextAnnotationManager {
                     }
                 },
                 '',
-                param.point!.x,
-                param.point!.y,
+                param.point.x,
+                param.point.y,
             );
         };
 
@@ -351,7 +351,7 @@ export class TextAnnotationManager {
         }
     }
 
-    private promptForText(callback: (text: string) => void, defaultText: string = '', x?: number, y?: number): void {
+    private promptForText(callback: (text: string) => void, defaultText = '', x?: number, y?: number): void {
         // Remove any existing input
         this.removeTextInput();
 

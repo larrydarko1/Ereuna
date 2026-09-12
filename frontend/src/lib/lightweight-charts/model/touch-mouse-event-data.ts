@@ -5,7 +5,7 @@ import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
  * pointing device (such as a mouse).
  * See {@link https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent | MouseEvent}
  */
-export interface TouchMouseEventData {
+export type TouchMouseEventData = {
     /**
      * The X coordinate of the mouse pointer in local (DOM content) coordinates.
      */

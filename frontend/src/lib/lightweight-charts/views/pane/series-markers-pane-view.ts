@@ -30,7 +30,7 @@ const Constants = {
 } as const;
 type Constants = (typeof Constants)[keyof typeof Constants];
 
-interface Offsets {
+type Offsets = {
     aboveBar: number;
     belowBar: number;
 }
@@ -108,9 +108,9 @@ export class SeriesMarkersPaneView implements IUpdatablePaneView {
     private readonly _model: IChartModelBase;
     private _data: SeriesMarkerRendererData;
 
-    private _invalidated: boolean = true;
-    private _dataInvalidated: boolean = true;
-    private _autoScaleMarginsInvalidated: boolean = true;
+    private _invalidated = true;
+    private _dataInvalidated = true;
+    private _autoScaleMarginsInvalidated = true;
 
     private _autoScaleMargins: AutoScaleMargins | null = null;
     private _markersPositions: MarkerPositions | null = null;

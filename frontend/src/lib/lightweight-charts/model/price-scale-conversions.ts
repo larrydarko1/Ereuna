@@ -1,6 +1,6 @@
 import { PriceRangeImpl } from '@/lib/lightweight-charts/model/price-range-impl';
 
-export interface LogFormula {
+export type LogFormula = {
     logicalOffset: number;
     coordOffset: number;
 }

@@ -1,7 +1,7 @@
 import { DateFormatter } from '@/lib/lightweight-charts/formatters/date-formatter';
 import { TimeFormatter } from '@/lib/lightweight-charts/formatters/time-formatter';
 
-export interface DateTimeFormatterParams {
+export type DateTimeFormatterParams = {
     dateFormat: string;
     timeFormat: string;
     dateTimeSeparator: string;

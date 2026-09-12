@@ -5,7 +5,7 @@ import { type SeriesItemsIndexesRange } from '@/lib/lightweight-charts/model/tim
 import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
 import { type LineItemBase } from '@/lib/lightweight-charts/renderers/line-renderer-base';
 
-export interface MarksRendererData {
+export type MarksRendererData = {
     items: LineItemBase[];
     lineColor: string;
     lineWidth: number;

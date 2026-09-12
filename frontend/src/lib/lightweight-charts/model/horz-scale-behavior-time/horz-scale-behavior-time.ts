@@ -37,13 +37,13 @@ import {
 /**
  * Represents options for formatting dates, times, and prices according to a locale.
  */
-interface TimeLocalizationOptions extends LocalizationOptions<Time> {
+type TimeLocalizationOptions = {
     /**
      * Date formatting string.
      *
      */
     dateFormat: string;
-}
+} & LocalizationOptions<Time>
 
 /**
  * The `TickMarkFormatter` is used to customize tick mark labels on the time scale.
@@ -113,7 +113,7 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
 
     public setOptions(options: TimeChartOptions): void {
         this._options = options;
-        this.updateFormatter(options.localization as TimeLocalizationOptions);
+        this.updateFormatter(options.localization);
     }
 
     public preprocessData(data: DataItem<Time> | DataItem<Time>[]): void {
@@ -133,9 +133,9 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
     public key(item: InternalHorzScaleItem | Time): InternalHorzScaleItemKey {
         if (typeof item === 'object' && 'timestamp' in item) {
             return (item as unknown as TimePoint).timestamp as unknown as InternalHorzScaleItemKey;
-        } else {
+        } 
             return this.key(this.convertHorzItemToInternal(item as Time));
-        }
+        
     }
 
     public cacheKey(item: InternalHorzScaleItem): number {

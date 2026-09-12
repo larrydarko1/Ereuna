@@ -24,7 +24,7 @@ import {
 
 export type TimedData<HorzScaleItem> = Pick<SeriesDataItemTypeMap<HorzScaleItem>[SeriesType], 'time'>;
 
-export interface TimeScaleChanges {
+export type TimeScaleChanges = {
     /**
      * An index of the first changed time scale point by any type of change (time, weight, etc)
      */
@@ -41,7 +41,7 @@ export interface TimeScaleChanges {
     baseIndex: TimePointIndex | null;
 }
 
-export interface SeriesChanges {
+export type SeriesChanges = {
     /**
      * Data to be merged into series' plot list
      */
@@ -52,7 +52,7 @@ export interface SeriesChanges {
     info?: SeriesUpdateInfo | undefined;
 }
 
-export interface DataUpdateResponse {
+export type DataUpdateResponse = {
     /**
      * Contains updates for all _changed_ series (if series data doesn't changed then it will not be here)
      */
@@ -64,7 +64,7 @@ export interface DataUpdateResponse {
     timeScale: TimeScaleChanges;
 }
 
-interface TimePointData {
+type TimePointData = {
     index: TimePointIndex;
     timePoint: InternalHorzScaleItem;
 
@@ -73,15 +73,15 @@ interface TimePointData {
     mapping: Map<Series<SeriesType>, Mutable<SeriesPlotRow<SeriesType> | WhitespacePlotRow>>;
 }
 
-export interface InternalTimeScalePoint extends Mutable<TimeScalePoint> {
+export type InternalTimeScalePoint = {
     pointData: TimePointData;
-}
+} & Mutable<TimeScalePoint>
 
 function createEmptyTimePointData(timePoint: InternalHorzScaleItem): TimePointData {
     return { index: 0 as TimePointIndex, mapping: new Map(), timePoint };
 }
 
-interface SeriesRowsFirstAndLastTime {
+type SeriesRowsFirstAndLastTime = {
     firstTime: InternalHorzScaleItemKey;
     lastTime: InternalHorzScaleItemKey;
 }
@@ -155,9 +155,9 @@ type SeriesDataItemWithOriginalTime<
 export class DataLayer<HorzScaleItem> {
     // note that _pointDataByTimePoint and _seriesRowsBySeries shares THE SAME objects in their values between each other
     // it's just different kind of maps to make usages/perf better
-    private _pointDataByTimePoint: Map<InternalHorzScaleItemKey, TimePointData> = new Map();
-    private _seriesRowsBySeries: Map<Series<SeriesType>, SeriesPlotRow<SeriesType>[]> = new Map();
-    private _seriesLastTimePoint: Map<Series<SeriesType>, InternalHorzScaleItem> = new Map();
+    private _pointDataByTimePoint = new Map<InternalHorzScaleItemKey, TimePointData>();
+    private _seriesRowsBySeries = new Map<Series<SeriesType>, SeriesPlotRow<SeriesType>[]>();
+    private _seriesLastTimePoint = new Map<Series<SeriesType>, InternalHorzScaleItem>();
 
     // this is kind of "dest" values (in opposite to "source" ones) - we don't need to modify it manually, the only by calling _updateTimeScalePoints or updateSeriesData methods
     private _sortedTimePoints: readonly InternalTimeScalePoint[] = [];

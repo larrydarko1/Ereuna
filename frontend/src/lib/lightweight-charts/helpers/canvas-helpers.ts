@@ -125,9 +125,9 @@ export function drawRoundRectWithBorder(
     width: number,
     height: number,
     backgroundColor: string,
-    borderWidth: number = 0,
+    borderWidth = 0,
     outerBorderRadius: LeftTopRightTopRightBottomLeftBottomRadii = [0, 0, 0, 0],
-    borderColor: string = '',
+    borderColor = '',
 ): void {
     ctx.save();
 

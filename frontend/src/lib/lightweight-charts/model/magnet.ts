@@ -17,7 +17,7 @@ export class Magnet {
     }
 
     public align(price: number, index: TimePointIndex, pane: Pane): number {
-        let res = price;
+        const res = price;
         if (this._options.mode === CrosshairMode.Normal) {
             return res;
         }

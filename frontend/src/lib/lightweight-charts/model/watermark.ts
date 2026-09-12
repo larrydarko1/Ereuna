@@ -7,7 +7,7 @@ import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model
 import { DataSource } from '@/lib/lightweight-charts/model/data-source';
 
 /** Watermark options. */
-export interface WatermarkOptions {
+export type WatermarkOptions = {
     /**
      * Watermark color.
      *

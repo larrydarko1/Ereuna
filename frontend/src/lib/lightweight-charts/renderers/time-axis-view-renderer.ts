@@ -11,7 +11,7 @@ import {
     type TimeAxisViewRendererOptions,
 } from '@/lib/lightweight-charts/renderers/itime-axis-view-renderer';
 
-export interface TimeAxisViewRendererData {
+export type TimeAxisViewRendererData = {
     width: number;
     text: string;
     coordinate: number;

@@ -11,7 +11,7 @@ import {
 /**
  * Tick mark for the horizontal scale.
  */
-export interface TickMark {
+export type TickMark = {
     /** Index */
     index: TimePointIndex;
     /** Time / Coordinate */
@@ -22,15 +22,15 @@ export interface TickMark {
     originalTime: unknown;
 }
 
-interface MarksCache {
+type MarksCache = {
     maxIndexesPerMark: number;
     marks: readonly TickMark[];
 }
 
 export class TickMarks {
-    private _marksByWeight: Map<TickMarkWeightValue, TickMark[]> = new Map();
+    private _marksByWeight = new Map<TickMarkWeightValue, TickMark[]>();
     private _cache: MarksCache | null = null;
-    private _uniformDistribution: boolean = false;
+    private _uniformDistribution = false;
 
     public setUniformDistribution(val: boolean): void {
         this._uniformDistribution = val;

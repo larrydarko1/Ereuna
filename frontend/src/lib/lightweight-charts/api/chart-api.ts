@@ -134,12 +134,12 @@ export class ChartApi<HorzScaleItem>
 {
     private _chartWidget: ChartWidget<HorzScaleItem>;
     private _dataLayer: DataLayer<HorzScaleItem>;
-    private readonly _seriesMap: Map<SeriesApi<SeriesType, HorzScaleItem>, Series<SeriesType>> = new Map();
-    private readonly _seriesMapReversed: Map<Series<SeriesType>, SeriesApi<SeriesType, HorzScaleItem>> = new Map();
+    private readonly _seriesMap = new Map<SeriesApi<SeriesType, HorzScaleItem>, Series<SeriesType>>();
+    private readonly _seriesMapReversed = new Map<Series<SeriesType>, SeriesApi<SeriesType, HorzScaleItem>>();
 
-    private readonly _clickedDelegate: Delegate<MouseEventParams<HorzScaleItem>> = new Delegate();
-    private readonly _dblClickedDelegate: Delegate<MouseEventParams<HorzScaleItem>> = new Delegate();
-    private readonly _crosshairMovedDelegate: Delegate<MouseEventParams<HorzScaleItem>> = new Delegate();
+    private readonly _clickedDelegate = new Delegate<MouseEventParams<HorzScaleItem>>();
+    private readonly _dblClickedDelegate = new Delegate<MouseEventParams<HorzScaleItem>>();
+    private readonly _crosshairMovedDelegate = new Delegate<MouseEventParams<HorzScaleItem>>();
 
     private readonly _timeScaleApi: TimeScaleApi<HorzScaleItem>;
 
@@ -317,7 +317,7 @@ export class ChartApi<HorzScaleItem>
     }
 
     public options(): Readonly<ChartOptionsImpl<HorzScaleItem>> {
-        return this._chartWidget.options() as Readonly<ChartOptionsImpl<HorzScaleItem>>;
+        return this._chartWidget.options();
     }
 
     public takeScreenshot(): HTMLCanvasElement {

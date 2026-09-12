@@ -15,7 +15,7 @@ import {
     type PriceAxisViewRendererOptions,
 } from '@/lib/lightweight-charts/renderers/iprice-axis-view-renderer';
 
-interface Geometry {
+type Geometry = {
     alignRight: boolean;
 
     // bitmap coordinate space geometry

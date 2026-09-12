@@ -15,7 +15,7 @@ import {
 import { type ITimeAxisView } from '@/lib/lightweight-charts/views/time-axis/itime-axis-view';
 
 export class CrosshairTimeAxisView implements ITimeAxisView {
-    private _invalidated: boolean = true;
+    private _invalidated = true;
     private readonly _crosshair: Crosshair;
     private readonly _model: IChartModelBase;
     private readonly _valueProvider: TimeAndCoordinateProvider;

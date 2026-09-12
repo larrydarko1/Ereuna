@@ -2,7 +2,7 @@ import { type MediaCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { MediaCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/media-coordinates-pane-renderer';
 
-export interface WatermarkRendererLineData {
+export type WatermarkRendererLineData = {
     text: string;
     font: string;
     lineHeight: number;
@@ -19,7 +19,7 @@ export type HorzAlign = 'left' | 'center' | 'right';
  */
 export type VertAlign = 'top' | 'center' | 'bottom';
 
-export interface WatermarkRendererData {
+export type WatermarkRendererData = {
     lines: WatermarkRendererLineData[];
     color: string;
     visible: boolean;
@@ -29,7 +29,7 @@ export interface WatermarkRendererData {
 
 export class WatermarkRenderer extends MediaCoordinatesPaneRenderer {
     private readonly _data: WatermarkRendererData;
-    private _metricsCache: Map<string, Map<string, number>> = new Map();
+    private _metricsCache = new Map<string, Map<string, number>>();
 
     public constructor(data: WatermarkRendererData) {
         super();

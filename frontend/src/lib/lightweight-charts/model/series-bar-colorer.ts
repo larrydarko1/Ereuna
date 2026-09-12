@@ -16,53 +16,52 @@ import {
 } from '@/lib/lightweight-charts/model/series-options';
 import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 
-export interface PrecomputedBars {
+export type PrecomputedBars = {
     value: SeriesPlotRow;
     previousValue?: SeriesPlotRow;
 }
 
-export interface CommonBarColorerStyle {
+export type CommonBarColorerStyle = {
     barColor: string;
 }
 
-export interface LineStrokeColorerStyle {
+export type LineStrokeColorerStyle = {
     lineColor: string;
 }
 
-export interface LineBarColorerStyle extends CommonBarColorerStyle, LineStrokeColorerStyle {}
+export type LineBarColorerStyle = {} & CommonBarColorerStyle & LineStrokeColorerStyle
 
-export interface HistogramBarColorerStyle extends CommonBarColorerStyle {}
-export interface AreaFillColorerStyle {
+export type HistogramBarColorerStyle = {} & CommonBarColorerStyle
+export type AreaFillColorerStyle = {
     topColor: string;
     bottomColor: string;
 }
-export interface AreaBarColorerStyle extends CommonBarColorerStyle, AreaFillColorerStyle, LineStrokeColorerStyle {}
+export type AreaBarColorerStyle = {} & CommonBarColorerStyle & AreaFillColorerStyle & LineStrokeColorerStyle
 
-export interface BaselineStrokeColorerStyle {
+export type BaselineStrokeColorerStyle = {
     topLineColor: string;
     bottomLineColor: string;
 }
 
-export interface BaselineFillColorerStyle {
+export type BaselineFillColorerStyle = {
     topFillColor1: string;
     topFillColor2: string;
     bottomFillColor2: string;
     bottomFillColor1: string;
 }
 
-export interface BaselineBarColorerStyle
-    extends CommonBarColorerStyle, BaselineStrokeColorerStyle, BaselineFillColorerStyle {}
+export type BaselineBarColorerStyle = {} & CommonBarColorerStyle & BaselineStrokeColorerStyle & BaselineFillColorerStyle
 
-export interface BarColorerStyle extends CommonBarColorerStyle {}
+export type BarColorerStyle = {} & CommonBarColorerStyle
 
-export interface CandlesticksColorerStyle extends CommonBarColorerStyle {
+export type CandlesticksColorerStyle = {
     barBorderColor: string;
     barWickColor: string;
-}
+} & CommonBarColorerStyle
 
-export interface CustomBarColorerStyle extends CommonBarColorerStyle {}
+export type CustomBarColorerStyle = {} & CommonBarColorerStyle
 
-export interface BarStylesMap {
+export type BarStylesMap = {
     Bar: BarColorerStyle;
     Candlestick: CandlesticksColorerStyle;
     Area: AreaBarColorerStyle;
@@ -85,7 +84,7 @@ type BarStylesFnMap = {
     [T in keyof SeriesOptionsMap]: StyleGetterFn<T>;
 };
 
-export interface ISeriesBarColorer<T extends SeriesType> {
+export type ISeriesBarColorer<T extends SeriesType> = {
     barStyle(barIndex: TimePointIndex, precomputedBars?: PrecomputedBars): BarStylesMap[T];
 }
 

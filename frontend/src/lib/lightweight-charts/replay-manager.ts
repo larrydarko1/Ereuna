@@ -1,6 +1,6 @@
 import { type Time } from '@/lib/lightweight-charts/index';
 
-export interface OHLCData {
+export type OHLCData = {
     time: Time;
     open: number;
     high: number;
@@ -8,7 +8,7 @@ export interface OHLCData {
     close: number;
 }
 
-export interface ReplayState {
+export type ReplayState = {
     isActive: boolean;
     isPlaying: boolean;
     currentIndex: number;
@@ -23,7 +23,7 @@ export class ReplayManager {
     private state: ReplayState;
     private fullData: OHLCData[];
     private intervalId: number | null = null;
-    private callbacks: Set<ReplayCallback> = new Set();
+    private callbacks = new Set<ReplayCallback>();
 
     constructor(data: OHLCData[]) {
         this.fullData = data;
@@ -70,7 +70,7 @@ export class ReplayManager {
     /**
      * Start replay from a specific index
      */
-    startReplay(fromIndex: number = 0): void {
+    startReplay(fromIndex = 0): void {
         if (this.fullData.length === 0) return;
 
         // Ensure valid index

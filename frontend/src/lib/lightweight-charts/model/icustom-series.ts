@@ -8,7 +8,7 @@ import { type Range } from '@/lib/lightweight-charts/model/time-data';
 /**
  * Represents a whitespace data item, which is a data point without a value.
  */
-export interface CustomSeriesWhitespaceData<HorzScaleItem> {
+export type CustomSeriesWhitespaceData<HorzScaleItem> = {
     /**
      * The time of the data.
      */
@@ -28,13 +28,13 @@ export interface CustomSeriesWhitespaceData<HorzScaleItem> {
  * within the interface. It is recommended that you extend this interface with
  * the required data structure.
  */
-export interface CustomData<HorzScaleItem = Time> extends CustomSeriesWhitespaceData<HorzScaleItem> {
+export type CustomData<HorzScaleItem = Time> = {
     /**
      * If defined then this color will be used for the price line and price scale line
      * for this specific data item of the custom series.
      */
     color?: string;
-}
+} & CustomSeriesWhitespaceData<HorzScaleItem>
 
 export type WhitespaceCheck<HorzScaleItem, TData extends CustomData<HorzScaleItem> = CustomData<HorzScaleItem>> = (
     bar: TData | CustomSeriesWhitespaceData<HorzScaleItem>,
@@ -43,7 +43,7 @@ export type WhitespaceCheck<HorzScaleItem, TData extends CustomData<HorzScaleIte
 /**
  * Renderer data for an item within the custom series.
  */
-export interface CustomBarItemData<HorzScaleItem, TData extends CustomData<HorzScaleItem> = CustomData<HorzScaleItem>> {
+export type CustomBarItemData<HorzScaleItem, TData extends CustomData<HorzScaleItem> = CustomData<HorzScaleItem>> = {
     /**
      * Horizontal coordinate for the item. Measured from the left edge of the pane in pixels.
      */
@@ -66,7 +66,7 @@ export interface CustomBarItemData<HorzScaleItem, TData extends CustomData<HorzS
  * Data provide to the custom series pane view which can be used within the renderer
  * for drawing the series data.
  */
-export interface PaneRendererCustomData<HorzScaleItem, TData extends CustomData<HorzScaleItem>> {
+export type PaneRendererCustomData<HorzScaleItem, TData extends CustomData<HorzScaleItem>> = {
     /**
      * List of all the series' items and their x coordinates.
      */
@@ -93,7 +93,7 @@ export type PriceToCoordinateConverter = (price: number) => Coordinate | null;
 /**
  * Renderer for the custom series. This paints on the main chart pane.
  */
-export interface ICustomSeriesPaneRenderer {
+export type ICustomSeriesPaneRenderer = {
     /**
      * Draw function for the renderer.
      *
@@ -124,11 +124,11 @@ export type CustomSeriesPricePlotValues = number[];
 /**
  * This interface represents the view for the custom series
  */
-export interface ICustomSeriesPaneView<
+export type ICustomSeriesPaneView<
     HorzScaleItem = Time,
     TData extends CustomData<HorzScaleItem> = CustomData<HorzScaleItem>,
     TSeriesOptions extends CustomSeriesOptions = CustomSeriesOptions,
-> {
+> = {
     /**
      * This method returns a renderer - special object to draw data for the series
      * on the main chart pane.

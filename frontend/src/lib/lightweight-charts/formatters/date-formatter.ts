@@ -4,7 +4,7 @@ export class DateFormatter {
     private readonly _locale: string;
     private readonly _dateFormat: string;
 
-    public constructor(dateFormat: string = 'yyyy-MM-dd', locale: string = 'default') {
+    public constructor(dateFormat = 'yyyy-MM-dd', locale = 'default') {
         this._dateFormat = dateFormat;
         this._locale = locale;
     }

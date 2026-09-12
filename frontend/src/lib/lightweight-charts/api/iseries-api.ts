@@ -33,7 +33,7 @@ export type DataChangedHandler = (scope: DataChangedScope) => void;
  */
 // actually range might be either exist or not
 // but to avoid hard-readable type let's say every part of range is optional
-export interface BarsInfo<HorzScaleItem> extends Partial<Range<HorzScaleItem>> {
+export type BarsInfo<HorzScaleItem> = {
     /**
      * The number of bars before the start of the range.
      * Positive value means that there are some bars before (out of logical range from the left) the {@link Range.from} logical index in the series.
@@ -47,18 +47,18 @@ export interface BarsInfo<HorzScaleItem> extends Partial<Range<HorzScaleItem>> {
      * Negative value means that the last series' bar is inside the passed logical range, and between the last series' bar and the {@link Range.to} logical index are some bars.
      */
     barsAfter: number;
-}
+} & Partial<Range<HorzScaleItem>>
 
 /**
  * Represents the interface for interacting with series.
  */
-export interface ISeriesApi<
+export type ISeriesApi<
     TSeriesType extends SeriesType,
     HorzScaleItem = Time,
     TData = SeriesDataItemTypeMap<HorzScaleItem>[TSeriesType],
     TOptions = SeriesOptionsMap[TSeriesType],
     TPartialOptions = SeriesPartialOptionsMap[TSeriesType],
-> {
+> = {
     /**
      * Returns current price formatter
      *

@@ -1,6 +1,6 @@
 import { type IChartApi, type MouseEventParams } from '@/lib/lightweight-charts/index';
 
-export interface PriceLevelData {
+export type PriceLevelData = {
     id: string;
     price: number;
     color: string;
@@ -9,7 +9,7 @@ export interface PriceLevelData {
     lineStyle: number; // 0 = solid, 1 = dotted, 2 = dashed
 }
 
-interface PriceLevelLine {
+type PriceLevelLine = {
     data: PriceLevelData;
     priceLine: any;
     labelDiv: HTMLDivElement;
@@ -19,16 +19,16 @@ export class PriceLevelManager {
     private chart: IChartApi;
     private series: any;
     private container: HTMLElement;
-    private isActive: boolean = false;
-    private levels: Map<string, PriceLevelLine> = new Map();
+    private isActive = false;
+    private levels = new Map<string, PriceLevelLine>();
     private clickHandler: ((param: MouseEventParams) => void) | null = null;
     private contextMenuDiv: HTMLDivElement | null = null;
     private inputDialog: HTMLDivElement | null = null;
     private onChangeCallback: (() => void) | null = null;
     private selectedLevelId: string | null = null;
     private keyDownHandler: ((event: KeyboardEvent) => void) | null = null;
-    private isDeserializing: boolean = false;
-    private isClearing: boolean = false;
+    private isDeserializing = false;
+    private isClearing = false;
 
     constructor(chart: IChartApi, series: any, container: HTMLElement) {
         this.chart = chart;
@@ -286,7 +286,7 @@ export class PriceLevelManager {
         this.closeInputDialog();
 
         // For existing levels, get from map; for new levels, use provided data
-        let level = this.levels.get(levelId);
+        const level = this.levels.get(levelId);
         let levelData: PriceLevelData;
 
         if (level) {

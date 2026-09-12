@@ -1,6 +1,6 @@
 import { type Callback, type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
 
-interface Listener<T1, T2, T3> {
+type Listener<T1, T2, T3> = {
     callback: Callback<T1, T2, T3>;
     linkedObject?: unknown;
     singleshot: boolean;

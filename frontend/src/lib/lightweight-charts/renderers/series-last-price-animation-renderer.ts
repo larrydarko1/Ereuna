@@ -4,7 +4,7 @@ import { type Point } from '@/lib/lightweight-charts/model/point';
 
 import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
 
-export interface LastPriceCircleRendererData {
+export type LastPriceCircleRendererData = {
     radius: number;
     fillColor: string;
     strokeColor: string;

@@ -32,7 +32,7 @@ import { type ITimeScaleApi } from '@/lib/lightweight-charts/api/itime-scale-api
  * Dimensions of the Chart Pane
  * (the main chart area which excludes the time and price scales).
  */
-export interface PaneSize {
+export type PaneSize = {
     /** Height of the Chart Pane (pixels) */
     height: number;
     /** Width of the Chart Pane (pixels) */
@@ -42,7 +42,7 @@ export interface PaneSize {
 /**
  * Represents a mouse event.
  */
-export interface MouseEventParams<HorzScaleItem = Time> {
+export type MouseEventParams<HorzScaleItem = Time> = {
     /**
      * Time of the data at the location of the mouse event.
      *
@@ -91,7 +91,7 @@ export type MouseEventHandler<HorzScaleItem> = (param: MouseEventParams<HorzScal
 /**
  * The main interface of a single chart.
  */
-export interface IChartApiBase<HorzScaleItem = Time> {
+export type IChartApiBase<HorzScaleItem = Time> = {
     /**
      * Removes the chart object including all DOM elements. This is an irreversible operation, you cannot do anything with the chart after removing it.
      */

@@ -1,13 +1,13 @@
 import { type IChartApi, type MouseEventParams, type Time } from '@/lib/lightweight-charts/index';
 
-export interface BoxPoint {
+export type BoxPoint = {
     time: Time;
     price: number;
     x: number;
     y: number;
 }
 
-export interface Box {
+export type Box = {
     id: string;
     point1: BoxPoint; // Top-left or first corner
     point2: BoxPoint; // Bottom-right or second corner
@@ -23,20 +23,20 @@ export class BoxManager {
     private mainSeries: any = null;
     private canvas: HTMLCanvasElement | null = null;
     private ctx: CanvasRenderingContext2D | null = null;
-    private isActive: boolean = false;
+    private isActive = false;
     private boxes: Box[] = [];
     private currentBox: { point1: BoxPoint | null; point2: BoxPoint | null } = {
         point1: null,
         point2: null,
     };
     private selectedBoxId: string | null = null;
-    private isDragging: boolean = false;
+    private isDragging = false;
     private dragTarget: { boxId: string; corner: 'tl' | 'tr' | 'bl' | 'br' | 'body' } | null = null;
     private dragOffset: { x: number; y: number } | null = null;
     private clickHandler: ((param: MouseEventParams<Time>) => void) | null = null;
     private moveHandler: ((param: MouseEventParams<Time>) => void) | null = null;
-    private defaultFillOpacity: number = 0.15;
-    private defaultBorderWidth: number = 1;
+    private defaultFillOpacity = 0.15;
+    private defaultBorderWidth = 1;
     private visibleRangeChangeHandler: (() => void) | null = null;
     private onChangeCallback: (() => void) | null = null;
     private onActivateCallback: (() => void) | null = null;

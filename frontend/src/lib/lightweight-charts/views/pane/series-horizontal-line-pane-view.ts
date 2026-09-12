@@ -23,7 +23,7 @@ export abstract class SeriesHorizontalLinePaneView implements IPaneView {
     protected readonly _series: ISeries<SeriesType>;
     protected readonly _model: IChartModelBase;
     protected readonly _lineRenderer: HorizontalLineRenderer = new HorizontalLineRenderer();
-    private _invalidated: boolean = true;
+    private _invalidated = true;
 
     protected constructor(series: ISeries<SeriesType>) {
         this._series = series;

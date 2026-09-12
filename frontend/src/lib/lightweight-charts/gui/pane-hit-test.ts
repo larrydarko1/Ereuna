@@ -8,19 +8,19 @@ import {
 import { type Pane } from '@/lib/lightweight-charts/model/pane';
 import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
 
-export interface HitTestResult {
+export type HitTestResult = {
     source: IPriceDataSource;
     object?: HoveredObject | undefined;
     view?: IPaneView | undefined;
     cursorStyle?: string | undefined;
 }
 
-export interface HitTestPaneViewResult {
+export type HitTestPaneViewResult = {
     view: IPaneView;
     object?: HoveredObject;
 }
 
-interface BestPrimitiveHit {
+type BestPrimitiveHit = {
     hit: PrimitiveHoveredItem;
     source: IPriceDataSource;
 }

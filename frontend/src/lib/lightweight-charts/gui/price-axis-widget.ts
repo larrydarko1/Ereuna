@@ -140,13 +140,13 @@ export class PriceAxisWidget implements IDestroyable {
     private readonly _topCanvasBinding: CanvasElementBitmapSizeBinding;
 
     private _mouseEventHandler: MouseEventHandler;
-    private _mousedown: boolean = false;
+    private _mousedown = false;
 
     private readonly _widthCache: TextWidthCache = new TextWidthCache(200);
 
     private _font: string | null = null;
-    private _prevOptimalWidth: number = 0;
-    private _isSettingSize: boolean = false;
+    private _prevOptimalWidth = 0;
+    private _isSettingSize = false;
 
     private _sourcePaneViews: IPriceAxisViewsGetter;
     private _sourceTopPaneViews: IPriceAxisViewsGetter;

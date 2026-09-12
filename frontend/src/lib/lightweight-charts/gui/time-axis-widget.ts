@@ -71,11 +71,11 @@ export class TimeAxisWidget<HorzScaleItem> implements MouseEventHandlers, IDestr
     private _rightStub: PriceAxisStub | null = null;
     private readonly _mouseEventHandler: MouseEventHandler;
     private _rendererOptions: TimeAxisViewRendererOptions | null = null;
-    private _mouseDown: boolean = false;
+    private _mouseDown = false;
     private _size: Size = size({ width: 0, height: 0 });
-    private readonly _sizeChanged: Delegate<Size> = new Delegate();
+    private readonly _sizeChanged = new Delegate<Size>();
     private readonly _widthCache: TextWidthCache = new TextWidthCache(5);
-    private _isSettingSize: boolean = false;
+    private _isSettingSize = false;
 
     private readonly _horzScaleBehavior: IHorzScaleBehavior<HorzScaleItem>;
 

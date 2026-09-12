@@ -9,10 +9,10 @@ import { type ISeriesApi } from '@/lib/lightweight-charts/api/iseries-api';
  * Object containing references to the chart and series instances, and a requestUpdate method for triggering
  * a refresh of the chart.
  */
-export interface SeriesAttachedParameter<
+export type SeriesAttachedParameter<
     HorzScaleItem = Time,
     TSeriesType extends SeriesType = keyof SeriesOptionsMap,
-> {
+> = {
     /**
      * Chart instance.
      */

@@ -1,5 +1,5 @@
 /** Interface to be implemented by the object in order to be used as a price formatter */
-export interface IPriceFormatter {
+export type IPriceFormatter = {
     /**
      * Formatting function
      *

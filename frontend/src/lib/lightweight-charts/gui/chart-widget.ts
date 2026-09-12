@@ -38,7 +38,7 @@ import {
 import { PaneWidget } from '@/lib/lightweight-charts/gui/pane-widget';
 import { TimeAxisWidget } from '@/lib/lightweight-charts/gui/time-axis-widget';
 
-export interface MouseEventParamsImpl {
+export type MouseEventParamsImpl = {
     originalTime?: unknown;
     index?: TimePointIndex | undefined;
     point?: Point | undefined;
@@ -52,7 +52,7 @@ export type MouseEventParamsImplSupplier = () => MouseEventParamsImpl;
 
 const windowsChrome = isChromiumBased() && isWindows();
 
-export interface IChartWidgetBase {
+export type IChartWidgetBase = {
     getPriceAxisWidth(position: DefaultPriceScaleId): number;
     model(): IChartModelBase;
     paneWidgets(): PaneWidget[];
@@ -65,19 +65,19 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
     private _paneWidgets: PaneWidget[] = [];
     // private _paneSeparators: PaneSeparator[] = [];
     private readonly _model: ChartModel<HorzScaleItem>;
-    private _drawRafId: number = 0;
-    private _height: number = 0;
-    private _width: number = 0;
-    private _leftPriceAxisWidth: number = 0;
-    private _rightPriceAxisWidth: number = 0;
+    private _drawRafId = 0;
+    private _height = 0;
+    private _width = 0;
+    private _leftPriceAxisWidth = 0;
+    private _rightPriceAxisWidth = 0;
     private _element: HTMLDivElement;
     private readonly _tableElement: HTMLElement;
     private _timeAxisWidget: TimeAxisWidget<HorzScaleItem>;
     private _invalidateMask: InvalidateMask | null = null;
-    private _drawPlanned: boolean = false;
-    private _clicked: Delegate<MouseEventParamsImplSupplier> = new Delegate();
-    private _dblClicked: Delegate<MouseEventParamsImplSupplier> = new Delegate();
-    private _crosshairMoved: Delegate<MouseEventParamsImplSupplier> = new Delegate();
+    private _drawPlanned = false;
+    private _clicked = new Delegate<MouseEventParamsImplSupplier>();
+    private _dblClicked = new Delegate<MouseEventParamsImplSupplier>();
+    private _crosshairMoved = new Delegate<MouseEventParamsImplSupplier>();
     private _onWheelBound: (event: WheelEvent) => void;
     private _observer: ResizeObserver | null = null;
 
@@ -196,7 +196,7 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         this._uninstallObserver();
     }
 
-    public resize(width: number, height: number, forceRepaint: boolean = false): void {
+    public resize(width: number, height: number, forceRepaint = false): void {
         if (this._height === height && this._width === width) {
             return;
         }
@@ -857,7 +857,7 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
                 'Options contains "autoSize" flag, but the browser does not support ResizeObserver feature. Please provide polyfill.',
             );
             return false;
-        } else {
+        } 
             this._observer = new ResizeObserver((entries: ResizeObserverEntry[]) => {
                 const containerEntry = entries.find((entry: ResizeObserverEntry) => entry.target === this._container);
                 if (!containerEntry) {
@@ -867,7 +867,7 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
             });
             this._observer.observe(this._container, { box: 'border-box' });
             return true;
-        }
+        
     }
 
     private _uninstallObserver(): void {

@@ -9,7 +9,7 @@ export type TimeFormatterFn<HorzScaleItem = Time> = (time: HorzScaleItem) => str
 /**
  * Represents basic localization options
  */
-export interface LocalizationOptionsBase {
+export type LocalizationOptionsBase = {
     /**
      * Current locale used to format dates. Uses the browser's language settings by default.
      *
@@ -37,7 +37,7 @@ export interface LocalizationOptionsBase {
 /**
  * Represents options for formatting dates, times, and prices according to a locale.
  */
-export interface LocalizationOptions<HorzScaleItem> extends LocalizationOptionsBase {
+export type LocalizationOptions<HorzScaleItem> = {
     /**
      * Override formatting of the time scale crosshair label.
      *
@@ -55,4 +55,4 @@ export interface LocalizationOptions<HorzScaleItem> extends LocalizationOptionsB
      * @defaultValue `'dd MMM \'yy'`
      */
     dateFormat: string;
-}
+} & LocalizationOptionsBase

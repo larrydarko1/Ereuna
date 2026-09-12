@@ -104,11 +104,11 @@ type CustomDataToPlotRowValueConverter<HorzScaleItem> = (
     item: CustomData<HorzScaleItem> | CustomSeriesWhitespaceData<HorzScaleItem>,
 ) => number[];
 
-export interface LastValueDataResultWithoutData {
+export type LastValueDataResultWithoutData = {
     noData: true;
 }
 
-export interface LastValueDataResultWithData {
+export type LastValueDataResultWithData = {
     noData: false;
 
     price: number;
@@ -122,7 +122,7 @@ export interface LastValueDataResultWithData {
 
 export type LastValueDataResult = LastValueDataResultWithoutData | LastValueDataResultWithData;
 
-export interface MarkerData {
+export type MarkerData = {
     price: BarPrice;
     radius: number;
     borderColor: string | null;
@@ -130,7 +130,7 @@ export interface MarkerData {
     backgroundColor: string;
 }
 
-export interface SeriesDataAtTypeMap {
+export type SeriesDataAtTypeMap = {
     Bar: BarPrices;
     Candlestick: BarPrices;
     Area: BarPrice;
@@ -140,7 +140,7 @@ export interface SeriesDataAtTypeMap {
     Custom: BarPrice;
 }
 
-export interface SeriesUpdateInfo {
+export type SeriesUpdateInfo = {
     lastBarUpdatedOrNewBarsAddedToTheRight: boolean;
 }
 
@@ -148,7 +148,7 @@ export interface SeriesUpdateInfo {
 export type SeriesOptionsInternal<T extends SeriesType = SeriesType> = SeriesOptionsMap[T];
 export type SeriesPartialOptionsInternal<T extends SeriesType = SeriesType> = SeriesPartialOptionsMap[T];
 
-export interface ISeries<T extends SeriesType> extends IPriceDataSource {
+export type ISeries<T extends SeriesType> = {
     bars(): SeriesPlotList<T>;
     visible(): boolean;
     options(): Readonly<SeriesOptionsMap[T]>;
@@ -159,7 +159,7 @@ export interface ISeries<T extends SeriesType> extends IPriceDataSource {
     barColorer(): ISeriesBarColorer<T>;
     markerDataAtIndex(index: TimePointIndex): MarkerData | null;
     dataAt(time: TimePointIndex): SeriesDataAtTypeMap[SeriesType] | null;
-}
+} & IPriceDataSource
 
 export class Series<T extends SeriesType> extends PriceDataSource implements IDestroyable, ISeries<SeriesType> {
     private readonly _seriesType: T;
@@ -286,7 +286,7 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
     }
 
     public options(): Readonly<SeriesOptionsMap[T]> {
-        return this._options as SeriesOptionsMap[T];
+        return this._options;
     }
 
     public applyOptions(options: SeriesPartialOptionsInternal<T>): void {
@@ -415,9 +415,9 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
                 low: prices.value[PlotRowValueIndex.Low] as BarPrice,
                 close: prices.value[PlotRowValueIndex.Close] as BarPrice,
             };
-        } else {
+        } 
             return prices.value[PlotRowValueIndex.Close] as BarPrice;
-        }
+        
     }
 
     public topPaneViews(_pane: Pane): readonly IPaneView[] {
