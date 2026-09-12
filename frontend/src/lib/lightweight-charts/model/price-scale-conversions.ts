@@ -1,4 +1,4 @@
-import { PriceRangeImpl } from './price-range-impl';
+import { PriceRangeImpl } from '@/lib/lightweight-charts/model/price-range-impl';
 
 export interface LogFormula {
     logicalOffset: number;

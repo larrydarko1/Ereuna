@@ -1,9 +1,9 @@
-import { ceiledOdd } from '../helpers/mathex';
+import { ceiledOdd } from '@/lib/lightweight-charts/helpers/mathex';
 
-import { Coordinate } from '../model/coordinate';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
-import { hitTestSquare } from './series-markers-square';
-import { BitmapShapeItemCoordinates, shapeSize } from './series-markers-utils';
+import { hitTestSquare } from '@/lib/lightweight-charts/renderers/series-markers-square';
+import { type BitmapShapeItemCoordinates, shapeSize } from '@/lib/lightweight-charts/renderers/series-markers-utils';
 
 export function drawArrow(
     up: boolean,
@@ -39,7 +39,7 @@ export function drawArrow(
 }
 
 export function hitTestArrow(
-    up: boolean,
+    _up: boolean,
     centerX: Coordinate,
     centerY: Coordinate,
     size: number,

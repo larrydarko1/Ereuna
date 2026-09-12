@@ -1,9 +1,9 @@
-import { lowerBound, upperBound } from '../helpers/algorithms';
-import { Nominal } from '../helpers/nominal';
+import { lowerBound, upperBound } from '@/lib/lightweight-charts/helpers/algorithms';
+import { type Nominal } from '@/lib/lightweight-charts/helpers/nominal';
 
-import { Coordinate } from './coordinate';
-import { InternalHorzScaleItem } from './ihorz-scale-behavior';
-import { RangeImpl } from './range-impl';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type InternalHorzScaleItem } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import { type RangeImpl } from '@/lib/lightweight-charts/model/range-impl';
 
 /**
  * Weight of the tick mark. @see TickMarkWeight enum
@@ -95,11 +95,13 @@ export function visibleTimedValues(
     let extendedFrom = from;
     let extendedTo = to;
 
-    if (from > 0 && from < items.length && items[from].time >= firstBar) {
+    const fromItem = items[from];
+    if (from > 0 && fromItem !== undefined && fromItem.time >= firstBar) {
         extendedFrom = from - 1;
     }
 
-    if (to > 0 && to < items.length && items[to - 1].time <= lastBar) {
+    const beforeToItem = items[to - 1];
+    if (to > 0 && to < items.length && beforeToItem !== undefined && beforeToItem.time <= lastBar) {
         extendedTo = to + 1;
     }
 

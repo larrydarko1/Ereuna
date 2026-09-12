@@ -1,9 +1,12 @@
-import { SeriesBarColorer } from '../../model/series-bar-colorer';
-import { SeriesPlotRow } from '../../model/series-data';
-import { TimePointIndex } from '../../model/time-data';
-import { CandlestickItem, PaneRendererCandlesticks } from '../../renderers/candlesticks-renderer';
+import { type SeriesBarColorer } from '@/lib/lightweight-charts/model/series-bar-colorer';
+import { type SeriesPlotRow } from '@/lib/lightweight-charts/model/series-data';
+import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
+import {
+    type CandlestickItem,
+    PaneRendererCandlesticks,
+} from '@/lib/lightweight-charts/renderers/candlesticks-renderer';
 
-import { BarsPaneViewBase } from './bars-pane-view-base';
+import { BarsPaneViewBase } from '@/lib/lightweight-charts/views/pane/bars-pane-view-base';
 
 export class SeriesCandlesticksPaneView extends BarsPaneViewBase<
     'Candlestick',

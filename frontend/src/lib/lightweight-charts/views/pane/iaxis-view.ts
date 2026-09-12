@@ -1,4 +1,4 @@
-import { IAxisRenderer } from '../../renderers/iaxis-view-renderer';
+import { type IAxisRenderer } from '@/lib/lightweight-charts/renderers/iaxis-view-renderer';
 
 export interface IAxisView {
     renderer(): IAxisRenderer | null;

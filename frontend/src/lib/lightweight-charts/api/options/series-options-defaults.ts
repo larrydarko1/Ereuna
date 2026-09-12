@@ -1,16 +1,16 @@
 import {
-    AreaStyleOptions,
-    BarStyleOptions,
-    BaselineStyleOptions,
-    CandlestickStyleOptions,
-    CustomStyleOptions,
-    HistogramStyleOptions,
+    type AreaStyleOptions,
+    type BarStyleOptions,
+    type BaselineStyleOptions,
+    type CandlestickStyleOptions,
+    type CustomStyleOptions,
+    type HistogramStyleOptions,
     LastPriceAnimationMode,
-    LineStyleOptions,
+    type LineStyleOptions,
     PriceLineSource,
-    SeriesOptionsCommon,
-} from '../../model/series-options';
-import { LineStyle, LineType } from '../../renderers/draw-line';
+    type SeriesOptionsCommon,
+} from '@/lib/lightweight-charts/model/series-options';
+import { LineStyle, LineType } from '@/lib/lightweight-charts/renderers/draw-line';
 
 export const candlestickStyleDefaults: CandlestickStyleOptions = {
     upColor: '#26a69a',

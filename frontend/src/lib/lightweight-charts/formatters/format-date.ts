@@ -1,4 +1,4 @@
-import { numberToStringWithLeadingZero as numToStr } from './price-formatter';
+import { numberToStringWithLeadingZero as numToStr } from '@/lib/lightweight-charts/formatters/price-formatter';
 
 const getMonth = (date: Date) => date.getUTCMonth() + 1;
 const getDay = (date: Date) => date.getUTCDate();

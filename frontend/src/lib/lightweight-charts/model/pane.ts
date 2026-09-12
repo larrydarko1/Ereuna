@@ -1,16 +1,21 @@
-import { assert, ensureDefined, ensureNotNull } from '../helpers/assertions';
-import { Delegate } from '../helpers/delegate';
-import { IDestroyable } from '../helpers/idestroyable';
-import { ISubscription } from '../helpers/isubscription';
-import { clone, DeepPartial } from '../helpers/strict-type-checks';
+import { assert, ensureDefined, ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
+import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
+import { type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
+import { clone, type DeepPartial } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { ChartOptionsBase, IChartModelBase, OverlayPriceScaleOptions, VisiblePriceScaleOptions } from './chart-model';
-import { DefaultPriceScaleId, isDefaultPriceScale } from './default-price-scale';
-import { Grid } from './grid';
-import { IPriceDataSource } from './iprice-data-source';
-import { PriceScale, PriceScaleOptions, PriceScaleState } from './price-scale';
-import { sortSources } from './sort-sources';
-import { ITimeScale } from './time-scale';
+import {
+    type ChartOptionsBase,
+    type IChartModelBase,
+    type OverlayPriceScaleOptions,
+    type VisiblePriceScaleOptions,
+} from '@/lib/lightweight-charts/model/chart-model';
+import { DefaultPriceScaleId, isDefaultPriceScale } from '@/lib/lightweight-charts/model/default-price-scale';
+import { Grid } from '@/lib/lightweight-charts/model/grid';
+import { type IPriceDataSource } from '@/lib/lightweight-charts/model/iprice-data-source';
+import { PriceScale, type PriceScaleOptions, type PriceScaleState } from '@/lib/lightweight-charts/model/price-scale';
+import { sortSources } from '@/lib/lightweight-charts/model/sort-sources';
+import { type ITimeScale } from '@/lib/lightweight-charts/model/time-scale';
 
 export const DEFAULT_STRETCH_FACTOR = 1000;
 
@@ -73,7 +78,7 @@ export class Pane implements IDestroyable {
         if (options.overlayPriceScales) {
             const sourceArrays = Array.from(this._overlaySourcesByScaleId.values());
             for (const arr of sourceArrays) {
-                const priceScale = ensureNotNull(arr[0].priceScale());
+                const priceScale = ensureNotNull(ensureDefined(arr[0]).priceScale());
                 priceScale.applyOptions(options.overlayPriceScales);
                 if (options.localization) {
                     priceScale.updateFormatter();
@@ -92,7 +97,7 @@ export class Pane implements IDestroyable {
             }
         }
         if (this._overlaySourcesByScaleId.has(id)) {
-            return ensureDefined(this._overlaySourcesByScaleId.get(id))[0].priceScale();
+            return ensureDefined(ensureDefined(this._overlaySourcesByScaleId.get(id))[0]).priceScale();
         }
         return null;
     }
@@ -265,8 +270,8 @@ export class Pane implements IDestroyable {
             priceScale = this._rightPriceScale;
         } else if (this._model.options().leftPriceScale.visible && this._leftPriceScale.dataSources().length !== 0) {
             priceScale = this._leftPriceScale;
-        } else if (this._dataSources.length !== 0) {
-            priceScale = this._dataSources[0].priceScale();
+        } else {
+            priceScale = this._dataSources[0]?.priceScale() ?? null;
         }
 
         if (priceScale === null) {
@@ -361,8 +366,7 @@ export class Pane implements IDestroyable {
 
         let minZOrder = 0;
         let maxZOrder = 0;
-        for (let j = 0; j < sources.length; j++) {
-            const ds = sources[j];
+        for (const ds of sources) {
             const zOrder = ds.zorder();
             if (zOrder !== null) {
                 if (zOrder < minZOrder) {

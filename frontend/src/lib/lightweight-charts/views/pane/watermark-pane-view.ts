@@ -1,10 +1,10 @@
-import { makeFont } from '../../helpers/make-font';
+import { makeFont } from '@/lib/lightweight-charts/helpers/make-font';
 
-import { Watermark } from '../../model/watermark';
-import { IPaneRenderer } from '../../renderers/ipane-renderer';
-import { WatermarkRenderer, WatermarkRendererData } from '../../renderers/watermark-renderer';
+import { type Watermark } from '@/lib/lightweight-charts/model/watermark';
+import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
+import { WatermarkRenderer, type WatermarkRendererData } from '@/lib/lightweight-charts/renderers/watermark-renderer';
 
-import { IUpdatablePaneView } from './iupdatable-pane-view';
+import { type IUpdatablePaneView } from '@/lib/lightweight-charts/views/pane/iupdatable-pane-view';
 
 export class WatermarkPaneView implements IUpdatablePaneView {
     private _source: Watermark;

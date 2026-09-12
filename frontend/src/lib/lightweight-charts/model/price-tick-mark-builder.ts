@@ -1,8 +1,8 @@
-import { min } from '../helpers/mathex';
+import { min } from '@/lib/lightweight-charts/helpers/mathex';
 
-import { Coordinate } from './coordinate';
-import { PriceMark, PriceScale } from './price-scale';
-import { PriceTickSpanCalculator } from './price-tick-span-calculator';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type PriceMark, type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
+import { PriceTickSpanCalculator } from '@/lib/lightweight-charts/model/price-tick-span-calculator';
 
 export type CoordinateToLogicalConverter = (x: number, firstValue: number) => number;
 export type LogicalToCoordinateConverter = (x: number, firstValue: number, keepItFloat: boolean) => number;
@@ -102,9 +102,10 @@ export class PriceTickMarkBuilder {
                 continue;
             }
 
-            if (targetIndex < this._marks.length) {
-                this._marks[targetIndex].coord = coord as Coordinate;
-                this._marks[targetIndex].label = priceScale.formatLogical(logical);
+            const existingMark = this._marks[targetIndex];
+            if (existingMark !== undefined) {
+                existingMark.coord = coord as Coordinate;
+                existingMark.label = priceScale.formatLogical(logical);
             } else {
                 this._marks.push({
                     coord: coord as Coordinate,

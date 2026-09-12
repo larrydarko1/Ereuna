@@ -1,4 +1,4 @@
-import { Nominal } from '../helpers/nominal';
+import { type Nominal } from '@/lib/lightweight-charts/helpers/nominal';
 
 /**
  * Represents a coordiate as a `number`.

@@ -1,10 +1,10 @@
-import { HorzAlign, VertAlign } from '../renderers/watermark-renderer';
-import { IPaneView } from '../views/pane/ipane-view';
-import { WatermarkPaneView } from '../views/pane/watermark-pane-view';
-import { IPriceAxisView } from '../views/price-axis/iprice-axis-view';
+import { type HorzAlign, type VertAlign } from '@/lib/lightweight-charts/renderers/watermark-renderer';
+import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
+import { WatermarkPaneView } from '@/lib/lightweight-charts/views/pane/watermark-pane-view';
+import { type IPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/iprice-axis-view';
 
-import { IChartModelBase } from './chart-model';
-import { DataSource } from './data-source';
+import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
+import { DataSource } from '@/lib/lightweight-charts/model/data-source';
 
 /** Watermark options. */
 export interface WatermarkOptions {
@@ -69,7 +69,7 @@ export class Watermark extends DataSource {
     private readonly _paneView: WatermarkPaneView;
     private readonly _options: WatermarkOptions;
 
-    public constructor(model: IChartModelBase, options: WatermarkOptions) {
+    public constructor(_model: IChartModelBase, options: WatermarkOptions) {
         super();
         this._options = options;
         this._paneView = new WatermarkPaneView(this);

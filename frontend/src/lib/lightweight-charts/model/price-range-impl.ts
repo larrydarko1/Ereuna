@@ -1,6 +1,6 @@
-import { isNumber } from '../helpers/strict-type-checks';
+import { isNumber } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { PriceRange } from './series-options';
+import { type PriceRange } from '@/lib/lightweight-charts/model/series-options';
 
 function computeFiniteResult(
     method: (...values: number[]) => number,

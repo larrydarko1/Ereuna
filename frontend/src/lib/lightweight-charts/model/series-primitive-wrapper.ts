@@ -1,27 +1,30 @@
-import { CanvasRenderingTarget2D } from 'fancy-canvas';
+import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
-import { IPaneRenderer } from '../renderers/ipane-renderer';
-import { PriceAxisViewRendererCommonData, PriceAxisViewRendererData } from '../renderers/iprice-axis-view-renderer';
-import { TimeAxisViewRenderer } from '../renderers/time-axis-view-renderer';
-import { IPaneView } from '../views/pane/ipane-view';
-import { IPriceAxisView } from '../views/price-axis/iprice-axis-view';
-import { PriceAxisView } from '../views/price-axis/price-axis-view';
-import { ITimeAxisView } from '../views/time-axis/itime-axis-view';
-
-import { Coordinate } from './coordinate';
+import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 import {
-    ISeriesPrimitiveAxisView,
-    ISeriesPrimitiveBase,
-    ISeriesPrimitivePaneRenderer,
-    ISeriesPrimitivePaneView,
-    PrimitiveHoveredItem,
-    SeriesPrimitivePaneViewZOrder,
-} from './iseries-primitive';
-import { PriceScale } from './price-scale';
-import { Series } from './series';
-import { AutoscaleInfo, SeriesType } from './series-options';
-import { Logical, TimePointIndex } from './time-data';
-import { ITimeScale } from './time-scale';
+    type PriceAxisViewRendererCommonData,
+    type PriceAxisViewRendererData,
+} from '@/lib/lightweight-charts/renderers/iprice-axis-view-renderer';
+import { TimeAxisViewRenderer } from '@/lib/lightweight-charts/renderers/time-axis-view-renderer';
+import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
+import { type IPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/iprice-axis-view';
+import { PriceAxisView } from '@/lib/lightweight-charts/views/price-axis/price-axis-view';
+import { type ITimeAxisView } from '@/lib/lightweight-charts/views/time-axis/itime-axis-view';
+
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import {
+    type ISeriesPrimitiveAxisView,
+    type ISeriesPrimitiveBase,
+    type ISeriesPrimitivePaneRenderer,
+    type ISeriesPrimitivePaneView,
+    type PrimitiveHoveredItem,
+    type SeriesPrimitivePaneViewZOrder,
+} from '@/lib/lightweight-charts/model/iseries-primitive';
+import { type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
+import { type Series } from '@/lib/lightweight-charts/model/series';
+import { type AutoscaleInfo, type SeriesType } from '@/lib/lightweight-charts/model/series-options';
+import { type Logical, type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
+import { type ITimeScale } from '@/lib/lightweight-charts/model/time-scale';
 
 class SeriesPrimitiveRendererWrapper implements IPaneRenderer {
     private readonly _baseRenderer: ISeriesPrimitivePaneRenderer;
@@ -30,11 +33,11 @@ class SeriesPrimitiveRendererWrapper implements IPaneRenderer {
         this._baseRenderer = baseRenderer;
     }
 
-    public draw(target: CanvasRenderingTarget2D, isHovered: boolean, hitTestData?: unknown): void {
+    public draw(target: CanvasRenderingTarget2D, _isHovered: boolean, _hitTestData?: unknown): void {
         this._baseRenderer.draw(target);
     }
 
-    public drawBackground?(target: CanvasRenderingTarget2D, isHovered: boolean, hitTestData?: unknown): void {
+    public drawBackground?(target: CanvasRenderingTarget2D, _isHovered: boolean, _hitTestData?: unknown): void {
         this._baseRenderer.drawBackground?.(target);
     }
 }
@@ -130,7 +133,7 @@ class SeriesPrimitivePriceAxisViewWrapper extends PriceAxisView {
 
     protected override _updateRendererData(
         axisRendererData: PriceAxisViewRendererData,
-        paneRendererData: PriceAxisViewRendererData,
+        _paneRendererData: PriceAxisViewRendererData,
         commonRendererData: PriceAxisViewRendererCommonData,
     ): void {
         const data = getAxisViewData(this._baseView);

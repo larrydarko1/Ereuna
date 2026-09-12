@@ -62,17 +62,13 @@ const runtimeOnly = (entries) => entries.map((entry) => ({ ...entry, allowTypeIm
 
 export default [
     {
-        // The vendored lightweight-charts fork is 208 files of upstream code held
-        // frozen, so linting it reports 3,460 problems about someone else's house
-        // style and 25 outright parse errors. Every custom gate in scripts/checks
-        // excludes it for the same reason; this is that exclusion.
         ignores: [
             '**/dist/',
             '**/node_modules/',
             'backups/',
             'coverage/',
             'playwright-report/',
-            'frontend/src/lib/lightweight-charts/',
+            'test-results/'
         ],
     },
     {

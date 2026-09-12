@@ -1,4 +1,4 @@
-import { LineStyle, LineWidth } from '../renderers/draw-line';
+import { type LineStyle, type LineWidth } from '@/lib/lightweight-charts/renderers/draw-line';
 
 /**
  * Represents a price line options.

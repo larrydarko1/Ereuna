@@ -1,13 +1,13 @@
-import { ensure } from '../helpers/assertions';
+import { ensure } from '@/lib/lightweight-charts/helpers/assertions';
 
-import { Coordinate } from './coordinate';
-import { CrosshairMode, CrosshairOptions } from './crosshair';
-import { IPriceDataSource } from './iprice-data-source';
-import { Pane } from './pane';
-import { PlotRowValueIndex } from './plot-data';
-import { ISeries, Series } from './series';
-import { SeriesType } from './series-options';
-import { TimePointIndex } from './time-data';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { CrosshairMode, type CrosshairOptions } from '@/lib/lightweight-charts/model/crosshair';
+import { type IPriceDataSource } from '@/lib/lightweight-charts/model/iprice-data-source';
+import { type Pane } from '@/lib/lightweight-charts/model/pane';
+import { PlotRowValueIndex } from '@/lib/lightweight-charts/model/plot-data';
+import { type ISeries, Series } from '@/lib/lightweight-charts/model/series';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
+import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 
 export class Magnet {
     private readonly _options: CrosshairOptions;
@@ -35,9 +35,7 @@ export class Magnet {
         const serieses: readonly ISeries<SeriesType>[] = pane
             .dataSources()
             .filter(
-                ((ds: IPriceDataSource) => ds instanceof Series<SeriesType>) as (
-                    ds: IPriceDataSource,
-                ) => ds is Series<SeriesType>,
+                ((ds: IPriceDataSource) => ds instanceof Series) as (ds: IPriceDataSource) => ds is Series<SeriesType>,
             );
 
         const candidates = serieses.reduce((acc: Coordinate[], series: ISeries<SeriesType>) => {
@@ -67,8 +65,10 @@ export class Magnet {
         candidates.sort((y1: Coordinate, y2: Coordinate) => Math.abs(y1 - y) - Math.abs(y2 - y));
 
         const nearest = candidates[0];
-        res = defaultPriceScale.coordinateToPrice(nearest, firstValue);
+        if (nearest === undefined) {
+            return res;
+        }
 
-        return res;
+        return defaultPriceScale.coordinateToPrice(nearest, firstValue);
     }
 }

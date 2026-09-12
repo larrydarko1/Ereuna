@@ -1,4 +1,4 @@
-import { IChartApi, MouseEventParams, Time } from './index';
+import { type IChartApi, type MouseEventParams, type Time } from '@/lib/lightweight-charts/index';
 
 export interface TextAnnotationPoint {
     time: Time;
@@ -34,7 +34,6 @@ export class TextAnnotationManager {
     private defaultBackgroundOpacity: number = 0.7;
     private textInput: HTMLInputElement | null = null;
     private visibleRangeChangeHandler: (() => void) | null = null;
-    private isEditingText: boolean = false;
     private onChangeCallback: (() => void) | null = null;
     private onActivateCallback: (() => void) | null = null;
     private globalClickHandler: ((param: MouseEventParams<Time>) => void) | null = null;
@@ -445,8 +444,6 @@ export class TextAnnotationManager {
         if (!this.ctx) return { x: 0, y: 0, width: 0, height: 0 };
 
         const ctx = this.ctx;
-        const styles = getComputedStyle(document.documentElement);
-        const textColor = styles.getPropertyValue('--color-text').trim() || annotation.textColor;
 
         ctx.font = `${annotation.fontSize}px Arial`;
         const metrics = ctx.measureText(annotation.text);

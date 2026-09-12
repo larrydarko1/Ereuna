@@ -1,5 +1,5 @@
-import { CrosshairMode, CrosshairOptions } from '../../model/crosshair';
-import { LineStyle } from '../../renderers/draw-line';
+import { CrosshairMode, type CrosshairOptions } from '@/lib/lightweight-charts/model/crosshair';
+import { LineStyle } from '@/lib/lightweight-charts/renderers/draw-line';
 
 export const crosshairOptionsDefaults: CrosshairOptions = {
     vertLine: {

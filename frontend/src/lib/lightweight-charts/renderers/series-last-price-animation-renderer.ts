@@ -1,8 +1,8 @@
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { Point } from '../model/point';
+import { type Point } from '@/lib/lightweight-charts/model/point';
 
-import { BitmapCoordinatesPaneRenderer } from './bitmap-coordinates-pane-renderer';
+import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
 
 export interface LastPriceCircleRendererData {
     radius: number;

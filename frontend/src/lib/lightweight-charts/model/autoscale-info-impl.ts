@@ -1,5 +1,5 @@
-import { PriceRangeImpl } from './price-range-impl';
-import { AutoscaleInfo } from './series-options';
+import { PriceRangeImpl } from '@/lib/lightweight-charts/model/price-range-impl';
+import { type AutoscaleInfo } from '@/lib/lightweight-charts/model/series-options';
 
 /**
  * Represents the margin used when updating a price scale.

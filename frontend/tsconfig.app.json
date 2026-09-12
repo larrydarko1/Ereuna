@@ -11,15 +11,7 @@
         "paths": {
             "@/*": ["./src/*"]
         },
-        "types": ["vite/client"],
-
-        /* Module System */
-        // Off because of the vendored lightweight-charts fork, which imports
-        // types as values in ~1,300 places. It is frozen third-party code, so
-        // rewriting every import in it is precisely what freezing it rules out.
-        // The bundler, which actually performs the transform, resolves these
-        // fine. Turn this back on if the fork is ever rebased or replaced.
-        "verbatimModuleSyntax": false
+        "types": ["vite/client"]
     },
     "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
 }

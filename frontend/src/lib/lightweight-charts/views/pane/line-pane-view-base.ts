@@ -1,18 +1,18 @@
-import { undefinedIfNull } from '../../helpers/strict-type-checks';
+import { undefinedIfNull } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { BarPrice } from '../../model/bar';
-import { IChartModelBase } from '../../model/chart-model';
-import { Coordinate } from '../../model/coordinate';
-import { PlotRowValueIndex } from '../../model/plot-data';
-import { PricedValue, PriceScale } from '../../model/price-scale';
-import { ISeries } from '../../model/series';
-import { ISeriesBarColorer } from '../../model/series-bar-colorer';
-import { SeriesPlotRow } from '../../model/series-data';
-import { TimedValue, TimePointIndex } from '../../model/time-data';
-import { ITimeScale } from '../../model/time-scale';
-import { IPaneRenderer } from '../../renderers/ipane-renderer';
+import { type BarPrice } from '@/lib/lightweight-charts/model/bar';
+import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { PlotRowValueIndex } from '@/lib/lightweight-charts/model/plot-data';
+import { type PricedValue, type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
+import { type ISeries } from '@/lib/lightweight-charts/model/series';
+import { type ISeriesBarColorer } from '@/lib/lightweight-charts/model/series-bar-colorer';
+import { type SeriesPlotRow } from '@/lib/lightweight-charts/model/series-data';
+import { type TimedValue, type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
+import { type ITimeScale } from '@/lib/lightweight-charts/model/time-scale';
+import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 
-import { SeriesPaneViewBase } from './series-pane-view-base';
+import { SeriesPaneViewBase } from '@/lib/lightweight-charts/views/pane/series-pane-view-base';
 
 export abstract class LinePaneViewBase<
     TSeriesType extends 'Line' | 'Area' | 'Baseline' | 'Histogram',

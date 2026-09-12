@@ -1,11 +1,11 @@
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { Coordinate } from '../model/coordinate';
-import { SeriesItemsIndexesRange } from '../model/time-data';
+import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type SeriesItemsIndexesRange } from '@/lib/lightweight-charts/model/time-data';
 
-import { LinePoint, LineType } from './draw-line';
+import { type LinePoint, LineType } from '@/lib/lightweight-charts/renderers/draw-line';
 
-// eslint-disable-next-line max-params, complexity
 export function walkLine<
     TItem extends LinePoint,
     TStyle extends CanvasRenderingContext2D['fillStyle'] | CanvasRenderingContext2D['strokeStyle'],
@@ -32,6 +32,10 @@ export function walkLine<
     const { context: ctx, horizontalPixelRatio, verticalPixelRatio } = renderingScope;
 
     const firstItem = items[visibleRange.from];
+    if (firstItem === undefined) {
+        return;
+    }
+
     let currentStyle = styleGetter(renderingScope, firstItem);
     let currentStyleFirstItem = firstItem;
 
@@ -62,7 +66,11 @@ export function walkLine<
         ctx.moveTo(firstItem.x * horizontalPixelRatio, firstItem.y * verticalPixelRatio);
 
         for (let i = visibleRange.from + 1; i < visibleRange.to; ++i) {
-            currentItem = items[i];
+            const item = items[i];
+            const previous = items[i - 1];
+            if (item === undefined || previous === undefined) continue;
+
+            currentItem = item;
             const itemStyle = styleGetter(renderingScope, currentItem);
 
             switch (lineType) {
@@ -70,11 +78,11 @@ export function walkLine<
                     ctx.lineTo(currentItem.x * horizontalPixelRatio, currentItem.y * verticalPixelRatio);
                     break;
                 case LineType.WithSteps:
-                    ctx.lineTo(currentItem.x * horizontalPixelRatio, items[i - 1].y * verticalPixelRatio);
+                    ctx.lineTo(currentItem.x * horizontalPixelRatio, previous.y * verticalPixelRatio);
 
                     if (itemStyle !== currentStyle) {
                         changeStyle(itemStyle, currentItem);
-                        ctx.lineTo(currentItem.x * horizontalPixelRatio, items[i - 1].y * verticalPixelRatio);
+                        ctx.lineTo(currentItem.x * horizontalPixelRatio, previous.y * verticalPixelRatio);
                     }
 
                     ctx.lineTo(currentItem.x * horizontalPixelRatio, currentItem.y * verticalPixelRatio);
@@ -130,16 +138,15 @@ export function getControlPoints(
     fromPointIndex: number,
     toPointIndex: number,
 ): [LinePoint, LinePoint] {
-    const beforeFromPointIndex = Math.max(0, fromPointIndex - 1);
-    const afterToPointIndex = Math.min(points.length - 1, toPointIndex + 1);
-    const cp1 = add(
-        points[fromPointIndex],
-        divide(subtract(points[toPointIndex], points[beforeFromPointIndex]), curveTension),
-    );
-    const cp2 = subtract(
-        points[toPointIndex],
-        divide(subtract(points[afterToPointIndex], points[fromPointIndex]), curveTension),
-    );
+    // The indices are clamped into range above, so the only way one of these is
+    // undefined is an empty `points`, which is not a case this can answer
+    const from = ensureDefined(points[fromPointIndex]);
+    const to = ensureDefined(points[toPointIndex]);
+    const beforeFrom = ensureDefined(points[Math.max(0, fromPointIndex - 1)]);
+    const afterTo = ensureDefined(points[Math.min(points.length - 1, toPointIndex + 1)]);
+
+    const cp1 = add(from, divide(subtract(to, beforeFrom), curveTension));
+    const cp2 = subtract(to, divide(subtract(afterTo, from), curveTension));
 
     return [cp1, cp2];
 }

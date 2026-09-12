@@ -32,7 +32,7 @@
         "format:check": "prettier --check \"**/*.{ts,vue,scss,json,md}\"",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
-        "typecheck": "npm -w packages/shared run typecheck && npm -w api run typecheck && npm -w ingestor run typecheck && npm -w worker run typecheck && tsc --noEmit -p e2e/tsconfig.json",
+        "typecheck": "npm -w packages/shared run typecheck && npm -w api run typecheck && npm -w ingestor run typecheck && npm -w worker run typecheck && npm -w frontend run typecheck && tsc --noEmit -p e2e/tsconfig.json",
         "test": "vitest run",
         "test:coverage": "vitest run --coverage",
         "test:e2e": "playwright test --config e2e/playwright.config.ts",

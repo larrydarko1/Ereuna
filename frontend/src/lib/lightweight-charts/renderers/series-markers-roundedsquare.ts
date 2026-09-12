@@ -1,6 +1,6 @@
-import { Coordinate } from '../model/coordinate';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
-import { BitmapShapeItemCoordinates, shapeSize } from './series-markers-utils';
+import { type BitmapShapeItemCoordinates, shapeSize } from '@/lib/lightweight-charts/renderers/series-markers-utils';
 
 export function drawRoundedSquare(
     ctx: CanvasRenderingContext2D,

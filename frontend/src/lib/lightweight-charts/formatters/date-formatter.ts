@@ -1,4 +1,4 @@
-import { formatDate } from './format-date';
+import { formatDate } from '@/lib/lightweight-charts/formatters/format-date';
 
 export class DateFormatter {
     private readonly _locale: string;

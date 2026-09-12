@@ -1,27 +1,28 @@
-import { lowerBound, upperBound } from '../helpers/algorithms';
-import { ensureNotNull } from '../helpers/assertions';
-import { Nominal } from '../helpers/nominal';
+import { lowerBound, upperBound } from '@/lib/lightweight-charts/helpers/algorithms';
+import { ensureDefined, ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { type Nominal } from '@/lib/lightweight-charts/helpers/nominal';
 
-import { PlotRow, PlotRowValueIndex } from './plot-data';
-import { TimePointIndex } from './time-data';
+import { type PlotRow, type PlotRowValueIndex } from '@/lib/lightweight-charts/model/plot-data';
+import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 
 /**
  * Search direction if no data found at provided index
  */
-export const enum MismatchDirection {
+export const MismatchDirection = {
     /**
      * Search the nearest left item
      */
-    NearestLeft = -1,
+    NearestLeft: -1,
     /**
      * Do not search
      */
-    None = 0,
+    None: 0,
     /**
      * Search the nearest right item
      */
-    NearestRight = 1,
-}
+    NearestRight: 1,
+} as const;
+export type MismatchDirection = (typeof MismatchDirection)[keyof typeof MismatchDirection];
 
 export interface MinMax {
     min: number;
@@ -44,7 +45,7 @@ export class PlotList<PlotRowType extends PlotRow = PlotRow> {
 
     // @returns Last row
     public last(): PlotRowType | null {
-        return this.size() > 0 ? this._items[this._items.length - 1] : null;
+        return this._items[this._items.length - 1] ?? null;
     }
 
     public firstIndex(): TimePointIndex | null {
@@ -117,11 +118,11 @@ export class PlotList<PlotRowType extends PlotRow = PlotRow> {
     }
 
     private _indexAt(offset: PlotRowIndex): TimePointIndex {
-        return this._items[offset].index;
+        return ensureDefined(this._items[offset]).index;
     }
 
     private _valueAt(offset: PlotRowIndex): PlotRowType {
-        return this._items[offset];
+        return ensureDefined(this._items[offset]);
     }
 
     private _search(index: TimePointIndex, searchMode: MismatchDirection): PlotRowIndex | null {
@@ -161,7 +162,8 @@ export class PlotList<PlotRowType extends PlotRow = PlotRow> {
 
     private _bsearch(index: TimePointIndex): PlotRowIndex | null {
         const start = this._lowerbound(index);
-        if (start !== this._items.length && !(index < this._items[start as PlotRowIndex].index)) {
+        const item = this._items[start as PlotRowIndex];
+        if (item !== undefined && !(index < item.index)) {
             return start as PlotRowIndex;
         }
 
@@ -184,9 +186,10 @@ export class PlotList<PlotRowType extends PlotRow = PlotRow> {
         let result: MinMax | null = null;
 
         for (let i = startIndex; i < endIndexExclusive; i++) {
-            const values = this._items[i].value;
+            const item = this._items[i];
+            if (item === undefined) continue;
 
-            const v = values[plotIndex];
+            const v = item.value[plotIndex];
             if (Number.isNaN(v)) {
                 continue;
             }

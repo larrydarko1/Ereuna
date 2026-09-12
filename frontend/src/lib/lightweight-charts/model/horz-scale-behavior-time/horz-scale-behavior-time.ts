@@ -1,33 +1,38 @@
-import { DateFormatter } from '../../formatters/date-formatter';
-import { DateTimeFormatter } from '../../formatters/date-time-formatter';
+import { DateFormatter } from '@/lib/lightweight-charts/formatters/date-formatter';
+import { DateTimeFormatter } from '@/lib/lightweight-charts/formatters/date-time-formatter';
 
-import { ensureNotNull } from '../../helpers/assertions';
-import { Mutable } from '../../helpers/mutable';
-import { DeepPartial, merge } from '../../helpers/strict-type-checks';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { type Mutable } from '@/lib/lightweight-charts/helpers/mutable';
+import { type DeepPartial, merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { SeriesDataItemTypeMap } from '../data-consumer';
+import { type SeriesDataItemTypeMap } from '@/lib/lightweight-charts/model/data-consumer';
 import {
-    DataItem,
-    HorzScaleItemConverterToInternalObj,
-    IHorzScaleBehavior,
-    InternalHorzScaleItem,
-    InternalHorzScaleItemKey,
-} from '../ihorz-scale-behavior';
-import { LocalizationOptions } from '../localization-options';
-import { SeriesType } from '../series-options';
-import { TickMark } from '../tick-marks';
-import { TickMarkWeightValue, TimeScalePoint } from '../time-data';
-import { markWithGreaterWeight, TimeMark } from '../time-scale';
-import { defaultTickMarkFormatter } from './default-tick-mark-formatter';
-import { TimeChartOptions } from './time-based-chart-options';
-import { fillWeightsForPoints } from './time-scale-point-weight-generator';
+    type DataItem,
+    type HorzScaleItemConverterToInternalObj,
+    type IHorzScaleBehavior,
+    type InternalHorzScaleItem,
+    type InternalHorzScaleItemKey,
+} from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import { type LocalizationOptions } from '@/lib/lightweight-charts/model/localization-options';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
+import { type TickMark } from '@/lib/lightweight-charts/model/tick-marks';
+import { type TickMarkWeightValue, type TimeScalePoint } from '@/lib/lightweight-charts/model/time-data';
+import { markWithGreaterWeight, type TimeMark } from '@/lib/lightweight-charts/model/time-scale';
+import { defaultTickMarkFormatter } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/default-tick-mark-formatter';
+import { type TimeChartOptions } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/time-based-chart-options';
+import { fillWeightsForPoints } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/time-scale-point-weight-generator';
 import {
     convertStringsToBusinessDays,
     convertStringToBusinessDay,
     convertTime,
     selectTimeConverter,
-} from './time-utils';
-import { TickMarkType, TickMarkWeight, Time, TimePoint } from './types';
+} from '@/lib/lightweight-charts/model/horz-scale-behavior-time/time-utils';
+import {
+    TickMarkType,
+    TickMarkWeight,
+    type Time,
+    type TimePoint,
+} from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
 
 /**
  * Represents options for formatting dates, times, and prices according to a locale.
@@ -59,8 +64,11 @@ interface TimeLocalizationOptions extends LocalizationOptions<Time> {
  */
 export type TickMarkFormatter = (time: Time, tickMarkType: TickMarkType, locale: string) => string | null;
 
-// eslint-disable-next-line complexity
-function weightToTickMarkType(weight: TickMarkWeight, timeVisible: boolean, secondsVisible: boolean): TickMarkType {
+function weightToTickMarkType(
+    weight: TickMarkWeightValue,
+    timeVisible: boolean,
+    secondsVisible: boolean,
+): TickMarkType {
     switch (weight) {
         case TickMarkWeight.LessThanSecond:
         case TickMarkWeight.Second:
@@ -87,6 +95,11 @@ function weightToTickMarkType(weight: TickMarkWeight, timeVisible: boolean, seco
 
         case TickMarkWeight.Year:
             return TickMarkType.Year;
+
+        default:
+            // A weight outside the known set. The switch used to fall through and
+            // return undefined against a signature that promised a TickMarkType
+            return TickMarkType.DayOfMonth;
     }
 }
 
@@ -118,7 +131,6 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
     }
 
     public key(item: InternalHorzScaleItem | Time): InternalHorzScaleItemKey {
-        // eslint-disable-next-line no-restricted-syntax
         if (typeof item === 'object' && 'timestamp' in item) {
             return (item as unknown as TimePoint).timestamp as unknown as InternalHorzScaleItemKey;
         } else {
@@ -188,7 +200,12 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
     }
 
     public maxTickMarkWeight(tickMarks: TimeMark[]): TickMarkWeightValue {
-        let maxWeight = tickMarks.reduce(markWithGreaterWeight, tickMarks[0]).weight;
+        const firstMark = tickMarks[0];
+        if (firstMark === undefined) {
+            return TickMarkWeight.LessThanSecond as TickMarkWeightValue;
+        }
+
+        let maxWeight = tickMarks.reduce(markWithGreaterWeight, firstMark).weight;
 
         // special case: it looks strange if 15:00 is bold but 14:00 is not
         // so if maxWeight > TickMarkWeight.Hour1 and < TickMarkWeight.Day reduce it to TickMarkWeight.Hour1

@@ -1,14 +1,14 @@
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { Coordinate } from '../model/coordinate';
-import { BaselineStrokeColorerStyle } from '../model/series-bar-colorer';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type BaselineStrokeColorerStyle } from '@/lib/lightweight-charts/model/series-bar-colorer';
 
-import { GradientStyleCache } from './gradient-style-cache';
+import { GradientStyleCache } from '@/lib/lightweight-charts/renderers/gradient-style-cache';
 import {
-    LineItemBase as LineStrokeItemBase,
+    type LineItemBase as LineStrokeItemBase,
     PaneRendererLineBase,
-    PaneRendererLineDataBase,
-} from './line-renderer-base';
+    type PaneRendererLineDataBase,
+} from '@/lib/lightweight-charts/renderers/line-renderer-base';
 
 export type BaselineStrokeItem = LineStrokeItemBase & BaselineStrokeColorerStyle;
 export interface PaneRendererBaselineLineData extends PaneRendererLineDataBase<BaselineStrokeItem> {
@@ -22,7 +22,6 @@ export class PaneRendererBaselineLine extends PaneRendererLineBase<PaneRendererB
         renderingScope: BitmapCoordinatesRenderingScope,
         item: BaselineStrokeItem,
     ): CanvasRenderingContext2D['strokeStyle'] {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const data = this._data!;
 
         return this._strokeCache.get(renderingScope, {

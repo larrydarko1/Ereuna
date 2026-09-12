@@ -1,9 +1,14 @@
-import { IDestroyable } from '../helpers/idestroyable';
-import { clamp } from '../helpers/mathex';
+import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
+import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
+import { clamp } from '@/lib/lightweight-charts/helpers/mathex';
 
-import { IChartWidgetBase } from './chart-widget';
-import { MouseEventHandler, MouseEventHandlers, TouchMouseEvent } from './mouse-event-handler';
-import { PaneWidget } from './pane-widget';
+import { type IChartWidgetBase } from '@/lib/lightweight-charts/gui/chart-widget';
+import {
+    MouseEventHandler,
+    type MouseEventHandlers,
+    type TouchMouseEvent,
+} from '@/lib/lightweight-charts/gui/mouse-event-handler';
+import { type PaneWidget } from '@/lib/lightweight-charts/gui/pane-widget';
 
 export const SEPARATOR_HEIGHT = 1;
 
@@ -31,8 +36,8 @@ export class PaneSeparator implements IDestroyable {
         disableResize: boolean,
     ) {
         this._chartWidget = chartWidget;
-        this._paneA = chartWidget.paneWidgets()[topPaneIndex];
-        this._paneB = chartWidget.paneWidgets()[bottomPaneIndex];
+        this._paneA = ensureDefined(chartWidget.paneWidgets()[topPaneIndex]);
+        this._paneB = ensureDefined(chartWidget.paneWidgets()[bottomPaneIndex]);
 
         this._rowElement = document.createElement('tr');
         this._rowElement.style.height = SEPARATOR_HEIGHT + 'px';
@@ -136,7 +141,7 @@ export class PaneSeparator implements IDestroyable {
         }
     }
 
-    private _mouseUpEvent(event: TouchMouseEvent): void {
+    private _mouseUpEvent(_event: TouchMouseEvent): void {
         this._startY = 0;
         this._deltaY = 0;
         this._totalHeight = 0;

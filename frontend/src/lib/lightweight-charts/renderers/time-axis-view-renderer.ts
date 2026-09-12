@@ -1,8 +1,15 @@
-import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D, MediaCoordinatesRenderingScope } from 'fancy-canvas';
+import {
+    type BitmapCoordinatesRenderingScope,
+    type CanvasRenderingTarget2D,
+    type MediaCoordinatesRenderingScope,
+} from 'fancy-canvas';
 
-import { ensureNotNull } from '../helpers/assertions';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
-import { ITimeAxisViewRenderer, TimeAxisViewRendererOptions } from './itime-axis-view-renderer';
+import {
+    type ITimeAxisViewRenderer,
+    type TimeAxisViewRendererOptions,
+} from '@/lib/lightweight-charts/renderers/itime-axis-view-renderer';
 
 export interface TimeAxisViewRendererData {
     width: number;

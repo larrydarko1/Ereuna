@@ -1,15 +1,19 @@
-import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D, MediaCoordinatesRenderingScope } from 'fancy-canvas';
+import {
+    type BitmapCoordinatesRenderingScope,
+    type CanvasRenderingTarget2D,
+    type MediaCoordinatesRenderingScope,
+} from 'fancy-canvas';
 
-import { drawRoundRectWithBorder } from '../helpers/canvas-helpers';
+import { drawRoundRectWithBorder } from '@/lib/lightweight-charts/helpers/canvas-helpers';
 
-import { TextWidthCache } from '../model/text-width-cache';
+import { type TextWidthCache } from '@/lib/lightweight-charts/model/text-width-cache';
 
 import {
-    IPriceAxisViewRenderer,
-    PriceAxisViewRendererCommonData,
-    PriceAxisViewRendererData,
-    PriceAxisViewRendererOptions,
-} from './iprice-axis-view-renderer';
+    type IPriceAxisViewRenderer,
+    type PriceAxisViewRendererCommonData,
+    type PriceAxisViewRendererData,
+    type PriceAxisViewRendererOptions,
+} from '@/lib/lightweight-charts/renderers/iprice-axis-view-renderer';
 
 interface Geometry {
     alignRight: boolean;
@@ -52,7 +56,7 @@ export class PriceAxisViewRenderer implements IPriceAxisViewRenderer {
         this._commonData = commonData;
     }
 
-    public height(rendererOptions: PriceAxisViewRendererOptions, useSecondLine: boolean): number {
+    public height(rendererOptions: PriceAxisViewRendererOptions, _useSecondLine: boolean): number {
         if (!this._data.visible) {
             return 0;
         }

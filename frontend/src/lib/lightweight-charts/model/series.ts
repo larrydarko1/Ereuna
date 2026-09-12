@@ -1,61 +1,77 @@
-import { IPriceFormatter } from '../formatters/iprice-formatter';
-import { PercentageFormatter } from '../formatters/percentage-formatter';
-import { PriceFormatter } from '../formatters/price-formatter';
-import { VolumeFormatter } from '../formatters/volume-formatter';
+import { type IPriceFormatter } from '@/lib/lightweight-charts/formatters/iprice-formatter';
+import { PercentageFormatter } from '@/lib/lightweight-charts/formatters/percentage-formatter';
+import { PriceFormatter } from '@/lib/lightweight-charts/formatters/price-formatter';
+import { VolumeFormatter } from '@/lib/lightweight-charts/formatters/volume-formatter';
 
-import { ensureDefined, ensureNotNull } from '../helpers/assertions';
-import { IDestroyable } from '../helpers/idestroyable';
-import { isInteger, merge } from '../helpers/strict-type-checks';
+import { ensureDefined, ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
+import { isInteger, merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { SeriesAreaPaneView } from '../views/pane/area-pane-view';
-import { SeriesBarsPaneView } from '../views/pane/bars-pane-view';
-import { SeriesBaselinePaneView } from '../views/pane/baseline-pane-view';
-import { SeriesCandlesticksPaneView } from '../views/pane/candlesticks-pane-view';
-import { SeriesCustomPaneView } from '../views/pane/custom-pane-view';
-import { SeriesHistogramPaneView } from '../views/pane/histogram-pane-view';
-import { IPaneView } from '../views/pane/ipane-view';
-import { IUpdatablePaneView } from '../views/pane/iupdatable-pane-view';
-import { SeriesLinePaneView } from '../views/pane/line-pane-view';
-import { PanePriceAxisView } from '../views/pane/pane-price-axis-view';
-import { SeriesHorizontalBaseLinePaneView } from '../views/pane/series-horizontal-base-line-pane-view';
-import { SeriesLastPriceAnimationPaneView } from '../views/pane/series-last-price-animation-pane-view';
-import { SeriesMarkersPaneView } from '../views/pane/series-markers-pane-view';
-import { SeriesPriceLinePaneView } from '../views/pane/series-price-line-pane-view';
-import { IPriceAxisView } from '../views/price-axis/iprice-axis-view';
-import { SeriesPriceAxisView } from '../views/price-axis/series-price-axis-view';
-import { ITimeAxisView } from '../views/time-axis/itime-axis-view';
+import { SeriesAreaPaneView } from '@/lib/lightweight-charts/views/pane/area-pane-view';
+import { SeriesBarsPaneView } from '@/lib/lightweight-charts/views/pane/bars-pane-view';
+import { SeriesBaselinePaneView } from '@/lib/lightweight-charts/views/pane/baseline-pane-view';
+import { SeriesCandlesticksPaneView } from '@/lib/lightweight-charts/views/pane/candlesticks-pane-view';
+import { SeriesCustomPaneView } from '@/lib/lightweight-charts/views/pane/custom-pane-view';
+import { SeriesHistogramPaneView } from '@/lib/lightweight-charts/views/pane/histogram-pane-view';
+import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
+import { type IUpdatablePaneView } from '@/lib/lightweight-charts/views/pane/iupdatable-pane-view';
+import { SeriesLinePaneView } from '@/lib/lightweight-charts/views/pane/line-pane-view';
+import { PanePriceAxisView } from '@/lib/lightweight-charts/views/pane/pane-price-axis-view';
+import { SeriesHorizontalBaseLinePaneView } from '@/lib/lightweight-charts/views/pane/series-horizontal-base-line-pane-view';
+import { SeriesLastPriceAnimationPaneView } from '@/lib/lightweight-charts/views/pane/series-last-price-animation-pane-view';
+import { SeriesMarkersPaneView } from '@/lib/lightweight-charts/views/pane/series-markers-pane-view';
+import { SeriesPriceLinePaneView } from '@/lib/lightweight-charts/views/pane/series-price-line-pane-view';
+import { type IPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/iprice-axis-view';
+import { SeriesPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/series-price-axis-view';
+import { type ITimeAxisView } from '@/lib/lightweight-charts/views/time-axis/itime-axis-view';
 
-import { AutoscaleInfoImpl, AutoScaleMargins } from './autoscale-info-impl';
-import { BarPrice, BarPrices } from './bar';
-import { IChartModelBase } from './chart-model';
-import { Coordinate } from './coordinate';
-import { CustomPriceLine } from './custom-price-line';
-import { isDefaultPriceScale } from './default-price-scale';
-import { CustomData, CustomSeriesWhitespaceData, ICustomSeriesPaneView, WhitespaceCheck } from './icustom-series';
-import { InternalHorzScaleItem } from './ihorz-scale-behavior';
-import { FirstValue, IPriceDataSource } from './iprice-data-source';
-import { ISeriesPrimitiveBase, PrimitiveHoveredItem, SeriesPrimitivePaneViewZOrder } from './iseries-primitive';
-import { Pane } from './pane';
-import { PlotRowValueIndex } from './plot-data';
-import { MismatchDirection } from './plot-list';
-import { PriceDataSource } from './price-data-source';
-import { PriceLineOptions } from './price-line-options';
-import { PriceRangeImpl } from './price-range-impl';
-import { PriceScale } from './price-scale';
-import { ISeriesBarColorer, SeriesBarColorer } from './series-bar-colorer';
-import { createSeriesPlotList, SeriesPlotList, SeriesPlotRow } from './series-data';
-import { InternalSeriesMarker, SeriesMarker } from './series-markers';
+import { AutoscaleInfoImpl, type AutoScaleMargins } from '@/lib/lightweight-charts/model/autoscale-info-impl';
+import { type BarPrice, type BarPrices } from '@/lib/lightweight-charts/model/bar';
+import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { CustomPriceLine } from '@/lib/lightweight-charts/model/custom-price-line';
+import { isDefaultPriceScale } from '@/lib/lightweight-charts/model/default-price-scale';
 import {
-    AreaStyleOptions,
-    BaselineStyleOptions,
-    HistogramStyleOptions,
-    LineStyleOptions,
-    SeriesOptionsMap,
-    SeriesPartialOptionsMap,
-    SeriesType,
-} from './series-options';
-import { ISeriesPrimitivePaneViewWrapper, SeriesPrimitiveWrapper } from './series-primitive-wrapper';
-import { TimePointIndex } from './time-data';
+    type CustomData,
+    type CustomSeriesWhitespaceData,
+    type ICustomSeriesPaneView,
+    type WhitespaceCheck,
+} from '@/lib/lightweight-charts/model/icustom-series';
+import { type InternalHorzScaleItem } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import { type FirstValue, type IPriceDataSource } from '@/lib/lightweight-charts/model/iprice-data-source';
+import {
+    type ISeriesPrimitiveBase,
+    type PrimitiveHoveredItem,
+    type SeriesPrimitivePaneViewZOrder,
+} from '@/lib/lightweight-charts/model/iseries-primitive';
+import { type Pane } from '@/lib/lightweight-charts/model/pane';
+import { PlotRowValueIndex } from '@/lib/lightweight-charts/model/plot-data';
+import { MismatchDirection } from '@/lib/lightweight-charts/model/plot-list';
+import { PriceDataSource } from '@/lib/lightweight-charts/model/price-data-source';
+import { type PriceLineOptions } from '@/lib/lightweight-charts/model/price-line-options';
+import { PriceRangeImpl } from '@/lib/lightweight-charts/model/price-range-impl';
+import { type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
+import { type ISeriesBarColorer, SeriesBarColorer } from '@/lib/lightweight-charts/model/series-bar-colorer';
+import {
+    createSeriesPlotList,
+    type SeriesPlotList,
+    type SeriesPlotRow,
+} from '@/lib/lightweight-charts/model/series-data';
+import { type InternalSeriesMarker, type SeriesMarker } from '@/lib/lightweight-charts/model/series-markers';
+import {
+    type AreaStyleOptions,
+    type BaselineStyleOptions,
+    type HistogramStyleOptions,
+    type LineStyleOptions,
+    type SeriesOptionsMap,
+    type SeriesPartialOptionsMap,
+    type SeriesType,
+} from '@/lib/lightweight-charts/model/series-options';
+import {
+    type ISeriesPrimitivePaneViewWrapper,
+    SeriesPrimitiveWrapper,
+} from '@/lib/lightweight-charts/model/series-primitive-wrapper';
+import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 
 type PrimitivePaneViewExtractor = (wrapper: SeriesPrimitiveWrapper) => readonly ISeriesPrimitivePaneViewWrapper[];
 function extractPrimitivePaneViews(
@@ -170,7 +186,7 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
         model: IChartModelBase,
         options: SeriesOptionsInternal<T>,
         seriesType: T,
-        pane?: Pane,
+        _pane?: Pane,
         customPaneView?: ICustomSeriesPaneView<unknown>,
     ) {
         super(model);
@@ -404,7 +420,7 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
         }
     }
 
-    public topPaneViews(pane: Pane): readonly IPaneView[] {
+    public topPaneViews(_pane: Pane): readonly IPaneView[] {
         const res: IPaneView[] = [];
         extractPrimitivePaneViews(this._primitives, primitivePaneViewsExtractor, 'top', res);
         const animationPaneView = this._lastPriceAnimationPaneView;
@@ -458,14 +474,14 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
             .filter((result: PrimitiveHoveredItem | null): result is PrimitiveHoveredItem => result !== null);
     }
 
-    public override labelPaneViews(pane?: Pane): readonly IPaneView[] {
+    public override labelPaneViews(_pane?: Pane): readonly IPaneView[] {
         return [
             this._panePriceAxisView,
             ...this._customPriceLines.map((line: CustomPriceLine) => line.labelPaneView()),
         ];
     }
 
-    public override priceAxisViews(pane: Pane, priceScale: PriceScale): readonly IPriceAxisView[] {
+    public override priceAxisViews(_pane: Pane, priceScale: PriceScale): readonly IPriceAxisView[] {
         if (priceScale !== this._priceScale && !this._isOverlay()) {
             return [];
         }

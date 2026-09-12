@@ -1,14 +1,14 @@
-import { PriceScale } from '../../model/price-scale';
+import { type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
 import {
-    IPriceAxisViewRenderer,
-    IPriceAxisViewRendererConstructor,
-    PriceAxisViewRendererCommonData,
-    PriceAxisViewRendererData,
-    PriceAxisViewRendererOptions,
-} from '../../renderers/iprice-axis-view-renderer';
-import { PriceAxisViewRenderer } from '../../renderers/price-axis-view-renderer';
+    type IPriceAxisViewRenderer,
+    type IPriceAxisViewRendererConstructor,
+    type PriceAxisViewRendererCommonData,
+    type PriceAxisViewRendererData,
+    type PriceAxisViewRendererOptions,
+} from '@/lib/lightweight-charts/renderers/iprice-axis-view-renderer';
+import { PriceAxisViewRenderer } from '@/lib/lightweight-charts/renderers/price-axis-view-renderer';
 
-import { IPriceAxisView } from './iprice-axis-view';
+import { type IPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/iprice-axis-view';
 
 export abstract class PriceAxisView implements IPriceAxisView {
     private readonly _commonRendererData: PriceAxisViewRendererCommonData = {

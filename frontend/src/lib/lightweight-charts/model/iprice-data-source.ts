@@ -1,10 +1,10 @@
-import { IPriceFormatter } from '../formatters/iprice-formatter';
+import { type IPriceFormatter } from '@/lib/lightweight-charts/formatters/iprice-formatter';
 
-import { AutoscaleInfoImpl } from './autoscale-info-impl';
-import { IChartModelBase } from './chart-model';
-import { IDataSource } from './idata-source';
-import { InternalHorzScaleItem } from './ihorz-scale-behavior';
-import { TimePointIndex } from './time-data';
+import { type AutoscaleInfoImpl } from '@/lib/lightweight-charts/model/autoscale-info-impl';
+import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
+import { type IDataSource } from '@/lib/lightweight-charts/model/idata-source';
+import { type InternalHorzScaleItem } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 
 export interface FirstValue {
     value: number;

@@ -1,9 +1,13 @@
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { PricedValue } from '../model/price-scale';
-import { SeriesItemsIndexesRange, TimedValue, TimePointIndex } from '../model/time-data';
+import { type PricedValue } from '@/lib/lightweight-charts/model/price-scale';
+import {
+    type SeriesItemsIndexesRange,
+    type TimedValue,
+    type TimePointIndex,
+} from '@/lib/lightweight-charts/model/time-data';
 
-import { BitmapCoordinatesPaneRenderer } from './bitmap-coordinates-pane-renderer';
+import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
 
 const showSpacingMinimalBarWidth = 1;
 const alignToMinimalWidthLimit = 4;
@@ -58,6 +62,8 @@ export class PaneRendererHistogram extends BitmapCoordinatesPaneRenderer {
         for (let i = this._data.visibleRange.from; i < this._data.visibleRange.to; i++) {
             const item = this._data.items[i];
             const current = this._precalculatedCache[i - this._data.visibleRange.from];
+            if (item === undefined || current === undefined) continue;
+
             const y = Math.round(item.y * verticalPixelRatio);
             ctx.fillStyle = item.barColor;
 
@@ -76,7 +82,6 @@ export class PaneRendererHistogram extends BitmapCoordinatesPaneRenderer {
         }
     }
 
-    // eslint-disable-next-line complexity
     private _fillPrecalculatedCache(pixelRatio: number): void {
         if (this._data === null || this._data.items.length === 0 || this._data.visibleRange === null) {
             this._precalculatedCache = [];
@@ -92,7 +97,8 @@ export class PaneRendererHistogram extends BitmapCoordinatesPaneRenderer {
 
         for (let i = this._data.visibleRange.from; i < this._data.visibleRange.to; i++) {
             const item = this._data.items[i];
-            // force cast to avoid ensureDefined call
+            if (item === undefined) continue;
+
             const x = Math.round(item.x * pixelRatio);
             let left: number;
             let right: number;
@@ -120,6 +126,8 @@ export class PaneRendererHistogram extends BitmapCoordinatesPaneRenderer {
         for (let i = this._data.visibleRange.from + 1; i < this._data.visibleRange.to; i++) {
             const current = this._precalculatedCache[i - this._data.visibleRange.from];
             const prev = this._precalculatedCache[i - this._data.visibleRange.from - 1];
+            if (current === undefined || prev === undefined) continue;
+
             if (current.time !== prev.time + 1) {
                 continue;
             }
@@ -138,6 +146,8 @@ export class PaneRendererHistogram extends BitmapCoordinatesPaneRenderer {
         let minWidth = Math.ceil(this._data.barSpacing * pixelRatio);
         for (let i = this._data.visibleRange.from; i < this._data.visibleRange.to; i++) {
             const current = this._precalculatedCache[i - this._data.visibleRange.from];
+            if (current === undefined) continue;
+
             // this could happen if barspacing < 1
             if (current.right < current.left) {
                 current.right = current.left;
@@ -149,6 +159,8 @@ export class PaneRendererHistogram extends BitmapCoordinatesPaneRenderer {
         if (spacing > 0 && minWidth < alignToMinimalWidthLimit) {
             for (let i = this._data.visibleRange.from; i < this._data.visibleRange.to; i++) {
                 const current = this._precalculatedCache[i - this._data.visibleRange.from];
+                if (current === undefined) continue;
+
                 const width = current.right - current.left + 1;
                 if (width > minWidth) {
                     if (current.roundedCenter > current.center) {

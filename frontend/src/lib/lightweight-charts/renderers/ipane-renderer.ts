@@ -1,7 +1,7 @@
-import { CanvasRenderingTarget2D } from 'fancy-canvas';
+import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
-import { HoveredObject } from '../model/chart-model';
-import { Coordinate } from '../model/coordinate';
+import { type HoveredObject } from '@/lib/lightweight-charts/model/chart-model';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
 export interface IPaneRenderer {
     draw(target: CanvasRenderingTarget2D, isHovered: boolean, hitTestData?: unknown): void;

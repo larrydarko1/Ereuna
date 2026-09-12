@@ -1,6 +1,6 @@
-import { defaultFontFamily } from '../../helpers/make-font';
+import { defaultFontFamily } from '@/lib/lightweight-charts/helpers/make-font';
 
-import { ColorType, LayoutOptions } from '../../model/layout-options';
+import { ColorType, type LayoutOptions } from '@/lib/lightweight-charts/model/layout-options';
 
 export const layoutOptionsDefaults: LayoutOptions = {
     background: {

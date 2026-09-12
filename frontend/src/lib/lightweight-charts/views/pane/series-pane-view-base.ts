@@ -1,12 +1,16 @@
-import { IChartModelBase } from '../../model/chart-model';
-import { PriceScale } from '../../model/price-scale';
-import { ISeries } from '../../model/series';
-import { SeriesType } from '../../model/series-options';
-import { SeriesItemsIndexesRange, TimedValue, visibleTimedValues } from '../../model/time-data';
-import { ITimeScale } from '../../model/time-scale';
-import { IPaneRenderer } from '../../renderers/ipane-renderer';
+import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
+import { type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
+import { type ISeries } from '@/lib/lightweight-charts/model/series';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
+import {
+    type SeriesItemsIndexesRange,
+    type TimedValue,
+    visibleTimedValues,
+} from '@/lib/lightweight-charts/model/time-data';
+import { type ITimeScale } from '@/lib/lightweight-charts/model/time-scale';
+import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 
-import { IUpdatablePaneView, UpdateType } from './iupdatable-pane-view';
+import { type IUpdatablePaneView, type UpdateType } from '@/lib/lightweight-charts/views/pane/iupdatable-pane-view';
 
 export abstract class SeriesPaneViewBase<
     TSeriesType extends SeriesType,

@@ -1,42 +1,46 @@
-import { assert } from '../../helpers/assertions';
-import { applyAlpha } from '../../helpers/color';
+import { assert } from '@/lib/lightweight-charts/helpers/assertions';
+import { applyAlpha } from '@/lib/lightweight-charts/helpers/color';
 
-import { Point } from '../../model/point';
-import { ISeries } from '../../model/series';
-import { LastPriceAnimationMode } from '../../model/series-options';
-import { IPaneRenderer } from '../../renderers/ipane-renderer';
-import { SeriesLastPriceAnimationRenderer } from '../../renderers/series-last-price-animation-renderer';
+import { type Point } from '@/lib/lightweight-charts/model/point';
+import { type ISeries } from '@/lib/lightweight-charts/model/series';
+import { LastPriceAnimationMode } from '@/lib/lightweight-charts/model/series-options';
+import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
+import { SeriesLastPriceAnimationRenderer } from '@/lib/lightweight-charts/renderers/series-last-price-animation-renderer';
 
-import { IUpdatablePaneView } from './iupdatable-pane-view';
+import { type IUpdatablePaneView } from '@/lib/lightweight-charts/views/pane/iupdatable-pane-view';
 
-const enum Constants {
-    AnimationPeriod = 2600,
+const Constants = {
+    AnimationPeriod: 2600,
 
-    Stage1Period = 0.25,
-    Stage2Period = 0.275,
-    Stage3Period = 0.475,
+    Stage1Period: 0.25,
+    Stage2Period: 0.275,
+    Stage3Period: 0.475,
 
-    Stage1StartCircleRadius = 4,
-    Stage1EndCircleRadius = 10,
-    Stage1StartFillAlpha = 0.25,
-    Stage1EndFillAlpha = 0,
-    Stage1StartStrokeAlpha = 0.4,
-    Stage1EndStrokeAlpha = 0.8,
+    Stage1StartCircleRadius: 4,
+    Stage1EndCircleRadius: 10,
+    Stage1StartFillAlpha: 0.25,
+    Stage1EndFillAlpha: 0,
+    Stage1StartStrokeAlpha: 0.4,
+    Stage1EndStrokeAlpha: 0.8,
 
-    Stage2StartCircleRadius = Stage1EndCircleRadius,
-    Stage2EndCircleRadius = 14,
-    Stage2StartFillAlpha = Stage1EndFillAlpha,
-    Stage2EndFillAlpha = 0,
-    Stage2StartStrokeAlpha = Stage1EndStrokeAlpha,
-    Stage2EndStrokeAlpha = 0,
+    // Each stage starts where the previous one ended, so the animation is
+    // continuous. These were sibling references while this was an enum; an
+    // object literal cannot name itself, so they are written out
+    Stage2StartCircleRadius: 10,
+    Stage2EndCircleRadius: 14,
+    Stage2StartFillAlpha: 0,
+    Stage2EndFillAlpha: 0,
+    Stage2StartStrokeAlpha: 0.8,
+    Stage2EndStrokeAlpha: 0,
 
-    Stage3StartCircleRadius = Stage2EndCircleRadius,
-    Stage3EndCircleRadius = Stage2EndCircleRadius,
-    Stage3StartFillAlpha = Stage2EndFillAlpha,
-    Stage3EndFillAlpha = Stage2EndFillAlpha,
-    Stage3StartStrokeAlpha = Stage2EndStrokeAlpha,
-    Stage3EndStrokeAlpha = Stage2EndStrokeAlpha,
-}
+    Stage3StartCircleRadius: 14,
+    Stage3EndCircleRadius: 14,
+    Stage3StartFillAlpha: 0,
+    Stage3EndFillAlpha: 0,
+    Stage3StartStrokeAlpha: 0,
+    Stage3EndStrokeAlpha: 0,
+} as const;
+type Constants = (typeof Constants)[keyof typeof Constants];
 
 interface AnimationStageData {
     start: number;

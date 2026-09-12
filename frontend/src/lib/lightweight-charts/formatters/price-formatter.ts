@@ -1,6 +1,6 @@
-import { isInteger, isNumber } from '../helpers/strict-type-checks';
+import { isInteger, isNumber } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { IPriceFormatter } from './iprice-formatter';
+import { type IPriceFormatter } from '@/lib/lightweight-charts/formatters/iprice-formatter';
 
 const formatterOptions = {
     decimalSign: '.',

@@ -1,13 +1,13 @@
-import { isRunningOnClientSide } from '../../helpers/is-running-on-client-side';
+import { isRunningOnClientSide } from '@/lib/lightweight-charts/helpers/is-running-on-client-side';
 
-import { ChartOptionsInternal, TrackingModeExitMode } from '../../model/chart-model';
+import { type ChartOptionsInternal, TrackingModeExitMode } from '@/lib/lightweight-charts/model/chart-model';
 
-import { crosshairOptionsDefaults } from './crosshair-options-defaults';
-import { gridOptionsDefaults } from './grid-options-defaults';
-import { layoutOptionsDefaults } from './layout-options-defaults';
-import { priceScaleOptionsDefaults } from './price-scale-options-defaults';
-import { timeScaleOptionsDefaults } from './time-scale-options-defaults';
-import { watermarkOptionsDefaults } from './watermark-options-defaults';
+import { crosshairOptionsDefaults } from '@/lib/lightweight-charts/api/options/crosshair-options-defaults';
+import { gridOptionsDefaults } from '@/lib/lightweight-charts/api/options/grid-options-defaults';
+import { layoutOptionsDefaults } from '@/lib/lightweight-charts/api/options/layout-options-defaults';
+import { priceScaleOptionsDefaults } from '@/lib/lightweight-charts/api/options/price-scale-options-defaults';
+import { timeScaleOptionsDefaults } from '@/lib/lightweight-charts/api/options/time-scale-options-defaults';
+import { watermarkOptionsDefaults } from '@/lib/lightweight-charts/api/options/watermark-options-defaults';
 
 export function chartOptionsDefaults<HorzScaleItem>(): ChartOptionsInternal<HorzScaleItem> {
     return {

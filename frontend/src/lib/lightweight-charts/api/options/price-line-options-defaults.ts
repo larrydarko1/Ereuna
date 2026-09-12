@@ -1,5 +1,5 @@
-import { PriceLineOptions } from '../../model/price-line-options';
-import { LineStyle } from '../../renderers/draw-line';
+import { type PriceLineOptions } from '@/lib/lightweight-charts/model/price-line-options';
+import { LineStyle } from '@/lib/lightweight-charts/renderers/draw-line';
 
 export const priceLineOptionsDefaults: PriceLineOptions = {
     color: '#FF0000',

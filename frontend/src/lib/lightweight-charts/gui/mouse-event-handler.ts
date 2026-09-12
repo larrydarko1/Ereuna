@@ -1,11 +1,11 @@
-import { ensureNotNull } from '../helpers/assertions';
-import { isFF, isIOS } from '../helpers/browsers';
-import { preventScrollByWheelClick } from '../helpers/events';
-import { MouseEventButton } from '../helpers/mouse-event-button';
-import { IDestroyable } from '../helpers/idestroyable';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { isFF, isIOS } from '@/lib/lightweight-charts/helpers/browsers';
+import { preventScrollByWheelClick } from '@/lib/lightweight-charts/helpers/events';
+import { MouseEventButton } from '@/lib/lightweight-charts/helpers/mouse-event-button';
+import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
 
-import { Coordinate } from '../model/coordinate';
-import { TouchMouseEventData } from '../model/touch-mouse-event-data';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type TouchMouseEventData } from '@/lib/lightweight-charts/model/touch-mouse-event-data';
 
 export type HandlerMouseEventCallback = (event: MouseEventHandlerMouseEvent) => void;
 export type HandlerTouchEventCallback = (event: MouseEventHandlerTouchEvent) => void;
@@ -68,18 +68,20 @@ export interface Position {
 
 // we can use `const name = 500;` but with `const enum` this values will be inlined into code
 // so we do not need to have it as variables
-const enum Delay {
-    ResetClick = 500,
-    LongTap = 240,
-    PreventFiresTouchEvents = 500,
-}
+const Delay = {
+    ResetClick: 500,
+    LongTap: 240,
+    PreventFiresTouchEvents: 500,
+} as const;
+type Delay = (typeof Delay)[keyof typeof Delay];
 
-const enum Constants {
-    CancelClickManhattanDistance = 5,
-    CancelTapManhattanDistance = 5,
-    DoubleClickManhattanDistance = 5,
-    DoubleTapManhattanDistance = 30,
-}
+const Constants = {
+    CancelClickManhattanDistance: 5,
+    CancelTapManhattanDistance: 5,
+    DoubleClickManhattanDistance: 5,
+    DoubleTapManhattanDistance: 30,
+} as const;
+type Constants = (typeof Constants)[keyof typeof Constants];
 
 export interface MouseEventHandlerOptions {
     treatVertTouchDragAsPageScroll: () => boolean;
@@ -396,13 +398,12 @@ export class MouseEventHandler implements IDestroyable {
         }
     };
 
-    // eslint-disable-next-line complexity
     private _touchEndHandler(touchEndEvent: TouchEvent): void {
         let touch = touchWithId(touchEndEvent.changedTouches, ensureNotNull(this._activeTouchId));
         if (touch === null && touchEndEvent.touches.length === 0) {
             // something went wrong, somehow we missed the required touchend event
             // probably the browser has not sent this event
-            touch = touchEndEvent.changedTouches[0];
+            touch = touchEndEvent.changedTouches[0] ?? null;
         }
 
         if (touch === null) {
@@ -515,6 +516,10 @@ export class MouseEventHandler implements IDestroyable {
             return;
         }
         const touch = downEvent.changedTouches[0];
+        if (touch === undefined) {
+            return;
+        }
+
         this._activeTouchId = touch.identifier;
 
         this._lastTouchEventTimeStamp = eventTimeStamp(downEvent);
@@ -686,8 +691,9 @@ export class MouseEventHandler implements IDestroyable {
                     return;
                 }
 
-                if (this._handler.pinchEvent !== undefined) {
-                    const currentDistance = getDistance(event.touches[0], event.touches[1]);
+                const [firstTouch, secondTouch] = event.touches;
+                if (this._handler.pinchEvent !== undefined && firstTouch !== undefined && secondTouch !== undefined) {
+                    const currentDistance = getDistance(firstTouch, secondTouch);
                     const scale = currentDistance / this._startPinchDistance;
                     this._handler.pinchEvent(this._startPinchMiddlePoint, scale);
                     preventDefault(event);
@@ -714,13 +720,18 @@ export class MouseEventHandler implements IDestroyable {
     }
 
     private _startPinch(touches: TouchList): void {
+        const [firstTouch, secondTouch] = touches;
+        if (firstTouch === undefined || secondTouch === undefined) {
+            return;
+        }
+
         const box = getBoundingClientRect(this._target);
         this._startPinchMiddlePoint = {
-            x: (touches[0].clientX - box.left + (touches[1].clientX - box.left)) / 2,
-            y: (touches[0].clientY - box.top + (touches[1].clientY - box.top)) / 2,
+            x: (firstTouch.clientX - box.left + (secondTouch.clientX - box.left)) / 2,
+            y: (firstTouch.clientY - box.top + (secondTouch.clientY - box.top)) / 2,
         };
 
-        this._startPinchDistance = getDistance(touches[0], touches[1]);
+        this._startPinchDistance = getDistance(firstTouch, secondTouch);
 
         if (this._handler.pinchStartEvent !== undefined) {
             this._handler.pinchStartEvent();
@@ -867,9 +878,9 @@ function eventTimeStamp(e: TouchEvent | MouseEvent): number {
 }
 
 function touchWithId(touches: TouchList, id: number): Touch | null {
-    for (let i = 0; i < touches.length; ++i) {
-        if (touches[i].identifier === id) {
-            return touches[i];
+    for (const touch of touches) {
+        if (touch.identifier === id) {
+            return touch;
         }
     }
 

@@ -1,4 +1,4 @@
-import { CanvasRenderingTarget2D } from 'fancy-canvas';
+import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
 export interface IAxisRenderer {
     draw(target: CanvasRenderingTarget2D, isHovered: boolean, hitTestData?: unknown): void;

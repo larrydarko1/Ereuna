@@ -1,4 +1,4 @@
-import { IChartApi, MouseEventParams } from './index';
+import { type IChartApi, type MouseEventParams } from '@/lib/lightweight-charts/index';
 
 export interface PriceLevelData {
     id: string;
@@ -22,7 +22,6 @@ export class PriceLevelManager {
     private isActive: boolean = false;
     private levels: Map<string, PriceLevelLine> = new Map();
     private clickHandler: ((param: MouseEventParams) => void) | null = null;
-    private editingLevelId: string | null = null;
     private contextMenuDiv: HTMLDivElement | null = null;
     private inputDialog: HTMLDivElement | null = null;
     private onChangeCallback: (() => void) | null = null;
@@ -102,7 +101,7 @@ export class PriceLevelManager {
         const levelsArray = Array.from(this.levels.entries());
         this.levels.clear();
 
-        levelsArray.forEach(([id, level]) => {
+        levelsArray.forEach(([_id, level]) => {
             this.addPriceLevelToChart(level.data);
         });
     }
@@ -285,7 +284,6 @@ export class PriceLevelManager {
 
     private showInputDialog(levelId: string, newLevelData?: PriceLevelData): void {
         this.closeInputDialog();
-        this.editingLevelId = levelId;
 
         // For existing levels, get from map; for new levels, use provided data
         let level = this.levels.get(levelId);
@@ -636,7 +634,6 @@ export class PriceLevelManager {
         if (overlay) {
             overlay.remove();
         }
-        this.editingLevelId = null;
     }
 
     private updatePriceLevel(
@@ -781,7 +778,7 @@ export class PriceLevelManager {
     public clear(): void {
         // Remove all price levels without triggering auto-save
         this.isClearing = true;
-        this.levels.forEach((level, id) => {
+        this.levels.forEach((_level, id) => {
             this.removePriceLevel(id);
         });
         this.levels.clear();

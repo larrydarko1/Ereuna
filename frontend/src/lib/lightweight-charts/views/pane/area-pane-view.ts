@@ -1,13 +1,13 @@
-import { BarPrice } from '../../model/bar';
-import { IChartModelBase } from '../../model/chart-model';
-import { ISeries } from '../../model/series';
-import { ISeriesBarColorer } from '../../model/series-bar-colorer';
-import { TimePointIndex } from '../../model/time-data';
-import { AreaFillItem, PaneRendererArea } from '../../renderers/area-renderer';
-import { CompositeRenderer } from '../../renderers/composite-renderer';
-import { LineStrokeItem, PaneRendererLine } from '../../renderers/line-renderer';
+import { type BarPrice } from '@/lib/lightweight-charts/model/bar';
+import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
+import { type ISeries } from '@/lib/lightweight-charts/model/series';
+import { type ISeriesBarColorer } from '@/lib/lightweight-charts/model/series-bar-colorer';
+import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
+import { type AreaFillItem, PaneRendererArea } from '@/lib/lightweight-charts/renderers/area-renderer';
+import { CompositeRenderer } from '@/lib/lightweight-charts/renderers/composite-renderer';
+import { type LineStrokeItem, PaneRendererLine } from '@/lib/lightweight-charts/renderers/line-renderer';
 
-import { LinePaneViewBase } from './line-pane-view-base';
+import { LinePaneViewBase } from '@/lib/lightweight-charts/views/pane/line-pane-view-base';
 
 export class SeriesAreaPaneView extends LinePaneViewBase<'Area', AreaFillItem & LineStrokeItem, CompositeRenderer> {
     protected readonly _renderer: CompositeRenderer = new CompositeRenderer();

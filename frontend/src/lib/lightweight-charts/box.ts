@@ -1,4 +1,4 @@
-import { IChartApi, MouseEventParams, Time } from './index';
+import { type IChartApi, type MouseEventParams, type Time } from '@/lib/lightweight-charts/index';
 
 export interface BoxPoint {
     time: Time;

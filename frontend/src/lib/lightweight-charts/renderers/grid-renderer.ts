@@ -1,11 +1,11 @@
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { ensureNotNull } from '../helpers/assertions';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
-import { PriceMark } from '../model/price-scale';
+import { type PriceMark } from '@/lib/lightweight-charts/model/price-scale';
 
-import { BitmapCoordinatesPaneRenderer } from './bitmap-coordinates-pane-renderer';
-import { LineStyle, setLineStyle, strokeInPixel } from './draw-line';
+import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
+import { type LineStyle, setLineStyle, strokeInPixel } from '@/lib/lightweight-charts/renderers/draw-line';
 
 export interface GridMarks {
     coord: number;

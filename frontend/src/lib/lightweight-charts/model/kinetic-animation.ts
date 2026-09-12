@@ -1,16 +1,17 @@
-import { ensureNotNull } from '../helpers/assertions';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
-import { Coordinate } from './coordinate';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
 interface TimeAndPosition {
     time: number;
     position: Coordinate;
 }
 
-const enum Constants {
-    MaxStartDelay = 50,
-    EpsilonDistance = 1, // distance to the end position where we stop animation
-}
+const Constants = {
+    MaxStartDelay: 50,
+    EpsilonDistance: 1, // distance to the end position where we stop animation
+} as const;
+type Constants = (typeof Constants)[keyof typeof Constants];
 
 function distanceBetweenPoints(pos1: TimeAndPosition, pos2: TimeAndPosition): number {
     return pos1.position - pos2.position;
@@ -111,8 +112,8 @@ export class KineticAnimation {
         }
 
         let resultSpeed = 0;
-        for (let i = 0; i < speedItems.length; ++i) {
-            resultSpeed += (distanceItems[i] / totalDistance) * speedItems[i];
+        for (const [i, speed] of speedItems.entries()) {
+            resultSpeed += ((distanceItems[i] ?? 0) / totalDistance) * speed;
         }
 
         if (Math.abs(resultSpeed) < this._minSpeed) {

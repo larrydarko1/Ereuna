@@ -1,37 +1,42 @@
-import { lowerBound } from '../helpers/algorithms';
-import { ensureNotNull } from '../helpers/assertions';
-import { Delegate } from '../helpers/delegate';
-import { ISubscription } from '../helpers/isubscription';
-import { clamp } from '../helpers/mathex';
-import { DeepPartial, isInteger, merge } from '../helpers/strict-type-checks';
+import { lowerBound } from '@/lib/lightweight-charts/helpers/algorithms';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
+import { type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
+import { clamp } from '@/lib/lightweight-charts/helpers/mathex';
+import { type DeepPartial, isInteger, merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { ChartModel } from './chart-model';
-import { Coordinate } from './coordinate';
-import { FormattedLabelsCache } from './formatted-labels-cache';
-import { IHorzScaleBehavior, InternalHorzScaleItem, InternalHorzScaleItemKey } from './ihorz-scale-behavior';
-import { LocalizationOptions } from './localization-options';
-import { areRangesEqual, RangeImpl } from './range-impl';
-import { TickMark, TickMarks } from './tick-marks';
+import { type ChartModel } from '@/lib/lightweight-charts/model/chart-model';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { FormattedLabelsCache } from '@/lib/lightweight-charts/model/formatted-labels-cache';
 import {
-    Logical,
-    LogicalRange,
-    Range,
-    SeriesItemsIndexesRange,
-    TickMarkWeightValue,
-    TimedValue,
-    TimePointIndex,
-    TimePointsRange,
-    TimeScalePoint,
-} from './time-data';
-import { TimeScaleVisibleRange } from './time-scale-visible-range';
+    type IHorzScaleBehavior,
+    type InternalHorzScaleItem,
+    type InternalHorzScaleItemKey,
+} from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import { type LocalizationOptions } from '@/lib/lightweight-charts/model/localization-options';
+import { areRangesEqual, RangeImpl } from '@/lib/lightweight-charts/model/range-impl';
+import { type TickMark, TickMarks } from '@/lib/lightweight-charts/model/tick-marks';
+import {
+    type Logical,
+    type LogicalRange,
+    type Range,
+    type SeriesItemsIndexesRange,
+    type TickMarkWeightValue,
+    type TimedValue,
+    type TimePointIndex,
+    type TimePointsRange,
+    type TimeScalePoint,
+} from '@/lib/lightweight-charts/model/time-data';
+import { TimeScaleVisibleRange } from '@/lib/lightweight-charts/model/time-scale-visible-range';
 
 const defaultTickMarkMaxCharacterLength = 8;
 
-const enum Constants {
-    DefaultAnimationDuration = 400,
+const Constants = {
+    DefaultAnimationDuration: 400,
     // make sure that this (1 / MinVisibleBarsCount) >= coeff in max bar spacing
-    MinVisibleBarsCount = 2,
-}
+    MinVisibleBarsCount: 2,
+} as const;
+type Constants = (typeof Constants)[keyof typeof Constants];
 
 interface TransitionState {
     barSpacing: number;
@@ -237,7 +242,7 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
     private _barSpacing: number;
     private _scrollStartPoint: Coordinate | null = null;
     private _scaleStartPoint: Coordinate | null = null;
-    private readonly _tickMarks: TickMarks<HorzScaleItem> = new TickMarks();
+    private readonly _tickMarks: TickMarks = new TickMarks();
     private _formattedByWeight: Map<number, FormattedLabelsCache<HorzScaleItem>> = new Map();
 
     private _visibleRange: TimeScaleVisibleRange = TimeScaleVisibleRange.invalid();
@@ -286,7 +291,7 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
 
     public applyOptions(
         options: DeepPartial<HorzScaleOptions>,
-        localizationOptions?: DeepPartial<LocalizationOptions<HorzScaleItem>>,
+        _localizationOptions?: DeepPartial<LocalizationOptions<HorzScaleItem>>,
     ): void {
         merge(this._options, options);
 
@@ -333,8 +338,10 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
             return null;
         }
 
+        const lastPoint = this._points[this._points.length - 1];
         if (
-            this._horzScaleBehavior.key(time) > this._horzScaleBehavior.key(this._points[this._points.length - 1].time)
+            lastPoint !== undefined &&
+            this._horzScaleBehavior.key(time) > this._horzScaleBehavior.key(lastPoint.time)
         ) {
             // special case
             return findNearest ? ((this._points.length - 1) as TimePointIndex) : null;
@@ -346,7 +353,11 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
             (a: TimeScalePoint, b: InternalHorzScaleItemKey) => this._horzScaleBehavior.key(a.time) < b,
         );
 
-        if (this._horzScaleBehavior.key(time) < this._horzScaleBehavior.key(this._points[index].time)) {
+        const pointAtIndex = this._points[index];
+        if (
+            pointAtIndex === undefined ||
+            this._horzScaleBehavior.key(time) < this._horzScaleBehavior.key(pointAtIndex.time)
+        ) {
             return findNearest ? (index as TimePointIndex) : null;
         }
 
@@ -471,10 +482,12 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
         const indexTo = visibleRange === undefined ? points.length : visibleRange.to;
 
         for (let i = indexFrom; i < indexTo; i++) {
-            const index = points[i].time;
-            const deltaFromRight = baseIndex + this._rightOffset - index;
+            const point = points[i];
+            if (point === undefined) continue;
+
+            const deltaFromRight = baseIndex + this._rightOffset - point.time;
             const coordinate = this._width - (deltaFromRight + 0.5) * this._barSpacing - 1;
-            points[i].x = coordinate as Coordinate;
+            point.x = coordinate as Coordinate;
         }
     }
 
@@ -508,7 +521,6 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
         return this._rightOffset;
     }
 
-    // eslint-disable-next-line complexity
     public marks(): TimeMark[] | null {
         if (this.isEmpty()) {
             return null;
@@ -551,8 +563,9 @@ export class TimeScale<HorzScaleItem> implements ITimeScale {
             }
 
             let label: TimeMark;
-            if (targetIndex < this._labels.length) {
-                label = this._labels[targetIndex];
+            const existingLabel = this._labels[targetIndex];
+            if (existingLabel !== undefined) {
+                label = existingLabel;
                 label.coord = this.indexToCoordinate(tm.index);
                 label.label = this._formatLabel(tm);
                 label.weight = tm.weight;

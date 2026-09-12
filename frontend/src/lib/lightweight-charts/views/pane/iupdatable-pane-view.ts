@@ -1,4 +1,4 @@
-import { IPaneView } from './ipane-view';
+import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
 
 export type UpdateType = 'data' | 'other' | 'options';
 

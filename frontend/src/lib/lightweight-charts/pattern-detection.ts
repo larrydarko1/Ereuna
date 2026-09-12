@@ -50,10 +50,14 @@ export function findPivots(
     const lows: PivotPoint[] = [];
 
     for (let i = leftBars; i < data.length - rightBars; i++) {
+        const bar = data[i];
+        if (bar === undefined) continue;
+
         // Check if it's a pivot high
         let isHigh = true;
         for (let j = i - leftBars; j <= i + rightBars; j++) {
-            if (j !== i && data[j].high >= data[i].high) {
+            const other = data[j];
+            if (j !== i && other !== undefined && other.high >= bar.high) {
                 isHigh = false;
                 break;
             }
@@ -61,15 +65,16 @@ export function findPivots(
         if (isHigh) {
             highs.push({
                 index: i,
-                time: data[i].time,
-                price: data[i].high,
+                time: bar.time,
+                price: bar.high,
             });
         }
 
         // Check if it's a pivot low
         let isLow = true;
         for (let j = i - leftBars; j <= i + rightBars; j++) {
-            if (j !== i && data[j].low <= data[i].low) {
+            const other = data[j];
+            if (j !== i && other !== undefined && other.low <= bar.low) {
                 isLow = false;
                 break;
             }
@@ -77,8 +82,8 @@ export function findPivots(
         if (isLow) {
             lows.push({
                 index: i,
-                time: data[i].time,
-                price: data[i].low,
+                time: bar.time,
+                price: bar.low,
             });
         }
     }
@@ -93,22 +98,28 @@ export function detectDoubleTops(highs: PivotPoint[], tolerance: number = 0.02):
     const patterns: PatternMatch[] = [];
 
     for (let i = 0; i < highs.length - 1; i++) {
+        const first = highs[i];
+        if (first === undefined) continue;
+
         for (let j = i + 1; j < highs.length; j++) {
-            const priceDiff = Math.abs(highs[i].price - highs[j].price);
-            const avgPrice = (highs[i].price + highs[j].price) / 2;
+            const second = highs[j];
+            if (second === undefined) continue;
+
+            const priceDiff = Math.abs(first.price - second.price);
+            const avgPrice = (first.price + second.price) / 2;
             const priceDeviation = priceDiff / avgPrice;
 
             // Check if the two peaks are at similar levels
             if (priceDeviation <= tolerance) {
                 // Require some time separation between peaks
-                const timeSeparation = highs[j].index - highs[i].index;
+                const timeSeparation = second.index - first.index;
                 if (timeSeparation >= 5) {
                     patterns.push({
                         type: 'doubleTop',
-                        points: [highs[i], highs[j]],
+                        points: [first, second],
                         confidence: 1 - priceDeviation / tolerance,
                         description: 'Double Top - Bearish Reversal',
-                        timeframe: { start: highs[i].time, end: highs[j].time },
+                        timeframe: { start: first.time, end: second.time },
                     });
                 }
             }
@@ -125,20 +136,26 @@ export function detectDoubleBottoms(lows: PivotPoint[], tolerance: number = 0.02
     const patterns: PatternMatch[] = [];
 
     for (let i = 0; i < lows.length - 1; i++) {
+        const first = lows[i];
+        if (first === undefined) continue;
+
         for (let j = i + 1; j < lows.length; j++) {
-            const priceDiff = Math.abs(lows[i].price - lows[j].price);
-            const avgPrice = (lows[i].price + lows[j].price) / 2;
+            const second = lows[j];
+            if (second === undefined) continue;
+
+            const priceDiff = Math.abs(first.price - second.price);
+            const avgPrice = (first.price + second.price) / 2;
             const priceDeviation = priceDiff / avgPrice;
 
             if (priceDeviation <= tolerance) {
-                const timeSeparation = lows[j].index - lows[i].index;
+                const timeSeparation = second.index - first.index;
                 if (timeSeparation >= 5) {
                     patterns.push({
                         type: 'doubleBottom',
-                        points: [lows[i], lows[j]],
+                        points: [first, second],
                         confidence: 1 - priceDeviation / tolerance,
                         description: 'Double Bottom - Bullish Reversal',
-                        timeframe: { start: lows[i].time, end: lows[j].time },
+                        timeframe: { start: first.time, end: second.time },
                     });
                 }
             }
@@ -159,6 +176,7 @@ export function detectHeadAndShoulders(highs: PivotPoint[], tolerance: number = 
         const leftShoulder = highs[i];
         const head = highs[i + 1];
         const rightShoulder = highs[i + 2];
+        if (leftShoulder === undefined || head === undefined || rightShoulder === undefined) continue;
 
         // Head should be higher than both shoulders
         if (head.price > leftShoulder.price && head.price > rightShoulder.price) {
@@ -196,6 +214,7 @@ export function detectInverseHeadAndShoulders(lows: PivotPoint[], tolerance: num
         const leftShoulder = lows[i];
         const head = lows[i + 1];
         const rightShoulder = lows[i + 2];
+        if (leftShoulder === undefined || head === undefined || rightShoulder === undefined) continue;
 
         // Head should be lower than both shoulders
         if (head.price < leftShoulder.price && head.price < rightShoulder.price) {
@@ -247,7 +266,7 @@ function calculateSlope(points: PivotPoint[]): number {
 /**
  * Detect Triangle patterns (Ascending, Descending, Symmetric)
  */
-export function detectTriangles(highs: PivotPoint[], lows: PivotPoint[], minPoints: number = 4): PatternMatch[] {
+export function detectTriangles(highs: PivotPoint[], lows: PivotPoint[]): PatternMatch[] {
     const patterns: PatternMatch[] = [];
 
     // Need at least 2 highs and 2 lows
@@ -262,9 +281,13 @@ export function detectTriangles(highs: PivotPoint[], lows: PivotPoint[], minPoin
         const lowSlope = calculateSlope(recentLows);
 
         const allPoints = [...recentHighs, ...recentLows].sort((a, b) => a.time - b.time);
+        const firstPoint = allPoints[0];
+        const lastPoint = allPoints[allPoints.length - 1];
+        if (firstPoint === undefined || lastPoint === undefined) return patterns;
+
         const timeframe = {
-            start: allPoints[0].time,
-            end: allPoints[allPoints.length - 1].time,
+            start: firstPoint.time,
+            end: lastPoint.time,
         };
 
         // Ascending Triangle: flat resistance, rising support
@@ -314,14 +337,14 @@ export function detectFlags(data: OHLCData[], highs: PivotPoint[], lows: PivotPo
 
     // Look at recent price action
     const recentBars = 15;
-    const recentData = data.slice(-recentBars);
 
     // Calculate if there's a strong trend before the consolidation
     const trendBars = 10;
     const trendStart = data[data.length - recentBars - trendBars];
     const consolidationStart = data[data.length - recentBars];
+    const lastBar = data[data.length - 1];
 
-    if (!trendStart || !consolidationStart) return patterns;
+    if (!trendStart || !consolidationStart || !lastBar) return patterns;
 
     const trendMove = (consolidationStart.close - trendStart.close) / trendStart.close;
 
@@ -343,7 +366,7 @@ export function detectFlags(data: OHLCData[], highs: PivotPoint[], lows: PivotPo
                     description: 'Bullish Flag - Continuation Pattern',
                     timeframe: {
                         start: consolidationStart.time,
-                        end: data[data.length - 1].time,
+                        end: lastBar.time,
                     },
                 });
             }
@@ -367,7 +390,7 @@ export function detectFlags(data: OHLCData[], highs: PivotPoint[], lows: PivotPo
                     description: 'Bearish Flag - Continuation Pattern',
                     timeframe: {
                         start: consolidationStart.time,
-                        end: data[data.length - 1].time,
+                        end: lastBar.time,
                     },
                 });
             }

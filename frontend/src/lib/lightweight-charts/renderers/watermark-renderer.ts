@@ -1,6 +1,6 @@
-import { MediaCoordinatesRenderingScope } from 'fancy-canvas';
+import { type MediaCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { MediaCoordinatesPaneRenderer } from './media-coordinates-pane-renderer';
+import { MediaCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/media-coordinates-pane-renderer';
 
 export interface WatermarkRendererLineData {
     text: string;
@@ -36,7 +36,7 @@ export class WatermarkRenderer extends MediaCoordinatesPaneRenderer {
         this._data = data;
     }
 
-    protected _drawImpl(renderingScope: MediaCoordinatesRenderingScope): void {}
+    protected _drawImpl(_renderingScope: MediaCoordinatesRenderingScope): void {}
 
     protected override _drawBackgroundImpl(renderingScope: MediaCoordinatesRenderingScope): void {
         if (!this._data.visible) {

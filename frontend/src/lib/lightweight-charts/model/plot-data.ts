@@ -1,15 +1,16 @@
-import { InternalHorzScaleItem } from './ihorz-scale-behavior';
-import { TimePointIndex } from './time-data';
+import { type InternalHorzScaleItem } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 
 /**
  * Plot's index in plot list tuple for series
  */
-export const enum PlotRowValueIndex {
-    Open = 0,
-    High = 1,
-    Low = 2,
-    Close = 3,
-}
+export const PlotRowValueIndex = {
+    Open: 0,
+    High: 1,
+    Low: 2,
+    Close: 3,
+} as const;
+export type PlotRowValueIndex = (typeof PlotRowValueIndex)[keyof typeof PlotRowValueIndex];
 
 export type PlotRowValue = [
     number, // open
@@ -23,5 +24,5 @@ export interface PlotRow {
     readonly time: InternalHorzScaleItem;
     readonly originalTime: unknown;
     readonly value: PlotRowValue;
-    readonly customValues?: Record<string, unknown>;
+    readonly customValues?: Record<string, unknown> | undefined;
 }

@@ -1,24 +1,24 @@
-import { ensureDefined } from '../helpers/assertions';
-import { Mutable } from '../helpers/mutable';
+import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
+import { type Mutable } from '@/lib/lightweight-charts/helpers/mutable';
 
-import { CustomData } from './icustom-series';
-import { PlotRow, PlotRowValue } from './plot-data';
-import { SeriesPlotRow } from './series-data';
-import { SeriesType } from './series-options';
-import { TimePointIndex } from './time-data';
+import { type CustomData } from '@/lib/lightweight-charts/model/icustom-series';
+import { type PlotRow, type PlotRowValue } from '@/lib/lightweight-charts/model/plot-data';
+import { type SeriesPlotRow } from '@/lib/lightweight-charts/model/series-data';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
+import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 
 import {
-    AreaData,
-    BarData,
-    BaselineData,
-    CandlestickData,
-    HistogramData,
+    type AreaData,
+    type BarData,
+    type BaselineData,
+    type CandlestickData,
+    type HistogramData,
     isWhitespaceData,
-    LineData,
-    SeriesDataItemTypeMap,
-    WhitespaceData,
-} from './data-consumer';
-import { InternalHorzScaleItem } from './ihorz-scale-behavior';
+    type LineData,
+    type SeriesDataItemTypeMap,
+    type WhitespaceData,
+} from '@/lib/lightweight-charts/model/data-consumer';
+import { type InternalHorzScaleItem } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
 
 function getColoredLineBasedSeriesPlotRow<HorzScaleItem>(
     time: InternalHorzScaleItem,
@@ -166,7 +166,7 @@ function getCustomSeriesPlotRow<HorzScaleItem>(
     const values = ensureDefined(dataToPlotRow)(item);
     const max = Math.max(...values);
     const min = Math.min(...values);
-    const last = values[values.length - 1];
+    const last = ensureDefined(values[values.length - 1]);
     const value: PlotRowValue = [last, max, min, last];
     const { time: excludedTime, color, ...data } = item as CustomData<HorzScaleItem>;
     return { index, time, value, originalTime, data, color };

@@ -1,7 +1,7 @@
-import { ChartOptionsImpl } from '../chart-model';
-import { HorzScaleOptions } from '../time-scale';
-import { TickMarkFormatter } from './horz-scale-behavior-time';
-import { Time } from './types';
+import { type ChartOptionsImpl } from '@/lib/lightweight-charts/model/chart-model';
+import { type HorzScaleOptions } from '@/lib/lightweight-charts/model/time-scale';
+import { type TickMarkFormatter } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/horz-scale-behavior-time';
+import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
 
 /**
  * Extended time scale options for time-based horizontal scale

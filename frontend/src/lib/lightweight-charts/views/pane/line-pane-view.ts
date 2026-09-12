@@ -1,9 +1,13 @@
-import { BarPrice } from '../../model/bar';
-import { ISeriesBarColorer } from '../../model/series-bar-colorer';
-import { TimePointIndex } from '../../model/time-data';
-import { LineStrokeItem, PaneRendererLine, PaneRendererLineData } from '../../renderers/line-renderer';
+import { type BarPrice } from '@/lib/lightweight-charts/model/bar';
+import { type ISeriesBarColorer } from '@/lib/lightweight-charts/model/series-bar-colorer';
+import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
+import {
+    type LineStrokeItem,
+    PaneRendererLine,
+    type PaneRendererLineData,
+} from '@/lib/lightweight-charts/renderers/line-renderer';
 
-import { LinePaneViewBase } from './line-pane-view-base';
+import { LinePaneViewBase } from '@/lib/lightweight-charts/views/pane/line-pane-view-base';
 
 export class SeriesLinePaneView extends LinePaneViewBase<'Line', LineStrokeItem, PaneRendererLine> {
     protected readonly _renderer: PaneRendererLine = new PaneRendererLine();

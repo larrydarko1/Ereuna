@@ -1,18 +1,22 @@
-import { IPriceFormatter } from '../formatters/iprice-formatter';
+import { type IPriceFormatter } from '@/lib/lightweight-charts/formatters/iprice-formatter';
 
-import { BarPrice } from '../model/bar';
-import { Coordinate } from '../model/coordinate';
-import { SeriesDataItemTypeMap } from '../model/data-consumer';
-import { Time } from '../model/horz-scale-behavior-time/types';
-import { MismatchDirection } from '../model/plot-list';
-import { CreatePriceLineOptions } from '../model/price-line-options';
-import { SeriesMarker } from '../model/series-markers';
-import { SeriesOptionsMap, SeriesPartialOptionsMap, SeriesType } from '../model/series-options';
-import { Range } from '../model/time-data';
+import { type BarPrice } from '@/lib/lightweight-charts/model/bar';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type SeriesDataItemTypeMap } from '@/lib/lightweight-charts/model/data-consumer';
+import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
+import { type MismatchDirection } from '@/lib/lightweight-charts/model/plot-list';
+import { type CreatePriceLineOptions } from '@/lib/lightweight-charts/model/price-line-options';
+import { type SeriesMarker } from '@/lib/lightweight-charts/model/series-markers';
+import {
+    type SeriesOptionsMap,
+    type SeriesPartialOptionsMap,
+    type SeriesType,
+} from '@/lib/lightweight-charts/model/series-options';
+import { type Range } from '@/lib/lightweight-charts/model/time-data';
 
-import { IPriceLine } from './iprice-line';
-import { IPriceScaleApi } from './iprice-scale-api';
-import { ISeriesPrimitive } from './iseries-primitive-api';
+import { type IPriceLine } from '@/lib/lightweight-charts/api/iprice-line';
+import { type IPriceScaleApi } from '@/lib/lightweight-charts/api/iprice-scale-api';
+import { type ISeriesPrimitive } from '@/lib/lightweight-charts/api/iseries-primitive-api';
 
 /**
  * The extent of the data change.

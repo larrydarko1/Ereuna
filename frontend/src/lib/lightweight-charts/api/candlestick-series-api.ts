@@ -1,6 +1,9 @@
-import { CandlestickSeriesPartialOptions, fillUpDownCandlesticksColors } from '../model/series-options';
+import {
+    type CandlestickSeriesPartialOptions,
+    fillUpDownCandlesticksColors,
+} from '@/lib/lightweight-charts/model/series-options';
 
-import { SeriesApi } from './series-api';
+import { SeriesApi } from '@/lib/lightweight-charts/api/series-api';
 
 export class CandlestickSeriesApi<HorzScaleItem> extends SeriesApi<'Candlestick', HorzScaleItem> {
     public override applyOptions(options: CandlestickSeriesPartialOptions): void {

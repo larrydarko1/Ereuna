@@ -1,4 +1,4 @@
-import { BarPrice } from './bar';
+import { type BarPrice } from '@/lib/lightweight-charts/model/bar';
 
 /**
  * A function used to format a {@link BarPrice} as a string.

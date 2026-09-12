@@ -1,13 +1,13 @@
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { fillRectInnerBorder } from '../helpers/canvas-helpers';
+import { fillRectInnerBorder } from '@/lib/lightweight-charts/helpers/canvas-helpers';
 
-import { CandlesticksColorerStyle } from '../model/series-bar-colorer';
-import { SeriesItemsIndexesRange } from '../model/time-data';
+import { type CandlesticksColorerStyle } from '@/lib/lightweight-charts/model/series-bar-colorer';
+import { type SeriesItemsIndexesRange } from '@/lib/lightweight-charts/model/time-data';
 
-import { BarCandlestickItemBase } from './bars-renderer';
-import { BitmapCoordinatesPaneRenderer } from './bitmap-coordinates-pane-renderer';
-import { optimalCandlestickWidth } from './optimal-bar-width';
+import { type BarCandlestickItemBase } from '@/lib/lightweight-charts/renderers/bars-renderer';
+import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
+import { optimalCandlestickWidth } from '@/lib/lightweight-charts/renderers/optimal-bar-width';
 
 export interface CandlestickItem extends BarCandlestickItemBase, CandlesticksColorerStyle {}
 
@@ -22,9 +22,10 @@ export interface PaneRendererCandlesticksData {
     visibleRange: SeriesItemsIndexesRange | null;
 }
 
-const enum Constants {
-    BarBorderWidth = 1,
-}
+const Constants = {
+    BarBorderWidth: 1,
+} as const;
+type Constants = (typeof Constants)[keyof typeof Constants];
 
 export class PaneRendererCandlesticks extends BitmapCoordinatesPaneRenderer {
     private _data: PaneRendererCandlesticksData | null = null;
@@ -96,6 +97,8 @@ export class PaneRendererCandlesticks extends BitmapCoordinatesPaneRenderer {
 
         for (let i = visibleRange.from; i < visibleRange.to; i++) {
             const bar = bars[i];
+            if (bar === undefined) continue;
+
             if (bar.barWickColor !== prevWickColor) {
                 ctx.fillStyle = bar.barWickColor;
                 prevWickColor = bar.barWickColor;
@@ -155,6 +158,8 @@ export class PaneRendererCandlesticks extends BitmapCoordinatesPaneRenderer {
 
         for (let i = visibleRange.from; i < visibleRange.to; i++) {
             const bar = bars[i];
+            if (bar === undefined) continue;
+
             if (bar.barBorderColor !== prevBorderColor) {
                 ctx.fillStyle = bar.barBorderColor;
                 prevBorderColor = bar.barBorderColor;
@@ -197,6 +202,7 @@ export class PaneRendererCandlesticks extends BitmapCoordinatesPaneRenderer {
 
         for (let i = visibleRange.from; i < visibleRange.to; i++) {
             const bar = bars[i];
+            if (bar === undefined) continue;
 
             let top = Math.round(Math.min(bar.openY, bar.closeY) * verticalPixelRatio);
             let bottom = Math.round(Math.max(bar.openY, bar.closeY) * verticalPixelRatio);

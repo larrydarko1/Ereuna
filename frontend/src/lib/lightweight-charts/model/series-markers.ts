@@ -31,21 +31,21 @@ export interface SeriesMarker<TimeType> {
     /**
      * The ID of the marker.
      */
-    id?: string;
+    id?: string | undefined;
     /**
      * The optional text of the marker.
      */
-    text?: string;
+    text?: string | undefined;
     /**
      * The optional text color of the marker.
      */
-    textColor?: string;
+    textColor?: string | undefined;
     /**
      * The optional size of the marker.
      *
      * @defaultValue `1`
      */
-    size?: number;
+    size?: number | undefined;
 
     /**
      * @internal
@@ -63,12 +63,12 @@ export function convertSeriesMarker<InTimeType, OutTimeType>(
     originalTime?: unknown,
 ): SeriesMarker<OutTimeType> {
     const { time: inTime, originalTime: inOriginalTime, ...values } = sm;
-    /* eslint-disable @typescript-eslint/consistent-type-assertions */
+
     const res = {
         time: newTime,
         ...values,
     } as SeriesMarker<OutTimeType>;
-    /* eslint-enable @typescript-eslint/consistent-type-assertions */
+
     if (originalTime !== undefined) {
         res.originalTime = originalTime;
     }

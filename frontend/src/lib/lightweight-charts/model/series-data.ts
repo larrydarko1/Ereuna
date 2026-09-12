@@ -1,9 +1,9 @@
-import { PlotRow } from './plot-data';
-import { PlotList } from './plot-list';
-import { SeriesType } from './series-options';
+import { type PlotRow } from '@/lib/lightweight-charts/model/plot-data';
+import { PlotList } from '@/lib/lightweight-charts/model/plot-list';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 
 export interface LinePlotRow extends PlotRow {
-    readonly color?: string;
+    readonly color?: string | undefined;
 }
 
 export interface AreaPlotRow extends PlotRow {
@@ -22,15 +22,15 @@ export interface BaselinePlotRow extends PlotRow {
 }
 
 export interface HistogramPlotRow extends PlotRow {
-    readonly color?: string;
+    readonly color?: string | undefined;
 }
 
 export interface BarPlotRow extends PlotRow {
-    readonly color?: string;
+    readonly color?: string | undefined;
 }
 
 export interface CandlestickPlotRow extends PlotRow {
-    readonly color?: string;
+    readonly color?: string | undefined;
     readonly borderColor?: string;
     readonly wickColor?: string;
 }
@@ -38,7 +38,7 @@ export interface CandlestickPlotRow extends PlotRow {
 export interface CustomPlotRow extends PlotRow {
     // Used to store the original data values
     data: Record<string, unknown>;
-    readonly color?: string;
+    readonly color?: string | undefined;
 }
 
 export interface SeriesPlotRowTypeAtTypeMap {

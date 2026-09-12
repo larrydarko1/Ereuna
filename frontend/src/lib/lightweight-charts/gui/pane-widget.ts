@@ -1,53 +1,59 @@
 import {
-    BitmapCoordinatesRenderingScope,
-    CanvasElementBitmapSizeBinding,
-    CanvasRenderingTarget2D,
+    type BitmapCoordinatesRenderingScope,
+    type CanvasElementBitmapSizeBinding,
+    type CanvasRenderingTarget2D,
     equalSizes,
-    Size,
+    type Size,
     size,
     tryCreateCanvasRenderingTarget2D,
 } from 'fancy-canvas';
 
-import { ensureNotNull } from '../helpers/assertions';
-import { clearRect, clearRectWithGradient } from '../helpers/canvas-helpers';
-import { Delegate } from '../helpers/delegate';
-import { IDestroyable } from '../helpers/idestroyable';
-import { ISubscription } from '../helpers/isubscription';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { clearRect, clearRectWithGradient } from '@/lib/lightweight-charts/helpers/canvas-helpers';
+import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
+import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
+import { type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
 
-import { IChartModelBase, TrackingModeExitMode } from '../model/chart-model';
-import { Coordinate } from '../model/coordinate';
-import { IDataSource } from '../model/idata-source';
-import { InvalidationLevel } from '../model/invalidate-mask';
-import { KineticAnimation } from '../model/kinetic-animation';
-import { Pane } from '../model/pane';
-import { Point } from '../model/point';
-import { TimePointIndex } from '../model/time-data';
-import { TouchMouseEventData } from '../model/touch-mouse-event-data';
-import { IPaneRenderer } from '../renderers/ipane-renderer';
-import { IPaneView } from '../views/pane/ipane-view';
+import { type IChartModelBase, TrackingModeExitMode } from '@/lib/lightweight-charts/model/chart-model';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type IDataSource } from '@/lib/lightweight-charts/model/idata-source';
+import { InvalidationLevel } from '@/lib/lightweight-charts/model/invalidate-mask';
+import { KineticAnimation } from '@/lib/lightweight-charts/model/kinetic-animation';
+import { type Pane } from '@/lib/lightweight-charts/model/pane';
+import { type Point } from '@/lib/lightweight-charts/model/point';
+import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
+import { type TouchMouseEventData } from '@/lib/lightweight-charts/model/touch-mouse-event-data';
+import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
+import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
 
-import { createBoundCanvas, releaseCanvas } from './canvas-utils';
-import { IChartWidgetBase } from './chart-widget';
-import { drawBackground, drawForeground, DrawFunction, drawSourcePaneViews } from './draw-functions';
-import { IPaneViewsGetter } from './ipane-view-getter';
+import { createBoundCanvas, releaseCanvas } from '@/lib/lightweight-charts/gui/canvas-utils';
+import { type IChartWidgetBase } from '@/lib/lightweight-charts/gui/chart-widget';
+import {
+    drawBackground,
+    drawForeground,
+    type DrawFunction,
+    drawSourcePaneViews,
+} from '@/lib/lightweight-charts/gui/draw-functions';
+import { type IPaneViewsGetter } from '@/lib/lightweight-charts/gui/ipane-view-getter';
 import {
     MouseEventHandler,
-    MouseEventHandlerEventBase,
-    MouseEventHandlerMouseEvent,
-    MouseEventHandlers,
-    MouseEventHandlerTouchEvent,
-    Position,
-    TouchMouseEvent,
-} from './mouse-event-handler';
-import { hitTestPane, HitTestResult } from './pane-hit-test';
-import { PriceAxisWidget, PriceAxisWidgetSide } from './price-axis-widget';
+    type MouseEventHandlerEventBase,
+    type MouseEventHandlerMouseEvent,
+    type MouseEventHandlers,
+    type MouseEventHandlerTouchEvent,
+    type Position,
+    type TouchMouseEvent,
+} from '@/lib/lightweight-charts/gui/mouse-event-handler';
+import { hitTestPane, type HitTestResult } from '@/lib/lightweight-charts/gui/pane-hit-test';
+import { PriceAxisWidget, type PriceAxisWidgetSide } from '@/lib/lightweight-charts/gui/price-axis-widget';
 
-const enum KineticScrollConstants {
-    MinScrollSpeed = 0.2,
-    MaxScrollSpeed = 7,
-    DumpingCoeff = 0.997,
-    ScrollMinMove = 15,
-}
+const KineticScrollConstants = {
+    MinScrollSpeed: 0.2,
+    MaxScrollSpeed: 7,
+    DumpingCoeff: 0.997,
+    ScrollMinMove: 15,
+} as const;
+type KineticScrollConstants = (typeof KineticScrollConstants)[keyof typeof KineticScrollConstants];
 
 function sourceBottomPaneViews(source: IDataSource, pane: Pane): readonly IPaneView[] {
     return source.bottomPaneViews?.(pane) ?? [];
@@ -323,7 +329,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
         }
     }
 
-    public mouseLeaveEvent(event: MouseEventHandlerMouseEvent): void {
+    public mouseLeaveEvent(_event: MouseEventHandlerMouseEvent): void {
         if (this._state === null) {
             return;
         }
@@ -683,7 +689,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
         return this._chart.model();
     }
 
-    private _endScroll(event: TouchMouseEvent): void {
+    private _endScroll(_event: TouchMouseEvent): void {
         if (!this._isScrolling) {
             return;
         }
@@ -738,7 +744,6 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
         }
     }
 
-    // eslint-disable-next-line complexity
     private _pressedMouseTouchMoveEvent(event: TouchMouseEvent): void {
         if (this._state === null) {
             return;

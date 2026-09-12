@@ -1,5 +1,5 @@
-import { isChrome } from './browsers';
-import { MouseEventButton } from './mouse-event-button';
+import { isChrome } from '@/lib/lightweight-charts/helpers/browsers';
+import { MouseEventButton } from '@/lib/lightweight-charts/helpers/mouse-event-button';
 
 export function preventScrollByWheelClick(el: HTMLElement): void {
     if (!isChrome()) {

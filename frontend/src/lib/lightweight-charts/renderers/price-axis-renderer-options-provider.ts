@@ -1,13 +1,14 @@
-import { makeFont } from '../helpers/make-font';
+import { makeFont } from '@/lib/lightweight-charts/helpers/make-font';
 
-import { IChartModelBase } from '../model/chart-model';
+import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
 
-import { PriceAxisViewRendererOptions } from './iprice-axis-view-renderer';
+import { type PriceAxisViewRendererOptions } from '@/lib/lightweight-charts/renderers/iprice-axis-view-renderer';
 
-const enum RendererConstants {
-    BorderSize = 1,
-    TickLength = 5,
-}
+const RendererConstants = {
+    BorderSize: 1,
+    TickLength: 5,
+} as const;
+type RendererConstants = (typeof RendererConstants)[keyof typeof RendererConstants];
 
 export class PriceAxisRendererOptionsProvider {
     private readonly _chartModel: IChartModelBase;

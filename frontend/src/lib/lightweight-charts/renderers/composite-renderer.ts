@@ -1,6 +1,6 @@
-import { CanvasRenderingTarget2D } from 'fancy-canvas';
+import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
-import { IPaneRenderer } from './ipane-renderer';
+import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 
 export class CompositeRenderer implements IPaneRenderer {
     private _renderers: readonly IPaneRenderer[] = [];

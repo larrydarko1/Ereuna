@@ -1,7 +1,7 @@
-import { ensureDefined } from '../helpers/assertions';
+import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
 
-import { IHorzScaleBehavior } from './ihorz-scale-behavior';
-import { TickMark } from './tick-marks';
+import { type IHorzScaleBehavior } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import { type TickMark } from '@/lib/lightweight-charts/model/tick-marks';
 
 interface CachedTick {
     string: string;

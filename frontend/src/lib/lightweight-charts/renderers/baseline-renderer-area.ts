@@ -1,10 +1,14 @@
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { Coordinate } from '../model/coordinate';
-import { BaselineFillColorerStyle } from '../model/series-bar-colorer';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type BaselineFillColorerStyle } from '@/lib/lightweight-charts/model/series-bar-colorer';
 
-import { AreaFillItemBase, PaneRendererAreaBase, PaneRendererAreaDataBase } from './area-renderer-base';
-import { GradientStyleCache } from './gradient-style-cache';
+import {
+    type AreaFillItemBase,
+    PaneRendererAreaBase,
+    type PaneRendererAreaDataBase,
+} from '@/lib/lightweight-charts/renderers/area-renderer-base';
+import { GradientStyleCache } from '@/lib/lightweight-charts/renderers/gradient-style-cache';
 
 export type BaselineFillItem = AreaFillItemBase & BaselineFillColorerStyle;
 export interface PaneRendererBaselineData extends PaneRendererAreaDataBase<BaselineFillItem> {}
@@ -15,7 +19,6 @@ export class PaneRendererBaselineArea extends PaneRendererAreaBase<PaneRendererB
         renderingScope: BitmapCoordinatesRenderingScope,
         item: BaselineFillItem,
     ): CanvasRenderingContext2D['fillStyle'] {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const data = this._data!;
 
         return this._fillCache.get(renderingScope, {

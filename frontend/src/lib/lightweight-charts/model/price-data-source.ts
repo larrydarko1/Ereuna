@@ -1,10 +1,10 @@
-import { IPriceFormatter } from '../formatters/iprice-formatter';
+import { type IPriceFormatter } from '@/lib/lightweight-charts/formatters/iprice-formatter';
 
-import { AutoscaleInfoImpl } from './autoscale-info-impl';
-import { IChartModelBase } from './chart-model';
-import { DataSource } from './data-source';
-import { FirstValue, IPriceDataSource } from './iprice-data-source';
-import { TimePointIndex } from './time-data';
+import { type AutoscaleInfoImpl } from '@/lib/lightweight-charts/model/autoscale-info-impl';
+import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
+import { DataSource } from '@/lib/lightweight-charts/model/data-source';
+import { type FirstValue, type IPriceDataSource } from '@/lib/lightweight-charts/model/iprice-data-source';
+import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 
 export abstract class PriceDataSource extends DataSource implements IPriceDataSource {
     private readonly _model: IChartModelBase;

@@ -1,10 +1,17 @@
-import { generateContrastColors } from '../../helpers/color';
+import { generateContrastColors } from '@/lib/lightweight-charts/helpers/color';
 
-import { Crosshair, CrosshairMode, CrosshairPriceAndCoordinate } from '../../model/crosshair';
-import { PriceScale } from '../../model/price-scale';
-import { PriceAxisViewRendererCommonData, PriceAxisViewRendererData } from '../../renderers/iprice-axis-view-renderer';
+import {
+    type Crosshair,
+    CrosshairMode,
+    type CrosshairPriceAndCoordinate,
+} from '@/lib/lightweight-charts/model/crosshair';
+import { type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
+import {
+    type PriceAxisViewRendererCommonData,
+    type PriceAxisViewRendererData,
+} from '@/lib/lightweight-charts/renderers/iprice-axis-view-renderer';
 
-import { PriceAxisView } from './price-axis-view';
+import { PriceAxisView } from '@/lib/lightweight-charts/views/price-axis/price-axis-view';
 
 export type CrosshairPriceAxisViewValueProvider = (priceScale: PriceScale) => CrosshairPriceAndCoordinate;
 
@@ -22,7 +29,7 @@ export class CrosshairPriceAxisView extends PriceAxisView {
 
     protected _updateRendererData(
         axisRendererData: PriceAxisViewRendererData,
-        paneRendererData: PriceAxisViewRendererData,
+        _paneRendererData: PriceAxisViewRendererData,
         commonRendererData: PriceAxisViewRendererCommonData,
     ): void {
         axisRendererData.visible = false;

@@ -1,35 +1,43 @@
-/// <reference types="_build-time-constants" />
+import { assert, ensureDefined, ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { gradientColorAtPercent } from '@/lib/lightweight-charts/helpers/color';
+import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
+import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
+import { type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
+import { type DeepPartial, merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { assert, ensureNotNull } from '../helpers/assertions';
-import { gradientColorAtPercent } from '../helpers/color';
-import { Delegate } from '../helpers/delegate';
-import { IDestroyable } from '../helpers/idestroyable';
-import { ISubscription } from '../helpers/isubscription';
-import { DeepPartial, merge } from '../helpers/strict-type-checks';
+import { type PriceAxisViewRendererOptions } from '@/lib/lightweight-charts/renderers/iprice-axis-view-renderer';
+import { PriceAxisRendererOptionsProvider } from '@/lib/lightweight-charts/renderers/price-axis-renderer-options-provider';
 
-import { PriceAxisViewRendererOptions } from '../renderers/iprice-axis-view-renderer';
-import { PriceAxisRendererOptionsProvider } from '../renderers/price-axis-renderer-options-provider';
-
-import { Coordinate } from './coordinate';
-import { Crosshair, CrosshairOptions } from './crosshair';
-import { DefaultPriceScaleId, isDefaultPriceScale } from './default-price-scale';
-import { GridOptions } from './grid';
-import { ICustomSeriesPaneView } from './icustom-series';
-import { IHorzScaleBehavior, InternalHorzScaleItem } from './ihorz-scale-behavior';
-import { InvalidateMask, InvalidationLevel, ITimeScaleAnimation } from './invalidate-mask';
-import { IPriceDataSource } from './iprice-data-source';
-import { ColorType, LayoutOptions } from './layout-options';
-import { LocalizationOptions, LocalizationOptionsBase } from './localization-options';
-import { Magnet } from './magnet';
-import { DEFAULT_STRETCH_FACTOR, Pane } from './pane';
-import { Point } from './point';
-import { PriceScale, PriceScaleOptions } from './price-scale';
-import { ISeries, Series, SeriesOptionsInternal } from './series';
-import { SeriesOptionsMap, SeriesType } from './series-options';
-import { LogicalRange, TimePointIndex, TimeScalePoint } from './time-data';
-import { HorzScaleOptions, ITimeScale, TimeScale } from './time-scale';
-import { TouchMouseEventData } from './touch-mouse-event-data';
-import { Watermark, WatermarkOptions } from './watermark';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { Crosshair, type CrosshairOptions } from '@/lib/lightweight-charts/model/crosshair';
+import { DefaultPriceScaleId, isDefaultPriceScale } from '@/lib/lightweight-charts/model/default-price-scale';
+import { type GridOptions } from '@/lib/lightweight-charts/model/grid';
+import { type ICustomSeriesPaneView } from '@/lib/lightweight-charts/model/icustom-series';
+import {
+    type IHorzScaleBehavior,
+    type InternalHorzScaleItem,
+} from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import {
+    InvalidateMask,
+    InvalidationLevel,
+    type ITimeScaleAnimation,
+} from '@/lib/lightweight-charts/model/invalidate-mask';
+import { type IPriceDataSource } from '@/lib/lightweight-charts/model/iprice-data-source';
+import { ColorType, type LayoutOptions } from '@/lib/lightweight-charts/model/layout-options';
+import {
+    type LocalizationOptions,
+    type LocalizationOptionsBase,
+} from '@/lib/lightweight-charts/model/localization-options';
+import { Magnet } from '@/lib/lightweight-charts/model/magnet';
+import { DEFAULT_STRETCH_FACTOR, Pane } from '@/lib/lightweight-charts/model/pane';
+import { type Point } from '@/lib/lightweight-charts/model/point';
+import { type PriceScale, type PriceScaleOptions } from '@/lib/lightweight-charts/model/price-scale';
+import { type ISeries, Series, type SeriesOptionsInternal } from '@/lib/lightweight-charts/model/series';
+import { type SeriesOptionsMap, type SeriesType } from '@/lib/lightweight-charts/model/series-options';
+import { type LogicalRange, type TimePointIndex, type TimeScalePoint } from '@/lib/lightweight-charts/model/time-data';
+import { type HorzScaleOptions, type ITimeScale, TimeScale } from '@/lib/lightweight-charts/model/time-scale';
+import { type TouchMouseEventData } from '@/lib/lightweight-charts/model/touch-mouse-event-data';
+import { Watermark, type WatermarkOptions } from '@/lib/lightweight-charts/model/watermark';
 
 /**
  * Represents options for how the chart is scrolled by the mouse and touch gestures.
@@ -164,12 +172,12 @@ export interface AxisDoubleClickOptions {
 
 export interface HoveredObject {
     hitTestData?: unknown;
-    externalId?: string;
+    externalId?: string | undefined;
 }
 
 export interface HoveredSource {
     source: IPriceDataSource;
-    object?: HoveredObject;
+    object?: HoveredObject | undefined;
 }
 
 export interface PriceScaleOnPane {
@@ -177,10 +185,11 @@ export interface PriceScaleOnPane {
     pane: Pane;
 }
 
-const enum BackgroundColorSide {
-    Top,
-    Bottom,
-}
+const BackgroundColorSide = {
+    Top: 0,
+    Bottom: 1,
+} as const;
+type BackgroundColorSide = (typeof BackgroundColorSide)[keyof typeof BackgroundColorSide];
 
 type InvalidateHandler = (mask: InvalidateMask) => void;
 
@@ -202,16 +211,17 @@ export type OverlayPriceScaleOptions = Omit<PriceScaleOptions, 'visible' | 'auto
  * By default, mobile users will long press to deactivate the scroll and have the ability to check values and dates.
  * Another press is required to activate the scroll, be able to move left/right, zoom, etc.
  */
-export const enum TrackingModeExitMode {
+export const TrackingModeExitMode = {
     /**
      * Tracking Mode will be deactivated on touch end event.
      */
-    OnTouchEnd,
+    OnTouchEnd: 0,
     /**
      * Tracking Mode will be deactivated on the next tap event.
      */
-    OnNextTap,
-}
+    OnNextTap: 1,
+} as const;
+export type TrackingModeExitMode = (typeof TrackingModeExitMode)[keyof typeof TrackingModeExitMode];
 
 /**
  * Represent options for the tracking mode's behavior.
@@ -469,7 +479,7 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
         this._watermark = new Watermark(this, options.watermark);
 
         this.createPane();
-        this._panes[0].setStretchFactor(DEFAULT_STRETCH_FACTOR * 2);
+        ensureDefined(this._panes[0]).setStretchFactor(DEFAULT_STRETCH_FACTOR * 2);
 
         this._backgroundTopColor = this._getBackgroundColor(BackgroundColorSide.Top);
         this._backgroundBottomColor = this._getBackgroundColor(BackgroundColorSide.Bottom);
@@ -882,7 +892,7 @@ export class ChartModel<HorzScaleItem> implements IDestroyable, IChartModelBase 
         options: SeriesOptionsMap[T],
         customPaneView?: ICustomSeriesPaneView<HorzScaleItem>,
     ): Series<T> {
-        const pane = this._panes[0];
+        const pane = ensureDefined(this._panes[0]);
         const series = this._createSeries(options, seriesType, pane, customPaneView);
         this._serieses.push(series);
 

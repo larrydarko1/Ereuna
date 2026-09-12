@@ -579,7 +579,7 @@ onMounted(() => {
     });
     volumeSeries.priceScale().applyOptions({ scaleMargins: { top: 0.9, bottom: 0 } });
 
-    screenshotManager = new ChartScreenshot(chart, canvasId);
+    screenshotManager = new ChartScreenshot(canvasId);
 
     buildMainSeries();
     syncOverlays();

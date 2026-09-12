@@ -1,12 +1,15 @@
-import { IChartModelBase } from '../../model/chart-model';
-import { Coordinate } from '../../model/coordinate';
-import { ISeries } from '../../model/series';
-import { SeriesType } from '../../model/series-options';
-import { LineStyle } from '../../renderers/draw-line';
-import { HorizontalLineRenderer, HorizontalLineRendererData } from '../../renderers/horizontal-line-renderer';
-import { IPaneRenderer } from '../../renderers/ipane-renderer';
+import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type ISeries } from '@/lib/lightweight-charts/model/series';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
+import { LineStyle } from '@/lib/lightweight-charts/renderers/draw-line';
+import {
+    HorizontalLineRenderer,
+    type HorizontalLineRendererData,
+} from '@/lib/lightweight-charts/renderers/horizontal-line-renderer';
+import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 
-import { IPaneView } from './ipane-view';
+import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
 
 export abstract class SeriesHorizontalLinePaneView implements IPaneView {
     protected readonly _lineRendererData: HorizontalLineRendererData = {

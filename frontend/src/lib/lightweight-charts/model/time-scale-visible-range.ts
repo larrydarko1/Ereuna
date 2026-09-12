@@ -1,5 +1,5 @@
-import { RangeImpl } from './range-impl';
-import { Logical, TimePointIndex } from './time-data';
+import { RangeImpl } from '@/lib/lightweight-charts/model/range-impl';
+import { type Logical, type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 
 export class TimeScaleVisibleRange {
     private readonly _logicalRange: RangeImpl<Logical> | null;

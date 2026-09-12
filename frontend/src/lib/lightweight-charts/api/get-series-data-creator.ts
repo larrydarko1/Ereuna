@@ -1,25 +1,25 @@
 import {
-    AreaData,
-    BarData,
-    BaselineData,
-    CandlestickData,
-    LineData,
-    OhlcData,
-    SeriesDataItemTypeMap,
-    SingleValueData,
-} from '../model/data-consumer';
-import { CustomData } from '../model/icustom-series';
-import { PlotRow, PlotRowValueIndex } from '../model/plot-data';
+    type AreaData,
+    type BarData,
+    type BaselineData,
+    type CandlestickData,
+    type LineData,
+    type OhlcData,
+    type SeriesDataItemTypeMap,
+    type SingleValueData,
+} from '@/lib/lightweight-charts/model/data-consumer';
+import { type CustomData } from '@/lib/lightweight-charts/model/icustom-series';
+import { type PlotRow, PlotRowValueIndex } from '@/lib/lightweight-charts/model/plot-data';
 import {
-    AreaPlotRow,
-    BarPlotRow,
-    BaselinePlotRow,
-    CandlestickPlotRow,
-    CustomPlotRow,
-    LinePlotRow,
-    SeriesPlotRow,
-} from '../model/series-data';
-import { SeriesType } from '../model/series-options';
+    type AreaPlotRow,
+    type BarPlotRow,
+    type BaselinePlotRow,
+    type CandlestickPlotRow,
+    type CustomPlotRow,
+    type LinePlotRow,
+    type SeriesPlotRow,
+} from '@/lib/lightweight-charts/model/series-data';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 
 type SeriesPlotRowToDataMap<HorzScaleItem> = {
     [T in keyof SeriesDataItemTypeMap]: (plotRow: SeriesPlotRow<T>) => SeriesDataItemTypeMap<HorzScaleItem>[T];

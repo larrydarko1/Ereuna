@@ -1,11 +1,14 @@
-import { generateContrastColors } from '../../helpers/color';
+import { generateContrastColors } from '@/lib/lightweight-charts/helpers/color';
 
-import { CustomPriceLine } from '../../model/custom-price-line';
-import { ISeries } from '../../model/series';
-import { SeriesType } from '../../model/series-options';
-import { PriceAxisViewRendererCommonData, PriceAxisViewRendererData } from '../../renderers/iprice-axis-view-renderer';
+import { type CustomPriceLine } from '@/lib/lightweight-charts/model/custom-price-line';
+import { type ISeries } from '@/lib/lightweight-charts/model/series';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
+import {
+    type PriceAxisViewRendererCommonData,
+    type PriceAxisViewRendererData,
+} from '@/lib/lightweight-charts/renderers/iprice-axis-view-renderer';
 
-import { PriceAxisView } from './price-axis-view';
+import { PriceAxisView } from '@/lib/lightweight-charts/views/price-axis/price-axis-view';
 
 export class CustomPriceLinePriceAxisView extends PriceAxisView {
     private readonly _series: ISeries<SeriesType>;

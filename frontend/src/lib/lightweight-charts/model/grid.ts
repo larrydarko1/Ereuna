@@ -1,8 +1,8 @@
-import { LineStyle } from '../renderers/draw-line';
-import { GridPaneView } from '../views/pane/grid-pane-view';
-import { IUpdatablePaneView } from '../views/pane/iupdatable-pane-view';
+import { type LineStyle } from '@/lib/lightweight-charts/renderers/draw-line';
+import { GridPaneView } from '@/lib/lightweight-charts/views/pane/grid-pane-view';
+import { type IUpdatablePaneView } from '@/lib/lightweight-charts/views/pane/iupdatable-pane-view';
 
-import { Pane } from './pane';
+import { type Pane } from '@/lib/lightweight-charts/model/pane';
 
 /** Grid line options. */
 export interface GridLineOptions {

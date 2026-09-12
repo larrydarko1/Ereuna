@@ -1,7 +1,13 @@
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { BitmapCoordinatesPaneRenderer } from './bitmap-coordinates-pane-renderer';
-import { drawHorizontalLine, drawVerticalLine, LineStyle, LineWidth, setLineStyle } from './draw-line';
+import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
+import {
+    drawHorizontalLine,
+    drawVerticalLine,
+    type LineStyle,
+    type LineWidth,
+    setLineStyle,
+} from '@/lib/lightweight-charts/renderers/draw-line';
 
 export interface CrosshairLineStyle {
     lineStyle: LineStyle;

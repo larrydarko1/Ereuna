@@ -1,12 +1,15 @@
-import { IAxisView } from '../views/pane/iaxis-view';
-import { IPaneView } from '../views/pane/ipane-view';
-import { IPriceAxisView } from '../views/price-axis/iprice-axis-view';
-import { ITimeAxisView } from '../views/time-axis/itime-axis-view';
+import { type IAxisView } from '@/lib/lightweight-charts/views/pane/iaxis-view';
+import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
+import { type IPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/iprice-axis-view';
+import { type ITimeAxisView } from '@/lib/lightweight-charts/views/time-axis/itime-axis-view';
 
-import { Coordinate } from './coordinate';
-import { PrimitiveHoveredItem, SeriesPrimitivePaneViewZOrder } from './iseries-primitive';
-import { Pane } from './pane';
-import { PriceScale } from './price-scale';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import {
+    type PrimitiveHoveredItem,
+    type SeriesPrimitivePaneViewZOrder,
+} from '@/lib/lightweight-charts/model/iseries-primitive';
+import { type Pane } from '@/lib/lightweight-charts/model/pane';
+import { type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
 
 export interface ZOrdered {
     zorder(): number | null;

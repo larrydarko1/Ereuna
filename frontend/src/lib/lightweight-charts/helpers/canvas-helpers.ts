@@ -117,7 +117,7 @@ export function drawRoundRect(
  *
  * @param outerBorderRadius - The radius of the border (outer edge)
  */
-// eslint-disable-next-line max-params
+
 export function drawRoundRectWithBorder(
     ctx: CanvasRenderingContext2D,
     left: number,
@@ -159,7 +159,6 @@ export function drawRoundRectWithBorder(
     ctx.restore();
 }
 
-// eslint-disable-next-line max-params
 export function clearRectWithGradient(
     ctx: CanvasRenderingContext2D,
     x: number,

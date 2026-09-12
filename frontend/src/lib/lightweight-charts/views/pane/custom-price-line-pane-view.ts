@@ -1,8 +1,8 @@
-import { CustomPriceLine } from '../../model/custom-price-line';
-import { ISeries } from '../../model/series';
-import { SeriesType } from '../../model/series-options';
+import { type CustomPriceLine } from '@/lib/lightweight-charts/model/custom-price-line';
+import { type ISeries } from '@/lib/lightweight-charts/model/series';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 
-import { SeriesHorizontalLinePaneView } from './series-horizontal-line-pane-view';
+import { SeriesHorizontalLinePaneView } from '@/lib/lightweight-charts/views/pane/series-horizontal-line-pane-view';
 
 export class CustomPriceLinePaneView extends SeriesHorizontalLinePaneView {
     private readonly _priceLine: CustomPriceLine;

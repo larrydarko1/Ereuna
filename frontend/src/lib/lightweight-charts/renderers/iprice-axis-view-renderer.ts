@@ -1,14 +1,14 @@
-import { CanvasRenderingTarget2D } from 'fancy-canvas';
+import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
-import { TextWidthCache } from '../model/text-width-cache';
+import { type TextWidthCache } from '@/lib/lightweight-charts/model/text-width-cache';
 
-import { LineWidth } from './draw-line';
+import { type LineWidth } from '@/lib/lightweight-charts/renderers/draw-line';
 
 export interface PriceAxisViewRendererCommonData {
     activeBackground?: string;
     background: string;
     coordinate: number;
-    fixedCoordinate?: number;
+    fixedCoordinate?: number | undefined;
     additionalPaddingTop: number;
     additionalPaddingBottom: number;
 }

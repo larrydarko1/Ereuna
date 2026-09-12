@@ -1,20 +1,20 @@
-import { ensure, ensureNotNull } from '../helpers/assertions';
+import { ensure, ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
-import { PlotRowValueIndex } from './plot-data';
-import { Series } from './series';
-import { SeriesPlotRow } from './series-data';
+import { PlotRowValueIndex } from '@/lib/lightweight-charts/model/plot-data';
+import { type Series } from '@/lib/lightweight-charts/model/series';
+import { type SeriesPlotRow } from '@/lib/lightweight-charts/model/series-data';
 import {
-    AreaStyleOptions,
-    BarStyleOptions,
-    BaselineStyleOptions,
-    CandlestickStyleOptions,
-    CustomStyleOptions,
-    HistogramStyleOptions,
-    LineStyleOptions,
-    SeriesOptionsMap,
-    SeriesType,
-} from './series-options';
-import { TimePointIndex } from './time-data';
+    type AreaStyleOptions,
+    type BarStyleOptions,
+    type BaselineStyleOptions,
+    type CandlestickStyleOptions,
+    type CustomStyleOptions,
+    type HistogramStyleOptions,
+    type LineStyleOptions,
+    type SeriesOptionsMap,
+    type SeriesType,
+} from '@/lib/lightweight-charts/model/series-options';
+import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 
 export interface PrecomputedBars {
     value: SeriesPlotRow;
@@ -90,7 +90,6 @@ export interface ISeriesBarColorer<T extends SeriesType> {
 }
 
 const barStyleFnMap: BarStylesFnMap = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     Bar: (
         findBar: FindBarFn,
         barStyle: BarStyleOptions,
@@ -108,7 +107,7 @@ const barStyleFnMap: BarStylesFnMap = {
             barColor: currentBar.color ?? (isUp ? upColor : downColor),
         };
     },
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+
     Candlestick: (
         findBar: FindBarFn,
         candlestickStyle: CandlestickStyleOptions,
@@ -133,7 +132,7 @@ const barStyleFnMap: BarStylesFnMap = {
             barWickColor: currentBar.wickColor ?? (isUp ? wickUpColor : wickDownColor),
         };
     },
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+
     Custom: (
         findBar: FindBarFn,
         customStyle: CustomStyleOptions,
@@ -146,7 +145,7 @@ const barStyleFnMap: BarStylesFnMap = {
             barColor: currentBar.color ?? customStyle.color,
         };
     },
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+
     Area: (
         findBar: FindBarFn,
         areaStyle: AreaStyleOptions,
@@ -161,7 +160,7 @@ const barStyleFnMap: BarStylesFnMap = {
             bottomColor: currentBar.bottomColor ?? areaStyle.bottomColor,
         };
     },
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+
     Baseline: (
         findBar: FindBarFn,
         baselineStyle: BaselineStyleOptions,
@@ -181,7 +180,7 @@ const barStyleFnMap: BarStylesFnMap = {
             bottomFillColor2: currentBar.bottomFillColor2 ?? baselineStyle.bottomFillColor2,
         };
     },
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+
     Line: (
         findBar: FindBarFn,
         lineStyle: LineStyleOptions,
@@ -195,7 +194,7 @@ const barStyleFnMap: BarStylesFnMap = {
             lineColor: currentBar.color ?? lineStyle.color,
         };
     },
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+
     Histogram: (
         findBar: FindBarFn,
         histogramStyle: HistogramStyleOptions,

@@ -1,5 +1,5 @@
-import { DateFormatter } from './date-formatter';
-import { TimeFormatter } from './time-formatter';
+import { DateFormatter } from '@/lib/lightweight-charts/formatters/date-formatter';
+import { TimeFormatter } from '@/lib/lightweight-charts/formatters/time-formatter';
 
 export interface DateTimeFormatterParams {
     dateFormat: string;

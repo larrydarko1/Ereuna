@@ -1,10 +1,9 @@
-import { ISeries } from '../../model/series';
-import { PriceLineSource, SeriesType } from '../../model/series-options';
+import { type ISeries } from '@/lib/lightweight-charts/model/series';
+import { PriceLineSource, type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 
-import { SeriesHorizontalLinePaneView } from './series-horizontal-line-pane-view';
+import { SeriesHorizontalLinePaneView } from '@/lib/lightweight-charts/views/pane/series-horizontal-line-pane-view';
 
 export class SeriesPriceLinePaneView extends SeriesHorizontalLinePaneView {
-    // eslint-disable-next-line no-useless-constructor
     public constructor(series: ISeries<SeriesType>) {
         super(series);
     }

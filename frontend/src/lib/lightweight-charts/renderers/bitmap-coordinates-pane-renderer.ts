@@ -1,6 +1,6 @@
-import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope, type CanvasRenderingTarget2D } from 'fancy-canvas';
 
-import { IPaneRenderer } from './ipane-renderer';
+import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 
 export abstract class BitmapCoordinatesPaneRenderer implements IPaneRenderer {
     public draw(target: CanvasRenderingTarget2D, isHovered: boolean, hitTestData?: unknown): void {

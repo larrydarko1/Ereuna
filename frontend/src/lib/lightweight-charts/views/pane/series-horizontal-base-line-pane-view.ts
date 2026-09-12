@@ -1,11 +1,10 @@
-import { PriceScaleMode } from '../../model/price-scale';
-import { ISeries } from '../../model/series';
-import { SeriesType } from '../../model/series-options';
+import { PriceScaleMode } from '@/lib/lightweight-charts/model/price-scale';
+import { type ISeries } from '@/lib/lightweight-charts/model/series';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 
-import { SeriesHorizontalLinePaneView } from './series-horizontal-line-pane-view';
+import { SeriesHorizontalLinePaneView } from '@/lib/lightweight-charts/views/pane/series-horizontal-line-pane-view';
 
 export class SeriesHorizontalBaseLinePaneView extends SeriesHorizontalLinePaneView {
-    // eslint-disable-next-line no-useless-constructor
     public constructor(series: ISeries<SeriesType>) {
         super(series);
     }

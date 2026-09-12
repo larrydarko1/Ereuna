@@ -1,8 +1,10 @@
-import { equal, greaterOrEqual, isBaseDecimal } from '../helpers/mathex';
+import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
+import { equal, greaterOrEqual, isBaseDecimal } from '@/lib/lightweight-charts/helpers/mathex';
 
-const enum Constants {
-    TickSpanEpsilon = 1e-14,
-}
+const Constants = {
+    TickSpanEpsilon: 1e-14,
+} as const;
+type Constants = (typeof Constants)[keyof typeof Constants];
 
 export class PriceTickSpanCalculator {
     private readonly _base: number;
@@ -41,9 +43,8 @@ export class PriceTickSpanCalculator {
         let resultTickSpan = Math.pow(10, Math.max(0, Math.ceil(Math.log10(high - low))));
 
         let index = 0;
-        let c = this._integralDividers[0];
+        let c = ensureDefined(this._integralDividers[0]);
 
-        // eslint-disable-next-line no-constant-condition
         while (true) {
             // the second part is actual for small with very small values like 1e-10
             // greaterOrEqual fails for such values
@@ -62,7 +63,7 @@ export class PriceTickSpanCalculator {
                 break;
             }
             resultTickSpan /= c;
-            c = this._integralDividers[++index % this._integralDividers.length];
+            c = ensureDefined(this._integralDividers[++index % this._integralDividers.length]);
         }
 
         if (resultTickSpan <= minMovement + Constants.TickSpanEpsilon) {
@@ -73,13 +74,13 @@ export class PriceTickSpanCalculator {
 
         if (this._fractionalDividers.length > 0 && equal(resultTickSpan, 1, Constants.TickSpanEpsilon)) {
             index = 0;
-            c = this._fractionalDividers[0];
+            c = ensureDefined(this._fractionalDividers[0]);
             while (
                 greaterOrEqual(resultTickSpan, maxTickSpan * c, Constants.TickSpanEpsilon) &&
                 resultTickSpan > minMovement + Constants.TickSpanEpsilon
             ) {
                 resultTickSpan /= c;
-                c = this._fractionalDividers[++index % this._fractionalDividers.length];
+                c = ensureDefined(this._fractionalDividers[++index % this._fractionalDividers.length]);
             }
         }
 

@@ -1,12 +1,12 @@
-import { IChartWidgetBase } from '../gui/chart-widget';
+import { type IChartWidgetBase } from '@/lib/lightweight-charts/gui/chart-widget';
 
-import { ensureNotNull } from '../helpers/assertions';
-import { DeepPartial } from '../helpers/strict-type-checks';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { type DeepPartial } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { isDefaultPriceScale } from '../model/default-price-scale';
-import { PriceScale, PriceScaleOptions } from '../model/price-scale';
+import { isDefaultPriceScale } from '@/lib/lightweight-charts/model/default-price-scale';
+import { type PriceScale, type PriceScaleOptions } from '@/lib/lightweight-charts/model/price-scale';
 
-import { IPriceScaleApi } from './iprice-scale-api';
+import { type IPriceScaleApi } from '@/lib/lightweight-charts/api/iprice-scale-api';
 
 export class PriceScaleApi implements IPriceScaleApi {
     private _chartWidget: IChartWidgetBase;

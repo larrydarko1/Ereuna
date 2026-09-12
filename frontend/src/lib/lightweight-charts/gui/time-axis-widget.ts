@@ -1,52 +1,54 @@
 import {
-    BitmapCoordinatesRenderingScope,
-    CanvasElementBitmapSizeBinding,
-    CanvasRenderingTarget2D,
+    type BitmapCoordinatesRenderingScope,
+    type CanvasElementBitmapSizeBinding,
+    type CanvasRenderingTarget2D,
     equalSizes,
-    MediaCoordinatesRenderingScope,
-    Size,
+    type MediaCoordinatesRenderingScope,
+    type Size,
     size,
     tryCreateCanvasRenderingTarget2D,
 } from 'fancy-canvas';
 
-import { clearRect } from '../helpers/canvas-helpers';
-import { Delegate } from '../helpers/delegate';
-import { IDestroyable } from '../helpers/idestroyable';
-import { ISubscription } from '../helpers/isubscription';
-import { makeFont } from '../helpers/make-font';
+import { clearRect } from '@/lib/lightweight-charts/helpers/canvas-helpers';
+import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
+import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
+import { type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
+import { makeFont } from '@/lib/lightweight-charts/helpers/make-font';
 
-import { IDataSource } from '../model/idata-source';
-import { IHorzScaleBehavior } from '../model/ihorz-scale-behavior';
-import { InvalidationLevel } from '../model/invalidate-mask';
-import { SeriesPrimitivePaneViewZOrder } from '../model/iseries-primitive';
-import { LayoutOptions } from '../model/layout-options';
-import { Pane } from '../model/pane';
-import { TextWidthCache } from '../model/text-width-cache';
-import { IPaneRenderer } from '../renderers/ipane-renderer';
-import { TimeAxisViewRendererOptions } from '../renderers/itime-axis-view-renderer';
-import { IAxisView } from '../views/pane/iaxis-view';
+import { type IDataSource } from '@/lib/lightweight-charts/model/idata-source';
+import { type IHorzScaleBehavior } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import { InvalidationLevel } from '@/lib/lightweight-charts/model/invalidate-mask';
+import { type SeriesPrimitivePaneViewZOrder } from '@/lib/lightweight-charts/model/iseries-primitive';
+import { type LayoutOptions } from '@/lib/lightweight-charts/model/layout-options';
+import { type Pane } from '@/lib/lightweight-charts/model/pane';
+import { TextWidthCache } from '@/lib/lightweight-charts/model/text-width-cache';
+import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
+import { type TimeAxisViewRendererOptions } from '@/lib/lightweight-charts/renderers/itime-axis-view-renderer';
+import { type IAxisView } from '@/lib/lightweight-charts/views/pane/iaxis-view';
 
-import { createBoundCanvas, releaseCanvas } from './canvas-utils';
-import { ChartWidget } from './chart-widget';
-import { drawBackground, drawForeground, drawSourcePaneViews } from './draw-functions';
-import { ITimeAxisViewsGetter } from './iaxis-view-getters';
+import { createBoundCanvas, releaseCanvas } from '@/lib/lightweight-charts/gui/canvas-utils';
+import { type ChartWidget } from '@/lib/lightweight-charts/gui/chart-widget';
+import { drawBackground, drawForeground, drawSourcePaneViews } from '@/lib/lightweight-charts/gui/draw-functions';
+import { type ITimeAxisViewsGetter } from '@/lib/lightweight-charts/gui/iaxis-view-getters';
 import {
     MouseEventHandler,
-    MouseEventHandlers,
-    MouseEventHandlerTouchEvent,
-    TouchMouseEvent,
-} from './mouse-event-handler';
-import { PriceAxisStub, PriceAxisStubParams } from './price-axis-stub';
+    type MouseEventHandlers,
+    type MouseEventHandlerTouchEvent,
+    type TouchMouseEvent,
+} from '@/lib/lightweight-charts/gui/mouse-event-handler';
+import { PriceAxisStub, type PriceAxisStubParams } from '@/lib/lightweight-charts/gui/price-axis-stub';
 
-const enum Constants {
-    BorderSize = 1,
-    TickLength = 5,
-}
+const Constants = {
+    BorderSize: 1,
+    TickLength: 5,
+} as const;
+type Constants = (typeof Constants)[keyof typeof Constants];
 
-const enum CursorType {
-    Default,
-    EwResize,
-}
+const CursorType = {
+    Default: 0,
+    EwResize: 1,
+} as const;
+type CursorType = (typeof CursorType)[keyof typeof CursorType];
 
 function buildTimeAxisViewsGetter(zOrder: SeriesPrimitivePaneViewZOrder): ITimeAxisViewsGetter {
     return (source: IDataSource): readonly IAxisView[] => source.timePaneViews?.(zOrder) ?? [];
@@ -395,8 +397,8 @@ export class TimeAxisWidget<HorzScaleItem> implements MouseEventHandlers, IDestr
 
                     ctx.beginPath();
                     const tickLen = Math.round(rendererOptions.tickLength * verticalPixelRatio);
-                    for (let index = tickMarks.length; index--;) {
-                        const x = Math.round(tickMarks[index].coord * horizontalPixelRatio);
+                    for (const tickMark of tickMarks) {
+                        const x = Math.round(tickMark.coord * horizontalPixelRatio);
                         ctx.rect(x - tickOffset, 0, tickWidth, tickLen);
                     }
 

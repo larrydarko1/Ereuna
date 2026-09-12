@@ -1,10 +1,15 @@
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { HoveredObject } from '../model/chart-model';
-import { Coordinate } from '../model/coordinate';
+import { type HoveredObject } from '@/lib/lightweight-charts/model/chart-model';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
-import { BitmapCoordinatesPaneRenderer } from './bitmap-coordinates-pane-renderer';
-import { drawHorizontalLine, LineStyle, LineWidth, setLineStyle } from './draw-line';
+import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
+import {
+    drawHorizontalLine,
+    type LineStyle,
+    type LineWidth,
+    setLineStyle,
+} from '@/lib/lightweight-charts/renderers/draw-line';
 
 export interface HorizontalLineRendererData {
     color: string;
@@ -13,12 +18,13 @@ export interface HorizontalLineRendererData {
 
     y: Coordinate;
     visible?: boolean;
-    externalId?: string;
+    externalId?: string | undefined;
 }
 
-const enum Constants {
-    HitTestThreshold = 7,
-}
+const Constants = {
+    HitTestThreshold: 7,
+} as const;
+type Constants = (typeof Constants)[keyof typeof Constants];
 
 export class HorizontalLineRenderer extends BitmapCoordinatesPaneRenderer {
     private _data: HorizontalLineRendererData | null = null;
@@ -27,7 +33,7 @@ export class HorizontalLineRenderer extends BitmapCoordinatesPaneRenderer {
         this._data = data;
     }
 
-    public hitTest(x: Coordinate, y: Coordinate): HoveredObject | null {
+    public hitTest(_x: Coordinate, y: Coordinate): HoveredObject | null {
         if (!this._data?.visible) {
             return null;
         }

@@ -1,8 +1,14 @@
-import { isString } from '../../helpers/strict-type-checks';
+import { isString } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { TimedData } from '../data-layer';
-import { InternalHorzScaleItem } from '../ihorz-scale-behavior';
-import { BusinessDay, isBusinessDay, isUTCTimestamp, Time, UTCTimestamp } from './types';
+import { type TimedData } from '@/lib/lightweight-charts/model/data-layer';
+import { type InternalHorzScaleItem } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import {
+    type BusinessDay,
+    isBusinessDay,
+    isUTCTimestamp,
+    type Time,
+    type UTCTimestamp,
+} from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
 
 export type TimeConverter = (time: Time) => InternalHorzScaleItem;
 
@@ -33,10 +39,11 @@ export function timestampConverter(time: Time): InternalHorzScaleItem {
 }
 
 export function selectTimeConverter(data: TimedData<Time>[]): TimeConverter | null {
-    if (data.length === 0) {
+    const first = data[0];
+    if (first === undefined) {
         return null;
     }
-    if (isBusinessDay(data[0].time) || isString(data[0].time)) {
+    if (isBusinessDay(first.time) || isString(first.time)) {
         return businessDayConverter;
     }
     return timestampConverter;

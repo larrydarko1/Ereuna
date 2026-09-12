@@ -1,6 +1,6 @@
-import { CanvasRenderingTarget2D } from 'fancy-canvas';
+import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
-import { TextWidthCache } from '../model/text-width-cache';
+import { type TextWidthCache } from '@/lib/lightweight-charts/model/text-width-cache';
 
 export interface TimeAxisViewRendererOptions {
     baselineOffset: number;

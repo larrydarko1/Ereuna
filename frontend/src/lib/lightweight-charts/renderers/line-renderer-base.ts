@@ -1,17 +1,23 @@
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { PricedValue } from '../model/price-scale';
-import { SeriesItemsIndexesRange, TimedValue } from '../model/time-data';
+import { type PricedValue } from '@/lib/lightweight-charts/model/price-scale';
+import { type SeriesItemsIndexesRange, type TimedValue } from '@/lib/lightweight-charts/model/time-data';
 
-import { BitmapCoordinatesPaneRenderer } from './bitmap-coordinates-pane-renderer';
-import { LinePoint, LineStyle, LineType, LineWidth, setLineStyle } from './draw-line';
-import { drawSeriesPointMarkers } from './draw-series-point-markers';
-import { walkLine } from './walk-line';
+import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
+import {
+    type LinePoint,
+    type LineStyle,
+    type LineType,
+    type LineWidth,
+    setLineStyle,
+} from '@/lib/lightweight-charts/renderers/draw-line';
+import { drawSeriesPointMarkers } from '@/lib/lightweight-charts/renderers/draw-series-point-markers';
+import { walkLine } from '@/lib/lightweight-charts/renderers/walk-line';
 
 export type LineItemBase = TimedValue & PricedValue & LinePoint;
 
 export interface PaneRendererLineDataBase<TItem extends LineItemBase = LineItemBase> {
-    lineType?: LineType;
+    lineType?: LineType | undefined;
 
     items: TItem[];
 
@@ -22,7 +28,7 @@ export interface PaneRendererLineDataBase<TItem extends LineItemBase = LineItemB
 
     visibleRange: SeriesItemsIndexesRange | null;
 
-    pointMarkersRadius?: number;
+    pointMarkersRadius?: number | undefined;
 }
 
 function finishStyledArea(

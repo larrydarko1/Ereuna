@@ -1,12 +1,13 @@
-import { ceiledEven, ceiledOdd } from '../helpers/mathex';
+import { ceiledEven, ceiledOdd } from '@/lib/lightweight-charts/helpers/mathex';
 
-import { SeriesMarkerShape } from '../model/series-markers';
+import { type SeriesMarkerShape } from '@/lib/lightweight-charts/model/series-markers';
 
-const enum Constants {
-    MinShapeSize = 12,
-    MaxShapeSize = 30,
-    MinShapeMargin = 3,
-}
+const Constants = {
+    MinShapeSize: 12,
+    MaxShapeSize: 30,
+    MinShapeMargin: 3,
+} as const;
+type Constants = (typeof Constants)[keyof typeof Constants];
 
 function size(barSpacing: number, coeff: number): number {
     const result = Math.min(Math.max(barSpacing, Constants.MinShapeSize), Constants.MaxShapeSize) * coeff;
@@ -21,6 +22,7 @@ export function shapeSize(shape: SeriesMarkerShape, originalSize: number): numbe
         case 'circle':
             return size(originalSize, 0.8);
         case 'square':
+        case 'roundedSquare':
             return size(originalSize, 0.7);
     }
 }

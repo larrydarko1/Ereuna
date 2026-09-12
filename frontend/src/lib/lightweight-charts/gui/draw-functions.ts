@@ -1,10 +1,10 @@
-import { CanvasRenderingTarget2D } from 'fancy-canvas';
+import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
-import { IDataSource } from '../model/idata-source';
-import { Pane } from '../model/pane';
-import { IPaneRenderer } from '../renderers/ipane-renderer';
+import { type IDataSource } from '@/lib/lightweight-charts/model/idata-source';
+import { type Pane } from '@/lib/lightweight-charts/model/pane';
+import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 
-import { IPaneViewsGetter } from './ipane-view-getter';
+import { type IPaneViewsGetter } from '@/lib/lightweight-charts/gui/ipane-view-getter';
 
 export type DrawFunction = (
     renderer: IPaneRenderer,

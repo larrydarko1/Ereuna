@@ -1,13 +1,13 @@
-import { assert } from '../helpers/assertions';
-import { DeepPartial, isString } from '../helpers/strict-type-checks';
+import { assert } from '@/lib/lightweight-charts/helpers/assertions';
+import { type DeepPartial, isString } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { HorzScaleBehaviorTime } from '../model/horz-scale-behavior-time/horz-scale-behavior-time';
-import { TimeChartOptions } from '../model/horz-scale-behavior-time/time-based-chart-options';
-import { Time } from '../model/horz-scale-behavior-time/types';
-import { IHorzScaleBehavior } from '../model/ihorz-scale-behavior';
+import { HorzScaleBehaviorTime } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/horz-scale-behavior-time';
+import { type TimeChartOptions } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/time-based-chart-options';
+import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
+import { type IHorzScaleBehavior } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
 
-import { ChartApi } from './chart-api';
-import { IChartApiBase } from './ichart-api';
+import { ChartApi } from '@/lib/lightweight-charts/api/chart-api';
+import { type IChartApiBase } from '@/lib/lightweight-charts/api/ichart-api';
 
 /**
  * This function is the main entry point of the Lightweight Charting Library. If you are using time values

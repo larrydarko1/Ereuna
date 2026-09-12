@@ -1,9 +1,9 @@
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { SeriesItemsIndexesRange } from '../model/time-data';
+import { type SeriesItemsIndexesRange } from '@/lib/lightweight-charts/model/time-data';
 
-import { BitmapCoordinatesPaneRenderer } from './bitmap-coordinates-pane-renderer';
-import { LineItemBase } from './line-renderer-base';
+import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
+import { type LineItemBase } from '@/lib/lightweight-charts/renderers/line-renderer-base';
 
 export interface MarksRendererData {
     items: LineItemBase[];
@@ -41,6 +41,8 @@ export class PaneRendererMarks extends BitmapCoordinatesPaneRenderer {
 
             for (let i = visibleRange.to - 1; i >= visibleRange.from; --i) {
                 const point = data.items[i];
+                if (point === undefined) continue;
+
                 const centerX = Math.round(point.x * horizontalPixelRatio) + correction; // correct x coordinate only
                 const centerY = point.y * verticalPixelRatio;
                 const radius = radiusMedia * verticalPixelRatio + correction;

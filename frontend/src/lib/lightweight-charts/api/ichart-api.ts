@@ -1,27 +1,32 @@
-import { DeepPartial } from '../helpers/strict-type-checks';
+import { type DeepPartial } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { ChartOptionsImpl } from '../model/chart-model';
-import { BarData, HistogramData, LineData, WhitespaceData } from '../model/data-consumer';
-import { Time } from '../model/horz-scale-behavior-time/types';
-import { CustomData, ICustomSeriesPaneView } from '../model/icustom-series';
-import { Point } from '../model/point';
+import { type ChartOptionsImpl } from '@/lib/lightweight-charts/model/chart-model';
 import {
-    AreaSeriesPartialOptions,
-    BarSeriesPartialOptions,
-    BaselineSeriesPartialOptions,
-    CandlestickSeriesPartialOptions,
-    CustomSeriesOptions,
-    HistogramSeriesPartialOptions,
-    LineSeriesPartialOptions,
-    SeriesPartialOptions,
-    SeriesType,
-} from '../model/series-options';
-import { Logical } from '../model/time-data';
-import { TouchMouseEventData } from '../model/touch-mouse-event-data';
+    type BarData,
+    type HistogramData,
+    type LineData,
+    type WhitespaceData,
+} from '@/lib/lightweight-charts/model/data-consumer';
+import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
+import { type CustomData, type ICustomSeriesPaneView } from '@/lib/lightweight-charts/model/icustom-series';
+import { type Point } from '@/lib/lightweight-charts/model/point';
+import {
+    type AreaSeriesPartialOptions,
+    type BarSeriesPartialOptions,
+    type BaselineSeriesPartialOptions,
+    type CandlestickSeriesPartialOptions,
+    type CustomSeriesOptions,
+    type HistogramSeriesPartialOptions,
+    type LineSeriesPartialOptions,
+    type SeriesPartialOptions,
+    type SeriesType,
+} from '@/lib/lightweight-charts/model/series-options';
+import { type Logical } from '@/lib/lightweight-charts/model/time-data';
+import { type TouchMouseEventData } from '@/lib/lightweight-charts/model/touch-mouse-event-data';
 
-import { IPriceScaleApi } from './iprice-scale-api';
-import { ISeriesApi } from './iseries-api';
-import { ITimeScaleApi } from './itime-scale-api';
+import { type IPriceScaleApi } from '@/lib/lightweight-charts/api/iprice-scale-api';
+import { type ISeriesApi } from '@/lib/lightweight-charts/api/iseries-api';
+import { type ITimeScaleApi } from '@/lib/lightweight-charts/api/itime-scale-api';
 
 /**
  * Dimensions of the Chart Pane
@@ -43,17 +48,17 @@ export interface MouseEventParams<HorzScaleItem = Time> {
      *
      * The value will be `undefined` if the location of the event in the chart is outside the range of available data.
      */
-    time?: HorzScaleItem;
+    time?: HorzScaleItem | undefined;
     /**
      * Logical index
      */
-    logical?: Logical;
+    logical?: Logical | undefined;
     /**
      * Location of the event in the chart.
      *
      * The value will be `undefined` if the event is fired outside the chart, for example a mouse leave event.
      */
-    point?: Point;
+    point?: Point | undefined;
     /**
      * Data of all series at the location of the event in the chart.
      *
@@ -67,15 +72,15 @@ export interface MouseEventParams<HorzScaleItem = Time> {
     /**
      * The {@link ISeriesApi} for the series at the point of the mouse event.
      */
-    hoveredSeries?: ISeriesApi<SeriesType, HorzScaleItem>;
+    hoveredSeries?: ISeriesApi<SeriesType, HorzScaleItem> | undefined;
     /**
      * The ID of the object at the point of the mouse event.
      */
-    hoveredObjectId?: unknown;
+    hoveredObjectId?: unknown | undefined;
     /**
      * The underlying source mouse or touch event data, if available
      */
-    sourceEvent?: TouchMouseEventData;
+    sourceEvent?: TouchMouseEventData | undefined;
 }
 
 /**

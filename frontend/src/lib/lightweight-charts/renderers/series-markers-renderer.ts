@@ -1,21 +1,24 @@
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { ensureNever } from '../helpers/assertions';
-import { makeFont } from '../helpers/make-font';
+import { ensureNever } from '@/lib/lightweight-charts/helpers/assertions';
+import { makeFont } from '@/lib/lightweight-charts/helpers/make-font';
 
-import { HoveredObject } from '../model/chart-model';
-import { Coordinate } from '../model/coordinate';
-import { SeriesMarkerShape } from '../model/series-markers';
-import { TextWidthCache } from '../model/text-width-cache';
-import { SeriesItemsIndexesRange, TimedValue } from '../model/time-data';
+import { type HoveredObject } from '@/lib/lightweight-charts/model/chart-model';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type SeriesMarkerShape } from '@/lib/lightweight-charts/model/series-markers';
+import { TextWidthCache } from '@/lib/lightweight-charts/model/text-width-cache';
+import { type SeriesItemsIndexesRange, type TimedValue } from '@/lib/lightweight-charts/model/time-data';
 
-import { BitmapCoordinatesPaneRenderer } from './bitmap-coordinates-pane-renderer';
-import { drawArrow, hitTestArrow } from './series-markers-arrow';
-import { drawCircle, hitTestCircle } from './series-markers-circle';
-import { drawSquare, hitTestSquare } from './series-markers-square';
-import { drawRoundedSquare, hitTestRoundedSquare } from './series-markers-roundedsquare';
-import { drawText, hitTestText } from './series-markers-text';
-import { BitmapShapeItemCoordinates } from './series-markers-utils';
+import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
+import { drawArrow, hitTestArrow } from '@/lib/lightweight-charts/renderers/series-markers-arrow';
+import { drawCircle, hitTestCircle } from '@/lib/lightweight-charts/renderers/series-markers-circle';
+import { drawSquare, hitTestSquare } from '@/lib/lightweight-charts/renderers/series-markers-square';
+import {
+    drawRoundedSquare,
+    hitTestRoundedSquare,
+} from '@/lib/lightweight-charts/renderers/series-markers-roundedsquare';
+import { drawText, hitTestText } from '@/lib/lightweight-charts/renderers/series-markers-text';
+import { type BitmapShapeItemCoordinates } from '@/lib/lightweight-charts/renderers/series-markers-utils';
 
 export interface SeriesMarkerText {
     content: string;
@@ -31,9 +34,9 @@ export interface SeriesMarkerRendererDataItem extends TimedValue {
     shape: SeriesMarkerShape;
     color: string;
     internalId: number;
-    externalId?: string;
-    text?: SeriesMarkerText;
-    textColor?: string;
+    externalId?: string | undefined;
+    text?: SeriesMarkerText | undefined;
+    textColor?: string | undefined;
 }
 
 export interface SeriesMarkerRendererData {
@@ -68,7 +71,7 @@ export class SeriesMarkersRenderer extends BitmapCoordinatesPaneRenderer {
 
         for (let i = this._data.visibleRange.from; i < this._data.visibleRange.to; i++) {
             const item = this._data.items[i];
-            if (hitTestItem(item, x, y)) {
+            if (item !== undefined && hitTestItem(item, x, y)) {
                 return {
                     hitTestData: item.internalId,
                     externalId: item.externalId,
@@ -81,8 +84,8 @@ export class SeriesMarkersRenderer extends BitmapCoordinatesPaneRenderer {
 
     protected _drawImpl(
         { context: ctx, horizontalPixelRatio, verticalPixelRatio }: BitmapCoordinatesRenderingScope,
-        isHovered: boolean,
-        hitTestData?: unknown,
+        _isHovered: boolean,
+        _hitTestData?: unknown,
     ): void {
         if (this._data === null || this._data.visibleRange === null) {
             return;
@@ -94,6 +97,8 @@ export class SeriesMarkersRenderer extends BitmapCoordinatesPaneRenderer {
 
         for (let i = this._data.visibleRange.from; i < this._data.visibleRange.to; i++) {
             const item = this._data.items[i];
+            if (item === undefined) continue;
+
             if (item.text !== undefined) {
                 item.text.width = this._textWidthCache.measureText(ctx, item.text.content);
                 item.text.height = this._fontSize;
@@ -168,9 +173,12 @@ function drawShape(
         case 'roundedSquare':
             drawRoundedSquare(ctx, coordinates, item.size);
             return;
+        default:
+            // Exhaustiveness assertion. It lives in `default` and not after the
+            // switch because `allowUnreachableCode: false` rejects the latter
+            ensureNever(item.shape);
+            return;
     }
-
-    ensureNever(item.shape);
 }
 
 function hitTestItem(item: SeriesMarkerRendererDataItem, x: Coordinate, y: Coordinate): boolean {

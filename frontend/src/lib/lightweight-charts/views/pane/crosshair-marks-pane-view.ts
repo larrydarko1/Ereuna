@@ -1,17 +1,17 @@
-import { ensureNotNull } from '../../helpers/assertions';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
-import { BarPrice } from '../../model/bar';
-import { IChartModelBase } from '../../model/chart-model';
-import { Coordinate } from '../../model/coordinate';
-import { Crosshair, CrosshairMode } from '../../model/crosshair';
-import { ISeries } from '../../model/series';
-import { SeriesType } from '../../model/series-options';
-import { SeriesItemsIndexesRange, TimePointIndex } from '../../model/time-data';
-import { CompositeRenderer } from '../../renderers/composite-renderer';
-import { IPaneRenderer } from '../../renderers/ipane-renderer';
-import { MarksRendererData, PaneRendererMarks } from '../../renderers/marks-renderer';
+import { type BarPrice } from '@/lib/lightweight-charts/model/bar';
+import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type Crosshair, CrosshairMode } from '@/lib/lightweight-charts/model/crosshair';
+import { type ISeries } from '@/lib/lightweight-charts/model/series';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
+import { type SeriesItemsIndexesRange, type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
+import { CompositeRenderer } from '@/lib/lightweight-charts/renderers/composite-renderer';
+import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
+import { type MarksRendererData, PaneRendererMarks } from '@/lib/lightweight-charts/renderers/marks-renderer';
 
-import { IUpdatablePaneView, UpdateType } from './iupdatable-pane-view';
+import { type IUpdatablePaneView, type UpdateType } from '@/lib/lightweight-charts/views/pane/iupdatable-pane-view';
 
 function createEmptyMarkerData(): MarksRendererData {
     return {
@@ -47,7 +47,7 @@ export class CrosshairMarksPaneView implements IUpdatablePaneView {
         this._compositeRenderer.setRenderers(this._markersRenderers);
     }
 
-    public update(updateType?: UpdateType): void {
+    public update(_updateType?: UpdateType): void {
         const serieses = this._chartModel.serieses();
         if (serieses.length !== this._markersRenderers.length) {
             this._markersData = serieses.map(createEmptyMarkerData);
@@ -80,6 +80,10 @@ export class CrosshairMarksPaneView implements IUpdatablePaneView {
 
         serieses.forEach((s: ISeries<SeriesType>, index: number) => {
             const data = this._markersData[index];
+            if (data === undefined) {
+                return;
+            }
+
             const seriesData = s.markerDataAtIndex(timePointIndex);
 
             if (forceHidden || seriesData === null || !s.visible()) {
@@ -87,17 +91,22 @@ export class CrosshairMarksPaneView implements IUpdatablePaneView {
                 return;
             }
 
+            const marker = data.items[0];
+            if (marker === undefined) {
+                return;
+            }
+
             const firstValue = ensureNotNull(s.firstValue());
             data.lineColor = seriesData.backgroundColor;
             data.radius = seriesData.radius;
             data.lineWidth = seriesData.borderWidth;
-            data.items[0].price = seriesData.price;
-            data.items[0].y = s.priceScale().priceToCoordinate(seriesData.price, firstValue.value);
+            marker.price = seriesData.price;
+            marker.y = s.priceScale().priceToCoordinate(seriesData.price, firstValue.value);
             data.backColor =
                 seriesData.borderColor ??
-                this._chartModel.backgroundColorAtYPercentFromTop(data.items[0].y / s.priceScale().height());
-            data.items[0].time = timePointIndex;
-            data.items[0].x = timeScale.indexToCoordinate(timePointIndex);
+                this._chartModel.backgroundColorAtYPercentFromTop(marker.y / s.priceScale().height());
+            marker.time = timePointIndex;
+            marker.x = timeScale.indexToCoordinate(timePointIndex);
             data.visibleRange = rangeForSinglePoint;
         });
     }

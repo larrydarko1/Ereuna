@@ -3,12 +3,12 @@
  * Manages the visual representation of detected chart patterns on the chart
  */
 
-import type { IChartApi } from './api/create-chart';
-import type { ISeriesApi } from './api/iseries-api';
-import type { Time } from './model/horz-scale-behavior-time/types';
-import type { SeriesMarker } from './model/series-markers';
-import { LineStyle } from './renderers/draw-line';
-import { PatternMatch, PivotPoint } from './pattern-detection';
+import type { IChartApi } from '@/lib/lightweight-charts/api/create-chart';
+import type { ISeriesApi } from '@/lib/lightweight-charts/api/iseries-api';
+import type { Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
+import type { SeriesMarker } from '@/lib/lightweight-charts/model/series-markers';
+import { LineStyle } from '@/lib/lightweight-charts/renderers/draw-line';
+import { type PatternMatch } from '@/lib/lightweight-charts/pattern-detection';
 
 interface PatternVisual {
     pattern: PatternMatch;
@@ -82,10 +82,10 @@ export class PatternOverlayManager {
      * Draw double top/bottom pattern
      */
     private drawDoublePattern(pattern: PatternMatch): void {
-        if (pattern.points.length < 2) return;
+        const [first, second] = pattern.points;
+        if (first === undefined || second === undefined) return;
 
         const color = pattern.type === 'doubleTop' ? '#ef5350' : '#26a69a';
-        const points = pattern.points;
 
         // Create line series connecting the two peaks/troughs
         const lineSeries = this.chart.addLineSeries({
@@ -99,8 +99,8 @@ export class PatternOverlayManager {
 
         // Draw horizontal line connecting the two points
         const lineData = [
-            { time: points[0].time as Time, value: points[0].price },
-            { time: points[1].time as Time, value: points[1].price },
+            { time: first.time as Time, value: first.price },
+            { time: second.time as Time, value: second.price },
         ];
 
         lineSeries.setData(lineData);
@@ -111,10 +111,10 @@ export class PatternOverlayManager {
      * Draw head and shoulders pattern
      */
     private drawHeadAndShoulders(pattern: PatternMatch): void {
-        if (pattern.points.length < 3) return;
+        const [leftShoulder, head, rightShoulder] = pattern.points;
+        if (leftShoulder === undefined || head === undefined || rightShoulder === undefined) return;
 
         const color = pattern.type === 'headAndShoulders' ? '#ef5350' : '#26a69a';
-        const [leftShoulder, head, rightShoulder] = pattern.points;
 
         // Draw neckline (connecting the shoulders)
         const necklineSeries = this.chart.addLineSeries({
@@ -240,6 +240,8 @@ export class PatternOverlayManager {
      */
     private addPatternMarker(pattern: PatternMatch): void {
         const lastPoint = pattern.points[pattern.points.length - 1];
+        if (lastPoint === undefined) return;
+
         const marker: SeriesMarker<Time> = {
             time: lastPoint.time as Time,
             position:

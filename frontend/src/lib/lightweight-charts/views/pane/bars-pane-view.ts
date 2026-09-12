@@ -1,10 +1,10 @@
-import { SeriesBarColorer } from '../../model/series-bar-colorer';
-import { SeriesPlotRow } from '../../model/series-data';
-import { SeriesType } from '../../model/series-options';
-import { TimePointIndex } from '../../model/time-data';
-import { BarItem, PaneRendererBars } from '../../renderers/bars-renderer';
+import { type SeriesBarColorer } from '@/lib/lightweight-charts/model/series-bar-colorer';
+import { type SeriesPlotRow } from '@/lib/lightweight-charts/model/series-data';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
+import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
+import { type BarItem, PaneRendererBars } from '@/lib/lightweight-charts/renderers/bars-renderer';
 
-import { BarsPaneViewBase } from './bars-pane-view-base';
+import { BarsPaneViewBase } from '@/lib/lightweight-charts/views/pane/bars-pane-view-base';
 
 export class SeriesBarsPaneView extends BarsPaneViewBase<'Bar', BarItem, PaneRendererBars> {
     protected readonly _renderer: PaneRendererBars = new PaneRendererBars();

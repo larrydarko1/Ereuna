@@ -1,9 +1,9 @@
-import { DeepPartial } from '../helpers/strict-type-checks';
+import { type DeepPartial } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { LineStyle, LineType, LineWidth } from '../renderers/draw-line';
+import { type LineStyle, type LineType, type LineWidth } from '@/lib/lightweight-charts/renderers/draw-line';
 
-import { AutoScaleMargins } from './autoscale-info-impl';
-import { PriceFormatterFn } from './price-formatter-fn';
+import { type AutoScaleMargins } from '@/lib/lightweight-charts/model/autoscale-info-impl';
+import { type PriceFormatterFn } from '@/lib/lightweight-charts/model/price-formatter-fn';
 
 /**
  * Represents style options for a candlestick series.
@@ -94,20 +94,21 @@ export function fillUpDownCandlesticksColors(options: Partial<CandlestickStyleOp
 /**
  * Represents the type of the last price animation for series such as area or line.
  */
-export const enum LastPriceAnimationMode {
+export const LastPriceAnimationMode = {
     /**
      * Animation is always disabled
      */
-    Disabled,
+    Disabled: 0,
     /**
      * Animation is always enabled.
      */
-    Continuous,
+    Continuous: 1,
     /**
      * Animation is active after new data.
      */
-    OnDataUpdate,
-}
+    OnDataUpdate: 2,
+} as const;
+export type LastPriceAnimationMode = (typeof LastPriceAnimationMode)[keyof typeof LastPriceAnimationMode];
 
 /**
  * Represents style options for a bar series.
@@ -600,24 +601,26 @@ export function precisionByMinMove(minMove: number): number {
     return i;
 }
 
-export const enum PriceAxisLastValueMode {
-    LastPriceAndPercentageValue,
-    LastValueAccordingToScale,
-}
+export const PriceAxisLastValueMode = {
+    LastPriceAndPercentageValue: 0,
+    LastValueAccordingToScale: 1,
+} as const;
+export type PriceAxisLastValueMode = (typeof PriceAxisLastValueMode)[keyof typeof PriceAxisLastValueMode];
 
 /**
  * Represents the source of data to be used for the horizontal price line.
  */
-export const enum PriceLineSource {
+export const PriceLineSource = {
     /**
      * Use the last bar data.
      */
-    LastBar,
+    LastBar: 0,
     /**
      * Use the last visible data of the chart viewport.
      */
-    LastVisible,
-}
+    LastVisible: 1,
+} as const;
+export type PriceLineSource = (typeof PriceLineSource)[keyof typeof PriceLineSource];
 
 /**
  * Represents a price range.
@@ -646,7 +649,7 @@ export interface AutoscaleInfo {
     /**
      * Scale margins.
      */
-    margins?: AutoScaleMargins;
+    margins?: AutoScaleMargins | undefined;
 }
 
 /**

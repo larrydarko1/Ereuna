@@ -1,12 +1,13 @@
 /**
  * Represents a type of color.
  */
-export const enum ColorType {
+export const ColorType = {
     /** Solid color */
-    Solid = 'solid',
+    Solid: 'solid',
     /** Vertical gradient color */
-    VerticalGradient = 'gradient',
-}
+    VerticalGradient: 'gradient',
+} as const;
+export type ColorType = (typeof ColorType)[keyof typeof ColorType];
 
 /**
  * Represents a solid color.
@@ -15,7 +16,7 @@ export interface SolidColor {
     /**
      * Type of color.
      */
-    type: ColorType.Solid;
+    type: typeof ColorType.Solid;
 
     /**
      * Color.
@@ -30,7 +31,7 @@ export interface VerticalGradientColor {
     /**
      * Type of color.
      */
-    type: ColorType.VerticalGradient;
+    type: typeof ColorType.VerticalGradient;
 
     /**
      * Top color

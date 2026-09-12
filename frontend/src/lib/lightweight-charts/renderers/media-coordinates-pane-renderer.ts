@@ -1,6 +1,6 @@
-import { CanvasRenderingTarget2D, MediaCoordinatesRenderingScope } from 'fancy-canvas';
+import { type CanvasRenderingTarget2D, type MediaCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { IPaneRenderer } from './ipane-renderer';
+import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 
 export abstract class MediaCoordinatesPaneRenderer implements IPaneRenderer {
     public draw(target: CanvasRenderingTarget2D, isHovered: boolean, hitTestData?: unknown): void {
@@ -22,8 +22,8 @@ export abstract class MediaCoordinatesPaneRenderer implements IPaneRenderer {
     ): void;
 
     protected _drawBackgroundImpl(
-        renderingScope: MediaCoordinatesRenderingScope,
-        isHovered: boolean,
-        hitTestData?: unknown,
+        _renderingScope: MediaCoordinatesRenderingScope,
+        _isHovered: boolean,
+        _hitTestData?: unknown,
     ): void {}
 }

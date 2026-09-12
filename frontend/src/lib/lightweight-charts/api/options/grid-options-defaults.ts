@@ -1,5 +1,5 @@
-import { GridOptions } from '../../model/grid';
-import { LineStyle } from '../../renderers/draw-line';
+import { type GridOptions } from '@/lib/lightweight-charts/model/grid';
+import { LineStyle } from '@/lib/lightweight-charts/renderers/draw-line';
 
 export const gridOptionsDefaults: GridOptions = {
     vertLines: {

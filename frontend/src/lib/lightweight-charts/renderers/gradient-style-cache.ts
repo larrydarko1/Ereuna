@@ -1,8 +1,8 @@
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { clamp } from '../helpers/mathex';
+import { clamp } from '@/lib/lightweight-charts/helpers/mathex';
 
-import { Coordinate } from '../model/coordinate';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
 export interface GradientCacheParams {
     topColor1: string;

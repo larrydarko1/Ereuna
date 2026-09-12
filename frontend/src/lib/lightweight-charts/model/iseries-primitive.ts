@@ -1,7 +1,7 @@
-import { CanvasRenderingTarget2D } from 'fancy-canvas';
+import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
-import { AutoscaleInfo } from './series-options';
-import { Logical } from './time-data';
+import { type AutoscaleInfo } from '@/lib/lightweight-charts/model/series-options';
+import { type Logical } from '@/lib/lightweight-charts/model/time-data';
 
 /**
  * This interface represents a label on the price or time axis
@@ -108,7 +108,7 @@ export interface PrimitiveHoveredItem {
      * CSS cursor style as defined here: [MDN: CSS Cursor](https://developer.mozilla.org/en-US/docs/Web/CSS/cursor) or `undefined`
      * if you want the library to use the default cursor style instead.
      */
-    cursorStyle?: string;
+    cursorStyle?: string | undefined;
     /**
      * Hovered objects external ID. Can be used to identify the source item within a mouse subscriber event.
      */

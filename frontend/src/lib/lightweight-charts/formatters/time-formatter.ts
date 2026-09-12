@@ -1,4 +1,4 @@
-import { numberToStringWithLeadingZero } from './price-formatter';
+import { numberToStringWithLeadingZero } from '@/lib/lightweight-charts/formatters/price-formatter';
 
 export class TimeFormatter {
     private _formatStr: string;

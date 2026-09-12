@@ -1,11 +1,18 @@
-import { ensureNotNull } from '../../helpers/assertions';
-import { generateContrastColors } from '../../helpers/color';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { generateContrastColors } from '@/lib/lightweight-charts/helpers/color';
 
-import { IChartModelBase } from '../../model/chart-model';
-import { Crosshair, CrosshairMode, TimeAndCoordinateProvider } from '../../model/crosshair';
-import { TimeAxisViewRenderer, TimeAxisViewRendererData } from '../../renderers/time-axis-view-renderer';
+import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
+import {
+    type Crosshair,
+    CrosshairMode,
+    type TimeAndCoordinateProvider,
+} from '@/lib/lightweight-charts/model/crosshair';
+import {
+    TimeAxisViewRenderer,
+    type TimeAxisViewRendererData,
+} from '@/lib/lightweight-charts/renderers/time-axis-view-renderer';
 
-import { ITimeAxisView } from './itime-axis-view';
+import { type ITimeAxisView } from '@/lib/lightweight-charts/views/time-axis/itime-axis-view';
 
 export class CrosshairTimeAxisView implements ITimeAxisView {
     private _invalidated: boolean = true;

@@ -1,13 +1,16 @@
-import { CanvasRenderingTarget2D } from 'fancy-canvas';
+import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
-import { IChartModelBase } from '../../model/chart-model';
-import { IPriceDataSource } from '../../model/iprice-data-source';
-import { TextWidthCache } from '../../model/text-width-cache';
-import { IPaneRenderer } from '../../renderers/ipane-renderer';
-import { IPriceAxisViewRenderer, PriceAxisViewRendererOptions } from '../../renderers/iprice-axis-view-renderer';
+import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
+import { type IPriceDataSource } from '@/lib/lightweight-charts/model/iprice-data-source';
+import { TextWidthCache } from '@/lib/lightweight-charts/model/text-width-cache';
+import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
+import {
+    type IPriceAxisViewRenderer,
+    type PriceAxisViewRendererOptions,
+} from '@/lib/lightweight-charts/renderers/iprice-axis-view-renderer';
 
-import { IPriceAxisView } from '../price-axis/iprice-axis-view';
-import { IPaneView } from './ipane-view';
+import { type IPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/iprice-axis-view';
+import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
 
 class PanePriceAxisViewRenderer implements IPaneRenderer {
     private _priceAxisViewRenderer: IPriceAxisViewRenderer | null = null;

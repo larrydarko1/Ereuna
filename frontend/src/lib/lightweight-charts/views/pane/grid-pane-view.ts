@@ -1,9 +1,9 @@
-import { Pane } from '../../model/pane';
-import { TimeMark } from '../../model/time-scale';
-import { GridRenderer, GridRendererData } from '../../renderers/grid-renderer';
-import { IPaneRenderer } from '../../renderers/ipane-renderer';
+import { type Pane } from '@/lib/lightweight-charts/model/pane';
+import { type TimeMark } from '@/lib/lightweight-charts/model/time-scale';
+import { GridRenderer, type GridRendererData } from '@/lib/lightweight-charts/renderers/grid-renderer';
+import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 
-import { IUpdatablePaneView } from './iupdatable-pane-view';
+import { type IUpdatablePaneView } from '@/lib/lightweight-charts/views/pane/iupdatable-pane-view';
 
 export class GridPaneView implements IUpdatablePaneView {
     private readonly _pane: Pane;

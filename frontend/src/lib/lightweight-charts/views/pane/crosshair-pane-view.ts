@@ -1,10 +1,10 @@
-import { ensureNotNull } from '../../helpers/assertions';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
-import { Crosshair, CrosshairMode } from '../../model/crosshair';
-import { CrosshairRenderer, CrosshairRendererData } from '../../renderers/crosshair-renderer';
-import { IPaneRenderer } from '../../renderers/ipane-renderer';
+import { type Crosshair, CrosshairMode } from '@/lib/lightweight-charts/model/crosshair';
+import { CrosshairRenderer, type CrosshairRendererData } from '@/lib/lightweight-charts/renderers/crosshair-renderer';
+import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 
-import { IPaneView } from './ipane-view';
+import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
 
 export class CrosshairPaneView implements IPaneView {
     private _invalidated: boolean = true;

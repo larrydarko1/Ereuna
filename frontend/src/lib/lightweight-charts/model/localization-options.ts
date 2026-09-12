@@ -1,5 +1,5 @@
-import { Time } from './horz-scale-behavior-time/types';
-import { PercentageFormatterFn, PriceFormatterFn } from './price-formatter-fn';
+import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
+import { type PercentageFormatterFn, type PriceFormatterFn } from '@/lib/lightweight-charts/model/price-formatter-fn';
 
 /**
  * A custom function used to override formatting of a time to a string.
@@ -24,14 +24,14 @@ export interface LocalizationOptionsBase {
      * @see {@link PriceFormatCustom}
      * @defaultValue `undefined`
      */
-    priceFormatter?: PriceFormatterFn;
+    priceFormatter?: PriceFormatterFn | undefined;
 
     /**
      * Override formatting of the percentage scale tick marks, labels and crosshair labels. Can be used for cases that can't be covered with built-in percentage format.
      *
      * @defaultValue `undefined`
      */
-    percentageFormatter?: PercentageFormatterFn;
+    percentageFormatter?: PercentageFormatterFn | undefined;
 }
 
 /**
@@ -43,7 +43,7 @@ export interface LocalizationOptions<HorzScaleItem> extends LocalizationOptionsB
      *
      * @defaultValue `undefined`
      */
-    timeFormatter?: TimeFormatterFn<HorzScaleItem>;
+    timeFormatter?: TimeFormatterFn<HorzScaleItem> | undefined;
 
     /**
      * Date formatting string.

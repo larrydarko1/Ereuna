@@ -1,21 +1,21 @@
 import {
-    BitmapCoordinatesRenderingScope,
-    CanvasElementBitmapSizeBinding,
+    type BitmapCoordinatesRenderingScope,
+    type CanvasElementBitmapSizeBinding,
     equalSizes,
-    Size,
+    type Size,
     size,
     tryCreateCanvasRenderingTarget2D,
 } from 'fancy-canvas';
 
-import { clearRect } from '../helpers/canvas-helpers';
-import { IDestroyable } from '../helpers/idestroyable';
+import { clearRect } from '@/lib/lightweight-charts/helpers/canvas-helpers';
+import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
 
-import { ChartOptionsBase } from '../model/chart-model';
-import { InvalidationLevel } from '../model/invalidate-mask';
-import { PriceAxisRendererOptionsProvider } from '../renderers/price-axis-renderer-options-provider';
+import { type ChartOptionsBase } from '@/lib/lightweight-charts/model/chart-model';
+import { InvalidationLevel } from '@/lib/lightweight-charts/model/invalidate-mask';
+import { type PriceAxisRendererOptionsProvider } from '@/lib/lightweight-charts/renderers/price-axis-renderer-options-provider';
 
-import { createBoundCanvas, releaseCanvas } from './canvas-utils';
-import { PriceAxisWidgetSide } from './price-axis-widget';
+import { createBoundCanvas, releaseCanvas } from '@/lib/lightweight-charts/gui/canvas-utils';
+import { type PriceAxisWidgetSide } from '@/lib/lightweight-charts/gui/price-axis-widget';
 
 export interface PriceAxisStubParams {
     rendererOptionsProvider: PriceAxisRendererOptionsProvider;

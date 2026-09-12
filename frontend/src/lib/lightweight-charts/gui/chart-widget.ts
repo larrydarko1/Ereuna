@@ -1,42 +1,51 @@
-import { Size, size } from 'fancy-canvas';
+import { type Size, size } from 'fancy-canvas';
 
-import { ensureDefined, ensureNotNull } from '../helpers/assertions';
-import { isChromiumBased, isWindows } from '../helpers/browsers';
-import { Delegate } from '../helpers/delegate';
-import { IDestroyable } from '../helpers/idestroyable';
-import { ISubscription } from '../helpers/isubscription';
-import { warn } from '../helpers/logger';
-import { DeepPartial } from '../helpers/strict-type-checks';
+import { ensureDefined, ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { isChromiumBased, isWindows } from '@/lib/lightweight-charts/helpers/browsers';
+import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
+import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
+import { type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
+import { warn } from '@/lib/lightweight-charts/helpers/logger';
+import { type DeepPartial } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { ChartModel, ChartOptionsInternal, ChartOptionsInternalBase, IChartModelBase } from '../model/chart-model';
-import { Coordinate } from '../model/coordinate';
-import { DefaultPriceScaleId } from '../model/default-price-scale';
-import { IHorzScaleBehavior } from '../model/ihorz-scale-behavior';
+import {
+    ChartModel,
+    type ChartOptionsInternal,
+    type ChartOptionsInternalBase,
+    type IChartModelBase,
+} from '@/lib/lightweight-charts/model/chart-model';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type DefaultPriceScaleId } from '@/lib/lightweight-charts/model/default-price-scale';
+import { type IHorzScaleBehavior } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
 import {
     InvalidateMask,
     InvalidationLevel,
-    TimeScaleInvalidation,
+    type TimeScaleInvalidation,
     TimeScaleInvalidationType,
-} from '../model/invalidate-mask';
-import { Point } from '../model/point';
-import { Series } from '../model/series';
-import { SeriesPlotRow } from '../model/series-data';
-import { SeriesType } from '../model/series-options';
-import { TimePointIndex } from '../model/time-data';
-import { TouchMouseEventData } from '../model/touch-mouse-event-data';
+} from '@/lib/lightweight-charts/model/invalidate-mask';
+import { type Point } from '@/lib/lightweight-charts/model/point';
+import { Series } from '@/lib/lightweight-charts/model/series';
+import { type SeriesPlotRow } from '@/lib/lightweight-charts/model/series-data';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
+import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
+import { type TouchMouseEventData } from '@/lib/lightweight-charts/model/touch-mouse-event-data';
 
-import { suggestChartSize, suggestPriceScaleWidth, suggestTimeScaleHeight } from './internal-layout-sizes-hints';
-import { PaneWidget } from './pane-widget';
-import { TimeAxisWidget } from './time-axis-widget';
+import {
+    suggestChartSize,
+    suggestPriceScaleWidth,
+    suggestTimeScaleHeight,
+} from '@/lib/lightweight-charts/gui/internal-layout-sizes-hints';
+import { PaneWidget } from '@/lib/lightweight-charts/gui/pane-widget';
+import { TimeAxisWidget } from '@/lib/lightweight-charts/gui/time-axis-widget';
 
 export interface MouseEventParamsImpl {
     originalTime?: unknown;
-    index?: TimePointIndex;
-    point?: Point;
+    index?: TimePointIndex | undefined;
+    point?: Point | undefined;
     seriesData: Map<Series<SeriesType>, SeriesPlotRow<SeriesType>>;
-    hoveredSeries?: Series<SeriesType>;
-    hoveredObject?: string;
-    touchMouseEventData?: TouchMouseEventData;
+    hoveredSeries?: Series<SeriesType> | undefined;
+    hoveredObject?: string | undefined;
+    touchMouseEventData?: TouchMouseEventData | undefined;
 }
 
 export type MouseEventParamsImplSupplier = () => MouseEventParamsImpl;
@@ -218,8 +227,8 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
             invalidateMask = InvalidateMask.full();
         }
 
-        for (let i = 0; i < this._paneWidgets.length; i++) {
-            this._paneWidgets[i].paint(invalidateMask.invalidateForPane(i).level);
+        for (const [i, paneWidget] of this._paneWidgets.entries()) {
+            paneWidget.paint(invalidateMask.invalidateForPane(i).level);
         }
 
         if (this._options.timeScale.visible) {
@@ -290,10 +299,9 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         // we don't need to worry about exactly pane widget here
         // because all pane widgets have the same width of price axis widget
         // see _adjustSizeImpl
+        const firstPane = ensureDefined(this._paneWidgets[0]);
         const priceAxisWidget =
-            position === 'left'
-                ? this._paneWidgets[0].leftPriceAxisWidget()
-                : this._paneWidgets[0].rightPriceAxisWidget();
+            position === 'left' ? firstPane.leftPriceAxisWidget() : firstPane.rightPriceAxisWidget();
         return ensureNotNull(priceAxisWidget).getWidth();
     }
 
@@ -323,7 +331,6 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         return ensureDefined(this._paneWidgets[0]).getSize();
     }
 
-    // eslint-disable-next-line complexity
     private _applyAutoSizeOptions(options: DeepPartial<ChartOptionsInternal<HorzScaleItem>>): void {
         if (
             options.autoSize === undefined &&
@@ -360,12 +367,11 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         let totalWidth = 0;
         let totalHeight = 0;
 
-        const firstPane = this._paneWidgets[0];
+        const firstPane = ensureDefined(this._paneWidgets[0]);
 
         const drawPriceAxises = (position: 'left' | 'right', targetX: number) => {
             let targetY = 0;
-            for (let paneIndex = 0; paneIndex < this._paneWidgets.length; paneIndex++) {
-                const paneWidget = this._paneWidgets[paneIndex];
+            for (const paneWidget of this._paneWidgets) {
                 const priceAxisWidget = ensureNotNull(
                     position === 'left' ? paneWidget.leftPriceAxisWidget() : paneWidget.rightPriceAxisWidget(),
                 );
@@ -391,8 +397,7 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
             const leftAxisBitmapWidth = ensureNotNull(firstPane.leftPriceAxisWidget()).getBitmapSize().width;
             totalWidth += leftAxisBitmapWidth;
         }
-        for (let paneIndex = 0; paneIndex < this._paneWidgets.length; paneIndex++) {
-            const paneWidget = this._paneWidgets[paneIndex];
+        for (const paneWidget of this._paneWidgets) {
             const bitmapSize = paneWidget.getBitmapSize();
             if (ctx !== null) {
                 paneWidget.drawBitmap(ctx, totalWidth, totalHeight);
@@ -452,7 +457,6 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         });
     }
 
-    // eslint-disable-next-line complexity
     private _adjustSizeImpl(): void {
         let totalStretch = 0;
         let leftPriceAxisWidth = 0;
@@ -498,9 +502,8 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         const stretchPixels = totalPaneHeight / totalStretch;
 
         let accumulatedHeight = 0;
-        for (let paneIndex = 0; paneIndex < this._paneWidgets.length; ++paneIndex) {
-            const paneWidget = this._paneWidgets[paneIndex];
-            paneWidget.setState(this._model.panes()[paneIndex]);
+        for (const [paneIndex, paneWidget] of this._paneWidgets.entries()) {
+            paneWidget.setState(this._model.panes()[paneIndex] ?? null);
 
             let paneHeight = 0;
             let calculatePaneHeight = 0;
@@ -646,10 +649,9 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
     }
 
     private _applyMomentaryAutoScale(invalidateMask: InvalidateMask): void {
-        const panes = this._model.panes();
-        for (let i = 0; i < panes.length; i++) {
+        for (const [i, pane] of this._model.panes().entries()) {
             if (invalidateMask.invalidateForPane(i).autoScale) {
-                panes[i].momentaryAutoScale();
+                pane.momentaryAutoScale();
             }
         }
     }
@@ -742,7 +744,7 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
 
         // Create (if needed) new pane widgets and separators
         for (let i = actualPaneWidgetsCount; i < targetPaneWidgetsCount; i++) {
-            const paneWidget = new PaneWidget(this, panes[i]);
+            const paneWidget = new PaneWidget(this, ensureDefined(panes[i]));
             paneWidget.clicked().subscribe(this._onPaneWidgetClicked.bind(this), this);
             paneWidget.dblClicked().subscribe(this._onPaneWidgetDblClicked.bind(this), this);
 
@@ -760,8 +762,8 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
         }
 
         for (let i = 0; i < targetPaneWidgetsCount; i++) {
-            const state = panes[i];
-            const paneWidget = this._paneWidgets[i];
+            const state = panes[i] ?? null;
+            const paneWidget = ensureDefined(this._paneWidgets[i]);
             if (paneWidget.state() !== state) {
                 paneWidget.setState(state);
             } else {
@@ -842,15 +844,14 @@ export class ChartWidget<HorzScaleItem> implements IDestroyable, IChartWidgetBas
     }
 
     private _isLeftAxisVisible(): boolean {
-        return this._paneWidgets[0].state().leftPriceScale().options().visible;
+        return ensureDefined(this._paneWidgets[0]).state().leftPriceScale().options().visible;
     }
 
     private _isRightAxisVisible(): boolean {
-        return this._paneWidgets[0].state().rightPriceScale().options().visible;
+        return ensureDefined(this._paneWidgets[0]).state().rightPriceScale().options().visible;
     }
 
     private _installObserver(): boolean {
-        // eslint-disable-next-line no-restricted-syntax
         if (!('ResizeObserver' in window)) {
             warn(
                 'Options contains "autoSize" flag, but the browser does not support ResizeObserver feature. Please provide polyfill.',
@@ -881,12 +882,11 @@ function disableSelection(element: HTMLElement): void {
     element.style.userSelect = 'none';
     // eslint-disable-next-line deprecation/deprecation
     element.style.webkitUserSelect = 'none';
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-member-access
+
     (element.style as any).msUserSelect = 'none';
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-member-access
+
     (element.style as any).MozUserSelect = 'none';
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-member-access
     (element.style as any).webkitTapHighlightColor = 'transparent';
 }
 

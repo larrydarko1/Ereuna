@@ -1,4 +1,4 @@
-import { ensureDefined } from '../helpers/assertions';
+import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
 
 export type CanvasCtxLike = Pick<CanvasRenderingContext2D, 'measureText' | 'save' | 'restore' | 'textBaseline'>;
 
@@ -45,7 +45,9 @@ export class TextWidthCache {
         if (this._actualSize === this._maxSize) {
             const oldestValue = this._tick2Labels[this._oldestTick];
             delete this._tick2Labels[this._oldestTick];
-            this._cache.delete(oldestValue);
+            if (oldestValue !== undefined) {
+                this._cache.delete(oldestValue);
+            }
             this._oldestTick++;
             this._actualSize--;
         }

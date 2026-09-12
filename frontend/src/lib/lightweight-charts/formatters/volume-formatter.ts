@@ -1,4 +1,4 @@
-import { IPriceFormatter } from './iprice-formatter';
+import { type IPriceFormatter } from '@/lib/lightweight-charts/formatters/iprice-formatter';
 
 export class VolumeFormatter implements IPriceFormatter {
     private readonly _precision: number;
@@ -36,6 +36,6 @@ export class VolumeFormatter implements IPriceFormatter {
         } else {
             res = String(value);
         }
-        return res.replace(/(\.[1-9]*)0+$/, (e: string, p1: string): string => p1);
+        return res.replace(/(\.[1-9]*)0+$/, (_e: string, p1: string): string => p1);
     }
 }

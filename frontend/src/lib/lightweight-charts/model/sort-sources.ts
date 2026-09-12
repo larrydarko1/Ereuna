@@ -1,6 +1,6 @@
-import { ensureNotNull } from '../helpers/assertions';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
-import { ZOrdered } from './idata-source';
+import { type ZOrdered } from '@/lib/lightweight-charts/model/idata-source';
 
 export function sortSources<T extends ZOrdered>(sources: readonly T[]): T[] {
     return sources.slice().sort((s1: ZOrdered, s2: ZOrdered) => {

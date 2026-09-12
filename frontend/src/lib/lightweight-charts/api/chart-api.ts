@@ -1,44 +1,58 @@
-import { ChartWidget, MouseEventParamsImpl, MouseEventParamsImplSupplier } from '../gui/chart-widget';
-
-import { assert, ensure, ensureDefined } from '../helpers/assertions';
-import { Delegate } from '../helpers/delegate';
-import { warn } from '../helpers/logger';
-import { clone, DeepPartial, isBoolean, merge } from '../helpers/strict-type-checks';
-
-import { ChartOptionsImpl, ChartOptionsInternal } from '../model/chart-model';
-import { DataUpdatesConsumer, isFulfilledData, SeriesDataItemTypeMap, WhitespaceData } from '../model/data-consumer';
-import { DataLayer, DataUpdateResponse, SeriesChanges } from '../model/data-layer';
-import { CustomData, ICustomSeriesPaneView } from '../model/icustom-series';
-import { IHorzScaleBehavior } from '../model/ihorz-scale-behavior';
-import { Series } from '../model/series';
-import { SeriesPlotRow } from '../model/series-data';
 import {
-    AreaSeriesPartialOptions,
-    BarSeriesPartialOptions,
-    BaselineSeriesPartialOptions,
-    CandlestickSeriesPartialOptions,
-    CustomSeriesOptions,
-    CustomSeriesPartialOptions,
-    fillUpDownCandlesticksColors,
-    HistogramSeriesPartialOptions,
-    LineSeriesPartialOptions,
-    precisionByMinMove,
-    PriceFormat,
-    PriceFormatBuiltIn,
-    SeriesOptionsMap,
-    SeriesPartialOptions,
-    SeriesPartialOptionsMap,
-    SeriesStyleOptionsMap,
-    SeriesType,
-} from '../model/series-options';
-import { Logical } from '../model/time-data';
+    ChartWidget,
+    type MouseEventParamsImpl,
+    type MouseEventParamsImplSupplier,
+} from '@/lib/lightweight-charts/gui/chart-widget';
 
-import { getSeriesDataCreator } from './get-series-data-creator';
-import { IChartApiBase, MouseEventHandler, MouseEventParams, PaneSize } from './ichart-api';
-import { IPriceScaleApi } from './iprice-scale-api';
-import { ISeriesApi } from './iseries-api';
-import { ITimeScaleApi } from './itime-scale-api';
-import { chartOptionsDefaults } from './options/chart-options-defaults';
+import { assert, ensure, ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
+import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
+import { warn } from '@/lib/lightweight-charts/helpers/logger';
+import { clone, type DeepPartial, isBoolean, merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
+
+import { type ChartOptionsImpl, type ChartOptionsInternal } from '@/lib/lightweight-charts/model/chart-model';
+import {
+    type DataUpdatesConsumer,
+    isFulfilledData,
+    type SeriesDataItemTypeMap,
+    type WhitespaceData,
+} from '@/lib/lightweight-charts/model/data-consumer';
+import { DataLayer, type DataUpdateResponse, type SeriesChanges } from '@/lib/lightweight-charts/model/data-layer';
+import { type CustomData, type ICustomSeriesPaneView } from '@/lib/lightweight-charts/model/icustom-series';
+import { type IHorzScaleBehavior } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import { type Series } from '@/lib/lightweight-charts/model/series';
+import { type SeriesPlotRow } from '@/lib/lightweight-charts/model/series-data';
+import {
+    type AreaSeriesPartialOptions,
+    type BarSeriesPartialOptions,
+    type BaselineSeriesPartialOptions,
+    type CandlestickSeriesPartialOptions,
+    type CustomSeriesOptions,
+    type CustomSeriesPartialOptions,
+    fillUpDownCandlesticksColors,
+    type HistogramSeriesPartialOptions,
+    type LineSeriesPartialOptions,
+    precisionByMinMove,
+    type PriceFormat,
+    type PriceFormatBuiltIn,
+    type SeriesOptionsMap,
+    type SeriesPartialOptions,
+    type SeriesPartialOptionsMap,
+    type SeriesStyleOptionsMap,
+    type SeriesType,
+} from '@/lib/lightweight-charts/model/series-options';
+import { type Logical } from '@/lib/lightweight-charts/model/time-data';
+
+import { getSeriesDataCreator } from '@/lib/lightweight-charts/api/get-series-data-creator';
+import {
+    type IChartApiBase,
+    type MouseEventHandler,
+    type MouseEventParams,
+    type PaneSize,
+} from '@/lib/lightweight-charts/api/ichart-api';
+import { type IPriceScaleApi } from '@/lib/lightweight-charts/api/iprice-scale-api';
+import { type ISeriesApi } from '@/lib/lightweight-charts/api/iseries-api';
+import { type ITimeScaleApi } from '@/lib/lightweight-charts/api/itime-scale-api';
+import { chartOptionsDefaults } from '@/lib/lightweight-charts/api/options/chart-options-defaults';
 import {
     areaStyleDefaults,
     barStyleDefaults,
@@ -48,10 +62,10 @@ import {
     histogramStyleDefaults,
     lineStyleDefaults,
     seriesOptionsDefaults,
-} from './options/series-options-defaults';
-import { PriceScaleApi } from './price-scale-api';
-import { SeriesApi } from './series-api';
-import { TimeScaleApi } from './time-scale-api';
+} from '@/lib/lightweight-charts/api/options/series-options-defaults';
+import { PriceScaleApi } from '@/lib/lightweight-charts/api/price-scale-api';
+import { SeriesApi } from '@/lib/lightweight-charts/api/series-api';
+import { TimeScaleApi } from '@/lib/lightweight-charts/api/time-scale-api';
 
 function patchPriceFormat(priceFormat?: DeepPartial<PriceFormat>): void {
     if (priceFormat === undefined || priceFormat.type === 'custom') {

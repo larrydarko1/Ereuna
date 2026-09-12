@@ -1,15 +1,18 @@
-import { HoveredObject } from '../model/chart-model';
-import { Coordinate } from '../model/coordinate';
-import { IPriceDataSource } from '../model/iprice-data-source';
-import { PrimitiveHoveredItem, SeriesPrimitivePaneViewZOrder } from '../model/iseries-primitive';
-import { Pane } from '../model/pane';
-import { IPaneView } from '../views/pane/ipane-view';
+import { type HoveredObject } from '@/lib/lightweight-charts/model/chart-model';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type IPriceDataSource } from '@/lib/lightweight-charts/model/iprice-data-source';
+import {
+    type PrimitiveHoveredItem,
+    type SeriesPrimitivePaneViewZOrder,
+} from '@/lib/lightweight-charts/model/iseries-primitive';
+import { type Pane } from '@/lib/lightweight-charts/model/pane';
+import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
 
 export interface HitTestResult {
     source: IPriceDataSource;
-    object?: HoveredObject;
-    view?: IPaneView;
-    cursorStyle?: string;
+    object?: HoveredObject | undefined;
+    view?: IPaneView | undefined;
+    cursorStyle?: string | undefined;
 }
 
 export interface HitTestPaneViewResult {

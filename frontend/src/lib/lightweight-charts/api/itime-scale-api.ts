@@ -1,8 +1,8 @@
-import { DeepPartial } from '../helpers/strict-type-checks';
+import { type DeepPartial } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { Coordinate } from '../model/coordinate';
-import { Logical, LogicalRange, Range } from '../model/time-data';
-import { HorzScaleOptions } from '../model/time-scale';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type Logical, type LogicalRange, type Range } from '@/lib/lightweight-charts/model/time-data';
+import { type HorzScaleOptions } from '@/lib/lightweight-charts/model/time-scale';
 
 /**
  * A custom function used to handle changes to the time scale's time range.

@@ -1,15 +1,21 @@
-import { LogicalRange } from './time-data';
+import { type LogicalRange } from '@/lib/lightweight-charts/model/time-data';
 
-export const enum InvalidationLevel {
-    None = 0,
-    Cursor = 1,
-    Light = 2,
-    Full = 3,
+export const InvalidationLevel = {
+    None: 0,
+    Cursor: 1,
+    Light: 2,
+    Full: 3,
+} as const;
+export type InvalidationLevel = (typeof InvalidationLevel)[keyof typeof InvalidationLevel];
+
+// `Math.max` widens two levels back to `number`, which is not one of them
+function higherLevel(a: InvalidationLevel, b: InvalidationLevel): InvalidationLevel {
+    return a > b ? a : b;
 }
 
 export interface PaneInvalidation {
     level: InvalidationLevel;
-    autoScale?: boolean;
+    autoScale?: boolean | undefined;
 }
 
 function mergePaneInvalidation(
@@ -19,42 +25,43 @@ function mergePaneInvalidation(
     if (beforeValue === undefined) {
         return newValue;
     }
-    const level = Math.max(beforeValue.level, newValue.level);
+    const level = higherLevel(beforeValue.level, newValue.level);
     const autoScale = beforeValue.autoScale || newValue.autoScale;
     return { level, autoScale };
 }
 
-export const enum TimeScaleInvalidationType {
-    FitContent,
-    ApplyRange,
-    ApplyBarSpacing,
-    ApplyRightOffset,
-    Reset,
-    Animation,
-    StopAnimation,
-}
+export const TimeScaleInvalidationType = {
+    FitContent: 0,
+    ApplyRange: 1,
+    ApplyBarSpacing: 2,
+    ApplyRightOffset: 3,
+    Reset: 4,
+    Animation: 5,
+    StopAnimation: 6,
+} as const;
+export type TimeScaleInvalidationType = (typeof TimeScaleInvalidationType)[keyof typeof TimeScaleInvalidationType];
 
 export interface TimeScaleApplyRangeInvalidation {
-    type: TimeScaleInvalidationType.ApplyRange;
+    type: typeof TimeScaleInvalidationType.ApplyRange;
     value: LogicalRange;
 }
 
 export interface TimeScaleFitContentInvalidation {
-    type: TimeScaleInvalidationType.FitContent;
+    type: typeof TimeScaleInvalidationType.FitContent;
 }
 
 export interface TimeScaleApplyRightOffsetInvalidation {
-    type: TimeScaleInvalidationType.ApplyRightOffset;
+    type: typeof TimeScaleInvalidationType.ApplyRightOffset;
     value: number;
 }
 
 export interface TimeScaleApplyBarSpacingInvalidation {
-    type: TimeScaleInvalidationType.ApplyBarSpacing;
+    type: typeof TimeScaleInvalidationType.ApplyBarSpacing;
     value: number;
 }
 
 export interface TimeScaleResetInvalidation {
-    type: TimeScaleInvalidationType.Reset;
+    type: typeof TimeScaleInvalidationType.Reset;
 }
 
 export interface ITimeScaleAnimation {
@@ -62,12 +69,12 @@ export interface ITimeScaleAnimation {
     finished(time: number): boolean;
 }
 export interface StartTimeScaleAnimationInvalidation {
-    type: TimeScaleInvalidationType.Animation;
+    type: typeof TimeScaleInvalidationType.Animation;
     value: ITimeScaleAnimation;
 }
 
 export interface StopTimeScaleAnimationInvalidation {
-    type: TimeScaleInvalidationType.StopAnimation;
+    type: typeof TimeScaleInvalidationType.StopAnimation;
 }
 
 export type TimeScaleInvalidation =
@@ -106,7 +113,7 @@ export class InvalidateMask {
             };
         }
         return {
-            level: Math.max(this._globalLevel, paneInvalidation.level),
+            level: higherLevel(this._globalLevel, paneInvalidation.level),
             autoScale: paneInvalidation.autoScale,
         };
     }
@@ -158,7 +165,7 @@ export class InvalidateMask {
             this._applyTimeScaleInvalidation(tsInvalidation);
         }
 
-        this._globalLevel = Math.max(this._globalLevel, other._globalLevel);
+        this._globalLevel = higherLevel(this._globalLevel, other._globalLevel);
         other._invalidatedPanes.forEach((invalidation: PaneInvalidation, index: number) => {
             this.invalidatePane(index, invalidation);
         });

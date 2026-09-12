@@ -1,26 +1,26 @@
-import { CanvasRenderingTarget2D } from 'fancy-canvas';
+import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
-import { undefinedIfNull } from '../../helpers/strict-type-checks';
+import { undefinedIfNull } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { IChartModelBase } from '../../model/chart-model';
-import { Coordinate } from '../../model/coordinate';
+import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 import {
-    CustomBarItemData,
-    CustomData,
-    CustomSeriesPricePlotValues,
-    CustomSeriesWhitespaceData,
-    ICustomSeriesPaneRenderer,
-    ICustomSeriesPaneView,
-    PriceToCoordinateConverter,
-} from '../../model/icustom-series';
-import { PriceScale } from '../../model/price-scale';
-import { Series } from '../../model/series';
-import { SeriesPlotRow } from '../../model/series-data';
-import { TimedValue } from '../../model/time-data';
-import { ITimeScale } from '../../model/time-scale';
-import { IPaneRenderer } from '../../renderers/ipane-renderer';
+    type CustomBarItemData,
+    type CustomData,
+    type CustomSeriesPricePlotValues,
+    type CustomSeriesWhitespaceData,
+    type ICustomSeriesPaneRenderer,
+    type ICustomSeriesPaneView,
+    type PriceToCoordinateConverter,
+} from '@/lib/lightweight-charts/model/icustom-series';
+import { type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
+import { type Series } from '@/lib/lightweight-charts/model/series';
+import { type SeriesPlotRow } from '@/lib/lightweight-charts/model/series-data';
+import { type TimedValue } from '@/lib/lightweight-charts/model/time-data';
+import { type ITimeScale } from '@/lib/lightweight-charts/model/time-scale';
+import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 
-import { SeriesPaneViewBase } from './series-pane-view-base';
+import { SeriesPaneViewBase } from '@/lib/lightweight-charts/views/pane/series-pane-view-base';
 
 type CustomBarItemBase = TimedValue;
 
@@ -85,7 +85,7 @@ export class SeriesCustomPaneView extends SeriesPaneViewBase<'Custom', CustomBar
             });
     }
 
-    protected override _convertToCoordinates(priceScale: PriceScale, timeScale: ITimeScale): void {
+    protected override _convertToCoordinates(_priceScale: PriceScale, timeScale: ITimeScale): void {
         timeScale.indexesToCoordinates(this._items, undefinedIfNull(this._itemsVisibleRange));
     }
 

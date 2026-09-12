@@ -1,12 +1,18 @@
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { Coordinate } from '../model/coordinate';
-import { PricedValue } from '../model/price-scale';
-import { SeriesItemsIndexesRange, TimedValue } from '../model/time-data';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type PricedValue } from '@/lib/lightweight-charts/model/price-scale';
+import { type SeriesItemsIndexesRange, type TimedValue } from '@/lib/lightweight-charts/model/time-data';
 
-import { BitmapCoordinatesPaneRenderer } from './bitmap-coordinates-pane-renderer';
-import { LinePoint, LineStyle, LineType, LineWidth, setLineStyle } from './draw-line';
-import { walkLine } from './walk-line';
+import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
+import {
+    type LinePoint,
+    type LineStyle,
+    type LineType,
+    type LineWidth,
+    setLineStyle,
+} from '@/lib/lightweight-charts/renderers/draw-line';
+import { walkLine } from '@/lib/lightweight-charts/renderers/walk-line';
 
 export type AreaFillItemBase = TimedValue & PricedValue & LinePoint;
 export interface PaneRendererAreaDataBase<TItem extends AreaFillItemBase = AreaFillItemBase> {

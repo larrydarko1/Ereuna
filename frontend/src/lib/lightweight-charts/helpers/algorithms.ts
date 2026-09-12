@@ -1,3 +1,4 @@
+import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
 export type BoundComparatorType<TArrayElementType, TValueType> = (a: TArrayElementType, b: TValueType) => boolean;
 
 /**
@@ -18,7 +19,7 @@ function boundCompare<TArrayElementType, TValueType>(
     while (0 < count) {
         const count2: number = count >> 1;
         const mid: number = start + count2;
-        if (compare(arr[mid], value) === lower) {
+        if (compare(ensureDefined(arr[mid]), value) === lower) {
             start = mid + 1;
             count -= count2 + 1;
         } else {

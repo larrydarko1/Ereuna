@@ -1,4 +1,4 @@
-import { Time } from './index';
+import { type Time } from '@/lib/lightweight-charts/index';
 
 export interface OHLCData {
     time: Time;
@@ -94,8 +94,8 @@ export class ReplayManager {
         let closestIndex = 0;
         let minDiff = Infinity;
 
-        for (let i = 0; i < this.fullData.length; i++) {
-            const barTime = this.getBarTimestamp(this.fullData[i].time);
+        for (const [i, bar] of this.fullData.entries()) {
+            const barTime = this.getBarTimestamp(bar.time);
             const diff = Math.abs(barTime - timestamp);
 
             if (diff < minDiff) {
@@ -199,7 +199,10 @@ export class ReplayManager {
         let minDiff = Infinity;
 
         for (let i = this.state.startIndex; i <= this.state.endIndex; i++) {
-            const barTime = this.getBarTimestamp(this.fullData[i].time);
+            const bar = this.fullData[i];
+            if (bar === undefined) continue;
+
+            const barTime = this.getBarTimestamp(bar.time);
             const diff = Math.abs(barTime - timestamp);
 
             if (diff < minDiff) {
@@ -246,6 +249,10 @@ export class ReplayManager {
         }
 
         const currentBar = this.fullData[this.state.currentIndex];
+        if (currentBar === undefined) {
+            return '';
+        }
+
         const timestamp = this.getBarTimestamp(currentBar.time);
 
         const date = new Date(timestamp * 1000);

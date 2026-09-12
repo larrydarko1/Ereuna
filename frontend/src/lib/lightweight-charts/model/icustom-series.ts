@@ -1,9 +1,9 @@
-import { CanvasRenderingTarget2D } from 'fancy-canvas';
+import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
-import { Coordinate } from './coordinate';
-import { Time } from './horz-scale-behavior-time/types';
-import { CustomSeriesOptions } from './series-options';
-import { Range } from './time-data';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
+import { type CustomSeriesOptions } from '@/lib/lightweight-charts/model/series-options';
+import { type Range } from '@/lib/lightweight-charts/model/time-data';
 
 /**
  * Represents a whitespace data item, which is a data point without a value.
@@ -18,7 +18,7 @@ export interface CustomSeriesWhitespaceData<HorzScaleItem> {
      * Additional custom values which will be ignored by the library, but
      * could be used by plugins.
      */
-    customValues?: Record<string, unknown>;
+    customValues?: Record<string, unknown> | undefined;
 }
 
 /**

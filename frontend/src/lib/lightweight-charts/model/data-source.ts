@@ -1,10 +1,10 @@
-import { IPaneView } from '../views/pane/ipane-view';
-import { IPriceAxisView } from '../views/price-axis/iprice-axis-view';
-import { ITimeAxisView } from '../views/time-axis/itime-axis-view';
+import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
+import { type IPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/iprice-axis-view';
+import { type ITimeAxisView } from '@/lib/lightweight-charts/views/time-axis/itime-axis-view';
 
-import { IDataSource } from './idata-source';
-import { Pane } from './pane';
-import { PriceScale } from './price-scale';
+import { type IDataSource } from '@/lib/lightweight-charts/model/idata-source';
+import { type Pane } from '@/lib/lightweight-charts/model/pane';
+import { type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
 
 export abstract class DataSource implements IDataSource {
     protected _priceScale: PriceScale | null = null;
@@ -30,7 +30,7 @@ export abstract class DataSource implements IDataSource {
     public abstract priceAxisViews(pane?: Pane, priceScale?: PriceScale): readonly IPriceAxisView[];
     public abstract paneViews(pane?: Pane): readonly IPaneView[];
 
-    public labelPaneViews(pane?: Pane): readonly IPaneView[] {
+    public labelPaneViews(_pane?: Pane): readonly IPaneView[] {
         return [];
     }
 

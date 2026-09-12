@@ -1,5 +1,3 @@
-import { IChartApi } from './index';
-
 export interface ScreenshotConfig {
     includeWatermark: boolean;
     includeLogo: boolean;
@@ -22,7 +20,6 @@ export interface ChartInfo {
 }
 
 export class ChartScreenshot {
-    private chart: IChartApi;
     private chartContainer: HTMLElement | null = null;
     private defaultConfig: ScreenshotConfig = {
         includeWatermark: true,
@@ -34,8 +31,8 @@ export class ChartScreenshot {
         watermarkOpacity: 0.8,
     };
 
-    constructor(chart: IChartApi, containerId: string = 'wk-chart') {
-        this.chart = chart;
+    // Captures the canvas out of the DOM, so it never needs the chart instance
+    constructor(containerId: string = 'wk-chart') {
         this.chartContainer = document.getElementById(containerId);
     }
 
@@ -288,7 +285,7 @@ export class ChartScreenshot {
         y: number,
         height: number,
         color: string,
-        dpr: number = 1,
+        _dpr: number = 1,
     ): Promise<void> {
         return new Promise((resolve) => {
             const img = new Image();
@@ -366,9 +363,9 @@ export class ChartScreenshot {
         if (color.startsWith('#')) {
             const hex = color.slice(1);
             if (hex.length === 3) {
-                r = parseInt(hex[0] + hex[0], 16);
-                g = parseInt(hex[1] + hex[1], 16);
-                b = parseInt(hex[2] + hex[2], 16);
+                r = parseInt(hex.slice(0, 1).repeat(2), 16);
+                g = parseInt(hex.slice(1, 2).repeat(2), 16);
+                b = parseInt(hex.slice(2, 3).repeat(2), 16);
             } else {
                 r = parseInt(hex.slice(0, 2), 16);
                 g = parseInt(hex.slice(2, 4), 16);

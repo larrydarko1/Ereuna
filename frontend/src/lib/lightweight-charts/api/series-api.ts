@@ -1,35 +1,55 @@
-import { IPriceFormatter } from '../formatters/iprice-formatter';
+import { type IPriceFormatter } from '@/lib/lightweight-charts/formatters/iprice-formatter';
 
-import { ensureNotNull } from '../helpers/assertions';
-import { Delegate } from '../helpers/delegate';
-import { IDestroyable } from '../helpers/idestroyable';
-import { clone, merge } from '../helpers/strict-type-checks';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
+import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
+import { clone, merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { BarPrice } from '../model/bar';
-import { Coordinate } from '../model/coordinate';
-import { DataUpdatesConsumer, SeriesDataItemTypeMap, WhitespaceData } from '../model/data-consumer';
-import { checkItemsAreOrdered, checkPriceLineOptions, checkSeriesValuesType } from '../model/data-validators';
-import { IHorzScaleBehavior, InternalHorzScaleItem } from '../model/ihorz-scale-behavior';
-import { ISeriesPrimitiveBase } from '../model/iseries-primitive';
-import { MismatchDirection } from '../model/plot-list';
-import { CreatePriceLineOptions, PriceLineOptions } from '../model/price-line-options';
-import { RangeImpl } from '../model/range-impl';
-import { Series } from '../model/series';
-import { SeriesPlotRow } from '../model/series-data';
-import { convertSeriesMarker, SeriesMarker } from '../model/series-markers';
-import { SeriesOptionsMap, SeriesPartialOptionsMap, SeriesType } from '../model/series-options';
-import { Logical, Range, TimePointIndex } from '../model/time-data';
-import { TimeScaleVisibleRange } from '../model/time-scale-visible-range';
+import { type BarPrice } from '@/lib/lightweight-charts/model/bar';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import {
+    type DataUpdatesConsumer,
+    type SeriesDataItemTypeMap,
+    type WhitespaceData,
+} from '@/lib/lightweight-charts/model/data-consumer';
+import {
+    checkItemsAreOrdered,
+    checkPriceLineOptions,
+    checkSeriesValuesType,
+} from '@/lib/lightweight-charts/model/data-validators';
+import {
+    type IHorzScaleBehavior,
+    type InternalHorzScaleItem,
+} from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import { type ISeriesPrimitiveBase } from '@/lib/lightweight-charts/model/iseries-primitive';
+import { MismatchDirection } from '@/lib/lightweight-charts/model/plot-list';
+import { type CreatePriceLineOptions, type PriceLineOptions } from '@/lib/lightweight-charts/model/price-line-options';
+import { RangeImpl } from '@/lib/lightweight-charts/model/range-impl';
+import { type Series } from '@/lib/lightweight-charts/model/series';
+import { type SeriesPlotRow } from '@/lib/lightweight-charts/model/series-data';
+import { convertSeriesMarker, type SeriesMarker } from '@/lib/lightweight-charts/model/series-markers';
+import {
+    type SeriesOptionsMap,
+    type SeriesPartialOptionsMap,
+    type SeriesType,
+} from '@/lib/lightweight-charts/model/series-options';
+import { type Logical, type Range, type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
+import { TimeScaleVisibleRange } from '@/lib/lightweight-charts/model/time-scale-visible-range';
 
-import { IPriceScaleApiProvider } from './chart-api';
-import { getSeriesDataCreator } from './get-series-data-creator';
-import { type IChartApiBase } from './ichart-api';
-import { IPriceLine } from './iprice-line';
-import { IPriceScaleApi } from './iprice-scale-api';
-import { BarsInfo, DataChangedHandler, DataChangedScope, ISeriesApi } from './iseries-api';
-import { ISeriesPrimitive } from './iseries-primitive-api';
-import { priceLineOptionsDefaults } from './options/price-line-options-defaults';
-import { PriceLine } from './price-line-api';
+import { type IPriceScaleApiProvider } from '@/lib/lightweight-charts/api/chart-api';
+import { getSeriesDataCreator } from '@/lib/lightweight-charts/api/get-series-data-creator';
+import { type IChartApiBase } from '@/lib/lightweight-charts/api/ichart-api';
+import { type IPriceLine } from '@/lib/lightweight-charts/api/iprice-line';
+import { type IPriceScaleApi } from '@/lib/lightweight-charts/api/iprice-scale-api';
+import {
+    type BarsInfo,
+    type DataChangedHandler,
+    type DataChangedScope,
+    type ISeriesApi,
+} from '@/lib/lightweight-charts/api/iseries-api';
+import { type ISeriesPrimitive } from '@/lib/lightweight-charts/api/iseries-primitive-api';
+import { priceLineOptionsDefaults } from '@/lib/lightweight-charts/api/options/price-line-options-defaults';
+import { PriceLine } from '@/lib/lightweight-charts/api/price-line-api';
 
 export class SeriesApi<
     TSeriesType extends SeriesType,

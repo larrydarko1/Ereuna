@@ -1,10 +1,14 @@
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { Coordinate } from '../model/coordinate';
-import { AreaFillColorerStyle } from '../model/series-bar-colorer';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type AreaFillColorerStyle } from '@/lib/lightweight-charts/model/series-bar-colorer';
 
-import { AreaFillItemBase, PaneRendererAreaBase, PaneRendererAreaDataBase } from './area-renderer-base';
-import { GradientStyleCache } from './gradient-style-cache';
+import {
+    type AreaFillItemBase,
+    PaneRendererAreaBase,
+    type PaneRendererAreaDataBase,
+} from '@/lib/lightweight-charts/renderers/area-renderer-base';
+import { GradientStyleCache } from '@/lib/lightweight-charts/renderers/gradient-style-cache';
 
 export type AreaFillItem = AreaFillItemBase & AreaFillColorerStyle;
 export interface PaneRendererAreaData extends PaneRendererAreaDataBase<AreaFillItem> {}

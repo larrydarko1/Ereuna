@@ -1,13 +1,13 @@
-import { Mutable } from '../helpers/mutable';
-import { Nominal } from '../helpers/nominal';
+import { type Mutable } from '@/lib/lightweight-charts/helpers/mutable';
+import { type Nominal } from '@/lib/lightweight-charts/helpers/nominal';
 
-import { ChartOptionsImpl } from './chart-model';
-import { SeriesDataItemTypeMap } from './data-consumer';
-import { LocalizationOptions } from './localization-options';
-import { SeriesType } from './series-options';
-import { TickMark } from './tick-marks';
-import { TickMarkWeightValue, TimeScalePoint } from './time-data';
-import { TimeMark } from './time-scale';
+import { type ChartOptionsImpl } from '@/lib/lightweight-charts/model/chart-model';
+import { type SeriesDataItemTypeMap } from '@/lib/lightweight-charts/model/data-consumer';
+import { type LocalizationOptions } from '@/lib/lightweight-charts/model/localization-options';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
+import { type TickMark } from '@/lib/lightweight-charts/model/tick-marks';
+import { type TickMarkWeightValue, type TimeScalePoint } from '@/lib/lightweight-charts/model/time-data';
+import { type TimeMark } from '@/lib/lightweight-charts/model/time-scale';
 
 /**
  * Internal Horizontal Scale Item

@@ -1,6 +1,6 @@
-import { Nominal } from '../helpers/nominal';
+import { type Nominal } from '@/lib/lightweight-charts/helpers/nominal';
 
-import { Coordinate } from './coordinate';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
 /**
  * Represents a price as a `number`.

@@ -1,4 +1,4 @@
-import { Coordinate } from './coordinate';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
 /**
  * The TouchMouseEventData interface represents events that occur due to the user interacting with a

@@ -1,10 +1,13 @@
-import { generateContrastColors } from '../../helpers/color';
+import { generateContrastColors } from '@/lib/lightweight-charts/helpers/color';
 
-import { ISeries, LastValueDataResultWithData } from '../../model/series';
-import { PriceAxisLastValueMode, SeriesType } from '../../model/series-options';
-import { PriceAxisViewRendererCommonData, PriceAxisViewRendererData } from '../../renderers/iprice-axis-view-renderer';
+import { type ISeries, type LastValueDataResultWithData } from '@/lib/lightweight-charts/model/series';
+import { PriceAxisLastValueMode, type SeriesType } from '@/lib/lightweight-charts/model/series-options';
+import {
+    type PriceAxisViewRendererCommonData,
+    type PriceAxisViewRendererData,
+} from '@/lib/lightweight-charts/renderers/iprice-axis-view-renderer';
 
-import { PriceAxisView } from './price-axis-view';
+import { PriceAxisView } from '@/lib/lightweight-charts/views/price-axis/price-axis-view';
 
 export class SeriesPriceAxisView extends PriceAxisView {
     private readonly _source: ISeries<SeriesType>;

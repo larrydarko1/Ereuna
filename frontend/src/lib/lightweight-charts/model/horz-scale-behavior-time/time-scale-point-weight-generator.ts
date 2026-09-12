@@ -1,8 +1,8 @@
-import { Mutable } from '../../helpers/mutable';
+import { type Mutable } from '@/lib/lightweight-charts/helpers/mutable';
 
-import { InternalHorzScaleItem } from '../ihorz-scale-behavior';
-import { TickMarkWeightValue, TimeScalePoint } from '../time-data';
-import { TickMarkWeight, TimePoint } from './types';
+import { type InternalHorzScaleItem } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import { type TickMarkWeightValue, type TimeScalePoint } from '@/lib/lightweight-charts/model/time-data';
+import { TickMarkWeight, type TimePoint } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
 
 function hours(count: number): number {
     return count * 60 * 60 * 1000;
@@ -41,12 +41,9 @@ function weightByTime(currentDate: Date, prevDate: Date): TickMarkWeight {
         return TickMarkWeight.Day;
     }
 
-    for (let i = intradayWeightDivisors.length - 1; i >= 0; --i) {
-        if (
-            Math.floor(prevDate.getTime() / intradayWeightDivisors[i].divisor) !==
-            Math.floor(currentDate.getTime() / intradayWeightDivisors[i].divisor)
-        ) {
-            return intradayWeightDivisors[i].weight;
+    for (const { divisor, weight } of [...intradayWeightDivisors].reverse()) {
+        if (Math.floor(prevDate.getTime() / divisor) !== Math.floor(currentDate.getTime() / divisor)) {
+            return weight;
         }
     }
 
@@ -65,13 +62,16 @@ export function fillWeightsForPoints(
         return;
     }
 
-    let prevTime = startIndex === 0 ? null : cast(sortedTimePoints[startIndex - 1].time).timestamp;
+    const pointBefore = sortedTimePoints[startIndex - 1];
+    let prevTime = startIndex === 0 || pointBefore === undefined ? null : cast(pointBefore.time).timestamp;
     let prevDate = prevTime !== null ? new Date(prevTime * 1000) : null;
 
     let totalTimeDiff = 0;
 
     for (let index = startIndex; index < sortedTimePoints.length; ++index) {
         const currentPoint = sortedTimePoints[index];
+        if (currentPoint === undefined) continue;
+
         const currentDate = new Date(cast(currentPoint.time).timestamp * 1000);
 
         if (prevDate !== null) {
@@ -84,13 +84,14 @@ export function fillWeightsForPoints(
         prevDate = currentDate;
     }
 
-    if (startIndex === 0 && sortedTimePoints.length > 1) {
+    const firstPoint = sortedTimePoints[0];
+    if (startIndex === 0 && firstPoint !== undefined && sortedTimePoints.length > 1) {
         // let's guess a weight for the first point
         // let's say the previous point was average time back in the history
         const averageTimeDiff = Math.ceil(totalTimeDiff / (sortedTimePoints.length - 1));
-        const approxPrevDate = new Date((cast(sortedTimePoints[0].time).timestamp - averageTimeDiff) * 1000);
-        sortedTimePoints[0].timeWeight = weightByTime(
-            new Date(cast(sortedTimePoints[0].time).timestamp * 1000),
+        const approxPrevDate = new Date((cast(firstPoint.time).timestamp - averageTimeDiff) * 1000);
+        firstPoint.timeWeight = weightByTime(
+            new Date(cast(firstPoint.time).timestamp * 1000),
             approxPrevDate,
         ) as TickMarkWeightValue;
     }

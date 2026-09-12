@@ -1,9 +1,9 @@
-import { Time } from '../model/horz-scale-behavior-time/types';
-import { ISeriesPrimitiveBase } from '../model/iseries-primitive';
-import { SeriesOptionsMap, SeriesType } from '../model/series-options';
+import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
+import { type ISeriesPrimitiveBase } from '@/lib/lightweight-charts/model/iseries-primitive';
+import { type SeriesOptionsMap, type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 
-import { IChartApiBase } from './ichart-api';
-import { ISeriesApi } from './iseries-api';
+import { type IChartApiBase } from '@/lib/lightweight-charts/api/ichart-api';
+import { type ISeriesApi } from '@/lib/lightweight-charts/api/iseries-api';
 
 /**
  * Object containing references to the chart and series instances, and a requestUpdate method for triggering

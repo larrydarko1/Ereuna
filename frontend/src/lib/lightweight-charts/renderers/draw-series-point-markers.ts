@@ -1,8 +1,8 @@
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { SeriesItemsIndexesRange } from '../model/time-data';
+import { type SeriesItemsIndexesRange } from '@/lib/lightweight-charts/model/time-data';
 
-import { LinePoint } from './draw-line';
+import { type LinePoint } from '@/lib/lightweight-charts/renderers/draw-line';
 
 export function drawSeriesPointMarkers<TItem extends LinePoint, TStyle extends CanvasRenderingContext2D['fillStyle']>(
     renderingScope: BitmapCoordinatesRenderingScope,

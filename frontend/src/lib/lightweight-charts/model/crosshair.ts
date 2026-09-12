@@ -1,26 +1,26 @@
-import { ensureNotNull } from '../helpers/assertions';
-import { notNull } from '../helpers/strict-type-checks';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { notNull } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { LineStyle, LineWidth } from '../renderers/draw-line';
-import { CrosshairMarksPaneView } from '../views/pane/crosshair-marks-pane-view';
-import { CrosshairPaneView } from '../views/pane/crosshair-pane-view';
-import { IPaneView } from '../views/pane/ipane-view';
-import { CrosshairPriceAxisView } from '../views/price-axis/crosshair-price-axis-view';
-import { IPriceAxisView } from '../views/price-axis/iprice-axis-view';
-import { PriceAxisView } from '../views/price-axis/price-axis-view';
-import { CrosshairTimeAxisView } from '../views/time-axis/crosshair-time-axis-view';
-import { ITimeAxisView } from '../views/time-axis/itime-axis-view';
+import { type LineStyle, type LineWidth } from '@/lib/lightweight-charts/renderers/draw-line';
+import { CrosshairMarksPaneView } from '@/lib/lightweight-charts/views/pane/crosshair-marks-pane-view';
+import { CrosshairPaneView } from '@/lib/lightweight-charts/views/pane/crosshair-pane-view';
+import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
+import { CrosshairPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/crosshair-price-axis-view';
+import { type IPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/iprice-axis-view';
+import { type PriceAxisView } from '@/lib/lightweight-charts/views/price-axis/price-axis-view';
+import { CrosshairTimeAxisView } from '@/lib/lightweight-charts/views/time-axis/crosshair-time-axis-view';
+import { type ITimeAxisView } from '@/lib/lightweight-charts/views/time-axis/itime-axis-view';
 
-import { BarPrice } from './bar';
-import { IChartModelBase } from './chart-model';
-import { Coordinate } from './coordinate';
-import { DataSource } from './data-source';
-import { InternalHorzScaleItem } from './ihorz-scale-behavior';
-import { Pane } from './pane';
-import { PriceScale } from './price-scale';
-import { ISeries } from './series';
-import { SeriesType } from './series-options';
-import { TimePointIndex } from './time-data';
+import { type BarPrice } from '@/lib/lightweight-charts/model/bar';
+import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { DataSource } from '@/lib/lightweight-charts/model/data-source';
+import { type InternalHorzScaleItem } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import { type Pane } from '@/lib/lightweight-charts/model/pane';
+import { type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
+import { type ISeries } from '@/lib/lightweight-charts/model/series';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
+import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 
 export interface CrosshairPriceAndCoordinate {
     price: number;
@@ -38,20 +38,21 @@ export type TimeAndCoordinateProvider = () => CrosshairTimeAndCoordinate | null;
 /**
  * Represents the crosshair mode.
  */
-export const enum CrosshairMode {
+export const CrosshairMode = {
     /**
      * This mode allows crosshair to move freely on the chart.
      */
-    Normal,
+    Normal: 0,
     /**
      * This mode sticks crosshair's horizontal line to the price value of a single-value series or to the close price of OHLC-based series.
      */
-    Magnet,
+    Magnet: 1,
     /**
      * This mode disables rendering of the crosshair.
      */
-    Hidden,
-}
+    Hidden: 2,
+} as const;
+export type CrosshairMode = (typeof CrosshairMode)[keyof typeof CrosshairMode];
 
 /** Structure describing a crosshair line (vertical or horizontal) */
 export interface CrosshairLineOptions {
@@ -265,7 +266,7 @@ export class Crosshair extends DataSource {
         this.clearOriginCoord();
     }
 
-    public paneViews(pane: Pane): readonly IPaneView[] {
+    public paneViews(_pane: Pane): readonly IPaneView[] {
         return this._pane !== null ? [this._paneView, this._markersPaneView] : [];
     }
 

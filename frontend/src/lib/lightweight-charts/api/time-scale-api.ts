@@ -1,27 +1,36 @@
-import { Size } from 'fancy-canvas';
+import { type Size } from 'fancy-canvas';
 
-import { TimeAxisWidget } from '../gui/time-axis-widget';
+import { type TimeAxisWidget } from '@/lib/lightweight-charts/gui/time-axis-widget';
 
-import { assert } from '../helpers/assertions';
-import { Delegate } from '../helpers/delegate';
-import { IDestroyable } from '../helpers/idestroyable';
-import { clone, DeepPartial } from '../helpers/strict-type-checks';
+import { assert } from '@/lib/lightweight-charts/helpers/assertions';
+import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
+import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
+import { clone, type DeepPartial } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { ChartModel } from '../model/chart-model';
-import { Coordinate } from '../model/coordinate';
-import { IHorzScaleBehavior, InternalHorzScaleItem } from '../model/ihorz-scale-behavior';
-import { Logical, LogicalRange, Range, TimePointIndex } from '../model/time-data';
-import { HorzScaleOptions, TimeScale } from '../model/time-scale';
+import { type ChartModel } from '@/lib/lightweight-charts/model/chart-model';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import {
+    type IHorzScaleBehavior,
+    type InternalHorzScaleItem,
+} from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import {
+    type Logical,
+    type LogicalRange,
+    type Range,
+    type TimePointIndex,
+} from '@/lib/lightweight-charts/model/time-data';
+import { type HorzScaleOptions, type TimeScale } from '@/lib/lightweight-charts/model/time-scale';
 
 import {
-    ITimeScaleApi,
-    LogicalRangeChangeEventHandler,
-    SizeChangeEventHandler,
-    TimeRangeChangeEventHandler,
-} from './itime-scale-api';
-const enum Constants {
-    AnimationDurationMs = 1000,
-}
+    type ITimeScaleApi,
+    type LogicalRangeChangeEventHandler,
+    type SizeChangeEventHandler,
+    type TimeRangeChangeEventHandler,
+} from '@/lib/lightweight-charts/api/itime-scale-api';
+const Constants = {
+    AnimationDurationMs: 1000,
+} as const;
+type Constants = (typeof Constants)[keyof typeof Constants];
 
 export class TimeScaleApi<HorzScaleItem> implements ITimeScaleApi<HorzScaleItem>, IDestroyable {
     private _model: ChartModel<HorzScaleItem>;

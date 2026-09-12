@@ -1,4 +1,4 @@
-import { Coordinate } from '../model/coordinate';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
 /**
  * Represents the width of a line.
@@ -8,20 +8,21 @@ export type LineWidth = 1 | 2 | 3 | 4;
 /**
  * Represents the possible line types.
  */
-export const enum LineType {
+export const LineType = {
     /**
      * A line.
      */
-    Simple,
+    Simple: 0,
     /**
      * A stepped line.
      */
-    WithSteps,
+    WithSteps: 1,
     /**
      * A curved line.
      */
-    Curved,
-}
+    Curved: 2,
+} as const;
+export type LineType = (typeof LineType)[keyof typeof LineType];
 
 /**
  * A point on a line.
@@ -40,28 +41,29 @@ export interface LinePoint {
 /**
  * Represents the possible line styles.
  */
-export const enum LineStyle {
+export const LineStyle = {
     /**
      * A solid line.
      */
-    Solid = 0,
+    Solid: 0,
     /**
      * A dotted line.
      */
-    Dotted = 1,
+    Dotted: 1,
     /**
      * A dashed line.
      */
-    Dashed = 2,
+    Dashed: 2,
     /**
      * A dashed line with bigger dashes.
      */
-    LargeDashed = 3,
+    LargeDashed: 3,
     /**
      * A dotted line with more space between dots.
      */
-    SparseDotted = 4,
-}
+    SparseDotted: 4,
+} as const;
+export type LineStyle = (typeof LineStyle)[keyof typeof LineStyle];
 
 export function setLineStyle(ctx: CanvasRenderingContext2D, style: LineStyle): void {
     const dashPatterns = {

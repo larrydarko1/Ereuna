@@ -1,16 +1,26 @@
-/// <reference types="_build-time-constants" />
+import { lowerBound } from '@/lib/lightweight-charts/helpers/algorithms';
+import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
+import { type Mutable } from '@/lib/lightweight-charts/helpers/mutable';
 
-import { lowerBound } from '../helpers/algorithms';
-import { ensureDefined } from '../helpers/assertions';
-import { Mutable } from '../helpers/mutable';
-
-import { SeriesDataItemTypeMap } from './data-consumer';
-import { getSeriesPlotRowCreator, isSeriesPlotRow, WhitespacePlotRow } from './get-series-plot-row-creator';
-import { IHorzScaleBehavior, InternalHorzScaleItem, InternalHorzScaleItemKey } from './ihorz-scale-behavior';
-import { Series, SeriesUpdateInfo } from './series';
-import { SeriesPlotRow } from './series-data';
-import { SeriesType } from './series-options';
-import { TickMarkWeightValue, TimePointIndex, TimeScalePoint } from './time-data';
+import { type SeriesDataItemTypeMap } from '@/lib/lightweight-charts/model/data-consumer';
+import {
+    getSeriesPlotRowCreator,
+    isSeriesPlotRow,
+    type WhitespacePlotRow,
+} from '@/lib/lightweight-charts/model/get-series-plot-row-creator';
+import {
+    type IHorzScaleBehavior,
+    type InternalHorzScaleItem,
+    type InternalHorzScaleItemKey,
+} from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import { type Series, type SeriesUpdateInfo } from '@/lib/lightweight-charts/model/series';
+import { type SeriesPlotRow } from '@/lib/lightweight-charts/model/series-data';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
+import {
+    type TickMarkWeightValue,
+    type TimePointIndex,
+    type TimeScalePoint,
+} from '@/lib/lightweight-charts/model/time-data';
 
 export type TimedData<HorzScaleItem> = Pick<SeriesDataItemTypeMap<HorzScaleItem>[SeriesType], 'time'>;
 
@@ -39,7 +49,7 @@ export interface SeriesChanges {
     /**
      * Additional info about this change
      */
-    info?: SeriesUpdateInfo;
+    info?: SeriesUpdateInfo | undefined;
 }
 
 export interface DataUpdateResponse {
@@ -84,9 +94,15 @@ function seriesRowsFirstAndLastTime<TSeriesType extends SeriesType, HorzScaleIte
         return undefined;
     }
 
+    const first = seriesRows[0];
+    const last = seriesRows[seriesRows.length - 1];
+    if (first === undefined || last === undefined) {
+        return undefined;
+    }
+
     return {
-        firstTime: bh.key(seriesRows[0].time),
-        lastTime: bh.key(seriesRows[seriesRows.length - 1].time),
+        firstTime: bh.key(first.time),
+        lastTime: bh.key(last.time),
     };
 }
 
@@ -215,7 +231,7 @@ export class DataLayer<HorzScaleItem> {
                     time,
                     timePointData.index,
                     item,
-                    originalTimes[index],
+                    ensureDefined(originalTimes[index]),
                     dataToPlotRow,
                     customWhitespaceChecker,
                 );
@@ -338,8 +354,8 @@ export class DataLayer<HorzScaleItem> {
         // but this place is exceptional case due performance reasons, sorry
         (this._sortedTimePoints as InternalTimeScalePoint[]).splice(insertIndex, 0, newPoint);
 
-        for (let index = insertIndex; index < this._sortedTimePoints.length; ++index) {
-            assignIndexToPointData(this._sortedTimePoints[index].pointData, index as TimePointIndex);
+        for (const [offset, point] of this._sortedTimePoints.slice(insertIndex).entries()) {
+            assignIndexToPointData(point.pointData, (insertIndex + offset) as TimePointIndex);
         }
 
         this._horzScaleBehavior.fillWeightsForPoints(this._sortedTimePoints, insertIndex);
@@ -357,7 +373,7 @@ export class DataLayer<HorzScaleItem> {
             this._seriesRowsBySeries.set(series, seriesData);
         }
 
-        const lastSeriesRow = seriesData.length !== 0 ? seriesData[seriesData.length - 1] : null;
+        const lastSeriesRow = seriesData[seriesData.length - 1] ?? null;
 
         if (
             lastSeriesRow === null ||
@@ -381,9 +397,10 @@ export class DataLayer<HorzScaleItem> {
         series: Series<SeriesType>,
         seriesRows: (SeriesPlotRow<SeriesType> | WhitespacePlotRow)[],
     ): void {
-        if (seriesRows.length !== 0) {
+        const lastRow = seriesRows[seriesRows.length - 1];
+        if (lastRow !== undefined) {
             this._seriesRowsBySeries.set(series, seriesRows.filter(isSeriesPlotRow));
-            this._seriesLastTimePoint.set(series, seriesRows[seriesRows.length - 1].time);
+            this._seriesLastTimePoint.set(series, lastRow.time);
         } else {
             this._seriesRowsBySeries.delete(series);
             this._seriesLastTimePoint.delete(series);
@@ -414,6 +431,8 @@ export class DataLayer<HorzScaleItem> {
         for (let index = 0; index < this._sortedTimePoints.length && index < newTimePoints.length; ++index) {
             const oldPoint = this._sortedTimePoints[index];
             const newPoint = newTimePoints[index];
+            if (oldPoint === undefined || newPoint === undefined) continue;
+
             if (this._horzScaleBehavior.key(oldPoint.time) !== this._horzScaleBehavior.key(newPoint.time)) {
                 firstChangedPointIndex = index;
                 break;
@@ -438,8 +457,8 @@ export class DataLayer<HorzScaleItem> {
 
         // if time scale points are changed that means that we need to make full update to all series (with clearing points)
         // but first we need to synchronize indexes and re-fill time weights
-        for (let index = firstChangedPointIndex; index < newTimePoints.length; ++index) {
-            assignIndexToPointData(newTimePoints[index].pointData, index as TimePointIndex);
+        for (const [offset, point] of newTimePoints.slice(firstChangedPointIndex).entries()) {
+            assignIndexToPointData(point.pointData, (firstChangedPointIndex + offset) as TimePointIndex);
         }
 
         // re-fill time weights for point after the first changed one
@@ -459,8 +478,9 @@ export class DataLayer<HorzScaleItem> {
         let baseIndex = 0 as TimePointIndex;
 
         this._seriesRowsBySeries.forEach((data: SeriesPlotRow<SeriesType>[]) => {
-            if (data.length !== 0) {
-                baseIndex = Math.max(baseIndex, data[data.length - 1].index) as TimePointIndex;
+            const lastRow = data[data.length - 1];
+            if (lastRow !== undefined) {
+                baseIndex = Math.max(baseIndex, lastRow.index) as TimePointIndex;
             }
         });
 
@@ -508,7 +528,7 @@ export class DataLayer<HorzScaleItem> {
     }
 }
 
-function assignIndexToPointData<HorzScaleItem>(pointData: TimePointData, index: TimePointIndex): void {
+function assignIndexToPointData(pointData: TimePointData, index: TimePointIndex): void {
     // first, nevertheless update index of point data ("make it valid")
     pointData.index = index;
 

@@ -1,4 +1,5 @@
-import { Nominal } from './nominal';
+import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
+import { type Nominal } from '@/lib/lightweight-charts/helpers/nominal';
 
 /**
  * Red component of the RGB color value
@@ -241,30 +242,34 @@ const rgbaRe = /^rgba\(\s*(-?\d{1,10})\s*,\s*(-?\d{1,10})\s*,\s*(-?\d{1,10})\s*,
 function colorStringToRgba(colorString: string): Rgba {
     colorString = colorString.toLowerCase();
 
-    // eslint-disable-next-line no-restricted-syntax
-    if (colorString in namedColorRgbHexStrings) {
-        colorString = namedColorRgbHexStrings[colorString];
+    const named = namedColorRgbHexStrings[colorString];
+    if (named !== undefined) {
+        colorString = named;
     }
 
+    // Every one of these patterns has three mandatory capture groups, so a match
+    // guarantees red/green/blue. Only alpha is optional, and only in `rgbRe`.
     {
-        const matches = rgbaRe.exec(colorString) || rgbRe.exec(colorString);
-        if (matches) {
+        const matches = rgbaRe.exec(colorString) ?? rgbRe.exec(colorString);
+        if (matches !== null) {
+            const [, red, green, blue, alpha] = matches;
             return [
-                normalizeRgbComponent<RedComponent>(parseInt(matches[1], 10)),
-                normalizeRgbComponent<GreenComponent>(parseInt(matches[2], 10)),
-                normalizeRgbComponent<BlueComponent>(parseInt(matches[3], 10)),
-                normalizeAlphaComponent((matches.length < 5 ? 1 : parseFloat(matches[4])) as AlphaComponent),
+                normalizeRgbComponent<RedComponent>(parseInt(ensureDefined(red), 10)),
+                normalizeRgbComponent<GreenComponent>(parseInt(ensureDefined(green), 10)),
+                normalizeRgbComponent<BlueComponent>(parseInt(ensureDefined(blue), 10)),
+                normalizeAlphaComponent((alpha === undefined ? 1 : parseFloat(alpha)) as AlphaComponent),
             ];
         }
     }
 
     {
         const matches = hexRe.exec(colorString);
-        if (matches) {
+        if (matches !== null) {
+            const [, red, green, blue] = matches;
             return [
-                normalizeRgbComponent<RedComponent>(parseInt(matches[1], 16)),
-                normalizeRgbComponent<GreenComponent>(parseInt(matches[2], 16)),
-                normalizeRgbComponent<BlueComponent>(parseInt(matches[3], 16)),
+                normalizeRgbComponent<RedComponent>(parseInt(ensureDefined(red), 16)),
+                normalizeRgbComponent<GreenComponent>(parseInt(ensureDefined(green), 16)),
+                normalizeRgbComponent<BlueComponent>(parseInt(ensureDefined(blue), 16)),
                 1 as AlphaComponent,
             ];
         }
@@ -272,11 +277,12 @@ function colorStringToRgba(colorString: string): Rgba {
 
     {
         const matches = shortHexRe.exec(colorString);
-        if (matches) {
+        if (matches !== null) {
+            const [, red, green, blue] = matches;
             return [
-                normalizeRgbComponent<RedComponent>(parseInt(matches[1], 16) * 0x11),
-                normalizeRgbComponent<GreenComponent>(parseInt(matches[2], 16) * 0x11),
-                normalizeRgbComponent<BlueComponent>(parseInt(matches[3], 16) * 0x11),
+                normalizeRgbComponent<RedComponent>(parseInt(ensureDefined(red), 16) * 0x11),
+                normalizeRgbComponent<GreenComponent>(parseInt(ensureDefined(green), 16) * 0x11),
+                normalizeRgbComponent<BlueComponent>(parseInt(ensureDefined(blue), 16) * 0x11),
                 1 as AlphaComponent,
             ];
         }

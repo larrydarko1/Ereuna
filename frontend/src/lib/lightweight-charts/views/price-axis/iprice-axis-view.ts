@@ -1,5 +1,8 @@
-import { PriceScale } from '../../model/price-scale';
-import { IPriceAxisViewRenderer, PriceAxisViewRendererOptions } from '../../renderers/iprice-axis-view-renderer';
+import { type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
+import {
+    type IPriceAxisViewRenderer,
+    type PriceAxisViewRendererOptions,
+} from '@/lib/lightweight-charts/renderers/iprice-axis-view-renderer';
 
 export interface IPriceAxisView {
     coordinate(): number;

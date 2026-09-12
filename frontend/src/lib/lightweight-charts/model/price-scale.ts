@@ -1,19 +1,19 @@
-import { IPriceFormatter } from '../formatters/iprice-formatter';
-import { PercentageFormatter } from '../formatters/percentage-formatter';
-import { PriceFormatter } from '../formatters/price-formatter';
+import { type IPriceFormatter } from '@/lib/lightweight-charts/formatters/iprice-formatter';
+import { PercentageFormatter } from '@/lib/lightweight-charts/formatters/percentage-formatter';
+import { PriceFormatter } from '@/lib/lightweight-charts/formatters/price-formatter';
 
-import { ensureDefined, ensureNotNull } from '../helpers/assertions';
-import { Delegate } from '../helpers/delegate';
-import { ISubscription } from '../helpers/isubscription';
-import { DeepPartial, merge } from '../helpers/strict-type-checks';
+import { ensureDefined, ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
+import { type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
+import { type DeepPartial, merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { BarCoordinates, BarPrice, BarPrices } from './bar';
-import { Coordinate } from './coordinate';
-import { FirstValue, IPriceDataSource } from './iprice-data-source';
-import { LayoutOptions } from './layout-options';
-import { LocalizationOptionsBase } from './localization-options';
-import { PriceFormatterFn } from './price-formatter-fn';
-import { PriceRangeImpl } from './price-range-impl';
+import { type BarCoordinates, type BarPrice, type BarPrices } from '@/lib/lightweight-charts/model/bar';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type FirstValue, type IPriceDataSource } from '@/lib/lightweight-charts/model/iprice-data-source';
+import { type LayoutOptions } from '@/lib/lightweight-charts/model/layout-options';
+import { type LocalizationOptionsBase } from '@/lib/lightweight-charts/model/localization-options';
+import { type PriceFormatterFn } from '@/lib/lightweight-charts/model/price-formatter-fn';
+import { PriceRangeImpl } from '@/lib/lightweight-charts/model/price-range-impl';
 import {
     canConvertPriceRangeFromLog,
     convertPriceRangeFromLog,
@@ -21,7 +21,7 @@ import {
     fromIndexedTo100,
     fromLog,
     fromPercent,
-    LogFormula,
+    type LogFormula,
     logFormulaForPriceRange,
     logFormulasAreSame,
     toIndexedTo100,
@@ -29,34 +29,35 @@ import {
     toLog,
     toPercent,
     toPercentRange,
-} from './price-scale-conversions';
-import { PriceTickMarkBuilder } from './price-tick-mark-builder';
-import { RangeImpl } from './range-impl';
-import { sortSources } from './sort-sources';
-import { SeriesItemsIndexesRange, TimePointIndex } from './time-data';
+} from '@/lib/lightweight-charts/model/price-scale-conversions';
+import { PriceTickMarkBuilder } from '@/lib/lightweight-charts/model/price-tick-mark-builder';
+import { type RangeImpl } from '@/lib/lightweight-charts/model/range-impl';
+import { sortSources } from '@/lib/lightweight-charts/model/sort-sources';
+import { type SeriesItemsIndexesRange, type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 
 /**
  * Represents the price scale mode.
  */
-export const enum PriceScaleMode {
+export const PriceScaleMode = {
     /**
      * Price scale shows prices. Price range changes linearly.
      */
-    Normal,
+    Normal: 0,
     /**
      * Price scale shows prices. Price range changes logarithmically.
      */
-    Logarithmic,
+    Logarithmic: 1,
     /**
      * Price scale shows percentage values according the first visible value of the price scale.
      * The first visible value is 0% in this mode.
      */
-    Percentage,
+    Percentage: 2,
     /**
      * The same as percentage mode, but the first value is moved to 100.
      */
-    IndexedTo100,
-}
+    IndexedTo100: 3,
+} as const;
+export type PriceScaleMode = (typeof PriceScaleMode)[keyof typeof PriceScaleMode];
 
 export interface PriceScaleState {
     autoScale: boolean;
@@ -320,7 +321,6 @@ export class PriceScale {
         };
     }
 
-    // eslint-disable-next-line complexity
     public setMode(newMode: Partial<PriceScaleState>): void {
         const oldMode = this.mode();
         let priceRange: PriceRangeImpl | null = null;
@@ -469,6 +469,8 @@ export class PriceScale {
         const transformFn = this._getCoordinateTransformer();
         for (let i = fromIndex; i < toIndex; i++) {
             const point = points[i];
+            if (point === undefined) continue;
+
             const price = point.price;
 
             if (isNaN(price)) {
@@ -507,6 +509,7 @@ export class PriceScale {
         const transformFn = this._getCoordinateTransformer();
         for (let i = fromIndex; i < toIndex; i++) {
             const bar = pricesList[i];
+            if (bar === undefined) continue;
 
             let openLogical = bar.open;
             let highLogical = bar.high;
@@ -563,8 +566,7 @@ export class PriceScale {
         }
 
         let sources: IPriceDataSource[] = [];
-        for (let i = 0; i < this._dataSources.length; i++) {
-            const ds = this._dataSources[i];
+        for (const [i, ds] of this._dataSources.entries()) {
             if (ds.zorder() === null) {
                 ds.setZorder(i + 1);
             }
@@ -885,7 +887,7 @@ export class PriceScale {
         this._internalHeightCache = null;
     }
 
-    private _logicalToCoordinate(logical: number, baseValue: number): Coordinate {
+    private _logicalToCoordinate(logical: number, _baseValue: number): Coordinate {
         this._makeSureItIsValid();
         if (this.isEmpty()) {
             return 0 as Coordinate;
@@ -899,7 +901,7 @@ export class PriceScale {
         return coordinate as Coordinate;
     }
 
-    private _coordinateToLogical(coordinate: number, baseValue: number): number {
+    private _coordinateToLogical(coordinate: number, _baseValue: number): number {
         this._makeSureItIsValid();
         if (this.isEmpty()) {
             return 0;
@@ -918,7 +920,6 @@ export class PriceScale {
         this._markBuilder.rebuildTickMarks();
     }
 
-    // eslint-disable-next-line complexity
     private _recalculatePriceRangeImpl(): void {
         const visibleBars = this._invalidatedForRange.visibleBars;
         if (visibleBars === null) {

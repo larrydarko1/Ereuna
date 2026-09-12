@@ -1,4 +1,4 @@
-import { IChartApi, MouseEventParams, Time } from './index';
+import { type IChartApi, type MouseEventParams, type Time } from '@/lib/lightweight-charts/index';
 
 export interface RulerPoint {
     time: Time;
@@ -206,7 +206,6 @@ export class ChartRuler {
         if (!this.ctx || !this.anchorPoint || !this.currentPoint) return;
 
         const ctx = this.ctx;
-        const dpr = window.devicePixelRatio;
 
         // Calculate metrics
         const priceChange = this.currentPoint.price - this.anchorPoint.price;
@@ -215,7 +214,6 @@ export class ChartRuler {
 
         // Get CSS variables for theming
         const styles = getComputedStyle(document.documentElement);
-        const accentColor = styles.getPropertyValue('--color-accent-2').trim() || '#2962FF';
         const positiveColor = styles.getPropertyValue('--color-positive').trim() || '#089981';
         const negativeColor = styles.getPropertyValue('--color-negative').trim() || '#F23645';
 

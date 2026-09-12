@@ -1,12 +1,10 @@
-/// <reference types="_build-time-constants" />
+import { assert, ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
 
-import { assert } from '../helpers/assertions';
-
-import { isFulfilledData, SeriesDataItemTypeMap } from './data-consumer';
-import { IHorzScaleBehavior } from './ihorz-scale-behavior';
-import { CreatePriceLineOptions } from './price-line-options';
-import { SeriesMarker } from './series-markers';
-import { SeriesType } from './series-options';
+import { isFulfilledData, type SeriesDataItemTypeMap } from '@/lib/lightweight-charts/model/data-consumer';
+import { type IHorzScaleBehavior } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import { type CreatePriceLineOptions } from '@/lib/lightweight-charts/model/price-line-options';
+import { type SeriesMarker } from '@/lib/lightweight-charts/model/series-markers';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 
 export function checkPriceLineOptions(options: CreatePriceLineOptions): void {
     if (process.env.NODE_ENV === 'production') {
@@ -33,9 +31,12 @@ export function checkItemsAreOrdered<HorzScaleItem>(
         return;
     }
 
-    let prevTime = bh.key(data[0].time);
+    let prevTime = bh.key(ensureDefined(data[0]).time);
     for (let i = 1; i < data.length; ++i) {
-        const currentTime = bh.key(data[i].time);
+        const item = data[i];
+        if (item === undefined) continue;
+
+        const currentTime = bh.key(item.time);
         const checkResult = allowDuplicates ? prevTime <= currentTime : prevTime < currentTime;
         assert(checkResult, `data must be asc ordered by time, index=${i}, time=${currentTime}, prev time=${prevTime}`);
         prevTime = currentTime;
@@ -117,9 +118,9 @@ function checkLineItem<HorzScaleItem>(
     );
 }
 
-function checkCustomItem(
-    // type: 'Custom',
-    // customItem: SeriesDataItemTypeMap[typeof type]
+function checkCustomItem<HorzScaleItem>(
+    _type: 'Custom',
+    _customItem: SeriesDataItemTypeMap<HorzScaleItem>['Custom'],
 ): void {
     // Nothing to check yet...
     return;

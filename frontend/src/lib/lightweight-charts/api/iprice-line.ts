@@ -1,4 +1,4 @@
-import { PriceLineOptions } from '../model/price-line-options';
+import { type PriceLineOptions } from '@/lib/lightweight-charts/model/price-line-options';
 
 /**
  * Represents the interface for interacting with price lines.

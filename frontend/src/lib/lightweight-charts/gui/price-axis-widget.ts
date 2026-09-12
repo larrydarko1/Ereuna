@@ -1,56 +1,59 @@
 import {
-    BitmapCoordinatesRenderingScope,
-    CanvasElementBitmapSizeBinding,
-    CanvasRenderingTarget2D,
+    type BitmapCoordinatesRenderingScope,
+    type CanvasElementBitmapSizeBinding,
+    type CanvasRenderingTarget2D,
     equalSizes,
-    MediaCoordinatesRenderingScope,
-    Size,
+    type MediaCoordinatesRenderingScope,
+    type Size,
     size,
     tryCreateCanvasRenderingTarget2D,
 } from 'fancy-canvas';
 
-import { ensureNotNull } from '../helpers/assertions';
-import { clearRect, clearRectWithGradient } from '../helpers/canvas-helpers';
-import { IDestroyable } from '../helpers/idestroyable';
-import { makeFont } from '../helpers/make-font';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
+import { clearRect, clearRectWithGradient } from '@/lib/lightweight-charts/helpers/canvas-helpers';
+import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
+import { makeFont } from '@/lib/lightweight-charts/helpers/make-font';
 
-import { ChartOptionsInternalBase } from '../model/chart-model';
-import { Coordinate } from '../model/coordinate';
-import { IDataSource } from '../model/idata-source';
-import { InvalidationLevel } from '../model/invalidate-mask';
-import { IPriceDataSource } from '../model/iprice-data-source';
-import { SeriesPrimitivePaneViewZOrder } from '../model/iseries-primitive';
-import { LayoutOptions } from '../model/layout-options';
-import { PriceScalePosition } from '../model/pane';
-import { PriceMark, PriceScale } from '../model/price-scale';
-import { TextWidthCache } from '../model/text-width-cache';
-import { PriceAxisViewRendererOptions } from '../renderers/iprice-axis-view-renderer';
-import { PriceAxisRendererOptionsProvider } from '../renderers/price-axis-renderer-options-provider';
-import { IAxisView } from '../views/pane/iaxis-view';
-import { IPriceAxisView } from '../views/price-axis/iprice-axis-view';
+import { type ChartOptionsInternalBase } from '@/lib/lightweight-charts/model/chart-model';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type IDataSource } from '@/lib/lightweight-charts/model/idata-source';
+import { InvalidationLevel } from '@/lib/lightweight-charts/model/invalidate-mask';
+import { type IPriceDataSource } from '@/lib/lightweight-charts/model/iprice-data-source';
+import { type SeriesPrimitivePaneViewZOrder } from '@/lib/lightweight-charts/model/iseries-primitive';
+import { type LayoutOptions } from '@/lib/lightweight-charts/model/layout-options';
+import { type PriceScalePosition } from '@/lib/lightweight-charts/model/pane';
+import { type PriceMark, type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
+import { TextWidthCache } from '@/lib/lightweight-charts/model/text-width-cache';
+import { type PriceAxisViewRendererOptions } from '@/lib/lightweight-charts/renderers/iprice-axis-view-renderer';
+import { type PriceAxisRendererOptionsProvider } from '@/lib/lightweight-charts/renderers/price-axis-renderer-options-provider';
+import { type IAxisView } from '@/lib/lightweight-charts/views/pane/iaxis-view';
+import { type IPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/iprice-axis-view';
 
-import { createBoundCanvas, releaseCanvas } from './canvas-utils';
-import { IPriceAxisViewsGetter } from './iaxis-view-getters';
-import { suggestPriceScaleWidth } from './internal-layout-sizes-hints';
-import { MouseEventHandler, MouseEventHandlers, TouchMouseEvent } from './mouse-event-handler';
-import { PaneWidget } from './pane-widget';
+import { createBoundCanvas, releaseCanvas } from '@/lib/lightweight-charts/gui/canvas-utils';
+import { type IPriceAxisViewsGetter } from '@/lib/lightweight-charts/gui/iaxis-view-getters';
+import { suggestPriceScaleWidth } from '@/lib/lightweight-charts/gui/internal-layout-sizes-hints';
+import {
+    MouseEventHandler,
+    type MouseEventHandlers,
+    type TouchMouseEvent,
+} from '@/lib/lightweight-charts/gui/mouse-event-handler';
+import { type PaneWidget } from '@/lib/lightweight-charts/gui/pane-widget';
 
 export type PriceAxisWidgetSide = Exclude<PriceScalePosition, 'overlay'>;
 
-const enum CursorType {
-    Default,
-    NsResize,
-}
+const CursorType = {
+    Default: 0,
+    NsResize: 1,
+} as const;
+type CursorType = (typeof CursorType)[keyof typeof CursorType];
 
-const enum Constants {
-    DefaultOptimalWidth = 34,
-}
+const Constants = {
+    DefaultOptimalWidth: 34,
+    LabelOffset: 5,
+} as const;
+type Constants = (typeof Constants)[keyof typeof Constants];
 
 type IPriceAxisViewArray = readonly IPriceAxisView[];
-
-const enum Constants {
-    LabelOffset = 5,
-}
 
 function buildPriceAxisViewsGetter(
     zOrder: SeriesPrimitivePaneViewZOrder,
@@ -72,21 +75,24 @@ function recalculateOverlapping(
     scaleHeight: number,
     rendererOptions: Readonly<PriceAxisViewRendererOptions>,
 ): void {
-    if (!views.length) {
+    const firstView = views[0];
+    if (firstView === undefined) {
         return;
     }
     let currentGroupStart = 0;
 
-    const initLabelHeight = views[0].height(rendererOptions, true);
+    const initLabelHeight = firstView.height(rendererOptions, true);
     let spaceBeforeCurrentGroup =
         direction === 1
-            ? scaleHeight / 2 - (views[0].getFixedCoordinate() - initLabelHeight / 2)
-            : views[0].getFixedCoordinate() - initLabelHeight / 2 - scaleHeight / 2;
+            ? scaleHeight / 2 - (firstView.getFixedCoordinate() - initLabelHeight / 2)
+            : firstView.getFixedCoordinate() - initLabelHeight / 2 - scaleHeight / 2;
     spaceBeforeCurrentGroup = Math.max(0, spaceBeforeCurrentGroup);
 
     for (let i = 1; i < views.length; i++) {
         const view = views[i];
         const prev = views[i - 1];
+        if (view === undefined || prev === undefined) continue;
+
         const height = prev.height(rendererOptions, false);
         const coordinate = view.getFixedCoordinate();
         const prevFixedCoordinate = prev.getFixedCoordinate();
@@ -103,8 +109,8 @@ function recalculateOverlapping(
                 // shift the whole group up or down
                 const desiredGroupShift = direction === 1 ? -1 - edgePoint : edgePoint - scaleHeight;
                 const possibleShift = Math.min(desiredGroupShift, spaceBeforeCurrentGroup);
-                for (let k = currentGroupStart; k < views.length; k++) {
-                    views[k].setFixedCoordinate(views[k].getFixedCoordinate() + direction * possibleShift);
+                for (const grouped of views.slice(currentGroupStart)) {
+                    grouped.setFixedCoordinate(grouped.getFixedCoordinate() + direction * possibleShift);
                 }
                 spaceBeforeCurrentGroup -= possibleShift;
             }
@@ -257,16 +263,17 @@ export class PriceAxisWidget implements IDestroyable {
 
         ctx.font = this._baseFont();
 
-        if (tickMarks.length > 0) {
+        const firstMark = tickMarks[0];
+        const lastMark = tickMarks[tickMarks.length - 1];
+        if (firstMark !== undefined && lastMark !== undefined) {
             tickMarkMaxWidth = Math.max(
-                this._widthCache.measureText(ctx, tickMarks[0].label),
-                this._widthCache.measureText(ctx, tickMarks[tickMarks.length - 1].label),
+                this._widthCache.measureText(ctx, firstMark.label),
+                this._widthCache.measureText(ctx, lastMark.label),
             );
         }
 
-        const views = this._backLabels();
-        for (let j = views.length; j--;) {
-            const width = this._widthCache.measureText(ctx, views[j].text());
+        for (const view of this._backLabels()) {
+            const width = this._widthCache.measureText(ctx, view.text());
             if (width > tickMarkMaxWidth) {
                 tickMarkMaxWidth = width;
             }
@@ -442,7 +449,7 @@ export class PriceAxisWidget implements IDestroyable {
         }
     }
 
-    private _mouseUpEvent(e: TouchMouseEvent): void {
+    private _mouseUpEvent(_e: TouchMouseEvent): void {
         if (this._priceScale === null || !this._options.handleScale.axisPressedMouseMove.price) {
             return;
         }
@@ -452,13 +459,13 @@ export class PriceAxisWidget implements IDestroyable {
         model.endScalePrice(pane, this._priceScale);
     }
 
-    private _mouseDoubleClickEvent(e: TouchMouseEvent): void {
+    private _mouseDoubleClickEvent(_e: TouchMouseEvent): void {
         if (this._options.handleScale.axisDoubleClickReset.price) {
             this.reset();
         }
     }
 
-    private _mouseEnterEvent(e: TouchMouseEvent): void {
+    private _mouseEnterEvent(_e: TouchMouseEvent): void {
         if (this._priceScale === null) {
             return;
         }
@@ -473,7 +480,7 @@ export class PriceAxisWidget implements IDestroyable {
         }
     }
 
-    private _mouseLeaveEvent(e: TouchMouseEvent): void {
+    private _mouseLeaveEvent(_e: TouchMouseEvent): void {
         this._setCursor(CursorType.Default);
     }
 
@@ -483,12 +490,8 @@ export class PriceAxisWidget implements IDestroyable {
         const priceScale = this._priceScale === null ? undefined : this._priceScale;
 
         const addViewsForSources = (sources: readonly IDataSource[]) => {
-            for (let i = 0; i < sources.length; ++i) {
-                const source = sources[i];
-                const views = source.priceAxisViews(this._pane.state(), priceScale);
-                for (let j = 0; j < views.length; j++) {
-                    res.push(views[j]);
-                }
+            for (const source of sources) {
+                res.push(...source.priceAxisViews(this._pane.state(), priceScale));
             }
         };
 
@@ -578,9 +581,8 @@ export class PriceAxisWidget implements IDestroyable {
                 this._widthCache.yMidCorrection(ctx, mark.label),
             );
 
-            for (let i = tickMarks.length; i--;) {
-                const tickMark = tickMarks[i];
-                ctx.fillText(tickMark.label, textLeftX, tickMark.coord + yMidCorrections[i]);
+            for (const [i, tickMark] of tickMarks.entries()) {
+                ctx.fillText(tickMark.label, textLeftX, tickMark.coord + (yMidCorrections[i] ?? 0));
             }
         });
     }
@@ -625,8 +627,9 @@ export class PriceAxisWidget implements IDestroyable {
                         views.push(view);
                     }
                 });
-                if (centerSource === source && sourceViews.length > 0) {
-                    center = sourceViews[0].coordinate();
+                const firstSourceView = sourceViews[0];
+                if (centerSource === source && firstSourceView !== undefined) {
+                    center = firstSourceView.coordinate();
                 }
             });
         };
@@ -661,8 +664,9 @@ export class PriceAxisWidget implements IDestroyable {
         top.sort((l: IPriceAxisView, r: IPriceAxisView) => r.coordinate() - l.coordinate());
 
         // share center label
-        if (top.length && bottom.length) {
-            bottom.push(top[0]);
+        const centerLabel = top[0];
+        if (centerLabel !== undefined && bottom.length) {
+            bottom.push(centerLabel);
         }
 
         bottom.sort((l: IPriceAxisView, r: IPriceAxisView) => l.coordinate() - r.coordinate());

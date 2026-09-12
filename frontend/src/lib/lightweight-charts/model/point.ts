@@ -1,4 +1,4 @@
-import { Coordinate } from './coordinate';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
 /**
  * Represents a point on the chart.

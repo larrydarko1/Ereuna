@@ -1,13 +1,13 @@
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
-import { ensureNotNull } from '../helpers/assertions';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
-import { BarCoordinates, BarPrices } from '../model/bar';
-import { BarColorerStyle } from '../model/series-bar-colorer';
-import { SeriesItemsIndexesRange, TimedValue } from '../model/time-data';
+import { type BarCoordinates, type BarPrices } from '@/lib/lightweight-charts/model/bar';
+import { type BarColorerStyle } from '@/lib/lightweight-charts/model/series-bar-colorer';
+import { type SeriesItemsIndexesRange, type TimedValue } from '@/lib/lightweight-charts/model/time-data';
 
-import { BitmapCoordinatesPaneRenderer } from './bitmap-coordinates-pane-renderer';
-import { optimalBarWidth } from './optimal-bar-width';
+import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
+import { optimalBarWidth } from '@/lib/lightweight-charts/renderers/optimal-bar-width';
 
 export type BarCandlestickItemBase = TimedValue & BarPrices & BarCoordinates;
 
@@ -31,7 +31,6 @@ export class PaneRendererBars extends BitmapCoordinatesPaneRenderer {
         this._data = data;
     }
 
-    // eslint-disable-next-line complexity
     protected override _drawImpl({
         context: ctx,
         horizontalPixelRatio,
@@ -64,6 +63,8 @@ export class PaneRendererBars extends BitmapCoordinatesPaneRenderer {
             this._barLineWidth <= this._barWidth && this._data.barSpacing >= Math.floor(1.5 * horizontalPixelRatio);
         for (let i = this._data.visibleRange.from; i < this._data.visibleRange.to; ++i) {
             const bar = this._data.bars[i];
+            if (bar === undefined) continue;
+
             if (prevColor !== bar.barColor) {
                 ctx.fillStyle = bar.barColor;
                 prevColor = bar.barColor;

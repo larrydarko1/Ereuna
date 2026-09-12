@@ -1,4 +1,4 @@
-import { isRunningOnClientSide } from './is-running-on-client-side';
+import { isRunningOnClientSide } from '@/lib/lightweight-charts/helpers/is-running-on-client-side';
 
 export function isFF(): boolean {
     if (!isRunningOnClientSide) {

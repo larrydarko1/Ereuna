@@ -1,6 +1,6 @@
-import { ensureNever } from '../../helpers/assertions';
+import { ensureNever } from '@/lib/lightweight-charts/helpers/assertions';
 
-import { TickMarkType, TimePoint } from './types';
+import { TickMarkType, type TimePoint } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
 
 export function defaultTickMarkFormatter(timePoint: TimePoint, tickMarkType: TickMarkType, locale: string): string {
     const formatOptions: Intl.DateTimeFormatOptions = {};

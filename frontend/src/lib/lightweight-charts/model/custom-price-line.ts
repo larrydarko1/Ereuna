@@ -1,15 +1,15 @@
-import { merge } from '../helpers/strict-type-checks';
+import { merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
-import { CustomPriceLinePaneView } from '../views/pane/custom-price-line-pane-view';
-import { IPaneView } from '../views/pane/ipane-view';
-import { PanePriceAxisView } from '../views/pane/pane-price-axis-view';
-import { CustomPriceLinePriceAxisView } from '../views/price-axis/custom-price-line-price-axis-view';
-import { IPriceAxisView } from '../views/price-axis/iprice-axis-view';
+import { CustomPriceLinePaneView } from '@/lib/lightweight-charts/views/pane/custom-price-line-pane-view';
+import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
+import { PanePriceAxisView } from '@/lib/lightweight-charts/views/pane/pane-price-axis-view';
+import { CustomPriceLinePriceAxisView } from '@/lib/lightweight-charts/views/price-axis/custom-price-line-price-axis-view';
+import { type IPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/iprice-axis-view';
 
-import { Coordinate } from './coordinate';
-import { PriceLineOptions } from './price-line-options';
-import { ISeries } from './series';
-import { SeriesType } from './series-options';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
+import { type PriceLineOptions } from '@/lib/lightweight-charts/model/price-line-options';
+import { type ISeries } from '@/lib/lightweight-charts/model/series';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 
 export class CustomPriceLine {
     private readonly _series: ISeries<SeriesType>;

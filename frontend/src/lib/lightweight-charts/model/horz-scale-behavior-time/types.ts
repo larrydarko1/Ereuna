@@ -1,5 +1,5 @@
-import { Nominal } from '../../helpers/nominal';
-import { isNumber, isString } from '../../helpers/strict-type-checks';
+import { type Nominal } from '@/lib/lightweight-charts/helpers/nominal';
+import { isNumber, isString } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
 /**
  * Represents a time as a UNIX timestamp.
@@ -83,28 +83,29 @@ export function isUTCTimestamp(time: Time): time is UTCTimestamp {
 /**
  * Represents the type of a tick mark on the time axis.
  */
-export const enum TickMarkType {
+export const TickMarkType = {
     /**
      * The start of the year (e.g. it's the first tick mark in a year).
      */
-    Year,
+    Year: 0,
     /**
      * The start of the month (e.g. it's the first tick mark in a month).
      */
-    Month,
+    Month: 1,
     /**
      * A day of the month.
      */
-    DayOfMonth,
+    DayOfMonth: 2,
     /**
      * A time without seconds.
      */
-    Time,
+    Time: 3,
     /**
      * A time with seconds.
      */
-    TimeWithSeconds,
-}
+    TimeWithSeconds: 4,
+} as const;
+export type TickMarkType = (typeof TickMarkType)[keyof typeof TickMarkType];
 
 /**
  * Describes a weight of tick mark, i.e. a part of a time that changed since previous time.
@@ -113,17 +114,18 @@ export const enum TickMarkType {
  * @example Between 2020-01-01 and 2020-01-02 there is a day of difference, i.e. for 2020-01-02 weight would be a day.
  * @example Between 2020-01-01 and 2020-02-02 there is a month of difference, i.e. for 2020-02-02 weight would be a month.
  */
-export const enum TickMarkWeight {
-    LessThanSecond = 0,
-    Second = 10,
-    Minute1 = 20,
-    Minute5 = 21,
-    Minute30 = 22,
-    Hour1 = 30,
-    Hour3 = 31,
-    Hour6 = 32,
-    Hour12 = 33,
-    Day = 50,
-    Month = 60,
-    Year = 70,
-}
+export const TickMarkWeight = {
+    LessThanSecond: 0,
+    Second: 10,
+    Minute1: 20,
+    Minute5: 21,
+    Minute30: 22,
+    Hour1: 30,
+    Hour3: 31,
+    Hour6: 32,
+    Hour12: 33,
+    Day: 50,
+    Month: 60,
+    Year: 70,
+} as const;
+export type TickMarkWeight = (typeof TickMarkWeight)[keyof typeof TickMarkWeight];

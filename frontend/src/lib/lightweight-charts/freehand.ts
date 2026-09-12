@@ -1,4 +1,4 @@
-import { IChartApi, MouseEventParams, Time } from './index';
+import { type IChartApi, type MouseEventParams, type Time } from '@/lib/lightweight-charts/index';
 
 export interface FreehandPoint {
     time: Time;
@@ -25,6 +25,7 @@ export class FreehandManager {
     private selectedPathId: string | null = null;
     private isDrawing: boolean = false;
     private isDragging: boolean = false;
+    private dragOffset: { x: number; y: number } | null = null;
     private currentPath: FreehandPath | null = null;
     private moveHandler: ((param: MouseEventParams<Time>) => void) | null = null;
     private mouseDownHandler: ((param: MouseEventParams<Time>) => void) | null = null;
@@ -213,9 +214,14 @@ export class FreehandManager {
             const pathId = this.hitTestPath(param.point.x, param.point.y);
 
             if (pathId && this.selectedPathId === pathId) {
-                // Start dragging selected path
+                // Start dragging selected path. The grab point is recorded relative
+                // to the path's anchor so the first move translates by how far the
+                // cursor travelled, not by the gap between cursor and anchor
+                const anchor = this.paths.find((p) => p.id === pathId)?.points[0];
+                if (!anchor) return;
+
                 this.isDragging = true;
-                this.dragOffset = { x: 0, y: 0 }; // Will be used for relative movement
+                this.dragOffset = { x: param.point.x - anchor.x, y: param.point.y - anchor.y };
                 return;
             }
 
@@ -265,13 +271,14 @@ export class FreehandManager {
                     y: param.point.y,
                 });
                 this.draw();
-            } else if (this.isDragging && this.selectedPathId) {
+            } else if (this.isDragging && this.selectedPathId && this.dragOffset) {
                 // Move entire path
+                const offset = this.dragOffset;
                 const path = this.paths.find((p) => p.id === this.selectedPathId);
-                if (path && !path.locked && path.points.length > 0) {
-                    const firstPoint = path.points[0];
-                    const deltaX = param.point.x - firstPoint.x;
-                    const deltaY = param.point.y - firstPoint.y;
+                const firstPoint = path?.points[0];
+                if (path && firstPoint && !path.locked) {
+                    const deltaX = param.point.x - offset.x - firstPoint.x;
+                    const deltaY = param.point.y - offset.y - firstPoint.y;
 
                     // Update all points in the path
                     path.points = path.points.map((point) => ({
@@ -438,6 +445,7 @@ export class FreehandManager {
             for (let i = 0; i < path.points.length - 1; i++) {
                 const p1 = path.points[i];
                 const p2 = path.points[i + 1];
+                if (p1 === undefined || p2 === undefined) continue;
 
                 const distance = this.pointToSegmentDistance(x, y, p1.x, p1.y, p2.x, p2.y);
                 if (distance <= tolerance) {
@@ -517,11 +525,14 @@ export class FreehandManager {
         ctx.lineJoin = 'round';
 
         // Move to first point
-        ctx.moveTo(path.points[0].x, path.points[0].y);
+        const [start, ...rest] = path.points;
+        if (start === undefined) return;
+
+        ctx.moveTo(start.x, start.y);
 
         // Draw lines through all points
-        for (let i = 1; i < path.points.length; i++) {
-            ctx.lineTo(path.points[i].x, path.points[i].y);
+        for (const point of rest) {
+            ctx.lineTo(point.x, point.y);
         }
 
         ctx.stroke();
@@ -529,8 +540,8 @@ export class FreehandManager {
         // If selected AND actively dragging, draw small circles at endpoints
         if (isSelected && this.isDragging) {
             ctx.fillStyle = color;
-            const firstPoint = path.points[0];
-            const lastPoint = path.points[path.points.length - 1];
+            const firstPoint = start;
+            const lastPoint = path.points[path.points.length - 1] ?? start;
 
             ctx.beginPath();
             ctx.arc(firstPoint.x, firstPoint.y, 3, 0, 2 * Math.PI);

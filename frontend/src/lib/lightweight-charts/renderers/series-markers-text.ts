@@ -1,4 +1,4 @@
-import { Coordinate } from '../model/coordinate';
+import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
 export function drawText(
     ctx: CanvasRenderingContext2D,

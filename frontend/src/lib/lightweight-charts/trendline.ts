@@ -1,4 +1,4 @@
-import { IChartApi, MouseEventParams, Time } from './index';
+import { type IChartApi, type MouseEventParams, type Time } from '@/lib/lightweight-charts/index';
 
 export interface TrendLinePoint {
     time: Time;
@@ -479,9 +479,6 @@ export class TrendLineManager {
         this.clear();
         if (!this.ctx) return;
 
-        const ctx = this.ctx;
-
-        // Draw all completed trendlines
         for (const line of this.trendLines) {
             // Update coordinates
             this.updateLineCoordinates(line);

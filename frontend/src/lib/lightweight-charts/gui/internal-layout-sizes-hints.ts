@@ -1,4 +1,4 @@
-import { Size, size } from 'fancy-canvas';
+import { type Size, size } from 'fancy-canvas';
 
 // on Hi-DPI CSS size * Device Pixel Ratio should be integer to avoid smoothing
 // For chart widget we decrease the size because we must be inside container.

@@ -1,4 +1,4 @@
-import { assert } from '../helpers/assertions';
+import { assert } from '@/lib/lightweight-charts/helpers/assertions';
 
 export class RangeImpl<T extends number> {
     private readonly _left: T;

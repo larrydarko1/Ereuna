@@ -1,7 +1,7 @@
-import { Time } from './horz-scale-behavior-time/types';
-import { CustomData, CustomSeriesWhitespaceData } from './icustom-series';
-import { Series } from './series';
-import { SeriesType } from './series-options';
+import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
+import { type CustomData, type CustomSeriesWhitespaceData } from '@/lib/lightweight-charts/model/icustom-series';
+import { type Series } from '@/lib/lightweight-charts/model/series';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 
 /**
  * Represents a whitespace data item, which is a data point without a value.
@@ -29,7 +29,7 @@ export interface WhitespaceData<HorzScaleItem = Time> {
      * Additional custom values which will be ignored by the library, but
      * could be used by plugins.
      */
-    customValues?: Record<string, unknown>;
+    customValues?: Record<string, unknown> | undefined;
 }
 
 /**

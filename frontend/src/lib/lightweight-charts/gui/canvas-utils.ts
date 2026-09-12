@@ -1,6 +1,6 @@
-import { bindCanvasElementBitmapSizeTo, CanvasElementBitmapSizeBinding, Size } from 'fancy-canvas';
+import { bindCanvasElementBitmapSizeTo, type CanvasElementBitmapSizeBinding, type Size } from 'fancy-canvas';
 
-import { ensureNotNull } from '../helpers/assertions';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
 export function createBoundCanvas(parentElement: HTMLElement, size: Size): CanvasElementBitmapSizeBinding {
     const doc = ensureNotNull(parentElement.ownerDocument);

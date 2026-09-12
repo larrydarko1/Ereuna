@@ -1,8 +1,12 @@
-import { lowerBound } from '../helpers/algorithms';
-import { ensureDefined } from '../helpers/assertions';
+import { lowerBound } from '@/lib/lightweight-charts/helpers/algorithms';
+import { ensureDefined } from '@/lib/lightweight-charts/helpers/assertions';
 
-import { InternalHorzScaleItem } from './ihorz-scale-behavior';
-import { TickMarkWeightValue, TimePointIndex, TimeScalePoint } from './time-data';
+import { type InternalHorzScaleItem } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import {
+    type TickMarkWeightValue,
+    type TimePointIndex,
+    type TimeScalePoint,
+} from '@/lib/lightweight-charts/model/time-data';
 
 /**
  * Tick mark for the horizontal scale.
@@ -23,7 +27,7 @@ interface MarksCache {
     marks: readonly TickMark[];
 }
 
-export class TickMarks<HorzScaleItem> {
+export class TickMarks {
     private _marksByWeight: Map<TickMarkWeightValue, TickMark[]> = new Map();
     private _cache: MarksCache | null = null;
     private _uniformDistribution: boolean = false;
@@ -40,6 +44,8 @@ export class TickMarks<HorzScaleItem> {
 
         for (let index = firstChangedPointIndex; index < newPoints.length; ++index) {
             const point = newPoints[index];
+            if (point === undefined) continue;
+
             let marksForWeight = this._marksByWeight.get(point.timeWeight);
             if (marksForWeight === undefined) {
                 marksForWeight = [];
@@ -76,7 +82,8 @@ export class TickMarks<HorzScaleItem> {
         const weightsToClear: TickMarkWeightValue[] = [];
 
         this._marksByWeight.forEach((marks: TickMark[], timeWeight: TickMarkWeightValue) => {
-            if (sinceIndex <= marks[0].index) {
+            const firstMark = marks[0];
+            if (firstMark === undefined || sinceIndex <= firstMark.index) {
                 weightsToClear.push(timeWeight);
             } else {
                 marks.splice(
@@ -112,12 +119,16 @@ export class TickMarks<HorzScaleItem> {
             let leftIndex = -Infinity;
             for (let i = 0; i < currentWeightLength; i++) {
                 const mark = currentWeight[i];
+                if (mark === undefined) continue;
+
                 const currentIndex = mark.index;
 
                 // Determine indexes with which current index will be compared
                 // All marks to the right is moved to new array
                 while (prevMarksPointer < prevMarksLength) {
                     const lastMark = prevMarks[prevMarksPointer];
+                    if (lastMark === undefined) break;
+
                     const lastIndex = lastMark.index;
                     if (lastIndex < currentIndex) {
                         prevMarksPointer++;
@@ -142,9 +153,8 @@ export class TickMarks<HorzScaleItem> {
             }
 
             // Place all unused tickMarks into new array;
-            for (; prevMarksPointer < prevMarksLength; prevMarksPointer++) {
-                marks.push(prevMarks[prevMarksPointer]);
-            }
+            marks.push(...prevMarks.slice(prevMarksPointer, prevMarksLength));
+            prevMarksPointer = prevMarksLength;
         }
 
         return marks;

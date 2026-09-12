@@ -1,11 +1,15 @@
-import { ensureNotNull } from '../../helpers/assertions';
+import { ensureNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
-import { BarPrice } from '../../model/bar';
-import { ISeriesBarColorer } from '../../model/series-bar-colorer';
-import { TimePointIndex } from '../../model/time-data';
-import { HistogramItem, PaneRendererHistogram, PaneRendererHistogramData } from '../../renderers/histogram-renderer';
+import { type BarPrice } from '@/lib/lightweight-charts/model/bar';
+import { type ISeriesBarColorer } from '@/lib/lightweight-charts/model/series-bar-colorer';
+import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
+import {
+    type HistogramItem,
+    PaneRendererHistogram,
+    type PaneRendererHistogramData,
+} from '@/lib/lightweight-charts/renderers/histogram-renderer';
 
-import { LinePaneViewBase } from './line-pane-view-base';
+import { LinePaneViewBase } from '@/lib/lightweight-charts/views/pane/line-pane-view-base';
 
 export class SeriesHistogramPaneView extends LinePaneViewBase<'Histogram', HistogramItem, PaneRendererHistogram> {
     protected readonly _renderer: PaneRendererHistogram = new PaneRendererHistogram();
