@@ -55,12 +55,12 @@ Object.defineProperty(HTMLElement.prototype, 'offsetParent', {
 // here asserts on pixels, only on the DOM the component renders around them.
 const CANVAS_METHODS = [
     'arc',
+    'arcTo',
     'beginPath',
     'bezierCurveTo',
     'clearRect',
     'clip',
     'closePath',
-    'createLinearGradient',
     'drawImage',
     'fill',
     'fillRect',
@@ -72,6 +72,7 @@ const CANVAS_METHODS = [
     'rect',
     'restore',
     'rotate',
+    'roundRect',
     'save',
     'scale',
     'setLineDash',
@@ -90,6 +91,10 @@ HTMLCanvasElement.prototype.getContext = function getContext(): unknown {
         createImageData: () => ({ data: new Uint8ClampedArray(4), width: 1, height: 1 }),
         measureText: (text: string) => ({ width: text.length * 6 }),
         isPointInPath: () => false,
+        // A gradient is the one call whose return value is used rather than
+        // discarded: the area and baseline renderers add stops to it and then
+        // assign it as a fill, so a no-op returning undefined throws one call later
+        createLinearGradient: () => ({ addColorStop: (): void => {} }),
     };
     for (const method of CANVAS_METHODS) context[method] = (): void => {};
     return context;

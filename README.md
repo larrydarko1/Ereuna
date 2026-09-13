@@ -28,9 +28,11 @@ browser, a Python service doing a job that had no reason to be a separate langua
 It worked, and I could no longer defend how it worked.
 
 So I'm rewriting it, domain by domain, against a written standard I wrote first. That
-rewrite is what you're looking at. As of **2026-09-09**, batches 1–8b are done —
+rewrite is what you're looking at. As of **2026-09-13**, batches 1–8b are done —
 foundation, auth and app shell, charts, screener, portfolio, frontend restructuring,
-and the realtime services rebuilt in Node.
+and the realtime services rebuilt in Node — and the charting layer, which was the last
+thing in the tree living outside the rules, has been restructured, gated and tested
+along with everything else.
 
 ### What that means for anyone reading the code
 
@@ -47,6 +49,8 @@ and the realtime services rebuilt in Node.
   production stack described in older versions of this file was real — it just isn't
   what this repository is anymore.
 - **Test coverage is high, and you should discount it accordingly.** See the note below.
+- **Nothing here is production-ready until I've read it myself.** That review is months
+  of work and it hasn't happened yet. See the note below for why I'm not rushing it.
 
 The banner and demo GIF above are from the pre-rewrite version, and show features that
 have since been cut or are being rebuilt.
@@ -69,27 +73,34 @@ wrote is the layer above the code:
   ingestor and the aggregate role are singletons and cannot be `worker_threads` inside
   the API. Why migrations are forward-only and never touch indexes. Those are judgment
   calls, and they're mine.
-- **The enforcement layer.** Seventeen custom gates in [`scripts/checks/`](scripts/checks/),
-  each one written because of a specific failure that's invisible in a diff — a locale
-  missing a key renders its own dotted path; a theme missing a token is an invisible
-  element in that theme only. Each gate's header states which failure it exists for and
-  what it deliberately does _not_ check. They run together as `npm run ci:check`
-  alongside ESLint, Prettier, stylelint, typecheck and the test suites.
+- **The bar it has to clear.** Nothing lands here because it looks right. Eighteen custom
+  gates in [`scripts/checks/`](scripts/checks/) run as `npm run ci:check` alongside ESLint,
+  Prettier, stylelint, typecheck and the test suites, and each gate is there for a specific
+  failure that's invisible in a diff — a locale missing a key renders its own dotted path;
+  a theme missing a token is an invisible element in that theme only. What I own is the
+  decision that all of them are green before a batch is called done, and the calls about
+  which ones are inverted here on purpose — the gateway gate that _fails_ if a Redis
+  adapter appears, the security gate that allows exactly two unauthenticated mounts.
 
 That's the difference I'd point at. Vibe coding is accepting output with no spec and no
 verification. Here the spec and the verification came first, and the generated code has
 to survive them.
 
-**On the test numbers:** unit coverage sits around 96% of lines with ~250 test files and
-11 Playwright end-to-end specs. Treat that as evidence the suite exists and passes, not
-as evidence the code is correct — tests generated alongside the code, from the same
-spec, can encode the same misunderstanding the code does. I've reviewed a portion of it
-by hand; reviewing all of it properly is months of work, and I've had days. The gates
+**On the test numbers:** unit coverage sits at 92% of lines and 83% of branches across
+272 test files, plus 11 Playwright end-to-end specs. Treat that as evidence the suite
+exists and passes, not as evidence the code is correct — tests generated alongside the
+code, from the same spec, can encode the same misunderstanding the code does. The gates
 catch structural drift. They don't catch a wrong idea, faithfully implemented and
 faithfully tested.
 
-That's the honest limit of what this repo currently proves, and I'd rather state it than
-have you find it.
+So the review is the work that's left. Over the coming months I'll read this codebase
+line by line — not skim it, read it — and when I've done that and I'm satisfied with
+what I find, I'll give the go-ahead for production myself. I'm not doing it now. It's
+months of careful work, I don't have the time for it this side of the rewrite, and I've
+watched enough people burn themselves out sprinting at the end of a project to know that
+forcing it would produce a worse review than doing it slowly. Until that review is
+finished, the honest answer is that this repository is unproven, and I'd rather state it
+than have you find it.
 
 ---
 
@@ -251,7 +262,7 @@ Ereuna/                              # npm workspaces monorepo
 ├── db/                              # forward-only migrations + schema docs
 ├── e2e/                             # Playwright specs
 ├── eslint/                          # 15 composed rule packs
-└── scripts/checks/                  # the 17 custom gates
+└── scripts/checks/                  # the 18 custom gates
 ```
 
 ### The realtime path
@@ -309,7 +320,7 @@ every replica.
 npm run ci:check    # everything below, in order
 ```
 
-Seventeen custom gates in [`scripts/checks/`](scripts/checks/) — fifteen take no
+Eighteen custom gates in [`scripts/checks/`](scripts/checks/) — sixteen take no
 dependencies at all and read the tree with `node:fs` and the TypeScript compiler that
 was already here; the last two wrap `knip` and `jscpd`. Alongside them: ESLint (15
 composed rule packs), `prettier --check`, stylelint, typecheck, the unit suite with
@@ -319,23 +330,47 @@ Two gates are inverted from the written standard on purpose and say so in their 
 headers: `check-ws-standards.mjs` _fails_ if a Redis adapter appears on the gateway, and
 `check-security-drift.mjs` allows exactly two unauthenticated mounts and fails on a third.
 
-The vendored charting fork is excluded from every gate — it's 208 files of upstream code
-and its typecheck errors are expected and out of scope.
+Nothing is excluded from them. The charting layer used to be — 208 files of vendored
+upstream code, skipped by every gate, with typecheck errors written off as out of scope.
+It isn't vendored any more: it's 211 first-party files under
+[`frontend/src/lib/charting/`](frontend/src/lib/charting/), it typechecks clean, it lints
+under the full rule set, every custom gate reaches it, and it's in coverage scope with
+the rest of the repo. The eleven files in it that couldn't get under the 400-line cap are
+recorded in a baseline with the reason each one stayed long, and that baseline is a
+ratchet — a file may shrink but never grow.
 
 ## Dependencies
 
-**Frontend** — Vue 3, Vite, TypeScript, Vue Router, Vue I18n, forked Lightweight Charts,
-Sortable.js, QRCode.vue. Charts outside the fork are hand-written SVG in
-`components/viz/`, scaled by `viewBox`.
+Runtime dependencies only, per workspace — everything else in the tree is build or test
+tooling, listed at the end.
 
-**API** — Express, Zod, MongoDB driver, Socket.IO, IORedis, Argon2, jsonwebtoken, Helmet,
-express-rate-limit, Pino, Speakeasy, PDF-lib.
+**Shared** (`@ereuna/shared`) — Zod, Pino, prom-client. Every other workspace depends on
+it and it is consumed as TypeScript source, so its three are effectively the floor
+everywhere: the logger, the env schema fragments, and the `/livez` + `/metrics` probe
+listener the headless processes run.
 
-**Worker / Ingestor** — MongoDB driver, IORedis, Zod, Pino. The ingestor's vendor socket
+**Frontend** — Vue 3, Vue Router, Vue I18n, axios, socket.io-client, QRCode.vue,
+fancy-canvas. Vite, TypeScript and SCSS are build tooling, not runtime dependencies.
+The charting layer is **not** a dependency: the fork of Lightweight Charts lives in the
+tree as first-party code under `lib/charting/`, held to the same gates as everything
+else — `fancy-canvas`, upstream's canvas-sizing package, is the one thing it still
+imports from outside. Charts outside it are hand-written SVG in `components/viz/`,
+scaled by `viewBox`.
+
+**API** — Express, Zod, MongoDB driver, Socket.IO, IORedis, Argon2, jsonwebtoken,
+otpauth (TOTP), Helmet, cors, cookie-parser, Pino, dotenv. Rate limiting is not a
+library: `lib/rate-limiters.ts` is a Redis-backed token bucket, so the tiers hold across
+replicas rather than per process.
+
+**Worker / Ingestor** — MongoDB driver, IORedis, Zod, prom-client, dotenv. Logging is
+the shared Pino instance, not a direct dependency of either. The ingestor's vendor socket
 uses Node's native `WebSocket`, so there's no client library.
 
-**Tooling** — Vitest, Playwright, ESLint, Prettier, stylelint, knip, jscpd, migrate-mongo,
-tsx, tsc-alias.
+**DB** — migrate-mongo, the CLI that runs the forward-only migrations, and the MongoDB
+driver.
+
+**Tooling** — Vite, vue-tsc, TypeScript, sass-embedded, tsx, tsc-alias, Vitest, MSW,
+Playwright, ESLint, Prettier, stylelint, knip, jscpd, concurrently.
 
 **External** — Tiingo (market data).
 
@@ -361,8 +396,3 @@ You **MAY** use it for learning, portfolio review and technical interviews, pers
 non-commercial projects.
 
 See [LICENSE.md](LICENSE.md) for complete terms. For commercial licensing, email hello@larrydarko.dev.
-
----
-
-_Built as a learning project. Currently being rebuilt to the standard I wish I'd had when
-I started it._

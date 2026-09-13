@@ -281,10 +281,10 @@ export class ChartWidget<THorzScaleItem> implements IDestroyable, IChartWidgetBa
     }
 
     public takeScreenshot(): HTMLCanvasElement {
-        if (this._invalidateMask !== null) {
-            this._drawImpl(this._invalidateMask, performance.now());
-            this._invalidateMask = null;
-        }
+        // Taken before drawing, as the frame does — merging a still-pending mask into itself never ends
+        const pending = this._invalidateMask;
+        this._invalidateMask = null;
+        if (pending !== null) this._drawImpl(pending, performance.now());
 
         const screeshotBitmapSize = this._traverseLayout(null);
         const screenshotCanvas = document.createElement('canvas');

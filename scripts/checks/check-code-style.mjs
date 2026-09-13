@@ -50,7 +50,7 @@ const LINE_CAP = 400;
  * The charting fork's entries came in together when the fork stopped being
  * skipped by this gate, and they split into two kinds.
  *
- * Ten of them are one class each — the widget or the model object named by the
+ * Nine of them are one class each — the widget or the model object named by the
  * filename, and nothing else. They are long because the object is: a chart
  * widget owns its panes, its two axes, its canvases and its event wiring, and
  * every method reaches the same private fields. Cutting one in half means
