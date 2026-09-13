@@ -1,0 +1,25 @@
+/**
+ * Crosshair defaults: magnet mode off, both lines drawn, labels on.
+ */
+import { CrosshairMode, type CrosshairOptions } from '@/lib/charting/engine/model/chart/crosshair';
+import { LineStyle } from '@/lib/charting/engine/renderers/draw-line';
+
+export const crosshairOptionsDefaults: CrosshairOptions = {
+    vertLine: {
+        color: '#9598A1',
+        width: 1,
+        style: LineStyle.LargeDashed,
+        visible: true,
+        labelVisible: true,
+        labelBackgroundColor: '#131722',
+    },
+    horzLine: {
+        color: '#9598A1',
+        width: 1,
+        style: LineStyle.LargeDashed,
+        visible: true,
+        labelVisible: true,
+        labelBackgroundColor: '#131722',
+    },
+    mode: CrosshairMode.Magnet,
+};

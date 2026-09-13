@@ -1,0 +1,77 @@
+/**
+ * The crosshair's own two lines.
+ */
+import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
+
+import { type Crosshair, CrosshairMode } from '@/lib/charting/engine/model/chart/crosshair';
+import { CrosshairRenderer, type CrosshairRendererData } from '@/lib/charting/engine/renderers/crosshair-renderer';
+import { type IPaneRenderer } from '@/lib/charting/engine/renderers/ipane-renderer';
+
+import { type IPaneView } from '@/lib/charting/engine/views/pane/ipane-view';
+
+export class CrosshairPaneView implements IPaneView {
+    private _invalidated = true;
+    private readonly _source: Crosshair;
+    private readonly _rendererData: CrosshairRendererData = {
+        vertLine: {
+            lineWidth: 1,
+            lineStyle: 0,
+            color: '',
+            visible: false,
+        },
+        horzLine: {
+            lineWidth: 1,
+            lineStyle: 0,
+            color: '',
+            visible: false,
+        },
+        x: 0,
+        y: 0,
+    };
+    private _renderer: CrosshairRenderer = new CrosshairRenderer(this._rendererData);
+
+    public constructor(source: Crosshair) {
+        this._source = source;
+    }
+
+    public update(): void {
+        this._invalidated = true;
+    }
+
+    public renderer(): IPaneRenderer {
+        if (this._invalidated) {
+            this._updateImpl();
+            this._invalidated = false;
+        }
+
+        return this._renderer;
+    }
+
+    private _updateImpl(): void {
+        const visible = this._source.visible();
+        const pane = getNotNull(this._source.pane());
+        const crosshairOptions = pane.model().options().crosshair;
+
+        const data = this._rendererData;
+
+        if (crosshairOptions.mode === CrosshairMode.Hidden) {
+            data.horzLine.visible = false;
+            data.vertLine.visible = false;
+            return;
+        }
+
+        data.horzLine.visible = visible && this._source.horzLineVisible(pane);
+        data.vertLine.visible = visible && this._source.vertLineVisible();
+
+        data.horzLine.lineWidth = crosshairOptions.horzLine.width;
+        data.horzLine.lineStyle = crosshairOptions.horzLine.style;
+        data.horzLine.color = crosshairOptions.horzLine.color;
+
+        data.vertLine.lineWidth = crosshairOptions.vertLine.width;
+        data.vertLine.lineStyle = crosshairOptions.vertLine.style;
+        data.vertLine.color = crosshairOptions.vertLine.color;
+
+        data.x = this._source.appliedX();
+        data.y = this._source.appliedY();
+    }
+}

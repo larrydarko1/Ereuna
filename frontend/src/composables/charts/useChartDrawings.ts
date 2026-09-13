@@ -6,11 +6,13 @@
  */
 import { onScopeDispose, ref, type Ref } from 'vue';
 import type { ChartDrawings, ChartTimeframe } from '@ereuna/shared';
-import type { BoxManager } from '@/lib/lightweight-charts/box';
-import type { FreehandManager } from '@/lib/lightweight-charts/freehand';
-import type { PriceLevelManager } from '@/lib/lightweight-charts/price-level';
-import type { TextAnnotationManager } from '@/lib/lightweight-charts/text-annotation';
-import type { TrendLineManager } from '@/lib/lightweight-charts/trendline';
+import type {
+    BoxManager,
+    FreehandManager,
+    PriceLevelManager,
+    TextAnnotationManager,
+    TrendLineManager,
+} from '@/lib/charting';
 import { clearDrawings, getDrawings, saveDrawings } from '@/api/chart';
 
 export type UseChartDrawingsReturn = {

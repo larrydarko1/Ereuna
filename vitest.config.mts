@@ -19,11 +19,7 @@ export default defineConfig({
             exclude: [
                 '**/__tests__/**',
                 '**/*.test.ts',
-                '**/*.d.ts',
-                // The vendored charting fork: 200 files of upstream code nobody
-                // here wrote, held frozen. Every custom gate skips it for the
-                // same reason, and testing it would be testing a dependency.
-                'frontend/src/lib/lightweight-charts/**',
+                '**/*.d.ts'
             ],
             reporter: ['text-summary', 'html', 'json-summary'],
             reportsDirectory: './coverage',

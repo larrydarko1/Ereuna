@@ -1,0 +1,8 @@
+/**
+ * What a time axis label provides.
+ */
+import { type TimeAxisViewRenderer } from '@/lib/charting/engine/renderers/time-axis-view-renderer';
+
+export type ITimeAxisView = {
+    renderer(): TimeAxisViewRenderer;
+};

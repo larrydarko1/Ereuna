@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { effectScope, nextTick, ref, type Ref } from 'vue';
-import type { Time } from '@/lib/lightweight-charts';
+import type { Time } from '@/lib/charting';
 import type { ChartBar, ChartPoint, OverlaySeries } from '@/composables/charts/useChartSeries';
 import { useChartReplay, type UseChartReplayReturn } from '@/composables/charts/useChartReplay';
 

@@ -10,21 +10,21 @@ import {
     ColorType,
     CrosshairMode,
     FreehandManager,
+    PatternOverlayManager,
+    PriceLevelManager,
     TextAnnotationManager,
     TrendLineManager,
     createChart,
+    detectAllPatterns,
     type IChartApi,
     type ISeriesApi,
     type LogicalRange,
     type MouseEventParams,
+    type PatternMatch,
+    type ScreenshotConfig,
     type SeriesType,
     type Time,
-} from '@/lib/lightweight-charts';
-import { detectAllPatterns } from '@/lib/lightweight-charts/pattern-detection';
-import type { PatternMatch } from '@/lib/lightweight-charts/pattern-types';
-import { PriceLevelManager } from '@/lib/lightweight-charts/price-level';
-import { PatternOverlayManager } from '@/lib/lightweight-charts/pattern-overlay';
-import type { ScreenshotConfig } from '@/lib/lightweight-charts/screenshot';
+} from '@/lib/charting';
 import type { AssetProfile } from '@/api/chart';
 import ChartLegend from '@/components/charts/ChartLegend.vue';
 import ChartReplayBar from '@/components/charts/ChartReplayBar.vue';

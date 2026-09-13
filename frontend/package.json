@@ -1,7 +1,7 @@
 {
     "name": "frontend",
     "version": "2026.8",
-    "description": "Ereuna web client — Vue 3, vue-i18n, and a forked lightweight-charts single-page app.",
+    "description": "Ereuna web client — a Vue 3, vue-i18n single-page app with its own charting layer.",
     "license": "UNLICENSED",
     "type": "module",
     "scripts": {

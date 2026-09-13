@@ -75,19 +75,6 @@ const ALLOWED_EXCLUDES = new Map([
     ['**/__tests__/**', 'the tests themselves'],
     ['**/*.test.ts', 'the tests themselves'],
     ['**/*.d.ts', 'declarations, no runtime'],
-    ...[
-        'api',
-        'formatters',
-        'gui',
-        'helpers',
-        'model',
-        'renderers',
-        'typings',
-        'views',
-    ].map((dir) => [
-        `frontend/src/lib/lightweight-charts/${dir}/**`,
-        'the charting fork\'s engine, which came from upstream. It is this app\'s code and every other gate reaches it, but no test here drives 7k statements of canvas and scale maths, and in the denominator it would bury the coverage of what is driven. The fork\'s own drawing tools at its root are deliberately absent from this list — they were written here and are measured.',
-    ]),
 ]);
 
 /**

@@ -76,7 +76,7 @@ No patent license is granted by this license. If you have patent claims that wou
 This project includes:
 
 - **Vue.js, Vite, Express, Node.js, MongoDB, Redis** and numerous npm packages (see package.json)
-- **TradingView Lightweight Charts** (Apache 2.0) - See [frontend/src/lib/lightweight-charts/LICENSE](frontend/src/lib/lightweight-charts/LICENSE)
+- **TradingView Lightweight Charts** (Apache 2.0) - See [frontend/src/lib/charting/LICENSE](frontend/src/lib/charting/LICENSE)
 - **Other open-source libraries** listed in dependencies
 
 You are responsible for compliance with all third-party licenses when using this Software. No claim of ownership is made over any third-party code.

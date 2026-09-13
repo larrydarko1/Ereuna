@@ -1,0 +1,47 @@
+/**
+ * A bar's prices, and the same bar once those prices are coordinates.
+ *
+ * Both are branded number types: a price and a y coordinate are both numbers and
+ * mixing them is the single easiest mistake to make in this codebase, so the
+ * compiler is made to care.
+ */
+import { type Nominal } from '@/lib/charting/engine/helpers/nominal';
+
+import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
+
+/**
+ * Represents a price as a `number`.
+ */
+export type BarPrice = Nominal<number, 'BarPrice'>;
+
+/**
+ * Represents a bar's open, high, low, close (OHLC) prices.
+ */
+export type BarPrices = {
+    /**
+     * The open price.
+     */
+    open: BarPrice;
+    /**
+     * The high price.
+     */
+    high: BarPrice;
+    /**
+     * The low price.
+     */
+    low: BarPrice;
+    /**
+     * The close price.
+     */
+    close: BarPrice;
+};
+
+/**
+ * Represents the y-axis coordinates of a bar's open, high, low, close prices.
+ */
+export type BarCoordinates = {
+    openY: Coordinate;
+    highY: Coordinate;
+    lowY: Coordinate;
+    closeY: Coordinate;
+};

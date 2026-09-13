@@ -68,17 +68,17 @@ const LINE_CAP = 400;
 const LENGTH_BASELINE = {
     'frontend/src/components/charts/PriceChart.vue': 741,
     'packages/shared/src/screener/filters.ts': 472,
-    'frontend/src/lib/lightweight-charts/gui/chart-widget.ts': 764,
-    'frontend/src/lib/lightweight-charts/gui/mouse-event-handler.ts': 710,
-    'frontend/src/lib/lightweight-charts/gui/pane-widget.ts': 703,
-    'frontend/src/lib/lightweight-charts/gui/price-axis-widget.ts': 646,
-    'frontend/src/lib/lightweight-charts/gui/time-axis-widget.ts': 495,
-    'frontend/src/lib/lightweight-charts/model/chart-model.ts': 923,
-    'frontend/src/lib/lightweight-charts/model/price-scale.ts': 908,
-    'frontend/src/lib/lightweight-charts/model/series.ts': 712,
-    'frontend/src/lib/lightweight-charts/model/series-options.ts': 469,
-    'frontend/src/lib/lightweight-charts/model/series-style-options.ts': 466,
-    'frontend/src/lib/lightweight-charts/model/time-scale.ts': 861,
+    'frontend/src/lib/charting/engine/gui/chart-widget.ts': 764,
+    'frontend/src/lib/charting/engine/gui/mouse-event-handler.ts': 710,
+    'frontend/src/lib/charting/engine/gui/pane-widget.ts': 703,
+    'frontend/src/lib/charting/engine/gui/price-axis-widget.ts': 646,
+    'frontend/src/lib/charting/engine/gui/time-axis-widget.ts': 495,
+    'frontend/src/lib/charting/engine/model/chart/chart-model.ts': 923,
+    'frontend/src/lib/charting/engine/model/price/price-scale.ts': 908,
+    'frontend/src/lib/charting/engine/model/series/series.ts': 712,
+    'frontend/src/lib/charting/engine/model/series/series-options.ts': 469,
+    'frontend/src/lib/charting/engine/model/series/series-style-options.ts': 466,
+    'frontend/src/lib/charting/engine/model/time/time-scale.ts': 861,
 };
 
 const CASING_EXEMPT = /^(index|App)$/;

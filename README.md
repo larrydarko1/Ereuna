@@ -226,7 +226,8 @@ Ereuna/                              # npm workspaces monorepo
 │       │                            #   screener, ui, user, viz
 │       ├── composables/             # domain state (no Pinia)
 │       ├── constants/               # enums, icon path registry
-│       ├── lib/lightweight-charts/  # frozen vendored TradingView fork
+│       ├── lib/charting/            # the charting layer: engine/ (forked
+│       │                            #   renderer), drawings/, patterns/, shared/
 │       ├── locales/                 # 18 locales, every key in every file
 │       ├── router/  styles/  types/  utils/  views/
 │

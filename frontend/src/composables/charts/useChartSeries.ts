@@ -2,7 +2,7 @@
 import { onScopeDispose, readonly, ref, watch, type Ref } from 'vue';
 import type { ChartTimeframe } from '@ereuna/shared';
 import { isIntraday } from '@ereuna/shared';
-import type { Time } from '@/lib/lightweight-charts';
+import type { Time } from '@/lib/charting';
 import { getSeries, type Candle, type ChartOverlay } from '@/api/chart';
 import { apiErrorMessage } from '@/api/client';
 import { i18n } from '@/i18n';

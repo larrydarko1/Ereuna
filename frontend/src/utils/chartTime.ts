@@ -5,7 +5,7 @@
  * intraday bar is a UTC timestamp in seconds. Both are `Time` to the chart, so
  * anything that sorts, compares or prints one has to know which it is holding.
  */
-import type { Time } from '@/lib/lightweight-charts';
+import type { Time } from '@/lib/charting';
 
 /** Seconds since the epoch, for ordering bars and cutting a series at a point. */
 export function timeValue(time: Time): number {

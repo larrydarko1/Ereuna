@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Time } from '@/lib/lightweight-charts';
+import type { Time } from '@/lib/charting';
 import { timeKey, timeToDate, timeToIsoDate, timeValue } from '@/utils/chartTime';
 
 const businessDay = { year: 2026, month: 3, day: 2 } as unknown as Time;

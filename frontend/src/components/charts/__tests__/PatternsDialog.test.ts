@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import type { PatternMatch } from '@/lib/lightweight-charts/pattern-types';
+import type { PatternMatch } from '@/lib/charting';
 import { i18n } from '@/i18n';
 import { formatDate, formatNumber } from '@/utils/formatters';
 import PatternsDialog from '@/components/charts/PatternsDialog.vue';
