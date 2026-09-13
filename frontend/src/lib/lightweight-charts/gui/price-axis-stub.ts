@@ -1,3 +1,10 @@
+/**
+ * The blank corner where a price axis meets the time axis.
+ *
+ * It draws nothing but the background and the border, and exists so the corner
+ * takes its colours from the same options the axes do rather than showing the
+ * page through.
+ */
 import {
     type BitmapCoordinatesRenderingScope,
     type CanvasElementBitmapSizeBinding,

@@ -1,20 +1,14 @@
+/**
+ * Assigns each point a weight from how round its time is — a year boundary
+ * outranks a month, a month a day, and so on down to the second.
+ *
+ * The time axis draws the heaviest marks it has room for, so the labels thin out
+ * evenly as the chart is zoomed out instead of dropping in arbitrary order.
+ */
 import { type Mutable } from '@/lib/lightweight-charts/helpers/mutable';
-
 import { type InternalHorzScaleItem } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
 import { type TickMarkWeightValue, type TimeScalePoint } from '@/lib/lightweight-charts/model/time-data';
 import { TickMarkWeight, type TimePoint } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
-
-function hours(count: number): number {
-    return count * 60 * 60 * 1000;
-}
-
-function minutes(count: number): number {
-    return count * 60 * 1000;
-}
-
-function seconds(count: number): number {
-    return count * 1000;
-}
 
 type WeightDivisor = {
     divisor: number;
@@ -31,30 +25,6 @@ const intradayWeightDivisors: WeightDivisor[] = [
     { divisor: hours(6), weight: TickMarkWeight.Hour6 },
     { divisor: hours(12), weight: TickMarkWeight.Hour12 },
 ];
-
-function weightByTime(currentDate: Date, prevDate: Date): TickMarkWeight {
-    if (currentDate.getUTCFullYear() !== prevDate.getUTCFullYear()) {
-        return TickMarkWeight.Year;
-    }
-    if (currentDate.getUTCMonth() !== prevDate.getUTCMonth()) {
-        return TickMarkWeight.Month;
-    }
-    if (currentDate.getUTCDate() !== prevDate.getUTCDate()) {
-        return TickMarkWeight.Day;
-    }
-
-    for (const { divisor, weight } of [...intradayWeightDivisors].reverse()) {
-        if (Math.floor(prevDate.getTime() / divisor) !== Math.floor(currentDate.getTime() / divisor)) {
-            return weight;
-        }
-    }
-
-    return TickMarkWeight.LessThanSecond;
-}
-
-function cast(t: InternalHorzScaleItem): TimePoint {
-    return t as unknown as TimePoint;
-}
 
 export function fillWeightsForPoints(sortedTimePoints: readonly Mutable<TimeScalePoint>[], startIndex = 0): void {
     if (sortedTimePoints.length === 0) {
@@ -94,4 +64,40 @@ export function fillWeightsForPoints(sortedTimePoints: readonly Mutable<TimeScal
             approxPrevDate,
         ) as TickMarkWeightValue;
     }
+}
+
+function hours(count: number): number {
+    return count * 60 * 60 * 1000;
+}
+
+function minutes(count: number): number {
+    return count * 60 * 1000;
+}
+
+function seconds(count: number): number {
+    return count * 1000;
+}
+
+function weightByTime(currentDate: Date, prevDate: Date): TickMarkWeight {
+    if (currentDate.getUTCFullYear() !== prevDate.getUTCFullYear()) {
+        return TickMarkWeight.Year;
+    }
+    if (currentDate.getUTCMonth() !== prevDate.getUTCMonth()) {
+        return TickMarkWeight.Month;
+    }
+    if (currentDate.getUTCDate() !== prevDate.getUTCDate()) {
+        return TickMarkWeight.Day;
+    }
+
+    for (const { divisor, weight } of [...intradayWeightDivisors].reverse()) {
+        if (Math.floor(prevDate.getTime() / divisor) !== Math.floor(currentDate.getTime() / divisor)) {
+            return weight;
+        }
+    }
+
+    return TickMarkWeight.LessThanSecond;
+}
+
+function cast(t: InternalHorzScaleItem): TimePoint {
+    return t as unknown as TimePoint;
 }

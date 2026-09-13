@@ -1,3 +1,9 @@
+/**
+ * The visible span of the horizontal scale, as a range of logical positions.
+ *
+ * It is logical rather than an index range because the edges may be fractional and
+ * may sit past the last bar — the right offset is exactly that.
+ */
 import { RangeImpl } from '@/lib/lightweight-charts/model/range-impl';
 import { type Logical, type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 

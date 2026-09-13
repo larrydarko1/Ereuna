@@ -1,3 +1,7 @@
+/**
+ * The price label drawn inside the pane rather than on the axis, which is what
+ * the crosshair shows when the axis labels are off.
+ */
 import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
 import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';

@@ -8,7 +8,7 @@ import type { ISeriesApi } from '@/lib/lightweight-charts/api/iseries-api';
 import type { Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
 import type { SeriesMarker } from '@/lib/lightweight-charts/model/series-markers';
 import { LineStyle } from '@/lib/lightweight-charts/renderers/draw-line';
-import { type PatternMatch } from '@/lib/lightweight-charts/pattern-detection';
+import { type PatternMatch } from '@/lib/lightweight-charts/pattern-types';
 import { timeToTimestamp } from '@/lib/lightweight-charts/time-conversion';
 
 type PatternVisual = {

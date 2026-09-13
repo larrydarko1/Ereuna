@@ -1,3 +1,6 @@
+/**
+ * The crosshair's label on the time axis.
+ */
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { generateContrastColors } from '@/lib/lightweight-charts/helpers/color';
 

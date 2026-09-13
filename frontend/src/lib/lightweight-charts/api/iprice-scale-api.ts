@@ -1,3 +1,6 @@
+/**
+ * A handle to one price scale, left or right, or an overlay's own.
+ */
 import { type DeepPartial } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
 import { type PriceScaleOptions } from '@/lib/lightweight-charts/model/price-scale';

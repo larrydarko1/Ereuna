@@ -1,3 +1,6 @@
+/**
+ * The handle returned by `priceScale()`, wrapping one of the pane's scales.
+ */
 import { type IChartWidgetBase } from '@/lib/lightweight-charts/gui/chart-widget';
 
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';

@@ -1,12 +1,18 @@
+/**
+ * A price scale: the mapping between price and pixel, the marks on it, and the
+ * autoscaling that keeps the sources on it in view.
+ *
+ * Switching modes is not just a different formula — the visible range has to be
+ * carried across so the chart does not jump, which is what most of the conversion
+ * work here is for.
+ */
 import { type IPriceFormatter } from '@/lib/lightweight-charts/formatters/iprice-formatter';
 import { PercentageFormatter } from '@/lib/lightweight-charts/formatters/percentage-formatter';
 import { PriceFormatter } from '@/lib/lightweight-charts/formatters/price-formatter';
-
 import { getDefined, getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
 import { type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
 import { type DeepPartial, merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
-
 import { type BarCoordinates, type BarPrice, type BarPrices } from '@/lib/lightweight-charts/model/bar';
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 import { type FirstValue, type IPriceDataSource } from '@/lib/lightweight-charts/model/iprice-data-source';
@@ -35,28 +41,6 @@ import { type RangeImpl } from '@/lib/lightweight-charts/model/range-impl';
 import { sortSources } from '@/lib/lightweight-charts/model/sort-sources';
 import { type SeriesItemsIndexesRange, type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 
-/**
- * Represents the price scale mode.
- */
-export const PriceScaleMode = {
-    /**
-     * Price scale shows prices. Price range changes linearly.
-     */
-    Normal: 0,
-    /**
-     * Price scale shows prices. Price range changes logarithmically.
-     */
-    Logarithmic: 1,
-    /**
-     * Price scale shows percentage values according the first visible value of the price scale.
-     * The first visible value is 0% in this mode.
-     */
-    Percentage: 2,
-    /**
-     * The same as percentage mode, but the first value is moved to 100.
-     */
-    IndexedTo100: 3,
-} as const;
 export type PriceScaleMode = (typeof PriceScaleMode)[keyof typeof PriceScaleMode];
 
 export type PriceScaleState = {
@@ -76,7 +60,7 @@ export type PricedValue = {
 };
 
 /** Defines margins of the price scale. */
-export type PriceScaleMargins = {
+type PriceScaleMargins = {
     /**
      * Top margin in percentages. Must be greater or equal to 0 and less than 1.
      */
@@ -201,13 +185,33 @@ type RangeCache = {
 // actually price should be BarPrice
 type PriceTransformer = (price: BarPrice, baseValue: number) => number;
 
-const percentageFormatter = new PercentageFormatter();
-const defaultPriceFormatter = new PriceFormatter(100, 1);
-
 type MarksCache = {
     marks: PriceMark[];
     firstValueIsNull: boolean;
 };
+
+/**
+ * Represents the price scale mode.
+ */
+export const PriceScaleMode = {
+    /**
+     * Price scale shows prices. Price range changes linearly.
+     */
+    Normal: 0,
+    /**
+     * Price scale shows prices. Price range changes logarithmically.
+     */
+    Logarithmic: 1,
+    /**
+     * Price scale shows percentage values according the first visible value of the price scale.
+     * The first visible value is 0% in this mode.
+     */
+    Percentage: 2,
+    /**
+     * The same as percentage mode, but the first value is moved to 100.
+     */
+    IndexedTo100: 3,
+} as const;
 
 export class PriceScale {
     private readonly _id: string;
@@ -1095,3 +1099,7 @@ export class PriceScale {
         return this._formatValue(percentage, this._localizationOptions.percentageFormatter, fallbackFormatter);
     }
 }
+
+const percentageFormatter = new PercentageFormatter();
+
+const defaultPriceFormatter = new PriceFormatter(100, 1);

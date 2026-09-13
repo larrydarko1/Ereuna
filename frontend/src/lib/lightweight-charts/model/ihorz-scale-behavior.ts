@@ -1,3 +1,9 @@
+/**
+ * The strategy the time scale delegates every horizontal-axis decision to.
+ *
+ * This is the seam that keeps the scale generic: it never compares two of the
+ * caller's time values itself, it asks.
+ */
 import { type Mutable } from '@/lib/lightweight-charts/helpers/mutable';
 import { type Nominal } from '@/lib/lightweight-charts/helpers/nominal';
 

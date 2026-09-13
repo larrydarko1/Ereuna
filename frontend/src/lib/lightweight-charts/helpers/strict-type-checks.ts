@@ -41,17 +41,6 @@ export function merge(dst: PlainObject, ...sources: PlainObject[]): PlainObject 
     return dst;
 }
 
-/**
- * Whether a value is merged into what is already there rather than replacing it.
- *
- * `null` counts, which preserves the `typeof x === 'object'` test this replaced:
- * merging null into an object iterates nothing, so a null in a partial options
- * object leaves the existing value alone instead of erasing it.
- */
-function isMergeable(value: unknown): value is PlainObject {
-    return typeof value === 'object' && !Array.isArray(value);
-}
-
 export function isNumber(value: unknown): value is number {
     return typeof value === 'number' && isFinite(value);
 }
@@ -96,4 +85,15 @@ export function notNull<T>(t: T | null): t is T {
 
 export function undefinedIfNull<T>(t: T | null): T | undefined {
     return t === null ? undefined : t;
+}
+
+/**
+ * Whether a value is merged into what is already there rather than replacing it.
+ *
+ * `null` counts, which preserves the `typeof x === 'object'` test this replaced:
+ * merging null into an object iterates nothing, so a null in a partial options
+ * object leaves the existing value alone instead of erasing it.
+ */
+function isMergeable(value: unknown): value is PlainObject {
+    return typeof value === 'object' && !Array.isArray(value);
 }

@@ -1,3 +1,6 @@
+/**
+ * One custom price line, as drawn across a pane.
+ */
 import { type CustomPriceLine } from '@/lib/lightweight-charts/model/custom-price-line';
 import { type ISeries } from '@/lib/lightweight-charts/model/series';
 import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';

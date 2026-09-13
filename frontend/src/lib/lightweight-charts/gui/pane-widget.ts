@@ -1,3 +1,11 @@
+/**
+ * One pane: the canvas its sources draw on, and the gesture handling for the
+ * plot area itself.
+ *
+ * Scrolling, scaling and the crosshair all start here, and it is the only widget
+ * that talks to both the time scale and its pane's price scales, because a drag
+ * can move either.
+ */
 import {
     type BitmapCoordinatesRenderingScope,
     type CanvasElementBitmapSizeBinding,
@@ -7,13 +15,11 @@ import {
     size,
     tryCreateCanvasRenderingTarget2D,
 } from 'fancy-canvas';
-
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { clearRect, clearRectWithGradient } from '@/lib/lightweight-charts/helpers/canvas-helpers';
 import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
 import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
 import { type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
-
 import { type IChartModelBase, TrackingModeExitMode } from '@/lib/lightweight-charts/model/chart-model';
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 import { type IDataSource } from '@/lib/lightweight-charts/model/idata-source';
@@ -25,7 +31,6 @@ import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 import { type TouchMouseEventData } from '@/lib/lightweight-charts/model/touch-mouse-event-data';
 import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
-
 import { createBoundCanvas, releaseCanvas } from '@/lib/lightweight-charts/gui/canvas-utils';
 import { type IChartWidgetBase } from '@/lib/lightweight-charts/gui/chart-widget';
 import {
@@ -47,32 +52,20 @@ import {
 import { hitTestPane, type HitTestResult } from '@/lib/lightweight-charts/gui/pane-hit-test';
 import { PriceAxisWidget, type PriceAxisWidgetSide } from '@/lib/lightweight-charts/gui/price-axis-widget';
 
-const KineticScrollConstants = {
-    MinScrollSpeed: 0.2,
-    MaxScrollSpeed: 7,
-    DumpingCoeff: 0.997,
-    ScrollMinMove: 15,
-} as const;
 type KineticScrollConstants = (typeof KineticScrollConstants)[keyof typeof KineticScrollConstants];
-
-function sourceBottomPaneViews(source: IDataSource, pane: Pane): readonly IPaneView[] {
-    return source.bottomPaneViews?.(pane) ?? [];
-}
-function sourcePaneViews(source: IDataSource, pane: Pane): readonly IPaneView[] {
-    return source.paneViews?.(pane) ?? [];
-}
-function sourceLabelPaneViews(source: IDataSource, pane: Pane): readonly IPaneView[] {
-    return source.labelPaneViews?.(pane) ?? [];
-}
-function sourceTopPaneViews(source: IDataSource, pane: Pane): readonly IPaneView[] {
-    return source.topPaneViews?.(pane) ?? [];
-}
 
 type StartScrollPosition = {
     timestamp: number;
     localX: Coordinate;
     localY: Coordinate;
 } & Point;
+
+const KineticScrollConstants = {
+    MinScrollSpeed: 0.2,
+    MaxScrollSpeed: 7,
+    DumpingCoeff: 0.997,
+    ScrollMinMove: 15,
+} as const;
 
 export class PaneWidget implements IDestroyable, MouseEventHandlers {
     private readonly _chart: IChartWidgetBase;
@@ -832,4 +825,20 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
 
         this._model().lightUpdate();
     };
+}
+
+function sourceBottomPaneViews(source: IDataSource, pane: Pane): readonly IPaneView[] {
+    return source.bottomPaneViews?.(pane) ?? [];
+}
+
+function sourcePaneViews(source: IDataSource, pane: Pane): readonly IPaneView[] {
+    return source.paneViews?.(pane) ?? [];
+}
+
+function sourceLabelPaneViews(source: IDataSource, pane: Pane): readonly IPaneView[] {
+    return source.labelPaneViews?.(pane) ?? [];
+}
+
+function sourceTopPaneViews(source: IDataSource, pane: Pane): readonly IPaneView[] {
+    return source.topPaneViews?.(pane) ?? [];
 }

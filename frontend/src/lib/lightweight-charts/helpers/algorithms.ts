@@ -1,11 +1,31 @@
+/**
+ * Binary search over a sorted array.
+ *
+ * `lowerBound` and `upperBound` are the two halves of the same walk and differ
+ * only in which way they step on an exact match, so both are expressed against one
+ * private core rather than duplicated.
+ */
 import { getDefined } from '@/lib/lightweight-charts/helpers/assertions';
+
 export type BoundComparatorType<TArrayElementType, TValueType> = (a: TArrayElementType, b: TValueType) => boolean;
 
-/**
- * Binary function that accepts two arguments (the first of the type of array elements, and the second is always val), and returns a value convertible to bool.
- * The value returned indicates whether the first argument is considered to go before the second.
- * The function shall not modify any of its arguments.
- */
+/** The first index whose element does not compare before `value`. */
+export function lowerBound<TArrayElementType, TValueType>(
+    arr: readonly TArrayElementType[],
+    value: TValueType,
+    compare: BoundComparatorType<TArrayElementType, TValueType>,
+): number {
+    return binarySearch(arr, 0, arr.length, (element: TArrayElementType) => compare(element, value));
+}
+
+/** The first index whose element compares after `value`. */
+export function upperBound<TArrayElementType, TValueType>(
+    arr: readonly TArrayElementType[],
+    value: TValueType,
+    compare: BoundComparatorType<TArrayElementType, TValueType>,
+): number {
+    return binarySearch(arr, 0, arr.length, (element: TArrayElementType) => !compare(element, value));
+}
 
 /**
  * Walks a sorted range, halving it each step, and returns the index the search
@@ -31,22 +51,4 @@ function binarySearch<TArrayElementType>(
     }
 
     return start;
-}
-
-/** The first index whose element does not compare before `value`. */
-export function lowerBound<TArrayElementType, TValueType>(
-    arr: readonly TArrayElementType[],
-    value: TValueType,
-    compare: BoundComparatorType<TArrayElementType, TValueType>,
-): number {
-    return binarySearch(arr, 0, arr.length, (element: TArrayElementType) => compare(element, value));
-}
-
-/** The first index whose element compares after `value`. */
-export function upperBound<TArrayElementType, TValueType>(
-    arr: readonly TArrayElementType[],
-    value: TValueType,
-    compare: BoundComparatorType<TArrayElementType, TValueType>,
-): number {
-    return binarySearch(arr, 0, arr.length, (element: TArrayElementType) => !compare(element, value));
 }

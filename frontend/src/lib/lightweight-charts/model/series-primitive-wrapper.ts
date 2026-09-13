@@ -1,5 +1,11 @@
+/**
+ * Adapts a caller's primitive to the interfaces the panes and axes actually
+ * use.
+ *
+ * The wrappers exist so that the primitive API can stay small and stable while the
+ * internal view and renderer interfaces change underneath it.
+ */
 import { type CanvasRenderingTarget2D } from 'fancy-canvas';
-
 import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 import {
     type PriceAxisViewRendererCommonData,
@@ -10,7 +16,6 @@ import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
 import { type IPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/iprice-axis-view';
 import { PriceAxisView } from '@/lib/lightweight-charts/views/price-axis/price-axis-view';
 import { type ITimeAxisView } from '@/lib/lightweight-charts/views/time-axis/itime-axis-view';
-
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 import {
     type ISeriesPrimitiveAxisView,
@@ -25,6 +30,25 @@ import { type Series } from '@/lib/lightweight-charts/model/series';
 import { type AutoscaleInfo, type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 import { type Logical, type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 import { type ITimeScale } from '@/lib/lightweight-charts/model/time-scale';
+
+type RendererCache<TBase, TWrapper> = {
+    base: TBase;
+    wrapper: TWrapper;
+};
+
+export type ISeriesPrimitivePaneViewWrapper = {
+    zOrder(): SeriesPrimitivePaneViewZOrder;
+} & IPaneView;
+
+type AxisViewData = {
+    text: string;
+    coordinate: number;
+    fixedCoordinate: number | undefined;
+    color: string;
+    background: string;
+    visible: boolean;
+    tickVisible: boolean;
+};
 
 class SeriesPrimitiveRendererWrapper implements IPaneRenderer {
     private readonly _baseRenderer: ISeriesPrimitivePaneRenderer;
@@ -42,15 +66,6 @@ class SeriesPrimitiveRendererWrapper implements IPaneRenderer {
         this._baseRenderer.drawBackground?.(target);
     }
 }
-
-type RendererCache<TBase, TWrapper> = {
-    base: TBase;
-    wrapper: TWrapper;
-};
-
-export type ISeriesPrimitivePaneViewWrapper = {
-    zOrder(): SeriesPrimitivePaneViewZOrder;
-} & IPaneView;
 
 class SeriesPrimitivePaneViewWrapper implements IPaneView {
     private readonly _paneView: ISeriesPrimitivePaneView;
@@ -79,28 +94,6 @@ class SeriesPrimitivePaneViewWrapper implements IPaneView {
     public zOrder(): SeriesPrimitivePaneViewZOrder {
         return this._paneView.zOrder?.() ?? 'normal';
     }
-}
-
-type AxisViewData = {
-    text: string;
-    coordinate: number;
-    fixedCoordinate: number | undefined;
-    color: string;
-    background: string;
-    visible: boolean;
-    tickVisible: boolean;
-};
-
-function getAxisViewData(baseView: ISeriesPrimitiveAxisView): AxisViewData {
-    return {
-        text: baseView.text(),
-        coordinate: baseView.coordinate(),
-        fixedCoordinate: baseView.fixedCoordinate?.(),
-        color: baseView.textColor(),
-        background: baseView.backColor(),
-        visible: baseView.visible?.() ?? true,
-        tickVisible: baseView.tickVisible?.() ?? true,
-    };
 }
 
 class SeriesPrimitiveTimeAxisViewWrapper implements ITimeAxisView {
@@ -272,4 +265,16 @@ export class SeriesPrimitiveWrapper<TSeriesAttachedParameters = unknown> {
     public hitTest(x: Coordinate, y: Coordinate): PrimitiveHoveredItem | null {
         return this._primitive.hitTest?.(x, y) ?? null;
     }
+}
+
+function getAxisViewData(baseView: ISeriesPrimitiveAxisView): AxisViewData {
+    return {
+        text: baseView.text(),
+        coordinate: baseView.coordinate(),
+        fixedCoordinate: baseView.fixedCoordinate?.(),
+        color: baseView.textColor(),
+        background: baseView.backColor(),
+        visible: baseView.visible?.() ?? true,
+        tickVisible: baseView.tickVisible?.() ?? true,
+    };
 }

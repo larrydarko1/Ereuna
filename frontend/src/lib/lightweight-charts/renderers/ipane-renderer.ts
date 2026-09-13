@@ -1,3 +1,7 @@
+/**
+ * What a pane renderer has to provide: a draw, an optional background pass,
+ * and a hit test.
+ */
 import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
 import { type HoveredObject } from '@/lib/lightweight-charts/model/chart-model';

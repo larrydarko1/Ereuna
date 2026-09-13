@@ -44,8 +44,11 @@
  *   - SCSS. knip does not follow `@use`, so every partial under
  *     `styles/components/` would come back unused while `index.scss` imports it.
  *     stylelint owns those files.
- *   - `frontend/src/lib/lightweight-charts/`. A frozen vendored fork of upstream
- *     code, excluded in knip.json the same way every other gate excludes it.
+ *
+ * The charting fork under `frontend/src/lib/` is NOT excluded. It is this app's
+ * own code, so an export nothing imports is dead here exactly as it is anywhere
+ * else — and a fork is precisely where unreachable code accumulates, because
+ * upstream's public API is this codebase's internals.
  */
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';

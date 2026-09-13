@@ -1,3 +1,6 @@
+/**
+ * The histogram series' view.
+ */
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { type BarPrice } from '@/lib/lightweight-charts/model/bar';

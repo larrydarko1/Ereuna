@@ -1,6 +1,13 @@
+/**
+ * The crosshair: where it is, what it snaps to, and the labels it puts on both
+ * axes.
+ *
+ * In magnet mode it does not follow the pointer — `Magnet` moves it to the nearest
+ * price on the series under it, which is why its position and the pointer's are
+ * tracked separately.
+ */
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { notNull } from '@/lib/lightweight-charts/helpers/strict-type-checks';
-
 import { type LineStyle, type LineWidth } from '@/lib/lightweight-charts/renderers/draw-line';
 import { CrosshairMarksPaneView } from '@/lib/lightweight-charts/views/pane/crosshair-marks-pane-view';
 import { CrosshairPaneView } from '@/lib/lightweight-charts/views/pane/crosshair-pane-view';
@@ -10,7 +17,6 @@ import { type IPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/i
 import { type PriceAxisView } from '@/lib/lightweight-charts/views/price-axis/price-axis-view';
 import { CrosshairTimeAxisView } from '@/lib/lightweight-charts/views/time-axis/crosshair-time-axis-view';
 import { type ITimeAxisView } from '@/lib/lightweight-charts/views/time-axis/itime-axis-view';
-
 import { type BarPrice } from '@/lib/lightweight-charts/model/bar';
 import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
@@ -27,35 +33,19 @@ export type CrosshairPriceAndCoordinate = {
     coordinate: number;
 };
 
-export type CrosshairTimeAndCoordinate = {
+type CrosshairTimeAndCoordinate = {
     time: InternalHorzScaleItem;
     coordinate: number;
 };
 
 export type PriceAndCoordinateProvider = (priceScale: PriceScale) => CrosshairPriceAndCoordinate;
+
 export type TimeAndCoordinateProvider = () => CrosshairTimeAndCoordinate | null;
 
-/**
- * Represents the crosshair mode.
- */
-export const CrosshairMode = {
-    /**
-     * This mode allows crosshair to move freely on the chart.
-     */
-    Normal: 0,
-    /**
-     * This mode sticks crosshair's horizontal line to the price value of a single-value series or to the close price of OHLC-based series.
-     */
-    Magnet: 1,
-    /**
-     * This mode disables rendering of the crosshair.
-     */
-    Hidden: 2,
-} as const;
 export type CrosshairMode = (typeof CrosshairMode)[keyof typeof CrosshairMode];
 
 /** Structure describing a crosshair line (vertical or horizontal) */
-export type CrosshairLineOptions = {
+type CrosshairLineOptions = {
     /**
      * Crosshair line color.
      *
@@ -126,8 +116,28 @@ export type CrosshairOptions = {
 };
 
 type RawPriceProvider = () => BarPrice;
+
 type RawCoordinateProvider = () => Coordinate;
+
 type RawIndexProvider = () => TimePointIndex;
+
+/**
+ * Represents the crosshair mode.
+ */
+export const CrosshairMode = {
+    /**
+     * This mode allows crosshair to move freely on the chart.
+     */
+    Normal: 0,
+    /**
+     * This mode sticks crosshair's horizontal line to the price value of a single-value series or to the close price of OHLC-based series.
+     */
+    Magnet: 1,
+    /**
+     * This mode disables rendering of the crosshair.
+     */
+    Hidden: 2,
+} as const;
 
 export class Crosshair extends DataSource {
     private _pane: Pane | null = null;

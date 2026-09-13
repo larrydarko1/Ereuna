@@ -1,9 +1,12 @@
+/**
+ * One pane: the sources drawn on it, its two price scales and any overlays,
+ * and how much vertical room it takes relative to its siblings.
+ */
 import { assert, getDefined, getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
 import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
 import { type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
 import { clone, type DeepPartial } from '@/lib/lightweight-charts/helpers/strict-type-checks';
-
 import {
     type ChartOptionsBase,
     type IChartModelBase,
@@ -17,14 +20,14 @@ import { PriceScale, type PriceScaleOptions, type PriceScaleState } from '@/lib/
 import { sortSources } from '@/lib/lightweight-charts/model/sort-sources';
 import { type ITimeScale } from '@/lib/lightweight-charts/model/time-scale';
 
-export const DEFAULT_STRETCH_FACTOR = 1000;
-
 export type PriceScalePosition = 'left' | 'right' | 'overlay';
 
 type MinMaxOrderInfo = {
     minZOrder: number;
     maxZOrder: number;
 };
+
+export const DEFAULT_STRETCH_FACTOR = 1000;
 
 export class Pane implements IDestroyable {
     private readonly _timeScale: ITimeScale;

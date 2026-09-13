@@ -1,10 +1,14 @@
+/**
+ * The locale, and the caller's own overrides for formatting a price and a
+ * time.
+ */
 import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
 import { type PercentageFormatterFn, type PriceFormatterFn } from '@/lib/lightweight-charts/model/price-formatter-fn';
 
 /**
  * A custom function used to override formatting of a time to a string.
  */
-export type TimeFormatterFn<THorzScaleItem = Time> = (time: THorzScaleItem) => string;
+type TimeFormatterFn<THorzScaleItem = Time> = (time: THorzScaleItem) => string;
 
 /**
  * Represents basic localization options

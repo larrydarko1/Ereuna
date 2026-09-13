@@ -39,7 +39,6 @@ const THEMES = `${STYLES}/_themes.scss`;
 const INDEX = `${STYLES}/index.scss`;
 const MAIN_TS = 'frontend/src/main.ts';
 const VITE_CONFIG = 'frontend/vite.config.ts';
-const VENDORED = 'frontend/src/lib/lightweight-charts/';
 
 const failures = [];
 const fail = (file, what, why) => failures.push({ file, what, why });
@@ -167,7 +166,7 @@ if (fontPkgs.length > 0) {
     fail('frontend/package.json', `depends on ${fontPkgs.join(', ')}`, 'The standard is explicit: do not depend on font packages to ship glyphs. Vendor the woff2 files instead.');
 }
 
-/** Everything that can carry a style rule, minus the vendored fork. */
+/** Everything that can carry a style rule. */
 function styleBearingFiles() {
     return [...walk('frontend/src', '.scss'), ...walk('frontend/src', '.vue')];
 }
@@ -177,7 +176,6 @@ function walk(rel, ext, out = []) {
     if (!fs.existsSync(dir)) return out;
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
         const child = `${rel}/${entry.name}`;
-        if (child.startsWith(VENDORED)) continue;
         if (entry.isDirectory()) walk(child, ext, out);
         else if (entry.name.endsWith(ext)) out.push(child);
     }

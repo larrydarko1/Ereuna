@@ -1,3 +1,6 @@
+/**
+ * The two formatter shapes a caller may supply for prices and percentages.
+ */
 import { type BarPrice } from '@/lib/lightweight-charts/model/bar';
 
 /**

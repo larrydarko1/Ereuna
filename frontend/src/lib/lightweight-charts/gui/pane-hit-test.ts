@@ -1,3 +1,10 @@
+/**
+ * Decides what is under the pointer in a pane.
+ *
+ * Primitives are tried before the series' own views and in z-order, so that the
+ * topmost thing drawn is the thing hit — which is why the results have to be
+ * compared rather than simply taken first-match.
+ */
 import { type HoveredObject } from '@/lib/lightweight-charts/model/chart-model';
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 import { type IPriceDataSource } from '@/lib/lightweight-charts/model/iprice-data-source';
@@ -15,7 +22,7 @@ export type HitTestResult = {
     cursorStyle?: string | undefined;
 };
 
-export type HitTestPaneViewResult = {
+type HitTestPaneViewResult = {
     view: IPaneView;
     object?: HoveredObject;
 };
@@ -24,6 +31,54 @@ type BestPrimitiveHit = {
     hit: PrimitiveHoveredItem;
     source: IPriceDataSource;
 };
+
+export function hitTestPane(pane: Pane, x: Coordinate, y: Coordinate): HitTestResult | null {
+    const sources = pane.orderedSources();
+    const bestPrimitiveHit = findBestPrimitiveHitTest(sources, x, y);
+    if (bestPrimitiveHit?.hit.zOrder === 'top') {
+        // a primitive hit on the 'top' layer will always beat the built-in hit tests
+        // (on normal layer) so we can return early here.
+        return convertPrimitiveHitResult(bestPrimitiveHit);
+    }
+    for (const source of sources) {
+        if (
+            bestPrimitiveHit !== null &&
+            bestPrimitiveHit.source === source &&
+            bestPrimitiveHit.hit.zOrder !== 'bottom' &&
+            bestPrimitiveHit.hit.isBackground !== true
+        ) {
+            // a primitive will be drawn above a built-in item like a series marker
+            // therefore it takes precedence here.
+            return convertPrimitiveHitResult(bestPrimitiveHit);
+        }
+        const sourceResult = hitTestPaneView(source.paneViews(pane), x, y);
+        if (sourceResult !== null) {
+            return {
+                source: source,
+                view: sourceResult.view,
+                object: sourceResult.object,
+                cursorStyle:
+                    sourceResult.object?.externalId === undefined || sourceResult.object.externalId === ''
+                        ? undefined
+                        : 'pointer',
+            };
+        }
+        if (
+            bestPrimitiveHit !== null &&
+            bestPrimitiveHit.source === source &&
+            bestPrimitiveHit.hit.zOrder !== 'bottom' &&
+            bestPrimitiveHit.hit.isBackground === true
+        ) {
+            return convertPrimitiveHitResult(bestPrimitiveHit);
+        }
+    }
+    if (bestPrimitiveHit !== null) {
+        // return primitive hits for the 'bottom' layer
+        return convertPrimitiveHitResult(bestPrimitiveHit);
+    }
+
+    return null;
+}
 
 // returns true if item is above reference
 function comparePrimitiveZOrder(
@@ -89,54 +144,6 @@ function hitTestPaneView(paneViews: readonly IPaneView[], x: Coordinate, y: Coor
                 };
             }
         }
-    }
-
-    return null;
-}
-
-export function hitTestPane(pane: Pane, x: Coordinate, y: Coordinate): HitTestResult | null {
-    const sources = pane.orderedSources();
-    const bestPrimitiveHit = findBestPrimitiveHitTest(sources, x, y);
-    if (bestPrimitiveHit?.hit.zOrder === 'top') {
-        // a primitive hit on the 'top' layer will always beat the built-in hit tests
-        // (on normal layer) so we can return early here.
-        return convertPrimitiveHitResult(bestPrimitiveHit);
-    }
-    for (const source of sources) {
-        if (
-            bestPrimitiveHit !== null &&
-            bestPrimitiveHit.source === source &&
-            bestPrimitiveHit.hit.zOrder !== 'bottom' &&
-            bestPrimitiveHit.hit.isBackground !== true
-        ) {
-            // a primitive will be drawn above a built-in item like a series marker
-            // therefore it takes precedence here.
-            return convertPrimitiveHitResult(bestPrimitiveHit);
-        }
-        const sourceResult = hitTestPaneView(source.paneViews(pane), x, y);
-        if (sourceResult !== null) {
-            return {
-                source: source,
-                view: sourceResult.view,
-                object: sourceResult.object,
-                cursorStyle:
-                    sourceResult.object?.externalId === undefined || sourceResult.object.externalId === ''
-                        ? undefined
-                        : 'pointer',
-            };
-        }
-        if (
-            bestPrimitiveHit !== null &&
-            bestPrimitiveHit.source === source &&
-            bestPrimitiveHit.hit.zOrder !== 'bottom' &&
-            bestPrimitiveHit.hit.isBackground === true
-        ) {
-            return convertPrimitiveHitResult(bestPrimitiveHit);
-        }
-    }
-    if (bestPrimitiveHit !== null) {
-        // return primitive hits for the 'bottom' layer
-        return convertPrimitiveHitResult(bestPrimitiveHit);
     }
 
     return null;

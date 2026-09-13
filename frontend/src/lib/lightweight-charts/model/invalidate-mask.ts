@@ -1,66 +1,41 @@
+/**
+ * What changed and how much redrawing it costs.
+ *
+ * Invalidations are merged rather than queued — two cursor moves in one frame are
+ * one invalidation — and the levels are ordered so that merging is just taking the
+ * higher of the two.
+ */
 import { type LogicalRange } from '@/lib/lightweight-charts/model/time-data';
 
-export const InvalidationLevel = {
-    None: 0,
-    Cursor: 1,
-    Light: 2,
-    Full: 3,
-} as const;
 export type InvalidationLevel = (typeof InvalidationLevel)[keyof typeof InvalidationLevel];
-
-// `Math.max` widens two levels back to `number`, which is not one of them
-function higherLevel(a: InvalidationLevel, b: InvalidationLevel): InvalidationLevel {
-    return a > b ? a : b;
-}
 
 export type PaneInvalidation = {
     level: InvalidationLevel;
     autoScale?: boolean | undefined;
 };
 
-function mergePaneInvalidation(
-    beforeValue: PaneInvalidation | undefined,
-    newValue: PaneInvalidation,
-): PaneInvalidation {
-    if (beforeValue === undefined) {
-        return newValue;
-    }
-    const level = higherLevel(beforeValue.level, newValue.level);
-    const autoScale = beforeValue.autoScale === true || newValue.autoScale === true;
-    return { level, autoScale };
-}
-
-export const TimeScaleInvalidationType = {
-    FitContent: 0,
-    ApplyRange: 1,
-    ApplyBarSpacing: 2,
-    ApplyRightOffset: 3,
-    Reset: 4,
-    Animation: 5,
-    StopAnimation: 6,
-} as const;
 export type TimeScaleInvalidationType = (typeof TimeScaleInvalidationType)[keyof typeof TimeScaleInvalidationType];
 
-export type TimeScaleApplyRangeInvalidation = {
+type TimeScaleApplyRangeInvalidation = {
     type: typeof TimeScaleInvalidationType.ApplyRange;
     value: LogicalRange;
 };
 
-export type TimeScaleFitContentInvalidation = {
+type TimeScaleFitContentInvalidation = {
     type: typeof TimeScaleInvalidationType.FitContent;
 };
 
-export type TimeScaleApplyRightOffsetInvalidation = {
+type TimeScaleApplyRightOffsetInvalidation = {
     type: typeof TimeScaleInvalidationType.ApplyRightOffset;
     value: number;
 };
 
-export type TimeScaleApplyBarSpacingInvalidation = {
+type TimeScaleApplyBarSpacingInvalidation = {
     type: typeof TimeScaleInvalidationType.ApplyBarSpacing;
     value: number;
 };
 
-export type TimeScaleResetInvalidation = {
+type TimeScaleResetInvalidation = {
     type: typeof TimeScaleInvalidationType.Reset;
 };
 
@@ -68,12 +43,13 @@ export type ITimeScaleAnimation = {
     getPosition(time: number): number;
     finished(time: number): boolean;
 };
-export type StartTimeScaleAnimationInvalidation = {
+
+type StartTimeScaleAnimationInvalidation = {
     type: typeof TimeScaleInvalidationType.Animation;
     value: ITimeScaleAnimation;
 };
 
-export type StopTimeScaleAnimationInvalidation = {
+type StopTimeScaleAnimationInvalidation = {
     type: typeof TimeScaleInvalidationType.StopAnimation;
 };
 
@@ -85,6 +61,23 @@ export type TimeScaleInvalidation =
     | TimeScaleResetInvalidation
     | StartTimeScaleAnimationInvalidation
     | StopTimeScaleAnimationInvalidation;
+
+export const InvalidationLevel = {
+    None: 0,
+    Cursor: 1,
+    Light: 2,
+    Full: 3,
+} as const;
+
+export const TimeScaleInvalidationType = {
+    FitContent: 0,
+    ApplyRange: 1,
+    ApplyBarSpacing: 2,
+    ApplyRightOffset: 3,
+    Reset: 4,
+    Animation: 5,
+    StopAnimation: 6,
+} as const;
 
 export class InvalidateMask {
     private _invalidatedPanes = new Map<number, PaneInvalidation>();
@@ -212,4 +205,21 @@ export class InvalidateMask {
             this._timeScaleInvalidations.splice(index, 1);
         }
     }
+}
+
+// `Math.max` widens two levels back to `number`, which is not one of them
+function higherLevel(a: InvalidationLevel, b: InvalidationLevel): InvalidationLevel {
+    return a > b ? a : b;
+}
+
+function mergePaneInvalidation(
+    beforeValue: PaneInvalidation | undefined,
+    newValue: PaneInvalidation,
+): PaneInvalidation {
+    if (beforeValue === undefined) {
+        return newValue;
+    }
+    const level = higherLevel(beforeValue.level, newValue.level);
+    const autoScale = beforeValue.autoScale === true || newValue.autoScale === true;
+    return { level, autoScale };
 }

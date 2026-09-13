@@ -1,3 +1,7 @@
+/**
+ * The handle returned by `createPriceLine`, wrapping the model's own
+ * `CustomPriceLine`.
+ */
 import { type CustomPriceLine } from '@/lib/lightweight-charts/model/custom-price-line';
 import { type PriceLineOptions } from '@/lib/lightweight-charts/model/price-line-options';
 

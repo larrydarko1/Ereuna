@@ -1,3 +1,10 @@
+/**
+ * The base for renderers that work in CSS pixels and let the canvas scale
+ * handle the device pixel ratio.
+ *
+ * Anything whose exact pixel alignment does not matter draws here; anything whose
+ * does uses the bitmap base instead.
+ */
 import { type CanvasRenderingTarget2D, type MediaCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { type HoverState, type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';

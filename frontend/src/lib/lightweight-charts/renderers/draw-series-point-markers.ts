@@ -1,3 +1,7 @@
+/**
+ * Draws the dot on each point of a line or area series, which is what appears
+ * when the bars are far enough apart to see them individually.
+ */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { type SeriesItemsIndexesRange } from '@/lib/lightweight-charts/model/time-data';

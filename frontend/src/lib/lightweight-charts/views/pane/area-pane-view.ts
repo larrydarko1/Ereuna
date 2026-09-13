@@ -1,3 +1,6 @@
+/**
+ * Builds the area series' fill and its line from the series' plot rows.
+ */
 import { type BarPrice } from '@/lib/lightweight-charts/model/bar';
 import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
 import { type ISeries } from '@/lib/lightweight-charts/model/series';

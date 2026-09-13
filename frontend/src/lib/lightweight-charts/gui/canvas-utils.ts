@@ -1,3 +1,10 @@
+/**
+ * Creates and disposes the canvases every widget draws on.
+ *
+ * Releasing one is not just dropping the reference: Safari keeps the backing store
+ * alive until the canvas is resized to nothing, which is what `releaseCanvas` is
+ * for.
+ */
 import {
     bindCanvasElementBitmapSizeTo,
     type CanvasElementBitmapSizeBinding,

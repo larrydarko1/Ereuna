@@ -1,4 +1,9 @@
 /**
+ * The canvas drawing the tools have in common, kept out of any one of them.
+ */
+import { type CanvasPoint } from '@/lib/lightweight-charts/geometry';
+
+/**
  * Traces a rounded rectangle as the current path, leaving it to the caller to
  * fill or stroke it.
  *
@@ -22,4 +27,33 @@ export function traceRoundedRect(
     ctx.lineTo(x, y + radius);
     ctx.quadraticCurveTo(x, y, x + radius, y);
     ctx.closePath();
+}
+
+/**
+ * Draws one drag handle: a filled dot with the chart's own background punched
+ * out of the middle, so it reads as a ring over whatever it sits on.
+ *
+ * The hole is painted rather than cut, which is why the caller has to pass the
+ * background colour — a real `destination-out` composite would take the shape
+ * underneath with it.
+ */
+export function drawHandle(
+    ctx: CanvasRenderingContext2D,
+    at: CanvasPoint,
+    style: { radius: number; color: string; holeColor: string },
+): void {
+    const { radius, color, holeColor } = style;
+
+    ctx.beginPath();
+    ctx.arc(at.x, at.y, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = holeColor;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(at.x, at.y, radius - 1.5, 0, 2 * Math.PI);
+    ctx.fillStyle = holeColor;
+    ctx.fill();
 }

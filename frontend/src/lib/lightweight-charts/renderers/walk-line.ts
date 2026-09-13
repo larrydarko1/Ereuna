@@ -1,9 +1,14 @@
+/**
+ * Walks a series' points as a path, straight or curved.
+ *
+ * The curve is a Catmull-Rom spline converted to beziers, with the control points
+ * derived from each point's neighbours — which is why the walk needs the points
+ * either side of the segment it is drawing.
+ */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
-
 import { getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 import { type SeriesItemsIndexesRange } from '@/lib/lightweight-charts/model/time-data';
-
 import { type LinePoint, LineType } from '@/lib/lightweight-charts/renderers/draw-line';
 
 /** The stroke to walk: which points, in what shape, over which range. */
@@ -13,6 +18,8 @@ export type LinePath<TItem extends LinePoint> = {
     visibleRange: SeriesItemsIndexesRange;
     barWidth: number;
 };
+
+const curveTension = 6;
 
 export function walkLine<TItem extends LinePoint, TStyle extends CanvasRenderingContext2D['fillStyle']>(
     renderingScope: BitmapCoordinatesRenderingScope,
@@ -129,8 +136,6 @@ export function walkLine<TItem extends LinePoint, TStyle extends CanvasRendering
     }
 }
 
-const curveTension = 6;
-
 function subtract(p1: LinePoint, p2: LinePoint): LinePoint {
     return { x: (p1.x - p2.x) as Coordinate, y: (p1.y - p2.y) as Coordinate };
 }
@@ -146,7 +151,7 @@ function divide(p1: LinePoint, n: number): LinePoint {
 /**
  * @returns Two control points that can be used as arguments to {@link CanvasRenderingContext2D.bezierCurveTo} to draw a curved line between `points[fromPointIndex]` and `points[toPointIndex]`.
  */
-export function getControlPoints(
+function getControlPoints(
     points: readonly LinePoint[],
     fromPointIndex: number,
     toPointIndex: number,

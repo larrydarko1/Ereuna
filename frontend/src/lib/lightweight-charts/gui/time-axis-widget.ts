@@ -1,3 +1,10 @@
+/**
+ * The horizontal axis under the panes, plus the labels the crosshair and any
+ * primitive put on it.
+ *
+ * It is also the surface that scales time by dragging, which is why it carries its
+ * own mouse event handler rather than leaving input to the panes.
+ */
 import {
     type BitmapCoordinatesRenderingScope,
     type CanvasElementBitmapSizeBinding,
@@ -8,13 +15,11 @@ import {
     size,
     tryCreateCanvasRenderingTarget2D,
 } from 'fancy-canvas';
-
 import { clearRect } from '@/lib/lightweight-charts/helpers/canvas-helpers';
 import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
 import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
 import { type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
 import { makeFont } from '@/lib/lightweight-charts/helpers/make-font';
-
 import { type IDataSource } from '@/lib/lightweight-charts/model/idata-source';
 import { type IHorzScaleBehavior } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
 import { InvalidationLevel } from '@/lib/lightweight-charts/model/invalidate-mask';
@@ -25,7 +30,6 @@ import { TextWidthCache } from '@/lib/lightweight-charts/model/text-width-cache'
 import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 import { type TimeAxisViewRendererOptions } from '@/lib/lightweight-charts/renderers/itime-axis-view-renderer';
 import { type IAxisView } from '@/lib/lightweight-charts/views/pane/iaxis-view';
-
 import { createBoundCanvas, releaseCanvas } from '@/lib/lightweight-charts/gui/canvas-utils';
 import { type ChartWidget } from '@/lib/lightweight-charts/gui/chart-widget';
 import { drawBackground, drawForeground, drawSourcePaneViews } from '@/lib/lightweight-charts/gui/draw-functions';
@@ -38,24 +42,19 @@ import {
 } from '@/lib/lightweight-charts/gui/mouse-event-handler';
 import { PriceAxisStub, type PriceAxisStubParams } from '@/lib/lightweight-charts/gui/price-axis-stub';
 
+type Constants = (typeof Constants)[keyof typeof Constants];
+
+type CursorType = (typeof CursorType)[keyof typeof CursorType];
+
 const Constants = {
     BorderSize: 1,
     TickLength: 5,
 } as const;
-type Constants = (typeof Constants)[keyof typeof Constants];
 
 const CursorType = {
     Default: 0,
     EwResize: 1,
 } as const;
-type CursorType = (typeof CursorType)[keyof typeof CursorType];
-
-function buildTimeAxisViewsGetter(zOrder: SeriesPrimitivePaneViewZOrder): ITimeAxisViewsGetter {
-    return (source: IDataSource): readonly IAxisView[] => source.timePaneViews?.(zOrder) ?? [];
-}
-const sourcePaneViews = buildTimeAxisViewsGetter('normal');
-const sourceTopPaneViews = buildTimeAxisViewsGetter('top');
-const sourceBottomPaneViews = buildTimeAxisViewsGetter('bottom');
 
 export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDestroyable {
     private readonly _chart: ChartWidget<THorzScaleItem>;
@@ -578,4 +577,14 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
             this._chart.model().lightUpdate();
         }
     };
+}
+
+const sourcePaneViews = buildTimeAxisViewsGetter('normal');
+
+const sourceTopPaneViews = buildTimeAxisViewsGetter('top');
+
+const sourceBottomPaneViews = buildTimeAxisViewsGetter('bottom');
+
+function buildTimeAxisViewsGetter(zOrder: SeriesPrimitivePaneViewZOrder): ITimeAxisViewsGetter {
+    return (source: IDataSource): readonly IAxisView[] => source.timePaneViews?.(zOrder) ?? [];
 }

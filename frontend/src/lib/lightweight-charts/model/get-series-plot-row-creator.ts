@@ -1,12 +1,17 @@
+/**
+ * Packs a caller's data item into the internal plot row its series stores.
+ *
+ * Every series type puts its values in one flat array at fixed positions, which is
+ * what makes the plot list cheap to scan; this is where the caller's named fields
+ * become those positions.
+ */
 import { getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 import { type Mutable } from '@/lib/lightweight-charts/helpers/mutable';
-
 import { type CustomData } from '@/lib/lightweight-charts/model/icustom-series';
 import { type PlotRow, type PlotRowValue } from '@/lib/lightweight-charts/model/plot-data';
 import { type SeriesPlotRow } from '@/lib/lightweight-charts/model/series-data';
 import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
-
 import {
     type AreaData,
     type BarData,
@@ -19,6 +24,62 @@ import {
     type WhitespaceData,
 } from '@/lib/lightweight-charts/model/data-consumer';
 import { type InternalHorzScaleItem } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+
+// The returned data is used for scaling the series, and providing the current value for the price scale
+type CustomDataToPlotRowValueConverter<THorzScaleItem> = (
+    item: CustomData<THorzScaleItem> | WhitespaceData,
+) => number[];
+
+export type WhitespacePlotRow = Omit<PlotRow, 'value'>;
+
+/**
+ * The two hooks a custom series brings: how to turn its data into plot values,
+ * and how to tell one of its whitespace items apart. Both are absent for every
+ * built-in series type, so they travel as one optional argument.
+ */
+type CustomSeriesHooks<THorzScaleItem> = {
+    dataToPlotRow?: CustomDataToPlotRowValueConverter<THorzScaleItem> | undefined;
+    customIsWhitespace?: WhitespaceCheck<THorzScaleItem> | undefined;
+};
+
+type SeriesItemValueFnMap<THorzScaleItem> = {
+    [T in keyof SeriesDataItemTypeMap]: (
+        time: InternalHorzScaleItem,
+        index: TimePointIndex,
+        item: SeriesDataItemTypeMap<THorzScaleItem>[T],
+        originalTime: THorzScaleItem,
+        custom?: CustomSeriesHooks<THorzScaleItem>,
+    ) => Mutable<SeriesPlotRow<T> | WhitespacePlotRow>;
+};
+
+type WhitespaceCheck<THorzScaleItem> = (
+    bar: SeriesDataItemTypeMap<THorzScaleItem>[SeriesType],
+) => bar is WhitespaceData<THorzScaleItem>;
+
+type GetPlotRowType =
+    | typeof getBaselineSeriesPlotRow
+    | typeof getBarSeriesPlotRow
+    | typeof getCandlestickSeriesPlotRow
+    | typeof getCustomSeriesPlotRow;
+
+export function isSeriesPlotRow(row: SeriesPlotRow | WhitespacePlotRow): row is SeriesPlotRow {
+    return (row as Partial<SeriesPlotRow>).value !== undefined;
+}
+
+export function getSeriesPlotRowCreator<TSeriesType extends SeriesType, THorzScaleItem>(
+    seriesType: TSeriesType,
+): SeriesItemValueFnMap<THorzScaleItem>[TSeriesType] {
+    const seriesPlotRowFnMap: SeriesItemValueFnMap<THorzScaleItem> = {
+        Candlestick: wrapWhitespaceData(getCandlestickSeriesPlotRow),
+        Bar: wrapWhitespaceData(getBarSeriesPlotRow),
+        Area: wrapWhitespaceData(getAreaSeriesPlotRow),
+        Baseline: wrapWhitespaceData(getBaselineSeriesPlotRow),
+        Histogram: wrapWhitespaceData(getColoredLineBasedSeriesPlotRow),
+        Line: wrapWhitespaceData(getColoredLineBasedSeriesPlotRow),
+        Custom: wrapWhitespaceData(getCustomSeriesPlotRow),
+    };
+    return seriesPlotRowFnMap[seriesType];
+}
 
 function getColoredLineBasedSeriesPlotRow<THorzScaleItem>(
     time: InternalHorzScaleItem,
@@ -151,11 +212,6 @@ function getCandlestickSeriesPlotRow<THorzScaleItem>(
     return res;
 }
 
-// The returned data is used for scaling the series, and providing the current value for the price scale
-export type CustomDataToPlotRowValueConverter<THorzScaleItem> = (
-    item: CustomData<THorzScaleItem> | WhitespaceData,
-) => number[];
-
 function getCustomSeriesPlotRow<THorzScaleItem>(
     time: InternalHorzScaleItem,
     index: TimePointIndex,
@@ -173,32 +229,6 @@ function getCustomSeriesPlotRow<THorzScaleItem>(
     return { index, time, value, originalTime, data, color };
 }
 
-export type WhitespacePlotRow = Omit<PlotRow, 'value'>;
-
-export function isSeriesPlotRow(row: SeriesPlotRow | WhitespacePlotRow): row is SeriesPlotRow {
-    return (row as Partial<SeriesPlotRow>).value !== undefined;
-}
-
-/**
- * The two hooks a custom series brings: how to turn its data into plot values,
- * and how to tell one of its whitespace items apart. Both are absent for every
- * built-in series type, so they travel as one optional argument.
- */
-export type CustomSeriesHooks<THorzScaleItem> = {
-    dataToPlotRow?: CustomDataToPlotRowValueConverter<THorzScaleItem> | undefined;
-    customIsWhitespace?: WhitespaceCheck<THorzScaleItem> | undefined;
-};
-
-type SeriesItemValueFnMap<THorzScaleItem> = {
-    [T in keyof SeriesDataItemTypeMap]: (
-        time: InternalHorzScaleItem,
-        index: TimePointIndex,
-        item: SeriesDataItemTypeMap<THorzScaleItem>[T],
-        originalTime: THorzScaleItem,
-        custom?: CustomSeriesHooks<THorzScaleItem>,
-    ) => Mutable<SeriesPlotRow<T> | WhitespacePlotRow>;
-};
-
 function wrapCustomValues<T extends SeriesPlotRow | WhitespacePlotRow, THorzScaleItem>(
     plotRow: Mutable<T>,
     bar: SeriesDataItemTypeMap<THorzScaleItem>[SeriesType],
@@ -209,10 +239,6 @@ function wrapCustomValues<T extends SeriesPlotRow | WhitespacePlotRow, THorzScal
     return plotRow;
 }
 
-export type WhitespaceCheck<THorzScaleItem> = (
-    bar: SeriesDataItemTypeMap<THorzScaleItem>[SeriesType],
-) => bar is WhitespaceData<THorzScaleItem>;
-
 function isWhitespaceDataWithCustomCheck<THorzScaleItem>(
     bar: SeriesDataItemTypeMap<THorzScaleItem>[SeriesType],
     customIsWhitespace?: WhitespaceCheck<THorzScaleItem>,
@@ -222,12 +248,6 @@ function isWhitespaceDataWithCustomCheck<THorzScaleItem>(
     }
     return isWhitespaceData(bar);
 }
-
-type GetPlotRowType =
-    | typeof getBaselineSeriesPlotRow
-    | typeof getBarSeriesPlotRow
-    | typeof getCandlestickSeriesPlotRow
-    | typeof getCustomSeriesPlotRow;
 
 function wrapWhitespaceData<TSeriesType extends SeriesType, THorzScaleItem>(
     createPlotRowFn: GetPlotRowType,
@@ -250,19 +270,4 @@ function wrapWhitespaceData<TSeriesType extends SeriesType, THorzScaleItem>(
             bar,
         );
     };
-}
-
-export function getSeriesPlotRowCreator<TSeriesType extends SeriesType, THorzScaleItem>(
-    seriesType: TSeriesType,
-): SeriesItemValueFnMap<THorzScaleItem>[TSeriesType] {
-    const seriesPlotRowFnMap: SeriesItemValueFnMap<THorzScaleItem> = {
-        Candlestick: wrapWhitespaceData(getCandlestickSeriesPlotRow),
-        Bar: wrapWhitespaceData(getBarSeriesPlotRow),
-        Area: wrapWhitespaceData(getAreaSeriesPlotRow),
-        Baseline: wrapWhitespaceData(getBaselineSeriesPlotRow),
-        Histogram: wrapWhitespaceData(getColoredLineBasedSeriesPlotRow),
-        Line: wrapWhitespaceData(getColoredLineBasedSeriesPlotRow),
-        Custom: wrapWhitespaceData(getCustomSeriesPlotRow),
-    };
-    return seriesPlotRowFnMap[seriesType];
 }

@@ -1,14 +1,17 @@
+/**
+ * Derives the price axis' drawing metrics — font, padding, tick length — from
+ * the chart's options, and recomputes them only when those change.
+ */
 import { makeFont } from '@/lib/lightweight-charts/helpers/make-font';
-
 import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
-
 import { type PriceAxisViewRendererOptions } from '@/lib/lightweight-charts/renderers/iprice-axis-view-renderer';
+
+type RendererConstants = (typeof RendererConstants)[keyof typeof RendererConstants];
 
 const RendererConstants = {
     BorderSize: 1,
     TickLength: 5,
 } as const;
-type RendererConstants = (typeof RendererConstants)[keyof typeof RendererConstants];
 
 export class PriceAxisRendererOptionsProvider {
     private readonly _chartModel: IChartModelBase;

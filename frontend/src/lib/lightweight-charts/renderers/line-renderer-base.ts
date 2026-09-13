@@ -1,8 +1,12 @@
+/**
+ * Strokes a line in however many styled sections the data asks for.
+ *
+ * A section is closed and stroked whenever the colour or width changes, and the
+ * next one starts on the same point so the join is continuous.
+ */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
-
 import { type PricedValue } from '@/lib/lightweight-charts/model/price-scale';
 import { type SeriesItemsIndexesRange, type TimedValue } from '@/lib/lightweight-charts/model/time-data';
-
 import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
 import {
     type LinePoint,
@@ -30,15 +34,6 @@ export type PaneRendererLineDataBase<TItem extends LineItemBase = LineItemBase> 
 
     pointMarkersRadius?: number | undefined;
 };
-
-function finishStyledArea(
-    scope: BitmapCoordinatesRenderingScope,
-    style: CanvasRenderingContext2D['strokeStyle'],
-): void {
-    const ctx = scope.context;
-    ctx.strokeStyle = style;
-    ctx.stroke();
-}
 
 export abstract class PaneRendererLineBase<
     TData extends PaneRendererLineDataBase,
@@ -84,4 +79,13 @@ export abstract class PaneRendererLineBase<
         renderingScope: BitmapCoordinatesRenderingScope,
         item: TData['items'][0],
     ): CanvasRenderingContext2D['strokeStyle'];
+}
+
+function finishStyledArea(
+    scope: BitmapCoordinatesRenderingScope,
+    style: CanvasRenderingContext2D['strokeStyle'],
+): void {
+    const ctx = scope.context;
+    ctx.strokeStyle = style;
+    ctx.stroke();
 }

@@ -1,3 +1,7 @@
+/**
+ * The baseline series' line, which changes colour where it crosses the base
+ * value.
+ */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';

@@ -1,3 +1,6 @@
+/**
+ * The watermark, as drawn on a pane.
+ */
 import { makeFont } from '@/lib/lightweight-charts/helpers/make-font';
 
 import { type Watermark } from '@/lib/lightweight-charts/model/watermark';

@@ -1,3 +1,6 @@
+/**
+ * The grid, as drawn on a pane.
+ */
 import { type Pane } from '@/lib/lightweight-charts/model/pane';
 import { type TimeMark } from '@/lib/lightweight-charts/model/time-scale';
 import { GridRenderer, type GridRendererData } from '@/lib/lightweight-charts/renderers/grid-renderer';

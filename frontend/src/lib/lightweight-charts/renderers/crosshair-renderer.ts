@@ -1,3 +1,6 @@
+/**
+ * Draws the crosshair's two lines across a pane.
+ */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
@@ -9,7 +12,7 @@ import {
     setLineStyle,
 } from '@/lib/lightweight-charts/renderers/draw-line';
 
-export type CrosshairLineStyle = {
+type CrosshairLineStyle = {
     lineStyle: LineStyle;
     lineWidth: LineWidth;
     color: string;

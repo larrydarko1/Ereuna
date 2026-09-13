@@ -1,3 +1,7 @@
+/**
+ * Picks how wide a bar or candle body should be for the current spacing —
+ * wide enough to read, with a gap left between neighbours.
+ */
 export function optimalBarWidth(barSpacing: number, pixelRatio: number): number {
     return Math.floor(barSpacing * 0.3 * pixelRatio);
 }

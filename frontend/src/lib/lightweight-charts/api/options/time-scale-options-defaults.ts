@@ -1,3 +1,7 @@
+/**
+ * Time scale defaults: the bar spacing, the right offset, and what may be
+ * dragged.
+ */
 import { type HorzScaleOptions } from '@/lib/lightweight-charts/model/time-scale';
 
 export const timeScaleOptionsDefaults: HorzScaleOptions = {

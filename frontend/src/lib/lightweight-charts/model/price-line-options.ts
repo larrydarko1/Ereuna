@@ -1,3 +1,7 @@
+/**
+ * Everything a price line can be given: its price, its styling and the axis
+ * label it draws.
+ */
 import { type LineStyle, type LineWidth } from '@/lib/lightweight-charts/renderers/draw-line';
 
 /**

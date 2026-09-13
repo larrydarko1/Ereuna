@@ -1,3 +1,7 @@
+/**
+ * A series' own label on the price axis — its last value, formatted the way
+ * that series formats prices.
+ */
 import { generateContrastColors } from '@/lib/lightweight-charts/helpers/color';
 
 import { type ISeries, type LastValueDataResultWithData } from '@/lib/lightweight-charts/model/series';

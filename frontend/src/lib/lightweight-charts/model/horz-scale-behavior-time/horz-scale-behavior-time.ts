@@ -1,10 +1,15 @@
+/**
+ * The horizontal scale strategy for time.
+ *
+ * It is what makes the generic scale concrete: how to compare two times, how to
+ * weight one for tick mark selection, and how to turn the caller's `Time` into the
+ * internal key the scale actually indexes on.
+ */
 import { DateFormatter } from '@/lib/lightweight-charts/formatters/date-formatter';
 import { DateTimeFormatter } from '@/lib/lightweight-charts/formatters/date-time-formatter';
-
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { type Mutable } from '@/lib/lightweight-charts/helpers/mutable';
 import { type DeepPartial, merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
-
 import { type SeriesDataItemTypeMap } from '@/lib/lightweight-charts/model/data-consumer';
 import {
     type DataItem,
@@ -66,44 +71,6 @@ export type TickMarkFormatter = (time: Time, tickMarkType: TickMarkType, locale:
 
 /** What the time axis is currently spelling out, which decides the tick labels. */
 type AxisVisibility = { timeVisible: boolean; secondsVisible: boolean };
-
-/** What a tick mark of this weight spells out, given what the axis is showing. */
-function weightToTickMarkType(weight: TickMarkWeightValue, shows: AxisVisibility): TickMarkType {
-    const { timeVisible, secondsVisible } = shows;
-
-    switch (weight) {
-        case TickMarkWeight.LessThanSecond:
-        case TickMarkWeight.Second:
-            if (!timeVisible) {
-                return TickMarkType.DayOfMonth;
-            }
-
-            return secondsVisible ? TickMarkType.TimeWithSeconds : TickMarkType.Time;
-
-        case TickMarkWeight.Minute1:
-        case TickMarkWeight.Minute5:
-        case TickMarkWeight.Minute30:
-        case TickMarkWeight.Hour1:
-        case TickMarkWeight.Hour3:
-        case TickMarkWeight.Hour6:
-        case TickMarkWeight.Hour12:
-            return timeVisible ? TickMarkType.Time : TickMarkType.DayOfMonth;
-
-        case TickMarkWeight.Day:
-            return TickMarkType.DayOfMonth;
-
-        case TickMarkWeight.Month:
-            return TickMarkType.Month;
-
-        case TickMarkWeight.Year:
-            return TickMarkType.Year;
-
-        default:
-            // A weight outside the known set. The switch used to fall through and
-            // return undefined against a signature that promised a TickMarkType
-            return TickMarkType.DayOfMonth;
-    }
-}
 
 export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
     private _dateTimeFormatter!: DateFormatter | DateTimeFormatter;
@@ -221,5 +188,43 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
 
     public static applyDefaults(options?: DeepPartial<TimeChartOptions>): DeepPartial<TimeChartOptions> {
         return merge({ localization: { dateFormat: "dd MMM 'yy" } }, options ?? {});
+    }
+}
+
+/** What a tick mark of this weight spells out, given what the axis is showing. */
+function weightToTickMarkType(weight: TickMarkWeightValue, shows: AxisVisibility): TickMarkType {
+    const { timeVisible, secondsVisible } = shows;
+
+    switch (weight) {
+        case TickMarkWeight.LessThanSecond:
+        case TickMarkWeight.Second:
+            if (!timeVisible) {
+                return TickMarkType.DayOfMonth;
+            }
+
+            return secondsVisible ? TickMarkType.TimeWithSeconds : TickMarkType.Time;
+
+        case TickMarkWeight.Minute1:
+        case TickMarkWeight.Minute5:
+        case TickMarkWeight.Minute30:
+        case TickMarkWeight.Hour1:
+        case TickMarkWeight.Hour3:
+        case TickMarkWeight.Hour6:
+        case TickMarkWeight.Hour12:
+            return timeVisible ? TickMarkType.Time : TickMarkType.DayOfMonth;
+
+        case TickMarkWeight.Day:
+            return TickMarkType.DayOfMonth;
+
+        case TickMarkWeight.Month:
+            return TickMarkType.Month;
+
+        case TickMarkWeight.Year:
+            return TickMarkType.Year;
+
+        default:
+            // A weight outside the known set. The switch used to fall through and
+            // return undefined against a signature that promised a TickMarkType
+            return TickMarkType.DayOfMonth;
     }
 }

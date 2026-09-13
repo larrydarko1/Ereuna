@@ -1,3 +1,10 @@
+/**
+ * The three ways a price scale can map price to distance — normal,
+ * logarithmic and percentage — and the conversions between them.
+ *
+ * The log mapping shifts prices by a coefficient chosen from the range itself, so
+ * that a range spanning zero still has somewhere to put it.
+ */
 import { PriceRangeImpl } from '@/lib/lightweight-charts/model/price-range-impl';
 
 export type LogFormula = {

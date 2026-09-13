@@ -1,10 +1,17 @@
+/**
+ * The horizontal scale: which bars are visible, how wide each is, and where
+ * the marks go.
+ *
+ * It holds no times of its own — every comparison and every conversion goes
+ * through the horizontal scale behavior, which is what lets the same scale index
+ * something other than time.
+ */
 import { lowerBound } from '@/lib/lightweight-charts/helpers/algorithms';
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
 import { type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
 import { clamp } from '@/lib/lightweight-charts/helpers/mathex';
 import { type DeepPartial, isInteger, merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
-
 import { type ChartModel } from '@/lib/lightweight-charts/model/chart-model';
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 import { FormattedLabelsCache } from '@/lib/lightweight-charts/model/formatted-labels-cache';
@@ -29,13 +36,6 @@ import {
 } from '@/lib/lightweight-charts/model/time-data';
 import { TimeScaleVisibleRange } from '@/lib/lightweight-charts/model/time-scale-visible-range';
 
-const defaultTickMarkMaxCharacterLength = 8;
-
-const Constants = {
-    DefaultAnimationDuration: 400,
-    // make sure that this (1 / MinVisibleBarsCount) >= coeff in max bar spacing
-    MinVisibleBarsCount: 2,
-} as const;
 type Constants = (typeof Constants)[keyof typeof Constants];
 
 type TransitionState = {
@@ -56,10 +56,6 @@ export type TimeMark = {
     /** Weight of the time mark */
     weight: TickMarkWeightValue;
 };
-
-export function markWithGreaterWeight(a: TimeMark, b: TimeMark): TimeMark {
-    return a.weight > b.weight ? a : b;
-}
 
 /**
  * Options for the time scale; the horizontal scale at the bottom of the chart that displays the time of data.
@@ -233,6 +229,14 @@ export type ITimeScale = {
 
 /** Where a time landed in the bar list, and whether a bar sits on it exactly. */
 type IndexSearch = { index: TimePointIndex; exact: boolean };
+
+const defaultTickMarkMaxCharacterLength = 8;
+
+const Constants = {
+    DefaultAnimationDuration: 400,
+    // make sure that this (1 / MinVisibleBarsCount) >= coeff in max bar spacing
+    MinVisibleBarsCount: 2,
+} as const;
 
 export class TimeScale<THorzScaleItem> implements ITimeScale {
     private readonly _options: HorzScaleOptions;
@@ -1044,4 +1048,8 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
 
         this._correctBarSpacing();
     }
+}
+
+export function markWithGreaterWeight(a: TimeMark, b: TimeMark): TimeMark {
+    return a.weight > b.weight ? a : b;
 }

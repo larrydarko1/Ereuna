@@ -1,3 +1,7 @@
+/**
+ * Formats a volume the way a trader reads one: thousands, millions and
+ * billions with a suffix rather than a full number.
+ */
 import { type IPriceFormatter } from '@/lib/lightweight-charts/formatters/iprice-formatter';
 
 export class VolumeFormatter implements IPriceFormatter {

@@ -1,12 +1,17 @@
+/**
+ * One series in the model: its data, its options, the views that draw it and
+ * the primitives attached to it.
+ *
+ * It is also what the price scale autoscales against, which is why it caches the
+ * bar values for the visible range rather than recomputing them per frame.
+ */
 import { type IPriceFormatter } from '@/lib/lightweight-charts/formatters/iprice-formatter';
 import { PercentageFormatter } from '@/lib/lightweight-charts/formatters/percentage-formatter';
 import { PriceFormatter } from '@/lib/lightweight-charts/formatters/price-formatter';
 import { VolumeFormatter } from '@/lib/lightweight-charts/formatters/volume-formatter';
-
 import { getDefined, getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
 import { isInteger, merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
-
 import { SeriesAreaPaneView } from '@/lib/lightweight-charts/views/pane/area-pane-view';
 import { SeriesBarsPaneView } from '@/lib/lightweight-charts/views/pane/bars-pane-view';
 import { SeriesBaselinePaneView } from '@/lib/lightweight-charts/views/pane/baseline-pane-view';
@@ -24,7 +29,6 @@ import { SeriesPriceLinePaneView } from '@/lib/lightweight-charts/views/pane/ser
 import { type IPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/iprice-axis-view';
 import { SeriesPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/series-price-axis-view';
 import { type ITimeAxisView } from '@/lib/lightweight-charts/views/time-axis/itime-axis-view';
-
 import { AutoscaleInfoImpl, type AutoScaleMargins } from '@/lib/lightweight-charts/model/autoscale-info-impl';
 import { type BarPrice, type BarPrices } from '@/lib/lightweight-charts/model/bar';
 import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
@@ -59,14 +63,16 @@ import {
 } from '@/lib/lightweight-charts/model/series-data';
 import { type InternalSeriesMarker, type SeriesMarker } from '@/lib/lightweight-charts/model/series-markers';
 import {
-    type AreaStyleOptions,
-    type BaselineStyleOptions,
-    type HistogramStyleOptions,
-    type LineStyleOptions,
     type SeriesOptionsMap,
     type SeriesPartialOptionsMap,
     type SeriesType,
 } from '@/lib/lightweight-charts/model/series-options';
+import {
+    type AreaStyleOptions,
+    type BaselineStyleOptions,
+    type HistogramStyleOptions,
+    type LineStyleOptions,
+} from '@/lib/lightweight-charts/model/series-style-options';
 import {
     type ISeriesPrimitivePaneViewWrapper,
     SeriesPrimitiveWrapper,
@@ -74,37 +80,12 @@ import {
 import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 
 type PrimitivePaneViewExtractor = (wrapper: SeriesPrimitiveWrapper) => readonly ISeriesPrimitivePaneViewWrapper[];
-function extractPrimitivePaneViews(
-    primitives: SeriesPrimitiveWrapper[],
-    extractor: PrimitivePaneViewExtractor,
-    zOrder: SeriesPrimitivePaneViewZOrder,
-    destination: IPaneView[],
-): void {
-    primitives.forEach((wrapper: SeriesPrimitiveWrapper) => {
-        extractor(wrapper).forEach((paneView: ISeriesPrimitivePaneViewWrapper) => {
-            if (paneView.zOrder() !== zOrder) {
-                return;
-            }
-            destination.push(paneView);
-        });
-    });
-}
-
-function primitivePaneViewsExtractor(wrapper: SeriesPrimitiveWrapper): readonly ISeriesPrimitivePaneViewWrapper[] {
-    return wrapper.paneViews();
-}
-function primitivePricePaneViewsExtractor(wrapper: SeriesPrimitiveWrapper): readonly ISeriesPrimitivePaneViewWrapper[] {
-    return wrapper.priceAxisPaneViews();
-}
-function primitiveTimePaneViewsExtractor(wrapper: SeriesPrimitiveWrapper): readonly ISeriesPrimitivePaneViewWrapper[] {
-    return wrapper.timeAxisPaneViews();
-}
 
 type CustomDataToPlotRowValueConverter<THorzScaleItem> = (
     item: CustomData<THorzScaleItem> | CustomSeriesWhitespaceData<THorzScaleItem>,
 ) => number[];
 
-export type LastValueDataResultWithoutData = {
+type LastValueDataResultWithoutData = {
     noData: true;
 };
 
@@ -146,6 +127,7 @@ export type SeriesUpdateInfo = {
 
 // note that if would like to use `Omit` here - you can't due https://github.com/microsoft/TypeScript/issues/36981
 export type SeriesOptionsInternal<T extends SeriesType = SeriesType> = SeriesOptionsMap[T];
+
 export type SeriesPartialOptionsInternal<T extends SeriesType = SeriesType> = SeriesPartialOptionsMap[T];
 
 export type ISeries<T extends SeriesType> = {
@@ -820,6 +802,34 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
         extractPrimitivePaneViews(this._primitives, extractor, zOrder, res);
         return res;
     }
+}
+
+function extractPrimitivePaneViews(
+    primitives: SeriesPrimitiveWrapper[],
+    extractor: PrimitivePaneViewExtractor,
+    zOrder: SeriesPrimitivePaneViewZOrder,
+    destination: IPaneView[],
+): void {
+    primitives.forEach((wrapper: SeriesPrimitiveWrapper) => {
+        extractor(wrapper).forEach((paneView: ISeriesPrimitivePaneViewWrapper) => {
+            if (paneView.zOrder() !== zOrder) {
+                return;
+            }
+            destination.push(paneView);
+        });
+    });
+}
+
+function primitivePaneViewsExtractor(wrapper: SeriesPrimitiveWrapper): readonly ISeriesPrimitivePaneViewWrapper[] {
+    return wrapper.paneViews();
+}
+
+function primitivePricePaneViewsExtractor(wrapper: SeriesPrimitiveWrapper): readonly ISeriesPrimitivePaneViewWrapper[] {
+    return wrapper.priceAxisPaneViews();
+}
+
+function primitiveTimePaneViewsExtractor(wrapper: SeriesPrimitiveWrapper): readonly ISeriesPrimitivePaneViewWrapper[] {
+    return wrapper.timeAxisPaneViews();
 }
 
 function mergeMargins(source: AutoScaleMargins | null, additionalMargin: AutoScaleMargins): AutoScaleMargins {

@@ -1,16 +1,17 @@
+/**
+ * Draws the histogram series' columns.
+ *
+ * The column edges are precomputed for the whole visible range in one pass, so
+ * that rounding to device pixels cannot leave a one-pixel gap between neighbours.
+ */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
-
 import { type PricedValue } from '@/lib/lightweight-charts/model/price-scale';
 import {
     type SeriesItemsIndexesRange,
     type TimedValue,
     type TimePointIndex,
 } from '@/lib/lightweight-charts/model/time-data';
-
 import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
-
-const showSpacingMinimalBarWidth = 1;
-const alignToMinimalWidthLimit = 4;
 
 export type HistogramItem = {
     barColor: string;
@@ -33,6 +34,10 @@ type PrecalculatedItemCoordinates = {
     center: number;
     time: TimePointIndex;
 };
+
+const showSpacingMinimalBarWidth = 1;
+
+const alignToMinimalWidthLimit = 4;
 
 export class PaneRendererHistogram extends BitmapCoordinatesPaneRenderer {
     private _data: PaneRendererHistogramData | null = null;

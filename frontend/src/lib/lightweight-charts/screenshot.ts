@@ -1,3 +1,10 @@
+/**
+ * Renders the chart, and the app's own chrome around it, to a PNG.
+ *
+ * The chart's canvases are composited onto one surface rather than screenshotted
+ * by the browser, because the overlay canvases the drawing tools own are separate
+ * elements that no single canvas read would capture.
+ */
 import { traceRoundedRect } from '@/lib/lightweight-charts/canvas-path';
 import { getThemeColor } from '@/lib/lightweight-charts/theme-color';
 

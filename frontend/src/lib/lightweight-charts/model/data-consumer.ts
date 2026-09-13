@@ -1,3 +1,10 @@
+/**
+ * The data shapes a caller passes in, one per series type, and the guards that
+ * tell a real point from a whitespace gap.
+ *
+ * A whitespace item reserves its slot on the time scale without drawing anything,
+ * which is how a series shows a gap rather than a straight line across it.
+ */
 import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
 import { type CustomData, type CustomSeriesWhitespaceData } from '@/lib/lightweight-charts/model/icustom-series';
 import { type Series } from '@/lib/lightweight-charts/model/series';
@@ -177,24 +184,6 @@ export type CandlestickData<THorzScaleItem = Time> = {
     wickColor?: string;
 } & OhlcData<THorzScaleItem>;
 
-export function isWhitespaceData<THorzScaleItem = Time>(
-    data: SeriesDataItemTypeMap<THorzScaleItem>[SeriesType],
-): data is WhitespaceData<THorzScaleItem> {
-    return (
-        (data as Partial<BarData<THorzScaleItem>>).open === undefined &&
-        (data as Partial<LineData<THorzScaleItem>>).value === undefined
-    );
-}
-
-export function isFulfilledData<THorzScaleItem, T extends SeriesDataItemTypeMap<THorzScaleItem>[SeriesType]>(
-    data: T,
-): data is Extract<T, BarData<THorzScaleItem> | LineData<THorzScaleItem> | HistogramData<THorzScaleItem>> {
-    return (
-        (data as Partial<BarData<THorzScaleItem>>).open !== undefined ||
-        (data as Partial<LineData<THorzScaleItem>>).value !== undefined
-    );
-}
-
 /**
  * Represents the type of data that a series contains.
  *
@@ -235,3 +224,21 @@ export type DataUpdatesConsumer<TSeriesType extends SeriesType, THorzScaleItem =
     applyNewData(series: Series<TSeriesType>, data: SeriesDataItemTypeMap<THorzScaleItem>[TSeriesType][]): void;
     updateData(series: Series<TSeriesType>, data: SeriesDataItemTypeMap<THorzScaleItem>[TSeriesType]): void;
 };
+
+export function isWhitespaceData<THorzScaleItem = Time>(
+    data: SeriesDataItemTypeMap<THorzScaleItem>[SeriesType],
+): data is WhitespaceData<THorzScaleItem> {
+    return (
+        (data as Partial<BarData<THorzScaleItem>>).open === undefined &&
+        (data as Partial<LineData<THorzScaleItem>>).value === undefined
+    );
+}
+
+export function isFulfilledData<THorzScaleItem, T extends SeriesDataItemTypeMap<THorzScaleItem>[SeriesType]>(
+    data: T,
+): data is Extract<T, BarData<THorzScaleItem> | LineData<THorzScaleItem> | HistogramData<THorzScaleItem>> {
+    return (
+        (data as Partial<BarData<THorzScaleItem>>).open !== undefined ||
+        (data as Partial<LineData<THorzScaleItem>>).value !== undefined
+    );
+}

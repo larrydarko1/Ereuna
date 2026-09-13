@@ -1,3 +1,7 @@
+/**
+ * The base for every series view: holds the series and the model, and
+ * rebuilds its items only when what it depends on actually changed.
+ */
 import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
 import { type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
 import { type ISeries } from '@/lib/lightweight-charts/model/series';

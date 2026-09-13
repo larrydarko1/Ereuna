@@ -1,3 +1,6 @@
+/**
+ * Draws one label on the time axis.
+ */
 import {
     type BitmapCoordinatesRenderingScope,
     type CanvasRenderingTarget2D,

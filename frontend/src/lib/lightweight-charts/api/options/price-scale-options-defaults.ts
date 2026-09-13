@@ -1,3 +1,7 @@
+/**
+ * Price scale defaults, used for the left scale, the right one and any
+ * overlay.
+ */
 import { PriceScaleMode, type PriceScaleOptions } from '@/lib/lightweight-charts/model/price-scale';
 
 export const priceScaleOptionsDefaults: PriceScaleOptions = {

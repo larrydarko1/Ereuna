@@ -292,7 +292,7 @@ const backend = [...walk('api/src', '.ts'), ...walk('worker/src', '.ts'), ...wal
 // –– 10. No raw-HTML injection sinks in SHIPPED frontend code –––––––––––––––––
 {
     const files = [...walk('frontend/src', '.ts'), ...walk('frontend/src', '.vue')].filter(
-        (f) => !f.includes('__tests__') && !f.startsWith(path.join('frontend/src/lib/lightweight-charts')),
+        (f) => !f.includes('__tests__'),
     );
     const SINKS = [
         { what: '.innerHTML =', re: /\.innerHTML\s*=/ },

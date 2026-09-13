@@ -15,6 +15,5 @@
             "ignoreDependencies": ["pino-pretty"]
         }
     },
-    "ignore": ["frontend/src/lib/lightweight-charts/**"],
     "tags": ["-public"]
 }

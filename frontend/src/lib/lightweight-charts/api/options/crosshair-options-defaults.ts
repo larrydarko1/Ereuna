@@ -1,3 +1,6 @@
+/**
+ * Crosshair defaults: magnet mode off, both lines drawn, labels on.
+ */
 import { CrosshairMode, type CrosshairOptions } from '@/lib/lightweight-charts/model/crosshair';
 import { LineStyle } from '@/lib/lightweight-charts/renderers/draw-line';
 

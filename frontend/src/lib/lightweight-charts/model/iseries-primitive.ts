@@ -1,3 +1,7 @@
+/**
+ * The full contract for a caller-supplied primitive: the pane views it draws,
+ * the axis labels it adds, and what it reports as hovered.
+ */
 import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
 import { type AutoscaleInfo } from '@/lib/lightweight-charts/model/series-options';

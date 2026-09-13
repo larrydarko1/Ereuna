@@ -1,3 +1,10 @@
+/**
+ * Every series type's style defaults, plus the options common to all of them.
+ *
+ * `seriesOptionsDefaults` holds what does not depend on the series type; the rest
+ * is merged over it when a series is added.
+ */
+import { PriceLineSource, type SeriesOptionsCommon } from '@/lib/lightweight-charts/model/series-options';
 import {
     type AreaStyleOptions,
     type BarStyleOptions,
@@ -7,9 +14,7 @@ import {
     type HistogramStyleOptions,
     LastPriceAnimationMode,
     type LineStyleOptions,
-    PriceLineSource,
-    type SeriesOptionsCommon,
-} from '@/lib/lightweight-charts/model/series-options';
+} from '@/lib/lightweight-charts/model/series-style-options';
 import { LineStyle, LineType } from '@/lib/lightweight-charts/renderers/draw-line';
 
 export const candlestickStyleDefaults: CandlestickStyleOptions = {
@@ -30,6 +35,15 @@ export const barStyleDefaults: BarStyleOptions = {
     downColor: '#ef5350',
     openVisible: true,
     thinBars: true,
+};
+
+export const histogramStyleDefaults: HistogramStyleOptions = {
+    color: '#26a69a',
+    base: 0,
+};
+
+export const customStyleDefaults: CustomStyleOptions = {
+    color: '#2196f3',
 };
 
 export const lineStyleDefaults: LineStyleOptions = {
@@ -92,15 +106,6 @@ export const baselineStyleDefaults: BaselineStyleOptions = {
 
     lastPriceAnimation: LastPriceAnimationMode.Disabled,
     pointMarkersVisible: false,
-};
-
-export const histogramStyleDefaults: HistogramStyleOptions = {
-    color: '#26a69a',
-    base: 0,
-};
-
-export const customStyleDefaults: CustomStyleOptions = {
-    color: '#2196f3',
 };
 
 export const seriesOptionsDefaults: SeriesOptionsCommon = {

@@ -1,3 +1,7 @@
+/**
+ * The base every drawable thing on a pane extends: its z-order, its price
+ * scale, and the views it offers to be drawn with.
+ */
 import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
 import { type IPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/iprice-axis-view';
 import { type ITimeAxisView } from '@/lib/lightweight-charts/views/time-axis/itime-axis-view';

@@ -1,3 +1,10 @@
+/**
+ * A typed event emitter: one of these per thing that can be subscribed to.
+ *
+ * A subscriber may pass a `linkedObject` so that everything registered by one
+ * owner can be dropped in a single call, which is how a destroyed widget stops
+ * being called back without tracking each callback it added.
+ */
 import {
     type Callback,
     type ISubscription,

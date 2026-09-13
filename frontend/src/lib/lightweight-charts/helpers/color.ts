@@ -1,3 +1,10 @@
+/**
+ * Parses every CSS colour form the options accept and converts between them.
+ *
+ * It also picks the text colour that will be legible on a given background, which
+ * is what `generateContrastColors` is for — a price label's background is the
+ * series colour, and the caller never chose the text colour to go on it.
+ */
 import { getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 import { type Nominal } from '@/lib/lightweight-charts/helpers/nominal';
 
@@ -26,6 +33,11 @@ type BlueComponent = Nominal<number, 'BlueComponent'>;
 type AlphaComponent = Nominal<number, 'AlphaComponent'>;
 
 type Rgba = [RedComponent, GreenComponent, BlueComponent, AlphaComponent];
+
+export type ContrastColors = {
+    foreground: string;
+    background: string;
+};
 
 /**
  * Note this object should be explicitly marked as public so that dts-bundle-generator does not mangle the property names.
@@ -184,26 +196,6 @@ const namedColorRgbHexStrings: Record<string, string> = {
     mediumspringgreen: '#00fa9a',
 };
 
-function normalizeRgbComponent<T extends RedComponent | GreenComponent | BlueComponent>(component: number): T {
-    if (component < 0) {
-        return 0 as T;
-    }
-    if (component > 255) {
-        return 255 as T;
-    }
-    // NaN values are treated as 0
-    const rounded = Math.round(component);
-    return (Number.isNaN(rounded) ? 0 : rounded) as T;
-}
-
-function normalizeAlphaComponent(component: AlphaComponent): AlphaComponent {
-    if (component <= 0 || component > 1) {
-        return Math.min(Math.max(component, 0), 1) as AlphaComponent;
-    }
-    // limit the precision of all numbers to at most 4 digits in fractional part
-    return (Math.round(component * 10000) / 10000) as AlphaComponent;
-}
-
 /**
  * @example
  * #fb0
@@ -232,14 +224,62 @@ const hexRe = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})?$/i;
  */
 const rgbRe = /^rgb\(\s*(-?\d{1,10})\s*,\s*(-?\d{1,10})\s*,\s*(-?\d{1,10})\s*\)$/;
 
-/**
- * @example
- * rgba(123, 234, 45, 1)
- * @example
- * rgba(255,234,245,0.1)
- */
-
 const rgbaRe = /^rgba\(\s*(-?\d{1,10})\s*,\s*(-?\d{1,10})\s*,\s*(-?\d{1,10})\s*,\s*(-?\d*\.?\d+)\s*\)$/;
+
+export function applyAlpha(color: string, alpha: number): string {
+    // special case optimization
+    if (color === 'transparent') {
+        return color;
+    }
+
+    const originRgba = colorStringToRgba(color);
+    const originAlpha = originRgba[3];
+    return `rgba(${originRgba[0]}, ${originRgba[1]}, ${originRgba[2]}, ${alpha * originAlpha})`;
+}
+
+export function generateContrastColors(backgroundColor: string): ContrastColors {
+    const rgb = colorStringToRgba(backgroundColor);
+
+    return {
+        background: `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`,
+        foreground: rgbaToGrayscale(rgb) > 160 ? 'black' : 'white',
+    };
+}
+
+export function gradientColorAtPercent(topColor: string, bottomColor: string, percent: number): string {
+    const [topR, topG, topB, topA] = colorStringToRgba(topColor);
+    const [bottomR, bottomG, bottomB, bottomA] = colorStringToRgba(bottomColor);
+
+    const resultRgba: Rgba = [
+        normalizeRgbComponent((topR + percent * (bottomR - topR)) as RedComponent),
+        normalizeRgbComponent((topG + percent * (bottomG - topG)) as GreenComponent),
+        normalizeRgbComponent((topB + percent * (bottomB - topB)) as BlueComponent),
+        normalizeAlphaComponent((topA + percent * (bottomA - topA)) as AlphaComponent),
+    ];
+
+    return `rgba(${resultRgba[0]}, ${resultRgba[1]}, ${resultRgba[2]}, ${resultRgba[3]})`;
+}
+
+function normalizeRgbComponent<T extends RedComponent | GreenComponent | BlueComponent>(component: number): T {
+    if (component < 0) {
+        return 0 as T;
+    }
+    if (component > 255) {
+        return 255 as T;
+    }
+    // NaN values are treated as 0
+    const rounded = Math.round(component);
+    return (Number.isNaN(rounded) ? 0 : rounded) as T;
+}
+
+function normalizeAlphaComponent(component: AlphaComponent): AlphaComponent {
+    if (component <= 0 || component > 1) {
+        return Math.min(Math.max(component, 0), 1) as AlphaComponent;
+    }
+    // limit the precision of all numbers to at most 4 digits in fractional part
+    return (Math.round(component * 10000) / 10000) as AlphaComponent;
+}
+
 function colorStringToRgba(colorString: string): Rgba {
     colorString = colorString.toLowerCase();
 
@@ -304,43 +344,4 @@ function rgbaToGrayscale(rgbValue: Rgba): number {
         greenComponentGrayscaleWeight * rgbValue[1] +
         blueComponentGrayscaleWeight * rgbValue[2]
     );
-}
-
-export function applyAlpha(color: string, alpha: number): string {
-    // special case optimization
-    if (color === 'transparent') {
-        return color;
-    }
-
-    const originRgba = colorStringToRgba(color);
-    const originAlpha = originRgba[3];
-    return `rgba(${originRgba[0]}, ${originRgba[1]}, ${originRgba[2]}, ${alpha * originAlpha})`;
-}
-
-export type ContrastColors = {
-    foreground: string;
-    background: string;
-};
-
-export function generateContrastColors(backgroundColor: string): ContrastColors {
-    const rgb = colorStringToRgba(backgroundColor);
-
-    return {
-        background: `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`,
-        foreground: rgbaToGrayscale(rgb) > 160 ? 'black' : 'white',
-    };
-}
-
-export function gradientColorAtPercent(topColor: string, bottomColor: string, percent: number): string {
-    const [topR, topG, topB, topA] = colorStringToRgba(topColor);
-    const [bottomR, bottomG, bottomB, bottomA] = colorStringToRgba(bottomColor);
-
-    const resultRgba: Rgba = [
-        normalizeRgbComponent((topR + percent * (bottomR - topR)) as RedComponent),
-        normalizeRgbComponent((topG + percent * (bottomG - topG)) as GreenComponent),
-        normalizeRgbComponent((topB + percent * (bottomB - topB)) as BlueComponent),
-        normalizeAlphaComponent((topA + percent * (bottomA - topA)) as AlphaComponent),
-    ];
-
-    return `rgba(${resultRgba[0]}, ${resultRgba[1]}, ${resultRgba[2]}, ${resultRgba[3]})`;
 }

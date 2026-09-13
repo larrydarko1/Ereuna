@@ -1,3 +1,6 @@
+/**
+ * A closed range of indices, and the test for two being equal.
+ */
 import { assert } from '@/lib/lightweight-charts/helpers/assertions';
 
 export class RangeImpl<T extends number> {

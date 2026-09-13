@@ -1,3 +1,6 @@
+/**
+ * What a time axis label's renderer has to provide.
+ */
 import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
 import { type TextWidthCache } from '@/lib/lightweight-charts/model/text-width-cache';

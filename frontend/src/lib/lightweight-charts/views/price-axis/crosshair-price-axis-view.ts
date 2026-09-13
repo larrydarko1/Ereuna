@@ -1,3 +1,6 @@
+/**
+ * The crosshair's label on a price axis.
+ */
 import { generateContrastColors } from '@/lib/lightweight-charts/helpers/color';
 
 import {

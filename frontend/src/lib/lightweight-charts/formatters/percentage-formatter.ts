@@ -1,3 +1,7 @@
+/**
+ * Formats a value as a percentage. It is a `PriceFormatter` with the sign
+ * and the suffix fixed.
+ */
 import { PriceFormatter } from '@/lib/lightweight-charts/formatters/price-formatter';
 
 export class PercentageFormatter extends PriceFormatter {

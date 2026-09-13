@@ -38,8 +38,6 @@
  * would put it above the `ref()` it exposes.
  *
  * SCOPE. The four workspace source roots below, production code only.
- *   - The vendored lightweight-charts fork is out: it is upstream code held
- *     frozen, and the table describes how this codebase writes a module.
  *   - __tests__ and *.test.ts are out for a different reason. Their top-level order
  *     is dictated by vitest's `vi.mock` hoisting rather than by design, and their
  *     "state" is fixtures. The table describes a module's public shape, which a
@@ -58,9 +56,6 @@ import { CATEGORIES, analyzeFile } from '../lib/declaration-order.mjs';
 
 const SOURCE_ROOTS = ['api/src', 'worker/src', 'ingestor/src', 'frontend/src', 'packages/shared/src'];
 
-/** Upstream code held frozen — every rule here is about how THIS codebase is written. */
-const VENDORED = ['frontend/src/lib/lightweight-charts/'];
-
 /** Matches check-code-style.mjs — colocated tests are not production modules. */
 const isTest = (rel) => rel.includes('__tests__') || /\.(test|spec)\.ts$/.test(rel);
 
@@ -76,7 +71,7 @@ function walk(dir, out = []) {
 }
 
 const files = SOURCE_ROOTS.flatMap((root) => walk(root))
-    .filter((rel) => !isTest(rel) && !VENDORED.some((v) => rel.startsWith(v)))
+    .filter((rel) => !isTest(rel))
     .sort();
 let statementsChecked = 0;
 

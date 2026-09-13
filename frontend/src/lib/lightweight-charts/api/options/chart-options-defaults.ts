@@ -1,3 +1,10 @@
+/**
+ * Every chart option's starting value, assembled from the per-concern defaults.
+ *
+ * It is a function rather than a constant because the nested objects would
+ * otherwise be shared between charts, and applying options to one would change the
+ * other.
+ */
 import { isRunningOnClientSide } from '@/lib/lightweight-charts/helpers/is-running-on-client-side';
 
 import { type ChartOptionsInternal, TrackingModeExitMode } from '@/lib/lightweight-charts/model/chart-model';

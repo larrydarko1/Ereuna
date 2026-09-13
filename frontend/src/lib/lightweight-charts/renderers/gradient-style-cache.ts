@@ -1,3 +1,9 @@
+/**
+ * Caches the canvas gradient a series fill uses.
+ *
+ * Building one is expensive and the inputs only change when the range or the
+ * colours do, so the cache is keyed on exactly those.
+ */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { clamp } from '@/lib/lightweight-charts/helpers/mathex';

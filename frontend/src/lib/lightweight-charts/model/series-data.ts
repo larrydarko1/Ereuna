@@ -1,3 +1,6 @@
+/**
+ * The plot row shape for each series type, and the plot list that holds them.
+ */
 import { type PlotRow } from '@/lib/lightweight-charts/model/plot-data';
 import { PlotList } from '@/lib/lightweight-charts/model/plot-list';
 import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
@@ -21,7 +24,7 @@ export type BaselinePlotRow = {
     bottomLineColor?: string;
 } & PlotRow;
 
-export type HistogramPlotRow = {
+type HistogramPlotRow = {
     readonly color?: string | undefined;
 } & PlotRow;
 
@@ -41,7 +44,7 @@ export type CustomPlotRow = {
     readonly color?: string | undefined;
 } & PlotRow;
 
-export type SeriesPlotRowTypeAtTypeMap = {
+type SeriesPlotRowTypeAtTypeMap = {
     Bar: BarPlotRow;
     Candlestick: CandlestickPlotRow;
     Area: AreaPlotRow;

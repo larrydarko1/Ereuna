@@ -1,13 +1,19 @@
+/**
+ * The chart, with no DOM in it.
+ *
+ * It owns the panes, the crosshair, the time scale and the options, and every
+ * change to any of them is reported as an invalidation rather than a repaint — the
+ * widgets decide when to act on those, which is what keeps a burst of updates to
+ * one frame.
+ */
 import { assert, getDefined, getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { gradientColorAtPercent } from '@/lib/lightweight-charts/helpers/color';
 import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
 import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
 import { type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
 import { type DeepPartial, merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
-
 import { type PriceAxisViewRendererOptions } from '@/lib/lightweight-charts/renderers/iprice-axis-view-renderer';
 import { PriceAxisRendererOptionsProvider } from '@/lib/lightweight-charts/renderers/price-axis-renderer-options-provider';
-
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 import { Crosshair, type CrosshairOptions } from '@/lib/lightweight-charts/model/crosshair';
 import { DefaultPriceScaleId, isDefaultPriceScale } from '@/lib/lightweight-charts/model/default-price-scale';
@@ -43,7 +49,7 @@ import { Watermark, type WatermarkOptions } from '@/lib/lightweight-charts/model
 /**
  * Represents options for how the chart is scrolled by the mouse and touch gestures.
  */
-export type HandleScrollOptions = {
+type HandleScrollOptions = {
     /**
      * Enable scrolling with the mouse wheel.
      *
@@ -80,7 +86,7 @@ export type HandleScrollOptions = {
 /**
  * Represents options for how the chart is scaled by the mouse and touch gestures.
  */
-export type HandleScaleOptions = {
+type HandleScaleOptions = {
     /**
      * Enable scaling with the mouse wheel.
      *
@@ -109,7 +115,7 @@ export type HandleScaleOptions = {
 /**
  * Represents options for enabling or disabling kinetic scrolling with mouse and touch gestures.
  */
-export type KineticScrollOptions = {
+type KineticScrollOptions = {
     /**
      * Enable kinetic scroll with touch gestures.
      *
@@ -136,7 +142,7 @@ type HandleScaleOptionsInternal = Omit<HandleScaleOptions, 'axisPressedMouseMove
 /**
  * Represents options for how the time and price axes react to mouse movements.
  */
-export type AxisPressedMouseMoveOptions = {
+type AxisPressedMouseMoveOptions = {
     /**
      * Enable scaling the time axis by holding down the left mouse button and moving the mouse.
      *
@@ -155,7 +161,7 @@ export type AxisPressedMouseMoveOptions = {
 /**
  * Represents options for how the time and price axes react to mouse double click.
  */
-export type AxisDoubleClickOptions = {
+type AxisDoubleClickOptions = {
     /**
      * Enable resetting scaling the time axis by double-clicking the left mouse button.
      *
@@ -186,10 +192,6 @@ export type PriceScaleOnPane = {
     pane: Pane;
 };
 
-const BackgroundColorSide = {
-    Top: 0,
-    Bottom: 1,
-} as const;
 type BackgroundColorSide = (typeof BackgroundColorSide)[keyof typeof BackgroundColorSide];
 
 type InvalidateHandler = (mask: InvalidateMask) => void;
@@ -206,22 +208,6 @@ export type VisiblePriceScaleOptions = PriceScaleOptions;
  */
 export type OverlayPriceScaleOptions = Omit<PriceScaleOptions, 'visible' | 'autoScale'>;
 
-/**
- * Determine how to exit the tracking mode.
- *
- * By default, mobile users will long press to deactivate the scroll and have the ability to check values and dates.
- * Another press is required to activate the scroll, be able to move left/right, zoom, etc.
- */
-export const TrackingModeExitMode = {
-    /**
-     * Tracking Mode will be deactivated on touch end event.
-     */
-    OnTouchEnd: 0,
-    /**
-     * Tracking Mode will be deactivated on the next tap event.
-     */
-    OnNextTap: 1,
-} as const;
 export type TrackingModeExitMode = (typeof TrackingModeExitMode)[keyof typeof TrackingModeExitMode];
 
 /**
@@ -231,7 +217,7 @@ export type TrackingModeExitMode = (typeof TrackingModeExitMode)[keyof typeof Tr
  * To see it, they should enter the tracking mode. The tracking mode will deactivate the scrolling
  * and make it possible to check values and dates.
  */
-export type TrackingModeOptions = {
+type TrackingModeOptions = {
     /** @inheritDoc TrackingModeExitMode
      *
      * @defaultValue {@link TrackingModeExitMode.OnNextTap}
@@ -448,6 +434,28 @@ export type CrosshairMove = {
     // arrive as if it were user input
     silent?: boolean;
 };
+
+const BackgroundColorSide = {
+    Top: 0,
+    Bottom: 1,
+} as const;
+
+/**
+ * Determine how to exit the tracking mode.
+ *
+ * By default, mobile users will long press to deactivate the scroll and have the ability to check values and dates.
+ * Another press is required to activate the scroll, be able to move left/right, zoom, etc.
+ */
+export const TrackingModeExitMode = {
+    /**
+     * Tracking Mode will be deactivated on touch end event.
+     */
+    OnTouchEnd: 0,
+    /**
+     * Tracking Mode will be deactivated on the next tap event.
+     */
+    OnNextTap: 1,
+} as const;
 
 export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase {
     private readonly _options: ChartOptionsInternal<THorzScaleItem>;

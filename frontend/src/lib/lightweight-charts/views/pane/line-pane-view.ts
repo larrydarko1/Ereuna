@@ -1,3 +1,6 @@
+/**
+ * The line series' view.
+ */
 import { type BarPrice } from '@/lib/lightweight-charts/model/bar';
 import { type ISeriesBarColorer } from '@/lib/lightweight-charts/model/series-bar-colorer';
 import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';

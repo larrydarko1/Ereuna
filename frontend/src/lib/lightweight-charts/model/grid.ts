@@ -1,3 +1,6 @@
+/**
+ * The grid lines behind a pane's content.
+ */
 import { type LineStyle } from '@/lib/lightweight-charts/renderers/draw-line';
 import { GridPaneView } from '@/lib/lightweight-charts/views/pane/grid-pane-view';
 import { type IUpdatablePaneView } from '@/lib/lightweight-charts/views/pane/iupdatable-pane-view';
@@ -5,7 +8,7 @@ import { type IUpdatablePaneView } from '@/lib/lightweight-charts/views/pane/iup
 import { type Pane } from '@/lib/lightweight-charts/model/pane';
 
 /** Grid line options. */
-export type GridLineOptions = {
+type GridLineOptions = {
     /**
      * Line color.
      *

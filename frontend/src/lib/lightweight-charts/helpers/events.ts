@@ -1,3 +1,7 @@
+/**
+ * Suppresses the browser behaviour the chart has to override — currently the
+ * autoscroll a middle-click starts, which would otherwise fight a pan.
+ */
 import { isChrome } from '@/lib/lightweight-charts/helpers/browsers';
 import { MouseEventButton } from '@/lib/lightweight-charts/helpers/mouse-event-button';
 

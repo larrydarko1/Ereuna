@@ -1,3 +1,6 @@
+/**
+ * The area series' fill.
+ */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';

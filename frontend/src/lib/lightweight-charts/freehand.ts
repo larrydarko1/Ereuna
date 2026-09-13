@@ -1,10 +1,16 @@
-import {
-    type IChartApi,
-    type ISeriesApi,
-    type MouseEventParams,
-    type SeriesType,
-    type Time,
-} from '@/lib/lightweight-charts/index';
+/**
+ * The freehand tool: hold the button and draw.
+ *
+ * It is the one tool that takes raw pointer events instead of the chart's click
+ * and crosshair subscriptions, because a stroke is a drag and the chart reports
+ * only discrete positions — which is why its canvas stops being transparent to
+ * input for as long as the tool is up.
+ */
+import { type IChartApi } from '@/lib/lightweight-charts/api/create-chart';
+import { type MouseEventParams } from '@/lib/lightweight-charts/api/ichart-api';
+import { type ISeriesApi } from '@/lib/lightweight-charts/api/iseries-api';
+import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 import { type CanvasPoint, distanceToSegment } from '@/lib/lightweight-charts/geometry';
 import { getThemeColor } from '@/lib/lightweight-charts/theme-color';
 

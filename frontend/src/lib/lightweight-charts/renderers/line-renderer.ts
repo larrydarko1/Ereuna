@@ -1,3 +1,6 @@
+/**
+ * The line series' stroke.
+ */
 import { type MediaCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { type LineStrokeColorerStyle } from '@/lib/lightweight-charts/model/series-bar-colorer';

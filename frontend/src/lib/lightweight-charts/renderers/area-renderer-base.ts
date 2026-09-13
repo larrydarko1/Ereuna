@@ -1,9 +1,14 @@
+/**
+ * Fills the band between a line and a baseline, in however many styled
+ * sections the data asks for.
+ *
+ * A section is closed and filled whenever the colour changes, which is what lets
+ * one area change colour partway along without a seam.
+ */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
-
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 import { type PricedValue } from '@/lib/lightweight-charts/model/price-scale';
 import { type SeriesItemsIndexesRange, type TimedValue } from '@/lib/lightweight-charts/model/time-data';
-
 import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
 import {
     type LinePoint,
@@ -15,6 +20,7 @@ import {
 import { walkLine } from '@/lib/lightweight-charts/renderers/walk-line';
 
 export type AreaFillItemBase = TimedValue & PricedValue & LinePoint;
+
 export type PaneRendererAreaDataBase<TItem extends AreaFillItemBase = AreaFillItemBase> = {
     items: TItem[];
     lineType: LineType;
@@ -28,21 +34,6 @@ export type PaneRendererAreaDataBase<TItem extends AreaFillItemBase = AreaFillIt
 
     visibleRange: SeriesItemsIndexesRange | null;
 };
-
-function finishStyledArea(
-    baseLevelCoordinate: Coordinate,
-    scope: BitmapCoordinatesRenderingScope,
-    style: CanvasRenderingContext2D['fillStyle'],
-    areaFirstItem: LinePoint,
-    newAreaFirstItem: LinePoint,
-): void {
-    const { context, horizontalPixelRatio, verticalPixelRatio } = scope;
-    context.lineTo(newAreaFirstItem.x * horizontalPixelRatio, baseLevelCoordinate * verticalPixelRatio);
-    context.lineTo(areaFirstItem.x * horizontalPixelRatio, baseLevelCoordinate * verticalPixelRatio);
-    context.closePath();
-    context.fillStyle = style;
-    context.fill();
-}
 
 export abstract class PaneRendererAreaBase<
     TData extends PaneRendererAreaDataBase,
@@ -89,4 +80,19 @@ export abstract class PaneRendererAreaBase<
         renderingScope: BitmapCoordinatesRenderingScope,
         item: TData['items'][0],
     ): CanvasRenderingContext2D['fillStyle'];
+}
+
+function finishStyledArea(
+    baseLevelCoordinate: Coordinate,
+    scope: BitmapCoordinatesRenderingScope,
+    style: CanvasRenderingContext2D['fillStyle'],
+    areaFirstItem: LinePoint,
+    newAreaFirstItem: LinePoint,
+): void {
+    const { context, horizontalPixelRatio, verticalPixelRatio } = scope;
+    context.lineTo(newAreaFirstItem.x * horizontalPixelRatio, baseLevelCoordinate * verticalPixelRatio);
+    context.lineTo(areaFirstItem.x * horizontalPixelRatio, baseLevelCoordinate * verticalPixelRatio);
+    context.closePath();
+    context.fillStyle = style;
+    context.fill();
 }

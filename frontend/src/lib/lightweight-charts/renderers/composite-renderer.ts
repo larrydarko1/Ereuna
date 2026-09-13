@@ -1,3 +1,6 @@
+/**
+ * Draws several renderers as one, in the order given.
+ */
 import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
 import { type HoverState, type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';

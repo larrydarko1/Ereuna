@@ -1,3 +1,6 @@
+/**
+ * What a caller has to implement to draw its own thing onto a series.
+ */
 import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
 import { type ISeriesPrimitiveBase } from '@/lib/lightweight-charts/model/iseries-primitive';
 import { type SeriesOptionsMap, type SeriesType } from '@/lib/lightweight-charts/model/series-options';
@@ -9,7 +12,7 @@ import { type ISeriesApi } from '@/lib/lightweight-charts/api/iseries-api';
  * Object containing references to the chart and series instances, and a requestUpdate method for triggering
  * a refresh of the chart.
  */
-export type SeriesAttachedParameter<THorzScaleItem = Time, TSeriesType extends SeriesType = keyof SeriesOptionsMap> = {
+type SeriesAttachedParameter<THorzScaleItem = Time, TSeriesType extends SeriesType = keyof SeriesOptionsMap> = {
     /**
      * Chart instance.
      */

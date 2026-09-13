@@ -1,3 +1,7 @@
+/**
+ * Draws the crosshair's marks — the dot on each series where the crosshair
+ * crosses it.
+ */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { type SeriesItemsIndexesRange } from '@/lib/lightweight-charts/model/time-data';

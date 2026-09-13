@@ -324,7 +324,6 @@ function walk(rel, keep, out = []) {
     if (!fs.existsSync(dir)) return out;
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
         const child = `${rel}/${entry.name}`;
-        if (child.startsWith('frontend/src/lib/lightweight-charts')) continue;
         if (entry.isDirectory()) walk(child, keep, out);
         else if (keep(entry.name)) out.push(child);
     }

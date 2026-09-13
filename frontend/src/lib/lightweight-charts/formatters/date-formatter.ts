@@ -1,3 +1,6 @@
+/**
+ * Formats a date on its own, for a tick mark or a crosshair label.
+ */
 import { formatDate } from '@/lib/lightweight-charts/formatters/format-date';
 
 export class DateFormatter {

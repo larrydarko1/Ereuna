@@ -1,3 +1,8 @@
+/**
+ * The parts of a mouse or touch event the chart passes on to subscribers,
+ * copied out rather than passed by reference because the browser reuses the event
+ * object.
+ */
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
 /**

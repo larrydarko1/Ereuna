@@ -1,8 +1,14 @@
+/**
+ * Resolves the colour of one bar.
+ *
+ * A bar may carry its own colour, in which case it wins over the series' option —
+ * which is what makes a single red candle in a green series possible.
+ */
 import { getPresent, getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
-
 import { PlotRowValueIndex } from '@/lib/lightweight-charts/model/plot-data';
 import { type Series } from '@/lib/lightweight-charts/model/series';
 import { type SeriesPlotRow } from '@/lib/lightweight-charts/model/series-data';
+import { type SeriesOptionsMap, type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 import {
     type AreaStyleOptions,
     type BarStyleOptions,
@@ -11,9 +17,7 @@ import {
     type CustomStyleOptions,
     type HistogramStyleOptions,
     type LineStyleOptions,
-    type SeriesOptionsMap,
-    type SeriesType,
-} from '@/lib/lightweight-charts/model/series-options';
+} from '@/lib/lightweight-charts/model/series-style-options';
 import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 
 export type PrecomputedBars = {
@@ -21,7 +25,7 @@ export type PrecomputedBars = {
     previousValue?: SeriesPlotRow;
 };
 
-export type CommonBarColorerStyle = {
+type CommonBarColorerStyle = {
     barColor: string;
 };
 
@@ -29,14 +33,16 @@ export type LineStrokeColorerStyle = {
     lineColor: string;
 };
 
-export type LineBarColorerStyle = {} & CommonBarColorerStyle & LineStrokeColorerStyle;
+type LineBarColorerStyle = {} & CommonBarColorerStyle & LineStrokeColorerStyle;
 
-export type HistogramBarColorerStyle = {} & CommonBarColorerStyle;
+type HistogramBarColorerStyle = {} & CommonBarColorerStyle;
+
 export type AreaFillColorerStyle = {
     topColor: string;
     bottomColor: string;
 };
-export type AreaBarColorerStyle = {} & CommonBarColorerStyle & AreaFillColorerStyle & LineStrokeColorerStyle;
+
+type AreaBarColorerStyle = {} & CommonBarColorerStyle & AreaFillColorerStyle & LineStrokeColorerStyle;
 
 export type BaselineStrokeColorerStyle = {
     topLineColor: string;
@@ -50,9 +56,7 @@ export type BaselineFillColorerStyle = {
     bottomFillColor1: string;
 };
 
-export type BaselineBarColorerStyle = {} & CommonBarColorerStyle &
-    BaselineStrokeColorerStyle &
-    BaselineFillColorerStyle;
+type BaselineBarColorerStyle = {} & CommonBarColorerStyle & BaselineStrokeColorerStyle & BaselineFillColorerStyle;
 
 export type BarColorerStyle = {} & CommonBarColorerStyle;
 
@@ -61,7 +65,7 @@ export type CandlesticksColorerStyle = {
     barWickColor: string;
 } & CommonBarColorerStyle;
 
-export type CustomBarColorerStyle = {} & CommonBarColorerStyle;
+type CustomBarColorerStyle = {} & CommonBarColorerStyle;
 
 export type BarStylesMap = {
     Bar: BarColorerStyle;
@@ -89,6 +93,30 @@ type BarStylesFnMap = {
 export type ISeriesBarColorer<T extends SeriesType> = {
     barStyle(barIndex: TimePointIndex, precomputedBars?: PrecomputedBars): BarStylesMap[T];
 };
+
+export class SeriesBarColorer<T extends SeriesType> implements ISeriesBarColorer<T> {
+    private _series: Series<T>;
+    private readonly _styleGetter: BarStylesFnMap[T];
+
+    public constructor(series: Series<T>) {
+        this._series = series;
+        this._styleGetter = barStyleFnMap[series.seriesType()];
+    }
+
+    public barStyle(barIndex: TimePointIndex, precomputedBars?: PrecomputedBars): BarStylesMap[T] {
+        // precomputedBars: {value: [Array BarValues], previousValue: [Array BarValues] | undefined}
+        // Used to avoid binary search if bars are already known
+        return this._styleGetter(this._findBar, this._series.options(), barIndex, precomputedBars);
+    }
+
+    private _findBar = (barIndex: TimePointIndex, precomputedBars?: PrecomputedBars): SeriesPlotRow | null => {
+        if (precomputedBars !== undefined) {
+            return precomputedBars.value;
+        }
+
+        return this._series.bars().valueAt(barIndex);
+    };
+}
 
 /*
  * The keys below are the `SeriesType` union itself — 'Bar', 'Candlestick', and
@@ -217,27 +245,3 @@ const barStyleFnMap: BarStylesFnMap = {
         };
     },
 };
-
-export class SeriesBarColorer<T extends SeriesType> implements ISeriesBarColorer<T> {
-    private _series: Series<T>;
-    private readonly _styleGetter: BarStylesFnMap[T];
-
-    public constructor(series: Series<T>) {
-        this._series = series;
-        this._styleGetter = barStyleFnMap[series.seriesType()];
-    }
-
-    public barStyle(barIndex: TimePointIndex, precomputedBars?: PrecomputedBars): BarStylesMap[T] {
-        // precomputedBars: {value: [Array BarValues], previousValue: [Array BarValues] | undefined}
-        // Used to avoid binary search if bars are already known
-        return this._styleGetter(this._findBar, this._series.options(), barIndex, precomputedBars);
-    }
-
-    private _findBar = (barIndex: TimePointIndex, precomputedBars?: PrecomputedBars): SeriesPlotRow | null => {
-        if (precomputedBars !== undefined) {
-            return precomputedBars.value;
-        }
-
-        return this._series.bars().valueAt(barIndex);
-    };
-}

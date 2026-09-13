@@ -1,36 +1,18 @@
+/**
+ * Formats a price to the precision its series asked for.
+ *
+ * The rounding is done on integers scaled by the minimum move rather than with
+ * `toFixed`, because `toFixed` rounds half away from zero in some engines and half
+ * to even in others, and a price axis that disagrees with itself between browsers
+ * is worse than either rule.
+ */
 import { isInteger, isNumber } from '@/lib/lightweight-charts/helpers/strict-type-checks';
-
 import { type IPriceFormatter } from '@/lib/lightweight-charts/formatters/iprice-formatter';
 
 const formatterOptions = {
     decimalSign: '.',
     decimalSignFractional: "'",
 };
-
-/**
- * @param value - The number of convert.
- * @param length - The length. Must be between 0 and 16 inclusive.
- */
-export function numberToStringWithLeadingZero(value: number, length: number): string {
-    if (!isNumber(value)) {
-        return 'n/a';
-    }
-
-    if (!isInteger(length)) {
-        throw new TypeError('invalid length');
-    }
-
-    if (length < 0 || length > 16) {
-        throw new TypeError('invalid length');
-    }
-
-    if (length === 0) {
-        return value.toString();
-    }
-
-    const dummyString = '0000000000000000';
-    return (dummyString + value.toString()).slice(-length);
-}
 
 export class PriceFormatter implements IPriceFormatter {
     protected _fractionalLength: number | undefined;
@@ -102,4 +84,29 @@ export class PriceFormatter implements IPriceFormatter {
 
         return intPart.toFixed(0) + fracString;
     }
+}
+
+/**
+ * @param value - The number of convert.
+ * @param length - The length. Must be between 0 and 16 inclusive.
+ */
+export function numberToStringWithLeadingZero(value: number, length: number): string {
+    if (!isNumber(value)) {
+        return 'n/a';
+    }
+
+    if (!isInteger(length)) {
+        throw new TypeError('invalid length');
+    }
+
+    if (length < 0 || length > 16) {
+        throw new TypeError('invalid length');
+    }
+
+    if (length === 0) {
+        return value.toString();
+    }
+
+    const dummyString = '0000000000000000';
+    return (dummyString + value.toString()).slice(-length);
 }

@@ -1,12 +1,16 @@
+/**
+ * The handle returned by `timeScale()`.
+ *
+ * Its animated scrolls are driven by `requestAnimationFrame` rather than by the
+ * model's invalidation cycle, which is why it tracks its own animation handle and
+ * cancels it on destroy.
+ */
 import { type Size } from 'fancy-canvas';
-
 import { type TimeAxisWidget } from '@/lib/lightweight-charts/gui/time-axis-widget';
-
 import { assert } from '@/lib/lightweight-charts/helpers/assertions';
 import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
 import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
 import { clone, type DeepPartial } from '@/lib/lightweight-charts/helpers/strict-type-checks';
-
 import { type ChartModel } from '@/lib/lightweight-charts/model/chart-model';
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 import {
@@ -20,17 +24,18 @@ import {
     type TimePointIndex,
 } from '@/lib/lightweight-charts/model/time-data';
 import { type HorzScaleOptions, type TimeScale } from '@/lib/lightweight-charts/model/time-scale';
-
 import {
     type ITimeScaleApi,
     type LogicalRangeChangeEventHandler,
     type SizeChangeEventHandler,
     type TimeRangeChangeEventHandler,
 } from '@/lib/lightweight-charts/api/itime-scale-api';
+
+type Constants = (typeof Constants)[keyof typeof Constants];
+
 const Constants = {
     AnimationDurationMs: 1000,
 } as const;
-type Constants = (typeof Constants)[keyof typeof Constants];
 
 export class TimeScaleApi<THorzScaleItem> implements ITimeScaleApi<THorzScaleItem>, IDestroyable {
     private _model: ChartModel<THorzScaleItem>;

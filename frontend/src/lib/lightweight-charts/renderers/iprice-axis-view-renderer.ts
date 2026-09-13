@@ -1,3 +1,7 @@
+/**
+ * What a price axis label's renderer has to provide, and the styling it is
+ * given.
+ */
 import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
 import { type TextWidthCache } from '@/lib/lightweight-charts/model/text-width-cache';

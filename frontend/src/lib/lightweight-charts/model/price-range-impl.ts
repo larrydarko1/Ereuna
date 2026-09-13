@@ -1,26 +1,12 @@
+/**
+ * A price range, with the arithmetic the scale does to one.
+ *
+ * Every operation returns a new range rather than mutating — a range is compared
+ * by value all over the scale, and one that changed under a comparison would make
+ * the autoscale oscillate.
+ */
 import { isNumber } from '@/lib/lightweight-charts/helpers/strict-type-checks';
-
 import { type PriceRange } from '@/lib/lightweight-charts/model/series-options';
-
-function computeFiniteResult(
-    method: (...values: number[]) => number,
-    valueOne: number,
-    valueTwo: number,
-    fallback: number,
-): number {
-    const firstFinite = Number.isFinite(valueOne);
-    const secondFinite = Number.isFinite(valueTwo);
-
-    if (firstFinite && secondFinite) {
-        return method(valueOne, valueTwo);
-    }
-
-    // Exactly one of them is finite by here, or neither
-    if (firstFinite) return valueOne;
-    if (secondFinite) return valueTwo;
-
-    return fallback;
-}
 
 export class PriceRangeImpl {
     private _minValue: number;
@@ -106,4 +92,24 @@ export class PriceRangeImpl {
     public static fromRaw(raw: PriceRange | null): PriceRangeImpl | null {
         return raw === null ? null : new PriceRangeImpl(raw.minValue, raw.maxValue);
     }
+}
+
+function computeFiniteResult(
+    method: (...values: number[]) => number,
+    valueOne: number,
+    valueTwo: number,
+    fallback: number,
+): number {
+    const firstFinite = Number.isFinite(valueOne);
+    const secondFinite = Number.isFinite(valueTwo);
+
+    if (firstFinite && secondFinite) {
+        return method(valueOne, valueTwo);
+    }
+
+    // Exactly one of them is finite by here, or neither
+    if (firstFinite) return valueOne;
+    if (secondFinite) return valueTwo;
+
+    return fallback;
 }

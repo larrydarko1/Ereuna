@@ -1,3 +1,10 @@
+/**
+ * One series' public surface: its data, its options, its markers, its price
+ * lines and the primitives attached to it.
+ *
+ * `BarsInfo` is the shape `barsInLogicalRange` answers with, and reports how far
+ * the request fell outside what the series actually holds.
+ */
 import { type IPriceFormatter } from '@/lib/lightweight-charts/formatters/iprice-formatter';
 
 import { type BarPrice } from '@/lib/lightweight-charts/model/bar';

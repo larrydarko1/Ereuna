@@ -1,6 +1,12 @@
+/**
+ * The index types the horizontal scale works in, and the ranges over them.
+ *
+ * A `TimePointIndex` is a position in the series' own data and a `Logical` is a
+ * position on the scale, which may be fractional and may sit beyond the data —
+ * they are branded apart because using one for the other is silently wrong.
+ */
 import { lowerBound, upperBound } from '@/lib/lightweight-charts/helpers/algorithms';
 import { type Nominal } from '@/lib/lightweight-charts/helpers/nominal';
-
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 import { type InternalHorzScaleItem } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
 import { type RangeImpl } from '@/lib/lightweight-charts/model/range-impl';
@@ -69,14 +75,6 @@ export type TimedValue = {
 
 export type SeriesItemsIndexesRange = Range<number>;
 
-function lowerBoundItemsCompare(item: TimedValue, time: TimePointIndex): boolean {
-    return item.time < time;
-}
-
-function upperBoundItemsCompare(item: TimedValue, time: TimePointIndex): boolean {
-    return time < item.time;
-}
-
 export function visibleTimedValues(
     items: TimedValue[],
     range: RangeImpl<TimePointIndex>,
@@ -106,4 +104,12 @@ export function visibleTimedValues(
     }
 
     return { from: extendedFrom, to: extendedTo };
+}
+
+function lowerBoundItemsCompare(item: TimedValue, time: TimePointIndex): boolean {
+    return item.time < time;
+}
+
+function upperBoundItemsCompare(item: TimedValue, time: TimePointIndex): boolean {
+    return time < item.time;
 }

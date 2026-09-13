@@ -20,7 +20,8 @@ import {
     type SeriesType,
     type Time,
 } from '@/lib/lightweight-charts';
-import { detectAllPatterns, type PatternMatch } from '@/lib/lightweight-charts/pattern-detection';
+import { detectAllPatterns } from '@/lib/lightweight-charts/pattern-detection';
+import type { PatternMatch } from '@/lib/lightweight-charts/pattern-types';
 import { PriceLevelManager } from '@/lib/lightweight-charts/price-level';
 import { PatternOverlayManager } from '@/lib/lightweight-charts/pattern-overlay';
 import type { ScreenshotConfig } from '@/lib/lightweight-charts/screenshot';

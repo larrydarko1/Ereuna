@@ -1,10 +1,15 @@
-import {
-    type IChartApi,
-    type ISeriesApi,
-    type MouseEventParams,
-    type SeriesType,
-    type Time,
-} from '@/lib/lightweight-charts/index';
+/**
+ * The text tool: click to place a label, type it into an input positioned over
+ * the chart, drag it afterwards.
+ *
+ * The input is a real DOM element rather than something drawn on the canvas, so
+ * that it gets the platform's own caret, selection and IME.
+ */
+import { type IChartApi } from '@/lib/lightweight-charts/api/create-chart';
+import { type MouseEventParams } from '@/lib/lightweight-charts/api/ichart-api';
+import { type ISeriesApi } from '@/lib/lightweight-charts/api/iseries-api';
+import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 import { traceRoundedRect } from '@/lib/lightweight-charts/canvas-path';
 import { type CanvasPoint } from '@/lib/lightweight-charts/geometry';
 import { getThemeColor, hexToRgba } from '@/lib/lightweight-charts/theme-color';

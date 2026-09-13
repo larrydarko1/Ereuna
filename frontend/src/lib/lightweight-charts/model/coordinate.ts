@@ -1,3 +1,7 @@
+/**
+ * A pixel position on a canvas, branded so it cannot be confused with a price
+ * or an index.
+ */
 import { type Nominal } from '@/lib/lightweight-charts/helpers/nominal';
 
 /**

@@ -1,3 +1,7 @@
+/**
+ * Watermark defaults — invisible, since nothing here draws one unless it is
+ * asked to.
+ */
 import { defaultFontFamily } from '@/lib/lightweight-charts/helpers/make-font';
 
 import { type WatermarkOptions } from '@/lib/lightweight-charts/model/watermark';

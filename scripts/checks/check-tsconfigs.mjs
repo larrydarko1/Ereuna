@@ -10,8 +10,8 @@
  *     lax one;
  *   • a base flag re-declared weaker in one workspace with no reason written
  *     down. That is how `verbatimModuleSyntax: false` — a workaround for the
- *     vendored charting fork — ended up in the base, turning it off for four
- *     backends that were already clean under it;
+ *     charting fork — ended up in the base, turning it off for four backends
+ *     that were already clean under it;
  *   • the base growing a `target`, a `lib` or an `outDir`. Those differ per
  *     workspace and each one records its own reason; a value in the base is one
  *     nobody chose;
@@ -27,15 +27,11 @@
  *     was hardened and stayed broken — nothing pointed a compiler at it.
  * Rules from the imported gate that are DELIBERATELY NOT HERE, so their absence
  * is a decision and not an oversight:
- *   - JSON Schema validation via ajv. Fifteen of the seventeen gates take no
+ *   - JSON Schema validation via ajv. Sixteen of the eighteen gates take no
  *     dependencies, and the schema it validated against declared
  *     `additionalProperties: true` at both levels with every property typed
  *     `boolean` — it could not reject a single real drift. Rules 2 to 6 below
  *     are that schema, written as the assertions it was trying to express.
- *   - Walking the vendored fork. `frontend/src/lib/lightweight-charts/` ships
- *     six upstream `tsconfig.composite.*.json` files that extend a
- *     `tsconfig.composite.base.json` which was never vendored. They are frozen,
- *     they resolve to nothing, and no script reads them.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -43,7 +39,6 @@ import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
 import { stripComments } from '../lib/strip-comments.mjs';
 
 const BASE = 'tsconfig.base.json';
-const FORK = 'frontend/src/lib/lightweight-charts';
 const SHARED = 'packages/shared/tsconfig.json';
 const NODE_TYPED = ['api/tsconfig.json', 'worker/tsconfig.json', 'ingestor/tsconfig.json'];
 
@@ -248,7 +243,6 @@ function findConfigs(rel, out = []) {
     for (const entry of fs.readdirSync(path.join(ROOT, rel), { withFileTypes: true })) {
         if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
         const child = rel === '.' ? entry.name : `${rel}/${entry.name}`;
-        if (child === FORK) continue;
         if (entry.isDirectory()) findConfigs(child, out);
         else if (/^tsconfig(\..+)?\.json$/.test(entry.name)) out.push(child);
     }

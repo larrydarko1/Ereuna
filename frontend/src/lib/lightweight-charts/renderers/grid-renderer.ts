@@ -1,3 +1,6 @@
+/**
+ * Draws the grid lines at the marks both scales supply.
+ */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
@@ -7,7 +10,7 @@ import { type PriceMark } from '@/lib/lightweight-charts/model/price-scale';
 import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
 import { type LineStyle, setLineStyle, strokeInPixel } from '@/lib/lightweight-charts/renderers/draw-line';
 
-export type GridMarks = {
+type GridMarks = {
     coord: number;
 };
 export type GridRendererData = {

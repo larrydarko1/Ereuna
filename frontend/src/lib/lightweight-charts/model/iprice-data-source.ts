@@ -1,3 +1,7 @@
+/**
+ * What a price scale requires of the sources on it: a first value to
+ * autoscale against, and a formatter for its labels.
+ */
 import { type IPriceFormatter } from '@/lib/lightweight-charts/formatters/iprice-formatter';
 
 import { type AutoscaleInfoImpl } from '@/lib/lightweight-charts/model/autoscale-info-impl';

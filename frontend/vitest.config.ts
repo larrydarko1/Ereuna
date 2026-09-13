@@ -13,8 +13,6 @@ export default defineConfig({
         // Registers the i18n instance and the DOM APIs jsdom does not implement,
         // before the first component mounts.
         setupFiles: ['./vitest.setup.ts'],
-        // The vendored fork is 200 files of upstream code nothing here wrote.
-        exclude: ['src/lib/lightweight-charts/**'],
     },
     // No `css` block on purpose: Vitest leaves <style> untransformed, so the
     // SCSS that vite.config.ts injects for the dev build is never needed here.

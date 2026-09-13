@@ -1,3 +1,8 @@
+/**
+ * Numeric helpers the model needs, and the ones with a non-obvious rule:
+ * `equal` and `greaterOrEqual` compare within a chosen epsilon rather than exactly,
+ * because the values being compared are prices that came out of a division.
+ */
 import { getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 
 export function clamp(value: number, minVal: number, maxVal: number): number {

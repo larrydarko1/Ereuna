@@ -1,14 +1,20 @@
+/**
+ * The chart handle the rest of the app holds.
+ *
+ * Everything public goes through here: it owns the widget, the data layer and the
+ * map from each `SeriesApi` back to the `Series` the model knows about, and it is
+ * where a caller's partial options are merged into a complete set before the model
+ * ever sees them.
+ */
 import {
     ChartWidget,
     type MouseEventParamsImpl,
     type MouseEventParamsImplSupplier,
 } from '@/lib/lightweight-charts/gui/chart-widget';
-
 import { assert, getPresent, getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
 import { rejectOptions } from '@/lib/lightweight-charts/helpers/logger';
 import { clone, type DeepPartial, isBoolean, merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
-
 import { type ChartOptionsImpl, type ChartOptionsInternal } from '@/lib/lightweight-charts/model/chart-model';
 import {
     type DataUpdatesConsumer,
@@ -41,7 +47,6 @@ import {
     type SeriesType,
 } from '@/lib/lightweight-charts/model/series-options';
 import { type Logical } from '@/lib/lightweight-charts/model/time-data';
-
 import { getSeriesDataCreator } from '@/lib/lightweight-charts/api/get-series-data-creator';
 import {
     type IChartApiBase,
@@ -66,66 +71,6 @@ import {
 import { PriceScaleApi } from '@/lib/lightweight-charts/api/price-scale-api';
 import { SeriesApi } from '@/lib/lightweight-charts/api/series-api';
 import { TimeScaleApi } from '@/lib/lightweight-charts/api/time-scale-api';
-
-function patchPriceFormat(priceFormat?: DeepPartial<PriceFormat>): void {
-    if (priceFormat === undefined || priceFormat.type === 'custom') {
-        return;
-    }
-    const priceFormatBuiltIn = priceFormat as DeepPartial<PriceFormatBuiltIn>;
-    if (priceFormatBuiltIn.minMove !== undefined && priceFormatBuiltIn.precision === undefined) {
-        priceFormatBuiltIn.precision = precisionByMinMove(priceFormatBuiltIn.minMove);
-    }
-}
-
-function migrateHandleScaleScrollOptions<THorzScaleItem>(options: DeepPartial<ChartOptionsImpl<THorzScaleItem>>): void {
-    if (isBoolean(options.handleScale)) {
-        const handleScale = options.handleScale;
-        options.handleScale = {
-            axisDoubleClickReset: {
-                time: handleScale,
-                price: handleScale,
-            },
-            axisPressedMouseMove: {
-                time: handleScale,
-                price: handleScale,
-            },
-            mouseWheel: handleScale,
-            pinch: handleScale,
-        };
-    } else if (options.handleScale !== undefined) {
-        const { axisPressedMouseMove, axisDoubleClickReset } = options.handleScale;
-        if (isBoolean(axisPressedMouseMove)) {
-            options.handleScale.axisPressedMouseMove = {
-                time: axisPressedMouseMove,
-                price: axisPressedMouseMove,
-            };
-        }
-        if (isBoolean(axisDoubleClickReset)) {
-            options.handleScale.axisDoubleClickReset = {
-                time: axisDoubleClickReset,
-                price: axisDoubleClickReset,
-            };
-        }
-    }
-
-    const handleScroll = options.handleScroll;
-    if (isBoolean(handleScroll)) {
-        options.handleScroll = {
-            horzTouchDrag: handleScroll,
-            vertTouchDrag: handleScroll,
-            mouseWheel: handleScroll,
-            pressedMouseMove: handleScroll,
-        };
-    }
-}
-
-function toInternalOptions<THorzScaleItem>(
-    options: DeepPartial<ChartOptionsImpl<THorzScaleItem>>,
-): DeepPartial<ChartOptionsInternal<THorzScaleItem>> {
-    migrateHandleScaleScrollOptions(options);
-
-    return options as DeepPartial<ChartOptionsInternal<THorzScaleItem>>;
-}
 
 export type IPriceScaleApiProvider<THorzScaleItem> = Pick<IChartApiBase<THorzScaleItem>, 'priceScale'>;
 
@@ -457,4 +402,64 @@ export class ChartApi<THorzScaleItem>
             sourceEvent: param.touchMouseEventData,
         };
     }
+}
+
+function patchPriceFormat(priceFormat?: DeepPartial<PriceFormat>): void {
+    if (priceFormat === undefined || priceFormat.type === 'custom') {
+        return;
+    }
+    const priceFormatBuiltIn = priceFormat as DeepPartial<PriceFormatBuiltIn>;
+    if (priceFormatBuiltIn.minMove !== undefined && priceFormatBuiltIn.precision === undefined) {
+        priceFormatBuiltIn.precision = precisionByMinMove(priceFormatBuiltIn.minMove);
+    }
+}
+
+function migrateHandleScaleScrollOptions<THorzScaleItem>(options: DeepPartial<ChartOptionsImpl<THorzScaleItem>>): void {
+    if (isBoolean(options.handleScale)) {
+        const handleScale = options.handleScale;
+        options.handleScale = {
+            axisDoubleClickReset: {
+                time: handleScale,
+                price: handleScale,
+            },
+            axisPressedMouseMove: {
+                time: handleScale,
+                price: handleScale,
+            },
+            mouseWheel: handleScale,
+            pinch: handleScale,
+        };
+    } else if (options.handleScale !== undefined) {
+        const { axisPressedMouseMove, axisDoubleClickReset } = options.handleScale;
+        if (isBoolean(axisPressedMouseMove)) {
+            options.handleScale.axisPressedMouseMove = {
+                time: axisPressedMouseMove,
+                price: axisPressedMouseMove,
+            };
+        }
+        if (isBoolean(axisDoubleClickReset)) {
+            options.handleScale.axisDoubleClickReset = {
+                time: axisDoubleClickReset,
+                price: axisDoubleClickReset,
+            };
+        }
+    }
+
+    const handleScroll = options.handleScroll;
+    if (isBoolean(handleScroll)) {
+        options.handleScroll = {
+            horzTouchDrag: handleScroll,
+            vertTouchDrag: handleScroll,
+            mouseWheel: handleScroll,
+            pressedMouseMove: handleScroll,
+        };
+    }
+}
+
+function toInternalOptions<THorzScaleItem>(
+    options: DeepPartial<ChartOptionsImpl<THorzScaleItem>>,
+): DeepPartial<ChartOptionsInternal<THorzScaleItem>> {
+    migrateHandleScaleScrollOptions(options);
+
+    return options as DeepPartial<ChartOptionsInternal<THorzScaleItem>>;
 }

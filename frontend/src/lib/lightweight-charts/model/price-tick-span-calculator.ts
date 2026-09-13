@@ -1,10 +1,15 @@
+/**
+ * Picks the spacing between price marks: the smallest step from the allowed
+ * set that still leaves the labels far enough apart to read.
+ */
 import { getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 import { equal, greaterOrEqual, isBaseDecimal } from '@/lib/lightweight-charts/helpers/mathex';
+
+type Constants = (typeof Constants)[keyof typeof Constants];
 
 const Constants = {
     TickSpanEpsilon: 1e-14,
 } as const;
-type Constants = (typeof Constants)[keyof typeof Constants];
 
 export class PriceTickSpanCalculator {
     private readonly _base: number;

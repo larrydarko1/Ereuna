@@ -1,3 +1,7 @@
+/**
+ * The base for every price axis label: the background and foreground
+ * renderers, and the data both draw from.
+ */
 import { type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
 import {
     type IPriceAxisViewRenderer,

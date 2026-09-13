@@ -1,3 +1,7 @@
+/**
+ * How a tick mark is labelled when the caller has not supplied a formatter:
+ * the shortest form that still distinguishes it from its neighbours.
+ */
 import { ensureNever } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { TickMarkType, type TimePoint } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';

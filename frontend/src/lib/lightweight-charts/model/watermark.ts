@@ -1,3 +1,6 @@
+/**
+ * The text drawn behind a pane's content.
+ */
 import { type HorzAlign, type VertAlign } from '@/lib/lightweight-charts/renderers/watermark-renderer';
 import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
 import { WatermarkPaneView } from '@/lib/lightweight-charts/views/pane/watermark-pane-view';

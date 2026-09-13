@@ -1,3 +1,9 @@
+/**
+ * Caches text measurements.
+ *
+ * `measureText` forces a layout, and the axes measure the same handful of labels
+ * on every frame, so the cache is what keeps an idle chart from doing work.
+ */
 import { getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 
 export type CanvasCtxLike = Pick<CanvasRenderingContext2D, 'measureText' | 'save' | 'restore' | 'textBaseline'>;

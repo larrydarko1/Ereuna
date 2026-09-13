@@ -1,10 +1,15 @@
-import {
-    type IChartApi,
-    type ISeriesApi,
-    type MouseEventParams,
-    type SeriesType,
-    type Time,
-} from '@/lib/lightweight-charts/index';
+/**
+ * The measuring tool: drag between two points to read the move between them
+ * in price, percent and bars.
+ *
+ * Unlike the other tools nothing it draws is kept — a ruler exists only while the
+ * pointer is down.
+ */
+import { type IChartApi } from '@/lib/lightweight-charts/api/create-chart';
+import { type MouseEventParams } from '@/lib/lightweight-charts/api/ichart-api';
+import { type ISeriesApi } from '@/lib/lightweight-charts/api/iseries-api';
+import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 import { traceRoundedRect } from '@/lib/lightweight-charts/canvas-path';
 import { getThemeColor } from '@/lib/lightweight-charts/theme-color';
 import { timeToTimestamp } from '@/lib/lightweight-charts/time-conversion';

@@ -1,6 +1,9 @@
+/**
+ * Places a series' markers: which bar each sits on, which side of it, and how
+ * far off so that two markers on the same bar do not overlap.
+ */
 import { ensureNever } from '@/lib/lightweight-charts/helpers/assertions';
 import { isNumber } from '@/lib/lightweight-charts/helpers/strict-type-checks';
-
 import { type AutoScaleMargins } from '@/lib/lightweight-charts/model/autoscale-info-impl';
 import { type BarPrice, type BarPrices } from '@/lib/lightweight-charts/model/bar';
 import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
@@ -22,12 +25,8 @@ import {
     calculateShapeHeight,
     shapeMargin as calculateShapeMargin,
 } from '@/lib/lightweight-charts/renderers/series-markers-utils';
-
 import { type IUpdatablePaneView, type UpdateType } from '@/lib/lightweight-charts/views/pane/iupdatable-pane-view';
 
-const Constants = {
-    TextMargin: 0.1,
-} as const;
 type Constants = (typeof Constants)[keyof typeof Constants];
 
 type Offsets = {
@@ -48,71 +47,9 @@ type MarkerContext = {
     firstValue: number;
 };
 
-/**
- * Sizes the marker from the bar spacing and drops it onto its price, which is
- * one job: a marker's height is what decides where it can sit.
- */
-function placeMarker(
-    rendererItem: SeriesMarkerRendererDataItem,
-    marker: InternalSeriesMarker<TimePointIndex>,
-    context: MarkerContext,
-): void {
-    const { seriesData, offsets, textHeight, shapeMargin, priceScale, timeScale, firstValue } = context;
-
-    const inBarPrice = isNumber(seriesData) ? seriesData : seriesData.close;
-    const highPrice = isNumber(seriesData) ? seriesData : seriesData.high;
-    const lowPrice = isNumber(seriesData) ? seriesData : seriesData.low;
-    const sizeMultiplier = isNumber(marker.size) ? Math.max(marker.size, 0) : 1;
-    const shapeSize = calculateShapeHeight(timeScale.barSpacing()) * sizeMultiplier;
-    const halfSize = shapeSize / 2;
-    rendererItem.size = shapeSize;
-
-    switch (marker.position) {
-        case 'inBar': {
-            rendererItem.y = priceScale.priceToCoordinate(inBarPrice, firstValue);
-            if (rendererItem.text !== undefined) {
-                rendererItem.text.y = (rendererItem.y +
-                    halfSize +
-                    shapeMargin +
-                    textHeight * (0.5 + Constants.TextMargin)) as Coordinate;
-            }
-            return;
-        }
-        case 'aboveBar': {
-            rendererItem.y = (priceScale.priceToCoordinate(highPrice, firstValue) -
-                halfSize -
-                offsets.aboveBar) as Coordinate;
-            if (rendererItem.text !== undefined) {
-                rendererItem.text.y = (rendererItem.y -
-                    halfSize -
-                    textHeight * (0.5 + Constants.TextMargin)) as Coordinate;
-                offsets.aboveBar += textHeight * (1 + 2 * Constants.TextMargin);
-            }
-            offsets.aboveBar += shapeSize + shapeMargin;
-            return;
-        }
-        case 'belowBar': {
-            rendererItem.y = (priceScale.priceToCoordinate(lowPrice, firstValue) +
-                halfSize +
-                offsets.belowBar) as Coordinate;
-            if (rendererItem.text !== undefined) {
-                rendererItem.text.y = (rendererItem.y +
-                    halfSize +
-                    shapeMargin +
-                    textHeight * (0.5 + Constants.TextMargin)) as Coordinate;
-                offsets.belowBar += textHeight * (1 + 2 * Constants.TextMargin);
-            }
-            offsets.belowBar += shapeSize + shapeMargin;
-            return;
-        }
-        default: {
-            // Exhaustiveness assertion. It lives in `default` and not after the
-            // switch because `allowUnreachableCode: false` rejects the latter
-            ensureNever(marker.position);
-            return;
-        }
-    }
-}
+const Constants = {
+    TextMargin: 0.1,
+} as const;
 
 export class SeriesMarkersPaneView implements IUpdatablePaneView {
     private readonly _series: ISeries<SeriesType>;
@@ -288,5 +225,71 @@ export class SeriesMarkersPaneView implements IUpdatablePaneView {
             });
         }
         this._invalidated = false;
+    }
+}
+
+/**
+ * Sizes the marker from the bar spacing and drops it onto its price, which is
+ * one job: a marker's height is what decides where it can sit.
+ */
+function placeMarker(
+    rendererItem: SeriesMarkerRendererDataItem,
+    marker: InternalSeriesMarker<TimePointIndex>,
+    context: MarkerContext,
+): void {
+    const { seriesData, offsets, textHeight, shapeMargin, priceScale, timeScale, firstValue } = context;
+
+    const inBarPrice = isNumber(seriesData) ? seriesData : seriesData.close;
+    const highPrice = isNumber(seriesData) ? seriesData : seriesData.high;
+    const lowPrice = isNumber(seriesData) ? seriesData : seriesData.low;
+    const sizeMultiplier = isNumber(marker.size) ? Math.max(marker.size, 0) : 1;
+    const shapeSize = calculateShapeHeight(timeScale.barSpacing()) * sizeMultiplier;
+    const halfSize = shapeSize / 2;
+    rendererItem.size = shapeSize;
+
+    switch (marker.position) {
+        case 'inBar': {
+            rendererItem.y = priceScale.priceToCoordinate(inBarPrice, firstValue);
+            if (rendererItem.text !== undefined) {
+                rendererItem.text.y = (rendererItem.y +
+                    halfSize +
+                    shapeMargin +
+                    textHeight * (0.5 + Constants.TextMargin)) as Coordinate;
+            }
+            return;
+        }
+        case 'aboveBar': {
+            rendererItem.y = (priceScale.priceToCoordinate(highPrice, firstValue) -
+                halfSize -
+                offsets.aboveBar) as Coordinate;
+            if (rendererItem.text !== undefined) {
+                rendererItem.text.y = (rendererItem.y -
+                    halfSize -
+                    textHeight * (0.5 + Constants.TextMargin)) as Coordinate;
+                offsets.aboveBar += textHeight * (1 + 2 * Constants.TextMargin);
+            }
+            offsets.aboveBar += shapeSize + shapeMargin;
+            return;
+        }
+        case 'belowBar': {
+            rendererItem.y = (priceScale.priceToCoordinate(lowPrice, firstValue) +
+                halfSize +
+                offsets.belowBar) as Coordinate;
+            if (rendererItem.text !== undefined) {
+                rendererItem.text.y = (rendererItem.y +
+                    halfSize +
+                    shapeMargin +
+                    textHeight * (0.5 + Constants.TextMargin)) as Coordinate;
+                offsets.belowBar += textHeight * (1 + 2 * Constants.TextMargin);
+            }
+            offsets.belowBar += shapeSize + shapeMargin;
+            return;
+        }
+        default: {
+            // Exhaustiveness assertion. It lives in `default` and not after the
+            // switch because `allowUnreachableCode: false` rejects the latter
+            ensureNever(marker.position);
+            return;
+        }
     }
 }

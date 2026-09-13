@@ -1,3 +1,6 @@
+/**
+ * The text marker: a label with no shape behind it.
+ */
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
 export function drawText(

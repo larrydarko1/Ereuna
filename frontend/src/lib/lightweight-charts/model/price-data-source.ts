@@ -1,3 +1,7 @@
+/**
+ * A data source that lives on a price scale, and so has to be able to say
+ * what its first value is and how to format one.
+ */
 import { type IPriceFormatter } from '@/lib/lightweight-charts/formatters/iprice-formatter';
 
 import { type AutoscaleInfoImpl } from '@/lib/lightweight-charts/model/autoscale-info-impl';

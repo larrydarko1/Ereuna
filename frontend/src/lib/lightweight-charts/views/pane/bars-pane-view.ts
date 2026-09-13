@@ -1,3 +1,6 @@
+/**
+ * The OHLC bar series' view.
+ */
 import { type SeriesBarColorer } from '@/lib/lightweight-charts/model/series-bar-colorer';
 import { type SeriesPlotRow } from '@/lib/lightweight-charts/model/series-data';
 import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';

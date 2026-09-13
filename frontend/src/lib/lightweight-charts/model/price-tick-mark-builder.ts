@@ -1,3 +1,6 @@
+/**
+ * Chooses where the marks on a price scale go, and what each one reads.
+ */
 import { min } from '@/lib/lightweight-charts/helpers/mathex';
 
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';

@@ -1,3 +1,6 @@
+/**
+ * Defaults for a price line added to a series.
+ */
 import { type PriceLineOptions } from '@/lib/lightweight-charts/model/price-line-options';
 import { LineStyle } from '@/lib/lightweight-charts/renderers/draw-line';
 

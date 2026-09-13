@@ -1,18 +1,26 @@
+/**
+ * How big a marker is at a given bar spacing, and how far it sits from its
+ * bar.
+ *
+ * Sizes are forced odd so that a marker has a true centre pixel to sit on the
+ * bar's centre.
+ */
 import { ceiledEven, ceiledOdd } from '@/lib/lightweight-charts/helpers/mathex';
-
 import { type SeriesMarkerShape } from '@/lib/lightweight-charts/model/series-markers';
+
+type Constants = (typeof Constants)[keyof typeof Constants];
+
+export type BitmapShapeItemCoordinates = {
+    x: number;
+    y: number;
+    pixelRatio: number;
+};
 
 const Constants = {
     MinShapeSize: 12,
     MaxShapeSize: 30,
     MinShapeMargin: 3,
 } as const;
-type Constants = (typeof Constants)[keyof typeof Constants];
-
-function size(barSpacing: number, coeff: number): number {
-    const result = Math.min(Math.max(barSpacing, Constants.MinShapeSize), Constants.MaxShapeSize) * coeff;
-    return ceiledOdd(result);
-}
 
 export function shapeSize(shape: SeriesMarkerShape, originalSize: number): number {
     switch (shape) {
@@ -35,12 +43,6 @@ export function shapeMargin(barSpacing: number): number {
     return Math.max(size(barSpacing, 0.1), Constants.MinShapeMargin);
 }
 
-export type BitmapShapeItemCoordinates = {
-    x: number;
-    y: number;
-    pixelRatio: number;
-};
-
 /**
  * How much room the markers need above or below the bars: the full margin when
  * something sits outside the bar on that side, half when it only sits inside it.
@@ -55,4 +57,9 @@ export function calculateAdjustedMargin(margin: number, placement: { hasSide: bo
     }
 
     return 0;
+}
+
+function size(barSpacing: number, coeff: number): number {
+    const result = Math.min(Math.max(barSpacing, Constants.MinShapeSize), Constants.MaxShapeSize) * coeff;
+    return ceiledOdd(result);
 }

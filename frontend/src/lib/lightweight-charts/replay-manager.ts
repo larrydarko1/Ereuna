@@ -1,4 +1,11 @@
-import { type Time } from '@/lib/lightweight-charts/index';
+/**
+ * Plays a loaded series back bar by bar, so a chart can be stepped through as
+ * if the bars were arriving.
+ *
+ * It holds the full series and feeds a prefix of it to the chart, which is what
+ * makes stepping backwards as cheap as stepping forwards.
+ */
+import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
 import { timeToTimestamp } from '@/lib/lightweight-charts/time-conversion';
 
 export type OHLCData = {

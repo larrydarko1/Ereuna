@@ -1,3 +1,10 @@
+/**
+ * Turns a plot row back into the data item the caller originally passed.
+ *
+ * This is the inverse of `get-series-plot-row-creator.ts`, and exists because the
+ * API hands data back out — `ISeriesApi.data()` and the crosshair's `seriesData`
+ * both have to return the caller's own shape, not the packed internal row.
+ */
 import {
     type AreaData,
     type BarData,
@@ -24,6 +31,21 @@ import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 type SeriesPlotRowToDataMap<THorzScaleItem> = {
     [T in keyof SeriesDataItemTypeMap]: (plotRow: SeriesPlotRow<T>) => SeriesDataItemTypeMap<THorzScaleItem>[T];
 };
+
+export function getSeriesDataCreator<TSeriesType extends SeriesType, THorzScaleItem>(
+    seriesType: TSeriesType,
+): (plotRow: SeriesPlotRow<TSeriesType>) => SeriesDataItemTypeMap<THorzScaleItem>[TSeriesType] {
+    const seriesPlotRowToDataMap: SeriesPlotRowToDataMap<THorzScaleItem> = {
+        Area: areaData<THorzScaleItem>,
+        Line: lineData<THorzScaleItem>,
+        Baseline: baselineData<THorzScaleItem>,
+        Histogram: lineData<THorzScaleItem>,
+        Bar: barData<THorzScaleItem>,
+        Candlestick: candlestickData<THorzScaleItem>,
+        Custom: customData<THorzScaleItem>,
+    };
+    return seriesPlotRowToDataMap[seriesType];
+}
 
 function singleValueData<THorzScaleItem>(plotRow: PlotRow): SingleValueData<THorzScaleItem> {
     const data: SingleValueData<THorzScaleItem> = {
@@ -135,21 +157,6 @@ function candlestickData<THorzScaleItem>(plotRow: CandlestickPlotRow): Candlesti
     }
 
     return result;
-}
-
-export function getSeriesDataCreator<TSeriesType extends SeriesType, THorzScaleItem>(
-    seriesType: TSeriesType,
-): (plotRow: SeriesPlotRow<TSeriesType>) => SeriesDataItemTypeMap<THorzScaleItem>[TSeriesType] {
-    const seriesPlotRowToDataMap: SeriesPlotRowToDataMap<THorzScaleItem> = {
-        Area: areaData<THorzScaleItem>,
-        Line: lineData<THorzScaleItem>,
-        Baseline: baselineData<THorzScaleItem>,
-        Histogram: lineData<THorzScaleItem>,
-        Bar: barData<THorzScaleItem>,
-        Candlestick: candlestickData<THorzScaleItem>,
-        Custom: customData<THorzScaleItem>,
-    };
-    return seriesPlotRowToDataMap[seriesType];
 }
 
 function customData<THorzScaleItem>(plotRow: CustomPlotRow): CustomData<THorzScaleItem> {

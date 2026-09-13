@@ -1,3 +1,7 @@
+/**
+ * The horizontal scale's public surface: the visible range in both the
+ * caller's time and in logical bar indices, plus the scroll and fit operations.
+ */
 import { type DeepPartial } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';

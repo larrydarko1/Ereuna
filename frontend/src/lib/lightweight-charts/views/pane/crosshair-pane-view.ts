@@ -1,3 +1,6 @@
+/**
+ * The crosshair's own two lines.
+ */
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { type Crosshair, CrosshairMode } from '@/lib/lightweight-charts/model/crosshair';

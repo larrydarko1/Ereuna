@@ -1,3 +1,9 @@
+/**
+ * Draws a series' markers, and hit-tests them.
+ *
+ * Only the markers in the visible range are considered, which is why the data
+ * carries the range rather than the renderer recomputing it.
+ */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { ensureNever } from '@/lib/lightweight-charts/helpers/assertions';
@@ -20,7 +26,7 @@ import {
 import { drawText, hitTestText } from '@/lib/lightweight-charts/renderers/series-markers-text';
 import { type BitmapShapeItemCoordinates } from '@/lib/lightweight-charts/renderers/series-markers-utils';
 
-export type SeriesMarkerText = {
+type SeriesMarkerText = {
     content: string;
     x: Coordinate;
     y: Coordinate;

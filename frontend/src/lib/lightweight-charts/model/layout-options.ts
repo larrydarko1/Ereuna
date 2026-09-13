@@ -1,18 +1,13 @@
 /**
- * Represents a type of color.
+ * The chart's background and text colour, where the background may be a solid
+ * colour or a vertical gradient.
  */
-export const ColorType = {
-    /** Solid color */
-    Solid: 'solid',
-    /** Vertical gradient color */
-    VerticalGradient: 'gradient',
-} as const;
 export type ColorType = (typeof ColorType)[keyof typeof ColorType];
 
 /**
  * Represents a solid color.
  */
-export type SolidColor = {
+type SolidColor = {
     /**
      * Type of color.
      */
@@ -27,7 +22,7 @@ export type SolidColor = {
 /**
  * Represents a vertical gradient of two colors.
  */
-export type VerticalGradientColor = {
+type VerticalGradientColor = {
     /**
      * Type of color.
      */
@@ -47,7 +42,7 @@ export type VerticalGradientColor = {
 /**
  * Represents the background color of the chart.
  */
-export type Background = SolidColor | VerticalGradientColor;
+type Background = SolidColor | VerticalGradientColor;
 
 /** Represents layout options */
 export type LayoutOptions = {
@@ -79,3 +74,13 @@ export type LayoutOptions = {
      */
     fontFamily: string;
 };
+
+/**
+ * Represents a type of color.
+ */
+export const ColorType = {
+    /** Solid color */
+    Solid: 'solid',
+    /** Vertical gradient color */
+    VerticalGradient: 'gradient',
+} as const;

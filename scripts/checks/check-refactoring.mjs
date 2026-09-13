@@ -32,7 +32,7 @@ const MARKERS = /\b(TODO|FIXME|FIX ME|HACK|XXX|TBD|WIP)\b/;
  * that spells the markers out, so it necessarily contains every one of them.
  */
 const SKIP = new Set(['package-lock.json', 'todo.md', 'check-refactoring.mjs']);
-const SKIP_PATTERN = /^(node_modules|.*\/node_modules|.*\/dist|coverage|.*\/coverage|frontend\/src\/lib\/lightweight-charts)\//;
+const SKIP_PATTERN = /^(node_modules|.*\/node_modules|.*\/dist|coverage|.*\/coverage)\//;
 const BINARY = /\.(png|jpe?g|gif|webp|svg|ico|woff2?|ttf|eot|mp4|webm|pdf|zip|gz)$/i;
 
 const failures = [];

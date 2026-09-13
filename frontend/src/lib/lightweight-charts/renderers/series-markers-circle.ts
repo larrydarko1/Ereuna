@@ -1,3 +1,6 @@
+/**
+ * The circle marker shape.
+ */
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
 import { type BitmapShapeItemCoordinates, shapeSize } from '@/lib/lightweight-charts/renderers/series-markers-utils';

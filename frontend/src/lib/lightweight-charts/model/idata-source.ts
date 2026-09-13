@@ -1,3 +1,9 @@
+/**
+ * What the panes require of anything they draw, as a type.
+ *
+ * Split from `data-source.ts` so the widgets can depend on the shape without
+ * depending on the base class.
+ */
 import { type IAxisView } from '@/lib/lightweight-charts/views/pane/iaxis-view';
 import { type IPaneView } from '@/lib/lightweight-charts/views/pane/ipane-view';
 import { type IPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/iprice-axis-view';
@@ -35,8 +41,6 @@ type IDataSourcePaneViews = {
      */
     topPaneViews?(pane: Pane): readonly IPaneView[];
 } & IPluginPaneViews;
-
-export type DataSourcePaneViewGetterNames = keyof IDataSourcePaneViews;
 
 export type IDataSource = {
     setZorder(value: number): void;

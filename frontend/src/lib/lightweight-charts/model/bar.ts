@@ -1,3 +1,10 @@
+/**
+ * A bar's prices, and the same bar once those prices are coordinates.
+ *
+ * Both are branded number types: a price and a y coordinate are both numbers and
+ * mixing them is the single easiest mistake to make in this codebase, so the
+ * compiler is made to care.
+ */
 import { type Nominal } from '@/lib/lightweight-charts/helpers/nominal';
 
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';

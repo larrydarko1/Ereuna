@@ -1,3 +1,7 @@
+/**
+ * What a price axis label provides: its renderers, and how much room it
+ * needs.
+ */
 import { type PriceScale } from '@/lib/lightweight-charts/model/price-scale';
 import {
     type IPriceAxisViewRenderer,

@@ -1,3 +1,10 @@
+/**
+ * The chart's public surface, as a type.
+ *
+ * Split from the class so that `MouseEventParams` and the subscription signatures
+ * can be imported without pulling in the implementation, which reaches most of the
+ * model.
+ */
 import { type DeepPartial } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
 import { type ChartOptionsImpl } from '@/lib/lightweight-charts/model/chart-model';

@@ -1,3 +1,6 @@
+/**
+ * Grid defaults for both axes.
+ */
 import { type GridOptions } from '@/lib/lightweight-charts/model/grid';
 import { LineStyle } from '@/lib/lightweight-charts/renderers/draw-line';
 

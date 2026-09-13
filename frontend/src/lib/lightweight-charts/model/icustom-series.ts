@@ -1,3 +1,9 @@
+/**
+ * What a caller implements to draw a series type this library does not have.
+ *
+ * The view supplies the price values the scale should autoscale over, which is why
+ * a custom series can share an axis with a built-in one.
+ */
 import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
@@ -66,7 +72,7 @@ export type CustomBarItemData<THorzScaleItem, TData extends CustomData<THorzScal
  * Data provide to the custom series pane view which can be used within the renderer
  * for drawing the series data.
  */
-export type PaneRendererCustomData<THorzScaleItem, TData extends CustomData<THorzScaleItem>> = {
+type PaneRendererCustomData<THorzScaleItem, TData extends CustomData<THorzScaleItem>> = {
     /**
      * List of all the series' items and their x coordinates.
      */

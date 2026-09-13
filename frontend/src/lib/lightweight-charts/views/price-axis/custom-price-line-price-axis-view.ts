@@ -1,3 +1,6 @@
+/**
+ * A custom price line's label on the axis.
+ */
 import { generateContrastColors } from '@/lib/lightweight-charts/helpers/color';
 
 import { type CustomPriceLine } from '@/lib/lightweight-charts/model/custom-price-line';

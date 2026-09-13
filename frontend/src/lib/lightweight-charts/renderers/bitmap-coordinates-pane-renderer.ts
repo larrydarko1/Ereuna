@@ -1,3 +1,10 @@
+/**
+ * The base for renderers that work in device pixels.
+ *
+ * Anything that has to land exactly on a pixel boundary — a one-pixel line, a bar
+ * edge — draws here rather than in media coordinates, where the device pixel ratio
+ * would put it between two pixels and the browser would blur it.
+ */
 import { type BitmapCoordinatesRenderingScope, type CanvasRenderingTarget2D } from 'fancy-canvas';
 
 import { type HoverState, type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';

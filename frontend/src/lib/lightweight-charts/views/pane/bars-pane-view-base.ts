@@ -1,3 +1,7 @@
+/**
+ * The base for the two OHLC views, holding the part that reads open, high,
+ * low and close out of a plot row.
+ */
 import { undefinedIfNull } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
 import { type BarPrice } from '@/lib/lightweight-charts/model/bar';

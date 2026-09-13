@@ -1,13 +1,37 @@
+/**
+ * The pulsing circle at a series' last price.
+ *
+ * The animation is driven by elapsed time rather than by a frame counter, so it
+ * runs at the same speed whatever the frame rate, and it reports when it is
+ * finished so the chart can stop asking for frames.
+ */
 import { assert } from '@/lib/lightweight-charts/helpers/assertions';
 import { applyAlpha } from '@/lib/lightweight-charts/helpers/color';
-
 import { type Point } from '@/lib/lightweight-charts/model/point';
 import { type ISeries } from '@/lib/lightweight-charts/model/series';
-import { LastPriceAnimationMode } from '@/lib/lightweight-charts/model/series-options';
+import { LastPriceAnimationMode } from '@/lib/lightweight-charts/model/series-style-options';
 import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 import { SeriesLastPriceAnimationRenderer } from '@/lib/lightweight-charts/renderers/series-last-price-animation-renderer';
-
 import { type IUpdatablePaneView } from '@/lib/lightweight-charts/views/pane/iupdatable-pane-view';
+
+type Constants = (typeof Constants)[keyof typeof Constants];
+
+type AnimationStageData = {
+    start: number;
+    end: number;
+    startRadius: number;
+    endRadius: number;
+    startFillAlpha: number;
+    endFillAlpha: number;
+    startStrokeAlpha: number;
+    endStrokeAlpha: number;
+};
+
+type AnimationData = {
+    radius: number;
+    fillColor: string;
+    strokeColor: string;
+};
 
 const Constants = {
     AnimationPeriod: 2600,
@@ -40,88 +64,6 @@ const Constants = {
     Stage3StartStrokeAlpha: 0,
     Stage3EndStrokeAlpha: 0,
 } as const;
-type Constants = (typeof Constants)[keyof typeof Constants];
-
-type AnimationStageData = {
-    start: number;
-    end: number;
-    startRadius: number;
-    endRadius: number;
-    startFillAlpha: number;
-    endFillAlpha: number;
-    startStrokeAlpha: number;
-    endStrokeAlpha: number;
-};
-
-const animationStagesData: AnimationStageData[] = [
-    {
-        start: 0,
-        end: Constants.Stage1Period,
-        startRadius: Constants.Stage1StartCircleRadius,
-        endRadius: Constants.Stage1EndCircleRadius,
-        startFillAlpha: Constants.Stage1StartFillAlpha,
-        endFillAlpha: Constants.Stage1EndFillAlpha,
-        startStrokeAlpha: Constants.Stage1StartStrokeAlpha,
-        endStrokeAlpha: Constants.Stage1EndStrokeAlpha,
-    },
-    {
-        start: Constants.Stage1Period,
-        end: Constants.Stage1Period + Constants.Stage2Period,
-        startRadius: Constants.Stage2StartCircleRadius,
-        endRadius: Constants.Stage2EndCircleRadius,
-        startFillAlpha: Constants.Stage2StartFillAlpha,
-        endFillAlpha: Constants.Stage2EndFillAlpha,
-        startStrokeAlpha: Constants.Stage2StartStrokeAlpha,
-        endStrokeAlpha: Constants.Stage2EndStrokeAlpha,
-    },
-    {
-        start: Constants.Stage1Period + Constants.Stage2Period,
-        end: Constants.Stage1Period + Constants.Stage2Period + Constants.Stage3Period,
-        startRadius: Constants.Stage3StartCircleRadius,
-        endRadius: Constants.Stage3EndCircleRadius,
-        startFillAlpha: Constants.Stage3StartFillAlpha,
-        endFillAlpha: Constants.Stage3EndFillAlpha,
-        startStrokeAlpha: Constants.Stage3StartStrokeAlpha,
-        endStrokeAlpha: Constants.Stage3EndStrokeAlpha,
-    },
-];
-
-type AnimationData = {
-    radius: number;
-    fillColor: string;
-    strokeColor: string;
-};
-
-function color(seriesLineColor: string, stage: number, startAlpha: number, endAlpha: number): string {
-    const alpha = startAlpha + (endAlpha - startAlpha) * stage;
-    return applyAlpha(seriesLineColor, alpha);
-}
-
-function radius(stage: number, startRadius: number, endRadius: number): number {
-    return startRadius + (endRadius - startRadius) * stage;
-}
-
-function animationData(durationSinceStart: number, lineColor: string): AnimationData {
-    const globalStage = (durationSinceStart % Constants.AnimationPeriod) / Constants.AnimationPeriod;
-
-    let currentStageData: AnimationStageData | undefined;
-
-    for (const stageData of animationStagesData) {
-        if (globalStage >= stageData.start && globalStage <= stageData.end) {
-            currentStageData = stageData;
-            break;
-        }
-    }
-
-    assert(currentStageData !== undefined, 'Last price animation internal logic error');
-
-    const subStage = (globalStage - currentStageData.start) / (currentStageData.end - currentStageData.start);
-    return {
-        fillColor: color(lineColor, subStage, currentStageData.startFillAlpha, currentStageData.endFillAlpha),
-        strokeColor: color(lineColor, subStage, currentStageData.startStrokeAlpha, currentStageData.endStrokeAlpha),
-        radius: radius(subStage, currentStageData.startRadius, currentStageData.endRadius),
-    };
-}
 
 export class SeriesLastPriceAnimationPaneView implements IUpdatablePaneView {
     private readonly _series: ISeries<'Area'> | ISeries<'Line'> | ISeries<'Baseline'>;
@@ -242,4 +184,68 @@ export class SeriesLastPriceAnimationPaneView implements IUpdatablePaneView {
     private _duration(): number {
         return this.animationActive() ? performance.now() - this._startTime : Constants.AnimationPeriod - 1;
     }
+}
+
+const animationStagesData: AnimationStageData[] = [
+    {
+        start: 0,
+        end: Constants.Stage1Period,
+        startRadius: Constants.Stage1StartCircleRadius,
+        endRadius: Constants.Stage1EndCircleRadius,
+        startFillAlpha: Constants.Stage1StartFillAlpha,
+        endFillAlpha: Constants.Stage1EndFillAlpha,
+        startStrokeAlpha: Constants.Stage1StartStrokeAlpha,
+        endStrokeAlpha: Constants.Stage1EndStrokeAlpha,
+    },
+    {
+        start: Constants.Stage1Period,
+        end: Constants.Stage1Period + Constants.Stage2Period,
+        startRadius: Constants.Stage2StartCircleRadius,
+        endRadius: Constants.Stage2EndCircleRadius,
+        startFillAlpha: Constants.Stage2StartFillAlpha,
+        endFillAlpha: Constants.Stage2EndFillAlpha,
+        startStrokeAlpha: Constants.Stage2StartStrokeAlpha,
+        endStrokeAlpha: Constants.Stage2EndStrokeAlpha,
+    },
+    {
+        start: Constants.Stage1Period + Constants.Stage2Period,
+        end: Constants.Stage1Period + Constants.Stage2Period + Constants.Stage3Period,
+        startRadius: Constants.Stage3StartCircleRadius,
+        endRadius: Constants.Stage3EndCircleRadius,
+        startFillAlpha: Constants.Stage3StartFillAlpha,
+        endFillAlpha: Constants.Stage3EndFillAlpha,
+        startStrokeAlpha: Constants.Stage3StartStrokeAlpha,
+        endStrokeAlpha: Constants.Stage3EndStrokeAlpha,
+    },
+];
+
+function color(seriesLineColor: string, stage: number, startAlpha: number, endAlpha: number): string {
+    const alpha = startAlpha + (endAlpha - startAlpha) * stage;
+    return applyAlpha(seriesLineColor, alpha);
+}
+
+function radius(stage: number, startRadius: number, endRadius: number): number {
+    return startRadius + (endRadius - startRadius) * stage;
+}
+
+function animationData(durationSinceStart: number, lineColor: string): AnimationData {
+    const globalStage = (durationSinceStart % Constants.AnimationPeriod) / Constants.AnimationPeriod;
+
+    let currentStageData: AnimationStageData | undefined;
+
+    for (const stageData of animationStagesData) {
+        if (globalStage >= stageData.start && globalStage <= stageData.end) {
+            currentStageData = stageData;
+            break;
+        }
+    }
+
+    assert(currentStageData !== undefined, 'Last price animation internal logic error');
+
+    const subStage = (globalStage - currentStageData.start) / (currentStageData.end - currentStageData.start);
+    return {
+        fillColor: color(lineColor, subStage, currentStageData.startFillAlpha, currentStageData.endFillAlpha),
+        strokeColor: color(lineColor, subStage, currentStageData.startStrokeAlpha, currentStageData.endStrokeAlpha),
+        radius: radius(subStage, currentStageData.startRadius, currentStageData.endRadius),
+    };
 }

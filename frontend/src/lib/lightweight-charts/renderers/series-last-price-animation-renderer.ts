@@ -1,3 +1,6 @@
+/**
+ * Draws the pulsing circle at a series' last price.
+ */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { type Point } from '@/lib/lightweight-charts/model/point';

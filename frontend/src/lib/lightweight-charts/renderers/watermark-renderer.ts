@@ -1,8 +1,11 @@
+/**
+ * Draws the watermark text, aligned within the pane.
+ */
 import { type MediaCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { MediaCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/media-coordinates-pane-renderer';
 
-export type WatermarkRendererLineData = {
+type WatermarkRendererLineData = {
     text: string;
     font: string;
     lineHeight: number;

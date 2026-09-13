@@ -1,3 +1,6 @@
+/**
+ * The candlestick series' view.
+ */
 import { type SeriesBarColorer } from '@/lib/lightweight-charts/model/series-bar-colorer';
 import { type SeriesPlotRow } from '@/lib/lightweight-charts/model/series-data';
 import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';

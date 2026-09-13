@@ -1,8 +1,10 @@
+/**
+ * Draws one horizontal line across a pane — a price line, or a series'
+ * baseline.
+ */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
-
 import { type HoveredObject } from '@/lib/lightweight-charts/model/chart-model';
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
-
 import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
 import {
     drawHorizontalLine,
@@ -21,10 +23,11 @@ export type HorizontalLineRendererData = {
     externalId?: string | undefined;
 };
 
+type Constants = (typeof Constants)[keyof typeof Constants];
+
 const Constants = {
     HitTestThreshold: 7,
 } as const;
-type Constants = (typeof Constants)[keyof typeof Constants];
 
 export class HorizontalLineRenderer extends BitmapCoordinatesPaneRenderer {
     private _data: HorizontalLineRendererData | null = null;

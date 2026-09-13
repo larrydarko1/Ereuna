@@ -29,7 +29,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
 
-/** Every source tree in the monorepo. The vendored chart fork is excluded in .jscpd.json. */
+/** Every source tree in the monorepo, the charting fork included. */
 const SCAN = ['frontend/src', 'api/src', 'worker/src', 'ingestor/src', 'packages/shared/src'];
 const THRESHOLD = 5;
 

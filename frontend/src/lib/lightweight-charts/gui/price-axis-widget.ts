@@ -1,3 +1,10 @@
+/**
+ * One price axis, left or right.
+ *
+ * Its width is measured from the widest label it would draw, which is why it holds
+ * a text width cache; and overlapping labels are pushed apart here rather than
+ * hidden, so a crosshair label never covers the last price.
+ */
 import {
     type BitmapCoordinatesRenderingScope,
     type CanvasElementBitmapSizeBinding,
@@ -8,12 +15,10 @@ import {
     size,
     tryCreateCanvasRenderingTarget2D,
 } from 'fancy-canvas';
-
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { clearRect, clearRectWithGradient } from '@/lib/lightweight-charts/helpers/canvas-helpers';
 import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
 import { makeFont } from '@/lib/lightweight-charts/helpers/make-font';
-
 import { type ChartOptionsInternalBase } from '@/lib/lightweight-charts/model/chart-model';
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 import { type IDataSource } from '@/lib/lightweight-charts/model/idata-source';
@@ -28,7 +33,6 @@ import { type PriceAxisViewRendererOptions } from '@/lib/lightweight-charts/rend
 import { type PriceAxisRendererOptionsProvider } from '@/lib/lightweight-charts/renderers/price-axis-renderer-options-provider';
 import { type IAxisView } from '@/lib/lightweight-charts/views/pane/iaxis-view';
 import { type IPriceAxisView } from '@/lib/lightweight-charts/views/price-axis/iprice-axis-view';
-
 import { createBoundCanvas, releaseCanvas } from '@/lib/lightweight-charts/gui/canvas-utils';
 import { type IPriceAxisViewsGetter } from '@/lib/lightweight-charts/gui/iaxis-view-getters';
 import { suggestPriceScaleWidth } from '@/lib/lightweight-charts/gui/internal-layout-sizes-hints';
@@ -41,96 +45,21 @@ import { type PaneWidget } from '@/lib/lightweight-charts/gui/pane-widget';
 
 export type PriceAxisWidgetSide = Exclude<PriceScalePosition, 'overlay'>;
 
+type CursorType = (typeof CursorType)[keyof typeof CursorType];
+
+type Constants = (typeof Constants)[keyof typeof Constants];
+
+type IPriceAxisViewArray = readonly IPriceAxisView[];
+
 const CursorType = {
     Default: 0,
     NsResize: 1,
 } as const;
-type CursorType = (typeof CursorType)[keyof typeof CursorType];
 
 const Constants = {
     DefaultOptimalWidth: 34,
     LabelOffset: 5,
 } as const;
-type Constants = (typeof Constants)[keyof typeof Constants];
-
-type IPriceAxisViewArray = readonly IPriceAxisView[];
-
-function buildPriceAxisViewsGetter(
-    zOrder: SeriesPrimitivePaneViewZOrder,
-    priceScaleId: PriceAxisWidgetSide,
-): IPriceAxisViewsGetter {
-    return (source: IDataSource): readonly IAxisView[] => {
-        const psId = source.priceScale()?.id() ?? '';
-        if (psId !== priceScaleId) {
-            // exclude if source is using a different price scale.
-            return [];
-        }
-        return source.pricePaneViews?.(zOrder) ?? [];
-    };
-}
-
-function recalculateOverlapping(
-    views: IPriceAxisView[],
-    direction: 1 | -1,
-    scaleHeight: number,
-    rendererOptions: Readonly<PriceAxisViewRendererOptions>,
-): void {
-    const firstView = views[0];
-    if (firstView === undefined) {
-        return;
-    }
-    let currentGroupStart = 0;
-
-    const initLabelHeight = firstView.height(rendererOptions);
-    let spaceBeforeCurrentGroup =
-        direction === 1
-            ? scaleHeight / 2 - (firstView.getFixedCoordinate() - initLabelHeight / 2)
-            : firstView.getFixedCoordinate() - initLabelHeight / 2 - scaleHeight / 2;
-    spaceBeforeCurrentGroup = Math.max(0, spaceBeforeCurrentGroup);
-
-    for (let i = 1; i < views.length; i++) {
-        const view = views[i];
-        const prev = views[i - 1];
-        if (view === undefined || prev === undefined) continue;
-
-        const height = prev.height(rendererOptions);
-        const coordinate = view.getFixedCoordinate();
-        const prevFixedCoordinate = prev.getFixedCoordinate();
-
-        const overlap =
-            direction === 1 ? coordinate > prevFixedCoordinate - height : coordinate < prevFixedCoordinate + height;
-
-        if (overlap) {
-            const fixedCoordinate = prevFixedCoordinate - height * direction;
-            view.setFixedCoordinate(fixedCoordinate);
-            const edgePoint = fixedCoordinate - (direction * height) / 2;
-            const outOfViewport = direction === 1 ? edgePoint < 0 : edgePoint > scaleHeight;
-            if (outOfViewport && spaceBeforeCurrentGroup > 0) {
-                const desiredGroupShift = direction === 1 ? -1 - edgePoint : edgePoint - scaleHeight;
-                const possibleShift = Math.min(desiredGroupShift, spaceBeforeCurrentGroup);
-
-                shiftGroup(views.slice(currentGroupStart), direction * possibleShift);
-                spaceBeforeCurrentGroup -= possibleShift;
-            }
-        } else {
-            currentGroupStart = i;
-            spaceBeforeCurrentGroup =
-                direction === 1
-                    ? prevFixedCoordinate - height - coordinate
-                    : coordinate - (prevFixedCoordinate + height);
-        }
-    }
-}
-
-/**
- * Moves a run of already-placed labels together, so that pushing one clear of
- * the viewport edge does not leave it overlapping the ones it was stacked with.
- */
-function shiftGroup(views: readonly IPriceAxisView[], shift: number): void {
-    for (const view of views) {
-        view.setFixedCoordinate(view.getFixedCoordinate() + shift);
-    }
-}
 
 export class PriceAxisWidget implements IDestroyable {
     private readonly _pane: PaneWidget;
@@ -772,5 +701,82 @@ export class PriceAxisWidget implements IDestroyable {
 
     private _baseFont(): string {
         return makeFont(this._layoutOptions.fontSize, this._layoutOptions.fontFamily);
+    }
+}
+
+function buildPriceAxisViewsGetter(
+    zOrder: SeriesPrimitivePaneViewZOrder,
+    priceScaleId: PriceAxisWidgetSide,
+): IPriceAxisViewsGetter {
+    return (source: IDataSource): readonly IAxisView[] => {
+        const psId = source.priceScale()?.id() ?? '';
+        if (psId !== priceScaleId) {
+            // exclude if source is using a different price scale.
+            return [];
+        }
+        return source.pricePaneViews?.(zOrder) ?? [];
+    };
+}
+
+function recalculateOverlapping(
+    views: IPriceAxisView[],
+    direction: 1 | -1,
+    scaleHeight: number,
+    rendererOptions: Readonly<PriceAxisViewRendererOptions>,
+): void {
+    const firstView = views[0];
+    if (firstView === undefined) {
+        return;
+    }
+    let currentGroupStart = 0;
+
+    const initLabelHeight = firstView.height(rendererOptions);
+    let spaceBeforeCurrentGroup =
+        direction === 1
+            ? scaleHeight / 2 - (firstView.getFixedCoordinate() - initLabelHeight / 2)
+            : firstView.getFixedCoordinate() - initLabelHeight / 2 - scaleHeight / 2;
+    spaceBeforeCurrentGroup = Math.max(0, spaceBeforeCurrentGroup);
+
+    for (let i = 1; i < views.length; i++) {
+        const view = views[i];
+        const prev = views[i - 1];
+        if (view === undefined || prev === undefined) continue;
+
+        const height = prev.height(rendererOptions);
+        const coordinate = view.getFixedCoordinate();
+        const prevFixedCoordinate = prev.getFixedCoordinate();
+
+        const overlap =
+            direction === 1 ? coordinate > prevFixedCoordinate - height : coordinate < prevFixedCoordinate + height;
+
+        if (overlap) {
+            const fixedCoordinate = prevFixedCoordinate - height * direction;
+            view.setFixedCoordinate(fixedCoordinate);
+            const edgePoint = fixedCoordinate - (direction * height) / 2;
+            const outOfViewport = direction === 1 ? edgePoint < 0 : edgePoint > scaleHeight;
+            if (outOfViewport && spaceBeforeCurrentGroup > 0) {
+                const desiredGroupShift = direction === 1 ? -1 - edgePoint : edgePoint - scaleHeight;
+                const possibleShift = Math.min(desiredGroupShift, spaceBeforeCurrentGroup);
+
+                shiftGroup(views.slice(currentGroupStart), direction * possibleShift);
+                spaceBeforeCurrentGroup -= possibleShift;
+            }
+        } else {
+            currentGroupStart = i;
+            spaceBeforeCurrentGroup =
+                direction === 1
+                    ? prevFixedCoordinate - height - coordinate
+                    : coordinate - (prevFixedCoordinate + height);
+        }
+    }
+}
+
+/**
+ * Moves a run of already-placed labels together, so that pushing one clear of
+ * the viewport edge does not leave it overlapping the ones it was stacked with.
+ */
+function shiftGroup(views: readonly IPriceAxisView[], shift: number): void {
+    for (const view of views) {
+        view.setFixedCoordinate(view.getFixedCoordinate() + shift);
     }
 }

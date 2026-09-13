@@ -1,3 +1,7 @@
+/**
+ * The baseline series' view: the two fills and the line, all keyed to where
+ * the base value sits in the visible price range.
+ */
 import { type BarPrice } from '@/lib/lightweight-charts/model/bar';
 import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
 import { type ISeries } from '@/lib/lightweight-charts/model/series';

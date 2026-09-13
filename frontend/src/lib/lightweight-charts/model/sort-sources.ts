@@ -1,3 +1,10 @@
+/**
+ * Orders the sources on a pane for drawing: by z-order, and by the order they
+ * were added within one.
+ *
+ * The sort has to be stable, because two sources at the same z-order are drawn in
+ * the order the caller added them and a caller can see that.
+ */
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { type ZOrdered } from '@/lib/lightweight-charts/model/idata-source';

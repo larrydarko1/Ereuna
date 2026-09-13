@@ -1,3 +1,10 @@
+/**
+ * Caches formatted axis labels by value.
+ *
+ * Formatting a price is not free and the same handful of values are formatted on
+ * every frame while the chart is idle, so the cache is keyed on the value and
+ * capped rather than cleared.
+ */
 import { getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { type IHorzScaleBehavior } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';

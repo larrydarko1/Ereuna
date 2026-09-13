@@ -1,3 +1,6 @@
+/**
+ * The baseline series' two fills, above and below its base value.
+ */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';

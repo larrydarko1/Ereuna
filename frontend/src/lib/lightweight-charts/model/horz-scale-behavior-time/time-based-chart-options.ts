@@ -1,3 +1,6 @@
+/**
+ * The chart options once the horizontal scale is known to be time.
+ */
 import { type ChartOptionsImpl } from '@/lib/lightweight-charts/model/chart-model';
 import { type HorzScaleOptions } from '@/lib/lightweight-charts/model/time-scale';
 import { type TickMarkFormatter } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/horz-scale-behavior-time';
@@ -6,7 +9,7 @@ import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-ti
 /**
  * Extended time scale options for time-based horizontal scale
  */
-export type TimeScaleOptions = {
+type TimeScaleOptions = {
     /**
      * Tick marks formatter can be used to customize tick marks labels on the time axis.
      *

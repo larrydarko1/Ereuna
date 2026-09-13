@@ -1,3 +1,10 @@
+/**
+ * The handle returned by every `add*Series` call.
+ *
+ * It holds no data of its own: reads go to the model's `Series` and writes go back
+ * through the chart's data layer, so that one change can be applied to the time
+ * scale and every other series in the same pass.
+ */
 import { type IPriceFormatter } from '@/lib/lightweight-charts/formatters/iprice-formatter';
 
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';

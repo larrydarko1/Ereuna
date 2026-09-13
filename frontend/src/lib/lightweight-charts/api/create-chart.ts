@@ -1,44 +1,18 @@
+/**
+ * The one way to build a chart.
+ *
+ * `createChart` fixes the horizontal scale to time; `createChartEx` is the general
+ * form it delegates to, kept private because nothing here charts anything but
+ * time.
+ */
 import { assert } from '@/lib/lightweight-charts/helpers/assertions';
 import { type DeepPartial, isString } from '@/lib/lightweight-charts/helpers/strict-type-checks';
-
 import { HorzScaleBehaviorTime } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/horz-scale-behavior-time';
 import { type TimeChartOptions } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/time-based-chart-options';
 import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
 import { type IHorzScaleBehavior } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
-
 import { ChartApi } from '@/lib/lightweight-charts/api/chart-api';
 import { type IChartApiBase } from '@/lib/lightweight-charts/api/ichart-api';
-
-/**
- * This function is the main entry point of the Lightweight Charting Library. If you are using time values
- * for the horizontal scale then it is recommended that you rather use the {@link createChart} function.
- *
- * @template THorzScaleItem - type of points on the horizontal scale
- * @template THorzScaleBehavior - type of horizontal axis strategy that encapsulate all the specific behaviors of the horizontal scale type
- *
- * @param container - ID of HTML element or element itself
- * @param horzScaleBehavior - Horizontal scale behavior
- * @param options - Any subset of options to be applied at start.
- * @returns An interface to the created chart
- */
-export function createChartEx<THorzScaleItem, THorzScaleBehavior extends IHorzScaleBehavior<THorzScaleItem>>(
-    container: string | HTMLElement,
-    horzScaleBehavior: THorzScaleBehavior,
-    options?: DeepPartial<ReturnType<THorzScaleBehavior['options']>>,
-): IChartApiBase<THorzScaleItem> {
-    let htmlElement: HTMLElement;
-    if (isString(container)) {
-        const element = document.getElementById(container);
-        assert(element !== null, `Cannot find element in DOM with id=${container}`);
-        htmlElement = element;
-    } else {
-        htmlElement = container;
-    }
-
-    const res = new ChartApi<THorzScaleItem>(htmlElement, horzScaleBehavior, options);
-    horzScaleBehavior.setOptions(res.options());
-    return res;
-}
 
 /**
  * Structure describing options of the chart with time points at the horizontal scale. Series options are to be set separately
@@ -73,13 +47,32 @@ export function createChart(container: string | HTMLElement, options?: DeepParti
 }
 
 /**
- * Provides the default implementation of the horizontal scale (time-based) that can be used as a base for extending the horizontal scale with custom behavior.
- * This allows for the introduction of custom functionality without re-implementing the entire {@link IHorzScaleBehavior}&lt;{@link Time}&gt; interface.
+ * This function is the main entry point of the Lightweight Charting Library. If you are using time values
+ * for the horizontal scale then it is recommended that you rather use the {@link createChart} function.
  *
- * For further details, refer to the {@link createChartEx} chart constructor method.
+ * @template THorzScaleItem - type of points on the horizontal scale
+ * @template THorzScaleBehavior - type of horizontal axis strategy that encapsulate all the specific behaviors of the horizontal scale type
  *
- * @returns An uninitialized class implementing the {@link IHorzScaleBehavior}&lt;{@link Time}&gt; interface
+ * @param container - ID of HTML element or element itself
+ * @param horzScaleBehavior - Horizontal scale behavior
+ * @param options - Any subset of options to be applied at start.
+ * @returns An interface to the created chart
  */
-export function defaultHorzScaleBehavior(): new () => IHorzScaleBehavior<Time> {
-    return HorzScaleBehaviorTime;
+function createChartEx<THorzScaleItem, THorzScaleBehavior extends IHorzScaleBehavior<THorzScaleItem>>(
+    container: string | HTMLElement,
+    horzScaleBehavior: THorzScaleBehavior,
+    options?: DeepPartial<ReturnType<THorzScaleBehavior['options']>>,
+): IChartApiBase<THorzScaleItem> {
+    let htmlElement: HTMLElement;
+    if (isString(container)) {
+        const element = document.getElementById(container);
+        assert(element !== null, `Cannot find element in DOM with id=${container}`);
+        htmlElement = element;
+    } else {
+        htmlElement = container;
+    }
+
+    const res = new ChartApi<THorzScaleItem>(htmlElement, horzScaleBehavior, options);
+    horzScaleBehavior.setOptions(res.options());
+    return res;
 }

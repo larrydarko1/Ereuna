@@ -1,9 +1,24 @@
+/**
+ * The sorted store behind every series.
+ *
+ * Lookups are binary searches over the index, and the min/max over a range is
+ * cached per plot so that autoscaling a visible window does not rescan it on every
+ * frame.
+ */
 import { lowerBound, upperBound } from '@/lib/lightweight-charts/helpers/algorithms';
 import { getDefined, getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { type Nominal } from '@/lib/lightweight-charts/helpers/nominal';
-
 import { type PlotRow, type PlotRowValueIndex } from '@/lib/lightweight-charts/model/plot-data';
 import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
+
+export type MismatchDirection = (typeof MismatchDirection)[keyof typeof MismatchDirection];
+
+export type MinMax = {
+    min: number;
+    max: number;
+};
+
+type PlotRowIndex = Nominal<number, 'PlotRowIndex'>;
 
 /**
  * Search direction if no data found at provided index
@@ -22,14 +37,6 @@ export const MismatchDirection = {
      */
     NearestRight: 1,
 } as const;
-export type MismatchDirection = (typeof MismatchDirection)[keyof typeof MismatchDirection];
-
-export type MinMax = {
-    min: number;
-    max: number;
-};
-
-type PlotRowIndex = Nominal<number, 'PlotRowIndex'>;
 
 // Fixed for now; upstream wondered about sizing it to the data
 const CHUNK_SIZE = 30;

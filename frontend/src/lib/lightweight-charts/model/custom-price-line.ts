@@ -1,3 +1,6 @@
+/**
+ * One horizontal line at a fixed price on a series, with its own axis label.
+ */
 import { merge } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
 import { CustomPriceLinePaneView } from '@/lib/lightweight-charts/views/pane/custom-price-line-pane-view';

@@ -1,3 +1,6 @@
+/**
+ * The baseline series' base value, as a line across the pane.
+ */
 import { PriceScaleMode } from '@/lib/lightweight-charts/model/price-scale';
 import { type ISeries } from '@/lib/lightweight-charts/model/series';
 import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';

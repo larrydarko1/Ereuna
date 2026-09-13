@@ -1,10 +1,20 @@
+/**
+ * Rejects data and options that would produce a chart nobody could read —
+ * values out of order, the wrong shape for the series type, a price format that
+ * contradicts itself.
+ *
+ * Upstream ran these only in a development build. They always run here, because
+ * the alternative is a silently wrong chart and this codebase does not keep silent
+ * fallbacks.
+ */
 import { assert, getDefined } from '@/lib/lightweight-charts/helpers/assertions';
-
 import { isFulfilledData, type SeriesDataItemTypeMap } from '@/lib/lightweight-charts/model/data-consumer';
 import { type IHorzScaleBehavior } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
 import { type CreatePriceLineOptions } from '@/lib/lightweight-charts/model/price-line-options';
 import { type SeriesMarker } from '@/lib/lightweight-charts/model/series-markers';
 import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
+
+type Checker<THorzScaleItem> = (item: SeriesDataItemTypeMap<THorzScaleItem>[SeriesType]) => void;
 
 export function checkPriceLineOptions(options: CreatePriceLineOptions): void {
     assert(
@@ -41,9 +51,7 @@ export function checkSeriesValuesType<THorzScaleItem>(
     data.forEach(getChecker<THorzScaleItem>(type));
 }
 
-type Checker<THorzScaleItem> = (item: SeriesDataItemTypeMap<THorzScaleItem>[SeriesType]) => void;
-
-export function getChecker<THorzScaleItem>(type: SeriesType): Checker<THorzScaleItem> {
+function getChecker<THorzScaleItem>(type: SeriesType): Checker<THorzScaleItem> {
     switch (type) {
         case 'Bar':
         case 'Candlestick':

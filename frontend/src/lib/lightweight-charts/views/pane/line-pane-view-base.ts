@@ -1,3 +1,6 @@
+/**
+ * The base for the views that draw a single value per bar.
+ */
 import { undefinedIfNull } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
 import { type BarPrice } from '@/lib/lightweight-charts/model/bar';

@@ -1,5 +1,11 @@
+/**
+ * Carries a flick past the point the finger left the screen, and decays it.
+ *
+ * It records the recent positions rather than a single velocity so that a pause
+ * before release stops the chart instead of throwing it, which is what a user
+ * expects when they mean to stop somewhere exact.
+ */
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
-
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
 type TimeAndPosition = {
@@ -7,25 +13,12 @@ type TimeAndPosition = {
     position: Coordinate;
 };
 
+type Constants = (typeof Constants)[keyof typeof Constants];
+
 const Constants = {
     MaxStartDelay: 50,
     EpsilonDistance: 1, // distance to the end position where we stop animation
 } as const;
-type Constants = (typeof Constants)[keyof typeof Constants];
-
-function distanceBetweenPoints(pos1: TimeAndPosition, pos2: TimeAndPosition): number {
-    return pos1.position - pos2.position;
-}
-
-function speedPxPerMSec(pos1: TimeAndPosition, pos2: TimeAndPosition, maxSpeed: number): number {
-    const speed = (pos1.position - pos2.position) / (pos1.time - pos2.time);
-    return Math.sign(speed) * Math.min(Math.abs(speed), maxSpeed);
-}
-
-function durationMSec(speed: number, dumpingCoeff: number): number {
-    const lnDumpingCoeff = Math.log(dumpingCoeff);
-    return Math.log((Constants.EpsilonDistance * lnDumpingCoeff) / -speed) / lnDumpingCoeff;
-}
 
 export class KineticAnimation {
     private _position1: TimeAndPosition | null = null;
@@ -138,4 +131,18 @@ export class KineticAnimation {
         const progress = time - startPosition.time;
         return Math.min(progress, this._durationMsecs);
     }
+}
+
+function distanceBetweenPoints(pos1: TimeAndPosition, pos2: TimeAndPosition): number {
+    return pos1.position - pos2.position;
+}
+
+function speedPxPerMSec(pos1: TimeAndPosition, pos2: TimeAndPosition, maxSpeed: number): number {
+    const speed = (pos1.position - pos2.position) / (pos1.time - pos2.time);
+    return Math.sign(speed) * Math.min(Math.abs(speed), maxSpeed);
+}
+
+function durationMSec(speed: number, dumpingCoeff: number): number {
+    const lnDumpingCoeff = Math.log(dumpingCoeff);
+    return Math.log((Constants.EpsilonDistance * lnDumpingCoeff) / -speed) / lnDumpingCoeff;
 }

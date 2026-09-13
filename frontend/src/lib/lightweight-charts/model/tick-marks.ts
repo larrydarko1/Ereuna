@@ -1,6 +1,9 @@
+/**
+ * The time axis' marks, kept grouped by weight so the axis can take the
+ * heaviest ones that fit without sorting the whole set each frame.
+ */
 import { lowerBound } from '@/lib/lightweight-charts/helpers/algorithms';
 import { getDefined } from '@/lib/lightweight-charts/helpers/assertions';
-
 import { type InternalHorzScaleItem } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
 import {
     type TickMarkWeightValue,
@@ -26,33 +29,6 @@ type MarksCache = {
     maxIndexesPerMark: number;
     marks: readonly TickMark[];
 };
-
-/**
- * Moves every already-placed mark that sits left of `currentIndex` across to the
- * new list, and reports the index of the first one that does not — which is the
- * right-hand neighbour `currentIndex` has to clear.
- */
-function carryMarksBefore(
-    prevMarks: readonly TickMark[],
-    pointer: number,
-    currentIndex: TimePointIndex,
-): { pointer: number; moved: TickMark[]; rightIndex: number } {
-    const moved: TickMark[] = [];
-
-    while (pointer < prevMarks.length) {
-        const lastMark = prevMarks[pointer];
-        if (lastMark === undefined) break;
-
-        if (lastMark.index >= currentIndex) {
-            return { pointer, moved, rightIndex: lastMark.index };
-        }
-
-        pointer++;
-        moved.push(lastMark);
-    }
-
-    return { pointer, moved, rightIndex: Infinity };
-}
 
 export class TickMarks {
     private _marksByWeight = new Map<TickMarkWeightValue, TickMark[]>();
@@ -180,4 +156,31 @@ export class TickMarks {
 
         return marks;
     }
+}
+
+/**
+ * Moves every already-placed mark that sits left of `currentIndex` across to the
+ * new list, and reports the index of the first one that does not — which is the
+ * right-hand neighbour `currentIndex` has to clear.
+ */
+function carryMarksBefore(
+    prevMarks: readonly TickMark[],
+    pointer: number,
+    currentIndex: TimePointIndex,
+): { pointer: number; moved: TickMark[]; rightIndex: number } {
+    const moved: TickMark[] = [];
+
+    while (pointer < prevMarks.length) {
+        const lastMark = prevMarks[pointer];
+        if (lastMark === undefined) break;
+
+        if (lastMark.index >= currentIndex) {
+            return { pointer, moved, rightIndex: lastMark.index };
+        }
+
+        pointer++;
+        moved.push(lastMark);
+    }
+
+    return { pointer, moved, rightIndex: Infinity };
 }

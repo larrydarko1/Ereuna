@@ -1,3 +1,6 @@
+/**
+ * Formats a time of day on its own, without the date.
+ */
 import { numberToStringWithLeadingZero } from '@/lib/lightweight-charts/formatters/price-formatter';
 
 export class TimeFormatter {

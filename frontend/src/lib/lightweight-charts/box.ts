@@ -1,32 +1,24 @@
-import {
-    type IChartApi,
-    type ISeriesApi,
-    type MouseEventParams,
-    type SeriesType,
-    type Time,
-} from '@/lib/lightweight-charts/index';
+/**
+ * The rectangle tool: two clicks to draw one, corners to resize it, body to
+ * move it.
+ *
+ * A box is stored in time and price rather than pixels, so it stays put over a
+ * pan or a scale change; `updateBoxCoordinates` is what re-derives the pixels
+ * before anything reads them.
+ */
+import { type IChartApi } from '@/lib/lightweight-charts/api/create-chart';
+import { type MouseEventParams } from '@/lib/lightweight-charts/api/ichart-api';
+import { type ISeriesApi } from '@/lib/lightweight-charts/api/iseries-api';
+import { type Time } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/types';
+import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
+import { type Box, type BoxCorner, type BoxPoint } from '@/lib/lightweight-charts/box-types';
+import { boundsOf, cornersOf, generateBoxId, resizeBox } from '@/lib/lightweight-charts/box-shape';
+import { drawHandle } from '@/lib/lightweight-charts/canvas-path';
+import { DrawingLayer } from '@/lib/lightweight-charts/drawing-layer';
 import { type CanvasPoint } from '@/lib/lightweight-charts/geometry';
 import { getThemeColor, hexToRgba } from '@/lib/lightweight-charts/theme-color';
 
-export type BoxPoint = {
-    time: Time;
-    price: number;
-    x: number;
-    y: number;
-};
-
-export type Box = {
-    id: string;
-    point1: BoxPoint; // The corner clicked first
-    point2: BoxPoint; // The corner clicked second, diagonally opposite
-    fillColor: string;
-    borderColor: string;
-    fillOpacity: number;
-    borderWidth: number;
-    locked: boolean;
-};
-
-type BoxCorner = 'tl' | 'tr' | 'bl' | 'br';
+export type { Box, BoxPoint } from '@/lib/lightweight-charts/box-types';
 
 type DragTarget = { boxId: string; corner: BoxCorner | 'body' };
 
@@ -41,12 +33,9 @@ const CORNER_HANDLE_RADIUS = 4;
 // matches the selection and never picks up the selected styling
 const PREVIEW_BOX_ID = 'preview';
 
-export class BoxManager {
-    private chart: IChartApi;
-    private mainSeries: ISeriesApi<SeriesType>;
-    private canvas: HTMLCanvasElement | null = null;
-    private ctx: CanvasRenderingContext2D | null = null;
-    private isActive = false;
+const BOX_LAYER_Z_INDEX = 98;
+
+export class BoxManager extends DrawingLayer {
     private boxes: Box[] = [];
     private currentBox: { point1: BoxPoint | null; point2: BoxPoint | null } = {
         point1: null,
@@ -58,66 +47,10 @@ export class BoxManager {
     // to fall out of step with it
     private dragTarget: DragTarget | null = null;
     private dragOffset: CanvasPoint | null = null;
-    private onChangeCallback: (() => void) | null = null;
-    private onActivateCallback: (() => void) | null = null;
 
-    constructor(chart: IChartApi, mainSeries: ISeriesApi<SeriesType>) {
-        this.chart = chart;
-        this.mainSeries = mainSeries;
-
-        this.setupCanvas();
-        this.chart.timeScale().subscribeVisibleLogicalRangeChange(this.handleVisibleRangeChange);
-
-        // Selecting a box and deleting it both work whether or not the tool is
-        // the active one, so these two listeners outlive activate/deactivate
-        this.chart.subscribeClick(this.handleGlobalClick);
-        document.addEventListener('keydown', this.handleKeyDown);
-    }
-
-    public onChange(callback: () => void): void {
-        this.onChangeCallback = callback;
-    }
-
-    /**
-     * Registers the callback that asks the toolbar to switch to this tool,
-     * which is what clicking an existing box does.
-     */
-    public onActivate(callback: () => void): void {
-        this.onActivateCallback = callback;
-    }
-
-    public activate(): void {
-        if (this.isActive) return;
-
-        this.isActive = true;
-        this.currentBox = { point1: null, point2: null };
-
-        this.chart.subscribeClick(this.handleClick);
-        this.chart.subscribeCrosshairMove(this.handleCrosshairMove);
-    }
-
-    public deactivate(): void {
-        if (!this.isActive) return;
-
-        this.isActive = false;
-        this.currentBox = { point1: null, point2: null };
-        this.dragTarget = null;
-        this.dragOffset = null;
-
-        this.chart.unsubscribeClick(this.handleClick);
-        this.chart.unsubscribeCrosshairMove(this.handleCrosshairMove);
-    }
-
-    public toggle(): void {
-        if (this.isActive) {
-            this.deactivate();
-        } else {
-            this.activate();
-        }
-    }
-
-    public isToolActive(): boolean {
-        return this.isActive;
+    public constructor(chart: IChartApi, mainSeries: ISeriesApi<SeriesType>) {
+        super(chart, mainSeries, BOX_LAYER_Z_INDEX);
+        this.mount();
     }
 
     public removeSelectedBox(): void {
@@ -138,7 +71,7 @@ export class BoxManager {
         this.draw();
     }
 
-    public draw(): void {
+    public override draw(): void {
         this.clear();
         if (this.ctx === null) return;
 
@@ -164,62 +97,37 @@ export class BoxManager {
         });
     }
 
-    public destroy(): void {
-        this.deactivate();
+    protected override startInteraction(): void {
+        this.currentBox = { point1: null, point2: null };
 
-        this.chart.timeScale().unsubscribeVisibleLogicalRangeChange(this.handleVisibleRangeChange);
-        this.chart.unsubscribeClick(this.handleGlobalClick);
-        document.removeEventListener('keydown', this.handleKeyDown);
-        window.removeEventListener('resize', this.handleResize);
-
-        this.canvas?.parentElement?.removeChild(this.canvas);
-
-        this.canvas = null;
-        this.ctx = null;
+        this.chart.subscribeClick(this.handleClick);
+        this.chart.subscribeCrosshairMove(this.handleCrosshairMove);
     }
 
-    // The handlers are arrow properties so that `this` survives being handed to
-    // addEventListener and to the chart's own subscriptions, and so that the
-    // reference passed to unsubscribe is the one that was subscribed
-    private handleVisibleRangeChange = (): void => {
-        this.draw();
-    };
+    protected override stopInteraction(): void {
+        this.currentBox = { point1: null, point2: null };
+        this.dragTarget = null;
+        this.dragOffset = null;
 
-    private handleResize = (): void => {
-        this.resizeCanvas();
-    };
+        this.chart.unsubscribeClick(this.handleClick);
+        this.chart.unsubscribeCrosshairMove(this.handleCrosshairMove);
+    }
 
-    /**
-     * Clicking a box picks it up even when another tool is in front, which is
-     * the only way to reach one without first hunting for the right toolbar
-     * button.
-     */
-    private handleGlobalClick = (param: MouseEventParams<Time>): void => {
-        if (this.isActive || param.point === undefined) return;
-
-        const boxId = this.hitTestBody(param.point);
-        if (boxId === null) return;
+    protected override selectAt(pointer: CanvasPoint): boolean {
+        const boxId = this.hitTestBody(pointer);
+        if (boxId === null) return false;
 
         this.selectedBoxId = boxId;
-        this.draw();
-        this.onActivateCallback?.();
-    };
+        return true;
+    }
 
-    private handleKeyDown = (event: KeyboardEvent): void => {
-        if (event.key !== 'Backspace' && event.key !== 'Delete') return;
+    protected override hasSelection(): boolean {
+        return this.selectedBoxId !== null;
+    }
 
-        // Not while the caret is in a field — there the key means "erase a
-        // character"
-        const target = event.target as HTMLElement;
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-            return;
-        }
-
-        if (this.selectedBoxId !== null) {
-            event.preventDefault(); // Backspace would otherwise navigate back
-            this.removeSelectedBox();
-        }
-    };
+    protected override removeSelected(): void {
+        this.removeSelectedBox();
+    }
 
     private handleClick = (param: MouseEventParams<Time>): void => {
         const pointer = this.readPoint(param);
@@ -255,52 +163,6 @@ export class BoxManager {
             this.draw();
         }
     };
-
-    private setupCanvas(): void {
-        // An overlay canvas below the trendlines' own
-        const chartContainer = this.chart.chartElement();
-
-        this.canvas = document.createElement('canvas');
-        this.canvas.style.position = 'absolute';
-        this.canvas.style.top = '0';
-        this.canvas.style.left = '0';
-        this.canvas.style.pointerEvents = 'none';
-        this.canvas.style.zIndex = '98';
-
-        chartContainer.appendChild(this.canvas);
-        this.ctx = this.canvas.getContext('2d');
-
-        this.resizeCanvas();
-        window.addEventListener('resize', this.handleResize);
-    }
-
-    private resizeCanvas(): void {
-        const chartContainer = this.canvas?.parentElement;
-        if (this.canvas === null || chartContainer === null || chartContainer === undefined) return;
-
-        const rect = chartContainer.getBoundingClientRect();
-        this.canvas.width = rect.width * window.devicePixelRatio;
-        this.canvas.height = rect.height * window.devicePixelRatio;
-        this.canvas.style.width = `${rect.width}px`;
-        this.canvas.style.height = `${rect.height}px`;
-
-        this.ctx?.scale(window.devicePixelRatio, window.devicePixelRatio);
-
-        this.draw();
-    }
-
-    /**
-     * Turns a crosshair event into a point on the plot, or `null` when it did
-     * not land on one — off the edge there is no bar and no price.
-     */
-    private readPoint(param: MouseEventParams<Time>): BoxPoint | null {
-        if (param.point === undefined || param.time === undefined) return null;
-
-        const price = this.mainSeries.coordinateToPrice(param.point.y);
-        if (price === null) return null;
-
-        return { time: param.time, price, x: param.point.x, y: param.point.y };
-    }
 
     /**
      * Picks up whatever the click landed on — a corner to resize, or a body to
@@ -414,16 +276,8 @@ export class BoxManager {
             if (box.locked) continue;
 
             this.updateBoxCoordinates(box);
-            const bounds = boundsOf(box);
 
-            const corners: { corner: BoxCorner; x: number; y: number }[] = [
-                { corner: 'tl', x: bounds.left, y: bounds.top },
-                { corner: 'tr', x: bounds.right, y: bounds.top },
-                { corner: 'bl', x: bounds.left, y: bounds.bottom },
-                { corner: 'br', x: bounds.right, y: bounds.bottom },
-            ];
-
-            for (const candidate of corners) {
+            for (const candidate of cornersOf(box)) {
                 if (Math.hypot(candidate.x - pointer.x, candidate.y - pointer.y) <= CORNER_HIT_RADIUS) {
                     return { boxId: box.id, corner: candidate.corner };
                 }
@@ -469,11 +323,6 @@ export class BoxManager {
         if (y2 !== null) box.point2.y = y2;
     }
 
-    private clear(): void {
-        if (this.ctx === null || this.canvas === null) return;
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    }
-
     private drawBox(box: Box): void {
         const ctx = this.ctx;
         if (ctx === null) return;
@@ -498,75 +347,10 @@ export class BoxManager {
         // every selected box is noise
         if (!isSelected || box.locked || this.dragTarget === null) return;
 
-        this.drawCornerHandle(bounds.left, bounds.top, themeColor);
-        this.drawCornerHandle(bounds.right, bounds.top, themeColor);
-        this.drawCornerHandle(bounds.left, bounds.bottom, themeColor);
-        this.drawCornerHandle(bounds.right, bounds.bottom, themeColor);
+        // The hole has to be the chart's own background for the ring to read
+        const handle = { radius: CORNER_HANDLE_RADIUS, color: themeColor, holeColor: getThemeColor('--color-bg') };
+        for (const corner of cornersOf(box)) {
+            drawHandle(ctx, corner, handle);
+        }
     }
-
-    private drawCornerHandle(left: number, top: number, color: string): void {
-        const ctx = this.ctx;
-        if (ctx === null) return;
-
-        // The handle reads as a ring cut out of the chart, which only works if
-        // the middle is the chart's own background
-        const holeColor = getThemeColor('--color-bg');
-
-        ctx.beginPath();
-        ctx.arc(left, top, CORNER_HANDLE_RADIUS, 0, 2 * Math.PI);
-        ctx.fillStyle = color;
-        ctx.fill();
-        ctx.strokeStyle = holeColor;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(left, top, CORNER_HANDLE_RADIUS - 1.5, 0, 2 * Math.PI);
-        ctx.fillStyle = holeColor;
-        ctx.fill();
-    }
-
-    private notifyChange(): void {
-        this.onChangeCallback?.();
-    }
-}
-
-function boundsOf(box: Box): { left: number; top: number; right: number; bottom: number } {
-    return {
-        left: Math.min(box.point1.x, box.point2.x),
-        top: Math.min(box.point1.y, box.point2.y),
-        right: Math.max(box.point1.x, box.point2.x),
-        bottom: Math.max(box.point1.y, box.point2.y),
-    };
-}
-
-/**
- * Drags the one grabbed corner, keeping the two it is not adjacent to where
- * they are — a corner owns one edge of each axis, not a whole point.
- */
-function resizeBox(box: Box, corner: BoxCorner, pointer: BoxPoint): void {
-    switch (corner) {
-        case 'tl':
-            box.point1 = { ...pointer };
-            break;
-        case 'br':
-            box.point2 = { ...pointer };
-            break;
-        case 'tr':
-            box.point1.time = pointer.time;
-            box.point1.x = pointer.x;
-            box.point2.price = pointer.price;
-            box.point2.y = pointer.y;
-            break;
-        case 'bl':
-            box.point2.time = pointer.time;
-            box.point2.x = pointer.x;
-            box.point1.price = pointer.price;
-            box.point1.y = pointer.y;
-            break;
-    }
-}
-
-function generateBoxId(): string {
-    return `box_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }

@@ -1,5 +1,12 @@
+/**
+ * The chart's outermost DOM: the table of panes, the time axis under them, and
+ * the two price axis stubs in the corners.
+ *
+ * It owns the render loop — every model invalidation lands here and is drained on
+ * the next animation frame, so a burst of updates costs one paint rather than
+ * one each.
+ */
 import { type Size, size } from 'fancy-canvas';
-
 import { getDefined, getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { isChromiumBased, isWindows } from '@/lib/lightweight-charts/helpers/browsers';
 import { Delegate } from '@/lib/lightweight-charts/helpers/delegate';
@@ -7,7 +14,6 @@ import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable
 import { type ISubscription } from '@/lib/lightweight-charts/helpers/isubscription';
 import { rejectOptions } from '@/lib/lightweight-charts/helpers/logger';
 import { type DeepPartial } from '@/lib/lightweight-charts/helpers/strict-type-checks';
-
 import {
     ChartModel,
     type ChartOptionsInternal,
@@ -29,7 +35,6 @@ import { type SeriesPlotRow } from '@/lib/lightweight-charts/model/series-data';
 import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 import { type TimePointIndex } from '@/lib/lightweight-charts/model/time-data';
 import { type TouchMouseEventData } from '@/lib/lightweight-charts/model/touch-mouse-event-data';
-
 import {
     suggestChartSize,
     suggestPriceScaleWidth,
@@ -50,11 +55,6 @@ export type MouseEventParamsImpl = {
 
 export type MouseEventParamsImplSupplier = () => MouseEventParamsImpl;
 
-const windowsChrome = isChromiumBased() && isWindows();
-
-// A pane squeezed to nothing still has to leave the separator somewhere to sit
-const MIN_PANE_HEIGHT = 2;
-
 export type IChartWidgetBase = {
     getPriceAxisWidth(position: DefaultPriceScaleId): number;
     model(): IChartModelBase;
@@ -62,6 +62,9 @@ export type IChartWidgetBase = {
     options(): ChartOptionsInternalBase;
     setCursorStyle(style: string | null): void;
 };
+
+// A pane squeezed to nothing still has to leave the separator somewhere to sit
+const MIN_PANE_HEIGHT = 2;
 
 export class ChartWidget<THorzScaleItem> implements IDestroyable, IChartWidgetBase {
     private readonly _options: ChartOptionsInternal<THorzScaleItem>;
@@ -879,6 +882,8 @@ export class ChartWidget<THorzScaleItem> implements IDestroyable, IChartWidgetBa
         this._observer = null;
     }
 }
+
+const windowsChrome = isChromiumBased() && isWindows();
 
 /**
  * Dragging the chart must not sweep a text selection across the page.

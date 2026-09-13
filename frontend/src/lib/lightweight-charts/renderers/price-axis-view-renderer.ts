@@ -1,3 +1,9 @@
+/**
+ * Draws one label on a price axis: the tag, its tick, and the text.
+ *
+ * The tag may point either way, because the same renderer draws the labels on the
+ * left axis and on the right.
+ */
 import {
     type BitmapCoordinatesRenderingScope,
     type CanvasRenderingTarget2D,

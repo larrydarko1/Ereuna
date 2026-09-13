@@ -1,16 +1,27 @@
+/**
+ * Normalises mouse, touch and pen input into the small set of gestures the
+ * chart reacts to: click, double click, drag, pinch, tap and long tap.
+ *
+ * Nothing downstream distinguishes a finger from a mouse, and this is where that
+ * stops being true — it tracks the active touch by identifier, tells a tap apart
+ * from a drag by distance and time, and suppresses the synthetic mouse events a
+ * browser fires after a touch.
+ */
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
 import { isFF, isIOS } from '@/lib/lightweight-charts/helpers/browsers';
 import { preventScrollByWheelClick } from '@/lib/lightweight-charts/helpers/events';
 import { MouseEventButton } from '@/lib/lightweight-charts/helpers/mouse-event-button';
 import { type IDestroyable } from '@/lib/lightweight-charts/helpers/idestroyable';
-
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 import { type TouchMouseEventData } from '@/lib/lightweight-charts/model/touch-mouse-event-data';
 
 export type HandlerMouseEventCallback = (event: MouseEventHandlerMouseEvent) => void;
+
 export type HandlerTouchEventCallback = (event: MouseEventHandlerTouchEvent) => void;
-export type EmptyCallback = () => void;
-export type PinchEventCallback = (middlePoint: Position, scale: number) => void;
+
+type EmptyCallback = () => void;
+
+type PinchEventCallback = (middlePoint: Position, scale: number) => void;
 
 export type MouseEventHandlers = {
     pinchStartEvent?: EmptyCallback;
@@ -66,21 +77,8 @@ export type Position = {
     y: number;
 };
 
-// we can use `const name = 500;` but with `const enum` this values will be inlined into code
-// so we do not need to have it as variables
-const Delay = {
-    ResetClick: 500,
-    LongTap: 240,
-    PreventFiresTouchEvents: 500,
-} as const;
 type Delay = (typeof Delay)[keyof typeof Delay];
 
-const Constants = {
-    CancelClickManhattanDistance: 5,
-    CancelTapManhattanDistance: 5,
-    DoubleClickManhattanDistance: 5,
-    DoubleTapManhattanDistance: 30,
-} as const;
 type Constants = (typeof Constants)[keyof typeof Constants];
 
 export type MouseEventHandlerOptions = {
@@ -93,6 +91,21 @@ type TouchMouseMoveWithDownInfo = {
     yOffset: number;
     manhattanDistance: number;
 };
+
+// we can use `const name = 500;` but with `const enum` this values will be inlined into code
+// so we do not need to have it as variables
+const Delay = {
+    ResetClick: 500,
+    LongTap: 240,
+    PreventFiresTouchEvents: 500,
+} as const;
+
+const Constants = {
+    CancelClickManhattanDistance: 5,
+    CancelTapManhattanDistance: 5,
+    DoubleClickManhattanDistance: 5,
+    DoubleTapManhattanDistance: 30,
+} as const;
 
 // Upstream left a note here that the boolean flags below want to be an enum
 export class MouseEventHandler implements IDestroyable {

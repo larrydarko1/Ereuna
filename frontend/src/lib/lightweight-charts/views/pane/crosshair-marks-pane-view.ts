@@ -1,5 +1,10 @@
+/**
+ * The dots the crosshair puts on each series it crosses.
+ *
+ * The per-series marker data is reused between frames rather than reallocated,
+ * because this rebuilds on every pointer move.
+ */
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
-
 import { type BarPrice } from '@/lib/lightweight-charts/model/bar';
 import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
@@ -10,26 +15,7 @@ import { type SeriesItemsIndexesRange, type TimePointIndex } from '@/lib/lightwe
 import { CompositeRenderer } from '@/lib/lightweight-charts/renderers/composite-renderer';
 import { type IPaneRenderer } from '@/lib/lightweight-charts/renderers/ipane-renderer';
 import { type MarksRendererData, PaneRendererMarks } from '@/lib/lightweight-charts/renderers/marks-renderer';
-
 import { type IUpdatablePaneView, type UpdateType } from '@/lib/lightweight-charts/views/pane/iupdatable-pane-view';
-
-function createEmptyMarkerData(): MarksRendererData {
-    return {
-        items: [
-            {
-                x: 0 as Coordinate,
-                y: 0 as Coordinate,
-                time: 0 as TimePointIndex,
-                price: 0 as BarPrice,
-            },
-        ],
-        lineColor: '',
-        backColor: '',
-        radius: 0,
-        lineWidth: 0,
-        visibleRange: null,
-    };
-}
 
 const rangeForSinglePoint: SeriesItemsIndexesRange = { from: 0, to: 1 };
 
@@ -110,4 +96,22 @@ export class CrosshairMarksPaneView implements IUpdatablePaneView {
             data.visibleRange = rangeForSinglePoint;
         });
     }
+}
+
+function createEmptyMarkerData(): MarksRendererData {
+    return {
+        items: [
+            {
+                x: 0 as Coordinate,
+                y: 0 as Coordinate,
+                time: 0 as TimePointIndex,
+                price: 0 as BarPrice,
+            },
+        ],
+        lineColor: '',
+        backColor: '',
+        radius: 0,
+        lineWidth: 0,
+        visibleRange: null,
+    };
 }

@@ -1,3 +1,7 @@
+/**
+ * The read side of a `Delegate`: what a caller sees when it is handed
+ * something to subscribe to.
+ */
 export type Callback<T1 = void, T2 = void, T3 = void> = (param1: T1, param2: T2, param3: T3) => void;
 
 export type SubscribeOptions = {

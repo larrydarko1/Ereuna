@@ -1,11 +1,14 @@
+/**
+ * Draws OHLC bars.
+ *
+ * At tight spacings the open and close nubs would be wider than the gap between
+ * bars, so they are clamped rather than allowed to touch — `clampNub` is that.
+ */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
-
 import { getNotNull } from '@/lib/lightweight-charts/helpers/assertions';
-
 import { type BarCoordinates, type BarPrices } from '@/lib/lightweight-charts/model/bar';
 import { type BarColorerStyle } from '@/lib/lightweight-charts/model/series-bar-colorer';
 import { type SeriesItemsIndexesRange, type TimedValue } from '@/lib/lightweight-charts/model/time-data';
-
 import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
 import { optimalBarWidth } from '@/lib/lightweight-charts/renderers/optimal-bar-width';
 
@@ -21,19 +24,6 @@ export type PaneRendererBarsData = {
 
     visibleRange: SeriesItemsIndexesRange | null;
 };
-
-/**
- * The open/close nub sits `height` pixels tall at `top`, but never past the
- * bottom of the bar's own body — a nub hanging off the end reads as a longer bar.
- */
-function clampNub(top: number, height: number, bodyBottom: number): { top: number; bottom: number } {
-    const bottom = top + height - 1;
-    if (bottom <= bodyBottom) {
-        return { top, bottom };
-    }
-
-    return { top: bodyBottom - height + 1, bottom: bodyBottom };
-}
 
 export class PaneRendererBars extends BitmapCoordinatesPaneRenderer {
     private _data: PaneRendererBarsData | null = null;
@@ -130,4 +120,17 @@ export class PaneRendererBars extends BitmapCoordinatesPaneRenderer {
         const limit = Math.floor(pixelRatio);
         return Math.max(limit, Math.floor(optimalBarWidth(getNotNull(this._data).barSpacing, pixelRatio)));
     }
+}
+
+/**
+ * The open/close nub sits `height` pixels tall at `top`, but never past the
+ * bottom of the bar's own body — a nub hanging off the end reads as a longer bar.
+ */
+function clampNub(top: number, height: number, bodyBottom: number): { top: number; bottom: number } {
+    const bottom = top + height - 1;
+    if (bottom <= bodyBottom) {
+        return { top, bottom };
+    }
+
+    return { top: bodyBottom - height + 1, bottom: bodyBottom };
 }

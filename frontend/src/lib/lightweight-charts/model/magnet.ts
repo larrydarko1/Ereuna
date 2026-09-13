@@ -1,3 +1,7 @@
+/**
+ * Finds the price the crosshair should snap to in magnet mode: the nearest of
+ * the bar's own values under the pointer, not the pointer's own price.
+ */
 import { getPresent } from '@/lib/lightweight-charts/helpers/assertions';
 
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';

@@ -1,9 +1,34 @@
+/**
+ * Line styles and the primitives that draw a straight line in one.
+ *
+ * `strokeInPixel` shifts a line by half a pixel before stroking it: canvas strokes
+ * straddle the path, so an odd-width line on a whole coordinate is drawn across
+ * two pixels at half intensity unless it is nudged.
+ */
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
 /**
  * Represents the width of a line.
  */
 export type LineWidth = 1 | 2 | 3 | 4;
+
+export type LineType = (typeof LineType)[keyof typeof LineType];
+
+/**
+ * A point on a line.
+ */
+export type LinePoint = {
+    /**
+     * The point's x coordinate.
+     */
+    x: Coordinate;
+    /**
+     * The point's y coordinate.
+     */
+    y: Coordinate;
+};
+
+export type LineStyle = (typeof LineStyle)[keyof typeof LineStyle];
 
 /**
  * Represents the possible line types.
@@ -22,21 +47,6 @@ export const LineType = {
      */
     Curved: 2,
 } as const;
-export type LineType = (typeof LineType)[keyof typeof LineType];
-
-/**
- * A point on a line.
- */
-export type LinePoint = {
-    /**
-     * The point's x coordinate.
-     */
-    x: Coordinate;
-    /**
-     * The point's y coordinate.
-     */
-    y: Coordinate;
-};
 
 /**
  * Represents the possible line styles.
@@ -63,7 +73,6 @@ export const LineStyle = {
      */
     SparseDotted: 4,
 } as const;
-export type LineStyle = (typeof LineStyle)[keyof typeof LineStyle];
 
 export function setLineStyle(ctx: CanvasRenderingContext2D, style: LineStyle): void {
     const dashPatterns = {

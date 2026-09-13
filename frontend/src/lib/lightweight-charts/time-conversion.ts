@@ -1,3 +1,7 @@
+/**
+ * Turns the chart's `Time` — which may be a timestamp, a business day object or
+ * a date string — into a plain epoch second.
+ */
 import { convertTime } from '@/lib/lightweight-charts/model/horz-scale-behavior-time/time-utils';
 import {
     type Time,

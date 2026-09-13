@@ -1,3 +1,6 @@
+/**
+ * A handle to one horizontal line drawn at a price on a series.
+ */
 import { type PriceLineOptions } from '@/lib/lightweight-charts/model/price-line-options';
 
 /**

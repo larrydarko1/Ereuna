@@ -1,3 +1,6 @@
+/**
+ * A point in canvas coordinates.
+ */
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 
 /**

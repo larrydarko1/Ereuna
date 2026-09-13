@@ -1,3 +1,11 @@
+/**
+ * Browser sniffing, kept to the handful of places a real behavioural
+ * difference forces it — wheel deltas, touch emulation and the chromium-only
+ * pointer quirks.
+ *
+ * Feature detection is preferred everywhere it works; these are the cases where
+ * there is nothing to detect.
+ */
 import { isRunningOnClientSide } from '@/lib/lightweight-charts/helpers/is-running-on-client-side';
 
 export function isFF(): boolean {

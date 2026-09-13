@@ -1,3 +1,6 @@
+/**
+ * Adapts a caller's custom series view to the pane renderer interface.
+ */
 import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
 import { undefinedIfNull } from '@/lib/lightweight-charts/helpers/strict-type-checks';

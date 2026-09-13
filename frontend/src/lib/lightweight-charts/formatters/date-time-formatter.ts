@@ -1,3 +1,7 @@
+/**
+ * Formats a date and a time together, joined by whatever separator the caller
+ * asked for.
+ */
 import { DateFormatter } from '@/lib/lightweight-charts/formatters/date-formatter';
 import { TimeFormatter } from '@/lib/lightweight-charts/formatters/time-formatter';
 

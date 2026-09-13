@@ -1,3 +1,11 @@
+/**
+ * What a time may be on the horizontal scale, and the tick mark vocabulary the
+ * axis labels itself with.
+ *
+ * A business day is a date with no time of day at all, which is not the same as
+ * midnight in any particular zone — that distinction is the reason this type
+ * exists alongside the timestamp.
+ */
 import { type Nominal } from '@/lib/lightweight-charts/helpers/nominal';
 import { isNumber, isString } from '@/lib/lightweight-charts/helpers/strict-type-checks';
 
@@ -60,25 +68,9 @@ export type TimePoint = {
     businessDay?: BusinessDay;
 };
 
-/**
- * Check if a time value is a business day object.
- *
- * @param time - The time to check.
- * @returns `true` if `time` is a {@link BusinessDay} object, false otherwise.
- */
-export function isBusinessDay(time: Time): time is BusinessDay {
-    return !isNumber(time) && !isString(time);
-}
+export type TickMarkType = (typeof TickMarkType)[keyof typeof TickMarkType];
 
-/**
- * Check if a time value is a UTC timestamp number.
- *
- * @param time - The time to check.
- * @returns `true` if `time` is a {@link UTCTimestamp} number, false otherwise.
- */
-export function isUTCTimestamp(time: Time): time is UTCTimestamp {
-    return isNumber(time);
-}
+export type TickMarkWeight = (typeof TickMarkWeight)[keyof typeof TickMarkWeight];
 
 /**
  * Represents the type of a tick mark on the time axis.
@@ -105,7 +97,6 @@ export const TickMarkType = {
      */
     TimeWithSeconds: 4,
 } as const;
-export type TickMarkType = (typeof TickMarkType)[keyof typeof TickMarkType];
 
 /**
  * Describes a weight of tick mark, i.e. a part of a time that changed since previous time.
@@ -128,4 +119,23 @@ export const TickMarkWeight = {
     Month: 60,
     Year: 70,
 } as const;
-export type TickMarkWeight = (typeof TickMarkWeight)[keyof typeof TickMarkWeight];
+
+/**
+ * Check if a time value is a business day object.
+ *
+ * @param time - The time to check.
+ * @returns `true` if `time` is a {@link BusinessDay} object, false otherwise.
+ */
+export function isBusinessDay(time: Time): time is BusinessDay {
+    return !isNumber(time) && !isString(time);
+}
+
+/**
+ * Check if a time value is a UTC timestamp number.
+ *
+ * @param time - The time to check.
+ * @returns `true` if `time` is a {@link UTCTimestamp} number, false otherwise.
+ */
+export function isUTCTimestamp(time: Time): time is UTCTimestamp {
+    return isNumber(time);
+}

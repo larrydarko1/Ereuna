@@ -1,3 +1,7 @@
+/**
+ * What a series says its price range and margins should be, before the price
+ * scale reconciles it with every other series on the same scale.
+ */
 import { PriceRangeImpl } from '@/lib/lightweight-charts/model/price-range-impl';
 import { type AutoscaleInfo } from '@/lib/lightweight-charts/model/series-options';
 

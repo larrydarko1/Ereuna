@@ -1,3 +1,6 @@
+/**
+ * The series' own last-price line.
+ */
 import { type ISeries } from '@/lib/lightweight-charts/model/series';
 import { PriceLineSource, type SeriesType } from '@/lib/lightweight-charts/model/series-options';
 

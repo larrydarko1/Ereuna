@@ -1,10 +1,14 @@
+/**
+ * Draws candlesticks: the body, the border and the wick, each of which may be
+ * coloured independently.
+ *
+ * Below a certain bar width the border is dropped rather than drawn, because at
+ * one or two pixels a bordered body is all border.
+ */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
-
 import { fillRectInnerBorder } from '@/lib/lightweight-charts/helpers/canvas-helpers';
-
 import { type CandlesticksColorerStyle } from '@/lib/lightweight-charts/model/series-bar-colorer';
 import { type SeriesItemsIndexesRange } from '@/lib/lightweight-charts/model/time-data';
-
 import { type BarCandlestickItemBase } from '@/lib/lightweight-charts/renderers/bars-renderer';
 import { BitmapCoordinatesPaneRenderer } from '@/lib/lightweight-charts/renderers/bitmap-coordinates-pane-renderer';
 import { optimalCandlestickWidth } from '@/lib/lightweight-charts/renderers/optimal-bar-width';
@@ -22,10 +26,11 @@ export type PaneRendererCandlesticksData = {
     visibleRange: SeriesItemsIndexesRange | null;
 };
 
+type Constants = (typeof Constants)[keyof typeof Constants];
+
 const Constants = {
     BarBorderWidth: 1,
 } as const;
-type Constants = (typeof Constants)[keyof typeof Constants];
 
 export class PaneRendererCandlesticks extends BitmapCoordinatesPaneRenderer {
     private _data: PaneRendererCandlesticksData | null = null;

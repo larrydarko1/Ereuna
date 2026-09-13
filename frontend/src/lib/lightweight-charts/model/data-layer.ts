@@ -1,7 +1,14 @@
+/**
+ * Reconciles one series' new data with every other series on the chart.
+ *
+ * Series share a horizontal scale, so appending a bar to one can shift the indices
+ * of all of them. Everything goes through here for that reason, and the response
+ * says exactly what changed — which series, and whether the time scale moved —
+ * so the model can invalidate no more than it has to.
+ */
 import { lowerBound } from '@/lib/lightweight-charts/helpers/algorithms';
 import { getDefined } from '@/lib/lightweight-charts/helpers/assertions';
 import { type Mutable } from '@/lib/lightweight-charts/helpers/mutable';
-
 import { type SeriesDataItemTypeMap } from '@/lib/lightweight-charts/model/data-consumer';
 import {
     getSeriesPlotRowCreator,
@@ -13,6 +20,15 @@ import {
     type InternalHorzScaleItem,
     type InternalHorzScaleItemKey,
 } from '@/lib/lightweight-charts/model/ihorz-scale-behavior';
+import {
+    assignIndexToPointData,
+    createEmptyTimePointData,
+    saveOriginalTime,
+    type SeriesDataItemWithOriginalTime,
+    seriesUpdateInfo,
+    type TimePointData,
+    timeScalePointTime,
+} from '@/lib/lightweight-charts/model/data-layer-rows';
 import { type Series, type SeriesUpdateInfo } from '@/lib/lightweight-charts/model/series';
 import { type SeriesPlotRow } from '@/lib/lightweight-charts/model/series-data';
 import { type SeriesType } from '@/lib/lightweight-charts/model/series-options';
@@ -64,94 +80,9 @@ export type DataUpdateResponse = {
     timeScale: TimeScaleChanges;
 };
 
-type TimePointData = {
-    index: TimePointIndex;
-    timePoint: InternalHorzScaleItem;
-
-    // actually the type of the value should be related to the series' type (generic type)
-    // here, in data layer all data for us is "mutable" by default, but to the chart we provide "readonly" data, to avoid modifying it
-    mapping: Map<Series<SeriesType>, Mutable<SeriesPlotRow<SeriesType> | WhitespacePlotRow>>;
-};
-
 export type InternalTimeScalePoint = {
     pointData: TimePointData;
 } & Mutable<TimeScalePoint>;
-
-function createEmptyTimePointData(timePoint: InternalHorzScaleItem): TimePointData {
-    return { index: 0 as TimePointIndex, mapping: new Map(), timePoint };
-}
-
-type SeriesRowsTimeSpan = {
-    firstTime: InternalHorzScaleItemKey;
-    lastTime: InternalHorzScaleItemKey;
-};
-
-/** The time span a series' rows cover, or `undefined` when it holds none. */
-function seriesRowsTimeSpan<TSeriesType extends SeriesType, THorzScaleItem>(
-    seriesRows: SeriesPlotRow<TSeriesType>[] | undefined,
-    bh: IHorzScaleBehavior<THorzScaleItem>,
-): SeriesRowsTimeSpan | undefined {
-    if (seriesRows === undefined || seriesRows.length === 0) {
-        return undefined;
-    }
-
-    const first = seriesRows[0];
-    const last = seriesRows[seriesRows.length - 1];
-    if (first === undefined || last === undefined) {
-        return undefined;
-    }
-
-    return {
-        firstTime: bh.key(first.time),
-        lastTime: bh.key(last.time),
-    };
-}
-
-function seriesUpdateInfo<TSeriesType extends SeriesType, THorzScaleItem>(
-    seriesRows: SeriesPlotRow<TSeriesType>[] | undefined,
-    prevSeriesRows: SeriesPlotRow<TSeriesType>[] | undefined,
-    bh: IHorzScaleBehavior<THorzScaleItem>,
-): SeriesUpdateInfo | undefined {
-    const firstAndLastTime = seriesRowsTimeSpan(seriesRows, bh);
-    const prevFirstAndLastTime = seriesRowsTimeSpan(prevSeriesRows, bh);
-    if (firstAndLastTime !== undefined && prevFirstAndLastTime !== undefined) {
-        return {
-            lastBarUpdatedOrNewBarsAddedToTheRight:
-                firstAndLastTime.lastTime >= prevFirstAndLastTime.lastTime &&
-                firstAndLastTime.firstTime >= prevFirstAndLastTime.firstTime,
-        };
-    }
-
-    return undefined;
-}
-
-function timeScalePointTime<TSeriesType extends SeriesType, THorzScaleItem>(
-    mergedPointData: Map<Series<TSeriesType>, SeriesPlotRow<TSeriesType> | WhitespacePlotRow>,
-): THorzScaleItem {
-    let result: THorzScaleItem | undefined;
-    mergedPointData.forEach((v: SeriesPlotRow<TSeriesType> | WhitespacePlotRow) => {
-        if (result === undefined) {
-            result = v.originalTime as THorzScaleItem;
-        }
-    });
-
-    return getDefined(result);
-}
-
-function saveOriginalTime<TSeriesType extends SeriesType, THorzScaleItem>(
-    data: SeriesDataItemWithOriginalTime<TSeriesType, THorzScaleItem>,
-): void {
-    if (data.originalTime === undefined) {
-        data.originalTime = data.time;
-    }
-}
-
-type SeriesDataItemWithOriginalTime<
-    TSeriesType extends SeriesType,
-    THorzScaleItem,
-> = SeriesDataItemTypeMap<THorzScaleItem>[TSeriesType] & {
-    originalTime: THorzScaleItem;
-};
 
 export class DataLayer<THorzScaleItem> {
     // note that _pointDataByTimePoint and _seriesRowsBySeries shares THE SAME objects in their values between each other
@@ -520,14 +451,4 @@ export class DataLayer<THorzScaleItem> {
 
         return dataUpdateResponse;
     }
-}
-
-function assignIndexToPointData(pointData: TimePointData, index: TimePointIndex): void {
-    // first, nevertheless update index of point data ("make it valid")
-    pointData.index = index;
-
-    // and then we need to sync indexes for all series
-    pointData.mapping.forEach((seriesRow: Mutable<SeriesPlotRow<SeriesType> | WhitespacePlotRow>) => {
-        seriesRow.index = index;
-    });
 }

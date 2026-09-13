@@ -1,3 +1,9 @@
+/**
+ * Rounds the chart's own measurements to whole pixels.
+ *
+ * A fractional canvas size is what produces a blurred axis line, so every size
+ * that reaches a canvas is squared off here first.
+ */
 import { type Size, size } from 'fancy-canvas';
 
 // on Hi-DPI CSS size * Device Pixel Ratio should be integer to avoid smoothing

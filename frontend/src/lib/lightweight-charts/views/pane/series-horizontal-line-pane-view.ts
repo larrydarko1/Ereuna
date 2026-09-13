@@ -1,3 +1,7 @@
+/**
+ * The base for the views that draw one horizontal line at a price the series
+ * supplies.
+ */
 import { type IChartModelBase } from '@/lib/lightweight-charts/model/chart-model';
 import { type Coordinate } from '@/lib/lightweight-charts/model/coordinate';
 import { type ISeries } from '@/lib/lightweight-charts/model/series';
