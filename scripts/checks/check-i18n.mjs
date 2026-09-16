@@ -28,8 +28,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
 
-const LOCALE_DIR = path.resolve(ROOT, 'frontend/src/locales');
-const I18N_CONFIG = path.resolve(ROOT, 'frontend/src/i18n.ts');
+const LOCALE_DIR = path.resolve(ROOT, 'frontend/src/i18n/locales');
+const I18N_CONFIG = path.resolve(ROOT, 'frontend/src/i18n/index.ts');
 const REFERENCE = 'en';
 
 /** ISO 639-1 codes, so browser detection stays a prefix match. */
@@ -145,7 +145,7 @@ const REQUIRED_OPTIONS = [
 
 for (const { what, re, why } of REQUIRED_OPTIONS) {
     if (!re.test(i18nSource)) {
-        errors.push(`[frontend/src/i18n.ts] createI18n is missing \`${what}\` — ${why}`);
+        errors.push(`[frontend/src/i18n/index.ts] createI18n is missing \`${what}\` — ${why}`);
     }
 }
 

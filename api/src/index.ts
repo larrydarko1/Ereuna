@@ -40,7 +40,7 @@ import { portfoliosRouter, tradesRouter } from '@/routes/portfolio/index.js';
 import { screenersRouter } from '@/routes/screener/index.js';
 import { watchlistsRouter } from '@/routes/watchlist/index.js';
 
-export const app = express();
+const app = express();
 const server = createServer(app);
 
 /** A numeric hop count, never `true` — otherwise a client can spoof

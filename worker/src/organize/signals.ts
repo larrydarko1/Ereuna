@@ -14,7 +14,7 @@ export type Signal = {
 };
 
 /** How much history a signal needs. The moving-average cross is the long pole. */
-export const SIGNAL_MIN_BARS = 200;
+const SIGNAL_MIN_BARS = 200;
 
 const RSI_OVERSOLD = 30;
 const RSI_OVERBOUGHT = 70;

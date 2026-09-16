@@ -3,14 +3,16 @@ import type { ChartIndicator, ChartSettings, ChartTimeframe } from '@ereuna/shar
 import { mockApi } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
 import { loadPreferences } from '@/composables/data/usePreferences';
-import {
-    DEFAULT_CHART_SETTINGS,
-    DEFAULT_INDICATORS,
-    MAX_INDICATOR_PERIOD,
-    useChartSettings,
-} from '@/composables/charts/useChartSettings';
+import { DEFAULT_INDICATORS, MAX_INDICATOR_PERIOD, useChartSettings } from '@/composables/charts/useChartSettings';
 
 const mock = mockApi();
+
+/**
+ * Written out rather than imported from the composable: the one assertion that
+ * matters here is what an unconfigured chart answers with, and an expectation
+ * fed from the same constant the subject returns cannot disagree with it.
+ */
+const DEFAULTS: ChartSettings = { style: 'candlestick', indicators: {} };
 const { settings, indicatorsFor, save, saveIndicators } = useChartSettings();
 
 const preferences = (chartSettings: ChartSettings | null): Record<string, unknown> => ({
@@ -24,7 +26,7 @@ const preferences = (chartSettings: ChartSettings | null): Record<string, unknow
 });
 
 const draft = (indicators: ChartIndicator[]): ChartSettings => ({
-    ...DEFAULT_CHART_SETTINGS,
+    ...DEFAULTS,
     indicators: { daily: indicators },
 });
 
@@ -37,7 +39,7 @@ beforeEach(() => {
 
 describe('settings', () => {
     it('answers with the defaults until the user has configured a chart', () => {
-        expect(settings.value).toEqual(DEFAULT_CHART_SETTINGS);
+        expect(settings.value).toEqual(DEFAULTS);
     });
 
     it('defaults to the four averages the API also computes', () => {
@@ -45,7 +47,7 @@ describe('settings', () => {
     });
 
     it('answers with the stored settings once they are loaded', async () => {
-        const stored: ChartSettings = { ...DEFAULT_CHART_SETTINGS, style: 'line' };
+        const stored: ChartSettings = { ...DEFAULTS, style: 'line' };
         mock.on('GET /api/preferences', preferences(stored));
 
         await loadPreferences();
@@ -56,15 +58,15 @@ describe('settings', () => {
 
 describe('save', () => {
     it('writes the draft through to the preferences', async () => {
-        mock.on('PATCH /api/preferences', preferences(DEFAULT_CHART_SETTINGS));
+        mock.on('PATCH /api/preferences', preferences(DEFAULTS));
 
-        await save({ ...DEFAULT_CHART_SETTINGS, style: 'line' });
+        await save({ ...DEFAULTS, style: 'line' });
 
         expect(mock.last().body).toMatchObject({ chartSettings: { style: 'line' } });
     });
 
     it('keeps only the four overlays the palette has colours for', async () => {
-        mock.on('PATCH /api/preferences', preferences(DEFAULT_CHART_SETTINGS));
+        mock.on('PATCH /api/preferences', preferences(DEFAULTS));
 
         await save(draft([10, 20, 50, 200, 400].map((period) => ({ type: 'SMA' as const, period, visible: true }))));
 
@@ -72,7 +74,7 @@ describe('save', () => {
     });
 
     it('rounds a period the dialog left as a decimal', async () => {
-        mock.on('PATCH /api/preferences', preferences(DEFAULT_CHART_SETTINGS));
+        mock.on('PATCH /api/preferences', preferences(DEFAULTS));
 
         await save(draft([{ type: 'SMA', period: 20.6, visible: true }]));
 
@@ -80,7 +82,7 @@ describe('save', () => {
     });
 
     it('replaces the NaN a number input holds between keystrokes', async () => {
-        mock.on('PATCH /api/preferences', preferences(DEFAULT_CHART_SETTINGS));
+        mock.on('PATCH /api/preferences', preferences(DEFAULTS));
 
         await save(draft([{ type: 'SMA', period: Number.NaN, visible: true }]));
 
@@ -88,7 +90,7 @@ describe('save', () => {
     });
 
     it('brings a period inside the bounds the API validates against', async () => {
-        mock.on('PATCH /api/preferences', preferences(DEFAULT_CHART_SETTINGS));
+        mock.on('PATCH /api/preferences', preferences(DEFAULTS));
 
         await save(
             draft([
@@ -101,7 +103,7 @@ describe('save', () => {
     });
 
     it('leaves the rest of the indicator alone', async () => {
-        mock.on('PATCH /api/preferences', preferences(DEFAULT_CHART_SETTINGS));
+        mock.on('PATCH /api/preferences', preferences(DEFAULTS));
 
         await save(draft([{ type: 'EMA', period: 21, visible: false }]));
 
@@ -136,7 +138,7 @@ describe('saveIndicators', () => {
             preferences({ style: 'candlestick', indicators: { weekly: [{ type: 'EMA', period: 9, visible: true }] } }),
         );
         await loadPreferences();
-        mock.on('PATCH /api/preferences', preferences(DEFAULT_CHART_SETTINGS));
+        mock.on('PATCH /api/preferences', preferences(DEFAULTS));
 
         await saveIndicators('daily', [{ type: 'SMA', period: 5, visible: true }]);
 

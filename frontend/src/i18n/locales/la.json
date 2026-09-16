@@ -1063,12 +1063,6 @@
         "NOTE_LIMIT_REACHED": "Ad summum {max} notas de {symbol} servare potes.",
         "ASSET_NOT_FOUND": "Nulla data de illo signo."
     },
-    "time": {
-        "justNow": "Modo",
-        "minutesAgo": "ante {n} min",
-        "hoursAgo": "ante {n} hor",
-        "daysAgo": "ante {n} dies"
-    },
     "validation": {
         "passwordMismatch": "Tesserae non congruunt",
         "usernameRequired": "Nomen usitoris requisitum est",

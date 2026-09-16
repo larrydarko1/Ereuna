@@ -23,12 +23,12 @@ export const loggerEnv = {
 };
 
 export const mongoEnv = {
-    MONGO_URI: z.string().min(1).default('mongodb://localhost:27017'),
+    MONGO_URI: infraDefault('mongodb://localhost:27017'),
     MONGO_DB: z.string().min(1).default('EreunaDB'),
 };
 
 export const redisEnv = {
-    REDIS_HOST: z.string().min(1).default('localhost'),
+    REDIS_HOST: infraDefault('localhost'),
     REDIS_PORT: z.coerce.number().int().positive().default(6379),
 };
 
@@ -64,7 +64,7 @@ export function hexSecret(bytes = 32): z.ZodString {
  * Dev clones and runs with no .env; prod crashes loudly rather than quietly
  * authenticating with a placeholder credential.
  */
-export function infraDefault(defaultValue: string): z.ZodDefault<z.ZodString> {
+function infraDefault(defaultValue: string): z.ZodDefault<z.ZodString> {
     return z
         .string()
         .min(1)

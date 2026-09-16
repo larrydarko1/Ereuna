@@ -83,17 +83,3 @@ export function toDateInput(value: string | Date): string {
     const offset = date.getTimezoneOffset() * 60_000;
     return new Date(date.getTime() - offset).toISOString().slice(0, 10);
 }
-
-/** Relative time up to 30 days, then an absolute date. */
-export function timeAgo(iso: string | Date): string {
-    const { t } = i18n.global;
-    const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-    if (seconds < 60) return t('time.justNow');
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return t('time.minutesAgo', { n: minutes });
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return t('time.hoursAgo', { n: hours });
-    const days = Math.floor(hours / 24);
-    if (days < 30) return t('time.daysAgo', { n: days });
-    return formatDate(iso);
-}

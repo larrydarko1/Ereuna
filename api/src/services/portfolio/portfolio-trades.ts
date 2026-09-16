@@ -45,20 +45,6 @@ export type TradePage = {
     limit: number;
 };
 
-export function toTradeRow(doc: WithId<TradeDoc>): TradeRow {
-    return {
-        id: doc._id.toHexString(),
-        symbol: doc.symbol,
-        action: doc.action,
-        shares: doc.shares,
-        price: doc.price,
-        total: doc.total,
-        commission: doc.commission,
-        tradeDate: doc.tradeDate,
-        createdAt: doc.createdAt,
-    };
-}
-
 /** The blotter: newest first, which is the order the index on (userId, portfolioNumber, tradeDate) serves. */
 export async function getTradePage(
     userId: ObjectId,
@@ -198,6 +184,21 @@ export async function replaceTrades(
  * keeps concrete numbers, so changing the default later cannot re-price a trade
  * that has already settled, and an export replays to the same result anywhere.
  */
+/** The wire shape of a stored trade: a string id, and none of the ownership fields. */
+function toTradeRow(doc: WithId<TradeDoc>): TradeRow {
+    return {
+        id: doc._id.toHexString(),
+        symbol: doc.symbol,
+        action: doc.action,
+        shares: doc.shares,
+        price: doc.price,
+        total: doc.total,
+        commission: doc.commission,
+        tradeDate: doc.tradeDate,
+        createdAt: doc.createdAt,
+    };
+}
+
 function settle(input: TradeInput, portfolio: Pick<PortfolioDoc, 'defaultCommission'>): Omit<ReplayTrade, 'createdAt'> {
     return {
         symbol: input.symbol,

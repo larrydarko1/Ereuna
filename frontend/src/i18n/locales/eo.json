@@ -1063,12 +1063,6 @@
         "NOTE_LIMIT_REACHED": "Vi povas konservi maksimume {max} notojn pri {symbol}.",
         "ASSET_NOT_FOUND": "Neniuj datumoj pri tiu simbolo."
     },
-    "time": {
-        "justNow": "Ĵus nun",
-        "minutesAgo": "antaŭ {n} min",
-        "hoursAgo": "antaŭ {n} h",
-        "daysAgo": "antaŭ {n} t"
-    },
     "validation": {
         "passwordMismatch": "Pasvortoj ne kongruas",
         "usernameRequired": "Salutnomo estas deviga",

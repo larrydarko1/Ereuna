@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { holidayCalendar, holidaysFor } from '@/utils/holidays.js';
+import { holidayCalendar } from '@/utils/holidays.js';
 
-const dates = (year: number): string[] => holidaysFor(year).map((holiday) => holiday.date);
+const dates = (year: number): string[] => holidayCalendar(year, 1).map((holiday) => holiday.date);
 
-describe('holidaysFor', () => {
+describe('one year of the calendar', () => {
     it('gives the ten exchange holidays of 2026', () => {
         expect(dates(2026)).toEqual([
             '2026-01-01', // New Year's Day

@@ -10,8 +10,6 @@ describe('the package barrel', () => {
     it.each([
         'ERROR_CODES',
         'isErrorCode',
-        'hasValue',
-        'isFiniteNumber',
         'ALL_COLLECTIONS',
         'COLLECTIONS',
         'INDEXES',
@@ -25,7 +23,6 @@ describe('the package barrel', () => {
         'tiingoEnv',
         'requiredSecret',
         'hexSecret',
-        'infraDefault',
         'AGGREGATOR_TIMEFRAMES',
         'aggregateChannel',
         'lastCandleKey',

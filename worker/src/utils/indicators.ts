@@ -23,20 +23,6 @@ export function sma(values: readonly number[], period: number): number | null {
     return window.reduce((sum, value) => sum + value, 0) / period;
 }
 
-export function ema(values: readonly number[], period: number): number[] {
-    if (values.length === 0 || period <= 0) return [];
-    const multiplier = 2 / (period + 1);
-    const out: number[] = [values[0] ?? 0];
-
-    for (let index = 1; index < values.length; index += 1) {
-        const value = values[index] ?? 0;
-        const previous = out[index - 1] ?? 0;
-        out.push(value * multiplier + previous * (1 - multiplier));
-    }
-
-    return out;
-}
-
 /**
  * Wilder's RSI over the whole series, which is the one every chart draws.
  * The average gain and loss are seeded on the first `period` changes and then
@@ -94,13 +80,6 @@ export function macd(closes: readonly number[], options: MacdOptions = {}): Macd
     const line = fastEma.map((value, index) => value - (slowEma[index] ?? 0));
 
     return { macd: line, signal: ema(line, signalPeriod) };
-}
-
-export function standardDeviation(values: readonly number[]): number | null {
-    if (values.length === 0) return null;
-    const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
-    const variance = values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / values.length;
-    return Math.sqrt(variance);
 }
 
 export function averageDailyVolatility(closes: readonly number[], period: number): number | null {
@@ -166,6 +145,32 @@ export function round(value: number | null, places: number): number | null {
 }
 
 /** Bars until an EMA seeded on its first value carries under 1% of the weight. */
+/**
+ * The exponential average of `values`, index-aligned with them.
+ * Seeded on the first value rather than on an SMA of the first `period`, which
+ * is why `macd` refuses a series until that seed's weight has burned off.
+ */
+function ema(values: readonly number[], period: number): number[] {
+    if (values.length === 0 || period <= 0) return [];
+    const multiplier = 2 / (period + 1);
+    const out: number[] = [values[0] ?? 0];
+
+    for (let index = 1; index < values.length; index += 1) {
+        const value = values[index] ?? 0;
+        const previous = out[index - 1] ?? 0;
+        out.push(value * multiplier + previous * (1 - multiplier));
+    }
+
+    return out;
+}
+
+function standardDeviation(values: readonly number[]): number | null {
+    if (values.length === 0) return null;
+    const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+    const variance = values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / values.length;
+    return Math.sqrt(variance);
+}
+
 function warmupBars(period: number): number {
     return Math.ceil(Math.log(0.01) / Math.log(1 - 2 / (period + 1)));
 }

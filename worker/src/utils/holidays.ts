@@ -22,8 +22,13 @@ const FIXED = [
 
 const DAY = 86_400_000;
 
+/** Holidays for `years` calendar years starting at `from`. */
+export function holidayCalendar(from: number, years = 2): Holiday[] {
+    return Array.from({ length: years }, (_, offset) => holidaysFor(from + offset)).flat();
+}
+
 /** Every exchange holiday in `year`, in date order. */
-export function holidaysFor(year: number): Holiday[] {
+function holidaysFor(year: number): Holiday[] {
     const holidays: Holiday[] = [
         ...FIXED.map(({ month, day, name }) => ({ date: iso(observed(Date.UTC(year, month, day))), name })),
         ...NTH_WEEKDAY.map(({ month, weekday, nth, name }) => ({
@@ -35,11 +40,6 @@ export function holidaysFor(year: number): Holiday[] {
     ];
 
     return holidays.sort((left, right) => left.date.localeCompare(right.date));
-}
-
-/** Holidays for `years` calendar years starting at `from`. */
-export function holidayCalendar(from: number, years = 2): Holiday[] {
-    return Array.from({ length: years }, (_, offset) => holidaysFor(from + offset)).flat();
 }
 
 /**

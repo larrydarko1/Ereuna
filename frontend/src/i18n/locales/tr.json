@@ -1063,12 +1063,6 @@
         "NOTE_LIMIT_REACHED": "{symbol} için en fazla {max} not tutabilirsiniz.",
         "ASSET_NOT_FOUND": "Bu sembol için veri yok."
     },
-    "time": {
-        "justNow": "Az önce",
-        "minutesAgo": "{n} dk önce",
-        "hoursAgo": "{n} sa önce",
-        "daysAgo": "{n} gün önce"
-    },
     "validation": {
         "passwordMismatch": "Şifreler eşleşmiyor",
         "usernameRequired": "Kullanıcı adı gerekli",

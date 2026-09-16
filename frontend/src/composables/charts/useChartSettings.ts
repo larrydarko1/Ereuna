@@ -33,12 +33,6 @@ export const DEFAULT_INDICATORS: readonly ChartIndicator[] = [
     { type: 'SMA', period: 200, visible: true },
 ];
 
-/** What a chart looks like before anyone has configured one. */
-export const DEFAULT_CHART_SETTINGS: ChartSettings = {
-    style: 'candlestick',
-    indicators: {},
-};
-
 /** `config.limits.maxIndicatorPeriod` on the API side. */
 export const MAX_INDICATOR_PERIOD = 400;
 
@@ -48,6 +42,12 @@ export const MAX_INDICATOR_PERIOD = 400;
  * in use and the legend would name two different averages the same.
  */
 const MAX_INDICATORS = 4;
+
+/** What a chart looks like before anyone has configured one. */
+const DEFAULT_CHART_SETTINGS: ChartSettings = {
+    style: 'candlestick',
+    indicators: {},
+};
 
 export function useChartSettings(): UseChartSettingsReturn {
     const { preferences } = usePreferences();

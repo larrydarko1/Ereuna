@@ -1063,12 +1063,6 @@
         "NOTE_LIMIT_REACHED": "Tista’ żżomm l-iktar {max} noti fuq {symbol}.",
         "ASSET_NOT_FOUND": "M’hemm l-ebda data għal dak is-simbolu."
     },
-    "time": {
-        "justNow": "Issa",
-        "minutesAgo": "{n} min ilu",
-        "hoursAgo": "{n} sig ilu",
-        "daysAgo": "{n} jum ilu"
-    },
     "validation": {
         "passwordMismatch": "Passwords ma jaqblux",
         "usernameRequired": "Username meħtieġ",

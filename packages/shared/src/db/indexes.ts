@@ -36,7 +36,15 @@ export type IndexSpec = {
     why: string; // Which query or constraint this index serves
 };
 
-/** Every collection the API owns. Market-data collections are not listed — the API only reads them. */
+/**
+ * Every collection the API owns. Market-data collections are not listed — the
+ * API only reads them.
+ * @public — nothing imports this list by name; `ALL_COLLECTIONS` below is what
+ * the migrations and the boot path consume. It stays exported because
+ * check-db-drift.mjs imports this module under plain Node and exits if the name
+ * is gone: the split by writer is what tells that gate which manifest is
+ * allowed to index which collection.
+ */
 export const COLLECTIONS = [
     'Users',
     'RefreshTokens',
@@ -65,7 +73,7 @@ export const OHLCV_COLLECTIONS = {
 } as const satisfies Record<ChartTimeframe, string>;
 
 /** Reference and derived market data, written by the worker's nightly run. */
-export const REFERENCE_COLLECTIONS = ['AssetInfo', 'Stats'] as const;
+const REFERENCE_COLLECTIONS = ['AssetInfo', 'Stats'] as const;
 
 /**
  * Every collection in EreunaDB. The bootstrap migration creates exactly these,

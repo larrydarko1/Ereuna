@@ -1,17 +1,15 @@
 /**
- * Debounce and throttle, as composables that clean up after themselves.
- * The difference matters: debounce waits for the user to STOP (a search box),
- * throttle fires at a steady rate no matter what (scroll, resize, a live
- * chart crosshair).
- * Both auto-cancel on scope disposal. Without that, a pending timer fires into
- * an unmounted component and touches refs that no longer exist — silent, and
+ * Debounce, as a composable that cleans up after itself.
+ * It waits for the user to STOP — a search box, not a steady stream — and
+ * auto-cancels on scope disposal. Without that, a pending timer fires into an
+ * unmounted component and touches refs that no longer exist: silent, and
  * miserable to trace back.
- * These are UX tools, not controls. The API rate-limits regardless, because
+ * This is a UX tool, not a control. The API rate-limits regardless, because
  * anything enforced only in the browser is not enforced.
  */
 import { getCurrentScope, onScopeDispose } from 'vue';
 
-/** A debounced or throttled function, with a real canceller for the pending call. */
+/** A debounced function, with a real canceller for the pending call. */
 export type Cancelable<TArgs extends unknown[]> = ((...args: TArgs) => void) & { cancel: () => void };
 
 export type DebounceOptions = {
@@ -59,39 +57,4 @@ export function useDebounceFn<TArgs extends unknown[]>(
     debounced.cancel = cancel;
     if (getCurrentScope() !== undefined) onScopeDispose(cancel);
     return debounced;
-}
-
-/** Run immediately, then at most once per `ms`, with a trailing call. */
-export function useThrottleFn<TArgs extends unknown[]>(fn: (...args: TArgs) => void, ms = 200): Cancelable<TArgs> {
-    let last = 0;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    let lastArgs: TArgs | undefined;
-
-    const cancel = (): void => {
-        if (timer !== undefined) clearTimeout(timer);
-        timer = undefined;
-        lastArgs = undefined;
-    };
-
-    const throttled = ((...args: TArgs): void => {
-        lastArgs = args;
-        const elapsed = Date.now() - last;
-        if (elapsed >= ms) {
-            last = Date.now();
-            fn(...args);
-            return;
-        }
-        if (timer !== undefined) return;
-        timer = setTimeout(() => {
-            last = Date.now();
-            timer = undefined;
-            const pending = lastArgs;
-            lastArgs = undefined;
-            if (pending !== undefined) fn(...pending);
-        }, ms - elapsed);
-    }) as Cancelable<TArgs>;
-
-    throttled.cancel = cancel;
-    if (getCurrentScope() !== undefined) onScopeDispose(cancel);
-    return throttled;
 }

@@ -1,5 +1,13 @@
+/**
+ * Lot matching is exercised through `computeStats` rather than through the
+ * matcher itself: the snapshot is what the module publishes, and every property
+ * the matcher has — which lot an exit closes, how long it was held, what the
+ * commission did to its return — is visible in the numbers the snapshot carries.
+ * The cases below are built so FIFO and LIFO disagree, because a pair of lots
+ * closed at the same size produces the same set of profits either way.
+ */
 import { describe, expect, it } from 'vitest';
-import { closedLots, computeStats } from '@/utils/portfolio-stats.js';
+import { computeStats } from '@/utils/portfolio-stats.js';
 import type { ReplayTrade } from '@/utils/portfolio-replay.js';
 
 function trade(
@@ -13,36 +21,57 @@ function trade(
     return { symbol, action, shares, price, total: shares * price, commission: 0, tradeDate, createdAt: tradeDate };
 }
 
-describe('closedLots', () => {
-    it('matches a sell against the oldest buy first', () => {
-        const lots = closedLots([
-            trade('buy', 10, 100, '2026-01-01'),
-            trade('buy', 10, 200, '2026-01-02'),
-            trade('sell', 10, 150, '2026-01-10'),
-        ]);
+const withCommission = (base: ReplayTrade, commission: number): ReplayTrade => ({ ...base, commission });
 
-        expect(lots).toHaveLength(1);
-        expect(lots[0]).toMatchObject({ entryPrice: 100, exitPrice: 150, shares: 10, profit: 500 });
+describe('lot matching', () => {
+    it('matches a sell against the oldest buy first', () => {
+        // Closing the 200 lot instead would book -500, not +500.
+        const stats = computeStats(
+            [
+                trade('buy', 10, 100, '2026-01-01'),
+                trade('buy', 10, 200, '2026-01-02'),
+                trade('sell', 10, 150, '2026-01-10'),
+            ],
+            10_000,
+        );
+
+        expect(stats.realizedPL).toBe(500);
+        expect(stats.winnerCount).toBe(1);
+        expect(stats.loserCount).toBe(0);
     });
 
     it('splits one sell across the several buys it closes', () => {
-        const lots = closedLots([
-            trade('buy', 5, 100, '2026-01-01'),
-            trade('buy', 5, 200, '2026-01-02'),
-            trade('sell', 10, 150, '2026-01-10'),
-        ]);
+        const stats = computeStats(
+            [
+                trade('buy', 5, 100, '2026-01-01'),
+                trade('buy', 5, 200, '2026-01-02'),
+                trade('sell', 10, 150, '2026-01-10'),
+            ],
+            10_000,
+        );
 
-        expect(lots.map((lot) => lot.profit)).toEqual([250, -250]);
+        expect(stats).toMatchObject({ winnerCount: 1, loserCount: 1, realizedPL: 0 });
+        expect(stats.avgGainAbs).toBe(250);
+        expect(stats.avgLossAbs).toBe(250);
     });
 
-    it('counts hold time from each lot’s own entry date', () => {
-        const lots = closedLots([trade('buy', 1, 100, '2026-01-01'), trade('sell', 1, 100, '2026-01-11')]);
+    it('counts hold time from each lot’s own entry date, not from the first', () => {
+        // Held ten days and five; measured from the earliest entry both would read ten.
+        const stats = computeStats(
+            [
+                trade('buy', 1, 100, '2026-01-01'),
+                trade('buy', 1, 100, '2026-01-06'),
+                trade('sell', 2, 110, '2026-01-11'),
+            ],
+            10_000,
+        );
 
-        expect(lots[0]?.holdDays).toBe(10);
+        expect(stats.winnerCount).toBe(2);
+        expect(stats.avgHoldTimeWinners).toBe(7.5);
     });
 
     it('ignores cash movements, which close nothing', () => {
-        const cash: ReplayTrade = {
+        const deposit: ReplayTrade = {
             symbol: null,
             action: 'deposit',
             shares: 0,
@@ -52,8 +81,9 @@ describe('closedLots', () => {
             tradeDate: new Date('2026-01-01'),
             createdAt: new Date('2026-01-01'),
         };
+        const stats = computeStats([deposit, trade('buy', 1, 100, '2026-01-02')], 10_000);
 
-        expect(closedLots([cash, trade('buy', 1, 100, '2026-01-02')])).toEqual([]);
+        expect(stats).toMatchObject({ winnerCount: 0, loserCount: 0, breakevenCount: 0, realizedPL: 0 });
     });
 });
 
@@ -128,45 +158,41 @@ describe('computeStats', () => {
     });
 });
 
-describe('closedLots — shorts', () => {
+describe('shorts', () => {
     it('books a short that is covered lower as a winner', () => {
-        const lots = closedLots([trade('short', 10, 100, '2026-01-01'), trade('cover', 10, 80, '2026-01-11')]);
+        const stats = computeStats(
+            [trade('short', 10, 100, '2026-01-01'), trade('cover', 10, 80, '2026-01-11')],
+            10_000,
+        );
 
-        expect(lots[0]).toMatchObject({ side: 'short', entryPrice: 100, exitPrice: 80, profit: 200 });
-        expect(lots[0]?.returnPercent).toBe(20);
+        expect(stats).toMatchObject({ winnerCount: 1, shortCount: 1, longCount: 0, realizedPL: 200 });
+        expect(stats.avgGain).toBe(20);
     });
 
     it('books a short that is covered higher as a loser', () => {
-        const lots = closedLots([trade('short', 10, 100, '2026-01-01'), trade('cover', 10, 130, '2026-01-11')]);
+        const stats = computeStats(
+            [trade('short', 10, 100, '2026-01-01'), trade('cover', 10, 130, '2026-01-11')],
+            10_000,
+        );
 
-        expect(lots[0]?.profit).toBe(-300);
-    });
-
-    it('settles each side of a symbol against its own queue', () => {
-        const lots = closedLots([
-            trade('buy', 10, 100, '2026-01-01'),
-            trade('sell', 10, 120, '2026-01-05'),
-            trade('short', 10, 120, '2026-01-06'),
-            trade('cover', 10, 100, '2026-01-10'),
-        ]);
-
-        expect(lots.map((lot) => [lot.side, lot.profit])).toEqual([
-            ['long', 200],
-            ['short', 200],
-        ]);
+        expect(stats).toMatchObject({ loserCount: 1, realizedPL: -300 });
     });
 
     it('matches covers FIFO against the oldest short lot', () => {
-        const lots = closedLots([
-            trade('short', 5, 100, '2026-01-01'),
-            trade('short', 5, 200, '2026-01-02'),
-            trade('cover', 10, 150, '2026-01-10'),
-        ]);
+        // Covering the 200 lot instead would book +250, not -250.
+        const stats = computeStats(
+            [
+                trade('short', 5, 100, '2026-01-01'),
+                trade('short', 5, 200, '2026-01-02'),
+                trade('cover', 5, 150, '2026-01-10'),
+            ],
+            10_000,
+        );
 
-        expect(lots.map((lot) => lot.profit)).toEqual([-250, 250]);
+        expect(stats).toMatchObject({ loserCount: 1, winnerCount: 0, realizedPL: -250 });
     });
 
-    it('counts each side in the snapshot', () => {
+    it('settles each side of a symbol against its own queue', () => {
         const stats = computeStats(
             [
                 trade('buy', 10, 100, '2026-01-01'),
@@ -181,37 +207,47 @@ describe('closedLots — shorts', () => {
     });
 });
 
-describe('closedLots — commission', () => {
-    const withCommission = (base: ReplayTrade, commission: number): ReplayTrade => ({ ...base, commission });
-
+describe('commission', () => {
     it('charges both legs against the lot they opened and closed', () => {
-        const lots = closedLots([
-            withCommission(trade('buy', 10, 100, '2026-01-01'), 5),
-            withCommission(trade('sell', 10, 110, '2026-01-11'), 5),
-        ]);
+        const stats = computeStats(
+            [
+                withCommission(trade('buy', 10, 100, '2026-01-01'), 5),
+                withCommission(trade('sell', 10, 110, '2026-01-11'), 5),
+            ],
+            10_000,
+        );
 
-        expect(lots[0]).toMatchObject({ commission: 10, profit: 90 });
+        expect(stats.realizedPL).toBe(90);
+        expect(stats.totalCommission).toBe(10);
     });
 
     it('pro-rates an entry commission across the exits that consume the lot', () => {
-        const lots = closedLots([
-            withCommission(trade('buy', 10, 100, '2026-01-01'), 10),
-            trade('sell', 5, 110, '2026-01-11'),
-            trade('sell', 5, 110, '2026-01-12'),
-        ]);
+        // The 10 charged on entry is split 5/5; billing it twice in full would
+        // leave 80 rather than 90.
+        const stats = computeStats(
+            [
+                withCommission(trade('buy', 10, 100, '2026-01-01'), 10),
+                trade('sell', 5, 110, '2026-01-11'),
+                trade('sell', 5, 110, '2026-01-12'),
+            ],
+            10_000,
+        );
 
-        // The 10 charged on entry is split 5/5, not billed twice in full.
-        expect(lots.map((lot) => lot.commission)).toEqual([5, 5]);
+        expect(stats.winnerCount).toBe(2);
+        expect(stats.realizedPL).toBe(90);
     });
 
     it('reports the return net of cost, so a trade can gross a profit and still lose', () => {
-        const lots = closedLots([
-            withCommission(trade('buy', 1, 100, '2026-01-01'), 3),
-            withCommission(trade('sell', 1, 102, '2026-01-11'), 3),
-        ]);
+        const stats = computeStats(
+            [
+                withCommission(trade('buy', 1, 100, '2026-01-01'), 3),
+                withCommission(trade('sell', 1, 102, '2026-01-11'), 3),
+            ],
+            10_000,
+        );
 
-        expect(lots[0]?.profit).toBe(-4);
-        expect(lots[0]?.returnPercent).toBe(-4);
+        expect(stats).toMatchObject({ loserCount: 1, realizedPL: -4 });
+        expect(stats.avgLoss).toBe(-4);
     });
 
     it('totals every trade’s commission, including one that closed nothing', () => {

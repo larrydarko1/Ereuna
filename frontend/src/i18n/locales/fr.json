@@ -1063,12 +1063,6 @@
         "NOTE_LIMIT_REACHED": "Vous pouvez conserver au maximum {max} notes sur {symbol}.",
         "ASSET_NOT_FOUND": "Aucune donnée pour ce symbole."
     },
-    "time": {
-        "justNow": "À l'instant",
-        "minutesAgo": "il y a {n} min",
-        "hoursAgo": "il y a {n} h",
-        "daysAgo": "il y a {n} j"
-    },
     "validation": {
         "passwordMismatch": "Les mots de passe ne correspondent pas",
         "usernameRequired": "Le nom d'utilisateur est requis",

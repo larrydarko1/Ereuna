@@ -5,7 +5,6 @@ import {
     INDEXES,
     OHLCV_COLLECTIONS,
     OHLCV_INDEXES,
-    REFERENCE_COLLECTIONS,
     REFERENCE_INDEXES,
     type IndexSpec,
 } from '#db/indexes.js';
@@ -19,12 +18,45 @@ describe('the collection registry', () => {
         expect(new Set(ALL_COLLECTIONS).size).toBe(ALL_COLLECTIONS.length);
     });
 
-    it('is the union of the three writer-owned groups', () => {
+    /**
+     * The names are written out rather than rebuilt from the same three groups
+     * the registry composes: an assertion assembled from its own subject agrees
+     * with a rename as readily as with the truth. Eighteen namespaces hold every
+     * byte in EreunaDB, so adding or renaming one is a deliberate act that
+     * belongs in a diff.
+     */
+    it('names the eighteen collections EreunaDB holds, in writer order', () => {
         expect(ALL_COLLECTIONS).toEqual([
-            ...COLLECTIONS,
-            ...Object.values(OHLCV_COLLECTIONS),
-            ...REFERENCE_COLLECTIONS,
+            'Users',
+            'RefreshTokens',
+            'Screeners',
+            'Watchlists',
+            'Portfolios',
+            'Positions',
+            'Trades',
+            'Notes',
+            'ChartDrawings',
+            'OHCLVData',
+            'OHCLVData2',
+            'OHCLVData1m',
+            'OHCLVData5m',
+            'OHCLVData15m',
+            'OHCLVData30m',
+            'OHCLVData1hr',
+            'AssetInfo',
+            'Stats',
         ]);
+    });
+
+    /**
+     * The split by writer is what check-db-drift.mjs reads to decide which
+     * manifest may index which namespace. A market-data collection that drifted
+     * into the API's group would let the API apply an index to half a billion
+     * bars at boot.
+     */
+    it('keeps the API-owned group clear of the collections the worker writes', () => {
+        const marketData = new Set<string>([...Object.values(OHLCV_COLLECTIONS), 'AssetInfo', 'Stats']);
+        for (const name of COLLECTIONS) expect(marketData.has(name)).toBe(false);
     });
 
     it('has one candle collection per chart timeframe, all distinct', () => {

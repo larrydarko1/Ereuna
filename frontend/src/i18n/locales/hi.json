@@ -1063,12 +1063,6 @@
         "NOTE_LIMIT_REACHED": "आप {symbol} पर अधिकतम {max} नोट रख सकते हैं।",
         "ASSET_NOT_FOUND": "उस प्रतीक के लिए कोई डेटा नहीं है।"
     },
-    "time": {
-        "justNow": "अभी",
-        "minutesAgo": "{n} मिनट पहले",
-        "hoursAgo": "{n} घंटे पहले",
-        "daysAgo": "{n} दिन पहले"
-    },
     "validation": {
         "passwordMismatch": "पासवर्ड मेल नहीं खाते",
         "usernameRequired": "यूजरनेम आवश्यक है",

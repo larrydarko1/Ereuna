@@ -51,7 +51,7 @@ vi.mock('@/services/portfolio/portfolio-crud.js', () => ({
     },
 }));
 
-const { addTrade, deleteTrade, getTradePage, replaceTrades, toTradeRow, updateTrade } =
+const { addTrade, deleteTrade, getTradePage, replaceTrades, updateTrade } =
     await import('@/services/portfolio/portfolio-trades.js');
 const { config } = await import('@/lib/config.js');
 
@@ -102,22 +102,6 @@ beforeEach(() => {
     state.violation = null;
 });
 
-describe('toTradeRow', () => {
-    it('renders the id as a string and drops the ownership fields', () => {
-        expect(toTradeRow(stored())).toEqual({
-            id: TRADE_ID.toHexString(),
-            symbol: 'AAPL',
-            action: 'buy',
-            shares: 10,
-            price: 100,
-            total: 1_000,
-            commission: 0,
-            tradeDate: YESTERDAY,
-            createdAt: new Date('2026-01-01T00:00:00.000Z'),
-        });
-    });
-});
-
 describe('getTradePage', () => {
     it('reads one portfolio for one user', async () => {
         await getTradePage(USER_ID, 0, { page: 1, limit: 10 });
@@ -138,11 +122,22 @@ describe('getTradePage', () => {
         });
     });
 
+    /** The whole row, so a field added to the document cannot leak onto the wire. */
     it('renders the rows rather than the raw documents', async () => {
         db.current = fakeDb({ Trades: [stored()] });
         const page = await getTradePage(USER_ID, 0, { page: 1, limit: 10 });
-        expect(page.items[0]).not.toHaveProperty('userId');
-        expect(page.items[0]?.id).toBe(TRADE_ID.toHexString());
+
+        expect(page.items[0]).toEqual({
+            id: TRADE_ID.toHexString(),
+            symbol: 'AAPL',
+            action: 'buy',
+            shares: 10,
+            price: 100,
+            total: 1_000,
+            commission: 0,
+            tradeDate: YESTERDAY,
+            createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        });
     });
 });
 

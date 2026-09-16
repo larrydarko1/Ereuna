@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { i18n } from '@/i18n';
 import {
     direction,
@@ -10,7 +10,6 @@ import {
     formatPercent,
     formatRatio,
     formatSigned,
-    timeAgo,
     toDateInput,
 } from '@/utils/formatters';
 
@@ -120,32 +119,5 @@ describe('dates', () => {
         const local = new Date(2026, 2, 2, 1, 30);
 
         expect(toDateInput(local)).toBe('2026-03-02');
-    });
-});
-
-describe('timeAgo', () => {
-    beforeEach(() => {
-        vi.useFakeTimers();
-        vi.setSystemTime(new Date('2026-03-02T12:00:00Z'));
-    });
-
-    it('says just now under a minute', () => {
-        expect(timeAgo('2026-03-02T11:59:30Z')).toBe(i18n.global.t('time.justNow'));
-    });
-
-    it('counts minutes under an hour', () => {
-        expect(timeAgo('2026-03-02T11:30:00Z')).toBe(i18n.global.t('time.minutesAgo', { n: 30 }));
-    });
-
-    it('counts hours under a day', () => {
-        expect(timeAgo('2026-03-02T06:00:00Z')).toBe(i18n.global.t('time.hoursAgo', { n: 6 }));
-    });
-
-    it('counts days under a month', () => {
-        expect(timeAgo('2026-02-25T12:00:00Z')).toBe(i18n.global.t('time.daysAgo', { n: 5 }));
-    });
-
-    it('falls back to an absolute date past thirty days', () => {
-        expect(timeAgo('2026-01-01T12:00:00Z')).toBe('Jan 1, 2026');
     });
 });

@@ -1,16 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-    averageDailyVolatility,
-    cagr,
-    changeOver,
-    ema,
-    extremes,
-    macd,
-    numeric,
-    rsi,
-    sma,
-    standardDeviation,
-} from '@/utils/indicators.js';
+import { averageDailyVolatility, cagr, changeOver, extremes, macd, numeric, rsi, sma } from '@/utils/indicators.js';
 
 /** An ascending series, oldest first — the order every function here expects. */
 const rising = Array.from({ length: 30 }, (_, index) => 100 + index);
@@ -91,6 +80,10 @@ describe('averageDailyVolatility', () => {
     it('is zero for a series that does not move', () => {
         expect(averageDailyVolatility(new Array(10).fill(50), 5)).toBeCloseTo(0);
     });
+
+    it('is null before there are enough bars to take a return from every one', () => {
+        expect(averageDailyVolatility([3, 3, 3], 20)).toBeNull();
+    });
 });
 
 describe('extremes', () => {
@@ -118,9 +111,12 @@ describe('cagr', () => {
     });
 });
 
-describe('ema and macd', () => {
-    it('seeds the average with the first value', () => {
-        expect(ema([5, 5, 5], 3)[0]).toBe(5);
+describe('macd', () => {
+    it('seeds both legs on the first close, so a flat series never crosses', () => {
+        const line = macd(Array.from({ length: 120 }, () => 5))?.macd ?? [];
+
+        expect(line).toHaveLength(120);
+        for (const value of line) expect(value).toBe(0);
     });
 
     it('produces two aligned series', () => {
@@ -148,11 +144,5 @@ describe('numeric', () => {
         expect(numeric('')).toBeNull();
         expect(numeric(null)).toBeNull();
         expect(numeric(Infinity)).toBeNull();
-    });
-});
-
-describe('standardDeviation', () => {
-    it('is zero for a constant series', () => {
-        expect(standardDeviation([3, 3, 3])).toBe(0);
     });
 });

@@ -52,10 +52,67 @@ const BASE_PROJECTION = {
     Exchange: 1,
 } as const;
 
-export function buildQuery(
-    filters: Record<string, ScreenerFilterValue>,
-    hiddenSymbols: string[] = [],
-): Filter<AssetInfoDoc> {
+export async function runScreener(
+    userId: ObjectId,
+    screenerName: string,
+    options: { page: number; limit: number; columns?: string[]; hiddenSymbols?: string[] },
+): Promise<ScreenerResultPage> {
+    const screener = await getScreener(userId, screenerName);
+    const { page, limit, columns = [], hiddenSymbols = [] } = options;
+
+    return withCache(
+        userKey(userId.toHexString(), 'screener', screener._id.toHexString(), String(page), String(limit)),
+        () => executeQuery(buildQuery(screener.filters, hiddenSymbols), { page, limit, columns }),
+        { dataType: 'price' },
+    );
+}
+
+/** Run every screener the user has switched on, as one query. */
+export async function runIncludedScreeners(
+    userId: ObjectId,
+    options: { page: number; limit: number; columns?: string[]; hiddenSymbols?: string[] },
+): Promise<ScreenerResultPage> {
+    const { page, limit, columns = [], hiddenSymbols = [] } = options;
+
+    const screeners = await getDb().collection<ScreenerDoc>('Screeners').find({ userId, include: true }).toArray();
+
+    if (screeners.length === 0) return { items: [], total: 0, page, pages: 0 };
+
+    return withCache(
+        userKey(userId.toHexString(), 'screener', 'combined', String(page), String(limit)),
+        () => executeCombined(screeners, { page, limit, columns, hiddenSymbols }),
+        { dataType: 'price' },
+    );
+}
+
+/**
+ * The hidden list, as full rows rather than bare symbols.
+ * It is the same projection every other result page gets, because the point of
+ * the list is deciding whether something still deserves to be hidden — and a
+ * column of symbols with nothing beside them cannot answer that.
+ */
+export async function runHiddenSymbols(
+    userId: ObjectId,
+    options: { page: number; limit: number; columns?: string[]; hiddenSymbols?: string[] },
+): Promise<ScreenerResultPage> {
+    const { page, limit, columns = [], hiddenSymbols = [] } = options;
+    if (hiddenSymbols.length === 0) return { items: [], total: 0, page, pages: 0 };
+
+    return withCache(
+        userKey(userId.toHexString(), 'screener', 'hidden', String(page), String(limit)),
+        () => executeQuery({ Symbol: { $in: hiddenSymbols } }, { page, limit, columns }),
+        { dataType: 'price' },
+    );
+}
+
+/**
+ * The MongoDB query one screener's stored filters describe.
+ * Every filter kind lands here: a range becomes `{ $gt, $lt }` on its query
+ * path, a categorical one `$in`, and anything comparing two fields — price, and
+ * every moving-average relation — an `$expr` collected into `$and`, because
+ * assigning each to `query.$expr` in turn silently keeps only the last.
+ */
+function buildQuery(filters: Record<string, ScreenerFilterValue>, hiddenSymbols: string[] = []): Filter<AssetInfoDoc> {
     const query: Filter<AssetInfoDoc> = {};
     const expressions: Document[] = [];
 
@@ -110,59 +167,6 @@ export function buildQuery(
     if (expressions.length > 0) query.$and = expressions.map((expr) => ({ $expr: expr }));
 
     return query;
-}
-
-export async function runScreener(
-    userId: ObjectId,
-    screenerName: string,
-    options: { page: number; limit: number; columns?: string[]; hiddenSymbols?: string[] },
-): Promise<ScreenerResultPage> {
-    const screener = await getScreener(userId, screenerName);
-    const { page, limit, columns = [], hiddenSymbols = [] } = options;
-
-    return withCache(
-        userKey(userId.toHexString(), 'screener', screener._id.toHexString(), String(page), String(limit)),
-        () => executeQuery(buildQuery(screener.filters, hiddenSymbols), { page, limit, columns }),
-        { dataType: 'price' },
-    );
-}
-
-/** Run every screener the user has switched on, as one query. */
-export async function runIncludedScreeners(
-    userId: ObjectId,
-    options: { page: number; limit: number; columns?: string[]; hiddenSymbols?: string[] },
-): Promise<ScreenerResultPage> {
-    const { page, limit, columns = [], hiddenSymbols = [] } = options;
-
-    const screeners = await getDb().collection<ScreenerDoc>('Screeners').find({ userId, include: true }).toArray();
-
-    if (screeners.length === 0) return { items: [], total: 0, page, pages: 0 };
-
-    return withCache(
-        userKey(userId.toHexString(), 'screener', 'combined', String(page), String(limit)),
-        () => executeCombined(screeners, { page, limit, columns, hiddenSymbols }),
-        { dataType: 'price' },
-    );
-}
-
-/**
- * The hidden list, as full rows rather than bare symbols.
- * It is the same projection every other result page gets, because the point of
- * the list is deciding whether something still deserves to be hidden — and a
- * column of symbols with nothing beside them cannot answer that.
- */
-export async function runHiddenSymbols(
-    userId: ObjectId,
-    options: { page: number; limit: number; columns?: string[]; hiddenSymbols?: string[] },
-): Promise<ScreenerResultPage> {
-    const { page, limit, columns = [], hiddenSymbols = [] } = options;
-    if (hiddenSymbols.length === 0) return { items: [], total: 0, page, pages: 0 };
-
-    return withCache(
-        userKey(userId.toHexString(), 'screener', 'hidden', String(page), String(limit)),
-        () => executeQuery({ Symbol: { $in: hiddenSymbols } }, { page, limit, columns }),
-        { dataType: 'price' },
-    );
 }
 
 /**

@@ -1,7 +1,10 @@
 /**
  * The query builder is the highest-value thing to test here: it is a pure
- * function of the filter registry, so every filter kind can be checked without
- * a database, and a registry change that breaks a query shape fails here.
+ * function of the filter registry, so a registry change that breaks a query
+ * shape fails here. It is reached the way the routes reach it — through
+ * `runIncludedScreeners`, whose first `$match` stage is the query one screener's
+ * filters built — rather than imported, because the module publishes the two
+ * runners and nothing else.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ObjectId } from 'mongodb';
@@ -16,7 +19,7 @@ vi.mock('@/lib/cache.js', () => ({
     withCache: <T>(_key: string, fetcher: () => Promise<T>) => fetcher(),
 }));
 
-const { buildQuery, runHiddenSymbols, runIncludedScreeners } = await import('@/services/screener/screener-query.js');
+const { runHiddenSymbols, runIncludedScreeners } = await import('@/services/screener/screener-query.js');
 
 const USER_ID = new ObjectId('507f1f77bcf86cd799439011');
 
@@ -36,33 +39,45 @@ beforeEach(() => {
     db.current = fakeDb();
 });
 
-describe('buildQuery', () => {
-    it('returns an empty query when no filters are set', () => {
-        expect(buildQuery({})).toEqual({});
+describe('the query one screener’s filters build', () => {
+    /** Run one screener with `filters` and hand back the `$match` it produced. */
+    const queryFor = async (
+        filters: ScreenerDoc['filters'],
+        hiddenSymbols: string[] = [],
+    ): Promise<Record<string, unknown>> => {
+        db.current = fakeDb({ Screeners: [screener('One', filters)], AssetInfo: [{ items: [], total: [] }] });
+        await runIncludedScreeners(USER_ID, { page: 1, limit: 10, hiddenSymbols });
+        return matchStage();
+    };
+
+    it('returns an empty query when no filters are set', async () => {
+        await expect(queryFor({})).resolves.toEqual({});
     });
 
-    it('maps a range filter onto its AssetInfo path', () => {
-        expect(buildQuery({ PE: [5, 15] })).toEqual({ PERatio: { $gt: 5, $lt: 15 } });
+    it('maps a range filter onto its AssetInfo path', async () => {
+        await expect(queryFor({ PE: [5, 15] })).resolves.toEqual({ PERatio: { $gt: 5, $lt: 15 } });
     });
 
-    it('maps a quarterly-financials filter to its array-indexed path', () => {
-        expect(buildQuery({ ROE: [0.1, 0.5] })).toEqual({
+    it('maps a quarterly-financials filter to its array-indexed path', async () => {
+        await expect(queryFor({ ROE: [0.1, 0.5] })).resolves.toEqual({
             'quarterlyFinancials.0.roe': { $gt: 0.1, $lt: 0.5 },
         });
     });
 
-    it('maps a categorical filter with $in', () => {
-        expect(buildQuery({ Sectors: ['Technology', 'Healthcare'] })).toEqual({
+    it('maps a categorical filter with $in', async () => {
+        await expect(queryFor({ Sectors: ['Technology', 'Healthcare'] })).resolves.toEqual({
             Sector: { $in: ['Technology', 'Healthcare'] },
         });
     });
 
-    it('maps a filter to its query path, not the field name it is stored under', () => {
-        expect(buildQuery({ FundFamilies: ['Vanguard'] })).toEqual({ fundFamily: { $in: ['Vanguard'] } });
+    it('maps a filter to its query path, not the field name it is stored under', async () => {
+        await expect(queryFor({ FundFamilies: ['Vanguard'] })).resolves.toEqual({
+            fundFamily: { $in: ['Vanguard'] },
+        });
     });
 
-    it('converts a stored date range into BSON dates', () => {
-        const query = buildQuery({ IPO: ['2000-01-01', '2020-01-01'] }) as {
+    it('converts a stored date range into BSON dates', async () => {
+        const query = (await queryFor({ IPO: ['2000-01-01', '2020-01-01'] })) as {
             IPO: { $gte: Date; $lte: Date };
         };
         expect(query.IPO.$gte).toBeInstanceOf(Date);
@@ -74,22 +89,24 @@ describe('buildQuery', () => {
      * $expr clauses; the previous implementation assigned each to `query.$expr`
      * in turn, so combining them silently kept only the last.
      */
-    it('composes multiple $expr clauses into $and instead of overwriting', () => {
-        const query = buildQuery({ Price: [10, 500], MA50: 'abv200', MA20: 'abv50' }) as { $and: unknown[] };
+    it('composes multiple $expr clauses into $and instead of overwriting', async () => {
+        const query = (await queryFor({ Price: [10, 500], MA50: 'abv200', MA20: 'abv50' })) as { $and: unknown[] };
         expect(query.$and).toHaveLength(3);
     });
 
-    it('compares a moving average against the close when the target is price', () => {
-        const query = buildQuery({ MA200: 'blwprice' }) as { $and: { $expr: unknown }[] };
+    it('compares a moving average against the close when the target is price', async () => {
+        const query = (await queryFor({ MA200: 'blwprice' })) as { $and: { $expr: unknown }[] };
         expect(query.$and[0]?.$expr).toEqual({ $lt: ['$MA200', '$TimeSeries.close'] });
     });
 
-    it('excludes hidden symbols', () => {
-        expect(buildQuery({}, ['AAPL', 'MSFT'])).toEqual({ Symbol: { $nin: ['AAPL', 'MSFT'] } });
+    it('excludes hidden symbols', async () => {
+        await expect(queryFor({}, ['AAPL', 'MSFT'])).resolves.toEqual({ Symbol: { $nin: ['AAPL', 'MSFT'] } });
     });
 
-    it('ignores malformed stored values rather than emitting a broken query', () => {
-        expect(buildQuery({ PE: 'not-a-range', Sectors: [], MA50: 'nonsense' })).toEqual({});
+    it('ignores malformed stored values rather than emitting a broken query', async () => {
+        await expect(
+            queryFor({ PE: 'not-a-range', Sectors: [], MA50: 'nonsense' } as unknown as ScreenerDoc['filters']),
+        ).resolves.toEqual({});
     });
 });
 

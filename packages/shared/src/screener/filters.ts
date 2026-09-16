@@ -9,12 +9,6 @@
  * routes by them.
  */
 
-/** Where a range filter's default min/max come from when the client omits one. */
-export type FilterBoundsSource =
-    | { kind: 'fixed'; min: number; max: number } // Constant bounds — the metric has a defined domain (RSI is 1–100)
-    | { kind: 'derived' } // `$min`/`$max` over the queried AssetInfo path
-    | { kind: 'latestClose' };
-
 export type RangeFilterSpec = {
     key: string; // URL slug — `PATCH /api/screeners/:name/filters/pe`
     field: string; // The field written on the Screeners document
@@ -22,13 +16,6 @@ export type RangeFilterSpec = {
     label: string; // English label. Log messages only — the frontend translates by `key`
     bounds: FilterBoundsSource;
 };
-
-/**
- * Where a categorical filter's selectable options come from: the distinct
- * values of one AssetInfo field. Every categorical filter enumerates its own
- * column, so there is no second source to distinguish.
- */
-export type FilterOptionsSource = { path: string };
 
 export type EnumFilterSpec = {
     key: string;
@@ -45,16 +32,17 @@ export type DateFilterSpec = {
     label: string;
 };
 
-export type RangeFilterKey = (typeof RANGE_FILTERS)[number]['key'];
-export type EnumFilterKey = (typeof ENUM_FILTERS)[number]['key'];
-export type DateFilterKey = (typeof DATE_FILTERS)[number]['key'];
-export type MaFilterKey = (typeof MA_FILTERS)[number]['key'];
-export type FlagFilterKey = (typeof FLAG_FILTERS)[number]['key'];
-export type ScreenerFilterKey = RangeFilterKey | EnumFilterKey | DateFilterKey | MaFilterKey | FlagFilterKey;
-
-export type MaTarget = (typeof MA_TARGETS)[number];
-export type MaDirection = (typeof MA_DIRECTIONS)[number];
-
+/** Where a range filter's default min/max come from when the client omits one. */
+type FilterBoundsSource =
+    | { kind: 'fixed'; min: number; max: number } // Constant bounds — the metric has a defined domain (RSI is 1–100)
+    | { kind: 'derived' } // `$min`/`$max` over the queried AssetInfo path
+    | { kind: 'latestClose' };
+/**
+ * Where a categorical filter's selectable options come from: the distinct
+ * values of one AssetInfo field. Every categorical filter enumerates its own
+ * column, so there is no second source to distinguish.
+ */
+type FilterOptionsSource = { path: string };
 /**
  * Numeric range filters. Each writes `[min, max]` to its `field` and
  * contributes `{ $gt, $lt }` on its `queryPath` when results are queried.
@@ -433,7 +421,14 @@ const DATE_BY_KEY = new Map<string, DateFilterSpec>(DATE_FILTERS.map((f) => [f.k
 const MA_BY_KEY = new Map<string, (typeof MA_FILTERS)[number]>(MA_FILTERS.map((f) => [f.key, f]));
 const FLAG_BY_KEY = new Map<string, (typeof FLAG_FILTERS)[number]>(FLAG_FILTERS.map((f) => [f.key, f]));
 
-/** Every filter key the API accepts, for error messages and frontend enumeration. */
+/**
+ * Every filter key the API accepts.
+ * @public — nothing in production enumerates the registry this way; the API
+ * addresses one filter at a time and the frontend builds its panels from the
+ * five typed tables. It is exported as the audit list: the frontend's grouping
+ * table is proved complete by walking it, and a filter added here without a
+ * heading is named rather than silently swept into the catch-all group.
+ */
 export const ALL_FILTER_KEYS: readonly string[] = [
     ...RANGE_FILTERS.map((f) => f.key),
     ...ENUM_FILTERS.map((f) => f.key),

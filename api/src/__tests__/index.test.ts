@@ -18,7 +18,8 @@ const state: {
     socketError: Error | null;
     pingError: Error | null;
     order: string[];
-} = { connectError: null, socketError: null, pingError: null, order: [] };
+    app: Express | null;
+} = { connectError: null, socketError: null, pingError: null, order: [], app: null };
 
 const httpServer = {
     headersTimeout: 0,
@@ -36,7 +37,15 @@ const httpServer = {
 };
 
 vi.mock('dotenv/config', () => ({}));
-vi.mock('http', () => ({ createServer: () => httpServer }));
+// The entry point does not publish its app; the handler it hands `createServer`
+// is the same object, and taking it here is what keeps `index.ts` exporting
+// nothing but a process.
+vi.mock('http', () => ({
+    createServer: (handler: Express) => {
+        state.app = handler;
+        return httpServer;
+    },
+}));
 vi.mock('@/lib/db.js', () => ({
     connectDb: () => {
         state.order.push('connectDb');
@@ -91,9 +100,11 @@ const exit = vi.spyOn(process, 'exit').mockImplementation((() => undefined) as n
 /** Boot a fresh copy of the entry point and wait for its startup chain to settle. */
 async function boot(): Promise<Express> {
     vi.resetModules();
-    const module = await import('@/index.js');
+    state.app = null;
+    await import('@/index.js');
     await vi.waitFor(() => expect(state.order.length).toBeGreaterThan(0));
-    return module.app;
+    if (state.app === null) throw new Error('the entry point never built an Express app');
+    return state.app;
 }
 
 let harness: { url: string; server: Server } | null = null;

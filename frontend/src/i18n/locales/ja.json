@@ -1063,12 +1063,6 @@
         "NOTE_LIMIT_REACHED": "{symbol} に保存できるノートは最大 {max} 件です。",
         "ASSET_NOT_FOUND": "その銘柄のデータはありません。"
     },
-    "time": {
-        "justNow": "たった今",
-        "minutesAgo": "{n} 分前",
-        "hoursAgo": "{n} 時間前",
-        "daysAgo": "{n} 日前"
-    },
     "validation": {
         "passwordMismatch": "パスワードが一致しません",
         "usernameRequired": "ユーザー名が必要です",

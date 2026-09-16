@@ -1063,12 +1063,6 @@
         "NOTE_LIMIT_REACHED": "Μπορείτε να κρατήσετε το πολύ {max} σημειώσεις για {symbol}.",
         "ASSET_NOT_FOUND": "Δεν υπάρχουν δεδομένα για αυτό το σύμβολο."
     },
-    "time": {
-        "justNow": "Μόλις τώρα",
-        "minutesAgo": "πριν {n} λ",
-        "hoursAgo": "πριν {n} ώ",
-        "daysAgo": "πριν {n} ημ"
-    },
     "validation": {
         "passwordMismatch": "Οι κωδικοί δεν ταιριάζουν",
         "usernameRequired": "Απαιτείται όνομα χρήστη",

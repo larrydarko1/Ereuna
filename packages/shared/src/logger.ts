@@ -2,7 +2,7 @@
 import pino, { type Logger } from 'pino';
 import { REDACT_PATHS } from '#config/redact.js';
 
-export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
 export type LoggerOptions = {
     level: LogLevel;

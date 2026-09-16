@@ -1,14 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import {
-    hexSecret,
-    infraDefault,
-    loggerEnv,
-    mongoEnv,
-    nodeEnv,
-    redisEnv,
-    requiredSecret,
-    tiingoEnv,
-} from '#config/env.js';
+import { hexSecret, loggerEnv, mongoEnv, nodeEnv, redisEnv, requiredSecret, tiingoEnv } from '#config/env.js';
 import { z } from 'zod';
 
 const originalNodeEnv = process.env['NODE_ENV'];
@@ -29,6 +20,7 @@ describe('the fragments', () => {
     });
 
     it('gives mongo a working local default', () => {
+        process.env['NODE_ENV'] = 'development';
         expect(z.object(mongoEnv).parse({})).toEqual({
             MONGO_URI: 'mongodb://localhost:27017',
             MONGO_DB: 'EreunaDB',
@@ -98,25 +90,35 @@ describe('hexSecret', () => {
     });
 });
 
-describe('infraDefault', () => {
-    it('supplies the default when the variable is absent', () => {
+/**
+ * The infra defaults, checked on the two variables that carry them rather than
+ * on the helper: what matters is that MONGO_URI and REDIS_HOST are the ones
+ * guarded, and a test of the helper alone stays green while a schema quietly
+ * drops back to a plain `.default()`.
+ */
+describe('the infra defaults', () => {
+    it('supplies a working local value when the variable is absent', () => {
         process.env['NODE_ENV'] = 'development';
-        expect(infraDefault('localhost').parse(undefined)).toBe('localhost');
+        expect(z.object(mongoEnv).parse({}).MONGO_URI).toBe('mongodb://localhost:27017');
+        expect(z.object(redisEnv).parse({}).REDIS_HOST).toBe('localhost');
     });
 
-    it('rejects the untouched default in production', () => {
+    it('rejects the untouched default in production, so a deploy cannot point at localhost', () => {
         process.env['NODE_ENV'] = 'production';
-        expect(infraDefault('localhost').safeParse(undefined).success).toBe(false);
-        expect(infraDefault('localhost').safeParse('localhost').success).toBe(false);
+        expect(z.object(mongoEnv).safeParse({}).success).toBe(false);
+        expect(z.object(mongoEnv).safeParse({ MONGO_URI: 'mongodb://localhost:27017' }).success).toBe(false);
+        expect(z.object(redisEnv).safeParse({ REDIS_HOST: 'localhost' }).success).toBe(false);
     });
 
     it('accepts an overridden value in production', () => {
         process.env['NODE_ENV'] = 'production';
-        expect(infraDefault('localhost').safeParse('mongo.internal').success).toBe(true);
+        expect(z.object(mongoEnv).safeParse({ MONGO_URI: 'mongodb://mongo.internal:27017' }).success).toBe(true);
+        expect(z.object(redisEnv).safeParse({ REDIS_HOST: 'redis.internal' }).success).toBe(true);
     });
 
     it('rejects an empty override in every environment', () => {
         process.env['NODE_ENV'] = 'development';
-        expect(infraDefault('localhost').safeParse('').success).toBe(false);
+        expect(z.object(mongoEnv).safeParse({ MONGO_URI: '' }).success).toBe(false);
+        expect(z.object(redisEnv).safeParse({ REDIS_HOST: '' }).success).toBe(false);
     });
 });

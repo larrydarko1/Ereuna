@@ -29,15 +29,6 @@ export type ChartSettings = {
     indicators: ChartOverlaySets;
 };
 
-/**
- * The overlay averages, one set per timeframe.
- * A 50-bar average means fifty days on the daily chart and a year on the
- * weekly one, so a single list cannot serve both — and the screener draws the
- * two side by side. A timeframe with no entry here uses the defaults.
- */
-export type ChartOverlaySets = Partial<Record<ChartTimeframe, ChartIndicator[]>>;
-
-export type ChartStyle = (typeof CHART_STYLES)[number];
 
 export type ChartIndicator = {
     type: 'SMA' | 'EMA';
@@ -118,14 +109,6 @@ export type PositionDoc = {
     updatedAt: Date;
 };
 
-/** One bar of the closed-trade return distribution — 2%-wide buckets. */
-export type ReturnBin = {
-    min: number;
-    max: number;
-    range: string;
-    count: number;
-    positive: boolean;
-};
 
 export type TradeReturnsChart = {
     bins: ReturnBin[];
@@ -260,6 +243,19 @@ export type StatsDoc = {
     updatedAt?: Date;
     [field: string]: unknown;
 };
+
+/** One bar of the closed-trade return distribution — 2%-wide buckets. */
+type ReturnBin = {
+    min: number;
+    max: number;
+    range: string;
+    count: number;
+    positive: boolean;
+};
+
+type ChartOverlaySets = Partial<Record<ChartTimeframe, ChartIndicator[]>>;
+
+type ChartStyle = (typeof CHART_STYLES)[number];
 
 /**
  * How the price series is drawn.

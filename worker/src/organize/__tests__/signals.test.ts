@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Series } from '@/organize/bars.js';
-import { generateSignals, SIGNAL_MIN_BARS } from '@/organize/signals.js';
+import { generateSignals } from '@/organize/signals.js';
 
 const DAY = 86_400_000;
 const START = Date.UTC(2026, 0, 1);
@@ -21,8 +21,11 @@ function series(closes: number[], volumes = closes.map(() => 1_000)): Series {
 const drifting = Array.from({ length: 250 }, (_, index) => 100 + index * 0.1);
 
 describe('generateSignals', () => {
-    it('produces nothing below the bar count the crossings need', () => {
-        expect(generateSignals(series(drifting.slice(0, SIGNAL_MIN_BARS - 1)))).toEqual([]);
+    // 199 rather than the module's own threshold: an assertion fed the constant
+    // the subject compares against agrees with any value it is changed to.
+    it('produces nothing below the 200 bars the crossings need', () => {
+        expect(generateSignals(series(drifting.slice(0, 199)))).toEqual([]);
+        expect(generateSignals(series(drifting.slice(0, 200))).length).toBeGreaterThan(0);
     });
 
     it('dates a signal by the bar that fired it, not by the day it was computed', () => {

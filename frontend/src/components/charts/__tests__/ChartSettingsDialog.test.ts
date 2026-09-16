@@ -4,11 +4,7 @@ import { CHART_STYLES, type ChartTimeframe } from '@ereuna/shared';
 import { clearAuth } from '@/api/client';
 import { i18n } from '@/i18n';
 import { mockApi } from '@/__tests__/support/msw';
-import {
-    DEFAULT_CHART_SETTINGS,
-    DEFAULT_INDICATORS,
-    MAX_INDICATOR_PERIOD,
-} from '@/composables/charts/useChartSettings';
+import { DEFAULT_INDICATORS, MAX_INDICATOR_PERIOD } from '@/composables/charts/useChartSettings';
 import { loadPreferences } from '@/composables/data/usePreferences';
 import ChartSettingsDialog from '@/components/charts/ChartSettingsDialog.vue';
 
@@ -72,12 +68,12 @@ describe('ChartSettingsDialog', () => {
     it('opens on the settings in use', () => {
         open();
 
-        expect(($('.chart-settings__select') as HTMLSelectElement).value).toBe(DEFAULT_CHART_SETTINGS.style);
+        expect(($('.chart-settings__select') as HTMLSelectElement).value).toBe('candlestick');
         expect(periods()).toEqual(DEFAULT_INDICATORS.map((one) => String(one.period)));
     });
 
     it('opens on the account’s own settings when there are some', async () => {
-        api.on('GET /api/preferences', preferences({ ...DEFAULT_CHART_SETTINGS, style: 'line' }));
+        api.on('GET /api/preferences', preferences({ style: 'line', indicators: {} }));
         await loadPreferences(true);
 
         open();
@@ -142,13 +138,13 @@ describe('ChartSettingsDialog', () => {
     });
 
     it('puts the shipped settings back in the draft without storing them', async () => {
-        api.on('GET /api/preferences', preferences({ ...DEFAULT_CHART_SETTINGS, style: 'line' }));
+        api.on('GET /api/preferences', preferences({ style: 'line', indicators: {} }));
         await loadPreferences(true);
         open();
 
         await click($('.chart-settings__link'));
 
-        expect(($('.chart-settings__select') as HTMLSelectElement).value).toBe(DEFAULT_CHART_SETTINGS.style);
+        expect(($('.chart-settings__select') as HTMLSelectElement).value).toBe('candlestick');
         expect(api.calls.some((call) => call.method === 'PATCH')).toBe(false);
     });
 

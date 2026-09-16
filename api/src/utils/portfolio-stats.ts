@@ -14,7 +14,7 @@
 import type { PortfolioStatsSnapshot, PositionSide, TradeExtreme, TradeReturnsChart } from '@ereuna/shared';
 import { sortTrades, type ReplayTrade } from '@/utils/portfolio-replay.js';
 
-export type ClosedLot = {
+type ClosedLot = {
     symbol: string;
     side: PositionSide;
     entryDate: Date;
@@ -99,7 +99,7 @@ export function computeStats(trades: readonly ReplayTrade[], baseValue: number):
  * rejects those on write, so reaching one here means a corrupt log, and a
  * corrupt row should cost one statistic rather than the whole summary.
  */
-export function closedLots(trades: readonly ReplayTrade[]): ClosedLot[] {
+function closedLots(trades: readonly ReplayTrade[]): ClosedLot[] {
     const open = new Map<string, OpenLot[]>();
     const lots: ClosedLot[] = [];
 

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { effectScope } from 'vue';
-import { useDebounceFn, useThrottleFn } from '@/composables/ui/useDebounce';
+import { useDebounceFn } from '@/composables/ui/useDebounce';
 
 beforeEach(() => {
     vi.useFakeTimers();
@@ -89,70 +89,6 @@ describe('useDebounceFn', () => {
 
         useDebounceFn(fn, { ms: 10 })('a');
         vi.advanceTimersByTime(10);
-
-        expect(fn).toHaveBeenCalledTimes(1);
-    });
-});
-
-describe('useThrottleFn', () => {
-    it('runs the first call immediately', () => {
-        const fn = vi.fn();
-
-        useThrottleFn(fn, 100)('a');
-
-        expect(fn).toHaveBeenCalledExactlyOnceWith('a');
-    });
-
-    it('holds the next one back to the trailing edge, with the newest arguments', () => {
-        const fn = vi.fn();
-        const throttled = useThrottleFn(fn, 100);
-
-        throttled('a');
-        vi.advanceTimersByTime(20);
-        throttled('b');
-        vi.advanceTimersByTime(20);
-        throttled('c');
-        expect(fn).toHaveBeenCalledTimes(1);
-
-        vi.advanceTimersByTime(60);
-        expect(fn).toHaveBeenCalledTimes(2);
-        expect(fn).toHaveBeenLastCalledWith('c');
-    });
-
-    it('runs immediately again once the window has passed', () => {
-        const fn = vi.fn();
-        const throttled = useThrottleFn(fn, 100);
-
-        throttled('a');
-        vi.advanceTimersByTime(100);
-        throttled('b');
-
-        expect(fn).toHaveBeenCalledTimes(2);
-    });
-
-    it('drops the trailing call when cancelled', () => {
-        const fn = vi.fn();
-        const throttled = useThrottleFn(fn, 100);
-
-        throttled('a');
-        throttled('b');
-        throttled.cancel();
-        vi.advanceTimersByTime(500);
-
-        expect(fn).toHaveBeenCalledTimes(1);
-    });
-
-    it('cancels with its scope', () => {
-        const fn = vi.fn();
-        const scope = effectScope();
-        scope.run(() => {
-            const throttled = useThrottleFn(fn, 100);
-            throttled('a');
-            throttled('b');
-        });
-
-        scope.stop();
-        vi.advanceTimersByTime(500);
 
         expect(fn).toHaveBeenCalledTimes(1);
     });

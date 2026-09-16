@@ -32,6 +32,23 @@
  *   enumMembers — a case in an enum nothing ever compares against.
  *   duplicates  — the same symbol exported twice under different names. One is
  *              what callers use; the other is what someone imports by mistake.
+ *   testOnlyExports — the second pass, and the only synthetic category here.
+ *              knip's default run counts a test file as a consumer, so an export
+ *              nothing but its own test imports looks alive — a fully tested
+ *              symbol wired into nothing passes this gate. Running again under
+ *              `--production` drops test files from the graph entirely and
+ *              reports what is left, minus whatever the first pass already
+ *              named, so each finding is reported once. Four different things
+ *              land here and they do NOT share a fix, which is why nothing about
+ *              this is automatic: production code nobody wired (delete it, or
+ *              wire it), a symbol the module genuinely publishes
+ *              (`/** @public *\/`), an implementation detail the test reached
+ *              past the front door for (unexport, test it through the caller),
+ *              and an expected value the test imported instead of writing down.
+ *              That last one is the reason to care: an assertion fed from the
+ *              same constant the code under test builds its answer from is
+ *              `x === x` and cannot fail. Sharing a constant with the subject
+ *              does not keep the test in sync — it stops the test noticing.
  * NOT GATED, deliberately — the line is "dead code, not drift":
  *   - `unlisted` / `binaries` / `unresolved`. The mirror image — imported but
  *     not declared — is real drift and worth fixing, but it is a manifest
@@ -102,6 +119,25 @@ const CATEGORIES = {
 };
 
 /**
+ * The second pass, keyed separately because `testOnlyExports` is this gate's own
+ * word, not a knip issue type — it cannot be asked for on the CLI and it cannot
+ * sit in CATEGORIES, which doubles as the `--include` list.
+ * `PROD_INCLUDE` is CATEGORIES minus `files` and the three dependency
+ * categories: under `--production` the test files leave the graph, so `vitest`
+ * and every test helper become "unused" and the run would be nothing but noise.
+ * Exports are the only thing this pass has a real claim to.
+ */
+const TEST_ONLY = {
+    key: 'testOnlyExports',
+    label: 'Exports used only by tests',
+    fix: "Production code never imports this; only a test does. Decide which of the four it is: unwired production code (delete it, or wire it), a real part of the module's contract (tag `/** @public */`), an internal reached past the front door (unexport, and test it through the caller that uses it), or an expected value the test should write down as a literal instead of importing (an assertion fed from the code under test cannot fail).",
+};
+
+const PROD_INCLUDE = ['exports', 'types', 'nsExports', 'nsTypes', 'namespaceMembers', 'enumMembers'];
+
+const PROD_ARGS = ['--production', '--include-entry-exports'];
+
+/**
  * Reported by `--all`, never gated. Not dead code — drift, resolution failures,
  * and one design smell. The header says why each is out.
  */
@@ -111,7 +147,7 @@ const UNGATED = ['unlisted', 'binaries', 'unresolved', 'cycles', 'catalog', 'cat
  * Max findings per category. The backlog is cleared — every one of these is at 0
  * and stays there. Never raise one to land a change; delete the dead thing.
  */
-const BUDGET = Object.fromEntries(Object.keys(CATEGORIES).map((key) => [key, 0]));
+const BUDGET = Object.fromEntries([...Object.keys(CATEGORIES), TEST_ONLY.key].map((key) => [key, 0]));
 
 const bin = path.resolve(ROOT, 'node_modules/.bin/knip');
 
@@ -140,52 +176,70 @@ if (process.argv.includes('--all')) {
     process.exit(0);
 }
 
-const args = ['--no-progress', '--reporter', 'json', '--tags=-public', '--include', GATED.join(',')];
+/** One knip run, bucketed by category. `extra` is what separates the two passes. */
+function knip(include, extra = []) {
+    const args = ['--no-progress', '--reporter', 'json', '--tags=-public', '--include', include.join(','), ...extra];
 
-let raw;
-try {
-    raw = execFileSync(bin, args, {
-        cwd: ROOT,
-        encoding: 'utf8',
-        maxBuffer: 32 * 1024 * 1024,
-        stdio: ['ignore', 'pipe', 'ignore'],
-    });
-} catch (err) {
-    raw = err.stdout ?? '';
-    if (!raw.trim()) {
-        console.error('✖ check-dead-code: knip produced no output. Is `knip` installed?');
-        if (err.stderr) console.error(err.stderr.toString().trim());
-        process.exit(1);
-    }
-}
-
-let report;
-try {
-    report = JSON.parse(raw);
-} catch {
-    console.error("✖ check-dead-code: could not parse knip's JSON report.");
-    console.error(raw.slice(0, 500));
-    process.exit(1);
-}
-
-const found = Object.fromEntries(GATED.map((key) => [key, []]));
-for (const entry of report.issues ?? []) {
-    for (const category of GATED) {
-        for (const item of entry[category] ?? []) {
-            found[category].push(
-                Array.isArray(item)
-                    ? { file: entry.file, name: item.map((symbol) => symbol.name).join(' = '), line: item[0]?.line }
-                    : { file: entry.file, name: item.name, line: item.line },
-            );
+    let raw;
+    try {
+        raw = execFileSync(bin, args, {
+            cwd: ROOT,
+            encoding: 'utf8',
+            maxBuffer: 32 * 1024 * 1024,
+            stdio: ['ignore', 'pipe', 'ignore'],
+        });
+    } catch (err) {
+        raw = err.stdout ?? '';
+        if (!raw.trim()) {
+            console.error('✖ check-dead-code: knip produced no output. Is `knip` installed?');
+            if (err.stderr) console.error(err.stderr.toString().trim());
+            process.exit(1);
         }
     }
+
+    let report;
+    try {
+        report = JSON.parse(raw);
+    } catch {
+        console.error("✖ check-dead-code: could not parse knip's JSON report.");
+        console.error(raw.slice(0, 500));
+        process.exit(1);
+    }
+
+    const found = Object.fromEntries(include.map((key) => [key, []]));
+    for (const entry of report.issues ?? []) {
+        for (const category of include) {
+            for (const item of entry[category] ?? []) {
+                found[category].push(
+                    Array.isArray(item)
+                        ? { file: entry.file, name: item.map((symbol) => symbol.name).join(' = '), line: item[0]?.line }
+                        : { file: entry.file, name: item.name, line: item.line },
+                );
+            }
+        }
+    }
+    return found;
 }
+
+const found = knip(GATED);
+
+/**
+ * Pass two. Anything the first pass already named is dead outright and is
+ * reported there; the remainder is alive only because a test imports it.
+ */
+const id = ({ file, name }) => `${file}::${name}`;
+const alreadyReported = new Set(Object.values(found).flat().map(id));
+found[TEST_ONLY.key] = Object.values(knip(PROD_INCLUDE, PROD_ARGS))
+    .flat()
+    .filter((hit) => !alreadyReported.has(id(hit)));
 
 const where = ({ file, name, line }) => (name === file ? file : `${file}${line ? `:${line}` : ''} — ${name}`);
 
 let failed = false;
 
-for (const [category, { label, fix }] of Object.entries(CATEGORIES)) {
+const REPORTED = [...Object.entries(CATEGORIES), [TEST_ONLY.key, TEST_ONLY]];
+
+for (const [category, { label, fix }] of REPORTED) {
     const hits = found[category];
     if (hits.length <= BUDGET[category]) continue;
 
@@ -205,7 +259,7 @@ if (failed) {
     process.exit(1);
 }
 
-console.log(`✔ No dead code — ${GATED.length} categories, all at 0.`);
+console.log(`✔ No dead code — ${GATED.length + 1} categories, all at 0.`);
 console.log(
     '\nNot machine-checked: code reachable from an entry point but never reached at RUNTIME — a route nothing links to, a branch no config enables, a Redis channel with no publisher.',
 );

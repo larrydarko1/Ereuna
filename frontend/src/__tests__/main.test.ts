@@ -29,7 +29,7 @@ vi.mock('@/api/client', () => ({
     initAuth: () => Promise.resolve(signedIn),
 }));
 
-vi.mock('@/router/index', () => ({ default: {} }));
+vi.mock('@/router', () => ({ router: {} }));
 vi.mock('@/App.vue', () => ({ default: {} }));
 vi.mock('@/styles/index.scss', () => ({}));
 

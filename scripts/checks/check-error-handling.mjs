@@ -47,7 +47,7 @@ const HANDLER = 'api/src/middleware/error-handler.ts';
 const CODES = 'packages/shared/src/errors.ts';
 const ENTRY = 'api/src/index.ts';
 const CLIENT = 'frontend/src/api/client.ts';
-const LOCALE_DIR = 'frontend/src/locales';
+const LOCALE_DIR = 'frontend/src/i18n/locales';
 
 const ALLOWED_STATUS = new Set([400, 401, 403, 404, 409, 413, 422, 429, 500]);
 /**

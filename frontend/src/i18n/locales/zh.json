@@ -1063,12 +1063,6 @@
         "NOTE_LIMIT_REACHED": "{symbol} 最多只能保存 {max} 条笔记。",
         "ASSET_NOT_FOUND": "没有该代码的数据。"
     },
-    "time": {
-        "justNow": "刚刚",
-        "minutesAgo": "{n} 分钟前",
-        "hoursAgo": "{n} 小时前",
-        "daysAgo": "{n} 天前"
-    },
     "validation": {
         "passwordMismatch": "密码不匹配",
         "usernameRequired": "需要用户名",
