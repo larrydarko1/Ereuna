@@ -1,8 +1,20 @@
-import { createRouter, createWebHistory, type RouteRecordRaw, type RouterScrollBehavior } from 'vue-router';
+import {
+    createRouter,
+    createWebHistory,
+    type RouteComponent,
+    type RouteRecordRaw,
+    type Router,
+    type RouterScrollBehavior,
+} from 'vue-router';
 import { findSessionUser, isAuthenticated } from '@/api/client';
 
 /** vue-router keeps `ScrollPosition` internal, so it is named through the behaviour it belongs to. */
 type ScrollTarget = Awaited<ReturnType<RouterScrollBehavior>>;
+
+/** What a lazy route resolves to. Named because the literal type is `Promise<typeof
+    import('@/views/X.vue')>`, and an inline `import()` annotation is what
+    `consistent-type-imports` forbids. */
+type LazyView = Promise<{ default: RouteComponent }>;
 
 const routes: RouteRecordRaw[] = [
     {
@@ -12,19 +24,19 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/login',
         name: 'Login',
-        component: async () => import('@/views/Login.vue'),
+        component: async (): LazyView => import('@/views/Login.vue'),
         meta: { public: true, guestOnly: true, bare: true },
     },
     {
         path: '/signup',
         name: 'SignUp',
-        component: async () => import('@/views/SignUp.vue'),
+        component: async (): LazyView => import('@/views/SignUp.vue'),
         meta: { public: true, guestOnly: true, bare: true },
     },
     {
         path: '/recovery',
         name: 'Recovery',
-        component: async () => import('@/views/Recovery.vue'),
+        component: async (): LazyView => import('@/views/Recovery.vue'),
         meta: { public: true, guestOnly: true, bare: true },
     },
     {
@@ -35,33 +47,33 @@ const routes: RouteRecordRaw[] = [
         // the guard then bounces straight back.
         path: '/set-password',
         name: 'SetPassword',
-        component: async () => import('@/views/SetPassword.vue'),
+        component: async (): LazyView => import('@/views/SetPassword.vue'),
         meta: { bare: true },
     },
     {
         path: '/dashboard',
         name: 'Dashboard',
-        component: async () => import('@/views/Dashboard.vue'),
+        component: async (): LazyView => import('@/views/Dashboard.vue'),
     },
     {
         path: '/charts/:symbol?',
         name: 'Charts',
-        component: async () => import('@/views/Charts.vue'),
+        component: async (): LazyView => import('@/views/Charts.vue'),
     },
     {
         path: '/screener',
         name: 'Screener',
-        component: async () => import('@/views/Screener.vue'),
+        component: async (): LazyView => import('@/views/Screener.vue'),
     },
     {
         path: '/portfolio',
         name: 'Portfolio',
-        component: async () => import('@/views/Portfolio.vue'),
+        component: async (): LazyView => import('@/views/Portfolio.vue'),
     },
     {
         path: '/account',
         name: 'Account',
-        component: async () => import('@/views/User.vue'),
+        component: async (): LazyView => import('@/views/User.vue'),
     },
     {
         path: '/:pathMatch(.*)*',
@@ -70,21 +82,13 @@ const routes: RouteRecordRaw[] = [
     },
 ];
 
-const router = createRouter({
+export const router: Router = createRouter({
     history: createWebHistory(),
     routes,
     // Every navigation is to a different view, so the top is always the right
     // place to be — except when the browser is restoring a back/forward entry.
     scrollBehavior: (_to, _from, saved): ScrollTarget => saved ?? { top: 0 },
 });
-
-declare module 'vue-router' {
-    interface RouteMeta {
-        public?: boolean; // Reachable signed out
-        guestOnly?: boolean; // Redirects to the dashboard when a session already exists
-        bare?: boolean; // Rendered without the app header
-    }
-}
 
 router.beforeEach((to) => {
     const signedIn = isAuthenticated();
@@ -106,4 +110,14 @@ router.beforeEach((to) => {
     return true;
 });
 
-export default router;
+declare module 'vue-router' {
+    /* Declaration merging is the whole mechanism here: this adds `meta.public` to
+       vue-router's own RouteMeta, and only an interface merges with an interface.
+       The rule's autofix rewrites it as a type alias, which compiles to TS2300. */
+    // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+    interface RouteMeta {
+        public?: boolean; // Reachable signed out
+        guestOnly?: boolean; // Redirects to the dashboard when a session already exists
+        bare?: boolean; // Rendered without the app header
+    }
+}

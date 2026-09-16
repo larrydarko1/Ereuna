@@ -660,20 +660,6 @@ export default [
         },
     },
     {
-        // typescript-eslint resolves a `.vue` module's exports as `any`, so
-        // `InstanceType<typeof TwoFactorPrompt>` on a template ref and a lazily
-        // imported SFC both come back unresolvable — even though `vue-tsc`, which
-        // is what actually gates the build, types them fully. A type that two
-        // components share is moved to `types/` for this reason; a component's own
-        // instance type has nowhere else to live.
-        files: ['frontend/src/views/Login.vue', 'frontend/src/components/user/SecurityPanel.vue'],
-        rules: {
-            '@typescript-eslint/no-unsafe-call': 'off',
-            '@typescript-eslint/no-unsafe-member-access': 'off',
-            '@typescript-eslint/no-unsafe-assignment': 'off',
-        },
-    },
-    {
         // A modal opens because the user asked for it, and the first field is
         // where the keyboard then has to be — without autofocus the caret stays
         // behind the overlay on the page underneath. That is the opposite of the
@@ -689,14 +675,6 @@ export default [
         rules: { 'a11y/no-autofocus': 'off' },
     },
     {
-        // Declaration merging is the whole mechanism here: `declare module 'vue-router'`
-        // adds `meta.public` to vue-router's own RouteMeta, and only an interface merges
-        // with an interface. Rewriting it as a type alias compiles to TS2300, which is
-        // exactly what this rule's autofix did before the exception existed.
-        files: ['frontend/src/router/index.ts'],
-        rules: { '@typescript-eslint/consistent-type-definitions': 'off' },
-    },
-    {
         // `declare global { namespace Express }` is the only way to add `req.id` and
         // `req.validated` to Express's own Request type. Module syntax cannot augment
         // a global interface, so the rule's advice does not apply here.
@@ -705,23 +683,6 @@ export default [
             '@typescript-eslint/no-namespace': 'off',
             // Same reason: `Request` is merged into, and only an interface merges.
             '@typescript-eslint/consistent-type-definitions': 'off',
-        },
-    },
-    {
-        // The router and the SFC shim are read by tooling that requires a default
-        // export — vue-router's `createRouter` result and TypeScript's `*.vue` module
-        // declaration. Neither is a module whose export shape we get to choose.
-        files: ['frontend/src/router/index.ts'],
-        rules: {
-            'no-restricted-exports': 'off',
-            // The route table's lazy components have no writable return type: the
-            // honest one is `Promise<typeof import('@/views/X.vue')>`, and an
-            // `import()` type annotation is what consistent-type-imports forbids.
-            // `RouteRecordRaw` already constrains every one of them.
-            '@typescript-eslint/explicit-function-return-type': 'off',
-            // And the same SFC-resolution gap: `import('@/views/X.vue')` is `any`
-            // to typescript-eslint, though vue-tsc types it fully.
-            '@typescript-eslint/no-unsafe-return': 'off',
         },
     },
     {

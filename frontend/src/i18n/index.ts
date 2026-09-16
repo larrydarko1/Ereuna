@@ -16,24 +16,24 @@
  * `@ereuna/shared`'s ERROR_CODES has an entry here in every locale.
  */
 import { createI18n } from 'vue-i18n';
-import ar from '@/locales/ar.json';
-import de from '@/locales/de.json';
-import el from '@/locales/el.json';
-import en from '@/locales/en.json';
-import eo from '@/locales/eo.json';
-import es from '@/locales/es.json';
-import fr from '@/locales/fr.json';
-import he from '@/locales/he.json';
-import hi from '@/locales/hi.json';
-import it from '@/locales/it.json';
-import ja from '@/locales/ja.json';
-import ko from '@/locales/ko.json';
-import la from '@/locales/la.json';
-import mt from '@/locales/mt.json';
-import pt from '@/locales/pt.json';
-import ru from '@/locales/ru.json';
-import tr from '@/locales/tr.json';
-import zh from '@/locales/zh.json';
+import ar from '@/i18n/locales/ar.json';
+import de from '@/i18n/locales/de.json';
+import el from '@/i18n/locales/el.json';
+import en from '@/i18n/locales/en.json';
+import eo from '@/i18n/locales/eo.json';
+import es from '@/i18n/locales/es.json';
+import fr from '@/i18n/locales/fr.json';
+import he from '@/i18n/locales/he.json';
+import hi from '@/i18n/locales/hi.json';
+import it from '@/i18n/locales/it.json';
+import ja from '@/i18n/locales/ja.json';
+import ko from '@/i18n/locales/ko.json';
+import la from '@/i18n/locales/la.json';
+import mt from '@/i18n/locales/mt.json';
+import pt from '@/i18n/locales/pt.json';
+import ru from '@/i18n/locales/ru.json';
+import tr from '@/i18n/locales/tr.json';
+import zh from '@/i18n/locales/zh.json';
 
 export type AppLocale = (typeof SUPPORTED_LOCALES)[number]['code'];
 
