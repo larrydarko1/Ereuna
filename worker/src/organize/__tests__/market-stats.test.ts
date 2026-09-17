@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeDb, setPayload, type DbStub } from '@/__tests__/support/mongo.js';
 
-const db: { current: DbStub } = { current: fakeDb() };
+type Doc = Record<string, unknown>;
 
-vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 vi.mock('@/lib/logger.js', () => ({
     logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
 }));
+const db: { current: DbStub } = { current: fakeDb() };
+
+vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 
 const { updateMarketStats } = await import('@/organize/market-stats.js');
-
-type Doc = Record<string, unknown>;
 
 /** A priced NASDAQ common stock. Every field a statistic reads has a value. */
 function asset(overrides: Doc = {}): Doc {

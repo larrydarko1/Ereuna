@@ -75,6 +75,36 @@ const monthlyButton = (wrapper: VueWrapper): HTMLElement => {
     return node.element as HTMLElement;
 };
 
+const set = async (selector: string, value: string): Promise<void> => {
+    const field = $(selector) as HTMLInputElement;
+    field.value = value;
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+    await flushPromises();
+};
+
+/** Fields are a mix of plain labels and AppField, so both markups are searched. */
+const field = (label: string): HTMLInputElement => {
+    const node = [...document.body.querySelectorAll('.form-field, .field')].find(
+        (entry) => entry.querySelector('.form-label, .field__label')?.textContent === label,
+    );
+    const input = node?.querySelector('input');
+    if (input === null || input === undefined) throw new Error(`no field named ${label}`);
+    return input;
+};
+
+const fillTrade = async (symbol: string, shares: string, price: string): Promise<void> => {
+    for (const [name, value] of [
+        [i18n.global.t('portfolio.symbol'), symbol],
+        [i18n.global.t('portfolio.shares'), shares],
+        [i18n.global.t('portfolio.price'), price],
+    ] as const) {
+        const input = field(name);
+        input.value = value;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    await flushPromises();
+};
+
 beforeEach(() => {
     clearAuth();
     localStorage.clear();
@@ -287,33 +317,3 @@ describe('Portfolio', () => {
         expect(wrapper.find('.portfolio-tabs').exists()).toBe(true);
     });
 });
-
-const set = async (selector: string, value: string): Promise<void> => {
-    const field = $(selector) as HTMLInputElement;
-    field.value = value;
-    field.dispatchEvent(new Event('input', { bubbles: true }));
-    await flushPromises();
-};
-
-/** Fields are a mix of plain labels and AppField, so both markups are searched. */
-const field = (label: string): HTMLInputElement => {
-    const node = [...document.body.querySelectorAll('.form-field, .field')].find(
-        (entry) => entry.querySelector('.form-label, .field__label')?.textContent === label,
-    );
-    const input = node?.querySelector('input');
-    if (input === null || input === undefined) throw new Error(`no field named ${label}`);
-    return input;
-};
-
-const fillTrade = async (symbol: string, shares: string, price: string): Promise<void> => {
-    for (const [name, value] of [
-        [i18n.global.t('portfolio.symbol'), symbol],
-        [i18n.global.t('portfolio.shares'), shares],
-        [i18n.global.t('portfolio.price'), price],
-    ] as const) {
-        const input = field(name);
-        input.value = value;
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-    await flushPromises();
-};

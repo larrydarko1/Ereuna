@@ -5,8 +5,10 @@ import type { VendorStatement } from '@/lib/tiingo.js';
 import type { Asset } from '@/organize/universe.js';
 import type { Statement } from '@/organize/fundamentals.js';
 
+vi.mock('@/lib/logger.js', () => ({
+    logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
+}));
 const vendor: { bySymbol: Map<string, VendorStatement[] | Error> } = { bySymbol: new Map() };
-const state: { written: AnyBulkWriteOperation<AssetInfoDoc>[] } = { written: [] };
 
 vi.mock('@/lib/tiingo.js', () => ({
     statements: (symbol: string) => {
@@ -14,9 +16,7 @@ vi.mock('@/lib/tiingo.js', () => ({
         return answer instanceof Error ? Promise.reject(answer) : Promise.resolve(answer ?? []);
     },
 }));
-vi.mock('@/lib/logger.js', () => ({
-    logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
-}));
+const state: { written: AnyBulkWriteOperation<AssetInfoDoc>[] } = { written: [] };
 vi.mock('@/organize/write.js', async (importOriginal) => {
     const original = await importOriginal<typeof import('@/organize/write.js')>();
     return {

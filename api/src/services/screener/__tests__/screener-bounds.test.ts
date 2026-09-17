@@ -4,9 +4,9 @@ import { AppError } from '@/lib/app-error.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
-const cache: { keys: string[]; options: unknown[] } = { keys: [], options: [] };
-
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+
+const cache: { keys: string[]; options: unknown[] } = { keys: [], options: [] };
 vi.mock('@/lib/cache.js', () => ({
     marketKey: (...parts: string[]) => `m:${parts.join(':')}`,
     // Pass-through, so the fetcher runs and its result is what the test reads.

@@ -4,6 +4,9 @@ import type { PortfolioExport } from '@/api/portfolio';
 import { i18n } from '@/i18n';
 import ExportDialog from '@/components/portfolio/ExportDialog.vue';
 
+/** What `downloadFile` hands the browser, captured off the anchor it builds. */
+type Saved = { name: string; body: string; type: string };
+
 const EXPORT: PortfolioExport = {
     portfolio: {
         baseValue: 100_000,
@@ -25,9 +28,6 @@ const EXPORT: PortfolioExport = {
         },
     ],
 } as unknown as PortfolioExport;
-
-/** What `downloadFile` hands the browser, captured off the anchor it builds. */
-type Saved = { name: string; body: string; type: string };
 
 const saved: Saved[] = [];
 

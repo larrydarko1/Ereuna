@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('@/router', () => ({ router: {} }));
+
+vi.mock('@/App.vue', () => ({ default: {} }));
+
+vi.mock('@/styles/index.scss', () => ({}));
+
 /**
  * The entry point, exercised for its boot ORDER.
  * Everything it touches is mocked: the point is that the theme and locale are
@@ -7,13 +13,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
  * not that Vue can create an app.
  */
 const calls: string[] = [];
-
-const mount = vi.fn(() => calls.push('mount'));
-
-vi.mock('vue', async (importOriginal) => ({
-    ...(await importOriginal<typeof import('vue')>()),
-    createApp: () => ({ use: vi.fn(), mount }),
-}));
 
 vi.mock('@/composables/ui/useTheme', () => ({
     initTheme: () => calls.push('initTheme'),
@@ -25,15 +24,16 @@ vi.mock('@/i18n', () => ({
     initLocale: () => calls.push('initLocale'),
 }));
 
+const mount = vi.fn(() => calls.push('mount'));
+vi.mock('vue', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('vue')>()),
+    createApp: () => ({ use: vi.fn(), mount }),
+}));
+let signedIn = true;
+
 vi.mock('@/api/client', () => ({
     initAuth: () => Promise.resolve(signedIn),
 }));
-
-vi.mock('@/router', () => ({ router: {} }));
-vi.mock('@/App.vue', () => ({ default: {} }));
-vi.mock('@/styles/index.scss', () => ({}));
-
-let signedIn = true;
 
 const boot = async (): Promise<void> => {
     calls.length = 0;

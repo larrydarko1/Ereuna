@@ -9,9 +9,9 @@
  *   2. E2E SEPARATION. Playwright specs belong in `e2e/` with their own config,
  *      away from the unit suites. They boot real services; a `.spec.ts` that
  *      drifts into `src/` gets picked up by no runner at all and silently stops
- *      running. The config is demanded only once a spec exists: this repo has
- *      no e2e suite yet, and a gate that fails for something nobody has written
- *      teaches people to switch gates off.
+ *      running. The config is demanded only once a spec exists — a gate that
+ *      fails for something nobody has written teaches people to switch gates
+ *      off — which is why the rule is conditional even though it is not idle.
  *   3. THE COVERAGE CONFIG, RATCHETED. Two numbers-only rules, both quoted
  *      straight from the standard: thresholds may rise and never fall ("ratchet
  *      upward as coverage climbs — never lower it"), and the exclude list may
@@ -111,8 +111,8 @@ for (const rel of unitTests) {
 }
 
 // ── 2. E2E stays separate, with its own config ──────────────────────────────
-// Demanded by the specs, not unconditionally: there is no e2e suite here yet,
-// and a config demanded for tests nobody has written is noise.
+// Demanded by the specs, not unconditionally: a config demanded for tests nobody
+// has written is noise.
 if (e2eSpecs.length > 0 && !exists(PLAYWRIGHT_CONFIG)) {
     fail(
         PLAYWRIGHT_CONFIG,

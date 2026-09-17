@@ -1,10 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('@/lib/logger.js', () => ({
+    logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
+}));
+
 const state: { connectError: Error | null; closed: number; lastUri: string | null } = {
     connectError: null,
     closed: 0,
     lastUri: null,
 };
+const { config } = await import('@/lib/config.js');
+
+/** The connection is module state, so each test gets an unopened module. */
+let db: typeof import('@/lib/db.js');
 
 vi.mock('mongodb', () => ({
     MongoClient: class {
@@ -26,14 +34,6 @@ vi.mock('mongodb', () => ({
         }
     },
 }));
-vi.mock('@/lib/logger.js', () => ({
-    logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
-}));
-
-const { config } = await import('@/lib/config.js');
-
-/** The connection is module state, so each test gets an unopened module. */
-let db: typeof import('@/lib/db.js');
 
 beforeEach(async () => {
     state.connectError = null;

@@ -13,9 +13,6 @@ const feed: { sink: Sink | null; last: Map<string, AggregateMessage>; stopped: n
     stopped: 0,
 };
 
-const buckets: { allowed: boolean; keys: string[] } = { allowed: true, keys: [] };
-const logs: string[] = [];
-
 vi.mock('@/gateway/market-feed.js', () => ({
     startMarketFeed: (sink: Sink) => {
         feed.sink = sink;
@@ -28,27 +25,26 @@ vi.mock('@/gateway/market-feed.js', () => ({
     readLastCandle: (symbol: string, timeframe: string) =>
         Promise.resolve(feed.last.get(`${symbol}:${timeframe}`) ?? null),
 }));
+const buckets: { allowed: boolean; keys: string[] } = { allowed: true, keys: [] };
+
 vi.mock('@/lib/token-bucket.js', () => ({
     consumeTokenBucket: (key: string) => {
         buckets.keys.push(key);
         return Promise.resolve({ allowed: buckets.allowed, remaining: 0, retryAfterMs: 0 });
     },
 }));
-vi.mock('@/lib/logger.js', () => ({
-    logger: {
-        info: () => {},
-        debug: () => {},
-        warn: (_ctx: unknown, message: string) => logs.push(message),
-        error: (_ctx: unknown, message: string) => logs.push(message),
-    },
-}));
-
+const logs: string[] = [];
 const { closeSocket, initSocket } = await import('@/gateway/socket.js');
+
 const { config } = await import('@/lib/config.js');
+let server: HttpServer;
+
+let url: string;
+
+const clients: ClientSocket[] = [];
 
 const token = (userId = '507f1f77bcf86cd799439011'): string =>
     jwt.sign({ sub: userId }, config.jwt.secret, { algorithm: 'HS256', expiresIn: '15m' });
-
 const message = (over: Partial<AggregateMessage> = {}): AggregateMessage => ({
     tickerID: 'AAPL',
     timeframe: QUOTE_TIMEFRAME,
@@ -61,10 +57,14 @@ const message = (over: Partial<AggregateMessage> = {}): AggregateMessage => ({
     final: false,
     ...over,
 });
-
-let server: HttpServer;
-let url: string;
-const clients: ClientSocket[] = [];
+vi.mock('@/lib/logger.js', () => ({
+    logger: {
+        info: () => {},
+        debug: () => {},
+        warn: (_ctx: unknown, message: string) => logs.push(message),
+        error: (_ctx: unknown, message: string) => logs.push(message),
+    },
+}));
 
 /** Open a client and wait for it to connect, or for the server to refuse it. */
 async function client(options: Parameters<typeof connect>[1] = {}): Promise<ClientSocket> {

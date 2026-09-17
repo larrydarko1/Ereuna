@@ -6,8 +6,6 @@ import { mockApi } from '@/__tests__/support/msw';
 import { testRouter } from '@/__tests__/support/router';
 import App from '@/App.vue';
 
-mockApi();
-
 /** The routes the app renders without its header. */
 const BARE = new Set(['Login', 'SignUp', 'Recovery', 'SetPassword']);
 
@@ -23,6 +21,8 @@ const shell = async (path: string): Promise<{ wrapper: VueWrapper; router: Route
     await flushPromises();
     return { wrapper, router };
 };
+
+mockApi();
 
 beforeEach(() => {
     clearAuth();

@@ -4,19 +4,19 @@ import { ALL_FILTER_FIELDS } from '@ereuna/shared';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
+vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 const bounds: { range: { min: number; max: number }; options: string[]; date: { min: string; max: string } } = {
     range: { min: 0, max: 100 },
     options: ['Technology', 'Energy'],
     date: { min: '1980-01-01T00:00:00.000Z', max: '2026-01-01T00:00:00.000Z' },
 };
-const cache: { invalidated: string[] } = { invalidated: [] };
 
-vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 vi.mock('@/services/screener/screener-bounds.js', () => ({
     getRangeBounds: () => Promise.resolve(bounds.range),
     getEnumOptions: () => Promise.resolve(bounds.options),
     getDateBounds: () => Promise.resolve(bounds.date),
 }));
+const cache: { invalidated: string[] } = { invalidated: [] };
 vi.mock('@/services/screener/screener-crud.js', () => ({
     invalidateResults: (userId: ObjectId) => {
         cache.invalidated.push(userId.toHexString());

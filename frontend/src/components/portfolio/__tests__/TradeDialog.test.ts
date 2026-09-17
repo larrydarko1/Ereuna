@@ -5,6 +5,18 @@ import { i18n } from '@/i18n';
 import { formatCurrency, formatNumber, toDateInput } from '@/utils/formatters';
 import TradeDialog from '@/components/portfolio/TradeDialog.vue';
 
+const TRADE: TradeRow = {
+    id: 't1',
+    symbol: 'AAPL',
+    action: 'sell',
+    shares: 10,
+    price: 190,
+    total: 1900,
+    commission: 1,
+    tradeDate: '2026-02-01',
+    createdAt: '2026-02-01T00:00:00.000Z',
+};
+
 const open = (props: Record<string, unknown> = {}): VueWrapper =>
     mount(TradeDialog, { props, attachTo: document.body });
 
@@ -41,18 +53,6 @@ const fill = async (symbol: string, shares: string, price: string): Promise<void
     await type(i18n.global.t('portfolio.symbol'), symbol);
     await type(i18n.global.t('portfolio.shares'), shares);
     await type(i18n.global.t('portfolio.price'), price);
-};
-
-const TRADE: TradeRow = {
-    id: 't1',
-    symbol: 'AAPL',
-    action: 'sell',
-    shares: 10,
-    price: 190,
-    total: 1900,
-    commission: 1,
-    tradeDate: '2026-02-01',
-    createdAt: '2026-02-01T00:00:00.000Z',
 };
 
 afterEach(() => {

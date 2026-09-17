@@ -7,6 +7,8 @@ import { mockApi } from '@/__tests__/support/msw';
 import { testRouter } from '@/__tests__/support/router';
 import Charts from '@/views/Charts.vue';
 
+vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());
+
 /**
  * The price chart is stubbed: it drives the vendored canvas library, which has
  * no layout to draw into under jsdom. What this view owns is the wiring around
@@ -17,8 +19,6 @@ const PriceChartStub = {
     props: ['symbol', 'profile', 'events'],
     template: '<div class="stub-chart" />',
 };
-
-vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());
 
 const api = mockApi();
 

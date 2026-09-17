@@ -10,6 +10,8 @@ import ChartSidebar from '@/components/charts/ChartSidebar.vue';
 
 const api = mockApi();
 
+const profile = { symbol: 'AAPL', name: 'Apple Inc' } as AssetProfile;
+
 const preferences = (panels: Record<string, unknown> | null): Record<string, unknown> => ({
     language: 'en',
     theme: null,
@@ -27,8 +29,6 @@ const events = (count: number): ChartEvents =>
         dividends: Array.from({ length: count }, (_, index) => action(`2026-0${(index % 9) + 1}-01`, index + 1)),
         splits: Array.from({ length: count }, (_, index) => action(`2025-0${(index % 9) + 1}-01`, index + 2)),
     }) as unknown as ChartEvents;
-
-const profile = { symbol: 'AAPL', name: 'Apple Inc' } as AssetProfile;
 
 const sidebar = async (props: Record<string, unknown> = {}): Promise<VueWrapper> => {
     const wrapper = mount(ChartSidebar, { props: { symbol: 'AAPL', ...props }, attachTo: document.body });

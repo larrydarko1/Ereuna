@@ -3,8 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 type Handler = (err: Error) => void;
 
 const built: { options: Record<string, unknown>; handlers: Map<string, Handler> }[] = [];
-const logged: { errors: unknown[] } = { errors: [] };
-
 vi.mock('ioredis', () => ({
     Redis: class {
         readonly handlers = new Map<string, Handler>();
@@ -26,6 +24,8 @@ vi.mock('ioredis', () => ({
         }
     },
 }));
+
+const logged: { errors: unknown[] } = { errors: [] };
 vi.mock('@/lib/logger.js', () => ({
     logger: {
         error: (payload: unknown): void => {

@@ -6,9 +6,9 @@ import { THEMES } from '@/composables/ui/themes';
 import { useTheme } from '@/composables/ui/useTheme';
 import ThemePicker from '@/components/user/ThemePicker.vue';
 
-const picker = (): VueWrapper => mount(ThemePicker);
-
 const { currentTheme } = useTheme();
+
+const picker = (): VueWrapper => mount(ThemePicker);
 
 beforeEach(() => {
     clearAuth();

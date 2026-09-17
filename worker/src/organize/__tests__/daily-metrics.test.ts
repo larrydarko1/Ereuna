@@ -4,6 +4,10 @@ import type { AssetInfoDoc } from '@ereuna/shared';
 import type { LifetimeStats, Series } from '@/organize/bars.js';
 import type { Asset } from '@/organize/universe.js';
 
+vi.mock('@/lib/logger.js', () => ({
+    logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
+}));
+
 const state: {
     series: Map<string, Series>;
     lifetime: Map<string, LifetimeStats>;
@@ -26,10 +30,6 @@ vi.mock('@/organize/write.js', async (importOriginal) => {
         },
     };
 });
-
-vi.mock('@/lib/logger.js', () => ({
-    logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
-}));
 
 const { updateDailyMetrics } = await import('@/organize/daily-metrics.js');
 

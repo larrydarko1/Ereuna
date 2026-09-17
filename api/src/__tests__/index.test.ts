@@ -13,6 +13,15 @@ import type { Express } from 'express';
 
 type Listener = () => void;
 
+vi.mock('dotenv/config', () => ({}));
+
+// The limiters are the one middleware here that needs a live Redis; the tiers
+// themselves are covered in `lib/__tests__/rate-limiters.test.ts`.
+vi.mock('@/lib/rate-limiters.js', () => {
+    const pass = (_req: unknown, _res: unknown, next: () => void): void => next();
+    return { strictLimiter: pass, standardLimiter: pass, relaxedLimiter: pass, assetLimiter: pass };
+});
+
 const state: {
     connectError: Error | null;
     socketError: Error | null;
@@ -20,32 +29,6 @@ const state: {
     order: string[];
     app: Express | null;
 } = { connectError: null, socketError: null, pingError: null, order: [], app: null };
-
-const httpServer = {
-    headersTimeout: 0,
-    requestTimeout: 0,
-    listen: vi.fn((_port: number, done?: Listener) => {
-        state.order.push('listen');
-        done?.();
-        return httpServer;
-    }),
-    close: vi.fn((done?: Listener) => {
-        state.order.push('server.close');
-        done?.();
-        return httpServer;
-    }),
-};
-
-vi.mock('dotenv/config', () => ({}));
-// The entry point does not publish its app; the handler it hands `createServer`
-// is the same object, and taking it here is what keeps `index.ts` exporting
-// nothing but a process.
-vi.mock('http', () => ({
-    createServer: (handler: Express) => {
-        state.app = handler;
-        return httpServer;
-    },
-}));
 vi.mock('@/lib/db.js', () => ({
     connectDb: () => {
         state.order.push('connectDb');
@@ -76,12 +59,31 @@ vi.mock('@/gateway/index.js', () => ({
         return Promise.resolve();
     },
 }));
-// The limiters are the one middleware here that needs a live Redis; the tiers
-// themselves are covered in `lib/__tests__/rate-limiters.test.ts`.
-vi.mock('@/lib/rate-limiters.js', () => {
-    const pass = (_req: unknown, _res: unknown, next: () => void): void => next();
-    return { strictLimiter: pass, standardLimiter: pass, relaxedLimiter: pass, assetLimiter: pass };
-});
+const httpServer = {
+    headersTimeout: 0,
+    requestTimeout: 0,
+    listen: vi.fn((_port: number, done?: Listener) => {
+        state.order.push('listen');
+        done?.();
+        return httpServer;
+    }),
+    close: vi.fn((done?: Listener) => {
+        state.order.push('server.close');
+        done?.();
+        return httpServer;
+    }),
+};
+// The entry point does not publish its app; the handler it hands `createServer`
+// is the same object, and taking it here is what keeps `index.ts` exporting
+// nothing but a process.
+vi.mock('http', () => ({
+    createServer: (handler: Express) => {
+        state.app = handler;
+        return httpServer;
+    },
+}));
+const logs: string[] = [];
+
 vi.mock('@/lib/logger.js', () => {
     const logger = {
         info: () => {},
@@ -93,9 +95,9 @@ vi.mock('@/lib/logger.js', () => {
     };
     return { logger };
 });
-
-const logs: string[] = [];
 const exit = vi.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
+
+let harness: { url: string; server: Server } | null = null;
 
 /** Boot a fresh copy of the entry point and wait for its startup chain to settle. */
 async function boot(): Promise<Express> {
@@ -106,8 +108,6 @@ async function boot(): Promise<Express> {
     if (state.app === null) throw new Error('the entry point never built an Express app');
     return state.app;
 }
-
-let harness: { url: string; server: Server } | null = null;
 
 /**
  * Mount the booted app on a real listener so requests go through the real stack.

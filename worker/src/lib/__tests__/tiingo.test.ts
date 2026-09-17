@@ -15,6 +15,8 @@ const BASE = config.tiingo.baseUrl;
 const seen: Request[] = [];
 const server = setupServer();
 
+const lastUrl = (): URL => new URL((seen[seen.length - 1] as Request).url);
+
 beforeAll(() => {
     server.listen({ onUnhandledRequest: 'error' });
     server.events.on('request:start', ({ request }) => seen.push(request));
@@ -31,8 +33,6 @@ afterEach(() => {
 afterAll(() => {
     server.close();
 });
-
-const lastUrl = (): URL => new URL((seen[seen.length - 1] as Request).url);
 
 describe('the endpoints', () => {
     it("asks for every listed symbol's latest bar in one call", async () => {

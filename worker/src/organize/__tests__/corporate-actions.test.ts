@@ -3,24 +3,14 @@ import { INTRADAY_COLLECTIONS } from '@ereuna/shared';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
+vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+vi.mock('@/organize/write.js', () => ({ assetInfoUpdates: () => db.current.of('AssetInfo') }));
+
 const calls: { refetched: [string, unknown[]][]; rebuilt: string[]; history: Record<string, unknown>[] } = {
     refetched: [],
     rebuilt: [],
     history: [],
 };
-const logged: { errors: unknown[] } = { errors: [] };
-
-vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
-vi.mock('@/lib/logger.js', () => ({
-    logger: {
-        error: (payload: unknown): void => {
-            logged.errors.push(payload);
-        },
-        info: (): void => {},
-        warn: (): void => {},
-        debug: (): void => {},
-    },
-}));
 vi.mock('@/lib/tiingo.js', () => ({ dailyHistory: () => Promise.resolve(calls.history) }));
 vi.mock('@/organize/prices.js', () => ({
     refetchHistory: (symbol: string, history: unknown[]) => {
@@ -34,7 +24,17 @@ vi.mock('@/organize/weekly.js', () => ({
         return Promise.resolve(0);
     },
 }));
-vi.mock('@/organize/write.js', () => ({ assetInfoUpdates: () => db.current.of('AssetInfo') }));
+const logged: { errors: unknown[] } = { errors: [] };
+vi.mock('@/lib/logger.js', () => ({
+    logger: {
+        error: (payload: unknown): void => {
+            logged.errors.push(payload);
+        },
+        info: (): void => {},
+        warn: (): void => {},
+        debug: (): void => {},
+    },
+}));
 
 const { applyDividends, applySplits } = await import('@/organize/corporate-actions.js');
 

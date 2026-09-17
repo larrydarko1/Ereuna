@@ -10,6 +10,8 @@ const authService = {
     countRemainingCodes: vi.fn(),
 };
 
+vi.mock('@/services/auth/index.js', () => authService);
+
 const userService = {
     getAccount: vi.fn(),
     changePassword: vi.fn(),
@@ -17,8 +19,6 @@ const userService = {
     deleteAccount: vi.fn(),
     setPasswordAfterRecovery: vi.fn(),
 };
-
-vi.mock('@/services/auth/index.js', () => authService);
 vi.mock('@/services/user/index.js', () => userService);
 
 const { router } = await import('@/routes/identity/account.js');

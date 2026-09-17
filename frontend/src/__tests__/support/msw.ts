@@ -10,9 +10,6 @@ import { afterAll, afterEach, beforeAll } from 'vitest';
 import { http, HttpResponse, type JsonBodyType, type RequestHandler } from 'msw';
 import { setupServer, type SetupServer } from 'msw/node';
 
-/** The origin jsdom serves the app from, so a relative `/api` path resolves. */
-export const ORIGIN = 'http://localhost:3000';
-
 type Recorded = {
     method: string;
     path: string;
@@ -30,6 +27,9 @@ export type ApiMock = {
     /** Answer `METHOD /api/path` with `body`, once or for the rest of the test. */
     on: (route: string, body: JsonBodyType, init?: { status?: number; once?: boolean }) => void;
 };
+
+/** The origin jsdom serves the app from, so a relative `/api` path resolves. */
+export const ORIGIN = 'http://localhost:3000';
 
 const record = async (request: Request): Promise<Recorded> => {
     const url = new URL(request.url);

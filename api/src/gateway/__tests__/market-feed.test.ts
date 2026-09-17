@@ -45,12 +45,12 @@ class FakeSubscriber {
     }
 }
 
+vi.mock('ioredis', () => ({ Redis: FakeSubscriber }));
 const state: { subscribeError: Error | null } = { subscribeError: null };
 const redis: { current: RedisStub } = { current: fakeRedis() };
-const logs: { level: string; message: string }[] = [];
 
-vi.mock('ioredis', () => ({ Redis: FakeSubscriber }));
 vi.mock('@/lib/redis.js', () => ({ getRedis: () => redis.current }));
+const logs: { level: string; message: string }[] = [];
 vi.mock('@/lib/logger.js', () => ({
     logger: {
         info: (_ctx: unknown, message: string) => logs.push({ level: 'info', message }),

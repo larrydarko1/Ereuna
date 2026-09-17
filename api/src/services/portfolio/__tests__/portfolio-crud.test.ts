@@ -4,17 +4,17 @@ import { AppError } from '@/lib/app-error.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
+vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 const calls: { rebuilt: [string, number][]; assets: string[]; validated: { leverage: number }[] } = {
     rebuilt: [],
     assets: [],
     validated: [],
 };
+
 const state: { unknownSymbols: Set<string>; logViolation: AppError | null } = {
     unknownSymbols: new Set(),
     logViolation: null,
 };
-
-vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 vi.mock('@/services/market/index.js', () => ({
     getAsset: (symbol: string) => {
         calls.assets.push(symbol);

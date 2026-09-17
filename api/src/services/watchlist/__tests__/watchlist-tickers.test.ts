@@ -5,13 +5,13 @@ import { AppError } from '@/lib/app-error.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
+vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+
 const state: { watchlist: WithId<WatchlistDoc> | null; exchange: string | Error; quotes: unknown[] } = {
     watchlist: null,
     exchange: 'NASDAQ',
     quotes: [],
 };
-
-vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 vi.mock('@/services/market/index.js', () => ({
     assetExchange: () =>
         state.exchange instanceof Error ? Promise.reject(state.exchange) : Promise.resolve(state.exchange),

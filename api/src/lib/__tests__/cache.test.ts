@@ -2,14 +2,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeRedis, type RedisStub } from '@/__tests__/support/redis.js';
 
 const redis: { current: RedisStub } = { current: fakeRedis() };
+vi.mock('@/lib/redis.js', () => ({ getRedis: () => redis.current }));
 const clock: { open: boolean } = { open: true };
-const logged: { warnings: unknown[] } = { warnings: [] };
 
 vi.mock('@ereuna/shared', async (importOriginal) => ({
     ...(await importOriginal<typeof import('@ereuna/shared')>()),
     isMarketHours: () => clock.open,
 }));
-vi.mock('@/lib/redis.js', () => ({ getRedis: () => redis.current }));
+const logged: { warnings: unknown[] } = { warnings: [] };
 vi.mock('@/lib/logger.js', () => ({
     logger: {
         warn: (payload: unknown): void => {

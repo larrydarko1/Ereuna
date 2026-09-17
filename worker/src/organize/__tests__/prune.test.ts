@@ -2,12 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { INTRADAY_COLLECTIONS } from '@ereuna/shared';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
-const db: { current: DbStub } = { current: fakeDb() };
-
-vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 vi.mock('@/lib/logger.js', () => ({
     logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
 }));
+
+const db: { current: DbStub } = { current: fakeDb() };
+vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 
 const { pruneIntraday } = await import('@/organize/prune.js');
 const { config } = await import('@/lib/config.js');

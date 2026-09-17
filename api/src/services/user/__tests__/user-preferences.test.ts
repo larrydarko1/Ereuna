@@ -4,9 +4,9 @@ import type { UserDoc } from '@ereuna/shared';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
-const cache: { invalidated: string[] } = { invalidated: [] };
-
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+
+const cache: { invalidated: string[] } = { invalidated: [] };
 vi.mock('@/services/screener/screener-crud.js', () => ({
     invalidateResults: (userId: { toHexString: () => string }) => {
         cache.invalidated.push(userId.toHexString());

@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeDb, setPayload, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
-const logged: { errors: unknown[] } = { errors: [] };
-
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+
+const logged: { errors: unknown[] } = { errors: [] };
 vi.mock('@/lib/logger.js', () => ({
     logger: {
         error: (payload: unknown): void => {

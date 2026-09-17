@@ -29,6 +29,8 @@ export type DrawingStage = {
     surfaces: ChartSurfaces;
 };
 
+export type CanvasRecording = { calls: { method: string; args: unknown[] }[]; restore: () => void };
+
 /** The tokens the tools paint with. jsdom resolves no stylesheet, so they are set by hand. */
 const THEME_TOKENS: Record<string, string> = {
     '--color-bg': '#131722',
@@ -40,23 +42,6 @@ const THEME_TOKENS: Record<string, string> = {
     '--color-positive': '#26a69a',
     '--color-negative': '#ef5350',
 };
-
-beforeEach(() => {
-    for (const [token, value] of Object.entries(THEME_TOKENS)) {
-        document.documentElement.style.setProperty(token, value);
-    }
-
-    // Only the timeouts: the engine reads `performance.now` and schedules frames,
-    // and a test that froze those would be measuring a chart that never moves
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
-});
-
-afterEach(() => {
-    vi.useRealTimers();
-    for (const token of Object.keys(THEME_TOKENS)) {
-        document.documentElement.style.removeProperty(token);
-    }
-});
 
 export function stage(): DrawingStage {
     const { chart } = mountChart();
@@ -93,8 +78,6 @@ export function clickAt(drawing: DrawingStage, x: number, y: number): void {
     moveTo(drawing, x, y);
     click(drawing.surfaces.pane, { x, y });
 }
-
-export type CanvasRecording = { calls: { method: string; args: unknown[] }[]; restore: () => void };
 
 /**
  * Records every 2d context call made from now on.
@@ -137,3 +120,20 @@ export function recordCanvas(): CanvasRecording {
 export function pressKey(key: string, target: EventTarget = document.body): void {
     target.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
 }
+
+beforeEach(() => {
+    for (const [token, value] of Object.entries(THEME_TOKENS)) {
+        document.documentElement.style.setProperty(token, value);
+    }
+
+    // Only the timeouts: the engine reads `performance.now` and schedules frames,
+    // and a test that froze those would be measuring a chart that never moves
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+});
+
+afterEach(() => {
+    vi.useRealTimers();
+    for (const token of Object.keys(THEME_TOKENS)) {
+        document.documentElement.style.removeProperty(token);
+    }
+});

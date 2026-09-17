@@ -27,9 +27,9 @@ const screenerService = {
     resetFilters: vi.fn(),
 };
 
-const userService = { getPreferences: vi.fn() };
-
 vi.mock('@/services/screener/index.js', () => screenerService);
+
+const userService = { getPreferences: vi.fn() };
 vi.mock('@/services/user/index.js', () => userService);
 
 const { router } = await import('@/routes/screener/screeners.js');

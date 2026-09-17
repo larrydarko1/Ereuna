@@ -2,12 +2,20 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { INDEXES } from '@ereuna/shared';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
+vi.mock('@/lib/logger.js', () => ({
+    logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
+}));
+
 const state: { connectError: Error | null; closed: number; lastUri: string | null; db: DbStub } = {
     connectError: null,
     closed: 0,
     lastUri: null,
     db: fakeDb(),
 };
+const { config } = await import('@/lib/config.js');
+
+/** The connection is module state, so each test gets an unopened module. */
+let db: typeof import('@/lib/db.js');
 
 // Partial: the Mongo double this suite seeds the client with mints real
 // ObjectIds, so replacing the whole module would take that export away with it.
@@ -32,14 +40,6 @@ vi.mock('mongodb', async (importOriginal) => ({
         }
     },
 }));
-vi.mock('@/lib/logger.js', () => ({
-    logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
-}));
-
-const { config } = await import('@/lib/config.js');
-
-/** The connection is module state, so each test gets an unopened module. */
-let db: typeof import('@/lib/db.js');
 
 beforeEach(async () => {
     state.connectError = null;

@@ -5,9 +5,9 @@ import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 import type { CandleDoc } from '@/aggregate/writer.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
-const logged: { errors: unknown[] } = { errors: [] };
-
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+
+const logged: { errors: unknown[] } = { errors: [] };
 vi.mock('@/lib/logger.js', () => ({
     logger: {
         error: (payload: unknown): void => {

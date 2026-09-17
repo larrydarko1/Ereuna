@@ -4,6 +4,8 @@ import type { PositionDoc } from '@ereuna/shared';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
+vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+
 const state: {
     portfolio: Record<string, unknown>;
     trades: { tradeDate: Date }[];
@@ -15,8 +17,6 @@ const state: {
     closes: new Map(),
     inception: new Map(),
 };
-
-vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 vi.mock('@/services/market/index.js', () => ({
     latestCloses: (symbols: string[]) =>
         Promise.resolve(new Map(symbols.flatMap((s) => (state.closes.has(s) ? [[s, state.closes.get(s)]] : [])))),

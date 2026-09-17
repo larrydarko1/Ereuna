@@ -3,9 +3,9 @@ import { AGGREGATOR_TIMEFRAMES, type AggregateMessage } from '@ereuna/shared';
 import type { CandleDoc } from '@/aggregate/writer.js';
 
 const publishCandle = vi.fn<(message: AggregateMessage) => void>();
-const enqueue = vi.fn<(timeframe: string, doc: CandleDoc) => void>();
-
 vi.mock('@/aggregate/publisher.js', () => ({ publishCandle: (message: AggregateMessage) => publishCandle(message) }));
+
+const enqueue = vi.fn<(timeframe: string, doc: CandleDoc) => void>();
 vi.mock('@/aggregate/writer.js', () => ({ enqueue: (timeframe: string, doc: CandleDoc) => enqueue(timeframe, doc) }));
 
 const { applyTrade, closeSession, openBucketCount, seedWeekly, sweep } = await import('@/aggregate/builder.js');

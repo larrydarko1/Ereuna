@@ -5,22 +5,15 @@ import { AppError } from '@/lib/app-error.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 import { fakeArgon2, hashOf } from '@/__tests__/support/argon2.js';
 
+vi.mock('argon2', () => ({ default: fakeArgon2 }));
 const db: { current: DbStub } = { current: fakeDb() };
+vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+
 const throttle: { locked: boolean; recorded: string[]; cleared: string[] } = {
     locked: false,
     recorded: [],
     cleared: [],
 };
-const issued: { calls: { user: WithId<UserDoc>; options: { rememberMe: boolean } }[] } = { calls: [] };
-
-vi.mock('argon2', () => ({ default: fakeArgon2 }));
-vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
-vi.mock('@/services/auth/auth-tokens.js', () => ({
-    issueSession: (user: WithId<UserDoc>, options: { rememberMe: boolean }) => {
-        issued.calls.push({ user, options });
-        return Promise.resolve({ accessToken: 'access', refreshToken: 'refresh', user: { id: 'x' } });
-    },
-}));
 vi.mock('@/services/auth/login-throttle.js', () => ({
     throttleKey: (username: string) => `key:${username.toLowerCase()}`,
     assertLoginAllowed: () => {
@@ -34,6 +27,13 @@ vi.mock('@/services/auth/login-throttle.js', () => ({
     clearLoginFailures: (key: string) => {
         throttle.cleared.push(key);
         return Promise.resolve();
+    },
+}));
+const issued: { calls: { user: WithId<UserDoc>; options: { rememberMe: boolean } }[] } = { calls: [] };
+vi.mock('@/services/auth/auth-tokens.js', () => ({
+    issueSession: (user: WithId<UserDoc>, options: { rememberMe: boolean }) => {
+        issued.calls.push({ user, options });
+        return Promise.resolve({ accessToken: 'access', refreshToken: 'refresh', user: { id: 'x' } });
     },
 }));
 

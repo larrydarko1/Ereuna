@@ -3,9 +3,9 @@ import { BUCKET_MS, type AggregateMessage } from '@ereuna/shared';
 import { fakeRedis, type RedisStub } from '@/__tests__/support/redis.js';
 
 const redis: { current: RedisStub } = { current: fakeRedis() };
-const logged: { warnings: unknown[] } = { warnings: [] };
-
 vi.mock('@/lib/redis.js', () => ({ getPublisher: () => redis.current }));
+
+const logged: { warnings: unknown[] } = { warnings: [] };
 vi.mock('@/lib/logger.js', () => ({
     logger: {
         warn: (payload: unknown): void => {

@@ -9,14 +9,14 @@ const chartService = {
     clearDrawings: vi.fn(),
 };
 
+vi.mock('@/services/chart/index.js', () => chartService);
+
 const marketService = {
     searchAssets: vi.fn(),
     assetProfile: vi.fn(),
     earningsDates: vi.fn(),
     corporateActions: vi.fn(),
 };
-
-vi.mock('@/services/chart/index.js', () => chartService);
 vi.mock('@/services/market/index.js', () => marketService);
 
 const { router } = await import('@/routes/chart/charts.js');

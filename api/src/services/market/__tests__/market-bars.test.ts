@@ -3,9 +3,9 @@ import { OHLCV_COLLECTIONS, type ChartTimeframe } from '@ereuna/shared';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
-const cache: { keys: string[]; options: unknown[] } = { keys: [], options: [] };
-
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+
+const cache: { keys: string[]; options: unknown[] } = { keys: [], options: [] };
 vi.mock('@/lib/cache.js', () => ({
     marketKey: (...parts: string[]) => `m:${parts.join(':')}`,
     withCache: (key: string, fetcher: () => Promise<unknown>, options: unknown) => {

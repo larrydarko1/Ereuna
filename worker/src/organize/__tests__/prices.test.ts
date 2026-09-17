@@ -2,12 +2,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { VendorMarketBar } from '@/lib/tiingo.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
+type Asset = Awaited<ReturnType<typeof import('@/organize/universe.js').activeUniverse>>[number];
 const db: { current: DbStub } = { current: fakeDb() };
+vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+
 const vendor: { rows: VendorMarketBar[] } = { rows: [] };
+vi.mock('@/lib/tiingo.js', () => ({ marketPrices: () => Promise.resolve(vendor.rows) }));
 const logged: { errors: unknown[] } = { errors: [] };
 
-vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
-vi.mock('@/lib/tiingo.js', () => ({ marketPrices: () => Promise.resolve(vendor.rows) }));
 vi.mock('@/lib/logger.js', () => ({
     logger: {
         error: (payload: unknown): void => {
@@ -18,11 +20,9 @@ vi.mock('@/lib/logger.js', () => ({
         debug: (): void => {},
     },
 }));
-
 const { refetchHistory, updateDailyPrices } = await import('@/organize/prices.js');
-const { config } = await import('@/lib/config.js');
 
-type Asset = Awaited<ReturnType<typeof import('@/organize/universe.js').activeUniverse>>[number];
+const { config } = await import('@/lib/config.js');
 
 function asset(symbol: string): Asset {
     return {

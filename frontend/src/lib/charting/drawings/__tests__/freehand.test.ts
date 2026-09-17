@@ -6,6 +6,13 @@ import { type FreehandPath, FreehandManager } from '@/lib/charting/drawings/free
 
 type Drawn = { stage: DrawingStage; tool: FreehandManager; overlay: HTMLElement };
 
+const LINE = [
+    { x: 200, y: 150 },
+    { x: 240, y: 170 },
+    { x: 280, y: 190 },
+    { x: 320, y: 210 },
+];
+
 function tool(active = true): Drawn {
     const drawing = stage();
     const manager = new FreehandManager(drawing.chart, drawing.series);
@@ -28,13 +35,6 @@ function stroke(drawn: Drawn, points: { x: number; y: number }[]): void {
     for (const point of rest) mouse(drawn.overlay, 'mousemove', point);
     mouse(drawn.overlay, 'mouseup', points[points.length - 1] ?? first);
 }
-
-const LINE = [
-    { x: 200, y: 150 },
-    { x: 240, y: 170 },
-    { x: 280, y: 190 },
-    { x: 320, y: 210 },
-];
 
 describe('drawing a stroke', () => {
     it('records every point the pointer passed through', () => {

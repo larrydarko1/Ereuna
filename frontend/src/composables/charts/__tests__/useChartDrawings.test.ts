@@ -14,6 +14,9 @@ const EMPTY: ChartDrawings = {
     priceLevels: [],
 };
 
+const key = { symbol: 'AAPL', timeframe: 'daily' as const };
+
+const withLine: ChartDrawings = { ...EMPTY, trendLines: [{ id: '1' } as never] };
 /** The five renderer managers, each of which owns one kind of annotation. */
 function fakeManagers(): {
     managers: Parameters<UseChartDrawingsReturn['attach']>[0];
@@ -48,9 +51,6 @@ function fakeManagers(): {
         },
     };
 }
-
-const key = { symbol: 'AAPL', timeframe: 'daily' as const };
-const withLine: ChartDrawings = { ...EMPTY, trendLines: [{ id: '1' } as never] };
 
 function inScope(): { drawings: UseChartDrawingsReturn; stop: () => void } {
     const scope = effectScope();

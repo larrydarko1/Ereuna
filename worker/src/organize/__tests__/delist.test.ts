@@ -4,13 +4,13 @@ import type { AssetInfoDoc } from '@ereuna/shared';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 import type { Asset } from '@/organize/universe.js';
 
-const db: { current: DbStub } = { current: fakeDb() };
-const state: { written: AnyBulkWriteOperation<AssetInfoDoc>[] } = { written: [] };
-
-vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 vi.mock('@/lib/logger.js', () => ({
     logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
 }));
+const db: { current: DbStub } = { current: fakeDb() };
+
+vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+const state: { written: AnyBulkWriteOperation<AssetInfoDoc>[] } = { written: [] };
 vi.mock('@/organize/write.js', async (importOriginal) => {
     const original = await importOriginal<typeof import('@/organize/write.js')>();
     return {

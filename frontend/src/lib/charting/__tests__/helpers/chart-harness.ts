@@ -32,13 +32,6 @@ export const DEFAULT_HEIGHT = 400;
 
 const mounted: MountedChart[] = [];
 
-afterEach(() => {
-    while (mounted.length > 0) {
-        const entry = mounted.pop();
-        if (entry !== undefined) removeChart(entry);
-    }
-});
-
 /**
  * Builds a chart on a container attached to the document, and registers both for
  * teardown. Nothing here needs an explicit `remove()`.
@@ -135,3 +128,10 @@ function cellContent(row: HTMLTableRowElement, index: number): HTMLElement {
     pinSize(top, content.clientWidth, content.clientHeight);
     return top;
 }
+
+afterEach(() => {
+    while (mounted.length > 0) {
+        const entry = mounted.pop();
+        if (entry !== undefined) removeChart(entry);
+    }
+});

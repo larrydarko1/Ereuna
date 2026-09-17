@@ -14,11 +14,6 @@ type Measured = { stage: DrawingStage; tool: ChartRuler; drawn: CanvasRecording 
 
 let recording: CanvasRecording | null = null;
 
-afterEach(() => {
-    recording?.restore();
-    recording = null;
-});
-
 function tool(active = true): Measured {
     const drawing = stage();
     recording = recordCanvas();
@@ -31,6 +26,11 @@ function tool(active = true): Measured {
 function labels(measured: Measured): string[] {
     return measured.drawn.calls.filter((call) => call.method === 'fillText').map((call) => String(call.args[0]));
 }
+
+afterEach(() => {
+    recording?.restore();
+    recording = null;
+});
 
 describe('measuring between two points', () => {
     it('writes the move in percent, in price and in time', () => {

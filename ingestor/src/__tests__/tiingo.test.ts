@@ -40,9 +40,9 @@ class FakeSocket {
 }
 
 const redis: { xadd: ReturnType<typeof vi.fn> } = { xadd: vi.fn(() => Promise.resolve('1-0')) };
-const logged: { errors: unknown[]; warnings: unknown[] } = { errors: [], warnings: [] };
-
 vi.mock('@/lib/redis.js', () => ({ getRedis: () => redis }));
+
+const logged: { errors: unknown[]; warnings: unknown[] } = { errors: [], warnings: [] };
 vi.mock('@/lib/logger.js', () => ({
     logger: {
         error: (payload: unknown): void => {

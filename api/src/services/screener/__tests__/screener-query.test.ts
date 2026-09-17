@@ -11,13 +11,13 @@ import { ObjectId } from 'mongodb';
 import type { ScreenerDoc } from '@ereuna/shared';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
-const db: { current: DbStub } = { current: fakeDb() };
-
-vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 vi.mock('@/lib/cache.js', () => ({
     userKey: (...parts: string[]) => parts.join(':'),
     withCache: <T>(_key: string, fetcher: () => Promise<T>) => fetcher(),
 }));
+
+const db: { current: DbStub } = { current: fakeDb() };
+vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 
 const { runHiddenSymbols, runIncludedScreeners } = await import('@/services/screener/screener-query.js');
 

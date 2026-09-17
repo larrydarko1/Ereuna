@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('@/lib/config.js', () => ({
+    config: { organize: { runOnStart: false, runHourEt: 19 } },
+}));
+vi.mock('@/lib/logger.js', () => ({
+    logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
+}));
 /**
  * The run is a straight dependency line, so what this suite checks is the line
  * itself: the order steps fire in, and that one vendor outage costs one step
@@ -7,7 +13,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
  */
 const order: string[] = [];
 const seen: Record<string, unknown[]> = {};
+
 const fails = new Set<string>();
+
 const state: { waitMs: number; universe: { symbol: string }[]; blocked: string | null; release: (() => void) | null } =
     {
         waitMs: 60_000,
@@ -15,7 +23,29 @@ const state: { waitMs: number; universe: { symbol: string }[]; blocked: string |
         blocked: null,
         release: null,
     };
-
+vi.mock('@/organize/schedule.js', () => ({ msUntilNextRun: () => state.waitMs }));
+vi.mock('@/organize/universe.js', () => ({ activeUniverse: () => Promise.resolve(state.universe) }));
+const { config } = await import('@/lib/config.js');
+/**
+ * `stopping` is module state and never goes back to false, which is right for a
+ * process that stops once and exits — so each test gets its own instance of the
+ * module rather than sharing one that has already been told to stop.
+ */
+let startOrganizer: typeof import('@/organize/index.js').startOrganizer;
+let stopOrganizer: typeof import('@/organize/index.js').stopOrganizer;
+const THE_LINE = [
+    'prices',
+    'splits',
+    'dividends',
+    'weekly',
+    'delist',
+    'fundamentals',
+    'metrics',
+    'valuations',
+    'marketStats',
+    'holidays',
+    'prune',
+];
 /**
  * A step that records that it ran and what with. `fails` arms it to throw and
  * `blocked` arms it to hang until the test releases it — spies would not
@@ -34,15 +64,6 @@ const step =
         }
         return Promise.resolve(result);
     };
-
-vi.mock('@/lib/config.js', () => ({
-    config: { organize: { runOnStart: false, runHourEt: 19 } },
-}));
-vi.mock('@/lib/logger.js', () => ({
-    logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
-}));
-vi.mock('@/organize/schedule.js', () => ({ msUntilNextRun: () => state.waitMs }));
-vi.mock('@/organize/universe.js', () => ({ activeUniverse: () => Promise.resolve(state.universe) }));
 vi.mock('@/organize/prices.js', () => ({
     updateDailyPrices: step('prices', { written: 1, splits: [{ symbol: 'AAPL' }], dividends: [{ symbol: 'AAPL' }] }),
 }));
@@ -58,34 +79,13 @@ vi.mock('@/organize/delist.js', () => ({
 }));
 vi.mock('@/organize/fundamentals.js', () => ({ updateFundamentals: step('fundamentals') }));
 vi.mock('@/organize/daily-metrics.js', () => ({ updateDailyMetrics: step('metrics') }));
+
 vi.mock('@/organize/valuation.js', () => ({ updateValuations: step('valuations') }));
+
 vi.mock('@/organize/market-stats.js', () => ({ updateMarketStats: step('marketStats') }));
 vi.mock('@/organize/holidays.js', () => ({ updateHolidays: step('holidays') }));
+
 vi.mock('@/organize/prune.js', () => ({ pruneIntraday: step('prune') }));
-
-const { config } = await import('@/lib/config.js');
-
-/**
- * `stopping` is module state and never goes back to false, which is right for a
- * process that stops once and exits — so each test gets its own instance of the
- * module rather than sharing one that has already been told to stop.
- */
-let startOrganizer: typeof import('@/organize/index.js').startOrganizer;
-let stopOrganizer: typeof import('@/organize/index.js').stopOrganizer;
-
-const THE_LINE = [
-    'prices',
-    'splits',
-    'dividends',
-    'weekly',
-    'delist',
-    'fundamentals',
-    'metrics',
-    'valuations',
-    'marketStats',
-    'holidays',
-    'prune',
-];
 
 /**
  * Start the organizer and let one scheduled run finish.

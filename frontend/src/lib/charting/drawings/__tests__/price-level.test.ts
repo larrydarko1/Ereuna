@@ -8,15 +8,6 @@ type Levelled = { stage: DrawingStage; tool: PriceLevelManager };
 
 const managers: PriceLevelManager[] = [];
 
-afterEach(() => {
-    while (managers.length > 0) managers.pop()?.destroy();
-    document
-        .querySelectorAll('.price-level-input-dialog, .price-level-overlay, .price-level-context-menu')
-        .forEach((node) => {
-            node.remove();
-        });
-});
-
 function tool(active = true): Levelled {
     const drawing = stage();
     const manager = new PriceLevelManager(drawing.chart, drawing.series, drawing.chart.chartElement());
@@ -73,6 +64,15 @@ function addLevel(levelled: Levelled, text = 'target'): void {
     fieldsOf(opened).text.value = text;
     buttonNamed(opened, 'Save').click();
 }
+
+afterEach(() => {
+    while (managers.length > 0) managers.pop()?.destroy();
+    document
+        .querySelectorAll('.price-level-input-dialog, .price-level-overlay, .price-level-context-menu')
+        .forEach((node) => {
+            node.remove();
+        });
+});
 
 describe('placing a level', () => {
     it('opens the dialog at the price the click landed on, and keeps it once saved', () => {

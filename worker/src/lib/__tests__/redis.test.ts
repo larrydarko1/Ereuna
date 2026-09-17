@@ -4,8 +4,18 @@ type Handler = (err: Error) => void;
 
 const built: { options: Record<string, unknown>; handlers: Map<string, Handler>; quit: () => Promise<string> }[] = [];
 const logged: { errors: unknown[] } = { errors: [] };
-const state: { quitError: Error | null } = { quitError: null };
+vi.mock('@/lib/logger.js', () => ({
+    logger: {
+        error: (payload: unknown): void => {
+            logged.errors.push(payload);
+        },
+        info: (): void => {},
+        warn: (): void => {},
+        debug: (): void => {},
+    },
+}));
 
+const state: { quitError: Error | null } = { quitError: null };
 vi.mock('ioredis', () => ({
     Redis: class {
         readonly handlers = new Map<string, Handler>();
@@ -25,16 +35,6 @@ vi.mock('ioredis', () => ({
         quit(): Promise<string> {
             return state.quitError === null ? Promise.resolve('OK') : Promise.reject(state.quitError);
         }
-    },
-}));
-vi.mock('@/lib/logger.js', () => ({
-    logger: {
-        error: (payload: unknown): void => {
-            logged.errors.push(payload);
-        },
-        info: (): void => {},
-        warn: (): void => {},
-        debug: (): void => {},
     },
 }));
 

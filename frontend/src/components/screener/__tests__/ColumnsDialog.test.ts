@@ -4,6 +4,8 @@ import { i18n } from '@/i18n';
 import { COLUMNS } from '@/constants/screener';
 import ColumnsDialog from '@/components/screener/ColumnsDialog.vue';
 
+const FIRST = COLUMNS[0]?.path ?? '';
+
 const open = (columns: readonly string[]): VueWrapper =>
     mount(ColumnsDialog, { props: { columns }, attachTo: document.body });
 
@@ -18,8 +20,6 @@ const click = async (selector: string): Promise<void> => {
     $(selector).dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await Promise.resolve();
 };
-
-const FIRST = COLUMNS[0]?.path ?? '';
 
 afterEach(() => {
     document.body.innerHTML = '';

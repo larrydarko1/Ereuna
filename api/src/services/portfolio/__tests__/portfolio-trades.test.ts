@@ -5,6 +5,7 @@ import { AppError } from '@/lib/app-error.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
+vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 const calls: {
     rebuilt: number;
     assets: string[];
@@ -12,13 +13,23 @@ const calls: {
     settings: unknown[];
     declared: unknown[];
 } = { rebuilt: 0, assets: [], validated: [], settings: [], declared: [] };
+
+vi.mock('@/services/portfolio/portfolio-crud.js', () => ({
+    getOrCreatePortfolio: () => Promise.resolve({ _id: new ObjectId(), leverage: 2, defaultCommission: 4.95 }),
+    writeSettings: (_u: unknown, _n: unknown, settings: unknown) => {
+        calls.settings.push(settings);
+        return Promise.resolve();
+    },
+    applyDeclaredState: (_u: unknown, _n: unknown, declared: unknown) => {
+        calls.declared.push(declared);
+        return Promise.resolve();
+    },
+}));
 const state: { existing: WithId<TradeDoc>[]; unknownSymbols: Set<string>; violation: AppError | null } = {
     existing: [],
     unknownSymbols: new Set(),
     violation: null,
 };
-
-vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 vi.mock('@/services/market/index.js', () => ({
     getAsset: (symbol: string) => {
         calls.assets.push(symbol);
@@ -37,17 +48,6 @@ vi.mock('@/services/portfolio/portfolio-rebuild.js', () => ({
     validateLog: (trades: { symbol: string | null; createdAt: Date }[], leverage: number) => {
         calls.validated.push({ trades, leverage });
         return state.violation === null ? Promise.resolve() : Promise.reject(state.violation);
-    },
-}));
-vi.mock('@/services/portfolio/portfolio-crud.js', () => ({
-    getOrCreatePortfolio: () => Promise.resolve({ _id: new ObjectId(), leverage: 2, defaultCommission: 4.95 }),
-    writeSettings: (_u: unknown, _n: unknown, settings: unknown) => {
-        calls.settings.push(settings);
-        return Promise.resolve();
-    },
-    applyDeclaredState: (_u: unknown, _n: unknown, declared: unknown) => {
-        calls.declared.push(declared);
-        return Promise.resolve();
     },
 }));
 

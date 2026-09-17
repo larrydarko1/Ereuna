@@ -15,6 +15,8 @@ const api = mockApi();
 
 const DAY = 86_400;
 
+const RUN = Array.from({ length: 40 }, (_, index) => 100 + Math.sin(index / 3) * 10);
+
 const candle = (index: number, close: number): Record<string, unknown> => ({
     time: 1_700_000_000 + index * DAY,
     open: close - 1,
@@ -22,8 +24,6 @@ const candle = (index: number, close: number): Record<string, unknown> => ({
     low: close - 2,
     close,
 });
-
-const RUN = Array.from({ length: 40 }, (_, index) => 100 + Math.sin(index / 3) * 10);
 
 const series = (closesIn: number[] = RUN): Record<string, unknown> => ({
     symbol: 'AAPL',

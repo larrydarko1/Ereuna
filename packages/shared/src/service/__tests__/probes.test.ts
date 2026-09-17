@@ -10,13 +10,6 @@ import { startProbeServer } from '#service/probes.js';
  */
 let server: Server | null = null;
 
-// `collectDefaultMetrics` registers into a process-global registry and throws
-// on a name it has already seen. One process starts one probe server, so that
-// is not a bug — but a suite starts a dozen.
-beforeEach(() => {
-    register.clear();
-});
-
 function start(options: { token?: string; onError?: (err: Error) => void } = {}): Promise<string> {
     server = startProbeServer({ port: 0, ...options });
     return new Promise((resolve) => {
@@ -26,6 +19,13 @@ function start(options: { token?: string; onError?: (err: Error) => void } = {})
         });
     });
 }
+
+// `collectDefaultMetrics` registers into a process-global registry and throws
+// on a name it has already seen. One process starts one probe server, so that
+// is not a bug — but a suite starts a dozen.
+beforeEach(() => {
+    register.clear();
+});
 
 afterEach(async () => {
     await new Promise<void>((resolve) => {

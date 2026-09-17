@@ -37,12 +37,17 @@
  * (#3) reading a template ref that is state (#6), so hoisting it to position 3
  * would put it above the `ref()` it exposes.
  *
- * SCOPE. The four workspace source roots below, production code only.
- *   - __tests__ and *.test.ts are out for a different reason. Their top-level order
- *     is dictated by vitest's `vi.mock` hoisting rather than by design, and their
- *     "state" is fixtures. The table describes a module's public shape, which a
- *     test file does not have. Same exclusion check-code-style.mjs and .jscpd.json
- *     already apply.
+ * SCOPE. The five workspace source roots below, in two passes.
+ *   - __tests__ and *.test.ts get the SECOND pass, against a different table
+ *     (TEST_CATEGORIES): imports → types → mocks → constants → helpers → hooks →
+ *     tests. They used to be excluded on the grounds that their order was
+ *     "dictated by vi.mock hoisting rather than by design", which had it backwards
+ *     — the hoisting is precisely what fixes `vi.mock`'s position, and a file that
+ *     writes it lower down misrepresents what runs first. What is true is that the
+ *     production table cannot express the rule: `vi.mock`, `beforeEach` and
+ *     `describe` are all expression statements, so it bins all three as
+ *     side-effects and sorts the mocks LAST. See TEST_CATEGORIES in
+ *     ../lib/declaration-order.mjs.
  *
  * WHAT THIS CANNOT SEE. Whether two statements in the SAME category are in a
  * sensible order relative to each other. The table says private functions are
@@ -52,11 +57,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
-import { CATEGORIES, analyzeFile } from '../lib/declaration-order.mjs';
+import { CATEGORIES, TEST_CATEGORIES, analyzeFile } from '../lib/declaration-order.mjs';
 
 const SOURCE_ROOTS = ['api/src', 'worker/src', 'ingestor/src', 'frontend/src', 'packages/shared/src'];
 
-/** Matches check-code-style.mjs — colocated tests are not production modules. */
+/** Which of the two tables a file is read against. */
 const isTest = (rel) => rel.includes('__tests__') || /\.(test|spec)\.ts$/.test(rel);
 
 const failures = [];
@@ -70,12 +75,13 @@ function walk(dir, out = []) {
     return out;
 }
 
-const files = SOURCE_ROOTS.flatMap((root) => walk(root))
-    .filter((rel) => !isTest(rel))
-    .sort();
+const discovered = SOURCE_ROOTS.flatMap((root) => walk(root)).sort();
+const files = discovered.filter((rel) => !isTest(rel));
+// .vue is production-only; a suite is always a .ts module.
+const testFiles = discovered.filter((rel) => isTest(rel) && rel.endsWith('.ts'));
 let statementsChecked = 0;
 
-for (const rel of files) {
+for (const rel of [...files, ...testFiles]) {
     const result = analyzeFile(rel, ROOT);
     if (result === null) continue;
     statementsChecked += result.count;
@@ -95,7 +101,7 @@ for (const rel of files) {
             file: rel,
             headline: `${result.misplaced.length} statement(s) out of canonical order`,
             misplaced: result.misplaced,
-            why: `Order is: ${CATEGORIES.join(' → ')}.`,
+            why: `Order is: ${(isTest(rel) ? TEST_CATEGORIES : CATEGORIES).join(' → ')}.`,
         });
     }
 }
@@ -124,5 +130,6 @@ if (failures.length > 0) {
 }
 
 console.log(
-    `✓ Declaration order check passed — ${files.length} modules, ${statementsChecked} top-level statements, all in canonical order (or held by a load-time dependency).`,
+    `✓ Declaration order check passed — ${files.length} modules + ${testFiles.length} suites, ` +
+        `${statementsChecked} top-level statements, all in canonical order (or held by a load-time dependency).`,
 );

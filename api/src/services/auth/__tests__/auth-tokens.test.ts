@@ -6,18 +6,18 @@ import { AppError } from '@/lib/app-error.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 import { fakeArgon2, hashOf } from '@/__tests__/support/argon2.js';
 
+vi.mock('argon2', () => ({ default: fakeArgon2 }));
+vi.mock('@/lib/logger.js', () => ({
+    logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
+}));
+
 const db: { current: DbStub } = { current: fakeDb() };
+vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 const throttle: { locked: boolean; recorded: string[]; cleared: string[] } = {
     locked: false,
     recorded: [],
     cleared: [],
 };
-
-vi.mock('argon2', () => ({ default: fakeArgon2 }));
-vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
-vi.mock('@/lib/logger.js', () => ({
-    logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
-}));
 vi.mock('@/services/auth/login-throttle.js', () => ({
     throttleKey: (username: string) => `key:${username.toLowerCase()}`,
     assertLoginAllowed: (key: string) => {

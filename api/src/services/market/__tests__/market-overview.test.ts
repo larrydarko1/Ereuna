@@ -2,10 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
-const cache: { keys: string[]; options: unknown[] } = { keys: [], options: [] };
-const state: { asset: Record<string, unknown> } = { asset: { Symbol: 'AAPL' } };
-
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+const cache: { keys: string[]; options: unknown[] } = { keys: [], options: [] };
+
 vi.mock('@/lib/cache.js', () => ({
     marketKey: (...parts: string[]) => `m:${parts.join(':')}`,
     withCache: (key: string, fetcher: () => Promise<unknown>, options: unknown) => {
@@ -14,6 +13,7 @@ vi.mock('@/lib/cache.js', () => ({
         return fetcher();
     },
 }));
+const state: { asset: Record<string, unknown> } = { asset: { Symbol: 'AAPL' } };
 vi.mock('@/services/market/market-assets.js', () => ({ getAsset: () => Promise.resolve(state.asset) }));
 
 const { financials, holidays, marketStats } = await import('@/services/market/market-overview.js');

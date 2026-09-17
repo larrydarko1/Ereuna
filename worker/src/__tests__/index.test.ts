@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { OHLCV_INDEXES, REFERENCE_INDEXES } from '@ereuna/shared';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
+vi.mock('dotenv/config', () => ({}));
 /**
  * The entry point runs on import: it connects, applies indexes, starts the
  * probes and both roles, and installs the signal handlers. So every test here
@@ -10,60 +11,13 @@ import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
  */
 const db: { current: DbStub } = { current: fakeDb() };
 const calls: string[] = [];
-const logged: { errors: unknown[]; fatal: unknown[] } = { errors: [], fatal: [] };
-const state: { role: string; connectError: Error | null; probeOptions: Record<string, unknown> | null } = {
-    role: 'all',
-    connectError: null,
-    probeOptions: null,
-};
-
-vi.mock('dotenv/config', () => ({}));
-vi.mock('@/lib/config.js', () => ({
-    get config() {
-        return { role: state.role, probe: { port: 9093, token: undefined } };
-    },
-}));
-vi.mock('@/lib/db.js', () => ({
-    connectDb: () => {
-        calls.push('connectDb');
-        return state.connectError === null ? Promise.resolve() : Promise.reject(state.connectError);
-    },
-    getDb: () => db.current,
-    closeDb: () => {
-        calls.push('closeDb');
-        return Promise.resolve();
-    },
-}));
 vi.mock('@/lib/redis.js', () => ({
     closeRedis: () => {
         calls.push('closeRedis');
         return Promise.resolve();
     },
 }));
-vi.mock('@/lib/logger.js', () => ({
-    logger: {
-        error: (payload: unknown): void => {
-            logged.errors.push(payload);
-        },
-        fatal: (payload: unknown): void => {
-            logged.fatal.push(payload);
-        },
-        info: (): void => {},
-        warn: (): void => {},
-        debug: (): void => {},
-    },
-}));
-vi.mock('@ereuna/shared/service/probes', () => ({
-    startProbeServer: (options: Record<string, unknown>) => {
-        calls.push('startProbeServer');
-        state.probeOptions = options;
-        return {
-            close: (): void => {
-                calls.push('closeProbes');
-            },
-        };
-    },
-}));
+
 vi.mock('@/aggregate/index.js', () => ({
     startAggregator: () => {
         calls.push('startAggregator');
@@ -81,6 +35,52 @@ vi.mock('@/organize/index.js', () => ({
     },
     stopOrganizer: (): void => {
         calls.push('stopOrganizer');
+    },
+}));
+const logged: { errors: unknown[]; fatal: unknown[] } = { errors: [], fatal: [] };
+vi.mock('@/lib/logger.js', () => ({
+    logger: {
+        error: (payload: unknown): void => {
+            logged.errors.push(payload);
+        },
+        fatal: (payload: unknown): void => {
+            logged.fatal.push(payload);
+        },
+        info: (): void => {},
+        warn: (): void => {},
+        debug: (): void => {},
+    },
+}));
+const state: { role: string; connectError: Error | null; probeOptions: Record<string, unknown> | null } = {
+    role: 'all',
+    connectError: null,
+    probeOptions: null,
+};
+vi.mock('@/lib/config.js', () => ({
+    get config() {
+        return { role: state.role, probe: { port: 9093, token: undefined } };
+    },
+}));
+vi.mock('@/lib/db.js', () => ({
+    connectDb: () => {
+        calls.push('connectDb');
+        return state.connectError === null ? Promise.resolve() : Promise.reject(state.connectError);
+    },
+    getDb: () => db.current,
+    closeDb: () => {
+        calls.push('closeDb');
+        return Promise.resolve();
+    },
+}));
+vi.mock('@ereuna/shared/service/probes', () => ({
+    startProbeServer: (options: Record<string, unknown>) => {
+        calls.push('startProbeServer');
+        state.probeOptions = options;
+        return {
+            close: (): void => {
+                calls.push('closeProbes');
+            },
+        };
     },
 }));
 

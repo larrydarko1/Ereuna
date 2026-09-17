@@ -4,11 +4,11 @@ import type { UserDoc } from '@ereuna/shared';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 import { fakeArgon2, hashOf } from '@/__tests__/support/argon2.js';
 
-const db: { current: DbStub } = { current: fakeDb() };
-const calls: { revoked: string[]; invalidated: string[] } = { revoked: [], invalidated: [] };
-
 vi.mock('argon2', () => ({ default: fakeArgon2 }));
+const db: { current: DbStub } = { current: fakeDb() };
+
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+const calls: { revoked: string[]; invalidated: string[] } = { revoked: [], invalidated: [] };
 vi.mock('@/lib/cache.js', () => ({
     invalidatePrefix: (prefix: string) => {
         calls.invalidated.push(prefix);

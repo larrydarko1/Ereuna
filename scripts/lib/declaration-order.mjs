@@ -20,6 +20,11 @@
  *      initializer does not make it mutable state. The naming convention is the
  *      only signal that separates the two, so it is the one used.
  *
+ * There are two tables, not one. A test file's layers are different enough from a
+ * module's — no contract, no exports, and `vi.mock` running before the imports it
+ * sits under — that the production classifier gets them backwards. See
+ * TEST_CATEGORIES.
+ *
  * What it deliberately does NOT decide is whether a violation is SAFE to fix. That
  * depends on the temporal dead zone, and the answer differs per category — see
  * SAFE_TO_MOVE below and the header of check-declaration-order.mjs.
@@ -33,6 +38,33 @@ export const CATEGORIES = [
     'imports', 'types', 'contract', 'constants', 'classes',
     'state', 'exported-fns', 'private-fns', 'side-effects',
 ];
+
+/**
+ * A test file's order. Not a subset of CATEGORIES: three of those layers cannot
+ * occur in a suite (a test file has no contract, no classes, and exports nothing),
+ * and two of the rest invert. `vi.mock` is an expression statement, so the
+ * production classifier bins it as a side-effect and sorts it LAST — the exact
+ * opposite of where Vitest actually runs it. `beforeEach` and `describe` classify
+ * identically, which collapses the three statements this rule is about into one
+ * category where the sort has nothing left to say. Hence a separate list rather
+ * than a flag on the existing one.
+ */
+export const TEST_CATEGORIES = ['imports', 'types', 'mocks', 'constants', 'helpers', 'hooks', 'tests'];
+
+const PRODUCTION_PROFILE = { categories: CATEGORIES, classify: (s) => classify(s) };
+
+/**
+ * `eager` names the category whose function bodies run during the import phase.
+ * A `vi.mock` / `vi.hoisted` factory is an arrow, so the default analysis skips
+ * its body as "runs later" — true of every other arrow in a module and false of
+ * these two, which Vitest invokes while resolving imports. Without this, a fake
+ * class the factory closes over looks unreferenced and the sort cheerfully moves
+ * it below the mock that needs it, which is a TDZ ReferenceError at import time.
+ */
+const TEST_PROFILE = { categories: TEST_CATEGORIES, classify: (s) => classifyTest(s), eager: 'mocks' };
+
+const profileFor = (rel) =>
+    /(^|\/)__tests__\//.test(rel) || /\.(test|spec)\.ts$/.test(rel) ? TEST_PROFILE : PRODUCTION_PROFILE;
 
 const MACROS = new Set(['defineProps','defineEmits','defineModel','defineSlots','defineExpose','withDefaults']);
 
@@ -114,6 +146,49 @@ function classify(stmt) {
     return 'side-effects';
 }
 
+/**
+ * `vi.hoisted` is in the mock block, not among the constants: the factory below it
+ * reads the spies it returns, and Vitest lifts both above the imports together.
+ */
+const MOCK_CALLS = new Set(['mock', 'doMock', 'unmock', 'doUnmock', 'hoisted']);
+const HOOK_CALLS = new Set(['beforeEach', 'afterEach', 'beforeAll', 'afterAll']);
+const TEST_CALLS = new Set(['describe', 'it', 'test']);
+
+function classifyTest(stmt) {
+    if (ts.isImportDeclaration(stmt) || ts.isImportEqualsDeclaration(stmt)) return 'imports';
+    if (ts.isExportDeclaration(stmt) && stmt.moduleSpecifier) return 'imports';
+    if (ts.isFunctionDeclaration(stmt)) return 'helpers';
+    // Types, enums and fake classes are the vocabulary the mock block is written in
+    // — `class FakeSocket extends EventEmitter` exists to be returned from a factory.
+    // They sit above it for the same reason types sit at layer 2 in production.
+    if (ts.isInterfaceDeclaration(stmt) || ts.isTypeAliasDeclaration(stmt)) return 'types';
+    if (ts.isClassDeclaration(stmt) || ts.isEnumDeclaration(stmt)) return 'types';
+
+    if (ts.isVariableStatement(stmt)) {
+        const decls = stmt.declarationList.declarations;
+        if (decls.some((d) => MOCK_CALLS.has(callName(d.initializer) ?? ''))) return 'mocks';
+        if (decls.some((d) => isFnLike(d.initializer))) return 'helpers';
+        // Everything else a suite declares is fixture data. The production
+        // classifier's state/constants split is about a module's mutable surface,
+        // which is not a question a test file raises.
+        return 'constants';
+    }
+
+    if (ts.isExpressionStatement(stmt)) {
+        const call = callName(stmt.expression);
+        const root = rootIdentifier(stmt.expression);
+        if (root === 'vi' && MOCK_CALLS.has(call ?? '')) return 'mocks';
+        if (HOOK_CALLS.has(call ?? '')) return 'hooks';
+        // `describe.each([...])('…')` roots at `describe` but has no callName —
+        // its callee is itself a call — so the root is what identifies it.
+        if (TEST_CALLS.has(root ?? '')) return 'tests';
+        // Anything else running at load — `vi.useFakeTimers()`, `expect.extend()`,
+        // `enableAutoUnmount(afterEach)` — is setup, and setup precedes the tests.
+        return 'hooks';
+    }
+    return 'hooks';
+}
+
 /** Names a statement binds at module scope. */
 function declaredNames(stmt) {
     const out = [];
@@ -145,7 +220,7 @@ function declaredNames(stmt) {
  * Identifiers a statement evaluates AT LOAD TIME. Function/arrow bodies are skipped:
  * they run later, so a name they reference need not be declared above them.
  */
-function loadTimeRefs(stmt) {
+function loadTimeRefs(stmt, eager = false) {
     const out = new Set();
     const isTypePos = (n) => {
         let p = n.parent;
@@ -157,10 +232,11 @@ function loadTimeRefs(stmt) {
         return false;
     };
     const visit = (n) => {
-        if (ts.isFunctionDeclaration(n) || ts.isFunctionExpression(n) || ts.isArrowFunction(n) || ts.isMethodDeclaration(n) || ts.isGetAccessor(n) || ts.isSetAccessor(n)) {
-            // Skip the body; parameter defaults still evaluate at call time, not load.
-            return;
-        }
+        const isFnNode = ts.isFunctionDeclaration(n) || ts.isFunctionExpression(n) || ts.isArrowFunction(n)
+            || ts.isMethodDeclaration(n) || ts.isGetAccessor(n) || ts.isSetAccessor(n);
+        // Skip the body; parameter defaults still evaluate at call time, not load.
+        // Unless `eager`: a mock factory's body IS load time (see TEST_PROFILE).
+        if (isFnNode && !eager) return;
         if (ts.isIdentifier(n)) {
             const p = n.parent;
             const isPropName = (ts.isPropertyAccessExpression(p) && p.name === n) || (ts.isPropertyAssignment(p) && p.name === n);
@@ -201,22 +277,25 @@ function loadTimeRefs(stmt) {
  * statement in the wrong place is reported as one problem, not as every statement
  * after it having shifted.
  */
-function canonicalOrder(code, filename) {
+function canonicalOrder(code, filename, profile) {
     const sf = ts.createSourceFile(filename, code, ts.ScriptTarget.ESNext, true, ts.ScriptKind.TS);
     const stmts = [...sf.statements];
     if (stmts.length < 2) return { sf, items: [], ideal: [], cycle: false };
 
-    const rank = (c) => CATEGORIES.indexOf(c);
-    const items = stmts.map((s, i) => ({
-        i,
-        cat: classify(s),
-        name: nameOf(s, sf),
-        line: sf.getLineAndCharacterOfPosition(s.getStart(sf)).line + 1,
-        decls: declaredNames(s),
-        refs: loadTimeRefs(s),
-        hoisted: ts.isFunctionDeclaration(s),
-        typeOnly: ts.isInterfaceDeclaration(s) || ts.isTypeAliasDeclaration(s),
-    }));
+    const rank = (c) => profile.categories.indexOf(c);
+    const items = stmts.map((s, i) => {
+        const cat = profile.classify(s);
+        return {
+            i,
+            cat,
+            name: nameOf(s, sf),
+            line: sf.getLineAndCharacterOfPosition(s.getStart(sf)).line + 1,
+            decls: declaredNames(s),
+            refs: loadTimeRefs(s, profile.eager === cat),
+            hoisted: ts.isFunctionDeclaration(s),
+            typeOnly: ts.isInterfaceDeclaration(s) || ts.isTypeAliasDeclaration(s),
+        };
+    });
 
     const declaredBy = new Map();
     for (const it of items) {
@@ -249,8 +328,8 @@ function canonicalOrder(code, filename) {
     return { sf, items, ideal, cycle: ideal.length !== items.length };
 }
 
-function analyze(code, filename) {
-    const { items, ideal, cycle } = canonicalOrder(code, filename);
+function analyze(code, filename, profile) {
+    const { items, ideal, cycle } = canonicalOrder(code, filename, profile);
     if (items.length === 0) return { misplaced: [], count: ts.createSourceFile(filename, code, ts.ScriptTarget.ESNext, true, ts.ScriptKind.TS).statements.length };
     if (cycle) return { misplaced: [], count: items.length, cycle: true };
 
@@ -284,7 +363,9 @@ function analyze(code, filename) {
             belongsAfter: after ? `${after.cat} "${after.name}"` : 'the top of the module',
         });
     }
-    return { misplaced, count: items.length };
+    // `order` is the ideal sequence as original statement indices — what a fixer
+    // needs to rewrite the file, and the same sequence `misplaced` is derived from.
+    return { misplaced, count: items.length, order: ideal.map((it) => it.i) };
 }
 
 function nameOf(s, sf) {
@@ -295,7 +376,7 @@ function nameOf(s, sf) {
 }
 
 /** Reads a file (unwrapping an SFC's <script setup>) and analyses it. */
-export function analyzeFile(rel, root) {
+export function analyzeFile(rel, root, profile = profileFor(rel)) {
     let code = fs.readFileSync(path.join(root, rel), 'utf8');
     let lineOffset = 0;
     if (rel.endsWith('.vue')) {
@@ -305,7 +386,7 @@ export function analyzeFile(rel, root) {
         lineOffset = code.slice(0, block.loc.start.offset).split('\n').length - 1;
         code = block.content;
     }
-    const res = analyze(code, rel.endsWith('.vue') ? rel + '.ts' : rel);
+    const res = analyze(code, rel.endsWith('.vue') ? rel + '.ts' : rel, profile);
     for (const m of res.misplaced) m.line += lineOffset;
     return res;
 }

@@ -4,9 +4,9 @@ import type { ScreenerDoc } from '@ereuna/shared';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
-const cache: { invalidated: string[] } = { invalidated: [] };
-
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+
+const cache: { invalidated: string[] } = { invalidated: [] };
 vi.mock('@/lib/cache.js', () => ({
     invalidatePrefix: (prefix: string) => {
         cache.invalidated.push(prefix);

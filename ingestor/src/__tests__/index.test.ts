@@ -1,52 +1,37 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('dotenv/config', () => ({}));
+vi.mock('@/lib/config.js', () => ({
+    config: { probe: { port: 9092, token: undefined }, pollIntervalMs: 10_000 },
+}));
 /**
  * The entry point runs on import: it connects, starts the probes, enters the
  * session loop and installs the signal handlers. So each test re-imports it and
  * asserts on what that import did.
  */
 const calls: string[] = [];
-const logged: { errors: unknown[]; fatal: unknown[]; warnings: unknown[] } = {
-    errors: [],
-    fatal: [],
-    warnings: [],
-};
-const state: {
-    connectError: Error | null;
-    holidays: string[];
-    isHoliday: boolean;
-    open: boolean;
-    universe: string[];
-    sessions: number;
-} = {
-    connectError: null,
-    holidays: [],
-    isHoliday: false,
-    open: true,
-    universe: ['AAPL'],
-    sessions: 0,
-};
 
-vi.mock('dotenv/config', () => ({}));
-vi.mock('@/lib/config.js', () => ({
-    config: { probe: { port: 9092, token: undefined }, pollIntervalMs: 10_000 },
-}));
-vi.mock('@/lib/db.js', () => ({
-    connectDb: () => {
-        calls.push('connectDb');
-        return state.connectError === null ? Promise.resolve() : Promise.reject(state.connectError);
-    },
-    closeDb: () => {
-        calls.push('closeDb');
-        return Promise.resolve();
-    },
-}));
 vi.mock('@/lib/redis.js', () => ({
     closeRedis: () => {
         calls.push('closeRedis');
         return Promise.resolve();
     },
 }));
+vi.mock('@ereuna/shared/service/probes', () => ({
+    startProbeServer: () => {
+        calls.push('startProbeServer');
+        return {
+            close: (): void => {
+                calls.push('closeProbes');
+            },
+        };
+    },
+}));
+const logged: { errors: unknown[]; fatal: unknown[]; warnings: unknown[] } = {
+    errors: [],
+    fatal: [],
+    warnings: [],
+};
 vi.mock('@/lib/logger.js', () => ({
     logger: {
         error: (payload: unknown): void => {
@@ -62,14 +47,29 @@ vi.mock('@/lib/logger.js', () => ({
         debug: (): void => {},
     },
 }));
-vi.mock('@ereuna/shared/service/probes', () => ({
-    startProbeServer: () => {
-        calls.push('startProbeServer');
-        return {
-            close: (): void => {
-                calls.push('closeProbes');
-            },
-        };
+const state: {
+    connectError: Error | null;
+    holidays: string[];
+    isHoliday: boolean;
+    open: boolean;
+    universe: string[];
+    sessions: number;
+} = {
+    connectError: null,
+    holidays: [],
+    isHoliday: false,
+    open: true,
+    universe: ['AAPL'],
+    sessions: 0,
+};
+vi.mock('@/lib/db.js', () => ({
+    connectDb: () => {
+        calls.push('connectDb');
+        return state.connectError === null ? Promise.resolve() : Promise.reject(state.connectError);
+    },
+    closeDb: () => {
+        calls.push('closeDb');
+        return Promise.resolve();
     },
 }));
 vi.mock('@/calendar.js', () => ({
@@ -101,6 +101,13 @@ vi.mock('@/tiingo.js', () => ({
  */
 const exit = vi.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
 
+/** Import the entry point and let it reach its first loop iteration. */
+async function boot(): Promise<void> {
+    vi.resetModules();
+    await import('@/index.js');
+    await vi.waitFor(() => expect(calls).toContain('startProbeServer'));
+}
+
 beforeAll(() => {
     exit.mockClear();
 });
@@ -108,13 +115,6 @@ beforeAll(() => {
 afterAll(() => {
     exit.mockRestore();
 });
-
-/** Import the entry point and let it reach its first loop iteration. */
-async function boot(): Promise<void> {
-    vi.resetModules();
-    await import('@/index.js');
-    await vi.waitFor(() => expect(calls).toContain('startProbeServer'));
-}
 
 beforeEach(() => {
     calls.length = 0;

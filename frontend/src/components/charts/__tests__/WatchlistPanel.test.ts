@@ -49,6 +49,15 @@ const icon = (wrapper: VueWrapper, index: number, label: string): ReturnType<Vue
     return node;
 };
 
+/** A file input cannot be assigned, so the change event carries the file itself. */
+async function chooseFile(wrapper: VueWrapper, contents: string): Promise<void> {
+    const input = wrapper.get('.watchlist__file').element as HTMLInputElement;
+    const file = new File([contents], 'list.txt', { type: 'text/plain' });
+    Object.defineProperty(input, 'files', { configurable: true, value: [file] });
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    await flushPromises();
+}
+
 beforeEach(() => {
     // The lists live at module scope so the strip and the panel agree; ending
     // the session is how the app itself resets them.
@@ -383,12 +392,3 @@ describe('WatchlistPanel', () => {
         expect(wrapper.get('[role="alert"]').text()).toBe(i18n.global.t('errors.INTERNAL'));
     });
 });
-
-/** A file input cannot be assigned, so the change event carries the file itself. */
-async function chooseFile(wrapper: VueWrapper, contents: string): Promise<void> {
-    const input = wrapper.get('.watchlist__file').element as HTMLInputElement;
-    const file = new File([contents], 'list.txt', { type: 'text/plain' });
-    Object.defineProperty(input, 'files', { configurable: true, value: [file] });
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-    await flushPromises();
-}

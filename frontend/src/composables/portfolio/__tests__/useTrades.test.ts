@@ -4,6 +4,8 @@ import { useTrades, type UseTradesReturn } from '@/composables/portfolio/useTrad
 
 const mock = mockApi();
 
+const trade = { action: 'buy' as const, symbol: 'AAPL', shares: 1, price: 1, total: 1, tradeDate: '2026-03-02' };
+
 const row = (id: string): Record<string, unknown> => ({
     id,
     symbol: 'AAPL',
@@ -22,8 +24,6 @@ const page = (ids: string[], total = ids.length): Record<string, unknown> => ({
     page: 1,
     limit: 50,
 });
-
-const trade = { action: 'buy' as const, symbol: 'AAPL', shares: 1, price: 1, total: 1, tradeDate: '2026-03-02' };
 
 function build(slot = 0): { trades: UseTradesReturn; onWrite: ReturnType<typeof vi.fn> } {
     const onWrite = vi.fn();

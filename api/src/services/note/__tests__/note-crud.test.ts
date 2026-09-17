@@ -5,9 +5,9 @@ import { AppError } from '@/lib/app-error.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
-const state: { unknownSymbols: Set<string> } = { unknownSymbols: new Set() };
-
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+
+const state: { unknownSymbols: Set<string> } = { unknownSymbols: new Set() };
 vi.mock('@/services/market/index.js', () => ({
     getAsset: (symbol: string) =>
         state.unknownSymbols.has(symbol)

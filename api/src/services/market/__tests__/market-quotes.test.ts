@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
-const cache: { keys: string[] } = { keys: [] };
-
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+
+const cache: { keys: string[] } = { keys: [] };
 vi.mock('@/lib/cache.js', () => ({
     marketKey: (...parts: string[]) => `m:${parts.join(':')}`,
     withCache: (key: string, fetcher: () => Promise<unknown>) => {

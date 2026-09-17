@@ -2,30 +2,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
+vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 const clock: { open: boolean } = { open: false };
+vi.mock('@ereuna/shared', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@ereuna/shared')>()),
+    isMarketHours: () => clock.open,
+}));
+
 const calls: { closed: number; swept: number; flushed: number; seeded: unknown[][] } = {
     closed: 0,
     swept: 0,
     flushed: 0,
     seeded: [],
 };
-const logged: { errors: unknown[] } = { errors: [] };
-
-vi.mock('@ereuna/shared', async (importOriginal) => ({
-    ...(await importOriginal<typeof import('@ereuna/shared')>()),
-    isMarketHours: () => clock.open,
-}));
-vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
-vi.mock('@/lib/logger.js', () => ({
-    logger: {
-        error: (payload: unknown): void => {
-            logged.errors.push(payload);
-        },
-        info: (): void => {},
-        warn: (): void => {},
-        debug: (): void => {},
-    },
-}));
 vi.mock('@/aggregate/builder.js', () => ({
     closeSession: (): void => {
         calls.closed += 1;
@@ -44,6 +33,17 @@ vi.mock('@/aggregate/writer.js', () => ({
         return Promise.resolve();
     },
     pendingWrites: () => 0,
+}));
+const logged: { errors: unknown[] } = { errors: [] };
+vi.mock('@/lib/logger.js', () => ({
+    logger: {
+        error: (payload: unknown): void => {
+            logged.errors.push(payload);
+        },
+        info: (): void => {},
+        warn: (): void => {},
+        debug: (): void => {},
+    },
 }));
 
 const { config } = await import('@/lib/config.js');

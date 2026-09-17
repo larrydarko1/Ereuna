@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('@/lib/logger.js', () => ({
+    logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
+}));
 const order: string[] = [];
-const state: { stopped: (() => boolean) | null } = { stopped: null };
 
 vi.mock('@/aggregate/writer.js', () => ({
     startWriter: (): void => {
@@ -21,15 +23,13 @@ vi.mock('@/aggregate/session.js', () => ({
         order.push('stopSession');
     },
 }));
+const state: { stopped: (() => boolean) | null } = { stopped: null };
 vi.mock('@/aggregate/stream.js', () => ({
     consumeTrades: (shouldStop: () => boolean): Promise<void> => {
         order.push('consumeTrades');
         state.stopped = shouldStop;
         return Promise.resolve();
     },
-}));
-vi.mock('@/lib/logger.js', () => ({
-    logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
 }));
 
 /** `stopping` never goes back to false, so each test gets its own module. */

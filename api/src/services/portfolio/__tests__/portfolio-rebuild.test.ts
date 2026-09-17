@@ -5,9 +5,9 @@ import { AppError } from '@/lib/app-error.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
-const market: { schedules: Map<string, unknown>; asked: string[][] } = { schedules: new Map(), asked: [] };
-
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+
+const market: { schedules: Map<string, unknown>; asked: string[][] } = { schedules: new Map(), asked: [] };
 vi.mock('@/services/market/index.js', () => ({
     getAsset: (symbol: string) => Promise.resolve({ Symbol: symbol }),
     dividendSchedules: (symbols: string[]) => {

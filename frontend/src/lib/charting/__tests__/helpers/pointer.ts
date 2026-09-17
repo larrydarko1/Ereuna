@@ -9,12 +9,12 @@ import { vi } from 'vitest';
 
 type Point = { x: number; y: number };
 
-/** `Delay.ResetClick` in the engine's own mouse handler. */
-const RESET_CLICK_MS = 500;
-
 type MouseName = 'mousedown' | 'mouseenter' | 'mouseleave' | 'mousemove' | 'mouseup' | 'dblclick' | 'click';
 
 type TouchName = 'touchstart' | 'touchmove' | 'touchend' | 'touchcancel';
+
+/** `Delay.ResetClick` in the engine's own mouse handler. */
+const RESET_CLICK_MS = 500;
 
 export function mouse(target: HTMLElement, name: MouseName, at: Point, init?: MouseEventInit): void {
     target.dispatchEvent(

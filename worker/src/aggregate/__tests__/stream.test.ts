@@ -3,15 +3,15 @@ import { TIINGO_GROUP, TIINGO_STREAM } from '@ereuna/shared';
 import { fakeRedis, type RedisStub } from '@/__tests__/support/redis.js';
 
 const redis: { current: RedisStub } = { current: fakeRedis() };
-const applied: [string, number, number][] = [];
-const logged: { errors: unknown[] } = { errors: [] };
-
 vi.mock('@/lib/redis.js', () => ({ getConsumer: () => redis.current }));
+const applied: [string, number, number][] = [];
+
 vi.mock('@/aggregate/builder.js', () => ({
     applyTrade: (symbol: string, price: number, at: number): void => {
         applied.push([symbol, price, at]);
     },
 }));
+const logged: { errors: unknown[] } = { errors: [] };
 vi.mock('@/lib/logger.js', () => ({
     logger: {
         error: (payload: unknown): void => {

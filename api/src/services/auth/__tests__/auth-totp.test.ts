@@ -6,19 +6,19 @@ import { AppError } from '@/lib/app-error.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 import { fakeArgon2, hashOf } from '@/__tests__/support/argon2.js';
 
-const db: { current: DbStub } = { current: fakeDb() };
-const issued: { calls: unknown[] } = { calls: [] };
-
 vi.mock('argon2', () => ({ default: fakeArgon2 }));
+vi.mock('@/services/auth/auth-recovery.js', () => ({
+    generateRecoveryCodes: () => Promise.resolve({ plaintext: ['AAAA-BBBB-CCCC'], hashes: [hashOf('AAAA-BBBB-CCCC')] }),
+}));
+
+const db: { current: DbStub } = { current: fakeDb() };
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+const issued: { calls: unknown[] } = { calls: [] };
 vi.mock('@/services/auth/auth-tokens.js', () => ({
     issueSession: (...args: unknown[]) => {
         issued.calls.push(args);
         return Promise.resolve({ accessToken: 'access', refreshToken: 'refresh', user: { id: 'x' } });
     },
-}));
-vi.mock('@/services/auth/auth-recovery.js', () => ({
-    generateRecoveryCodes: () => Promise.resolve({ plaintext: ['AAAA-BBBB-CCCC'], hashes: [hashOf('AAAA-BBBB-CCCC')] }),
 }));
 
 const { beginTotpEnrolment, confirmTotpEnrolment, disableTotp, regenerateRecoveryCodes, validateTotpLogin } =

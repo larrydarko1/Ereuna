@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeRedis, type RedisStub } from '@/__tests__/support/redis.js';
 
 const redis: { current: RedisStub } = { current: fakeRedis() };
-const logged: { warnings: unknown[] } = { warnings: [] };
-
 vi.mock('@/lib/redis.js', () => ({ getRedis: () => redis.current }));
+
+const logged: { warnings: unknown[] } = { warnings: [] };
 vi.mock('@/lib/logger.js', () => ({
     logger: {
         warn: (payload: unknown): void => {
