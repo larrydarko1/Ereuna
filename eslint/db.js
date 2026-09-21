@@ -3,7 +3,10 @@ const DOWN_MESSAGE =
 
 const noMigrationDown = [
     { selector: "ExportNamedDeclaration > FunctionDeclaration[id.name='down']", message: DOWN_MESSAGE },
-    { selector: "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[id.name='down']", message: DOWN_MESSAGE },
+    {
+        selector: "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[id.name='down']",
+        message: DOWN_MESSAGE,
+    },
     { selector: "Property[key.name='down']", message: DOWN_MESSAGE },
 ];
 
@@ -32,6 +35,12 @@ const noEnvFallbackInScripts = {
         "No silent env fallback. Use requireEnv('X') from scripts/lib/env.mjs — it throws on a missing variable instead of guessing localhost. If a wrong value genuinely cannot destroy or mis-target data, use optionalEnv('X', default) and say why.",
 };
 
+const noUntypedCollection = {
+    selector: "CallExpression[callee.property.name='collection'][arguments.0.type='Literal']:not([typeArguments])",
+    message:
+        "Give every collection its document type: `db.collection<AssetInfoDoc>('AssetInfo')`, with the Doc types from @ereuna/shared/db/collections. Untyped, every read is `any`-shaped and a write with a misspelt or wrong-typed field compiles fine.",
+};
+
 const noExtraMongoClient = {
     selector: "NewExpression[callee.name='MongoClient']",
     message:
@@ -56,13 +65,13 @@ export const dbBannedImports = [
 /** The same list in the shape `no-restricted-imports` takes. */
 const noOdm = { paths: dbBannedImports };
 
-export const dbApiWorkerSelectors = [noCreateIndexInApi, noDropIndexInApi, noExtraMongoClient];
+export const dbApiWorkerSelectors = [noCreateIndexInApi, noDropIndexInApi, noExtraMongoClient, noUntypedCollection];
 
 /** api/src/lib/db.ts — the manifest applier + singleton (createIndex/new MongoClient are its job). */
-export const dbDbTsSelectors = [noDropIndexInApi];
+export const dbDbTsSelectors = [noDropIndexInApi, noUntypedCollection];
 
 /** worker/src/index.ts — the worker singleton (new MongoClient is its job). */
-export const dbWorkerIndexSelectors = [noCreateIndexInApi, noDropIndexInApi];
+export const dbWorkerIndexSelectors = [noCreateIndexInApi, noDropIndexInApi, noUntypedCollection];
 
 export default [
     {
@@ -76,21 +85,21 @@ export default [
         files: ['api/src/**/*.ts', 'worker/src/**/*.ts'],
         ignores: ['**/__tests__/**', 'api/src/lib/db.ts', 'worker/src/index.ts'],
         rules: {
-            'no-restricted-syntax': ['error', noCreateIndexInApi, noDropIndexInApi, noExtraMongoClient],
+            'no-restricted-syntax': ['error', ...dbApiWorkerSelectors],
             'no-restricted-imports': ['error', noOdm],
         },
     },
     {
         files: ['api/src/lib/db.ts'],
         rules: {
-            'no-restricted-syntax': ['error', noDropIndexInApi],
+            'no-restricted-syntax': ['error', ...dbDbTsSelectors],
             'no-restricted-imports': ['error', noOdm],
         },
     },
     {
         files: ['worker/src/index.ts'],
         rules: {
-            'no-restricted-syntax': ['error', noCreateIndexInApi, noDropIndexInApi],
+            'no-restricted-syntax': ['error', ...dbWorkerIndexSelectors],
             'no-restricted-imports': ['error', noOdm],
         },
     },

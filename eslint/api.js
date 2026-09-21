@@ -40,6 +40,22 @@ const noUntimedFetch = {
         'Pass a timeout to every outbound fetch: `fetch(url, { signal: AbortSignal.timeout(5000) })`. Node applies no default, so a stalled upstream pins the request slot until the process restarts.',
 };
 
+const LOOSE_SHAPE_MESSAGE =
+    'Do not return `Record<string, unknown>` from an exported function — it switches type checking off for everything the caller receives, so the API and the frontend can drift apart without either one failing to compile. Name the shape in packages/shared so the API and the frontend both compile against it.';
+
+const noLooseReturnShape = [
+    {
+        selector:
+            "ExportNamedDeclaration > FunctionDeclaration > TSTypeAnnotation TSTypeReference[typeName.name='Record'][typeArguments.params.1.type='TSUnknownKeyword']",
+        message: LOOSE_SHAPE_MESSAGE,
+    },
+    {
+        selector:
+            "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression > TSTypeAnnotation TSTypeReference[typeName.name='Record'][typeArguments.params.1.type='TSUnknownKeyword']",
+        message: LOOSE_SHAPE_MESSAGE,
+    },
+];
+
 const noApiErrorsFieldType = {
     selector: "TSPropertySignature[key.name='data'] TSPropertySignature[key.name='errors']",
     message:
@@ -58,6 +74,7 @@ export const apiSourceSelectors = [
     noEnglishErrorResponse,
     noMessageResponse,
     noUntimedFetch,
+    ...noLooseReturnShape,
 ];
 
 /** Additional selectors for api routes only (success envelope, raw query). */
