@@ -1,18 +1,10 @@
 /** screener-crud — create, rename, delete, list, and toggle a saved screener. */
 import { type ObjectId, type WithId } from 'mongodb';
-import type { ScreenerDoc } from '@ereuna/shared';
+import type { ScreenerDoc, ScreenerSummary } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { invalidatePrefix } from '@/lib/cache.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
-
-export type ScreenerSummary = {
-    id: string;
-    name: string;
-    include: boolean;
-    filterCount: number;
-    updatedAt: Date;
-};
 
 export function toSummary(doc: WithId<ScreenerDoc>): ScreenerSummary {
     return {
@@ -20,7 +12,7 @@ export function toSummary(doc: WithId<ScreenerDoc>): ScreenerSummary {
         name: doc.name,
         include: doc.include,
         filterCount: Object.keys(doc.filters).length,
-        updatedAt: doc.updatedAt,
+        updatedAt: doc.updatedAt.toISOString(),
     };
 }
 

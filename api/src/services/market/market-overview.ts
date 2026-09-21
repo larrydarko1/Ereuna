@@ -9,18 +9,12 @@
  * The holiday document is still passed through: it is one array of dates with
  * nothing to model.
  */
-import type { MarketOverview, StatsDoc } from '@ereuna/shared';
+import type { Financials, MarketOverview, StatsDoc } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { marketKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
 import { getAsset } from '@/services/market/market-assets.js';
 import { toMarketOverview } from '@/utils/market-overview.js';
-
-export type Financials = {
-    symbol: string;
-    annual: Record<string, unknown>[];
-    quarterly: Record<string, unknown>[];
-};
 
 /** One day. Holidays change on the ingestor's schedule, not ours. */
 const DAY_SECONDS = 86_400;

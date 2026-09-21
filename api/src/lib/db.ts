@@ -7,32 +7,18 @@
  */
 import { MongoClient, type Db } from 'mongodb';
 import { INDEXES } from '@ereuna/shared';
+import { mongoConnection } from '@ereuna/shared/service/connections';
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 
-let client: MongoClient | undefined;
-let db: Db | undefined;
+const connection = mongoConnection(MongoClient, config.mongo, logger);
+
+export const { get: getDb, close: closeDb } = connection;
 
 export async function connectDb(): Promise<Db> {
-    client = new MongoClient(config.mongo.uri, {
-        serverSelectionTimeoutMS: 5000,
-    });
-    await client.connect();
-    db = client.db(config.mongo.db);
-
+    const db = await connection.connect();
     await ensureIndexes(db);
-
-    logger.info({ db: config.mongo.db }, 'MongoDB connected');
     return db;
-}
-
-export function getDb(): Db {
-    if (db === undefined) throw new Error('DB not initialised — call connectDb() first');
-    return db;
-}
-
-export async function closeDb(): Promise<void> {
-    if (client !== undefined) await client.close();
 }
 
 /**

@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
-import { CHART_STYLES, type ChartTimeframe } from '@ereuna/shared';
+import { CHART_STYLES, DEFAULT_INDICATORS, type ChartTimeframe } from '@ereuna/shared';
 import { clearAuth } from '@/api/client';
 import { i18n } from '@/i18n';
 import { mockApi } from '@/__tests__/support/msw';
-import { DEFAULT_INDICATORS, MAX_INDICATOR_PERIOD } from '@/composables/charts/useChartSettings';
+import { MAX_INDICATOR_PERIOD } from '@/composables/charts/useChartSettings';
 import { loadPreferences } from '@/composables/data/usePreferences';
 import ChartSettingsDialog from '@/components/charts/ChartSettingsDialog.vue';
 

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import type { TradeRow } from '@/api/trades';
+import type { TradeRow } from '@ereuna/shared';
 import { i18n } from '@/i18n';
 import { formatCurrency, formatNumber, toDateInput } from '@/utils/formatters';
 import TradeDialog from '@/components/portfolio/TradeDialog.vue';

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { TradeInput } from '@/api/trades';
+import type { TradeInput } from '@ereuna/shared';
 import AppDialog from '@/components/ui/AppDialog.vue';
 import { toDateInput } from '@/utils/formatters';
 

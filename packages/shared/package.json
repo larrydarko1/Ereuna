@@ -13,6 +13,7 @@
         "./db/collections": "./src/db/collections.ts",
         "./db/indexes": "./src/db/indexes.ts",
         "./screener/filters": "./src/screener/filters.ts",
+        "./service/connections": "./src/service/connections.ts",
         "./service/probes": "./src/service/probes.ts"
     },
     "sideEffects": false,

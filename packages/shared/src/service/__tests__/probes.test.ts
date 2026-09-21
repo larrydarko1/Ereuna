@@ -10,7 +10,7 @@ import { startProbeServer } from '#service/probes.js';
  */
 let server: Server | null = null;
 
-function start(options: { token?: string; onError?: (err: Error) => void } = {}): Promise<string> {
+function start(options: { token?: string } = {}): Promise<string> {
     server = startProbeServer({ port: 0, ...options });
     return new Promise((resolve) => {
         server?.once('listening', () => {

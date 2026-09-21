@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import type { PortfolioExport } from '@/api/portfolio';
+import type { PortfolioExport } from '@ereuna/shared';
 import { i18n } from '@/i18n';
 import ExportDialog from '@/components/portfolio/ExportDialog.vue';
 

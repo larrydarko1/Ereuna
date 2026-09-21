@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { PortfolioSummary } from '@/api/portfolio';
+import type { PortfolioSummary } from '@ereuna/shared';
 import { direction, formatCurrency, formatNumber, formatPercent } from '@/utils/formatters';
 
 type Card = {

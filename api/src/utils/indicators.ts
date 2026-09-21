@@ -7,19 +7,15 @@
  * there are fewer bars than the period, because a partial window is not an
  * average of that period and plotting it would misstate the indicator.
  */
+import type { SeriesPoint } from '@ereuna/shared';
 
-export type SeriesPoint = {
-    time: string;
-    value: number;
-};
-
-export type Bar = {
+type ClosePoint = {
     time: string;
     close: number;
 };
 
 /** Simple moving average. */
-export function sma(bars: readonly Bar[], period: number): SeriesPoint[] {
+export function sma(bars: readonly ClosePoint[], period: number): SeriesPoint[] {
     if (period <= 0 || bars.length < period) return [];
 
     const points: SeriesPoint[] = [];
@@ -39,7 +35,7 @@ export function sma(bars: readonly Bar[], period: number): SeriesPoint[] {
  * The seed matters: starting from the first close instead makes the early
  * values depend almost entirely on one bar and takes several periods to decay.
  */
-export function ema(bars: readonly Bar[], period: number): SeriesPoint[] {
+export function ema(bars: readonly ClosePoint[], period: number): SeriesPoint[] {
     if (period <= 0 || bars.length < period) return [];
 
     const multiplier = 2 / (period + 1);

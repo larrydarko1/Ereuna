@@ -2,7 +2,8 @@
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import QrcodeVue from 'qrcode.vue';
-import { beginTwoFactor, confirmTwoFactor, type TotpEnrolment } from '@/api/account';
+import type { TotpEnrolment } from '@ereuna/shared';
+import { beginTwoFactor, confirmTwoFactor } from '@/api/account';
 import { apiErrorMessage } from '@/api/client';
 import AppDialog from '@/components/ui/AppDialog.vue';
 import AppSpinner from '@/components/ui/AppSpinner.vue';

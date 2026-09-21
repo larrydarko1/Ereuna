@@ -15,18 +15,13 @@
 import argon2 from 'argon2';
 import { type ObjectId, type WithId } from 'mongodb';
 import { Secret, TOTP } from 'otpauth';
-import type { UserDoc } from '@ereuna/shared';
+import type { TotpEnrolment, UserDoc } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { decryptSecret, encryptSecret } from '@/lib/crypto.js';
 import { getDb } from '@/lib/db.js';
 import { generateRecoveryCodes } from '@/services/auth/auth-recovery.js';
 import { issueSession, type AuthResult } from '@/services/auth/auth-tokens.js';
-
-export type TotpEnrolment = {
-    secret: string;
-    uri: string;
-};
 
 export async function beginTotpEnrolment(userId: ObjectId): Promise<TotpEnrolment> {
     const user = await getUser(userId);

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { numeric } from '@ereuna/shared';
 import { useRowLimit } from '@/composables/ui/useRowLimit';
 import { formatCompact, formatDate, formatNumber } from '@/utils/formatters';
-import { growth, numeric } from '@/utils/numbers';
+import { growth } from '@/utils/numbers';
 
 type Quarter = {
     date: string;

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { clearAuth, setSessionUser, type SessionUser } from '@/api/client';
+import type { SessionUser } from '@ereuna/shared';
+import { clearAuth, setSessionUser } from '@/api/client';
 import { router } from '@/router';
 
 // The views are code-split and each pulls in a chart or a table; the guard is

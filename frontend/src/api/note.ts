@@ -4,22 +4,8 @@
  * identifies it, and carrying the symbol as well only creates a second way for
  * the two to disagree.
  */
+import type { NotePage, NoteRow } from '@ereuna/shared';
 import { api, type ApiResult } from '@/api/client';
-
-export type NoteRow = {
-    id: string;
-    symbol: string;
-    message: string;
-    createdAt: string;
-    updatedAt: string;
-};
-
-export type NotePage = {
-    items: NoteRow[];
-    total: number;
-    page: number;
-    limit: number;
-};
 
 export type NoteQuery = {
     page?: number;

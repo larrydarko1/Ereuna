@@ -15,8 +15,9 @@
  * that answer back in is a cache update, not a second request.
  */
 import { readonly, ref, type DeepReadonly, type Ref } from 'vue';
+import type { Preferences } from '@ereuna/shared';
 import { onSessionCleared } from '@/api/client';
-import { getPreferences, updatePreferences, type Preferences } from '@/api/preferences';
+import { getPreferences, updatePreferences } from '@/api/preferences';
 
 export type UsePreferencesReturn = {
     preferences: DeepReadonly<Ref<Preferences | null>>;

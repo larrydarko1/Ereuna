@@ -4,8 +4,9 @@
  * move the selection with it;
  */
 import { computed, ref, type ComputedRef, type Ref } from 'vue';
+import type { ScreenerSummary } from '@ereuna/shared';
 import { apiErrorMessage } from '@/api/client';
-import { createScreener, deleteScreener, getScreeners, updateScreener, type ScreenerSummary } from '@/api/screener';
+import { createScreener, deleteScreener, getScreeners, updateScreener } from '@/api/screener';
 import { i18n } from '@/i18n';
 
 export type UseScreenersReturn = {

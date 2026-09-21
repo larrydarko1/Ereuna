@@ -61,11 +61,7 @@ function sleep(ms: number): Promise<void> {
  */
 connectDb()
     .then(() => {
-        probes = startProbeServer({
-            port: config.probe.port,
-            token: config.probe.token,
-            onError: (err): void => logger.error({ err }, 'Failed to render metrics'),
-        });
+        probes = startProbeServer({ ...config.probe, logger });
         logger.info({ port: config.probe.port }, 'Probes listening');
         return run();
     })

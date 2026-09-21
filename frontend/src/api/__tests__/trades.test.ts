@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import type { TradeInput } from '@ereuna/shared';
 import { mockApi } from '@/__tests__/support/msw';
-import { addTrade, deleteTrade, getTrades, updateTrade, type TradeInput } from '@/api/trades';
+import { addTrade, deleteTrade, getTrades, updateTrade } from '@/api/trades';
 
 const mock = mockApi();
 

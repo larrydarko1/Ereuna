@@ -20,7 +20,7 @@ vi.mock('@/services/auth/auth-tokens.js', () => ({
         calls.revoked.push(userId.toHexString());
         return Promise.resolve();
     },
-    toAuthUser: (user: WithId<UserDoc>) => ({ id: user._id.toHexString(), username: user.username }),
+    toSessionUser: (user: WithId<UserDoc>) => ({ id: user._id.toHexString(), username: user.username }),
 }));
 
 const { changePassword, changeUsername, deleteAccount, getAccount, setPasswordAfterRecovery } =

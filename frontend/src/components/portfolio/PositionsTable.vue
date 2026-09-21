@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { ValuedPosition } from '@/api/portfolio';
+import type { ValuedPosition } from '@ereuna/shared';
 import { direction, formatCurrency, formatNumber, formatPercent } from '@/utils/formatters';
 
 const { positions, cash, quotes } = defineProps<{

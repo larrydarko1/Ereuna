@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import type { AssetProfile } from '@/api/chart';
+import type { AssetProfile } from '@ereuna/shared';
 import PriceChart from '@/components/charts/PriceChart.vue';
 
 const { symbol, profile = null } = defineProps<{

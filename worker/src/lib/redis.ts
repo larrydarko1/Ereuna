@@ -6,35 +6,23 @@
  * was quiet. Splitting them costs one socket and removes the coupling.
  */
 import { Redis } from 'ioredis';
+import { redisConnection } from '@ereuna/shared/service/connections';
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 
-let consumer: Redis | null = null;
-let publisher: Redis | null = null;
+// `maxRetriesPerRequest: null` on both because a blocking read is not a request
+// that should be given up on: ioredis would otherwise abort it as a timeout
+const OPTIONS = { ...config.redis, maxRetriesPerRequest: null };
+
+const consumer = redisConnection(Redis, OPTIONS, logger, 'consumer');
+const publisher = redisConnection(Redis, OPTIONS, logger, 'publisher');
 
 /** The connection that reads the trade stream. Blocks, so nothing else may use it. */
-export function getConsumer(): Redis {
-    consumer ??= connect('consumer');
-    return consumer;
-}
+export const getConsumer = consumer.get;
 
 /** The connection that publishes aggregated candles and writes last-value keys. */
-export function getPublisher(): Redis {
-    publisher ??= connect('publisher');
-    return publisher;
-}
+export const getPublisher = publisher.get;
 
 export async function closeRedis(): Promise<void> {
-    const open = [consumer, publisher].filter((client): client is Redis => client !== null);
-    consumer = null;
-    publisher = null;
-    await Promise.allSettled(open.map((client) => client.quit()));
-}
-
-function connect(role: string): Redis {
-    // `maxRetriesPerRequest: null` because a blocking read is not a request that
-    // should be given up on: ioredis would otherwise abort it as a timeout.
-    const client = new Redis({ host: config.redis.host, port: config.redis.port, maxRetriesPerRequest: null });
-    client.on('error', (err) => logger.error({ err, role }, 'Redis client error'));
-    return client;
+    await Promise.allSettled([consumer.close(), publisher.close()]);
 }

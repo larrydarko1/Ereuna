@@ -8,9 +8,8 @@
  * and `valueHistory`. Ereuna simulates: a user bringing in a track record their
  * log cannot reproduce is stating it, and stating it is their prerogative.
  */
-import type { PortfolioStatsSnapshot, PortfolioValuePoint, PositionSide } from '@ereuna/shared';
+import type { PortfolioExport, PortfolioSummary, TradeInput } from '@ereuna/shared';
 import { api, type ApiResult } from '@/api/client';
-import type { TradeInput } from '@/api/trades';
 
 export type PortfolioRow = {
     number: number;
@@ -21,67 +20,6 @@ export type PortfolioRow = {
     benchmarks: string[];
     positionCount: number;
     updatedAt: string;
-};
-
-export type ValuedPosition = {
-    symbol: string;
-    side: PositionSide;
-    shares: number;
-    avgPrice: number;
-    lastClose: number | null; // Null when the ingestor has no bar for the symbol yet
-    marketValue: number | null; // Absolute value — a short's is what buying it back would cost
-    exposure: number | null; // Signed contribution to equity: negative for a short
-    unrealizedPL: number | null;
-    unrealizedPLPercent: number | null;
-    weight: number | null; // Share of gross exposure, in percent
-};
-
-export type BenchmarkResult = {
-    symbol: string;
-    inceptionPrice: number;
-    currentPrice: number;
-    returnPercent: number;
-    portfolioReturnPercent: number;
-    outperformance: number;
-};
-
-export type PortfolioSummary = {
-    number: number;
-    cash: number; // Negative means the portfolio carries a margin loan
-    baseValue: number;
-    leverage: number;
-    defaultCommission: number;
-    positions: ValuedPosition[];
-    longValue: number;
-    shortValue: number;
-    grossExposure: number; // Longs plus shorts — what the leverage limit is measured against
-    netExposure: number; // Longs minus shorts — what market direction is measured against
-    totalValue: number; // Equity: cash plus net exposure
-    leverageUsed: number | null;
-    buyingPower: number; // What is left before the leverage limit binds
-    unrealizedPL: number;
-    totalPL: number | null;
-    totalPLPercent: number | null;
-    stats: PortfolioStatsSnapshot | null;
-    valueHistory: PortfolioValuePoint[];
-    benchmarks: BenchmarkResult[];
-};
-
-/**
- * The export envelope, which is also exactly what `importPortfolio` accepts —
- * the trades come back as `TradeInput`, not as rows, so the file the user
- * downloads is a file the user can upload.
- */
-export type PortfolioExport = {
-    portfolio: {
-        baseValue: number;
-        leverage: number;
-        defaultCommission: number;
-        benchmarks: string[];
-        stats: PortfolioStatsSnapshot | null;
-        valueHistory: PortfolioValuePoint[];
-    };
-    trades: TradeInput[];
 };
 
 export type PortfolioImport = {

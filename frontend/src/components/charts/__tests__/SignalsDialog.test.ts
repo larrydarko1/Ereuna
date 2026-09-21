@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import type { TradeSignal } from '@/api/chart';
+import type { TradeSignal } from '@ereuna/shared';
 import { i18n } from '@/i18n';
 import { formatCurrency, formatDate, formatNumber } from '@/utils/formatters';
 import SignalsDialog from '@/components/charts/SignalsDialog.vue';

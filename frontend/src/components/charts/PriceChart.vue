@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, useId, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { ChartTimeframe } from '@ereuna/shared';
+import type { AssetProfile, ChartTimeframe } from '@ereuna/shared';
 import { CHART_TIMEFRAMES } from '@ereuna/shared';
 import {
     BoxManager,
@@ -25,7 +25,6 @@ import {
     type SeriesType,
     type Time,
 } from '@/lib/charting';
-import type { AssetProfile } from '@/api/chart';
 import ChartLegend from '@/components/charts/ChartLegend.vue';
 import ChartReplayBar from '@/components/charts/ChartReplayBar.vue';
 import ChartSettingsDialog from '@/components/charts/ChartSettingsDialog.vue';

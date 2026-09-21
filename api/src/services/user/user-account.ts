@@ -13,6 +13,7 @@ import type {
     PortfolioDoc,
     PositionDoc,
     ScreenerDoc,
+    SessionUser,
     TradeDoc,
     UserDoc,
     WatchlistDoc,
@@ -21,10 +22,10 @@ import { AppError } from '@/lib/app-error.js';
 import { invalidatePrefix } from '@/lib/cache.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
-import { revokeAllUserTokens, toAuthUser, type AuthUser } from '@/services/auth/auth-tokens.js';
+import { revokeAllUserTokens, toSessionUser } from '@/services/auth/auth-tokens.js';
 
-export async function getAccount(userId: ObjectId): Promise<AuthUser> {
-    return toAuthUser(await getUser(userId));
+export async function getAccount(userId: ObjectId): Promise<SessionUser> {
+    return toSessionUser(await getUser(userId));
 }
 
 export async function changePassword(userId: ObjectId, currentPassword: string, newPassword: string): Promise<void> {
@@ -86,7 +87,7 @@ export async function setPasswordAfterRecovery(userId: ObjectId, newPassword: st
     await revokeAllUserTokens(userId);
 }
 
-export async function changeUsername(userId: ObjectId, password: string, newUsername: string): Promise<AuthUser> {
+export async function changeUsername(userId: ObjectId, password: string, newUsername: string): Promise<SessionUser> {
     const user = await getUser(userId);
 
     if (!(await argon2.verify(user.passwordHash, password))) {
@@ -109,7 +110,7 @@ export async function changeUsername(userId: ObjectId, password: string, newUser
     );
 
     if (updated === null) throw new AppError(404, 'USER_NOT_FOUND', `user ${userId.toHexString()} not found`);
-    return toAuthUser(updated);
+    return toSessionUser(updated);
 }
 
 export async function deleteAccount(userId: ObjectId, password: string): Promise<void> {

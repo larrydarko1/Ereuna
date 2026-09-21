@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
-import type { PortfolioSummary } from '@/api/portfolio';
-import type { TradeRow } from '@/api/trades';
 import { clearAuth } from '@/api/client';
+import type { PortfolioSummary, TradeRow } from '@ereuna/shared';
 import { i18n } from '@/i18n';
 import { mockApi } from '@/__tests__/support/msw';
 import { summary as makeSummary } from '@/__tests__/support/portfolio';

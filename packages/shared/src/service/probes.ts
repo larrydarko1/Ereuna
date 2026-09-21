@@ -12,15 +12,16 @@
  * consumed by the browser build.
  */
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'http';
+import type { Logger } from 'pino';
 import { collectDefaultMetrics, register } from 'prom-client';
 
 export type ProbeOptions = {
     port: number;
     token?: string | undefined;
-    onError?: ((err: Error) => void) | undefined;
+    logger?: Pick<Logger, 'error'> | undefined;
 };
 
-export function startProbeServer({ port, token, onError }: ProbeOptions): Server {
+export function startProbeServer({ port, token, logger }: ProbeOptions): Server {
     collectDefaultMetrics();
 
     const server = createServer((req: IncomingMessage, res: ServerResponse) => {
@@ -45,7 +46,7 @@ export function startProbeServer({ port, token, onError }: ProbeOptions): Server
                 res.end(body);
             })
             .catch((err: Error) => {
-                onError?.(err);
+                logger?.error({ err }, 'Failed to render metrics');
                 send(res, 500, { ok: false });
             });
     });

@@ -3,12 +3,21 @@
  * Everything re-exports through this barrel. Nothing framework-flavoured
  * belongs here: the api imports it, so it must not pull in Vue or Express.
  */
+export * from '#auth.js';
+export * from '#chart.js';
 export * from '#config/env.js';
 export * from '#config/redact.js';
 export * from '#db/collections.js';
 export * from '#db/indexes.js';
 export * from '#errors.js';
+export * from '#market/assets.js';
 export * from '#market/hours.js';
+export * from '#market/numeric.js';
 export * from '#market/overview.js';
 export * from '#market/realtime.js';
+export * from '#notes.js';
+export * from '#portfolio.js';
+export * from '#preferences.js';
 export * from '#screener/filters.js';
+export * from '#screener/results.js';
+export * from '#watchlist.js';

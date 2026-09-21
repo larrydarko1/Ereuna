@@ -29,6 +29,8 @@ describe('the package barrel', () => {
         'BREADTH_UNIVERSES',
         'ALL_FILTER_KEYS',
         'findRangeFilter',
+        'DEFAULT_INDICATORS',
+        'numeric',
     ])('re-exports %s', (name) => {
         expect(shared).toHaveProperty(name);
     });

@@ -3,18 +3,8 @@
  * Chart settings live here rather than under /api/charts: which overlays a user
  * wants is a property of the user, not of any one chart.
  */
-import type { ChartSettings, PanelLayout } from '@ereuna/shared';
+import type { Preferences } from '@ereuna/shared';
 import { api, type ApiResult } from '@/api/client';
-
-export type Preferences = {
-    language: string;
-    theme: string | null;
-    defaultSymbol: string;
-    hiddenSymbols: string[];
-    chartSettings: ChartSettings | null;
-    panels: PanelLayout | null;
-    screenerColumns: string[];
-};
 
 export function getPreferences(): ApiResult<Preferences> {
     return api.get<Preferences>('/preferences');

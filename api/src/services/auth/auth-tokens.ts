@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 import { type ObjectId, type WithId } from 'mongodb';
-import type { RefreshTokenDoc, UserDoc } from '@ereuna/shared';
+import type { RefreshTokenDoc, SessionUser, UserDoc } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { sha256 } from '@/lib/crypto.js';
@@ -16,22 +16,14 @@ import {
     throttleKey,
 } from '@/services/auth/login-throttle.js';
 
-export type AuthUser = {
-    id: string;
-    username: string;
-    language: string;
-    twoFactorEnabled: boolean;
-    passwordResetRequired: boolean;
-};
-
 export type AuthResult = {
     accessToken: string;
     refreshToken: string;
     refreshMaxAge?: number;
-    user: AuthUser;
+    user: SessionUser;
 };
 
-export type LoginResult = ({ requires2FA: false } & AuthResult) | { requires2FA: true; tempToken: string };
+export type LoginOutcome = ({ requires2FA: false } & AuthResult) | { requires2FA: true; tempToken: string };
 
 /**
  * A real Argon2id hash, generated with the exact parameters in `config.argon2`.
@@ -43,7 +35,7 @@ export type LoginResult = ({ requires2FA: false } & AuthResult) | { requires2FA:
 const DUMMY_HASH = '$argon2id$v=19$m=65536,p=4,t=3$DMPijkJkt9576xz/kVO+dw$gsNWCQ+HEnr0keS4MfQH5s+pdQ6riQ86IAAFIAvDc1k';
 
 /** Project a user document into the block every auth response returns. */
-export function toAuthUser(user: WithId<UserDoc>): AuthUser {
+export function toSessionUser(user: WithId<UserDoc>): SessionUser {
     return {
         id: user._id.toHexString(),
         username: user.username,
@@ -126,7 +118,7 @@ export async function loginUser(
     username: string,
     password: string,
     options: { rememberMe: boolean },
-): Promise<LoginResult> {
+): Promise<LoginOutcome> {
     const key = throttleKey(username);
     await assertLoginAllowed(key);
 
@@ -172,7 +164,7 @@ export async function issueSession(user: WithId<UserDoc>, options: { rememberMe:
         accessToken: generateAccessToken(user._id.toHexString()),
         refreshToken: rawToken,
         ...(maxAge !== undefined ? { refreshMaxAge: maxAge } : {}),
-        user: toAuthUser(user),
+        user: toSessionUser(user),
     };
 }
 

@@ -1,8 +1,7 @@
 /** Technical trading signals for one symbol. */
+import { numeric } from '@ereuna/shared';
 import type { Series } from '@/organize/bars.js';
-import { macd, numeric, rsi, sma } from '@/utils/indicators.js';
-
-type SignalDirection = 'BUY' | 'SELL';
+import { macd, rsi, sma } from '@/utils/indicators.js';
 
 export type Signal = {
     date: string; // ISO date of the bar that triggered it, not of the run
@@ -12,6 +11,8 @@ export type Signal = {
     price: number;
     description: string;
 };
+
+type SignalDirection = 'BUY' | 'SELL';
 
 /** How much history a signal needs. The moving-average cross is the long pole. */
 const SIGNAL_MIN_BARS = 200;

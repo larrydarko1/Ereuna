@@ -7,7 +7,8 @@
  * responsible for putting the client into the matching state — that is why they
  * return the settled session rather than the raw response.
  */
-import { api, clearAuth, setAccessToken, setSessionUser, type SessionUser } from '@/api/client';
+import type { SessionUser } from '@ereuna/shared';
+import { api, clearAuth, setAccessToken, setSessionUser } from '@/api/client';
 import { adoptLocale } from '@/i18n';
 
 export type LoginResult = { requires2FA: true; tempToken: string } | { requires2FA: false; user: SessionUser };

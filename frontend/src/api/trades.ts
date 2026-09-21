@@ -8,37 +8,8 @@
  * zero — the log records what the user meant, so covering more than is short is
  * a rejectable mistake instead of a silent flip into a long.
  */
-import type { TradeAction } from '@ereuna/shared';
+import type { TradeInput, TradePage, TradeRow } from '@ereuna/shared';
 import { api, type ApiResult } from '@/api/client';
-
-export type TradeInput = {
-    action: TradeAction;
-    symbol?: string | null; // Null for `deposit` and `withdrawal`, which move cash and name no instrument.
-    shares?: number;
-    price?: number;
-    total: number;
-    commission?: number;
-    tradeDate: string; // ISO 8601
-};
-
-export type TradeRow = {
-    id: string;
-    symbol: string | null;
-    action: TradeAction;
-    shares: number;
-    price: number;
-    total: number;
-    commission: number;
-    tradeDate: string;
-    createdAt: string;
-};
-
-export type TradePage = {
-    items: TradeRow[];
-    total: number;
-    page: number;
-    limit: number;
-};
 
 export type TradeQuery = {
     page?: number;

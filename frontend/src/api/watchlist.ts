@@ -6,34 +6,12 @@
  * than being dropped — a symbol the ingestor has not reached should still be
  * visible in the list the user built.
  */
-import type { WatchlistEntry } from '@ereuna/shared';
+import type { WatchlistEntry, WatchlistRow, WatchlistSummary } from '@ereuna/shared';
 import { api, type ApiResult } from '@/api/client';
-
-export type WatchlistSummary = {
-    id: string;
-    name: string;
-    position: number;
-    tickerCount: number;
-    tickers: string[]; // Membership, so "add to list" can be shown as a toggle
-    updatedAt: string;
-};
-
-export type WatchlistRow = WatchlistEntry & {
-    quote: Quote | null;
-};
 
 export type WatchlistDetail = {
     name: string;
     rows: WatchlistRow[];
-};
-
-type Quote = {
-    symbol: string;
-    close: number;
-    timestamp: string;
-    previousClose: number | null;
-    change: number | null;
-    changePercent: number | null;
 };
 
 export function getWatchlists(): ApiResult<{ items: WatchlistSummary[] }> {

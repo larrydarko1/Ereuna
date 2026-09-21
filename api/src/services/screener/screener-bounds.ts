@@ -122,7 +122,7 @@ function boundsExpr(path: string): unknown {
 
 async function fetchPriceBounds(): Promise<FilterBounds> {
     const [result] = await getDb()
-        .collection('AssetInfo')
+        .collection<AssetInfoDoc>('AssetInfo')
         .aggregate<{ max: number | null }>([
             { $match: { 'TimeSeries.close': { $type: 'number' } } },
             { $group: { _id: null, max: { $max: '$TimeSeries.close' } } },

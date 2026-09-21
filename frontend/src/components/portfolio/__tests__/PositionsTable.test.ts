@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import type { ValuedPosition } from '@/api/portfolio';
+import type { ValuedPosition } from '@ereuna/shared';
 import { i18n } from '@/i18n';
 import { formatCurrency, formatPercent } from '@/utils/formatters';
 import PositionsTable from '@/components/portfolio/PositionsTable.vue';

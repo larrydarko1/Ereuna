@@ -18,7 +18,7 @@ import { portfolioNumberSchema, symbolSchema } from '@/lib/schemas.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';
 import * as portfolioService from '@/services/portfolio/index.js';
-import { tradeInputSchema, toTradeInput } from '@/routes/portfolio/trades.js';
+import { tradeInputSchema, toTradeFields } from '@/routes/portfolio/trades.js';
 
 const numberParam = z.object({ number: portfolioNumberSchema });
 
@@ -172,7 +172,7 @@ router.post(
         const imported = await portfolioService.replaceTrades(
             authedUserId(req),
             req.params.number,
-            req.body.trades.map(toTradeInput),
+            req.body.trades.map(toTradeFields),
             {
                 settings: {
                     ...(declared.baseValue !== undefined ? { baseValue: declared.baseValue } : {}),

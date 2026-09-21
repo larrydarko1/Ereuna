@@ -1,5 +1,5 @@
 /** Portfolio fixtures — the summary shape every panel on the page reads. */
-import type { PortfolioSummary } from '@/api/portfolio';
+import type { PortfolioSummary } from '@ereuna/shared';
 
 export function summary(over: Partial<PortfolioSummary> = {}): PortfolioSummary {
     return {

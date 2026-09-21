@@ -1,17 +1,8 @@
 /** market-quotes — latest and previous closes, read from the daily bar collection. */
-import type { OhlcvDoc } from '@ereuna/shared';
+import type { OhlcvDoc, Quote } from '@ereuna/shared';
 import { marketKey, withCache } from '@/lib/cache.js';
 import { sha256 } from '@/lib/crypto.js';
 import { getDb } from '@/lib/db.js';
-
-export type Quote = {
-    symbol: string;
-    close: number;
-    timestamp: string;
-    previousClose: number | null;
-    change: number | null;
-    changePercent: number | null;
-};
 
 /**
  * Symbols per aggregation. The pipeline sorts before grouping, so an unbounded

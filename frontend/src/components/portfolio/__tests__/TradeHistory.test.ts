@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import type { TradeRow } from '@/api/trades';
+import type { TradeRow } from '@ereuna/shared';
 import { i18n } from '@/i18n';
 import { formatCurrency, formatDate } from '@/utils/formatters';
 import TradeHistory from '@/components/portfolio/TradeHistory.vue';

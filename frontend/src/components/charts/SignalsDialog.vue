@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import type { TradeSignal } from '@/api/chart';
+import type { TradeSignal } from '@ereuna/shared';
 import AppDialog from '@/components/ui/AppDialog.vue';
 import { formatCurrency, formatDate, formatNumber } from '@/utils/formatters';
 

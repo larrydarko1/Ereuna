@@ -11,7 +11,7 @@ const service = {
 
 vi.mock('@/services/portfolio/index.js', () => service);
 
-const { router, toTradeInput, tradeInputSchema } = await import('@/routes/portfolio/trades.js');
+const { router, toTradeFields, tradeInputSchema } = await import('@/routes/portfolio/trades.js');
 
 const USER = '507f1f77bcf86cd799439011';
 const USER_ID = new ObjectId(USER);
@@ -40,9 +40,11 @@ afterEach(async () => {
     await harness.close();
 });
 
-describe('toTradeInput', () => {
+describe('toTradeFields', () => {
     it('fills the fields a cash movement does not carry', () => {
-        const input = toTradeInput(tradeInputSchema.parse({ action: 'deposit', total: 5000, tradeDate: '2026-03-02' }));
+        const input = toTradeFields(
+            tradeInputSchema.parse({ action: 'deposit', total: 5000, tradeDate: '2026-03-02' }),
+        );
 
         expect(input).toEqual({
             action: 'deposit',
@@ -56,7 +58,7 @@ describe('toTradeInput', () => {
     });
 
     it('keeps a declared commission', () => {
-        const input = toTradeInput(tradeInputSchema.parse({ ...buy, commission: 1.5 }));
+        const input = toTradeFields(tradeInputSchema.parse({ ...buy, commission: 1.5 }));
 
         expect(input.commission).toBe(1.5);
         expect(input.symbol).toBe('AAPL');

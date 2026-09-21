@@ -58,7 +58,7 @@ describe('toSummary', () => {
             name: 'Growth',
             include: true,
             filterCount: 1,
-            updatedAt: new Date('2026-01-02T00:00:00.000Z'),
+            updatedAt: '2026-01-02T00:00:00.000Z',
         });
     });
 

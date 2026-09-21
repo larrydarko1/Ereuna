@@ -1,10 +1,6 @@
 /** account — API wrappers for /api/account. */
-import { api, type ApiResult, type SessionUser } from '@/api/client';
-
-export type TotpEnrolment = {
-    secret: string;
-    uri: string; // otpauth:// URI, for the QR code
-};
+import type { SessionUser, TotpEnrolment } from '@ereuna/shared';
+import { api, type ApiResult } from '@/api/client';
 
 export function getAccount(): ApiResult<SessionUser> {
     return api.get<SessionUser>('/account');

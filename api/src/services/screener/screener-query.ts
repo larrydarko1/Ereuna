@@ -14,27 +14,12 @@ import {
     type AssetInfoDoc,
     type ScreenerDoc,
     type ScreenerFilterValue,
+    type ScreenerResult,
+    type ScreenerResultPage,
 } from '@ereuna/shared';
 import { userKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
 import { getScreener } from '@/services/screener/screener-crud.js';
-
-export type ScreenerResultPage = {
-    items: ScreenerResult[];
-    total: number;
-    page: number;
-    pages: number;
-};
-
-type ScreenerResult = {
-    symbol: string;
-    name: string | null;
-    assetType: string | null;
-    sector: string | null;
-    exchange: string | null;
-    screeners?: string[]; // Combined results only — which included screens matched
-    [column: string]: unknown;
-};
 
 /** One branch of the combined query, tagged with the screener that produced it. */
 type TaggedAsset = AssetInfoDoc & { screeners: string[] };

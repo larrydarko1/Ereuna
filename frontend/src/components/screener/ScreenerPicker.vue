@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { ScreenerSummary } from '@/api/screener';
+import type { ScreenerSummary } from '@ereuna/shared';
 
 const {
     items,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import type { ScreenerResult } from '@/api/screener';
+import type { ScreenerResult } from '@ereuna/shared';
 import { i18n } from '@/i18n';
 import { formatCompact, formatNumber } from '@/utils/formatters';
 import ResultsTable from '@/components/screener/ResultsTable.vue';

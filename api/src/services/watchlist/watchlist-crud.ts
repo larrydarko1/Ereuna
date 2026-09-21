@@ -1,18 +1,9 @@
 /** watchlist-crud — create, rename, delete, list and reorder a user's watchlists. */
 import type { Collection, ObjectId, WithId } from 'mongodb';
-import type { WatchlistDoc } from '@ereuna/shared';
+import type { WatchlistDoc, WatchlistSummary } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
-
-export type WatchlistSummary = {
-    id: string;
-    name: string;
-    position: number;
-    tickerCount: number;
-    tickers: string[]; // Membership, so a caller can offer "add to list" without reading every list
-    updatedAt: Date;
-};
 
 export async function listWatchlists(userId: ObjectId): Promise<WatchlistSummary[]> {
     const docs = await collection().find({ userId }).sort({ position: 1 }).toArray();
@@ -103,7 +94,7 @@ function toSummary(doc: WithId<WatchlistDoc>): WatchlistSummary {
         position: doc.position,
         tickerCount: doc.list.length,
         tickers: doc.list.map((entry) => entry.ticker),
-        updatedAt: doc.updatedAt,
+        updatedAt: doc.updatedAt.toISOString(),
     };
 }
 

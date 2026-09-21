@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { TradeAction } from '@ereuna/shared';
-import type { PortfolioImport, ValuedPosition } from '@/api/portfolio';
-import type { TradeInput, TradeRow } from '@/api/trades';
+import type { TradeAction, TradeInput, TradeRow, ValuedPosition } from '@ereuna/shared';
+import type { PortfolioImport } from '@/api/portfolio';
 import BenchmarkStrip from '@/components/portfolio/BenchmarkStrip.vue';
 import BenchmarksDialog from '@/components/portfolio/BenchmarksDialog.vue';
 import CashDialog from '@/components/portfolio/CashDialog.vue';

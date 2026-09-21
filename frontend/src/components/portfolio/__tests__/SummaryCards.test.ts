@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import type { PortfolioSummary } from '@/api/portfolio';
+import type { PortfolioSummary } from '@ereuna/shared';
 import { i18n } from '@/i18n';
 import { summary } from '@/__tests__/support/portfolio';
 import { formatCurrency, formatNumber, formatPercent } from '@/utils/formatters';

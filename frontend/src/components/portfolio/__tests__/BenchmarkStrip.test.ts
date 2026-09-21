@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import type { BenchmarkResult } from '@/api/portfolio';
+import type { BenchmarkResult } from '@ereuna/shared';
 import { i18n } from '@/i18n';
 import { formatPercent } from '@/utils/formatters';
 import BenchmarkStrip from '@/components/portfolio/BenchmarkStrip.vue';

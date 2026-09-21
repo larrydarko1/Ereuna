@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import type { SummaryField } from '@ereuna/shared';
-import type { AssetProfile } from '@/api/chart';
+import type { AssetProfile, SummaryField } from '@ereuna/shared';
 import { i18n } from '@/i18n';
 import { SUMMARY_FIELD_SPECS } from '@/constants/summaryFields';
 import SummaryPanel from '@/components/charts/SummaryPanel.vue';

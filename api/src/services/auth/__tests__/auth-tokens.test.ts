@@ -41,7 +41,7 @@ const {
     revokeAllUserTokens,
     revokeRefreshToken,
     rotateRefreshToken,
-    toAuthUser,
+    toSessionUser,
     verify2FATempToken,
 } = await import('@/services/auth/auth-tokens.js');
 const { config } = await import('@/lib/config.js');
@@ -92,9 +92,9 @@ beforeEach(() => {
     throttle.cleared = [];
 });
 
-describe('toAuthUser', () => {
+describe('toSessionUser', () => {
     it('projects only the fields an auth response carries — never the hash or the secret', () => {
-        expect(toAuthUser(user())).toEqual({
+        expect(toSessionUser(user())).toEqual({
             id: USER_ID.toHexString(),
             username: 'Larry',
             language: 'en',
@@ -278,7 +278,7 @@ describe('issueSession', () => {
 
     it('returns the same user block every auth response carries', async () => {
         const result = await issueSession(user(), { rememberMe: true });
-        expect(result.user).toEqual(toAuthUser(user()));
+        expect(result.user).toEqual(toSessionUser(user()));
     });
 });
 

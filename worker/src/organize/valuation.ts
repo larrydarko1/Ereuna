@@ -7,11 +7,12 @@
  */
 import type { AnyBulkWriteOperation } from 'mongodb';
 import type { AssetInfoDoc } from '@ereuna/shared';
+import { numeric } from '@ereuna/shared';
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
 import type { Statement } from '@/organize/fundamentals.js';
 import { setOn, writeAssetInfo } from '@/organize/write.js';
-import { numeric, round } from '@/utils/indicators.js';
+import { round } from '@/utils/indicators.js';
 
 /** Trailing twelve months, in days — the window a dividend yield covers. */
 const TTM_DAYS = 365;

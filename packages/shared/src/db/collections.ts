@@ -36,10 +36,6 @@ export type ChartIndicator = {
     visible: boolean;
 };
 
-export type PanelLayout = {
-    sections: PanelSection[]; // Left-sidebar sections, in render order
-    summaryFields: SummaryField[]; // Rows inside the summary section, in render order
-};
 
 export type PanelSection = (typeof PANEL_SECTIONS)[number];
 
@@ -242,6 +238,11 @@ export type StatsDoc = {
     _id: string;
     updatedAt?: Date;
     [field: string]: unknown;
+};
+
+type PanelLayout = {
+    sections: PanelSection[]; // Left-sidebar sections, in render order
+    summaryFields: SummaryField[]; // Rows inside the summary section, in render order
 };
 
 /** One bar of the closed-trade return distribution — 2%-wide buckets. */

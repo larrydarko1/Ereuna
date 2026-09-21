@@ -1,26 +1,10 @@
 /** market-bars — OHLCV series reads, one collection per timeframe. */
-import type { ChartTimeframe, OhlcvDoc } from '@ereuna/shared';
+import type { ChartSeries, ChartTimeframe, OhlcvDoc } from '@ereuna/shared';
 import { OHLCV_COLLECTIONS, isIntraday } from '@ereuna/shared';
 import { marketKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
 
-type Candle = {
-    time: string;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-};
-
-type VolumePoint = {
-    time: string;
-    value: number;
-};
-
-export type BarSeries = {
-    candles: Candle[];
-    volume: VolumePoint[];
-};
+type BarSeries = Pick<ChartSeries, 'candles' | 'volume'>;
 
 const PAGE_SIZE: Record<ChartTimeframe, number> = {
     daily: 1250,

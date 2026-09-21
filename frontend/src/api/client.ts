@@ -15,18 +15,11 @@
  * localised here, once, so no call site has to know the error contract.
  */
 import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
+import type { SessionUser } from '@ereuna/shared';
 import { isErrorCode } from '@ereuna/shared';
 import { i18n } from '@/i18n';
 
 export type ApiResult<T> = Promise<AxiosResponse<T>>;
-
-export type SessionUser = {
-    id: string;
-    username: string;
-    language: string;
-    twoFactorEnabled: boolean;
-    passwordResetRequired: boolean; // Raised by a recovery-code login, which opens a session with no password
-};
 
 const USER_KEY = 'ereuna-user';
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import type { TradeRow } from '@/api/trades';
+import type { TradeRow } from '@ereuna/shared';
 import { formatCurrency, formatDate, formatNumber } from '@/utils/formatters';
 
 defineProps<{

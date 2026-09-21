@@ -1,7 +1,8 @@
 /** useTrades — the blotter, and the three writes that change a portfolio. */
 import { computed, ref, type ComputedRef, type Ref } from 'vue';
+import type { TradeInput, TradeRow } from '@ereuna/shared';
 import { apiErrorMessage } from '@/api/client';
-import { addTrade, deleteTrade, getTrades, updateTrade, type TradeInput, type TradeRow } from '@/api/trades';
+import { addTrade, deleteTrade, getTrades, updateTrade } from '@/api/trades';
 import { i18n } from '@/i18n';
 
 export type UseTradesReturn = {

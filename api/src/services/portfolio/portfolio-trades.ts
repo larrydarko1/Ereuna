@@ -7,7 +7,7 @@
  * actually preceded it, not against today's cash.
  */
 import type { Collection, ObjectId, WithId } from 'mongodb';
-import type { PortfolioDoc, TradeAction, TradeDoc } from '@ereuna/shared';
+import type { PortfolioDoc, TradeAction, TradeDoc, TradePage, TradeRow } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
@@ -22,27 +22,15 @@ import {
 import { readTrades, rebuild, validateLog } from '@/services/portfolio/portfolio-rebuild.js';
 import type { ReplayTrade } from '@/utils/portfolio-replay.js';
 
-export type TradeInput = {
+/** A validated trade body, normalised: the cash-movement blanks filled and the date parsed. */
+export type TradeFields = {
     symbol: string | null;
     action: TradeAction;
     shares: number;
     price: number;
     total: number;
-    commission: number | null;
+    commission: number | null; // Null to take the portfolio's default
     tradeDate: Date;
-};
-
-export type TradeRow = Omit<TradeInput, 'commission'> & {
-    id: string;
-    commission: number;
-    createdAt: Date;
-};
-
-export type TradePage = {
-    items: TradeRow[];
-    total: number;
-    page: number;
-    limit: number;
 };
 
 /** The blotter: newest first, which is the order the index on (userId, portfolioNumber, tradeDate) serves. */
@@ -67,7 +55,7 @@ export async function getTradePage(
     return { items: items.map(toTradeRow), total, page, limit };
 }
 
-export async function addTrade(userId: ObjectId, portfolioNumber: number, input: TradeInput): Promise<TradeRow> {
+export async function addTrade(userId: ObjectId, portfolioNumber: number, input: TradeFields): Promise<TradeRow> {
     const portfolio = await getOrCreatePortfolio(userId, portfolioNumber);
     assertNotFuture(input.tradeDate);
     if (input.symbol !== null) await getAsset(input.symbol);
@@ -92,7 +80,7 @@ export async function updateTrade(
     userId: ObjectId,
     portfolioNumber: number,
     tradeId: ObjectId,
-    input: TradeInput,
+    input: TradeFields,
 ): Promise<TradeRow> {
     const [portfolio, original] = await Promise.all([
         getOrCreatePortfolio(userId, portfolioNumber),
@@ -139,7 +127,7 @@ export async function deleteTrade(userId: ObjectId, portfolioNumber: number, tra
 export async function replaceTrades(
     userId: ObjectId,
     portfolioNumber: number,
-    inputs: readonly TradeInput[],
+    inputs: readonly TradeFields[],
     options: { settings?: PortfolioSettings; declared?: DeclaredState } = {},
 ): Promise<number> {
     const { settings = {}, declared = {} } = options;
@@ -194,12 +182,15 @@ function toTradeRow(doc: WithId<TradeDoc>): TradeRow {
         price: doc.price,
         total: doc.total,
         commission: doc.commission,
-        tradeDate: doc.tradeDate,
-        createdAt: doc.createdAt,
+        tradeDate: doc.tradeDate.toISOString(),
+        createdAt: doc.createdAt.toISOString(),
     };
 }
 
-function settle(input: TradeInput, portfolio: Pick<PortfolioDoc, 'defaultCommission'>): Omit<ReplayTrade, 'createdAt'> {
+function settle(
+    input: TradeFields,
+    portfolio: Pick<PortfolioDoc, 'defaultCommission'>,
+): Omit<ReplayTrade, 'createdAt'> {
     return {
         symbol: input.symbol,
         action: input.action,

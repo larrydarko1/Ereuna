@@ -1,16 +1,12 @@
 /** watchlist-tickers — the symbols inside one watchlist, and their quotes. */
 import type { Collection, ObjectId } from 'mongodb';
-import type { WatchlistDoc, WatchlistEntry } from '@ereuna/shared';
+import type { WatchlistDoc, WatchlistEntry, WatchlistRow } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
 import { assetExchange } from '@/services/market/index.js';
-import { quotes, type Quote } from '@/services/market/market-quotes.js';
+import { quotes } from '@/services/market/market-quotes.js';
 import { getWatchlist } from '@/services/watchlist/watchlist-crud.js';
-
-export type WatchlistRow = WatchlistEntry & {
-    quote: Quote | null;
-};
 
 /**
  * The watchlist with a quote attached to each entry.

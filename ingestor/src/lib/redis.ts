@@ -7,22 +7,12 @@
  * Tiingo subscription over a transient blip.
  */
 import { Redis } from 'ioredis';
+import { redisConnection } from '@ereuna/shared/service/connections';
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 
-let client: Redis | null = null;
-
-export function getRedis(): Redis {
-    if (client === null) {
-        client = new Redis({ host: config.redis.host, port: config.redis.port, maxRetriesPerRequest: null });
-        client.on('error', (err) => logger.error({ err }, 'Redis client error'));
-    }
-    return client;
-}
-
-export async function closeRedis(): Promise<void> {
-    if (client !== null) {
-        await client.quit();
-        client = null;
-    }
-}
+export const { get: getRedis, close: closeRedis } = redisConnection(
+    Redis,
+    { ...config.redis, maxRetriesPerRequest: null },
+    logger,
+);

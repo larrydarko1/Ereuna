@@ -11,6 +11,7 @@
  */
 import { computed, type ComputedRef } from 'vue';
 import type { ChartIndicator, ChartSettings, ChartTimeframe } from '@ereuna/shared';
+import { DEFAULT_INDICATORS } from '@ereuna/shared';
 import { patchPreferences, usePreferences } from '@/composables/data/usePreferences';
 
 export type UseChartSettingsReturn = {
@@ -19,19 +20,6 @@ export type UseChartSettingsReturn = {
     save: (next: ChartSettings) => Promise<void>;
     saveIndicators: (timeframe: ChartTimeframe, indicators: ChartIndicator[]) => Promise<void>;
 };
-
-/**
- * The averages a timeframe carries until the user configures that timeframe.
- * These match the API's own defaults in `chart-data.ts`: until something is
- * saved, the overlays the server computes and the legend the client draws have
- * to agree on what they are.
- */
-export const DEFAULT_INDICATORS: readonly ChartIndicator[] = [
-    { type: 'SMA', period: 10, visible: true },
-    { type: 'SMA', period: 20, visible: true },
-    { type: 'SMA', period: 50, visible: true },
-    { type: 'SMA', period: 200, visible: true },
-];
 
 /** `config.limits.maxIndicatorPeriod` on the API side. */
 export const MAX_INDICATOR_PERIOD = 400;

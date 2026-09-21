@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { PortfolioValuePoint } from '@ereuna/shared';
-import type { TradeInput } from '@/api/trades';
+import type { PortfolioValuePoint, TradeInput } from '@ereuna/shared';
 import BarChart, { type Bar } from '@/components/viz/BarChart.vue';
 import { direction, formatCurrency, formatPercent } from '@/utils/formatters';
 import { i18n } from '@/i18n';

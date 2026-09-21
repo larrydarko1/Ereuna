@@ -5,30 +5,11 @@
  * the client can average them is the same data twice.
  */
 import type { ObjectId } from 'mongodb';
-import type { ChartIndicator, ChartTimeframe } from '@ereuna/shared';
-import { barSeries, type BarSeries } from '@/services/market/index.js';
+import type { ChartSeries, ChartTimeframe } from '@ereuna/shared';
+import { DEFAULT_INDICATORS } from '@ereuna/shared';
+import { barSeries } from '@/services/market/index.js';
 import { getPreferences } from '@/services/user/index.js';
-import { ema, sma, type SeriesPoint } from '@/utils/indicators.js';
-
-type ChartOverlay = {
-    type: ChartIndicator['type'];
-    period: number;
-    points: SeriesPoint[];
-};
-
-export type ChartSeries = BarSeries & {
-    symbol: string;
-    timeframe: ChartTimeframe;
-    overlays: ChartOverlay[];
-};
-
-/** Overlays used for a timeframe the user has not configured. */
-const DEFAULT_INDICATORS: ChartIndicator[] = [
-    { type: 'SMA', period: 10, visible: true },
-    { type: 'SMA', period: 20, visible: true },
-    { type: 'SMA', period: 50, visible: true },
-    { type: 'SMA', period: 200, visible: true },
-];
+import { ema, sma } from '@/utils/indicators.js';
 
 export async function getChartSeries(
     userId: ObjectId,

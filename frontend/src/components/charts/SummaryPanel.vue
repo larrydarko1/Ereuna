@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { SummaryField } from '@ereuna/shared';
+import type { AssetProfile, SummaryField } from '@ereuna/shared';
 import SummaryRow from '@/components/charts/SummaryRow.vue';
-import type { AssetProfile } from '@/api/chart';
 import { SUMMARY_FIELD_SPECS } from '@/constants/summaryFields';
 
 const { profile, fields } = defineProps<{

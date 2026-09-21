@@ -1,84 +1,18 @@
 /** market-assets — reads of the AssetInfo reference collection. */
-import type { AssetInfoDoc, CorporateAction, SummaryField } from '@ereuna/shared';
+import type {
+    AssetInfoDoc,
+    AssetProfile,
+    AssetSummary,
+    CorporateAction,
+    SummaryField,
+    TradeSignal,
+} from '@ereuna/shared';
+import { numeric } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { marketKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
 import type { DividendPayment } from '@/utils/dividends.js';
 import { escapeRegex } from '@/utils/regex.js';
-
-export type AssetSummary = {
-    symbol: string;
-    name: string | null;
-    isin: string | null;
-    exchange: string | null;
-    assetType: string | null;
-    currency: string | null;
-    sector: string | null;
-    marketCap: number | null;
-};
-
-export type AssetProfile = {
-    symbol: string;
-    name: string | null;
-    assetType: string | null;
-    exchange: string | null;
-    isin: string | null;
-    ipo: string | null; // ISO date
-    sector: string | null;
-    industry: string | null;
-    currency: string | null;
-    location: string | null;
-    website: string | null;
-    description: string | null;
-    delisted: boolean;
-    marketCap: number | null;
-    sharesOutstanding: number | null;
-    bookValue: number | null;
-    pe: number | null;
-    peg: number | null;
-    ps: number | null;
-    pb: number | null;
-    cagr: number | null;
-    cagrYears: number | null;
-    dividendYield: number | null;
-    dividendDate: string | null;
-    rsi: number | null;
-    gap: number | null;
-    rsScore1W: number | null;
-    rsScore1M: number | null;
-    rsScore4M: number | null;
-    allTimeHigh: number | null;
-    allTimeLow: number | null;
-    week52High: number | null;
-    week52Low: number | null;
-    offWeek52High: number | null;
-    offWeek52Low: number | null;
-    avgVolume1W: number | null;
-    avgVolume1M: number | null;
-    avgVolume6M: number | null;
-    avgVolume1Y: number | null;
-    relVolume1W: number | null;
-    relVolume1M: number | null;
-    relVolume6M: number | null;
-    relVolume1Y: number | null;
-    adv1W: number | null;
-    adv1M: number | null;
-    adv4M: number | null;
-    adv1Y: number | null;
-    fundCategory: string | null;
-    fundFamily: string | null;
-    netExpenseRatio: number | null;
-    signals: TradeSignal[];
-};
-
-type TradeSignal = {
-    date: string; // ISO date
-    direction: 'BUY' | 'SELL';
-    strategy: string; // e.g. RSI_Oversold, MACD_Bullish_Cross
-    description: string;
-    price: number | null;
-    indicatorValue: number | null;
-};
 
 const MAX_SEARCH_RESULTS = 50;
 
@@ -268,19 +202,6 @@ export async function earningsDates(symbol: string): Promise<string[]> {
         .map((quarter) => (quarter.fiscalDateEnding === undefined ? null : new Date(quarter.fiscalDateEnding)))
         .filter((date): date is Date => date !== null && !Number.isNaN(date.getTime()))
         .map((date) => date.toISOString().slice(0, 10));
-}
-
-/**
- * A finite number, or null.
- * The documents carry missing numerics as null, as the empty string, and as
- * the literal string "NaN" — the ingestor wrote whatever the upstream feed
- * gave it. All three mean the same thing here.
- */
-function numeric(value: unknown): number | null {
-    if (typeof value === 'number') return Number.isFinite(value) ? value : null;
-    if (typeof value !== 'string' || value.trim() === '') return null;
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
 }
 
 /** A non-empty string, or null. "-" counts as empty: it is the old client's placeholder. */

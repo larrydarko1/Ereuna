@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { ScreenerResult } from '@/api/screener';
+import type { ScreenerResult } from '@ereuna/shared';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import AppTooltip from '@/components/ui/AppTooltip.vue';
 import { findColumn, readColumn, type ColumnFormat } from '@/constants/screener';

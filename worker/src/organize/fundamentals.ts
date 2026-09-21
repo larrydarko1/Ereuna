@@ -1,11 +1,12 @@
 /** Financial statements, and the figures taken straight off the latest one. */
 import type { AnyBulkWriteOperation } from 'mongodb';
 import type { AssetInfoDoc } from '@ereuna/shared';
+import { numeric } from '@ereuna/shared';
 import { logger } from '@/lib/logger.js';
 import { statements, type VendorStatement, type VendorStatementItem } from '@/lib/tiingo.js';
 import { chunk, type Asset } from '@/organize/universe.js';
 import { setOn, writeAssetInfo } from '@/organize/write.js';
-import { numeric, round } from '@/utils/indicators.js';
+import { round } from '@/utils/indicators.js';
 
 /** One period's figures: the three headline numbers plus every code the vendor sent. */
 export type Statement = {

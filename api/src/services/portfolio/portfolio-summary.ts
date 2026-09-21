@@ -7,93 +7,18 @@
  */
 import type { ObjectId } from 'mongodb';
 import type {
-    PortfolioStatsSnapshot,
-    PortfolioValuePoint,
+    BenchmarkResult,
+    PortfolioExport,
+    PortfolioSummary,
     PositionDoc,
-    PositionSide,
-    TradeAction,
     TradeDoc,
+    TradeInput,
+    ValuedPosition,
 } from '@ereuna/shared';
 import { getDb } from '@/lib/db.js';
 import { closeOnOrAfter, latestCloses } from '@/services/market/index.js';
 import { getPortfolio } from '@/services/portfolio/portfolio-crud.js';
 import { readTrades } from '@/services/portfolio/portfolio-rebuild.js';
-
-export type PortfolioSummary = {
-    number: number;
-    cash: number; // Negative means the portfolio is carrying a margin loan
-    baseValue: number;
-    leverage: number;
-    defaultCommission: number;
-    positions: ValuedPosition[];
-    longValue: number;
-    shortValue: number;
-    grossExposure: number; // Longs plus shorts — what the leverage limit is measured against
-    netExposure: number; // Longs minus shorts — what the market direction is measured against
-    totalValue: number; // Equity: cash plus net exposure
-    leverageUsed: number | null;
-    buyingPower: number; // What is left before the leverage limit binds
-    unrealizedPL: number;
-    totalPL: number | null;
-    totalPLPercent: number | null;
-    stats: PortfolioStatsSnapshot | null;
-    valueHistory: PortfolioValuePoint[];
-    benchmarks: BenchmarkResult[];
-};
-
-export type PortfolioExport = {
-    portfolio: {
-        baseValue: number;
-        leverage: number;
-        defaultCommission: number;
-        benchmarks: string[];
-        stats: PortfolioStatsSnapshot | null;
-        valueHistory: PortfolioValuePoint[];
-    };
-    trades: ExportedTrade[];
-};
-
-/**
- * One trade as the import route accepts it back, which is the whole point of
- * an export.
- * Not a `TradeRow`: a row carries an id and a creation time the import has no
- * field for, and it carries `shares: 0` and `price: 0` on a cash movement —
- * which `tradeInputSchema` rejects outright, because a deposit that names a
- * share count is a malformed deposit. Every export of a portfolio holding a
- * deposit was therefore un-importable. The keys are omitted here rather than
- * zeroed, so the envelope round-trips.
- */
-type ExportedTrade = {
-    action: TradeAction;
-    symbol?: string;
-    shares?: number;
-    price?: number;
-    total: number;
-    commission: number;
-    tradeDate: Date;
-};
-
-type ValuedPosition = {
-    symbol: string;
-    side: PositionSide;
-    shares: number;
-    avgPrice: number;
-    lastClose: number | null; // Null when the ingestor has no bar for the symbol yet
-    marketValue: number | null; // Absolute value of the position — a short's is what it would cost to buy back
-    exposure: number | null; // Signed contribution to equity: negative for a short
-    unrealizedPL: number | null;
-    unrealizedPLPercent: number | null;
-    weight: number | null; // Share of gross exposure, in percent
-};
-
-type BenchmarkResult = {
-    symbol: string;
-    inceptionPrice: number;
-    currentPrice: number;
-    returnPercent: number;
-    portfolioReturnPercent: number;
-    outperformance: number;
-};
 
 export async function getSummary(userId: ObjectId, number: number): Promise<PortfolioSummary> {
     const portfolio = await getPortfolio(userId, number);
@@ -162,7 +87,7 @@ export async function exportPortfolio(userId: ObjectId, number: number): Promise
 }
 
 /** Cash movements name no instrument, no share count and no price. */
-function toExportedTrade(doc: TradeDoc): ExportedTrade {
+function toExportedTrade(doc: TradeDoc): TradeInput {
     const cash = doc.action === 'deposit' || doc.action === 'withdrawal';
 
     return {
@@ -171,7 +96,7 @@ function toExportedTrade(doc: TradeDoc): ExportedTrade {
         ...(cash ? {} : { shares: doc.shares, price: doc.price }),
         total: doc.total,
         commission: doc.commission,
-        tradeDate: doc.tradeDate,
+        tradeDate: doc.tradeDate.toISOString(),
     };
 }
 

@@ -6,26 +6,11 @@
  * the path.
  */
 import type { Collection, ObjectId, WithId } from 'mongodb';
-import type { NoteDoc } from '@ereuna/shared';
+import type { NoteDoc, NotePage, NoteRow } from '@ereuna/shared';
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
 import { getAsset } from '@/services/market/index.js';
-
-export type NoteRow = {
-    id: string;
-    symbol: string;
-    message: string;
-    createdAt: Date;
-    updatedAt: Date;
-};
-
-export type NotePage = {
-    items: NoteRow[];
-    total: number;
-    page: number;
-    limit: number;
-};
 
 /**
  * Notes, newest first, optionally narrowed to one symbol.
@@ -93,8 +78,8 @@ function toRow(doc: WithId<NoteDoc>): NoteRow {
         id: doc._id.toHexString(),
         symbol: doc.symbol,
         message: doc.message,
-        createdAt: doc.createdAt,
-        updatedAt: doc.updatedAt,
+        createdAt: doc.createdAt.toISOString(),
+        updatedAt: doc.updatedAt.toISOString(),
     };
 }
 

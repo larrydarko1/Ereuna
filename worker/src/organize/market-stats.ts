@@ -3,10 +3,11 @@
  * performance and the day's extremes.
  */
 import type { AssetInfoDoc, StatsDoc } from '@ereuna/shared';
+import { numeric } from '@ereuna/shared';
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
 import { PRIMARY_EXCHANGES } from '@/organize/universe.js';
-import { numeric, round } from '@/utils/indicators.js';
+import { round } from '@/utils/indicators.js';
 
 type Row = {
     symbol: string;

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { CorporateAction } from '@ereuna/shared';
-import type { AssetProfile, ChartEvents } from '@/api/chart';
+import type { AssetProfile, CorporateAction } from '@ereuna/shared';
+import type { ChartEvents } from '@/api/chart';
 import { getFinancials } from '@/api/market';
 import ActionsPanel from '@/components/charts/ActionsPanel.vue';
 import FinancialsDialog from '@/components/charts/FinancialsDialog.vue';

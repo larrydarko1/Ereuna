@@ -5,14 +5,8 @@
  * to the document it describes, and formatting it for display is this layer's
  * job rather than a route's.
  */
-import type { MarketOverview, StatsDoc } from '@ereuna/shared';
+import type { Financials, MarketOverview, StatsDoc } from '@ereuna/shared';
 import { api, type ApiResult } from '@/api/client';
-
-export type Financials = {
-    symbol: string;
-    annual: Record<string, unknown>[];
-    quarterly: Record<string, unknown>[];
-};
 
 export type MarketHoliday = {
     date: string; // YYYY-MM-DD

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { CHART_TIMEFRAMES } from '@ereuna/shared';
-import type { AssetProfile } from '@/api/chart';
+import type { AssetProfile } from '@ereuna/shared';
 import { clearAuth } from '@/api/client';
 import { i18n } from '@/i18n';
 import { mockApi } from '@/__tests__/support/msw';

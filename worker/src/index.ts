@@ -46,11 +46,7 @@ async function ensureIndexes(): Promise<void> {
 connectDb()
     .then(ensureIndexes)
     .then(() => {
-        probes = startProbeServer({
-            port: config.probe.port,
-            token: config.probe.token,
-            onError: (err): void => logger.error({ err }, 'Failed to render metrics'),
-        });
+        probes = startProbeServer({ ...config.probe, logger });
         logger.info({ role, port: config.probe.port }, 'Worker started');
 
         // Both roles resolve only when stopped, so this settles at shutdown

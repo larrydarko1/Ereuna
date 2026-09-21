@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import type { PortfolioExport } from '@ereuna/shared';
 import { apiErrorMessage } from '@/api/client';
-import type { PortfolioExport } from '@/api/portfolio';
 import AppDialog from '@/components/ui/AppDialog.vue';
 import { CSV_TYPE, toCsv } from '@/utils/csv';
 import { downloadFile } from '@/utils/download';

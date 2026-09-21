@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import type { SessionUser } from '@ereuna/shared';
 import { getAccount } from '@/api/account';
-import { setSessionUser, type SessionUser } from '@/api/client';
+import { setSessionUser } from '@/api/client';
 import AppSpinner from '@/components/ui/AppSpinner.vue';
 import DeleteAccount from '@/components/user/DeleteAccount.vue';
 import LanguageSetting from '@/components/user/LanguageSetting.vue';

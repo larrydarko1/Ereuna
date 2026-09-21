@@ -14,7 +14,7 @@ import { idParam, makePaginationQuery, portfolioNumberSchema, symbolSchema } fro
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';
 import * as portfolioService from '@/services/portfolio/index.js';
-import type { TradeInput } from '@/services/portfolio/index.js';
+import type { TradeFields } from '@/services/portfolio/index.js';
 
 export const tradeInputSchema = z
     .object({
@@ -52,7 +52,7 @@ const listQuery = makePaginationQuery({ defaultLimit: 50, maxLimit: 200 }).exten
 export const router = Router({ mergeParams: true });
 
 /** Normalise a validated body into the service's input shape. */
-export function toTradeInput(body: z.output<typeof tradeInputSchema>): TradeInput {
+export function toTradeFields(body: z.output<typeof tradeInputSchema>): TradeFields {
     return {
         action: body.action,
         symbol: body.symbol ?? null,
@@ -81,7 +81,7 @@ router.get(
 router.post(
     '/',
     ...validated({ params: numberParam, body: tradeInputSchema }, async (req, res): Promise<void> => {
-        const trade = await portfolioService.addTrade(authedUserId(req), req.params.number, toTradeInput(req.body));
+        const trade = await portfolioService.addTrade(authedUserId(req), req.params.number, toTradeFields(req.body));
         res.status(201).json(trade);
     }),
 );
@@ -93,7 +93,7 @@ router.patch(
             authedUserId(req),
             req.params.number,
             new ObjectId(req.params.id),
-            toTradeInput(req.body),
+            toTradeFields(req.body),
         );
         res.json(trade);
     }),

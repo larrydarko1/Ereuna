@@ -135,8 +135,8 @@ describe('getTradePage', () => {
             price: 100,
             total: 1_000,
             commission: 0,
-            tradeDate: YESTERDAY,
-            createdAt: new Date('2026-01-01T00:00:00.000Z'),
+            tradeDate: YESTERDAY.toISOString(),
+            createdAt: '2026-01-01T00:00:00.000Z',
         });
     });
 });

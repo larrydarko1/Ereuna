@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import type { PortfolioValuePoint } from '@ereuna/shared';
-import type { TradeRow } from '@/api/trades';
+import type { PortfolioValuePoint, TradeRow } from '@ereuna/shared';
 import { i18n } from '@/i18n';
 import { formatCurrency, formatPercent } from '@/utils/formatters';
 import MonthlyPanel from '@/components/portfolio/MonthlyPanel.vue';

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { averageDailyVolatility, cagr, changeOver, extremes, macd, numeric, rsi, sma } from '@/utils/indicators.js';
+import { averageDailyVolatility, cagr, changeOver, extremes, macd, rsi, sma } from '@/utils/indicators.js';
 
 /** An ascending series, oldest first — the order every function here expects. */
 const rising = Array.from({ length: 30 }, (_, index) => 100 + index);
@@ -133,16 +133,5 @@ describe('macd', () => {
         // Past `slow` bars but short of the warmup, which is where the old
         // guard handed back a crossover driven by the first close.
         expect(macd(longRising.slice(0, 30))).toBeNull();
-    });
-});
-
-describe('numeric', () => {
-    it('reads the shapes a missing number arrives in', () => {
-        expect(numeric(4)).toBe(4);
-        expect(numeric('4.5')).toBe(4.5);
-        expect(numeric('NaN')).toBeNull();
-        expect(numeric('')).toBeNull();
-        expect(numeric(null)).toBeNull();
-        expect(numeric(Infinity)).toBeNull();
     });
 });

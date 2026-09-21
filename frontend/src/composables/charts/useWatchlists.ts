@@ -13,6 +13,7 @@
  * membership actually changed.
  */
 import { computed, readonly, ref, type ComputedRef, type DeepReadonly, type Ref } from 'vue';
+import type { WatchlistRow, WatchlistSummary } from '@ereuna/shared';
 import { onSessionCleared } from '@/api/client';
 import {
     addTicker as addTickerRequest,
@@ -24,8 +25,6 @@ import {
     renameWatchlist,
     reorderTickers as reorderTickersRequest,
     reorderWatchlists,
-    type WatchlistRow,
-    type WatchlistSummary,
 } from '@/api/watchlist';
 
 export type UseWatchlistsReturn = {

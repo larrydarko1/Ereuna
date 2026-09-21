@@ -8,19 +8,11 @@
  * filter is real, but there is nothing to range over, so it renders disabled
  * rather than vanishing.
  */
-import type { ScreenerFilterValue } from '@ereuna/shared';
+import type { ScreenerFilterValue, ScreenerResultPage, ScreenerSummary } from '@ereuna/shared';
 import { api, type ApiResult } from '@/api/client';
 
 /** The filters written on a screener, keyed by filter slug. */
 export type ScreenerFilters = Record<string, ScreenerFilterValue>;
-
-export type ScreenerSummary = {
-    id: string;
-    name: string;
-    include: boolean; // Whether it contributes to the combined results
-    filterCount: number;
-    updatedAt: string;
-};
 
 export type ScreenerDetail = ScreenerSummary & {
     filters: ScreenerFilters;
@@ -39,22 +31,6 @@ export type FilterDescriptor =
           targets: readonly string[];
       }
     | { key: string; label: string; kind: 'flag'; available: boolean };
-
-export type ScreenerResult = {
-    symbol: string;
-    name: string | null;
-    assetType: string | null;
-    sector: string | null;
-    exchange: string | null;
-    screeners?: string[]; // Combined results only: the included screeners this symbol matched
-} & Record<string, unknown>;
-
-export type ScreenerResultPage = {
-    items: ScreenerResult[];
-    total: number;
-    page: number;
-    pages: number;
-};
 
 /** The value written for one filter. Which shape applies is decided by the
  *  descriptor's `kind`, which is why this is a union rather than a guess. */
