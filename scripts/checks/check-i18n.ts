@@ -26,7 +26,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
+import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
 
 const LOCALE_DIR = path.resolve(ROOT, 'frontend/src/i18n/locales');
 const I18N_CONFIG = path.resolve(ROOT, 'frontend/src/i18n/index.ts');
@@ -35,25 +35,29 @@ const REFERENCE = 'en';
 /** ISO 639-1 codes, so browser detection stays a prefix match. */
 const LOCALE_CODE = /^[a-z]{2}$/;
 
-function flatten(node, prefix = '', out = {}) {
-    if (Array.isArray(node)) {
-        out[`${prefix}[]`] = `__array:${node.length}`;
-        node.forEach((v, i) => flatten(v, `${prefix}[${i}]`, out));
-    } else if (node && typeof node === 'object') {
-        for (const [k, v] of Object.entries(node)) {
-            flatten(v, prefix ? `${prefix}.${k}` : k, out);
+function flatten(root: unknown): Record<string, string> {
+    const out: Record<string, string> = {};
+    const visit = (node: unknown, prefix: string): void => {
+        if (Array.isArray(node)) {
+            out[`${prefix}[]`] = `__array:${node.length}`;
+            node.forEach((v, i) => { visit(v, `${prefix}[${i}]`); });
+        } else if (node !== null && typeof node === 'object') {
+            for (const [k, v] of Object.entries(node)) {
+                visit(v, prefix === '' ? k : `${prefix}.${k}`);
+            }
+        } else if (typeof node === 'string') {
+            out[prefix] = node;
         }
-    } else if (typeof node === 'string') {
-        out[prefix] = node;
-    }
+    };
+    visit(root, '');
     return out;
 }
 
-function placeholders(str) {
-    return [...new Set((str.match(/\{[^}]+\}/g) || []).filter((t) => t !== "{'@'}"))].sort();
+function placeholders(str: string): string[] {
+    return [...new Set((str.match(/\{[^}]+\}/g) ?? []).filter((t) => t !== "{'@'}"))].sort();
 }
 
-function pluralSegments(str) {
+function pluralSegments(str: string): number {
     return str.split('|').length;
 }
 
@@ -67,20 +71,20 @@ if (!files.includes(REFERENCE)) {
     process.exit(1);
 }
 
-const flat = {};
+const flat: Record<string, Record<string, string>> = {};
 for (const loc of files) {
-    const raw = JSON.parse(fs.readFileSync(path.join(LOCALE_DIR, `${loc}.json`), 'utf8'));
+    const raw: unknown = JSON.parse(fs.readFileSync(path.join(LOCALE_DIR, `${loc}.json`), 'utf8'));
     flat[loc] = flatten(raw);
 }
 
-const ref = flat[REFERENCE];
+const ref = flat[REFERENCE] ?? {};
 const others = files.filter((l) => l !== REFERENCE);
-const errors = [];
+const errors: string[] = [];
 
 // ── 0. Key parity, both directions ──────────────────────────────────────────
 const refKeys = new Set(Object.keys(ref));
 for (const loc of others) {
-    const curKeys = new Set(Object.keys(flat[loc]));
+    const curKeys = new Set(Object.keys(flat[loc] ?? {}));
     const missing = [...refKeys].filter((k) => !curKeys.has(k));
     const extra = [...curKeys].filter((k) => !refKeys.has(k));
     for (const key of missing) errors.push(`[${loc}] ${key}: missing — present in ${REFERENCE}, absent here`);
@@ -93,7 +97,7 @@ for (const loc of files) {
 
 // ── 1–3. Cross-locale value-shape parity vs the reference locale ─────────────
 for (const loc of others) {
-    const cur = flat[loc];
+    const cur = flat[loc] ?? {};
     for (const [key, refVal] of Object.entries(ref)) {
         const curVal = cur[key];
         if (curVal === undefined) continue; 
@@ -151,7 +155,7 @@ for (const { what, re, why } of REQUIRED_OPTIONS) {
 
 // ── Report ───────────────────────────────────────────────────────────────────
 const refKeyCount = Object.keys(ref).filter((k) => !k.endsWith('[]')).length;
-if (errors.length) {
+if (errors.length > 0) {
     console.error(`✗ i18n check failed — ${errors.length} problem(s):\n`);
     for (const e of errors) console.error(`  ${e}`);
     console.error(`\nLocales checked: ${files.join(', ')} (${refKeyCount} keys, ${REFERENCE} = reference)`);

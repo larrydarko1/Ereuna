@@ -12,7 +12,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
+import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
 
 
 /**
@@ -32,18 +32,19 @@ const SHARED_ENV = 'packages/shared/src/config/env.ts';
 const IGNORED = new Set(['NODE_ENV']);
 
 /** UPPER_SNAKE object keys (env-var fields) declared as `KEY:` at line start. */
-function schemaFieldKeys(src) {
-    const keys = new Set();
-    for (const m of src.matchAll(/^\s*([A-Z][A-Z0-9_]*):/gm)) keys.add(m[1]);
+function schemaFieldKeys(src: string): Set<string> {
+    const keys = new Set<string>();
+    for (const m of src.matchAll(/^\s*([A-Z][A-Z0-9_]*):/gm)) keys.add(m[1] ?? '');
     return keys;
 }
 
 /** Map each `export const NAME = { ... }` fragment in shared env.ts to its keys. */
-function sharedFragments() {
+function sharedFragments(): Record<string, Set<string>> {
     const src = fs.readFileSync(path.join(ROOT, SHARED_ENV), 'utf8');
-    const frags = {};
+    const frags: Record<string, Set<string>> = {};
     for (const m of src.matchAll(/export const (\w+) = \{([\s\S]*?)\n\};/g)) {
-        frags[m[1]] = schemaFieldKeys(m[2]);
+        const [, name = '', body = ''] = m;
+        frags[name] = schemaFieldKeys(body);
     }
     return frags;
 }
@@ -53,11 +54,11 @@ function sharedFragments() {
  * every shared fragment it spreads (`...s3Env`). Env is validated by Zod now,
  * so the schema — not `process.env.X` — is the source of truth.
  */
-function configKeys(file, frags) {
+function configKeys(file: string, frags: Record<string, Set<string>>): Set<string> {
     const src = fs.readFileSync(path.join(ROOT, file), 'utf8');
     const keys = schemaFieldKeys(src);
     for (const m of src.matchAll(/\.\.\.(\w+)/g)) {
-        for (const k of frags[m[1]] ?? []) keys.add(k);
+        for (const k of frags[m[1] ?? ''] ?? []) keys.add(k);
     }
     for (const k of IGNORED) keys.delete(k);
     return keys;
@@ -70,15 +71,16 @@ function configKeys(file, frags) {
  *   .env         — a commented `# KEY=` is a var that is NOT SET → does not count.
  * Conflating the two would report a commented-out key in a real .env as present.
  */
-function dotenvKeys(file, { commentedCounts }) {
+function dotenvKeys(file: string, { commentedCounts }: { commentedCounts: boolean }): Set<string> {
     const src = fs.readFileSync(path.join(ROOT, file), 'utf8');
-    const keys = new Set();
+    const keys = new Set<string>();
     for (const raw of src.split('\n')) {
         const isComment = /^\s*#/.test(raw);
         if (isComment && !commentedCounts) continue;
         const line = commentedCounts ? raw.replace(/^\s*#\s?/, '').trim() : raw.trim();
         const m = line.match(/^([A-Z0-9_]+)=/);
-        if (m && !IGNORED.has(m[1])) keys.add(m[1]);
+        const key = m?.[1];
+        if (key !== undefined && !IGNORED.has(key)) keys.add(key);
     }
     return keys;
 }
@@ -99,11 +101,11 @@ for (const svc of SERVICES) {
     } else {
         failed = true;
         console.error(`\n✘ ${svc.name}: env drift between ${svc.config} and ${svc.example}`);
-        if (undocumented.length) {
+        if (undocumented.length > 0) {
             console.error(`  Read in config.ts but missing from .env.example:`);
             for (const k of undocumented) console.error(`    - ${k}`);
         }
-        if (stale.length) {
+        if (stale.length > 0) {
             console.error(`  In .env.example but not read by config.ts:`);
             for (const k of stale) console.error(`    - ${k}`);
         }
@@ -118,7 +120,7 @@ for (const svc of SERVICES) {
     const missing = [...expected].filter((k) => !inLocal.has(k)).sort();
     const unknown = [...inLocal].filter((k) => !inConfig.has(k)).sort();
 
-    if (missing.length) {
+    if (missing.length > 0) {
         warned = true;
         console.warn(
             `\n⚠ ${svc.name}: ${svc.local} is missing ${missing.length} key(s) that ${svc.example} sets.` +
@@ -128,15 +130,19 @@ for (const svc of SERVICES) {
         for (const k of missing) console.warn(`    - ${k}`);
     }
 
-    if (unknown.length) {
+    if (unknown.length > 0) {
         warned = true;
         console.warn(`\n⚠ ${svc.name}: ${svc.local} sets key(s) no config.ts reads (dead — likely renamed):`);
         for (const k of unknown) console.warn(`    - ${k}`);
     }
 }
 
-const structural = [];
-const structuralFail = (file, what, why) => structural.push({ file, what, why });
+type Failure = { file: string; what: string; why: string };
+
+const structural: Failure[] = [];
+const structuralFail = (file: string, what: string, why: string): void => {
+    structural.push({ file, what, why });
+};
 
 // ── A. dotenv is the first import ────────────────────────────────────────────
 for (const rel of SERVICES.map((svc) => `${svc.name}/src/index.ts`)) {
@@ -162,7 +168,7 @@ for (const rel of [...SERVICES.map((svc) => svc.config), SHARED_ENV]) {
     const src = fs.readFileSync(path.join(ROOT, rel), 'utf8');
     const guard = /\.superRefine\(([\s\S]*?)\n {4}\}\);/.exec(src)?.[1] ?? '';
 
-    for (const [, key, decl] of src.matchAll(/^\s+([A-Z][A-Z0-9_]*):\s*(.+?),?\s*$/gm)) {
+    for (const [, key = '', decl = ''] of src.matchAll(/^\s+([A-Z][A-Z0-9_]*):\s*(.+?),?\s*$/gm)) {
         if (!SECRET_KEY_RE.test(key)) continue;
         if (SAFE_SECRET_FORMS.test(decl)) continue;
         if (!/\.default\(/.test(decl)) continue;
@@ -180,7 +186,7 @@ for (const rel of [...SERVICES.map((svc) => svc.config), SHARED_ENV]) {
 for (const svc of SERVICES) {
     const src = fs.readFileSync(path.join(ROOT, svc.config), 'utf8');
     const own = schemaFieldKeys(src);
-    const spread = [...src.matchAll(/\.\.\.(\w+)/g)].map((m) => m[1]);
+    const spread = [...src.matchAll(/\.\.\.(\w+)/g)].map((m) => m[1] ?? '');
 
     for (const name of spread) {
         for (const key of frags[name] ?? []) {
@@ -246,7 +252,7 @@ for (const rel of exampleFiles()) {
 // pattern order, negations and every nested .gitignore in the tree, and a regex
 // over the top-level file gets that wrong in whichever direction it was written.
 {
-    const ignored = (rel) => {
+    const ignored = (rel: string): boolean => {
         try {
             execFileSync('git', ['check-ignore', '-q', '--no-index', rel], { cwd: ROOT, stdio: 'ignore' });
             return true;
@@ -266,8 +272,8 @@ for (const rel of exampleFiles()) {
 }
 
 /** Every committed `.env.example` in the repo. */
-function exampleFiles() {
-    const out = [];
+function exampleFiles(): string[] {
+    const out: string[] = [];
     for (const dir of ['.', 'api', 'worker', 'ingestor', 'frontend', 'db']) {
         const rel = dir === '.' ? '.env.example' : `${dir}/.env.example`;
         if (fs.existsSync(path.join(ROOT, rel))) out.push(rel);
@@ -275,7 +281,7 @@ function exampleFiles() {
     return out;
 }
 
-if (structural.length) {
+if (structural.length > 0) {
     console.error(`\n✘ ${structural.length} env/config standard violation(s):\n`);
     for (const { file, what, why } of structural) {
         console.error(`  ${file}: ${what}`);

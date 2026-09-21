@@ -2,15 +2,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-export const REPO_ROOT = findRepoRoot(import.meta.dirname);
+export const REPO_ROOT = getRepoRoot(import.meta.dirname);
 
-function findRepoRoot(startDir) {
+function getRepoRoot(startDir: string): string {
     let dir = startDir;
     for (;;) {
         const candidate = path.join(dir, 'package.json');
         if (fs.existsSync(candidate)) {
             try {
-                const pkg = JSON.parse(fs.readFileSync(candidate, 'utf8'));
+                const pkg = JSON.parse(fs.readFileSync(candidate, 'utf8')) as { workspaces?: unknown };
                 if (Array.isArray(pkg.workspaces)) return dir;
             } catch {
                 // Unparseable package.json — keep walking rather than guessing.

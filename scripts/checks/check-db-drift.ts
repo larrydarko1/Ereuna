@@ -27,7 +27,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { pathToFileURL } from 'node:url';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
+import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
+
+/** The registry module, reduced to what this gate reads. */
+type IndexSpec = { collection: string };
+type Manifest = Record<string, unknown> & {
+    ALL_COLLECTIONS: readonly string[];
+    INDEXES: readonly IndexSpec[];
+    OHLCV_INDEXES: readonly IndexSpec[];
+    REFERENCE_INDEXES: readonly IndexSpec[];
+};
+type TypeShape = { open: boolean; fields: { name: string; optional: boolean }[] };
 
 const MANIFEST = 'packages/shared/src/db/indexes.ts';
 const BOOTSTRAP = 'db/migrations/20260904000000-bootstrap-ereuna-collections.js';
@@ -38,7 +48,7 @@ const TESTS_DIR = 'db/__tests__';
 const CHECKSUMS = 'db/migrations/.checksums.json';
 
 /** Which type declares each collection's document shape. Checked, not assumed. */
-const COLLECTION_TYPES = {
+const COLLECTION_TYPES: Record<string, string> = {
     Users: 'UserDoc',
     RefreshTokens: 'RefreshTokenDoc',
     Screeners: 'ScreenerDoc',
@@ -68,19 +78,19 @@ const TYPES_FILE = 'packages/shared/src/db/collections.ts';
  * decision; a collection missing from both this and the manifest is an
  * oversight, and every query against it is a collection scan.
  */
-const NO_INDEX_BY_DESIGN = {
+const NO_INDEX_BY_DESIGN: Record<string, string> = {
     Stats: 'Three singleton documents addressed by a string `_id`, which is indexed by MongoDB itself.',
 };
 
-const errors = [];
+const errors: string[] = [];
 
-const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
-const exists = (rel) => fs.existsSync(path.join(ROOT, rel));
+const read = (rel: string): string => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+const exists = (rel: string): boolean => fs.existsSync(path.join(ROOT, rel));
 
 /** `Users` → `users`, `AssetInfo` → `asset-info`, `OHCLVData1m` → `ohclvdata1m`. */
-const kebab = (name) => name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+const kebab = (name: string): string => name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
 
-const migrationFiles = () =>
+const migrationFiles = (): string[] =>
     fs
         .readdirSync(path.join(ROOT, MIGRATIONS_DIR))
         .filter((file) => file.endsWith('.js'))
@@ -103,13 +113,13 @@ const migrationFiles = () =>
 // which has no bundler and no alias resolution. A runtime import added to the
 // manifest breaks `npm run db:migrate` and nothing else, so nothing else would
 // catch it.
-let manifest;
+let manifest: Manifest;
 {
     try {
-        manifest = await import(pathToFileURL(path.join(ROOT, MANIFEST)).href);
+        manifest = (await import(pathToFileURL(path.join(ROOT, MANIFEST)).href)) as Manifest;
     } catch (err) {
         console.error(
-            `✖ ${MANIFEST} does not load under plain Node: ${String(err.message).split('\n')[0]}\n` +
+            `✖ ${MANIFEST} does not load under plain Node: ${String((err as Error).message).split('\n')[0]}\n` +
                 '  The bootstrap migration imports it through the migrate-mongo CLI, where there is no\n' +
                 '  bundler and no path aliases. Keep every import in that file type-only.',
         );
@@ -159,7 +169,7 @@ for (const collection of Object.keys(NO_INDEX_BY_DESIGN)) {
 }
 
 // ── 4. Every collection has an example document ──────────────────────────────
-const exampleCollection = (file) => file.replace(/\.json$/, '').split('.')[0];
+const exampleCollection = (file: string): string => file.replace(/\.json$/, '').split('.')[0] ?? '';
 const exampleFiles = fs.readdirSync(path.join(ROOT, EXAMPLES_DIR)).filter((file) => file.endsWith('.json'));
 
 {
@@ -179,7 +189,7 @@ const exampleFiles = fs.readdirSync(path.join(ROOT, EXAMPLES_DIR)).filter((file)
 
 // ── 5. Docs and examples describe the REAL document shape ────────────────────
 /** The top-level fields of `type Name = { … }`, ignoring anything nested. */
-function typeFields(src, typeName) {
+function typeFields(src: string, typeName: string): TypeShape | null {
     const opener = new RegExp(`^\\s*(?:export\\s+)?type ${typeName}\\s*=\\s*\\{`, 'm').exec(src);
     if (opener === null) return null;
 
@@ -204,20 +214,20 @@ function typeFields(src, typeName) {
         // with extra keys is correct rather than stale.
         open: /\[\s*\w+\s*:\s*string\s*\]\s*:/.test(code),
         fields: [...code.matchAll(/(?:^|[;\n{])\s*(\w+)(\??)\s*:/g)].map((match) => ({
-            name: match[1],
+            name: match[1] ?? '',
             optional: match[2] === '?',
         })),
     };
 }
 
 /** The field names in the `#### Collection` table of architecture.md. */
-function documentedFields(doc, collection) {
+function documentedFields(doc: string, collection: string): string[] | null {
     const start = doc.indexOf(`#### ${collection}\n`);
     if (start === -1) return null;
     const rest = doc.slice(start + 1);
     const next = rest.search(/\n#{2,4} /);
     const section = next === -1 ? rest : rest.slice(0, next);
-    return [...section.matchAll(/^\| `(\w+)`\s*\|/gm)].map((match) => match[1]);
+    return [...section.matchAll(/^\| `(\w+)`\s*\|/gm)].map((match) => match[1] ?? '');
 }
 
 {
@@ -262,11 +272,11 @@ function documentedFields(doc, collection) {
 
         for (const file of exampleFiles.filter((f) => exampleCollection(f) === kebab(collection))) {
             const rel = `${EXAMPLES_DIR}/${file}`;
-            let example;
+            let example: Record<string, unknown>;
             try {
-                example = JSON.parse(read(rel));
+                example = JSON.parse(read(rel)) as Record<string, unknown>;
             } catch (err) {
-                errors.push(`${rel}: is not valid JSON (${err.message}).`);
+                errors.push(`${rel}: is not valid JSON (${(err as Error).message}).`);
                 continue;
             }
 
@@ -290,7 +300,7 @@ function documentedFields(doc, collection) {
 // ── 6. architecture.md ↔ registry ────────────────────────────────────────────
 {
     const doc = read(ARCHITECTURE);
-    const documented = [...doc.matchAll(/^#### (\w+)$/gm)].map((match) => match[1]);
+    const documented = [...doc.matchAll(/^#### (\w+)$/gm)].map((match) => match[1] ?? '');
 
     for (const collection of collections) {
         if (!documented.includes(collection)) {
@@ -310,7 +320,7 @@ function documentedFields(doc, collection) {
         errors.push(`${ARCHITECTURE}: says ${stated[1]} collections; the registry has ${collections.length}.`);
     }
 
-    const listed = [...doc.matchAll(/^\| `(\d{14}-[a-z0-9-]+)`/gm)].map((match) => match[1]);
+    const listed = [...doc.matchAll(/^\| `(\d{14}-[a-z0-9-]+)`/gm)].map((match) => match[1] ?? '');
     const onDisk = migrationFiles().map((file) => file.replace(/\.js$/, ''));
 
     for (const name of listed) {
@@ -347,7 +357,7 @@ for (const file of migrationFiles()) {
     }
 
     try {
-        const mod = await import(pathToFileURL(path.join(ROOT, MIGRATIONS_DIR, file)).href);
+        const mod = (await import(pathToFileURL(path.join(ROOT, MIGRATIONS_DIR, file)).href)) as { up?: unknown; down?: unknown };
         if (typeof mod.up !== 'function') {
             errors.push(`${MIGRATIONS_DIR}/${file}: does not export an up() function.`);
         }
@@ -357,8 +367,9 @@ for (const file of migrationFiles()) {
             );
         }
     } catch (err) {
+        const { code, message } = err as NodeJS.ErrnoException;
         errors.push(
-            `${MIGRATIONS_DIR}/${file}: fails to import under plain Node (${err.code ?? 'error'}) — migrate-mongo would fail the same way. ${String(err.message).split('\n')[0]}`,
+            `${MIGRATIONS_DIR}/${file}: fails to import under plain Node (${code ?? 'error'}) — migrate-mongo would fail the same way. ${String(message).split('\n')[0]}`,
         );
     }
 }
@@ -366,13 +377,13 @@ for (const file of migrationFiles()) {
 // ── 9. Merged migrations are immutable ───────────────────────────────────────
 {
     const files = migrationFiles();
-    const hash = (file) =>
+    const hash = (file: string): string =>
         crypto.createHash('sha256').update(read(path.join(MIGRATIONS_DIR, file))).digest('hex');
 
     if (!exists(CHECKSUMS)) {
         errors.push(`${CHECKSUMS} is missing. Run: npm run db:checksums`);
     } else {
-        const recorded = JSON.parse(read(CHECKSUMS));
+        const recorded = JSON.parse(read(CHECKSUMS)) as Record<string, string>;
 
         for (const file of files) {
             if (!(file in recorded)) {
@@ -400,18 +411,13 @@ for (const file of migrationFiles()) {
 // A drop that runs at boot rebuilds the index on the next restart, on every
 // replica, forever. It must run exactly once, which is what a migration is.
 {
-    const walk = (dir) =>
-        fs.existsSync(path.join(ROOT, dir))
-            ? fs
-                  .readdirSync(path.join(ROOT, dir), { withFileTypes: true })
-                  .flatMap((entry) =>
-                      entry.isDirectory()
-                          ? walk(path.join(dir, entry.name))
-                          : entry.name.endsWith('.ts')
-                            ? [path.join(dir, entry.name)]
-                            : [],
-                  )
-            : [];
+    const walk = (dir: string): string[] => {
+        if (!fs.existsSync(path.join(ROOT, dir))) return [];
+        return fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true }).flatMap((entry) => {
+            if (entry.isDirectory()) return walk(path.join(dir, entry.name));
+            return entry.name.endsWith('.ts') ? [path.join(dir, entry.name)] : [];
+        });
+    };
 
     for (const rel of ['api/src', 'worker/src', 'ingestor/src', 'packages/shared/src'].flatMap(walk)) {
         if (/\.dropIndex\s*\(|\.dropIndexes\s*\(/.test(read(rel))) {

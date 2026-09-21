@@ -45,16 +45,20 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
+import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
+
+type Failure = { file: string; what: string; why: string };
 
 const GATEWAY_DIR = 'api/src/gateway';
 const GATEWAY = 'api/src/gateway/socket.ts';
 const CLIENT = 'frontend/src/api/socket.ts';
 
-const failures = [];
-const fail = (file, what, why) => failures.push({ file, what, why });
-const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
-const exists = (rel) => fs.existsSync(path.join(ROOT, rel));
+const failures: Failure[] = [];
+const fail = (file: string, what: string, why: string): void => {
+    failures.push({ file, what, why });
+};
+const read = (rel: string): string => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+const exists = (rel: string): boolean => fs.existsSync(path.join(ROOT, rel));
 
 const gw = read(GATEWAY);
 const header = /^\/\*\*[\s\S]*?\*\//.exec(gw)?.[0] ?? '';
@@ -72,8 +76,8 @@ const gwBody = gw.slice(header.length);
     const servers = [...gwBody.matchAll(/new Server\(\s*(\w+)/g)];
     if (servers.length !== 1) {
         fail(GATEWAY, `constructs ${servers.length} Socket.IO server(s)`, 'Exactly one `new Server(httpServer, …)` — a second server is a second listener on a second port.');
-    } else if (!/httpServer|server/i.test(servers[0][1])) {
-        fail(GATEWAY, `new Server() is not passed the HTTP server (got \`${servers[0][1]}\`)`, 'Attach to the existing Express HTTP server, never a port of its own.');
+    } else if (!/httpServer|server/i.test(servers[0]?.[1] ?? '')) {
+        fail(GATEWAY, `new Server() is not passed the HTTP server (got \`${servers[0]?.[1] ?? ''}\`)`, 'Attach to the existing Express HTTP server, never a port of its own.');
     }
 }
 
@@ -141,7 +145,7 @@ const gwBody = gw.slice(header.length);
         fail(GATEWAY, `only ${uses.length} io.use() middleware(s)`, 'Expected two: the connection rate limit, then JWT verification.');
     } else if (rl === -1) {
         fail(GATEWAY, 'no connection-time rate limit', 'Run one as the first io.use() — it sheds handshake floods before any auth or database work.');
-    } else if (!(uses[0] < rl && rl < jwtAt)) {
+    } else if (!((uses[0] ?? -1) < rl && rl < jwtAt)) {
         fail(GATEWAY, 'the rate limit does not run before JWT verification', 'It must be the FIRST io.use(); behind auth, every flood attempt pays for a signature verification first.');
     }
 
@@ -179,7 +183,7 @@ const gwBody = gw.slice(header.length);
         fail(rel, 'emits on a socket directly', 'Nothing outside api/src/gateway holds an `io` handle. A service that can emit is a service that can await one, and then a socket failure fails a request.');
     }
 
-    for (const [, room] of gwBody.matchAll(/\.to\(([^)]*)\)/g)) {
+    for (const [, room = ''] of gwBody.matchAll(/\.to\(([^)]*)\)/g)) {
         if (/^['"`]/.test(room.trim())) {
             fail(
                 GATEWAY,
@@ -193,10 +197,10 @@ const gwBody = gw.slice(header.length);
 // ── 8. The event contract in the header matches the wire ────────────────────
 {
     const LIFECYCLE = new Set(['connect', 'connection', 'disconnect', 'disconnecting', 'connect_error', 'error']);
-    const outbound = new Set([...gwBody.matchAll(/\.emit\(\s*'([^']+)'/g)].map((m) => m[1]));
-    const inbound = new Set([...gwBody.matchAll(/socket\.on\(\s*'([^']+)'/g)].map((m) => m[1]).filter((e) => !LIFECYCLE.has(e)));
+    const outbound = new Set([...gwBody.matchAll(/\.emit\(\s*'([^']+)'/g)].map((m) => m[1] ?? ''));
+    const inbound = new Set([...gwBody.matchAll(/socket\.on\(\s*'([^']+)'/g)].map((m) => m[1] ?? '').filter((e) => !LIFECYCLE.has(e)));
     const onTheWire = new Set([...outbound, ...inbound]);
-    const documented = new Set([...header.matchAll(/^\s*\*\s{5}([a-z][a-z0-9-]*:[a-z][a-z0-9-]*)\b/gm)].map((m) => m[1]));
+    const documented = new Set([...header.matchAll(/^\s*\*\s{5}([a-z][a-z0-9-]*:[a-z][a-z0-9-]*)\b/gm)].map((m) => m[1] ?? ''));
 
     for (const event of onTheWire) {
         if (!documented.has(event)) {
@@ -219,12 +223,12 @@ const gwBody = gw.slice(header.length);
 // ── 9. Inbound events are validated and rate limited ────────────────────────
 {
     const LIFECYCLE = new Set(['connect', 'connection', 'disconnect', 'disconnecting', 'connect_error', 'error']);
-    const inbound = [...gwBody.matchAll(/socket\.on\(\s*'([^']+)'/g)].map((m) => m[1]).filter((e) => !LIFECYCLE.has(e));
+    const inbound = [...gwBody.matchAll(/socket\.on\(\s*'([^']+)'/g)].map((m) => m[1] ?? '').filter((e) => !LIFECYCLE.has(e));
     for (const event of inbound) {
         // The listener delegates to a named handler, so the whole module is
         // searched for a parse of the schema named after the event:
         // `candle:watch` → `candleWatchSchema`.
-        const schema = event.replace(/:(.)/g, (_, c) => c.toUpperCase());
+        const schema = event.replace(/:(.)/g, (_match: string, c: string) => c.toUpperCase());
         if (!new RegExp(`${schema}\\w*[Ss]chema\\.(safeParse|parse)\\(`).test(gwBody)) {
             fail(GATEWAY, `inbound event \`${event}\` has no matching Zod parse`, 'Validate the payload like a request body. An authenticated socket is still untrusted input.');
         }
@@ -280,7 +284,7 @@ const gwBody = gw.slice(header.length);
     for (const rel of walk('frontend/src', (n) => /\.(ts|vue)$/.test(n))) {
         if (rel === CLIENT || rel.includes('__tests__')) continue;
         const src = read(rel);
-        const listeners = [...src.matchAll(/socket\.on\(\s*'([^']+)'/g)].map((m) => m[1]);
+        const listeners = [...src.matchAll(/socket\.on\(\s*'([^']+)'/g)].map((m) => m[1] ?? '');
         if (listeners.length === 0) continue;
         // Either teardown hook: `onScopeDispose` is the right one in a
         // composable — it fires for a manual effectScope too, where
@@ -304,8 +308,8 @@ const gwBody = gw.slice(header.length);
  * Regex cannot do this: a middleware body is arbitrarily nested, and anchoring
  * on a closing `\n    });` encodes today's indentation as the contract.
  */
-function useSpans() {
-    const spans = [];
+function useSpans(): [number, number][] {
+    const spans: [number, number][] = [];
     for (const m of gwBody.matchAll(/io\.use\(/g)) {
         let depth = 0;
         for (let i = m.index + m[0].length - 1; i < gwBody.length; i++) {
@@ -319,7 +323,7 @@ function useSpans() {
     return spans;
 }
 
-function walk(rel, keep, out = []) {
+function walk(rel: string, keep: (name: string) => boolean, out: string[] = []): string[] {
     const dir = path.join(ROOT, rel);
     if (!fs.existsSync(dir)) return out;
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {

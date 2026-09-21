@@ -30,7 +30,7 @@ export default [
         },
     },
     {
-        files: ['eslint/refactoring.js', 'eslint.config.js', 'scripts/checks/check-refactoring.mjs'],
+        files: ['eslint/refactoring.js', 'eslint.config.js', 'scripts/checks/check-refactoring.ts'],
         rules: { 'no-warning-comments': 'off' },
     },
 ];

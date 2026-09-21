@@ -29,7 +29,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
+import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
 
 const ROUTES_DIR = 'api/src/routes';
 const INDEX_TS = 'api/src/index.ts';
@@ -38,9 +38,13 @@ const TOKEN_BUCKET = 'api/src/lib/token-bucket.ts';
 const SCHEMAS = 'api/src/lib/schemas.ts';
 const API_CLIENT = 'frontend/src/api/client.ts';
 
-const failures = [];
-const fail = (file, what, why) => failures.push({ file, what, why });
-const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+type Failure = { file: string; what: string; why: string };
+
+const failures: Failure[] = [];
+const fail = (file: string, what: string, why: string): void => {
+    failures.push({ file, what, why });
+};
+const read = (rel: string): string => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 
 // ── 1. Route documentation parity ───────────────────────────────────────────
 const routeFiles = walk(ROUTES_DIR, (n) => n.endsWith('.ts'));
@@ -50,15 +54,18 @@ for (const rel of routeFiles) {
     const header = /^\/\*\*[\s\S]*?\*\//.exec(src)?.[0] ?? '';
     const declared = new Set(
         [...stripComments(src).matchAll(/^router\.(get|post|put|patch|delete)\(\s*\n?\s*'([^']*)'/gm)].map(
-            ([, verb, p]) => `${verb.toUpperCase()} ${p}`,
+            ([, verb = '', p]) => `${verb.toUpperCase()} ${p}`,
         ),
     );
 
     const mount = /mounted at (\/\S*)/.exec(header)?.[1] ?? null;
     const documented = new Set(
-        [...header.matchAll(/^\s*\*\s+(GET|POST|PUT|PATCH|DELETE)\s+(\/\S*)/gm)].map(([, verb, p]) => {
+        [...header.matchAll(/^\s*\*\s+(GET|POST|PUT|PATCH|DELETE)\s+(\/\S*)/gm)].map(([, verb, p = '']) => {
             let route = p;
-            if (mount !== null && route.startsWith(mount)) route = route.slice(mount.length) || '/';
+            if (mount !== null && route.startsWith(mount)) {
+                route = route.slice(mount.length);
+                if (route === '') route = '/';
+            }
             return `${verb} ${route}`;
         }),
     );
@@ -68,14 +75,14 @@ for (const rel of routeFiles) {
     const undocumented = [...declared].filter((r) => !documented.has(r));
     const phantom = [...documented].filter((r) => !declared.has(r));
 
-    if (undocumented.length) {
+    if (undocumented.length > 0) {
         fail(
             rel,
             `route(s) not in the file's JSDoc header: ${undocumented.join(', ')}`,
             'The header is the only index of this router. A route missing from it is invisible to anyone reading the file top-down, and to any review of what the API exposes.',
         );
     }
-    if (phantom.length) {
+    if (phantom.length > 0) {
         fail(
             rel,
             `header documents route(s) the file does not declare: ${phantom.join(', ')}`,
@@ -88,7 +95,7 @@ for (const rel of routeFiles) {
 const VERB_SEGMENTS = new Set(['create', 'update', 'delete', 'remove', 'get', 'list', 'new', 'edit', 'fetch']);
 
 for (const rel of routeFiles) {
-    for (const [, , routePath] of stripComments(read(rel)).matchAll(
+    for (const [, , routePath = ''] of stripComments(read(rel)).matchAll(
         /^router\.(get|post|put|patch|delete)\(\s*\n?\s*'([^']*)'/gm,
     )) {
         for (const segment of routePath.split('/')) {
@@ -133,7 +140,7 @@ for (const rel of routeFiles) {
 }
 
 // ── 4. Middleware order in index.ts ─────────────────────────────────────────
-const at = (needle) => indexTs.indexOf(needle);
+const at = (needle: string): number => indexTs.indexOf(needle);
 
 const helmetAt = at('app.use(\n    helmet(');
 const corsAt = at('cors({');
@@ -180,7 +187,7 @@ if (errorHandlerAt !== -1 && errorHandlerAt < indexTs.lastIndexOf("app.use('/api
 
 // ── 5. Every mounted router carries a rate-limit tier ───────────────────────
 const TIERS = ['strictLimiter', 'standardLimiter', 'relaxedLimiter', 'assetLimiter'];
-for (const [, mountPath, args] of indexTs.matchAll(/app\.use\(\s*('\/api\/[^']*')\s*,\s*([^)]*)\)/g)) {
+for (const [, mountPath, args = ''] of indexTs.matchAll(/app\.use\(\s*('\/api\/[^']*')\s*,\s*([^)]*)\)/g)) {
     if (!TIERS.some((t) => args.includes(t))) {
         fail(
             INDEX_TS,
@@ -260,7 +267,7 @@ if (!/withCredentials:\s*true/.test(read(API_CLIENT))) {
     );
 }
 
-function stripComments(src) {
+function stripComments(src: string): string {
     let out = '';
     let i = 0;
     while (i < src.length) {
@@ -284,7 +291,7 @@ function stripComments(src) {
     return out;
 }
 
-function walk(dir, test, out = []) {
+function walk(dir: string, test: (name: string) => boolean, out: string[] = []): string[] {
     const abs = path.join(ROOT, dir);
     if (!fs.existsSync(abs)) return out;
     for (const entry of fs.readdirSync(abs, { withFileTypes: true })) {
@@ -297,7 +304,7 @@ function walk(dir, test, out = []) {
 }
 
 // ── Report ──────────────────────────────────────────────────────────────────
-if (failures.length) {
+if (failures.length > 0) {
     console.error(`\n✖ ${failures.length} REST API standard violation(s):\n`);
     for (const { file, what, why } of failures) {
         console.error(`  ${file}: ${what}`);

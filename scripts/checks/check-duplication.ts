@@ -8,8 +8,9 @@
  * Every source tree is scanned in ONE jscpd run rather than one run per
  * workspace, because the clones that matter most here cross a workspace
  * boundary — a DTO restated in `frontend/src/api/` against the service that
- * produces it, or the Mongo bootstrap duplicated between ingestor and worker.
- * A per-workspace run cannot see either. That is what `--absolute` buys: with
+ * produces it, or a connection bootstrap pasted into each service instead of
+ * living in `packages/shared/src/service/`. A per-workspace run cannot see
+ * either. That is what `--absolute` buys: with
  * several scan roots jscpd reports a path relative to whichever root matched,
  * so `lib/db.ts` and `lib/db.ts` would be two indistinguishable names.
  * GATED ON TYPESCRIPT ONLY, and the rest is a recorded decision, not an
@@ -25,16 +26,47 @@
  * Three checks run on that report: the overall percentage, any block copied
  * between two workspaces (fails at any size), and any exported type name
  * declared in two workspaces (the shape belongs in packages/shared).
+ * The one exception to the second check is CROSS_CLONE_ALLOWED: wiring that
+ * binds a shared factory to a workspace's own config, where the logic already
+ * lives in packages/shared and only the imports match. Each entry says why, and
+ * an entry whose clone no longer exists fails the gate until it is removed.
  */
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
+import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
+
+/** jscpd's JSON report, reduced to what this gate reads. */
+type CloneLocation = { name: string; start: number; end: number };
+type Clone = { format: string; lines: number; tokens: number; firstFile: CloneLocation; secondFile: CloneLocation };
+type JscpdReport = {
+    duplicates: Clone[];
+    statistics: { formats: Record<string, { percentageTokens: number } | undefined> };
+};
 
 /** Every source tree in the monorepo, the charting fork included. */
 const SCAN = ['frontend/src', 'api/src', 'worker/src', 'ingestor/src', 'packages/shared/src'];
 const THRESHOLD = 5;
+
+/**
+ * Cross-workspace clones that are composition roots, not logic. Each file binds
+ * a factory from `@ereuna/shared/service/connections` to `@/lib/config.js` and
+ * `@/lib/logger.js`, which resolve to a different file in every workspace, so
+ * the lines cannot move into shared without shared importing its consumers.
+ * A fix to the connection itself lands once, in shared. Remove, never add
+ * without a reason.
+ */
+const CROSS_CLONE_ALLOWED: { files: [string, string]; why: string }[] = [
+    {
+        files: ['ingestor/src/lib/db.ts', 'worker/src/lib/db.ts'],
+        why: 'mongoConnection() bound to each workspace\'s own config and logger',
+    },
+    {
+        files: ['api/src/lib/redis.ts', 'ingestor/src/lib/redis.ts'],
+        why: 'redisConnection() with opposite retry policies — the API fails open, the ingestor does not; only the imports match',
+    },
+];
 
 const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jscpd-'));
 const bin = path.resolve(ROOT, 'node_modules/.bin/jscpd');
@@ -53,17 +85,17 @@ if (!fs.existsSync(reportPath)) {
     console.error('✖ check-duplication: jscpd produced no report. Is `jscpd` installed?');
     process.exit(1);
 }
-const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+const report = JSON.parse(fs.readFileSync(reportPath, 'utf8')) as JscpdReport;
 fs.rmSync(outDir, { recursive: true, force: true });
 
-const pct = report.statistics.formats.typescript?.percentageTokens ?? 0;
+const pct = report.statistics.formats['typescript']?.percentageTokens ?? 0;
 const clones = report.duplicates.filter((clone) => clone.format === 'typescript').sort((a, b) => b.tokens - a.tokens);
 
 /** `--absolute` gives a full path, and the `:typescript` suffix marks an SFC's script block. */
-const rel = (file) => path.relative(ROOT, file.replace(/:typescript$/, ''));
-const loc = (file) => `${rel(file.name)}:${file.start}-${file.end}`;
-const workspaceOf = (file) => SCAN.find((root) => rel(file).startsWith(`${root}/`));
-const printClones = (list) => {
+const rel = (file: string): string => path.relative(ROOT, file.replace(/:typescript$/, ''));
+const loc = (file: CloneLocation): string => `${rel(file.name)}:${file.start}-${file.end}`;
+const workspaceOf = (file: string): string | undefined => SCAN.find((root) => rel(file).startsWith(`${root}/`));
+const printClones = (list: Clone[]): void => {
     for (const clone of list) {
         console.error(`  • ${clone.lines} lines / ${clone.tokens} tokens`);
         console.error(`      ${loc(clone.firstFile)}`);
@@ -83,16 +115,30 @@ if (pct > THRESHOLD) {
 
 // 2. No block copy-pasted between workspaces, whatever the percentage — each is
 //    two copies of one piece of logic, and a fix lands in only one of them.
-const crossClones = clones.filter((clone) => workspaceOf(clone.firstFile.name) !== workspaceOf(clone.secondFile.name));
+const isPair = (clone: Clone, [a, b]: [string, string]): boolean => {
+    const pair = [rel(clone.firstFile.name), rel(clone.secondFile.name)];
+    return pair.includes(a) && pair.includes(b);
+};
+const crossClones = clones
+    .filter((clone) => workspaceOf(clone.firstFile.name) !== workspaceOf(clone.secondFile.name))
+    .filter((clone) => !CROSS_CLONE_ALLOWED.some((entry) => isPair(clone, entry.files)));
 if (crossClones.length > 0) {
     failed = true;
     console.error(`\n✖ ${crossClones.length} block(s) copy-pasted between workspaces — move each into packages/shared:\n`);
     printClones(crossClones);
 }
 
+// 2b. Every allowed pair still matches, so the list only ever shrinks.
+const staleAllowed = CROSS_CLONE_ALLOWED.filter((entry) => !clones.some((clone) => isPair(clone, entry.files)));
+if (staleAllowed.length > 0) {
+    failed = true;
+    console.error(`\n✖ ${staleAllowed.length} CROSS_CLONE_ALLOWED entr(ies) no longer match a clone — remove them:\n`);
+    for (const entry of staleAllowed) console.error(`  • ${entry.files.join(' ↔ ')}`);
+}
+
 // 3. No exported type name declared in two workspaces. A shape both sides use
 //    lives in packages/shared, or the two copies drift apart.
-function listSourceFiles(dir) {
+function listSourceFiles(dir: string): string[] {
     return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
         const full = path.join(dir, entry.name);
         if (entry.isDirectory()) {
@@ -103,15 +149,16 @@ function listSourceFiles(dir) {
     });
 }
 
-const declarations = new Map();
+const declarations = new Map<string, { root: string; where: string }[]>();
 for (const root of SCAN) {
     for (const file of listSourceFiles(path.join(ROOT, root))) {
         const src = fs.readFileSync(file, 'utf8');
         for (const match of src.matchAll(/^export\s+(?:type|interface)\s+([A-Z]\w*)/gm)) {
             const line = src.slice(0, match.index).split('\n').length;
-            const defs = declarations.get(match[1]) ?? [];
+            const name = match[1] ?? '';
+            const defs = declarations.get(name) ?? [];
             defs.push({ root, where: `${rel(file)}:${line}` });
-            declarations.set(match[1], defs);
+            declarations.set(name, defs);
         }
     }
 }
@@ -134,5 +181,5 @@ if (failed) {
 
 console.log(
     `✔ Logic duplication ${pct.toFixed(1)}% (threshold ${THRESHOLD}%); no cross-workspace copies or types.` +
-        (clones.length ? ` ${clones.length} clone(s) below the gate — see \`npm run lint:dup\`.` : ''),
+        (clones.length > 0 ? ` ${clones.length} clone(s) below the gate — see \`npm run lint:dup\`.` : ''),
 );

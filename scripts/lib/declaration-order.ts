@@ -27,7 +27,7 @@
  *
  * What it deliberately does NOT decide is whether a violation is SAFE to fix. That
  * depends on the temporal dead zone, and the answer differs per category — see
- * SAFE_TO_MOVE below and the header of check-declaration-order.mjs.
+ * SAFE_TO_MOVE below and the header of check-declaration-order.ts.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -51,7 +51,26 @@ export const CATEGORIES = [
  */
 export const TEST_CATEGORIES = ['imports', 'types', 'mocks', 'constants', 'helpers', 'hooks', 'tests'];
 
-const PRODUCTION_PROFILE = { categories: CATEGORIES, classify: (s) => classify(s) };
+/** How one kind of file is sorted: its category order, and how a statement is binned. */
+type Profile = { categories: string[]; classify: (s: ts.Statement) => string; eager?: string };
+
+/** One top-level statement, as the sort sees it. */
+type Item = {
+    i: number;
+    cat: string;
+    name: string;
+    line: number;
+    decls: string[];
+    refs: Set<string>;
+    hoisted: boolean;
+    typeOnly: boolean;
+};
+
+type Misplaced = { cat: string; name: string; line: number; belongsAfter: string };
+
+export type Analysis = { misplaced: Misplaced[]; count: number; cycle?: boolean; order?: number[] };
+
+const PRODUCTION_PROFILE: Profile = { categories: CATEGORIES, classify: (s): string => classify(s) };
 
 /**
  * `eager` names the category whose function bodies run during the import phase.
@@ -61,18 +80,18 @@ const PRODUCTION_PROFILE = { categories: CATEGORIES, classify: (s) => classify(s
  * class the factory closes over looks unreferenced and the sort cheerfully moves
  * it below the mock that needs it, which is a TDZ ReferenceError at import time.
  */
-const TEST_PROFILE = { categories: TEST_CATEGORIES, classify: (s) => classifyTest(s), eager: 'mocks' };
+const TEST_PROFILE: Profile = { categories: TEST_CATEGORIES, classify: (s): string => classifyTest(s), eager: 'mocks' };
 
-const profileFor = (rel) =>
+const profileFor = (rel: string): Profile =>
     /(^|\/)__tests__\//.test(rel) || /\.(test|spec)\.ts$/.test(rel) ? TEST_PROFILE : PRODUCTION_PROFILE;
 
 const MACROS = new Set(['defineProps','defineEmits','defineModel','defineSlots','defineExpose','withDefaults']);
 
-const isFnLike = (n) => n && (ts.isArrowFunction(n) || ts.isFunctionExpression(n));
+const isFnLike = (n: ts.Node | undefined): boolean => n !== undefined && (ts.isArrowFunction(n) || ts.isFunctionExpression(n));
 
 /** A literal-ish initializer: safe to call "constant" rather than "state". */
-function isConstantInit(n) {
-    if (!n) return false;
+function isConstantInit(n: ts.Node | undefined): boolean {
+    if (n === undefined) return false;
     if (ts.isAsExpression(n)) return isConstantInit(n.expression);
     if (ts.isLiteralExpression(n) || ts.isNumericLiteral(n) || ts.isStringLiteral(n)) return true;
     if (n.kind === ts.SyntaxKind.TrueKeyword || n.kind === ts.SyntaxKind.FalseKeyword || n.kind === ts.SyntaxKind.NullKeyword) return true;
@@ -87,34 +106,35 @@ function isConstantInit(n) {
 }
 
 /** The identifier a call/property chain is rooted at: `z.object({}).strict()` -> `z`. */
-function rootIdentifier(n) {
+function rootIdentifier(n: ts.Node | undefined): string | null {
     let e = n;
-    while (e) {
+    while (e !== undefined) {
         if (ts.isAsExpression(e) || ts.isParenthesizedExpression(e)) e = e.expression;
         else if (ts.isCallExpression(e) || ts.isPropertyAccessExpression(e)) e = e.expression;
         else break;
     }
-    return e && ts.isIdentifier(e) ? e.text : null;
+    return e !== undefined && ts.isIdentifier(e) ? e.text : null;
 }
 
-function callName(n) {
+function callName(n: ts.Node | undefined): string | null {
     let e = n;
-    if (e && ts.isAsExpression(e)) e = e.expression;
-    if (e && ts.isCallExpression(e)) {
+    if (e !== undefined && ts.isAsExpression(e)) e = e.expression;
+    if (e !== undefined && ts.isCallExpression(e)) {
         if (ts.isIdentifier(e.expression)) return e.expression.text;
         if (ts.isPropertyAccessExpression(e.expression)) return e.expression.name.text;
     }
     return null;
 }
 
-function classify(stmt) {
+function classify(stmt: ts.Statement): string {
     if (ts.isImportDeclaration(stmt) || ts.isImportEqualsDeclaration(stmt)) return 'imports';
-    if (ts.isExportDeclaration(stmt) && stmt.moduleSpecifier) return 'imports';
+    if (ts.isExportDeclaration(stmt) && stmt.moduleSpecifier !== undefined) return 'imports';
     if (ts.isInterfaceDeclaration(stmt) || ts.isTypeAliasDeclaration(stmt)) return 'types';
     if (ts.isClassDeclaration(stmt)) return 'classes';
     if (ts.isEnumDeclaration(stmt)) return 'constants';
 
-    const exported = (stmt.modifiers ?? []).some((m) => m.kind === ts.SyntaxKind.ExportKeyword);
+    const modifiers = ts.canHaveModifiers(stmt) ? ts.getModifiers(stmt) : undefined;
+    const exported = (modifiers ?? []).some((m) => m.kind === ts.SyntaxKind.ExportKeyword);
 
     if (ts.isFunctionDeclaration(stmt)) return exported ? 'exported-fns' : 'private-fns';
 
@@ -154,9 +174,9 @@ const MOCK_CALLS = new Set(['mock', 'doMock', 'unmock', 'doUnmock', 'hoisted']);
 const HOOK_CALLS = new Set(['beforeEach', 'afterEach', 'beforeAll', 'afterAll']);
 const TEST_CALLS = new Set(['describe', 'it', 'test']);
 
-function classifyTest(stmt) {
+function classifyTest(stmt: ts.Statement): string {
     if (ts.isImportDeclaration(stmt) || ts.isImportEqualsDeclaration(stmt)) return 'imports';
-    if (ts.isExportDeclaration(stmt) && stmt.moduleSpecifier) return 'imports';
+    if (ts.isExportDeclaration(stmt) && stmt.moduleSpecifier !== undefined) return 'imports';
     if (ts.isFunctionDeclaration(stmt)) return 'helpers';
     // Types, enums and fake classes are the vocabulary the mock block is written in
     // — `class FakeSocket extends EventEmitter` exists to be returned from a factory.
@@ -190,14 +210,14 @@ function classifyTest(stmt) {
 }
 
 /** Names a statement binds at module scope. */
-function declaredNames(stmt) {
-    const out = [];
-    const push = (n) => { if (n && ts.isIdentifier(n)) out.push(n.text); };
+function declaredNames(stmt: ts.Statement): string[] {
+    const out: string[] = [];
+    const push = (n: ts.Node | undefined): void => { if (n !== undefined && ts.isIdentifier(n)) out.push(n.text); };
     if (ts.isFunctionDeclaration(stmt) || ts.isClassDeclaration(stmt)) push(stmt.name);
     else if (ts.isInterfaceDeclaration(stmt) || ts.isTypeAliasDeclaration(stmt) || ts.isEnumDeclaration(stmt)) push(stmt.name);
     else if (ts.isVariableStatement(stmt)) {
         for (const d of stmt.declarationList.declarations) {
-            const collect = (name) => {
+            const collect = (name: ts.BindingName): void => {
                 if (ts.isIdentifier(name)) out.push(name.text);
                 else if (ts.isObjectBindingPattern(name) || ts.isArrayBindingPattern(name)) {
                     for (const el of name.elements) if (ts.isBindingElement(el)) collect(el.name);
@@ -207,8 +227,8 @@ function declaredNames(stmt) {
         }
     } else if (ts.isImportDeclaration(stmt)) {
         const c = stmt.importClause;
-        if (c?.name) out.push(c.name.text);
-        if (c?.namedBindings) {
+        if (c?.name !== undefined) out.push(c.name.text);
+        if (c?.namedBindings !== undefined) {
             if (ts.isNamespaceImport(c.namedBindings)) out.push(c.namedBindings.name.text);
             else for (const e of c.namedBindings.elements) out.push(e.name.text);
         }
@@ -220,18 +240,18 @@ function declaredNames(stmt) {
  * Identifiers a statement evaluates AT LOAD TIME. Function/arrow bodies are skipped:
  * they run later, so a name they reference need not be declared above them.
  */
-function loadTimeRefs(stmt, eager = false) {
-    const out = new Set();
-    const isTypePos = (n) => {
-        let p = n.parent;
-        while (p) {
+function loadTimeRefs(stmt: ts.Statement, eager = false): Set<string> {
+    const out = new Set<string>();
+    const isTypePos = (n: ts.Node): boolean => {
+        let p: ts.Node | undefined = n.parent;
+        while (p !== undefined) {
             if (ts.isTypeNode(p) || ts.isTypeAliasDeclaration(p) || ts.isInterfaceDeclaration(p)) return true;
             if (ts.isExpression(p) || ts.isStatement(p)) return false;
             p = p.parent;
         }
         return false;
     };
-    const visit = (n) => {
+    const visit = (n: ts.Node): void => {
         const isFnNode = ts.isFunctionDeclaration(n) || ts.isFunctionExpression(n) || ts.isArrowFunction(n)
             || ts.isMethodDeclaration(n) || ts.isGetAccessor(n) || ts.isSetAccessor(n);
         // Skip the body; parameter defaults still evaluate at call time, not load.
@@ -247,7 +267,7 @@ function loadTimeRefs(stmt, eager = false) {
     if (ts.isImportDeclaration(stmt) || ts.isImportEqualsDeclaration(stmt)) return out;
     if (ts.isFunctionDeclaration(stmt) || ts.isClassDeclaration(stmt)) {
         // A class body's heritage clause evaluates at load; methods do not.
-        if (ts.isClassDeclaration(stmt) && stmt.heritageClauses) {
+        if (ts.isClassDeclaration(stmt) && stmt.heritageClauses !== undefined) {
             for (const h of stmt.heritageClauses) ts.forEachChild(h, visit);
         }
         return out;
@@ -277,13 +297,13 @@ function loadTimeRefs(stmt, eager = false) {
  * statement in the wrong place is reported as one problem, not as every statement
  * after it having shifted.
  */
-function canonicalOrder(code, filename, profile) {
+function canonicalOrder(code: string, filename: string, profile: Profile): { sf: ts.SourceFile; items: Item[]; ideal: Item[]; cycle: boolean } {
     const sf = ts.createSourceFile(filename, code, ts.ScriptTarget.ESNext, true, ts.ScriptKind.TS);
     const stmts = [...sf.statements];
     if (stmts.length < 2) return { sf, items: [], ideal: [], cycle: false };
 
-    const rank = (c) => profile.categories.indexOf(c);
-    const items = stmts.map((s, i) => {
+    const rank = (c: string): number => profile.categories.indexOf(c);
+    const items = stmts.map((s, i): Item => {
         const cat = profile.classify(s);
         return {
             i,
@@ -297,38 +317,49 @@ function canonicalOrder(code, filename, profile) {
         };
     });
 
-    const declaredBy = new Map();
+    const declaredBy = new Map<string, Item>();
     for (const it of items) {
         if (it.hoisted || it.typeOnly) continue;
         for (const d of it.decls) if (!declaredBy.has(d)) declaredBy.set(d, it);
     }
 
-    const deps = new Map(items.map((it) => [it, new Set()]));
-    const dependents = new Map(items.map((it) => [it, new Set()]));
+    // Every item is put in both maps here, so `edges` cannot miss.
+    const deps = new Map(items.map((it) => [it, new Set<Item>()]));
+    const dependents = new Map(items.map((it) => [it, new Set<Item>()]));
+    const edges = (graph: Map<Item, Set<Item>>, it: Item): Set<Item> => {
+        const set = graph.get(it);
+        if (set === undefined) throw new Error(`declaration-order: "${it.name}" is missing from the graph`);
+        return set;
+    };
     for (const it of items) {
         for (const r of it.refs) {
             const src = declaredBy.get(r);
-            if (src && src !== it) { deps.get(it).add(src); dependents.get(src).add(it); }
+            if (src !== undefined && src !== it) { edges(deps, it).add(src); edges(dependents, src).add(it); }
         }
     }
 
-    const indegree = new Map(items.map((it) => [it, deps.get(it).size]));
+    const indegree = new Map(items.map((it) => [it, edges(deps, it).size]));
     const ready = items.filter((it) => indegree.get(it) === 0);
-    const ideal = [];
-    while (ready.length > 0) {
-        ready.sort((a, b) => rank(a.cat) - rank(b.cat) || a.i - b.i);
+    const ideal: Item[] = [];
+    for (;;) {
+        ready.sort((a, b) => {
+            const byRank = rank(a.cat) - rank(b.cat);
+            return byRank !== 0 ? byRank : a.i - b.i;
+        });
         const next = ready.shift();
+        if (next === undefined) break;
         ideal.push(next);
-        for (const d of dependents.get(next)) {
-            indegree.set(d, indegree.get(d) - 1);
-            if (indegree.get(d) === 0) ready.push(d);
+        for (const d of edges(dependents, next)) {
+            const left = (indegree.get(d) ?? 0) - 1;
+            indegree.set(d, left);
+            if (left === 0) ready.push(d);
         }
     }
     // A cycle cannot be ordered; leave the module alone rather than guess.
     return { sf, items, ideal, cycle: ideal.length !== items.length };
 }
 
-function analyze(code, filename, profile) {
+function analyze(code: string, filename: string, profile: Profile): Analysis {
     const { items, ideal, cycle } = canonicalOrder(code, filename, profile);
     if (items.length === 0) return { misplaced: [], count: ts.createSourceFile(filename, code, ts.ScriptTarget.ESNext, true, ts.ScriptKind.TS).statements.length };
     if (cycle) return { misplaced: [], count: items.length, cycle: true };
@@ -337,30 +368,32 @@ function analyze(code, filename, profile) {
     const a = items.map((it) => it.i);
     const b = ideal.map((it) => it.i);
     const n = a.length;
-    const dp = Array.from({ length: n + 1 }, () => new Array(n + 1).fill(0));
+    // An (n+1)×(n+1) table stored flat, row by row. Every read is within it.
+    const dp = new Array<number>((n + 1) * (n + 1)).fill(0);
+    const at = (x: number, y: number): number => dp[x * (n + 1) + y] ?? 0;
     for (let x = n - 1; x >= 0; x--) {
         for (let y = n - 1; y >= 0; y--) {
-            dp[x][y] = a[x] === b[y] ? dp[x + 1][y + 1] + 1 : Math.max(dp[x + 1][y], dp[x][y + 1]);
+            dp[x * (n + 1) + y] = a[x] === b[y] ? at(x + 1, y + 1) + 1 : Math.max(at(x + 1, y), at(x, y + 1));
         }
     }
-    const keep = new Set();
+    const keep = new Set<number>();
     let x = 0, y = 0;
     while (x < n && y < n) {
-        if (a[x] === b[y]) { keep.add(a[x]); x++; y++; }
-        else if (dp[x + 1][y] >= dp[x][y + 1]) x++;
+        const ax = a[x];
+        if (ax !== undefined && ax === b[y]) { keep.add(ax); x++; y++; }
+        else if (at(x + 1, y) >= at(x, y + 1)) x++;
         else y++;
     }
 
-    const misplaced = [];
-    for (let p = 0; p < ideal.length; p++) {
-        const it = ideal[p];
+    const misplaced: Misplaced[] = [];
+    for (const [p, it] of ideal.entries()) {
         if (keep.has(it.i)) continue;
-        const after = p > 0 ? ideal[p - 1] : null;
+        const after = p > 0 ? ideal[p - 1] : undefined;
         misplaced.push({
             cat: it.cat,
             name: it.name,
             line: it.line,
-            belongsAfter: after ? `${after.cat} "${after.name}"` : 'the top of the module',
+            belongsAfter: after !== undefined ? `${after.cat} "${after.name}"` : 'the top of the module',
         });
     }
     // `order` is the ideal sequence as original statement indices — what a fixer
@@ -368,21 +401,21 @@ function analyze(code, filename, profile) {
     return { misplaced, count: items.length, order: ideal.map((it) => it.i) };
 }
 
-function nameOf(s, sf) {
+function nameOf(s: ts.Statement, sf: ts.SourceFile): string {
     if (ts.isFunctionDeclaration(s) || ts.isClassDeclaration(s) || ts.isInterfaceDeclaration(s) || ts.isTypeAliasDeclaration(s) || ts.isEnumDeclaration(s)) return s.name?.text ?? '';
     if (ts.isVariableStatement(s)) return s.declarationList.declarations.map((d) => d.name.getText(sf)).join(', ');
     if (ts.isImportDeclaration(s)) return s.moduleSpecifier.getText(sf).replace(/['"]/g, '');
-    return s.getText(sf).split('\n')[0].slice(0, 40);
+    return (s.getText(sf).split('\n')[0] ?? '').slice(0, 40);
 }
 
 /** Reads a file (unwrapping an SFC's <script setup>) and analyses it. */
-export function analyzeFile(rel, root, profile = profileFor(rel)) {
+export function analyzeFile(rel: string, root: string, profile: Profile = profileFor(rel)): Analysis | null {
     let code = fs.readFileSync(path.join(root, rel), 'utf8');
     let lineOffset = 0;
     if (rel.endsWith('.vue')) {
         const { descriptor } = parseSfc(code, { filename: rel });
         const block = descriptor.scriptSetup ?? descriptor.script;
-        if (!block) return null;
+        if (block === null) return null;
         lineOffset = code.slice(0, block.loc.start.offset).split('\n').length - 1;
         code = block.content;
     }

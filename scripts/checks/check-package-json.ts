@@ -14,7 +14,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
+import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
 
 const CANONICAL_ORDER = [
     'name',
@@ -78,28 +78,37 @@ const ROOT_REQUIRED = [
 
 const WORKSPACE_REQUIRED = ['name', 'version', 'description', 'license', 'private', 'type'];
 
+type PackageJson = Record<string, unknown> & {
+    private?: unknown;
+    workspaces?: string[];
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+};
+
+const readPackage = (file: string): PackageJson => JSON.parse(fs.readFileSync(path.join(ROOT, file), 'utf8')) as PackageJson;
+
 const manifests = [
     { file: 'package.json', required: ROOT_REQUIRED, label: 'root' },
-    ...JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'))
-        .workspaces.map((w) => ({ file: path.join(w, 'package.json'), required: WORKSPACE_REQUIRED, label: w }))
+    ...(readPackage('package.json').workspaces ?? [])
+        .map((w) => ({ file: path.join(w, 'package.json'), required: WORKSPACE_REQUIRED, label: w }))
         .filter((m) => fs.existsSync(path.join(ROOT, m.file))),
 ];
 
 let failed = false;
 
-const fail = (label, headline, details = []) => {
+const fail = (label: string, headline: string, details: string[] = []): void => {
     failed = true;
     console.error(`\n✖ ${label}: ${headline}`);
     for (const d of details) console.error(`    - ${d}`);
 };
 
 for (const { file, required, label } of manifests) {
-    const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, file), 'utf8'));
+    const pkg = readPackage(file);
     const keys = Object.keys(pkg);
 
     // ── 1. Required metadata ────────────────────────────────────────────────
     const missing = required.filter((f) => pkg[f] === undefined || pkg[f] === '');
-    if (missing.length) {
+    if (missing.length > 0) {
         fail(file, `missing ${missing.length} required field(s) — see npm.instructions.md`, missing);
     }
 
@@ -108,7 +117,7 @@ for (const { file, required, label } of manifests) {
     }
 
     // ── 2. Semver prefixes ──────────────────────────────────────────────────
-    for (const field of ['dependencies', 'devDependencies']) {
+    for (const field of ['dependencies', 'devDependencies'] as const) {
         for (const [name, range] of Object.entries(pkg[field] ?? {})) {
             if (range.startsWith('workspace:') || range.startsWith('file:') || range.startsWith('*')) continue;
 
@@ -143,7 +152,7 @@ for (const { file, required, label } of manifests) {
     }
 
     const unknown = keys.filter((k) => !CANONICAL_ORDER.includes(k));
-    if (unknown.length) {
+    if (unknown.length > 0) {
         console.warn(
             `\n⚠ ${label}: field(s) not in the canonical order list, position unchecked: ${unknown.join(', ')}` +
                 '\n  Add them to CANONICAL_ORDER in this script if they are here to stay.',

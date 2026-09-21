@@ -15,7 +15,7 @@ export type ErrorCode = (typeof ERROR_CODES)[number];
 /**
  * @public — production imports the `ErrorCode` type and `isErrorCode`, never the
  * array, so the value looks test-only. It is the contract itself:
- * check-error-handling.mjs parses this exact declaration as the single source of
+ * check-error-handling.ts parses this exact declaration as the single source of
  * truth, and holds every code to a throw site in the API and to an `errors.*`
  * entry in all 18 locales. Unexporting it would leave that contract unenforced.
  */

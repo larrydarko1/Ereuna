@@ -11,7 +11,7 @@
  *   3. THEME PARITY. All 52 palettes are maps of the same token keys. A key
  *      missing from one map is a `var(--color-x)` with no value in that theme —
  *      an invisible element, only in that theme, only for whoever picked it.
- *      This is the CSS analogue of the locale parity in check-i18n.mjs and it
+ *      This is the CSS analogue of the locale parity in check-i18n.ts and it
  *      fails the same silent way. A map defined but never registered in
  *      `$themes` is the mirror case: a theme nobody can select.
  *   4. NO SCSS COLOUR FUNCTIONS ON A `$color-*` TOKEN. The tokens resolve to
@@ -31,7 +31,9 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
+import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
+
+type Failure = { file: string; what: string; why: string };
 
 const STYLES = 'frontend/src/styles';
 const VARIABLES = `${STYLES}/_variables.scss`;
@@ -40,9 +42,11 @@ const INDEX = `${STYLES}/index.scss`;
 const MAIN_TS = 'frontend/src/main.ts';
 const VITE_CONFIG = 'frontend/vite.config.ts';
 
-const failures = [];
-const fail = (file, what, why) => failures.push({ file, what, why });
-const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+const failures: Failure[] = [];
+const fail = (file: string, what: string, why: string): void => {
+    failures.push({ file, what, why });
+};
+const read = (rel: string): string => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 
 // ── 1. The barrel ───────────────────────────────────────────────────────────
 const index = read(INDEX);
@@ -85,11 +89,11 @@ const themesSrc = read(THEMES);
 
 /** Every top-level `$name: ( 'key': value, … );` map, with its token keys. */
 const maps = [...themesSrc.matchAll(/^\$([a-z0-9-]+):\s*\(\n([\s\S]*?)^\);/gm)]
-    .map(([, name, body]) => ({ name, keys: new Set([...body.matchAll(/'([a-z0-9-]+)'\s*:/g)].map((m) => m[1])) }))
+    .map(([, name = '', body = '']) => ({ name, keys: new Set([...body.matchAll(/'([a-z0-9-]+)'\s*:/g)].map((m) => m[1] ?? '')) }))
     .filter((m) => m.name !== 'themes');
 
 /** The registry: `$themes: ( 'name': ($map, dark), … );` — a theme exists only if it is in here. */
-const registered = new Set([...(/^\$themes:\s*\(([\s\S]*?)^\);/m.exec(themesSrc)?.[1] ?? '').matchAll(/\$([a-z0-9-]+)\s*,/g)].map((m) => m[1]));
+const registered = new Set([...(/^\$themes:\s*\(([\s\S]*?)^\);/m.exec(themesSrc)?.[1] ?? '').matchAll(/\$([a-z0-9-]+)\s*,/g)].map((m) => m[1] ?? ''));
 
 const reference = maps.find((m) => m.name === 'default');
 if (reference === undefined) {
@@ -142,7 +146,7 @@ for (const rel of styleBearingFiles()) {
 
 // ── 5. No @extend inside an SFC ─────────────────────────────────────────────
 for (const rel of walk('frontend/src', '.vue')) {
-    for (const [, target] of read(rel).matchAll(/@extend\s+([^;]+);/g)) {
+    for (const [, target = ''] of read(rel).matchAll(/@extend\s+([^;]+);/g)) {
         fail(
             rel,
             `\`@extend ${target.trim()}\` inside a component`,
@@ -160,18 +164,21 @@ for (const rel of [...styleBearingFiles(), 'frontend/index.html']) {
     }
 }
 
-const frontendPkg = JSON.parse(read('frontend/package.json'));
+const frontendPkg = JSON.parse(read('frontend/package.json')) as {
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+};
 const fontPkgs = Object.keys({ ...frontendPkg.dependencies, ...frontendPkg.devDependencies }).filter((d) => d.startsWith('@fontsource'));
 if (fontPkgs.length > 0) {
     fail('frontend/package.json', `depends on ${fontPkgs.join(', ')}`, 'The standard is explicit: do not depend on font packages to ship glyphs. Vendor the woff2 files instead.');
 }
 
 /** Everything that can carry a style rule. */
-function styleBearingFiles() {
+function styleBearingFiles(): string[] {
     return [...walk('frontend/src', '.scss'), ...walk('frontend/src', '.vue')];
 }
 
-function walk(rel, ext, out = []) {
+function walk(rel: string, ext: string, out: string[] = []): string[] {
     const dir = path.join(ROOT, rel);
     if (!fs.existsSync(dir)) return out;
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {

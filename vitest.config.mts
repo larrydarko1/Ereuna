@@ -2,7 +2,7 @@ import { defineConfig } from 'vitest/config';
 
 /**
  * Root test config: the workspaces to run, and the coverage policy they share.
- * The thresholds are a ratchet, not a target: `check-testing.mjs` fails if one
+ * The thresholds are a ratchet, not a target: `check-testing.ts` fails if one
  * is lowered, so the only way past a coverage gap is to close it.
  */
 export default defineConfig({

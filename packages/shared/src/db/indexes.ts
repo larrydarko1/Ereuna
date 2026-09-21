@@ -41,7 +41,7 @@ export type IndexSpec = {
  * API only reads them.
  * @public — nothing imports this list by name; `ALL_COLLECTIONS` below is what
  * the migrations and the boot path consume. It stays exported because
- * check-db-drift.mjs imports this module under plain Node and exits if the name
+ * check-db-drift.ts imports this module under plain Node and exits if the name
  * is gone: the split by writer is what tells that gate which manifest is
  * allowed to index which collection.
  */

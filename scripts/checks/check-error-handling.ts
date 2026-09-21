@@ -39,8 +39,8 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
-import { stripComments } from '../lib/strip-comments.mjs';
+import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
+import { stripComments } from '../lib/strip-comments.ts';
 
 const APP_ERROR = 'api/src/lib/app-error.ts';
 const HANDLER = 'api/src/middleware/error-handler.ts';
@@ -55,7 +55,7 @@ const ALLOWED_STATUS = new Set([400, 401, 403, 404, 409, 413, 422, 429, 500]);
  * API takes no multipart uploads and no free-form JSON blobs, so every
  * malformed request is caught by Zod and answered 422 by the error handler.
  */
-const PARSE_LEVEL_400 = new Set([]);
+const PARSE_LEVEL_400 = new Set<string>([]);
 
 /**
  * Codes that must be thrown with `securityEvent: true`, BY NAME.
@@ -91,10 +91,10 @@ const SECURITY_EVENT_CODES = new Set([
  * routine. Empty today — every current match is a real credential failure —
  * but the alternative to having it is loosening a regex for everything.
  */
-const NOT_SECURITY_EVENTS = new Set([]);
+const NOT_SECURITY_EVENTS = new Set<string>([]);
 
 /** True when a code must carry `securityEvent: true`. */
-const isSecurityEvent = (c) =>
+const isSecurityEvent = (c: string): boolean =>
     !NOT_SECURITY_EVENTS.has(c) && (SECURITY_EVENT_CODES.has(c) || SECURITY_EVENT_PATTERNS.some((p) => p.test(c)));
 
 /**
@@ -104,12 +104,16 @@ const isSecurityEvent = (c) =>
  */
 const DIRECT_CODE_EMITTERS = ['api/src/middleware/validate.ts', 'api/src/lib/rate-limiters.ts', HANDLER];
 
-const failures = [];
-const fail = (file, what, why) => failures.push({ file, what, why });
-const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
-const exists = (rel) => fs.existsSync(path.join(ROOT, rel));
-const code = (rel) => stripComments(read(rel));
-const lineOf = (src, index) => src.slice(0, index).split('\n').length;
+type Failure = { file: string; what: string; why: string };
+
+const failures: Failure[] = [];
+const fail = (file: string, what: string, why: string): void => {
+    failures.push({ file, what, why });
+};
+const read = (rel: string): string => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+const exists = (rel: string): boolean => fs.existsSync(path.join(ROOT, rel));
+const code = (rel: string): string => stripComments(read(rel));
+const lineOf = (src: string, index: number): number => src.slice(0, index).split('\n').length;
 
 const backendFiles = [...walk('api/src', isTs), ...walk('worker/src', isTs), ...walk('ingestor/src', isTs)].filter(
     (f) => !f.includes('__tests__'),
@@ -118,7 +122,7 @@ const backendFiles = [...walk('api/src', isTs), ...walk('worker/src', isTs), ...
 /** Every code in the shared contract, in declaration order. */
 const allCodes = [
     ...(/export const ERROR_CODES = \[([\s\S]*?)\] as const;/.exec(read(CODES))?.[1] ?? '').matchAll(/'([^']+)'/g),
-].map((m) => m[1]);
+].map((m) => m[1] ?? '');
 
 // ── 1. Every AppError throw obeys the status policy ─────────────────────────
 const throws = [];
@@ -152,18 +156,19 @@ for (const t of throws) {
 
 // ── 1b. A code means one thing: one code, one status ────────────────────────
 {
-    const statusOf = new Map();
+    const statusOf = new Map<string, Map<number, string[]>>();
     for (const t of throws) {
         if (t.errorCode === null || !Number.isInteger(t.status)) continue;
-        if (!statusOf.has(t.errorCode)) statusOf.set(t.errorCode, new Map());
-        const seen = statusOf.get(t.errorCode);
+        const seen = statusOf.get(t.errorCode) ?? new Map<number, string[]>();
+        statusOf.set(t.errorCode, seen);
         seen.set(t.status, [...(seen.get(t.status) ?? []), `${t.rel}:${t.line}`]);
     }
     for (const [errorCode, seen] of statusOf) {
         if (seen.size === 1) continue;
         const ranked = [...seen].sort((a, b) => b[1].length - a[1].length);
-        const [majority] = ranked;
-        for (const [status, sites] of ranked.slice(1)) {
+        const [majority, ...others] = ranked;
+        if (majority === undefined) continue;
+        for (const [status, sites] of others) {
             for (const site of sites) {
                 fail(site, `\`${errorCode}\` is thrown as ${status} here but ${majority[0]} in ${majority[1].length} other place(s)`, `A code is a contract the frontend switches on; its status is a property of the code, not of the call site. Use ${majority[0]}, or split this case out into its own code if it genuinely means something different.`);
             }
@@ -217,7 +222,7 @@ for (const t of throws) {
     const order = ['AppError', 'ZodError'].map((n) => src.indexOf(`err instanceof ${n}`));
     if (order.some((i) => i === -1)) {
         fail(HANDLER, 'a documented branch is missing', 'The handler must map AppError and ZodError before falling through to 500 INTERNAL.');
-    } else if (order[0] > order[1]) {
+    } else if ((order[0] ?? -1) > (order[1] ?? -1)) {
         fail(HANDLER, 'branches are out of order', 'AppError → ZodError → generic. AppError is the intentional path and the most frequent; the generic branch is the safety net and must stay last.');
     }
     if (!/res\.status\(500\)\.json\(\{\s*error:\s*'INTERNAL'\s*\}\)/.test(src)) {
@@ -232,7 +237,7 @@ for (const t of throws) {
     if (mount === -1) {
         fail(ENTRY, 'errorHandler is never mounted', 'Register it with app.use(errorHandler) after all routes.');
     } else if (uses.some((i) => i > mount)) {
-        const after = lineOf(entry, uses.filter((i) => i > mount)[0]);
+        const after = lineOf(entry, uses.find((i) => i > mount) ?? mount);
         fail(ENTRY, `app.use() at line ${after} runs after errorHandler`, 'The error handler must be the LAST app.use(). Anything mounted after it is unreachable from an error, and the routes it registers throw into nothing.');
     }
 }
@@ -266,14 +271,15 @@ for (const t of throws) {
     const known = new Set(codes);
     for (const file of fs.readdirSync(path.join(ROOT, LOCALE_DIR)).filter((f) => f.endsWith('.json'))) {
         const rel = `${LOCALE_DIR}/${file}`;
-        const dict = JSON.parse(read(rel)).errors ?? {};
+        const dict = (JSON.parse(read(rel)) as { errors?: Record<string, unknown> }).errors ?? {};
         for (const key of Object.keys(dict)) {
             if (!known.has(key)) {
                 fail(rel, `\`errors.${key}\` translates a code that no longer exists`, 'Drop it. An orphaned entry outlives the rename that stranded it and makes the dictionary look like it covers more than it does.');
             }
         }
         for (const c of codes) {
-            if (typeof dict[c] !== 'string' || dict[c].trim() === '') {
+            const text = dict[c];
+            if (typeof text !== 'string' || text.trim() === '') {
                 fail(rel, `no translation for \`${c}\``, 'A code with no translation reaches the user as raw SCREAMING_SNAKE. Adding a code means adding it to every locale.');
             }
         }
@@ -360,7 +366,7 @@ for (const t of throws) {
     for (const rel of backendFiles) {
         const src = read(rel);
         for (const m of src.matchAll(/\}\s*catch\s*(?:\([^)]*\)\s*)?\{([^{}]*)\}/g)) {
-            const body = m[1];
+            const body = m[1] ?? '';
             const statements = stripComments(body).trim();
             if (statements !== '') continue; 
             const reason = body
@@ -374,7 +380,7 @@ for (const t of throws) {
     }
 }
 
-function isTs(name) {
+function isTs(name: string): boolean {
     return name.endsWith('.ts');
 }
 
@@ -387,10 +393,10 @@ function isTs(name) {
  * literals with commas inside, and the message is often a template string with
  * a comma in the prose.
  */
-function callArguments(src, open) {
+function callArguments(src: string, open: number): string[] | null {
     let depth = 0;
     let start = open + 1;
-    const args = [];
+    const args: string[] = [];
     for (let i = open; i < src.length; i++) {
         const ch = src[i];
         if (ch === '(' || ch === '[' || ch === '{') depth++;
@@ -410,20 +416,20 @@ function callArguments(src, open) {
     return null;
 }
 
-function optionField(args, name) {
+function optionField(args: string[], name: string): string | null {
     const options = args[3]?.trim();
     if (options === undefined || !options.startsWith('{')) return null;
     const fields = callArguments(options, 0);
     if (fields === null) return null;
     for (const field of fields) {
         const match = new RegExp(`^\\s*${name}\\s*:([\\s\\S]*)$`).exec(field);
-        if (match !== null) return match[1].trim();
+        if (match !== null) return (match[1] ?? '').trim();
     }
     return null;
 }
 
-function walk(rel, keep) {
-    const out = [];
+function walk(rel: string, keep: (name: string) => boolean): string[] {
+    const out: string[] = [];
     const dir = path.join(ROOT, rel);
     if (!fs.existsSync(dir)) return out;
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -435,7 +441,7 @@ function walk(rel, keep) {
 }
 
 // ── Report ──────────────────────────────────────────────────────────────────
-if (failures.length) {
+if (failures.length > 0) {
     console.error(`\n✖ ${failures.length} error-handling violation(s):\n`);
     for (const { file, what, why } of failures) {
         console.error(`  ${file}: ${what}`);

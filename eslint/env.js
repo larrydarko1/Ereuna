@@ -39,7 +39,7 @@ export default [
         },
     },
     {
-        files: ['scripts/**/*.{js,mjs}', 'db/**/*.js'],
+        files: ['scripts/**/*.ts', 'db/**/*.js'],
         rules: {
             'no-process-env': 'off',
         },

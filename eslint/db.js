@@ -32,7 +32,7 @@ const noEnvFallbackInScripts = {
     selector:
         "LogicalExpression[operator=/^(\\|\\||\\?\\?)$/] > MemberExpression[object.object.name='process'][object.property.name='env']",
     message:
-        "No silent env fallback. Use requireEnv('X') from scripts/lib/env.mjs — it throws on a missing variable instead of guessing localhost. If a wrong value genuinely cannot destroy or mis-target data, use optionalEnv('X', default) and say why.",
+        "No silent env fallback. Use getRequiredEnv('X') from scripts/lib/env.ts — it throws on a missing variable instead of guessing localhost. If a wrong value genuinely cannot destroy or mis-target data, use optionalEnv('X', default) and say why.",
 };
 
 const noUntypedCollection = {
@@ -104,8 +104,8 @@ export default [
         },
     },
     {
-        files: ['scripts/**/*.{js,mjs}'],
-        ignores: ['scripts/download-models.mjs'],
+        files: ['scripts/**/*.ts'],
+        ignores: ['scripts/download-models.ts'],
         rules: {
             'no-restricted-syntax': ['error', noEnvFallbackInScripts],
         },

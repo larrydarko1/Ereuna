@@ -1,0 +1,29 @@
+{
+    "extends": "../tsconfig.base.json",
+    "compilerOptions": {
+        /* Output & Build */
+        /*
+         * Node runs these files directly and strips the types itself, so tsc
+         * only ever checks them. There is no build step and nothing to emit.
+         */
+        "noEmit": true,
+
+        /* Target & Environment */
+        "target": "ES2025",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "lib": ["ES2025"],
+
+        /* Paths & Types */
+        "types": ["node"],
+
+        /* Module System */
+        /*
+         * Node's type stripping loads exactly the specifier written, so local
+         * imports must say `./lib/env.ts`. tsc only accepts that spelling when
+         * this is on, and it is only allowed because nothing is emitted.
+         */
+        "allowImportingTsExtensions": true
+    },
+    "include": ["**/*.ts"]
+}

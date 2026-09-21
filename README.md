@@ -327,8 +327,8 @@ composed rule packs), `prettier --check`, stylelint, typecheck, the unit suite w
 coverage, and Playwright.
 
 Two gates are inverted from the written standard on purpose and say so in their own
-headers: `check-ws-standards.mjs` _fails_ if a Redis adapter appears on the gateway, and
-`check-security-drift.mjs` allows exactly two unauthenticated mounts and fails on a third.
+headers: `check-ws-standards.ts` _fails_ if a Redis adapter appears on the gateway, and
+`check-security-drift.ts` allows exactly two unauthenticated mounts and fails on a third.
 
 Nothing is excluded from them. The charting layer used to be — 208 files of vendored
 upstream code, skipped by every gate, with typecheck errors written off as out of scope.

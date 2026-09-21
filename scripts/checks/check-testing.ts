@@ -51,7 +51,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
+import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
 
 const VITEST_CONFIG = 'vitest.config.mts';
 const COVERAGE_SUMMARY = 'coverage/coverage-summary.json';
@@ -84,10 +84,14 @@ const ALLOWED_EXCLUDES = new Map([
  */
 const VM_ACCESS_BASELINE = 0;
 
-const failures = [];
-const fail = (file, what, why) => failures.push({ file, what, why });
-const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
-const exists = (rel) => fs.existsSync(path.join(ROOT, rel));
+type Failure = { file: string; what: string; why: string };
+
+const failures: Failure[] = [];
+const fail = (file: string, what: string, why: string): void => {
+    failures.push({ file, what, why });
+};
+const read = (rel: string): string => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+const exists = (rel: string): boolean => fs.existsSync(path.join(ROOT, rel));
 
 const repoFiles = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], {
     cwd: ROOT,
@@ -142,7 +146,7 @@ if (thresholdBlock === null) {
     );
 } else {
     for (const [metric, floor] of Object.entries(MIN_THRESHOLDS)) {
-        const m = new RegExp(`${metric}:\\s*(\\d+)`).exec(thresholdBlock[1]);
+        const m = new RegExp(`${metric}:\\s*(\\d+)`).exec(thresholdBlock[1] ?? '');
         if (m === null) {
             fail(VITEST_CONFIG, `no \`${metric}\` threshold`, 'All four metrics carry a floor; branches is the honest one.');
         } else if (Number(m[1]) < floor) {
@@ -159,7 +163,7 @@ const excludeBlock = /exclude:\s*\[([\s\S]*?)\]/.exec(configSrc);
 if (excludeBlock === null) {
     fail(VITEST_CONFIG, 'no coverage `exclude` list found', 'This gate can no longer tell whether the list has grown.');
 } else {
-    const listed = [...excludeBlock[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
+    const listed = [...(excludeBlock[1] ?? '').matchAll(/'([^']+)'/g)].map((m) => m[1] ?? '');
     for (const entry of listed) {
         if (!ALLOWED_EXCLUDES.has(entry)) {
             fail(
@@ -186,7 +190,8 @@ let uncovered = 0;
 const haveCoverage = exists(COVERAGE_SUMMARY);
 
 if (haveCoverage) {
-    const summary = JSON.parse(read(COVERAGE_SUMMARY));
+    // Vitest's coverage-summary.json: one entry per file, plus a `total`.
+    const summary = JSON.parse(read(COVERAGE_SUMMARY)) as Record<string, { statements: { total: number; covered: number } }>;
     for (const [key, entry] of Object.entries(summary)) {
         if (key === 'total') continue;
         const rel = key.startsWith(ROOT) ? path.relative(ROOT, key) : key;
@@ -217,7 +222,7 @@ for (const rel of unitTests.filter((f) => f.startsWith('frontend/'))) {
 }
 
 // ── 6. Reaching into component internals, ratcheted ─────────────────────────
-const vmHits = [];
+const vmHits: string[] = [];
 for (const rel of unitTests.filter((f) => f.startsWith('frontend/'))) {
     read(rel)
         .split('\n')
@@ -268,7 +273,7 @@ for (const rel of unitTests) {
 }
 
 // ── Report ──────────────────────────────────────────────────────────────────
-if (failures.length) {
+if (failures.length > 0) {
     console.error(`\n✖ ${failures.length} testing standards violation(s):\n`);
     for (const { file, what, why } of failures) {
         console.error(`  ${file}: ${what}`);

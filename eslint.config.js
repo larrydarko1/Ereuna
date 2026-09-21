@@ -42,6 +42,7 @@ const TYPED_SOURCE = [
     'ingestor/src/**/*.ts',
     'packages/shared/src/**/*.ts',
     'e2e/**/*.ts',
+    'scripts/**/*.ts',
 ];
 
 const typedOnly = (preset) => preset.map((block) => ({ ...block, files: TYPED_SOURCE }));
@@ -65,7 +66,7 @@ export default [
         ignores: ['**/dist/', '**/node_modules/', 'backups/', 'coverage/', 'playwright-report/', 'test-results/'],
     },
     {
-        files: ['scripts/**/*.{js,mjs}', 'db/**/*.js'],
+        files: ['scripts/**/*.ts', 'db/**/*.js'],
         languageOptions: {
             globals: globals.node,
             sourceType: 'module',
@@ -541,7 +542,7 @@ export default [
     },
     ...envStandards,
     {
-        files: ['scripts/**/*.{js,mjs}', 'db/**/*.js'],
+        files: ['scripts/**/*.ts', 'db/**/*.js'],
         rules: {
             '@typescript-eslint/no-require-imports': 'error',
             '@typescript-eslint/naming-convention': 'off',

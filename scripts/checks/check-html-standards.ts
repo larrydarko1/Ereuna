@@ -14,13 +14,17 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
+import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
 
 const INDEX_HTML = 'frontend/index.html';
 const BASE_SCSS = 'frontend/src/styles/_base.scss';
 
-const failures = [];
-const fail = (file, what, why) => failures.push({ file, what, why });
+type Failure = { file: string; what: string; why: string };
+
+const failures: Failure[] = [];
+const fail = (file: string, what: string, why: string): void => {
+    failures.push({ file, what, why });
+};
 
 // ── 1. Document shell ───────────────────────────────────────────────────────
 const html = fs.readFileSync(path.join(ROOT, INDEX_HTML), 'utf8');
@@ -96,7 +100,7 @@ if (!/@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)/.test(scss)) {
 }
 
 // ── Report ──────────────────────────────────────────────────────────────────
-if (failures.length) {
+if (failures.length > 0) {
     console.error(`\n✖ ${failures.length} HTML standard violation(s):\n`);
     for (const { file, what, why } of failures) {
         console.error(`  ${file}: ${what}`);

@@ -37,8 +37,8 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
-import { stripComments } from '../lib/strip-comments.mjs';
+import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
+import { stripComments } from '../lib/strip-comments.ts';
 
 const SOURCE_ROOTS = ['api/src', 'worker/src', 'ingestor/src', 'frontend/src', 'packages/shared/src'];
 const ALIASED_ROOTS = ['api/src', 'worker/src', 'ingestor/src', 'frontend/src'];
@@ -65,7 +65,7 @@ const LINE_CAP = 400;
  * option does and what it defaults to, which is the only place that is written
  * down. They were one 918-line file and splitting them is what the cap bought.
  */
-const LENGTH_BASELINE = {
+const LENGTH_BASELINE: Record<string, number> = {
     'frontend/src/components/charts/PriceChart.vue': 741,
     'packages/shared/src/screener/filters.ts': 472,
     'frontend/src/lib/charting/engine/gui/chart-widget.ts': 764,
@@ -83,9 +83,13 @@ const LENGTH_BASELINE = {
 
 const CASING_EXEMPT = /^(index|App)$/;
 
-const failures = [];
-const fail = (file, what, why) => failures.push({ file, what, why });
-const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+type Failure = { file: string; what: string; why: string };
+
+const failures: Failure[] = [];
+const fail = (file: string, what: string, why: string): void => {
+    failures.push({ file, what, why });
+};
+const read = (rel: string): string => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 
 const allFiles = SOURCE_ROOTS.flatMap((root) => walk(root));
 const sourceTs = allFiles.filter((f) => f.endsWith('.ts') && !isSpec(f) && !f.endsWith('.d.ts'));
@@ -175,7 +179,7 @@ for (const rel of sourceVue) {
 // ── 5. Comment format in <template> and <style> ─────────────────────────────
 for (const rel of sourceVue) {
     const template = /<template>([\s\S]*)<\/template>/.exec(read(rel))?.[1] ?? '';
-    for (const [, body] of template.matchAll(/<!--([\s\S]*?)-->/g)) {
+    for (const [, body = ''] of template.matchAll(/<!--([\s\S]*?)-->/g)) {
         if (/[–—─]{2,}/.test(body)) {
             fail(
                 rel,
@@ -189,7 +193,7 @@ for (const rel of [...sourceVue, ...allFiles.filter((f) => f.endsWith('.scss'))]
     const src = read(rel);
     const style = rel.endsWith('.vue') ? (src.match(/<style[\s\S]*?<\/style>/g) ?? []).join('\n') : src.replace(/^\/\*[\s\S]*?\*\//, '');
     const globalSheet = rel.endsWith('.scss');
-    for (const [whole, body] of style.matchAll(/\/\*([\s\S]*?)\*\//g)) {
+    for (const [whole, body = ''] of style.matchAll(/\/\*([\s\S]*?)\*\//g)) {
         const text = body.trim();
         if (text.startsWith('stylelint-')) continue;
         if (globalSheet && whole.startsWith('/**')) continue;
@@ -217,8 +221,8 @@ for (const rel of [...sourceTs, ...sourceVue]) {
 // ── 7. SFC block order ──────────────────────────────────────────────────────
 for (const rel of sourceVue) {
     const src = read(rel);
-    const seen = [];
-    for (const [, tag] of src.matchAll(/^<(script|template|style)\b/gm)) seen.push(tag);
+    const seen: string[] = [];
+    for (const [, tag = ""] of src.matchAll(/^<(script|template|style)\b/gm)) seen.push(tag);
     const expected = ['script', 'template', 'style'];
     const ordered = seen.filter((t, i) => seen.indexOf(t) === i);
     const canonical = expected.filter((t) => ordered.includes(t));
@@ -251,17 +255,17 @@ for (const rel of [...sourceTs, ...sourceVue].filter((f) => ALIASED_ROOTS.some((
     }
 }
 
-function isSpec(rel) {
+function isSpec(rel: string): boolean {
     return rel.includes('__tests__') || /\.(test|spec)\.ts$/.test(rel);
 }
 
-function codeLines(rel) {
+function codeLines(rel: string): number {
     const src = read(rel);
     const body = rel.endsWith('.vue') ? src.replace(/<style[\s\S]*?<\/style>/g, '') : src;
     return body.split('\n').filter((l) => l.trim() !== '').length;
 }
 
-function walk(rel, out = []) {
+function walk(rel: string, out: string[] = []): string[] {
     const dir = path.join(ROOT, rel);
     if (!fs.existsSync(dir)) return out;
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {

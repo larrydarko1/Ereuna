@@ -1,5 +1,5 @@
 /** Blank out comments while preserving every byte offset and line number. */
-export function stripComments(src) {
+export function stripComments(src: string): string {
     let out = '';
     let i = 0;
     while (i < src.length) {

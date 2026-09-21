@@ -20,7 +20,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
+import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
 
 /** Deferral markers, shouted. */
 const MARKERS = /\b(TODO|FIXME|FIX ME|HACK|XXX|TBD|WIP)\b/;
@@ -31,12 +31,16 @@ const MARKERS = /\b(TODO|FIXME|FIX ME|HACK|XXX|TBD|WIP)\b/;
  * the word would read the standard exactly backwards — and this file is the one
  * that spells the markers out, so it necessarily contains every one of them.
  */
-const SKIP = new Set(['package-lock.json', 'todo.md', 'check-refactoring.mjs']);
+const SKIP = new Set(['package-lock.json', 'todo.md', 'check-refactoring.ts']);
 const SKIP_PATTERN = /^(node_modules|.*\/node_modules|.*\/dist|coverage|.*\/coverage)\//;
 const BINARY = /\.(png|jpe?g|gif|webp|svg|ico|woff2?|ttf|eot|mp4|webm|pdf|zip|gz)$/i;
 
-const failures = [];
-const fail = (file, what, why) => failures.push({ file, what, why });
+type Failure = { file: string; what: string; why: string };
+
+const failures: Failure[] = [];
+const fail = (file: string, what: string, why: string): void => {
+    failures.push({ file, what, why });
+};
 
 /**
  * Tracked AND untracked-but-not-ignored, so a file added in this working tree

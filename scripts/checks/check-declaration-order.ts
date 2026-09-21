@@ -24,7 +24,7 @@
  * to impose: moving a statement above something it reads is a ReferenceError at
  * import time — the module never loads, and no test catches it because nothing
  * gets far enough to run. So the canonical order is computed as a topological sort
- * keyed by category (see analyze() in ../lib/declaration-order.mjs): an edge A→B
+ * keyed by category (see analyze() in ../lib/declaration-order.ts): an edge A→B
  * exists when B reads, at load time, a binding A declares, and the sort always
  * takes the available statement with the lowest (category, original position). The
  * result is the table wherever the dependencies permit, and the dependency
@@ -47,7 +47,7 @@
  *     production table cannot express the rule: `vi.mock`, `beforeEach` and
  *     `describe` are all expression statements, so it bins all three as
  *     side-effects and sorts the mocks LAST. See TEST_CATEGORIES in
- *     ../lib/declaration-order.mjs.
+ *     ../lib/declaration-order.ts.
  *
  * WHAT THIS CANNOT SEE. Whether two statements in the SAME category are in a
  * sensible order relative to each other. The table says private functions are
@@ -56,17 +56,17 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
-import { CATEGORIES, TEST_CATEGORIES, analyzeFile } from '../lib/declaration-order.mjs';
+import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
+import { CATEGORIES, TEST_CATEGORIES, analyzeFile } from '../lib/declaration-order.ts';
 
 const SOURCE_ROOTS = ['api/src', 'worker/src', 'ingestor/src', 'frontend/src', 'packages/shared/src'];
 
 /** Which of the two tables a file is read against. */
-const isTest = (rel) => rel.includes('__tests__') || /\.(test|spec)\.ts$/.test(rel);
+const isTest = (rel: string): boolean => rel.includes('__tests__') || /\.(test|spec)\.ts$/.test(rel);
 
 const failures = [];
 
-function walk(dir, out = []) {
+function walk(dir: string, out: string[] = []): string[] {
     for (const entry of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
         const rel = `${dir}/${entry.name}`;
         if (entry.isDirectory()) walk(rel, out);

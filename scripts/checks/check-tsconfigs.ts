@@ -35,8 +35,8 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.mjs';
-import { stripComments } from '../lib/strip-comments.mjs';
+import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
+import { stripComments } from '../lib/strip-comments.ts';
 
 const BASE = 'tsconfig.base.json';
 const SHARED = 'packages/shared/tsconfig.json';
@@ -47,7 +47,7 @@ const NODE_TYPED = ['api/tsconfig.json', 'worker/tsconfig.json', 'ingestor/tscon
  * project may differ — with a reason — but the base may not be missing any of
  * them, or strictness becomes something each workspace decides for itself.
  */
-const BASE_FLAGS = {
+const BASE_FLAGS: Record<string, boolean> = {
     strict: true,
     exactOptionalPropertyTypes: true,
     noImplicitOverride: true,
@@ -84,11 +84,23 @@ const SECTIONS = [
     'Library & Syntax',
 ];
 
-const errors = [];
-const fail = (rel, problem, why) => errors.push({ rel, problem, why });
-const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+/** A tsconfig file, reduced to the keys this gate reads. */
+type CompilerOptions = Record<string, unknown> & { target?: string; lib?: string[]; types?: string[] };
+type TsconfigData = {
+    extends?: string | string[];
+    compilerOptions?: CompilerOptions;
+    files?: unknown[];
+    references?: { path: string }[];
+};
+type Config = { raw: string; data: TsconfigData; own: CompilerOptions; options: CompilerOptions | undefined };
 
-const configs = new Map(findConfigs('.').map((rel) => [rel, parse(rel)]));
+const errors: { rel: string; problem: string; why: string }[] = [];
+const fail = (rel: string, problem: string, why: string): void => {
+    errors.push({ rel, problem, why });
+};
+const read = (rel: string): string => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+
+const configs = new Map(listConfigs('.').map((rel) => [rel, parse(rel)]));
 const base = configs.get(BASE);
 
 if (base === undefined) {
@@ -125,15 +137,15 @@ for (const [rel, cfg] of projects) {
 
 // ── 2. The base holds every checking flag and no environment ────────────────
 for (const [flag, strictValue] of Object.entries(BASE_FLAGS)) {
-    const actual = base.options[flag];
+    const actual = base.options?.[flag];
     if (actual === undefined) {
         fail(BASE, `does not set \`${flag}\``, 'Every checking rule lives here, so that turning one off is one visible edit rather than a value a workspace quietly never set.');
     } else if (actual !== strictValue) {
-        fail(BASE, `sets \`${flag}: ${actual}\``, `The base carries the strict value (${strictValue}). A workspace that genuinely cannot hold this overrides it locally, with the reason next to it — rule 3.`);
+        fail(BASE, `sets \`${flag}: ${JSON.stringify(actual)}\``, `The base carries the strict value (${strictValue}). A workspace that genuinely cannot hold this overrides it locally, with the reason next to it — rule 3.`);
     }
 }
 for (const setting of ENVIRONMENTAL) {
-    if (base.options[setting] !== undefined) {
+    if (base.options?.[setting] !== undefined) {
         fail(
             BASE,
             `sets \`${setting}\``,
@@ -152,7 +164,7 @@ for (const [rel, cfg] of projects) {
         if (!hasReason(cfg.raw, flag)) {
             fail(
                 rel,
-                `overrides \`${flag}: ${cfg.own[flag]}\` with no reason`,
+                `overrides \`${flag}: ${JSON.stringify(cfg.own[flag])}\` with no reason`,
                 'Relaxing an inherited check is a decision, and the next person reads the file, not the commit. Write what forces it and what would let it be removed.',
             );
         }
@@ -239,11 +251,11 @@ for (const [rel, cfg] of configs) {
 }
 
 /** Every tsconfig in the repo, minus node_modules, dotted directories and the frozen fork. */
-function findConfigs(rel, out = []) {
+function listConfigs(rel: string, out: string[] = []): string[] {
     for (const entry of fs.readdirSync(path.join(ROOT, rel), { withFileTypes: true })) {
         if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
         const child = rel === '.' ? entry.name : `${rel}/${entry.name}`;
-        if (entry.isDirectory()) findConfigs(child, out);
+        if (entry.isDirectory()) listConfigs(child, out);
         else if (/^tsconfig(\..+)?\.json$/.test(entry.name)) out.push(child);
     }
     return out;
@@ -254,29 +266,29 @@ function findConfigs(rel, out = []) {
  * decide; `own` is only what this file states, which is what rules 3 to 6 are
  * about — inheriting a setting is not the same as choosing it.
  */
-function parse(rel) {
+function parse(rel: string): Config {
     const raw = read(rel);
-    let data;
+    let data: TsconfigData;
     try {
-        data = JSON.parse(stripComments(raw));
+        data = JSON.parse(stripComments(raw)) as TsconfigData;
     } catch (e) {
-        fail(rel, `is not parseable JSON (${e.message})`, 'tsc reads JSONC — comments are fine, a trailing comma is not.');
+        fail(rel, `is not parseable JSON (${(e as Error).message})`, 'tsc reads JSONC — comments are fine, a trailing comma is not.');
         data = {};
     }
     return { raw, data, own: data.compilerOptions ?? {}, options: effective(rel, data) };
 }
 
 /** compilerOptions merged down the `extends` chain, nearest file winning. */
-function effective(rel, data, seen = new Set()) {
+function effective(rel: string, data: TsconfigData, seen = new Set<string>()): CompilerOptions | undefined {
     if (seen.has(rel)) return {}; // cyclic extends: tsc's error to report, not ours
     seen.add(rel);
 
-    let inherited = {};
+    let inherited: CompilerOptions = {};
     for (const specifier of data.extends === undefined ? [] : [data.extends].flat()) {
         const parent = resolveExtends(specifier, rel);
         if (parent === null) continue; // an unresolvable parent is tsc's complaint
         try {
-            inherited = { ...inherited, ...effective(parent, JSON.parse(stripComments(read(parent))), seen) };
+            inherited = { ...inherited, ...effective(parent, JSON.parse(stripComments(read(parent))) as TsconfigData, seen) };
         } catch {
             continue;
         }
@@ -287,7 +299,7 @@ function effective(rel, data, seen = new Set()) {
 }
 
 /** Resolve one `extends` entry to a repo-relative path, or null for a package outside the tree. */
-function resolveExtends(specifier, fromRel) {
+function resolveExtends(specifier: string, fromRel: string): string | null {
     if (!specifier.startsWith('.')) return null; // a published preset — not ours to check
     const base = path.resolve(path.dirname(path.join(ROOT, fromRel)), specifier);
     const hit = [base, `${base}.json`, path.join(base, 'tsconfig.json')].find(
@@ -297,17 +309,17 @@ function resolveExtends(specifier, fromRel) {
 }
 
 /** Is there a comment on this setting's line, or on the lines immediately above it? */
-function hasReason(raw, flag) {
+function hasReason(raw: string, flag: string): boolean {
     const lines = raw.split('\n');
     const at = lines.findIndex((line) => new RegExp(`^\\s*"${flag}"\\s*:`).test(line));
     if (at === -1) return false;
-    if (/\/\/|\/\*/.test(lines[at].replace(new RegExp(`^\\s*"${flag}"\\s*:.*?(?=//|/\\*|$)`), ''))) return true;
+    if (/\/\/|\/\*/.test((lines[at] ?? '').replace(new RegExp(`^\\s*"${flag}"\\s*:.*?(?=//|/\\*|$)`), ''))) return true;
 
     for (let i = at - 1; i >= 0; i--) {
-        const above = lines[i].trim();
+        const above = (lines[i] ?? '').trim();
         if (above === '') continue;
         // A section divider is a label, not a reason — keep walking past it.
-        if (/^\/\*.*\*\/$/.test(above) && SECTIONS.includes(above.replace(/^\/\*\s*|\s*\*\/$/g, '').split(' — ')[0])) continue;
+        if (/^\/\*.*\*\/$/.test(above) && SECTIONS.includes(above.replace(/^\/\*\s*|\s*\*\/$/g, '').split(' — ')[0] ?? '')) continue;
         return above.startsWith('//') || above.startsWith('*') || above.endsWith('*/');
     }
     return false;
@@ -318,12 +330,12 @@ function hasReason(raw, flag) {
  * multi-line block is prose about the setting under it and is left alone; a
  * divider may carry a trailing ` — reason`, and sorts on the label before it.
  */
-function sectionsOf(raw) {
+function sectionsOf(raw: string): { line: number; name: string }[] {
     return raw
         .split('\n')
         .map((line, i) => ({ line: i + 1, text: line.trim() }))
         .filter(({ text }) => /^\/\*[^*].*\*\/$/.test(text))
-        .map(({ line, text }) => ({ line, name: text.replace(/^\/\*\s*|\s*\*\/$/g, '').split(' — ')[0].trim() }));
+        .map(({ line, text }) => ({ line, name: text.replace(/^\/\*\s*|\s*\*\/$/g, '').split(' — ')[0]?.trim() ?? '' }));
 }
 
 /**
@@ -333,22 +345,22 @@ function sectionsOf(raw) {
  * `tsconfig.json` beside the manifest that runs it. `npm -w x run y` needs no
  * handling — workspace x's own scripts are scanned in their own right.
  */
-function reachableConfigs() {
-    const hit = new Set();
+function reachableConfigs(): Set<string> {
+    const hit = new Set<string>();
 
     for (const dir of ['.', ...workspaceDirs()]) {
-        const scripts = JSON.parse(read(path.join(dir, 'package.json'))).scripts ?? {};
+        const scripts = (JSON.parse(read(path.join(dir, 'package.json'))) as { scripts?: Record<string, string> }).scripts ?? {};
         for (const segment of Object.values(scripts).flatMap((command) => command.split('&&'))) {
             if (!/\b(?:vue-)?tsc\b/.test(segment)) continue;
             const named = /(?:-p|--project)\s+(\S+)/.exec(segment);
-            hit.add(path.normalize(path.join(dir, named === null ? 'tsconfig.json' : named[1])));
+            hit.add(path.normalize(path.join(dir, named === null ? 'tsconfig.json' : (named[1] ?? ''))));
         }
     }
     return hit;
 }
 
-function workspaceDirs() {
-    return JSON.parse(read('package.json')).workspaces.filter((dir) => fs.existsSync(path.join(ROOT, dir, 'package.json')));
+function workspaceDirs(): string[] {
+    return (JSON.parse(read('package.json')) as { workspaces: string[] }).workspaces.filter((dir) => fs.existsSync(path.join(ROOT, dir, 'package.json')));
 }
 
 // ── Report ──────────────────────────────────────────────────────────────────

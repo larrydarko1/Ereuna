@@ -49,7 +49,7 @@ describe('the collection registry', () => {
     });
 
     /**
-     * The split by writer is what check-db-drift.mjs reads to decide which
+     * The split by writer is what check-db-drift.ts reads to decide which
      * manifest may index which namespace. A market-data collection that drifted
      * into the API's group would let the API apply an index to half a billion
      * bars at boot.

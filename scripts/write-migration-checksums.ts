@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Record the checksum of every migration file.
- * `scripts/checks/check-db-drift.mjs` compares the migrations against these
+ * `scripts/checks/check-db-drift.ts` compares the migrations against these
  * hashes and fails if one has moved — enforcing "never edit a merged migration"
  * mechanically rather than by memory.
  * Run this ONLY when adding a migration:
@@ -13,7 +13,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { REPO_ROOT as ROOT } from './lib/repo-root.mjs';
+import { REPO_ROOT as ROOT } from './lib/repo-root.ts';
 
 const MIGRATIONS_DIR = path.join(ROOT, 'db/migrations');
 const CHECKSUMS = path.join(MIGRATIONS_DIR, '.checksums.json');
@@ -25,24 +25,25 @@ const files = fs
     .filter((file) => file.endsWith('.js'))
     .sort();
 
-const existing = fs.existsSync(CHECKSUMS) ? JSON.parse(fs.readFileSync(CHECKSUMS, 'utf8')) : {};
+const existing: Record<string, string> = fs.existsSync(CHECKSUMS) ? (JSON.parse(fs.readFileSync(CHECKSUMS, 'utf8')) as Record<string, string>) : {};
 
-const hash = (file) =>
-    crypto.createHash('sha256').update(fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8')).digest('hex');
+const hash = (file: string): string => crypto.createHash('sha256').update(fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8')).digest('hex');
 
-const next = {};
-const added = [];
-const changed = [];
+const next: Record<string, string> = {};
+const added: string[] = [];
+const changed: string[] = [];
 
 for (const file of files) {
     const current = hash(file);
 
-    if (file in existing && existing[file] !== current && !force) {
+    const previous = existing[file];
+
+    if (previous !== undefined && previous !== current && !force) {
         changed.push(file);
-        next[file] = existing[file]; // keep the original — never silently bless an edit
+        next[file] = previous; // keep the original — never silently bless an edit
         continue;
     }
-    if (!(file in existing)) added.push(file);
+    if (previous === undefined) added.push(file);
     next[file] = current;
 }
 

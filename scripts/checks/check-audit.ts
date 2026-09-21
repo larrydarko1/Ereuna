@@ -12,24 +12,35 @@
  */
 import { execFileSync } from 'node:child_process';
 
+type AllowlistEntry = { id: string; package: string; reason: string; expires: string };
+
+/** npm audit --json, reduced to what this gate reads. */
+type AuditReport = {
+    vulnerabilities?: Record<string, { severity: string; via?: (string | { url?: string; title: string; severity?: string })[] }>;
+};
+
+type Finding = { package: string; id: string; title: string; severity: string };
+
 /**
  * Reviewed exceptions. Empty, and the goal is for it to stay that way: an entry
  * is an advisory this repo has decided to ship with, which is only ever right
  * when the fix is genuinely out of reach here.
  */
-const ALLOWLIST = [];
+const ALLOWLIST: AllowlistEntry[] = [];
 
 
 const FAIL_SEVERITIES = new Set(['high', 'critical']);
 
-function runAudit() {
+function runAudit(): string {
     try {
         return execFileSync('npm', ['audit', '--json', '--omit=dev'], {
             encoding: 'utf8',
             maxBuffer: 32 * 1024 * 1024,
         });
     } catch (err) {
-        if (typeof err.stdout === 'string' && err.stdout.length > 0) return err.stdout;
+        // npm audit exits 1 whenever it finds anything, but still prints the report.
+        const stdout: unknown = (err as { stdout?: unknown }).stdout;
+        if (typeof stdout === 'string' && stdout.length > 0) return stdout;
         throw err;
     }
 }
@@ -40,12 +51,12 @@ function runAudit() {
  * where the package is only a carrier for a dependency's advisory — carriers
  * would double-count, so only the objects are collected.
  */
-function findings(report) {
-    const rows = [];
+function findings(report: AuditReport): Finding[] {
+    const rows: Finding[] = [];
     for (const [name, vuln] of Object.entries(report.vulnerabilities ?? {})) {
         for (const via of vuln.via ?? []) {
             if (typeof via !== 'object' || via.url === undefined) continue;
-            const id = via.url.split('/').pop();
+            const id = via.url.split('/').pop() ?? via.url;
             rows.push({ package: name, id, title: via.title, severity: via.severity ?? vuln.severity });
         }
     }
@@ -53,13 +64,13 @@ function findings(report) {
 }
 
 const today = new Date().toISOString().slice(0, 10);
-const report = JSON.parse(runAudit());
+const report = JSON.parse(runAudit()) as AuditReport;
 const rows = findings(report).filter((r) => FAIL_SEVERITIES.has(r.severity));
 
 const allowed = new Map(ALLOWLIST.map((e) => [e.id, e]));
-const blocking = [];
-const waived = [];
-const expired = [];
+const blocking: Finding[] = [];
+const waived: (Finding & { entry: AllowlistEntry })[] = [];
+const expired: (Finding & { entry: AllowlistEntry })[] = [];
 
 for (const row of rows) {
     const entry = allowed.get(row.id);
