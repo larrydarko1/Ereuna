@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type { SessionUser } from '@ereuna/shared';
+
 import { clearAuth, setSessionUser } from '@/api/client';
 import { router } from '@/router';
 

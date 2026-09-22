@@ -9,7 +9,6 @@ import {
     PaneRendererLine,
     type PaneRendererLineData,
 } from '@/lib/charting/engine/renderers/line-renderer';
-
 import { LinePaneViewBase } from '@/lib/charting/engine/views/pane/line-pane-view-base';
 
 export class SeriesLinePaneView extends LinePaneViewBase<'Line', LineStrokeItem, PaneRendererLine> {

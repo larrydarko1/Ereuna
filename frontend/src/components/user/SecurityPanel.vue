@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { defineAsyncComponent, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import { countRecoveryCodes, disableTwoFactor, regenerateRecoveryCodes } from '@/api/account';
 import { apiErrorMessage } from '@/api/client';
 import ReauthDialog from '@/components/user/ReauthDialog.vue';
-import type { Credentials } from '@/types/user';
 import RecoveryCodesDialog from '@/components/user/RecoveryCodesDialog.vue';
 import SettingCard from '@/components/user/SettingCard.vue';
 import { useResource } from '@/composables/data/useResource';
+import type { Credentials } from '@/types/user';
 
 type Dialog = 'enrol' | 'disable' | 'regenerate' | 'codes';
 

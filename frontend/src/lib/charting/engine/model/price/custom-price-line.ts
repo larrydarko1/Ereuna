@@ -2,17 +2,15 @@
  * One horizontal line at a fixed price on a series, with its own axis label.
  */
 import { merge } from '@/lib/charting/engine/helpers/strict-type-checks';
-
+import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
+import { type PriceLineOptions } from '@/lib/charting/engine/model/price/price-line-options';
+import { type ISeries } from '@/lib/charting/engine/model/series/series';
+import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
 import { CustomPriceLinePaneView } from '@/lib/charting/engine/views/pane/custom-price-line-pane-view';
 import { type IPaneView } from '@/lib/charting/engine/views/pane/ipane-view';
 import { PanePriceAxisView } from '@/lib/charting/engine/views/pane/pane-price-axis-view';
 import { CustomPriceLinePriceAxisView } from '@/lib/charting/engine/views/price-axis/custom-price-line-price-axis-view';
 import { type IPriceAxisView } from '@/lib/charting/engine/views/price-axis/iprice-axis-view';
-
-import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
-import { type PriceLineOptions } from '@/lib/charting/engine/model/price/price-line-options';
-import { type ISeries } from '@/lib/charting/engine/model/series/series';
-import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
 
 export class CustomPriceLine {
     private readonly _series: ISeries<SeriesType>;

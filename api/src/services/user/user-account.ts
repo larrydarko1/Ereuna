@@ -7,6 +7,7 @@
  */
 import argon2 from 'argon2';
 import { type ObjectId, type WithId } from 'mongodb';
+
 import type {
     ChartDrawingDoc,
     NoteDoc,
@@ -18,6 +19,7 @@ import type {
     UserDoc,
     WatchlistDoc,
 } from '@ereuna/shared';
+
 import { AppError } from '@/lib/app-error.js';
 import { invalidatePrefix } from '@/lib/cache.js';
 import { config } from '@/lib/config.js';

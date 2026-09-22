@@ -2,13 +2,12 @@
  * The base every drawable thing on a pane extends: its z-order, its price
  * scale, and the views it offers to be drawn with.
  */
-import { type IPaneView } from '@/lib/charting/engine/views/pane/ipane-view';
-import { type IPriceAxisView } from '@/lib/charting/engine/views/price-axis/iprice-axis-view';
-import { type ITimeAxisView } from '@/lib/charting/engine/views/time-axis/itime-axis-view';
-
 import { type IDataSource } from '@/lib/charting/engine/model/chart/idata-source';
 import { type Pane } from '@/lib/charting/engine/model/chart/pane';
 import { type PriceScale } from '@/lib/charting/engine/model/price/price-scale';
+import { type IPaneView } from '@/lib/charting/engine/views/pane/ipane-view';
+import { type IPriceAxisView } from '@/lib/charting/engine/views/price-axis/iprice-axis-view';
+import { type ITimeAxisView } from '@/lib/charting/engine/views/time-axis/itime-axis-view';
 
 export abstract class DataSource implements IDataSource {
     protected _priceScale: PriceScale | null = null;

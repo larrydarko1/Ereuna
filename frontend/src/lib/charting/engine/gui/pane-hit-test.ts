@@ -6,13 +6,13 @@
  * compared rather than simply taken first-match.
  */
 import { type HoveredObject } from '@/lib/charting/engine/model/chart/chart-model';
+import { type Pane } from '@/lib/charting/engine/model/chart/pane';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type IPriceDataSource } from '@/lib/charting/engine/model/price/iprice-data-source';
 import {
     type PrimitiveHoveredItem,
     type SeriesPrimitivePaneViewZOrder,
 } from '@/lib/charting/engine/model/series/iseries-primitive';
-import { type Pane } from '@/lib/charting/engine/model/chart/pane';
 import { type IPaneView } from '@/lib/charting/engine/views/pane/ipane-view';
 
 export type HitTestResult = {

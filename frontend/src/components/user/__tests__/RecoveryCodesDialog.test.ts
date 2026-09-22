@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import { i18n } from '@/i18n';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
 import RecoveryCodesDialog from '@/components/user/RecoveryCodesDialog.vue';
+import { i18n } from '@/i18n';
 
 const CODES = ['aaa-111', 'bbb-222', 'ccc-333'];
 

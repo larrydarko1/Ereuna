@@ -1,5 +1,6 @@
 /** Intraday retention. */
 import { INTRADAY_COLLECTIONS, type OhlcvDoc } from '@ereuna/shared';
+
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';

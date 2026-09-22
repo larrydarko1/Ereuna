@@ -6,8 +6,8 @@
  * to even in others, and a price axis that disagrees with itself between browsers
  * is worse than either rule.
  */
-import { isInteger, isNumber } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { type IPriceFormatter } from '@/lib/charting/engine/formatters/iprice-formatter';
+import { isInteger, isNumber } from '@/lib/charting/engine/helpers/strict-type-checks';
 
 const formatterOptions = {
     decimalSign: '.',

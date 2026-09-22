@@ -9,7 +9,9 @@
  * own row instead of adding a second one — and it is why this never inserts.
  */
 import { Counter, Histogram } from 'prom-client';
+
 import { AGGREGATOR_TO_CHART, OHLCV_COLLECTIONS, type AggregatorTimeframe } from '@ereuna/shared';
+
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';

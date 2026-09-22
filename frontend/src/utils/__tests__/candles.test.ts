@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { Time } from '@/lib/charting';
+
 import type { ChartBar, ChartPoint } from '@/composables/charts/useChartSeries';
+import type { Time } from '@/lib/charting';
 import { closes, heikinAshi, relativeVolume } from '@/utils/candles';
 
 const bar = (over: Partial<ChartBar> = {}): ChartBar => ({

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+
 import type { BenchmarkResult } from '@ereuna/shared';
+
 import { direction, formatPercent } from '@/utils/formatters';
 
 defineProps<{ benchmarks: readonly BenchmarkResult[] }>();

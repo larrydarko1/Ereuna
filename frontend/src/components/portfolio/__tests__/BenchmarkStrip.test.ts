@@ -1,9 +1,11 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import type { BenchmarkResult } from '@ereuna/shared';
+
+import BenchmarkStrip from '@/components/portfolio/BenchmarkStrip.vue';
 import { i18n } from '@/i18n';
 import { formatPercent } from '@/utils/formatters';
-import BenchmarkStrip from '@/components/portfolio/BenchmarkStrip.vue';
 
 const entry = (over: Partial<BenchmarkResult> = {}): BenchmarkResult => ({
     symbol: 'SPY',

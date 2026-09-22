@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { AGGREGATOR_TIMEFRAMES, type AggregateMessage } from '@ereuna/shared';
+
 import type { CandleDoc } from '@/aggregate/writer.js';
 
 const publishCandle = vi.fn<(message: AggregateMessage) => void>();

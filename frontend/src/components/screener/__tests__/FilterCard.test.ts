@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import { i18n } from '@/i18n';
+import { describe, expect, it } from 'vitest';
+
 import FilterCard from '@/components/screener/FilterCard.vue';
+import { i18n } from '@/i18n';
 
 const card = (props: Record<string, unknown> = {}): VueWrapper =>
     mount(FilterCard, { props: { label: 'Market cap', ...props }, slots: { default: '<p class="body" />' } });

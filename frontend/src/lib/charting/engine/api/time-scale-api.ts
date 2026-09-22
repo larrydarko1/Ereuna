@@ -6,6 +6,13 @@
  * cancels it on destroy.
  */
 import { type Size } from 'fancy-canvas';
+
+import {
+    type ITimeScaleApi,
+    type LogicalRangeChangeEventHandler,
+    type SizeChangeEventHandler,
+    type TimeRangeChangeEventHandler,
+} from '@/lib/charting/engine/api/itime-scale-api';
 import { type TimeAxisWidget } from '@/lib/charting/engine/gui/time-axis-widget';
 import { assert } from '@/lib/charting/engine/helpers/assertions';
 import { Delegate } from '@/lib/charting/engine/helpers/delegate';
@@ -24,12 +31,6 @@ import {
     type TimePointIndex,
 } from '@/lib/charting/engine/model/time/time-data';
 import { type HorzScaleOptions, type TimeScale } from '@/lib/charting/engine/model/time/time-scale';
-import {
-    type ITimeScaleApi,
-    type LogicalRangeChangeEventHandler,
-    type SizeChangeEventHandler,
-    type TimeRangeChangeEventHandler,
-} from '@/lib/charting/engine/api/itime-scale-api';
 
 type Constants = (typeof Constants)[keyof typeof Constants];
 

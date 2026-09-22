@@ -6,10 +6,11 @@
  * background from painting over another's content.
  */
 import { type CanvasRenderingTarget2D } from 'fancy-canvas';
+
+import { type IPaneViewsGetter } from '@/lib/charting/engine/gui/ipane-view-getter';
 import { type IDataSource } from '@/lib/charting/engine/model/chart/idata-source';
 import { type Pane } from '@/lib/charting/engine/model/chart/pane';
 import { type HoverState, type IPaneRenderer } from '@/lib/charting/engine/renderers/ipane-renderer';
-import { type IPaneViewsGetter } from '@/lib/charting/engine/gui/ipane-view-getter';
 
 export type DrawFunction = (renderer: IPaneRenderer, target: CanvasRenderingTarget2D, hover: HoverState) => void;
 

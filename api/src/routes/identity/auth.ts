@@ -10,6 +10,7 @@
 import { Router, type CookieOptions, type Request, type Response } from 'express';
 import { ObjectId } from 'mongodb';
 import { z } from 'zod';
+
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { passwordSchema, requiredString, usernameSchema } from '@/lib/schemas.js';

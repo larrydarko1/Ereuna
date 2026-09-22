@@ -1,6 +1,6 @@
 /** Distributed token-bucket rate limiter backed by Redis. */
-import { getRedis } from '@/lib/redis.js';
 import { logger } from '@/lib/logger.js';
+import { getRedis } from '@/lib/redis.js';
 
 export type TokenBucketOptions = {
     capacity: number;

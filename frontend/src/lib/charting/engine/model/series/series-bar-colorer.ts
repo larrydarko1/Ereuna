@@ -6,8 +6,8 @@
  */
 import { getPresent, getNotNull } from '@/lib/charting/engine/helpers/assertions';
 import { PlotRowValueIndex } from '@/lib/charting/engine/model/data/plot-data';
-import { type Series } from '@/lib/charting/engine/model/series/series';
 import { type SeriesPlotRow } from '@/lib/charting/engine/model/data/series-data';
+import { type Series } from '@/lib/charting/engine/model/series/series';
 import { type SeriesOptionsMap, type SeriesType } from '@/lib/charting/engine/model/series/series-options';
 import {
     type AreaStyleOptions,

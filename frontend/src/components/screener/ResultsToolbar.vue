@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+
 import { LIST_MODES, type ListMode } from '@/constants/screener';
 
 const { total, exporting = false } = defineProps<{

@@ -4,11 +4,11 @@
  */
 import { ensureNever } from '@/lib/charting/engine/helpers/assertions';
 import { isNumber } from '@/lib/charting/engine/helpers/strict-type-checks';
-import { type AutoScaleMargins } from '@/lib/charting/engine/model/series/autoscale-info-impl';
-import { type BarPrice, type BarPrices } from '@/lib/charting/engine/model/data/bar';
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
+import { type BarPrice, type BarPrices } from '@/lib/charting/engine/model/data/bar';
 import { type PriceScale } from '@/lib/charting/engine/model/price/price-scale';
+import { type AutoScaleMargins } from '@/lib/charting/engine/model/series/autoscale-info-impl';
 import { type ISeries } from '@/lib/charting/engine/model/series/series';
 import {
     type InternalSeriesMarker,

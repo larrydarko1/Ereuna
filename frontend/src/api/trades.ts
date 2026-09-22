@@ -9,6 +9,7 @@
  * a rejectable mistake instead of a silent flip into a long.
  */
 import type { TradeInput, TradePage, TradeRow } from '@ereuna/shared';
+
 import { api, type ApiResult } from '@/api/client';
 
 export type TradeQuery = {

@@ -12,6 +12,7 @@
  * Pure: trades and a base value in, a snapshot out. Nothing is read or written.
  */
 import type { PortfolioStatsSnapshot, PositionSide, TradeExtreme, TradeReturnsChart } from '@ereuna/shared';
+
 import { sortTrades, type ReplayTrade } from '@/utils/portfolio-replay.js';
 
 type ClosedLot = {

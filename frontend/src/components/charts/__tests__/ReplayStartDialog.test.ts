@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import { i18n } from '@/i18n';
+import { afterEach, describe, expect, it } from 'vitest';
+
 import ReplayStartDialog from '@/components/charts/ReplayStartDialog.vue';
+import { i18n } from '@/i18n';
 
 const open = (min: string, max: string): VueWrapper =>
     mount(ReplayStartDialog, { props: { min, max }, attachTo: document.body });

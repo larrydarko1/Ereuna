@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
+import ChartToolbar from '@/components/charts/ChartToolbar.vue';
 import { CHART_TOOLS, type ChartTool } from '@/constants/chart';
 import { i18n } from '@/i18n';
-import ChartToolbar from '@/components/charts/ChartToolbar.vue';
 
 const toolbar = (props: Record<string, unknown> = {}): VueWrapper =>
     mount(ChartToolbar, { props: { modelValue: null, ...props } });

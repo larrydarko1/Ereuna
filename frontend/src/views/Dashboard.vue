@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+
 import { getMarketStats } from '@/api/market';
 import BreadthMeters from '@/components/dashboard/BreadthMeters.vue';
 import IndexTable from '@/components/dashboard/IndexTable.vue';

@@ -4,7 +4,9 @@
  * starts consuming the trade stream before it resolves.
  */
 import { MongoClient } from 'mongodb';
+
 import { mongoConnection } from '@ereuna/shared/service/connections';
+
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 

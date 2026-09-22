@@ -1,7 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import type { AddressInfo } from 'node:net';
 import type { Server } from 'node:http';
+import type { AddressInfo } from 'node:net';
+
 import { register } from 'prom-client';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+
 import { startProbeServer } from '#service/probes.js';
 
 /**

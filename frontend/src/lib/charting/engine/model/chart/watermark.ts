@@ -1,13 +1,12 @@
 /**
  * The text drawn behind a pane's content.
  */
+import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
+import { DataSource } from '@/lib/charting/engine/model/chart/data-source';
 import { type HorzAlign, type VertAlign } from '@/lib/charting/engine/renderers/watermark-renderer';
 import { type IPaneView } from '@/lib/charting/engine/views/pane/ipane-view';
 import { WatermarkPaneView } from '@/lib/charting/engine/views/pane/watermark-pane-view';
 import { type IPriceAxisView } from '@/lib/charting/engine/views/price-axis/iprice-axis-view';
-
-import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
-import { DataSource } from '@/lib/charting/engine/model/chart/data-source';
 
 /** Watermark options. */
 export type WatermarkOptions = {

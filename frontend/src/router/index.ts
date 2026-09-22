@@ -6,6 +6,7 @@ import {
     type Router,
     type RouterScrollBehavior,
 } from 'vue-router';
+
 import { findSessionUser, isAuthenticated } from '@/api/client';
 
 /** vue-router keeps `ScrollPosition` internal, so it is named through the behaviour it belongs to. */

@@ -5,46 +5,6 @@
  * through the chart's data layer, so that one change can be applied to the time
  * scale and every other series in the same pass.
  */
-import { type IPriceFormatter } from '@/lib/charting/engine/formatters/iprice-formatter';
-
-import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
-import { Delegate } from '@/lib/charting/engine/helpers/delegate';
-import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
-import { clone, merge } from '@/lib/charting/engine/helpers/strict-type-checks';
-
-import { type BarPrice } from '@/lib/charting/engine/model/data/bar';
-import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
-import {
-    type DataUpdatesConsumer,
-    type SeriesDataItemTypeMap,
-    type WhitespaceData,
-} from '@/lib/charting/engine/model/data/data-consumer';
-import {
-    checkItemsAreOrdered,
-    checkPriceLineOptions,
-    checkSeriesValuesType,
-} from '@/lib/charting/engine/model/data/data-validators';
-import {
-    type IHorzScaleBehavior,
-    type InternalHorzScaleItem,
-} from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
-import { MismatchDirection } from '@/lib/charting/engine/model/data/plot-list';
-import {
-    type CreatePriceLineOptions,
-    type PriceLineOptions,
-} from '@/lib/charting/engine/model/price/price-line-options';
-import { RangeImpl } from '@/lib/charting/engine/model/range-impl';
-import { type Series } from '@/lib/charting/engine/model/series/series';
-import { type SeriesPlotRow } from '@/lib/charting/engine/model/data/series-data';
-import { convertSeriesMarker, type SeriesMarker } from '@/lib/charting/engine/model/series/series-markers';
-import {
-    type SeriesOptionsMap,
-    type SeriesPartialOptionsMap,
-    type SeriesType,
-} from '@/lib/charting/engine/model/series/series-options';
-import { type Logical, type Range, type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
-import { TimeScaleVisibleRange } from '@/lib/charting/engine/model/time/time-scale-visible-range';
-
 import { type IPriceScaleApiProvider } from '@/lib/charting/engine/api/chart-api';
 import { getSeriesDataCreator } from '@/lib/charting/engine/api/get-series-data-creator';
 import { type IChartApiBase } from '@/lib/charting/engine/api/ichart-api';
@@ -59,6 +19,43 @@ import {
 import { type ISeriesPrimitive } from '@/lib/charting/engine/api/iseries-primitive-api';
 import { priceLineOptionsDefaults } from '@/lib/charting/engine/api/options/price-line-options-defaults';
 import { PriceLine } from '@/lib/charting/engine/api/price-line-api';
+import { type IPriceFormatter } from '@/lib/charting/engine/formatters/iprice-formatter';
+import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
+import { Delegate } from '@/lib/charting/engine/helpers/delegate';
+import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
+import { clone, merge } from '@/lib/charting/engine/helpers/strict-type-checks';
+import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
+import { type BarPrice } from '@/lib/charting/engine/model/data/bar';
+import {
+    type DataUpdatesConsumer,
+    type SeriesDataItemTypeMap,
+    type WhitespaceData,
+} from '@/lib/charting/engine/model/data/data-consumer';
+import {
+    checkItemsAreOrdered,
+    checkPriceLineOptions,
+    checkSeriesValuesType,
+} from '@/lib/charting/engine/model/data/data-validators';
+import { MismatchDirection } from '@/lib/charting/engine/model/data/plot-list';
+import { type SeriesPlotRow } from '@/lib/charting/engine/model/data/series-data';
+import {
+    type CreatePriceLineOptions,
+    type PriceLineOptions,
+} from '@/lib/charting/engine/model/price/price-line-options';
+import { RangeImpl } from '@/lib/charting/engine/model/range-impl';
+import { type Series } from '@/lib/charting/engine/model/series/series';
+import { convertSeriesMarker, type SeriesMarker } from '@/lib/charting/engine/model/series/series-markers';
+import {
+    type SeriesOptionsMap,
+    type SeriesPartialOptionsMap,
+    type SeriesType,
+} from '@/lib/charting/engine/model/series/series-options';
+import {
+    type IHorzScaleBehavior,
+    type InternalHorzScaleItem,
+} from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
+import { type Logical, type Range, type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
+import { TimeScaleVisibleRange } from '@/lib/charting/engine/model/time/time-scale-visible-range';
 
 export class SeriesApi<
     TSeriesType extends SeriesType,

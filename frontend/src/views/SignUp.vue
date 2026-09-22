@@ -2,12 +2,13 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+
+import { register } from '@/api/auth';
+import { apiErrorMessage } from '@/api/client';
+import AuthLayout from '@/components/auth/AuthLayout.vue';
 import AppField from '@/components/ui/AppField.vue';
 import AppSpinner from '@/components/ui/AppSpinner.vue';
 import PasswordField from '@/components/ui/PasswordField.vue';
-import AuthLayout from '@/components/auth/AuthLayout.vue';
-import { register } from '@/api/auth';
-import { apiErrorMessage } from '@/api/client';
 import { allValid, validatePassword, validatePasswordConfirmation, validateUsername } from '@/utils/validation';
 
 const { t } = useI18n();

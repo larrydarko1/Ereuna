@@ -4,7 +4,9 @@
  * resolves, because the ticker universe is the first thing it asks for.
  */
 import { MongoClient } from 'mongodb';
+
 import { mongoConnection } from '@ereuna/shared/service/connections';
+
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+
 import { PORTFOLIO_SLOTS } from '@/composables/portfolio/usePortfolios';
 
 defineProps<{

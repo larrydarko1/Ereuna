@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import { i18n } from '@/i18n';
+import { describe, expect, it } from 'vitest';
+
 import MaFilter from '@/components/screener/MaFilter.vue';
+import { i18n } from '@/i18n';
 
 const DIRECTIONS = ['abv', 'blw'];
 const TARGETS = ['price', '50', '200'];

@@ -11,6 +11,7 @@
  */
 import { Router } from 'express';
 import { z } from 'zod';
+
 import { symbolSchema } from '@/lib/schemas.js';
 import { validated } from '@/middleware/validate.js';
 import * as marketService from '@/services/market/index.js';

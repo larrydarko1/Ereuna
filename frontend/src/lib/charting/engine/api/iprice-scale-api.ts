@@ -2,7 +2,6 @@
  * A handle to one price scale, left or right, or an overlay's own.
  */
 import { type DeepPartial } from '@/lib/charting/engine/helpers/strict-type-checks';
-
 import { type PriceScaleOptions } from '@/lib/charting/engine/model/price/price-scale';
 
 /** Interface to control chart's price scale */

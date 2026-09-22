@@ -15,21 +15,7 @@ import {
     size,
     tryCreateCanvasRenderingTarget2D,
 } from 'fancy-canvas';
-import { clearRect } from '@/lib/charting/engine/helpers/canvas-helpers';
-import { Delegate } from '@/lib/charting/engine/helpers/delegate';
-import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
-import { type ISubscription } from '@/lib/charting/engine/helpers/isubscription';
-import { makeFont } from '@/lib/charting/engine/helpers/make-font';
-import { type IDataSource } from '@/lib/charting/engine/model/chart/idata-source';
-import { type IHorzScaleBehavior } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
-import { InvalidationLevel } from '@/lib/charting/engine/model/chart/invalidate-mask';
-import { type SeriesPrimitivePaneViewZOrder } from '@/lib/charting/engine/model/series/iseries-primitive';
-import { type LayoutOptions } from '@/lib/charting/engine/model/chart/layout-options';
-import { type Pane } from '@/lib/charting/engine/model/chart/pane';
-import { TextWidthCache } from '@/lib/charting/engine/model/text-width-cache';
-import { type IPaneRenderer } from '@/lib/charting/engine/renderers/ipane-renderer';
-import { type TimeAxisViewRendererOptions } from '@/lib/charting/engine/renderers/itime-axis-view-renderer';
-import { type IAxisView } from '@/lib/charting/engine/views/pane/iaxis-view';
+
 import { createBoundCanvas, releaseCanvas } from '@/lib/charting/engine/gui/canvas-utils';
 import { type ChartWidget } from '@/lib/charting/engine/gui/chart-widget';
 import { drawBackground, drawForeground, drawSourcePaneViews } from '@/lib/charting/engine/gui/draw-functions';
@@ -41,6 +27,21 @@ import {
     type TouchMouseEvent,
 } from '@/lib/charting/engine/gui/mouse-event-handler';
 import { PriceAxisStub, type PriceAxisStubParams } from '@/lib/charting/engine/gui/price-axis-stub';
+import { clearRect } from '@/lib/charting/engine/helpers/canvas-helpers';
+import { Delegate } from '@/lib/charting/engine/helpers/delegate';
+import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
+import { type ISubscription } from '@/lib/charting/engine/helpers/isubscription';
+import { makeFont } from '@/lib/charting/engine/helpers/make-font';
+import { type IDataSource } from '@/lib/charting/engine/model/chart/idata-source';
+import { InvalidationLevel } from '@/lib/charting/engine/model/chart/invalidate-mask';
+import { type LayoutOptions } from '@/lib/charting/engine/model/chart/layout-options';
+import { type Pane } from '@/lib/charting/engine/model/chart/pane';
+import { type SeriesPrimitivePaneViewZOrder } from '@/lib/charting/engine/model/series/iseries-primitive';
+import { TextWidthCache } from '@/lib/charting/engine/model/text-width-cache';
+import { type IHorzScaleBehavior } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
+import { type IPaneRenderer } from '@/lib/charting/engine/renderers/ipane-renderer';
+import { type TimeAxisViewRendererOptions } from '@/lib/charting/engine/renderers/itime-axis-view-renderer';
+import { type IAxisView } from '@/lib/charting/engine/views/pane/iaxis-view';
 
 type Constants = (typeof Constants)[keyof typeof Constants];
 

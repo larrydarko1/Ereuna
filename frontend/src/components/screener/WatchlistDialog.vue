@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import AppDialog from '@/components/ui/AppDialog.vue';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import { useWatchlists } from '@/composables/charts/useWatchlists';

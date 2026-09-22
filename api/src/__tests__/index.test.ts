@@ -6,10 +6,11 @@
  * open a socket — while the Express app itself is the real one, mounted on a
  * throwaway listener so the middleware stack answers real requests.
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AddressInfo } from 'node:net';
 import type { Server } from 'node:http';
+import type { AddressInfo } from 'node:net';
+
 import type { Express } from 'express';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 type Listener = () => void;
 

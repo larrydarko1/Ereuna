@@ -16,6 +16,7 @@
  * `@ereuna/shared`'s ERROR_CODES has an entry here in every locale.
  */
 import { createI18n } from 'vue-i18n';
+
 import ar from '@/i18n/locales/ar.json';
 import de from '@/i18n/locales/de.json';
 import el from '@/i18n/locales/el.json';

@@ -4,7 +4,9 @@
  * open, so an unreachable cache degrades behaviour rather than breaking it.
  */
 import { Redis } from 'ioredis';
+
 import { redisConnection } from '@ereuna/shared/service/connections';
+
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 

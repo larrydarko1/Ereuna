@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import { i18n } from '@/i18n';
+import { afterEach, describe, expect, it } from 'vitest';
+
 import BenchmarksDialog from '@/components/portfolio/BenchmarksDialog.vue';
+import { i18n } from '@/i18n';
 
 const open = (props: Record<string, unknown> = {}): VueWrapper =>
     mount(BenchmarksDialog, { props: { current: ['SPY'], ...props }, attachTo: document.body });

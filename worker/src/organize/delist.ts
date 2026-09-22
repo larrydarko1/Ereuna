@@ -1,5 +1,6 @@
 /** Marking symbols that have stopped printing. */
 import type { OhlcvDoc } from '@ereuna/shared';
+
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';

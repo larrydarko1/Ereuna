@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { i18n } from '@/i18n';
+import { describe, expect, it } from 'vitest';
+
 import AppSpinner from '@/components/ui/AppSpinner.vue';
+import { i18n } from '@/i18n';
 
 describe('AppSpinner', () => {
     it('announces itself as busy, with a translated label', () => {

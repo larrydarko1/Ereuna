@@ -1,9 +1,11 @@
-import { afterEach, describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { afterEach, describe, expect, it } from 'vitest';
+
 import type { Financials } from '@ereuna/shared';
+
+import FinancialsDialog from '@/components/charts/FinancialsDialog.vue';
 import { i18n } from '@/i18n';
 import { formatCompact, formatNumber } from '@/utils/formatters';
-import FinancialsDialog from '@/components/charts/FinancialsDialog.vue';
 
 const statements = (over: Partial<Financials> = {}): Financials => ({
     symbol: 'AAPL',

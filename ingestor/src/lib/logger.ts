@@ -4,6 +4,7 @@
  * development. Every line carries `name: 'ingestor'`.
  */
 import { createLogger } from '@ereuna/shared/logger';
+
 import { config } from '@/lib/config.js';
 
 export const logger = createLogger('ingestor', {

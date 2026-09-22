@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { requestId } from '@/middleware/request-id.js';
+
 import { serve, type Harness } from '@/__tests__/support/http.js';
+import { requestId } from '@/middleware/request-id.js';
 
 let harness: Harness | null = null;
 

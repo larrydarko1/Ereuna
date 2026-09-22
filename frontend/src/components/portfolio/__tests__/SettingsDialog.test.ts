@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { afterEach, describe, expect, it } from 'vitest';
+
 import SettingsDialog from '@/components/portfolio/SettingsDialog.vue';
 
 const SUMMARY = { baseValue: 100_000, leverage: 2, defaultCommission: 1 };

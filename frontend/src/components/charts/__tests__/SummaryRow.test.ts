@@ -1,9 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import SummaryRow from '@/components/charts/SummaryRow.vue';
 import type { SummaryFormat } from '@/constants/summaryFields';
 import { i18n } from '@/i18n';
 import { formatCompact, formatDate, formatNumber } from '@/utils/formatters';
-import SummaryRow from '@/components/charts/SummaryRow.vue';
 
 const row = (value: string | number | null, format: SummaryFormat = 'text'): VueWrapper =>
     mount(SummaryRow, { props: { label: 'Market cap', value, format } });

@@ -4,14 +4,14 @@
  * A level is stored as a price alone rather than a point, so it spans the whole
  * plot and survives a horizontal pan without being re-derived.
  */
-import { LineStyle } from '@/lib/charting/engine/renderers/draw-line';
+import { openPriceLevelDialog, openPriceLevelMenu } from '@/lib/charting/drawings/price-level-dialog';
 import { type IChartApi } from '@/lib/charting/engine/api/create-chart';
 import { type MouseEventParams } from '@/lib/charting/engine/api/ichart-api';
 import { type IPriceLine } from '@/lib/charting/engine/api/iprice-line';
 import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
 import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
+import { LineStyle } from '@/lib/charting/engine/renderers/draw-line';
 import { type LineWidth } from '@/lib/charting/engine/renderers/draw-line';
-import { openPriceLevelDialog, openPriceLevelMenu } from '@/lib/charting/drawings/price-level-dialog';
 
 export type PriceLevelData = {
     id: string;

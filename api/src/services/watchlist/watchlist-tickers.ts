@@ -1,6 +1,8 @@
 /** watchlist-tickers — the symbols inside one watchlist, and their quotes. */
 import type { Collection, ObjectId } from 'mongodb';
+
 import type { WatchlistDoc, WatchlistEntry, WatchlistRow } from '@ereuna/shared';
+
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';

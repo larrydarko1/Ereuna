@@ -1,10 +1,12 @@
-import { describe, expect, it } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import type { NoteRow } from '@ereuna/shared';
-import { i18n } from '@/i18n';
+
 import { mockApi } from '@/__tests__/support/msw';
-import { formatDate } from '@/utils/formatters';
 import NotesPanel from '@/components/charts/NotesPanel.vue';
+import { i18n } from '@/i18n';
+import { formatDate } from '@/utils/formatters';
 
 const api = mockApi();
 

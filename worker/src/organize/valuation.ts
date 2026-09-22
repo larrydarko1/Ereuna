@@ -6,8 +6,10 @@
  * independent of each other.
  */
 import type { AnyBulkWriteOperation } from 'mongodb';
+
 import type { AssetInfoDoc } from '@ereuna/shared';
 import { numeric } from '@ereuna/shared';
+
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
 import type { Statement } from '@/organize/fundamentals.js';

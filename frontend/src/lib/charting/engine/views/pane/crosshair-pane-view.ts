@@ -2,11 +2,9 @@
  * The crosshair's own two lines.
  */
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
-
 import { type Crosshair, CrosshairMode } from '@/lib/charting/engine/model/chart/crosshair';
 import { CrosshairRenderer, type CrosshairRendererData } from '@/lib/charting/engine/renderers/crosshair-renderer';
 import { type IPaneRenderer } from '@/lib/charting/engine/renderers/ipane-renderer';
-
 import { type IPaneView } from '@/lib/charting/engine/views/pane/ipane-view';
 
 export class CrosshairPaneView implements IPaneView {

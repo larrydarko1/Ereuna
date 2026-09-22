@@ -8,6 +8,7 @@
  * carrying only the symbol that moved must not blank the twenty that did not.
  */
 import { onScopeDispose, readonly, ref, watch, type DeepReadonly, type Ref } from 'vue';
+
 import { useSocket } from '@/api/socket';
 
 export type UseLiveQuotesReturn = {

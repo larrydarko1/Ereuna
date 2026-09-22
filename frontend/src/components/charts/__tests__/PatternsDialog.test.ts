@@ -1,9 +1,10 @@
-import { afterEach, describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import type { PatternMatch } from '@/lib/charting';
-import { i18n } from '@/i18n';
-import { formatDate, formatNumber } from '@/utils/formatters';
+import { afterEach, describe, expect, it } from 'vitest';
+
 import PatternsDialog from '@/components/charts/PatternsDialog.vue';
+import { i18n } from '@/i18n';
+import type { PatternMatch } from '@/lib/charting';
+import { formatDate, formatNumber } from '@/utils/formatters';
 
 const START = Date.UTC(2026, 0, 1) / 1000;
 const END = Date.UTC(2026, 1, 1) / 1000;

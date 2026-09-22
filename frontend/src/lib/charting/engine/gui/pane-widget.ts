@@ -15,22 +15,7 @@ import {
     size,
     tryCreateCanvasRenderingTarget2D,
 } from 'fancy-canvas';
-import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
-import { clearRect, clearRectWithGradient } from '@/lib/charting/engine/helpers/canvas-helpers';
-import { Delegate } from '@/lib/charting/engine/helpers/delegate';
-import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
-import { type ISubscription } from '@/lib/charting/engine/helpers/isubscription';
-import { type IChartModelBase, TrackingModeExitMode } from '@/lib/charting/engine/model/chart/chart-model';
-import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
-import { type IDataSource } from '@/lib/charting/engine/model/chart/idata-source';
-import { InvalidationLevel } from '@/lib/charting/engine/model/chart/invalidate-mask';
-import { KineticAnimation } from '@/lib/charting/engine/model/chart/kinetic-animation';
-import { type Pane } from '@/lib/charting/engine/model/chart/pane';
-import { type Point } from '@/lib/charting/engine/model/point';
-import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
-import { type TouchMouseEventData } from '@/lib/charting/engine/model/chart/touch-mouse-event-data';
-import { type IPaneRenderer } from '@/lib/charting/engine/renderers/ipane-renderer';
-import { type IPaneView } from '@/lib/charting/engine/views/pane/ipane-view';
+
 import { createBoundCanvas, releaseCanvas } from '@/lib/charting/engine/gui/canvas-utils';
 import { type IChartWidgetBase } from '@/lib/charting/engine/gui/chart-widget';
 import {
@@ -51,6 +36,22 @@ import {
 } from '@/lib/charting/engine/gui/mouse-event-handler';
 import { hitTestPane, type HitTestResult } from '@/lib/charting/engine/gui/pane-hit-test';
 import { PriceAxisWidget, type PriceAxisWidgetSide } from '@/lib/charting/engine/gui/price-axis-widget';
+import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
+import { clearRect, clearRectWithGradient } from '@/lib/charting/engine/helpers/canvas-helpers';
+import { Delegate } from '@/lib/charting/engine/helpers/delegate';
+import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
+import { type ISubscription } from '@/lib/charting/engine/helpers/isubscription';
+import { type IChartModelBase, TrackingModeExitMode } from '@/lib/charting/engine/model/chart/chart-model';
+import { type IDataSource } from '@/lib/charting/engine/model/chart/idata-source';
+import { InvalidationLevel } from '@/lib/charting/engine/model/chart/invalidate-mask';
+import { KineticAnimation } from '@/lib/charting/engine/model/chart/kinetic-animation';
+import { type Pane } from '@/lib/charting/engine/model/chart/pane';
+import { type TouchMouseEventData } from '@/lib/charting/engine/model/chart/touch-mouse-event-data';
+import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
+import { type Point } from '@/lib/charting/engine/model/point';
+import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
+import { type IPaneRenderer } from '@/lib/charting/engine/renderers/ipane-renderer';
+import { type IPaneView } from '@/lib/charting/engine/views/pane/ipane-view';
 
 type KineticScrollConstants = (typeof KineticScrollConstants)[keyof typeof KineticScrollConstants];
 

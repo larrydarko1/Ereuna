@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { holidayCalendar } from '@/utils/holidays.js';
 
 const dates = (year: number): string[] => holidayCalendar(year, 1).map((holiday) => holiday.date);

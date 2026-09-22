@@ -8,8 +8,8 @@
 import { lowerBound, upperBound } from '@/lib/charting/engine/helpers/algorithms';
 import { type Nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
-import { type InternalHorzScaleItem } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
 import { type RangeImpl } from '@/lib/charting/engine/model/range-impl';
+import { type InternalHorzScaleItem } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
 
 /**
  * Weight of the tick mark. @see TickMarkWeight enum

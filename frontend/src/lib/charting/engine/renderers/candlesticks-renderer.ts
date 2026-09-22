@@ -6,6 +6,7 @@
  * one or two pixels a bordered body is all border.
  */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+
 import { fillRectInnerBorder } from '@/lib/charting/engine/helpers/canvas-helpers';
 import { type CandlesticksColorerStyle } from '@/lib/charting/engine/model/series/series-bar-colorer';
 import { type SeriesItemsIndexesRange } from '@/lib/charting/engine/model/time/time-data';

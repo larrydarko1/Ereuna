@@ -15,24 +15,7 @@ import {
     size,
     tryCreateCanvasRenderingTarget2D,
 } from 'fancy-canvas';
-import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
-import { clearRect, clearRectWithGradient } from '@/lib/charting/engine/helpers/canvas-helpers';
-import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
-import { makeFont } from '@/lib/charting/engine/helpers/make-font';
-import { type ChartOptionsInternalBase } from '@/lib/charting/engine/model/chart/chart-model';
-import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
-import { type IDataSource } from '@/lib/charting/engine/model/chart/idata-source';
-import { InvalidationLevel } from '@/lib/charting/engine/model/chart/invalidate-mask';
-import { type IPriceDataSource } from '@/lib/charting/engine/model/price/iprice-data-source';
-import { type SeriesPrimitivePaneViewZOrder } from '@/lib/charting/engine/model/series/iseries-primitive';
-import { type LayoutOptions } from '@/lib/charting/engine/model/chart/layout-options';
-import { type PriceScalePosition } from '@/lib/charting/engine/model/chart/pane';
-import { type PriceMark, type PriceScale } from '@/lib/charting/engine/model/price/price-scale';
-import { TextWidthCache } from '@/lib/charting/engine/model/text-width-cache';
-import { type PriceAxisViewRendererOptions } from '@/lib/charting/engine/renderers/iprice-axis-view-renderer';
-import { type PriceAxisRendererOptionsProvider } from '@/lib/charting/engine/renderers/price-axis-renderer-options-provider';
-import { type IAxisView } from '@/lib/charting/engine/views/pane/iaxis-view';
-import { type IPriceAxisView } from '@/lib/charting/engine/views/price-axis/iprice-axis-view';
+
 import { createBoundCanvas, releaseCanvas } from '@/lib/charting/engine/gui/canvas-utils';
 import { type IPriceAxisViewsGetter } from '@/lib/charting/engine/gui/iaxis-view-getters';
 import { suggestPriceScaleWidth } from '@/lib/charting/engine/gui/internal-layout-sizes-hints';
@@ -42,6 +25,24 @@ import {
     type TouchMouseEvent,
 } from '@/lib/charting/engine/gui/mouse-event-handler';
 import { type PaneWidget } from '@/lib/charting/engine/gui/pane-widget';
+import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
+import { clearRect, clearRectWithGradient } from '@/lib/charting/engine/helpers/canvas-helpers';
+import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
+import { makeFont } from '@/lib/charting/engine/helpers/make-font';
+import { type ChartOptionsInternalBase } from '@/lib/charting/engine/model/chart/chart-model';
+import { type IDataSource } from '@/lib/charting/engine/model/chart/idata-source';
+import { InvalidationLevel } from '@/lib/charting/engine/model/chart/invalidate-mask';
+import { type LayoutOptions } from '@/lib/charting/engine/model/chart/layout-options';
+import { type PriceScalePosition } from '@/lib/charting/engine/model/chart/pane';
+import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
+import { type IPriceDataSource } from '@/lib/charting/engine/model/price/iprice-data-source';
+import { type PriceMark, type PriceScale } from '@/lib/charting/engine/model/price/price-scale';
+import { type SeriesPrimitivePaneViewZOrder } from '@/lib/charting/engine/model/series/iseries-primitive';
+import { TextWidthCache } from '@/lib/charting/engine/model/text-width-cache';
+import { type PriceAxisViewRendererOptions } from '@/lib/charting/engine/renderers/iprice-axis-view-renderer';
+import { type PriceAxisRendererOptionsProvider } from '@/lib/charting/engine/renderers/price-axis-renderer-options-provider';
+import { type IAxisView } from '@/lib/charting/engine/views/pane/iaxis-view';
+import { type IPriceAxisView } from '@/lib/charting/engine/views/price-axis/iprice-axis-view';
 
 export type PriceAxisWidgetSide = Exclude<PriceScalePosition, 'overlay'>;
 

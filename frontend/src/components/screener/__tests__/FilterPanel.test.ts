@@ -1,11 +1,12 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import type { FilterDescriptor } from '@/api/screener';
+import FilterPanel from '@/components/screener/FilterPanel.vue';
 import type { FilterGrouping } from '@/composables/screener/useFilterRegistry';
 import type { ActiveFilter, FilterKind } from '@/composables/screener/useScreenerFilters';
 import { i18n } from '@/i18n';
 import { formatDate, formatNumber } from '@/utils/formatters';
-import FilterPanel from '@/components/screener/FilterPanel.vue';
 
 const descriptor = (over: Partial<FilterDescriptor> = {}): FilterDescriptor =>
     ({

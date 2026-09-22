@@ -1,30 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, useId, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import type { AssetProfile, ChartTimeframe } from '@ereuna/shared';
 import { CHART_TIMEFRAMES } from '@ereuna/shared';
-import {
-    BoxManager,
-    ChartRuler,
-    ChartScreenshot,
-    ColorType,
-    CrosshairMode,
-    FreehandManager,
-    PatternOverlayManager,
-    PriceLevelManager,
-    TextAnnotationManager,
-    TrendLineManager,
-    createChart,
-    detectAllPatterns,
-    type IChartApi,
-    type ISeriesApi,
-    type LogicalRange,
-    type MouseEventParams,
-    type PatternMatch,
-    type ScreenshotConfig,
-    type SeriesType,
-    type Time,
-} from '@/lib/charting';
+
 import ChartLegend from '@/components/charts/ChartLegend.vue';
 import ChartReplayBar from '@/components/charts/ChartReplayBar.vue';
 import ChartSettingsDialog from '@/components/charts/ChartSettingsDialog.vue';
@@ -53,6 +33,28 @@ import {
     type ChartTool,
     type OverlayLabel,
 } from '@/constants/chart';
+import {
+    BoxManager,
+    ChartRuler,
+    ChartScreenshot,
+    ColorType,
+    CrosshairMode,
+    FreehandManager,
+    PatternOverlayManager,
+    PriceLevelManager,
+    TextAnnotationManager,
+    TrendLineManager,
+    createChart,
+    detectAllPatterns,
+    type IChartApi,
+    type ISeriesApi,
+    type LogicalRange,
+    type MouseEventParams,
+    type PatternMatch,
+    type ScreenshotConfig,
+    type SeriesType,
+    type Time,
+} from '@/lib/charting';
 import { closes, heikinAshi, relativeVolume } from '@/utils/candles';
 import { timeToIsoDate, timeValue } from '@/utils/chartTime';
 

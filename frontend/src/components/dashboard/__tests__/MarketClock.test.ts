@@ -1,8 +1,9 @@
-import { describe, expect, it, vi } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it, vi } from 'vitest';
+
+import MarketClock from '@/components/dashboard/MarketClock.vue';
 import { i18n } from '@/i18n';
 import { formatDateTime } from '@/utils/formatters';
-import MarketClock from '@/components/dashboard/MarketClock.vue';
 
 const clock = (props: Record<string, unknown> = {}): VueWrapper => mount(MarketClock, { props });
 

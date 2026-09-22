@@ -16,11 +16,13 @@
  *  5. Bind the port only once the database and the gateway are up.
  */
 import 'dotenv/config';
+import { createServer } from 'http';
+
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
-import { createServer } from 'http';
 import helmet from 'helmet';
+
 import { closeSocket, initSocket } from '@/gateway/index.js';
 import { config } from '@/lib/config.js';
 import { closeDb, connectDb, getDb } from '@/lib/db.js';
@@ -33,9 +35,9 @@ import { requestId } from '@/middleware/request-id.js';
 import { sanitizeRequest } from '@/middleware/sanitizer.js';
 import { logosRouter } from '@/routes/asset/index.js';
 import { chartsRouter } from '@/routes/chart/index.js';
+import { accountRouter, authRouter, preferencesRouter } from '@/routes/identity/index.js';
 import { marketRouter } from '@/routes/market/index.js';
 import { notesRouter } from '@/routes/note/index.js';
-import { accountRouter, authRouter, preferencesRouter } from '@/routes/identity/index.js';
 import { portfoliosRouter, tradesRouter } from '@/routes/portfolio/index.js';
 import { screenersRouter } from '@/routes/screener/index.js';
 import { watchlistsRouter } from '@/routes/watchlist/index.js';

@@ -7,8 +7,9 @@
  * closed at the same size produces the same set of profits either way.
  */
 import { describe, expect, it } from 'vitest';
-import { computeStats } from '@/utils/portfolio-stats.js';
+
 import type { ReplayTrade } from '@/utils/portfolio-replay.js';
+import { computeStats } from '@/utils/portfolio-stats.js';
 
 function trade(
     action: ReplayTrade['action'],

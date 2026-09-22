@@ -1,10 +1,12 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import type { PortfolioSummary } from '@ereuna/shared';
-import { i18n } from '@/i18n';
+
 import { summary } from '@/__tests__/support/portfolio';
-import { formatCurrency, formatNumber, formatPercent } from '@/utils/formatters';
 import SummaryCards from '@/components/portfolio/SummaryCards.vue';
+import { i18n } from '@/i18n';
+import { formatCurrency, formatNumber, formatPercent } from '@/utils/formatters';
 
 const cards = (over: Partial<PortfolioSummary> = {}): VueWrapper =>
     mount(SummaryCards, { props: { summary: summary(over) } });

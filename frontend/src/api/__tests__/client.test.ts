@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { HttpResponse, http } from 'msw';
+import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
+
 import type { SessionUser } from '@ereuna/shared';
-import { i18n } from '@/i18n';
+
 import { mockApi, ORIGIN } from '@/__tests__/support/msw';
 import {
     api,
@@ -16,6 +17,7 @@ import {
     setAccessToken,
     setSessionUser,
 } from '@/api/client';
+import { i18n } from '@/i18n';
 
 const mock = mockApi();
 

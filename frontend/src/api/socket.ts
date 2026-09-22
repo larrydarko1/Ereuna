@@ -7,8 +7,9 @@
  * The connection dies with the session: `onSessionCleared` drops it, because a
  * socket authenticated as the previous user must not survive a sign-out.
  */
-import { ref, readonly, type DeepReadonly, type Ref } from 'vue';
 import { io, type Socket } from 'socket.io-client';
+import { ref, readonly, type DeepReadonly, type Ref } from 'vue';
+
 import { findAccessToken, isAuthenticated, onSessionCleared } from '@/api/client';
 
 export type UseSocketReturn = {

@@ -5,7 +5,10 @@
  * and loads what belongs to the new pair.
  */
 import { onScopeDispose, ref, type Ref } from 'vue';
+
 import type { ChartDrawings, ChartTimeframe } from '@ereuna/shared';
+
+import { clearDrawings, getDrawings, saveDrawings } from '@/api/chart';
 import type {
     BoxManager,
     FreehandManager,
@@ -13,7 +16,6 @@ import type {
     TextAnnotationManager,
     TrendLineManager,
 } from '@/lib/charting';
-import { clearDrawings, getDrawings, saveDrawings } from '@/api/chart';
 
 export type UseChartDrawingsReturn = {
     hasDrawings: Ref<boolean>; //  True while the chart holds at least one annotation, so "clear all" can hide itself

@@ -1,6 +1,8 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import type { TierRow } from '@ereuna/shared';
+
 import TierList from '@/components/dashboard/TierList.vue';
 
 const tier = (name: string, averageReturn: number): TierRow => ({ name, averageReturn, count: 3 });

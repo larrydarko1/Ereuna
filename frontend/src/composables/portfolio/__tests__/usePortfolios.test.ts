@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
 import { HttpResponse, http } from 'msw';
+import { describe, expect, it, vi } from 'vitest';
+
 import { mockApi, ORIGIN } from '@/__tests__/support/msw';
 import { usePortfolios, type UsePortfoliosReturn } from '@/composables/portfolio/usePortfolios';
 

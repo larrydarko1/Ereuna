@@ -12,9 +12,8 @@ import {
     type IPriceAxisViewRenderer,
     type PriceAxisViewRendererOptions,
 } from '@/lib/charting/engine/renderers/iprice-axis-view-renderer';
-
-import { type IPriceAxisView } from '@/lib/charting/engine/views/price-axis/iprice-axis-view';
 import { type IPaneView } from '@/lib/charting/engine/views/pane/ipane-view';
+import { type IPriceAxisView } from '@/lib/charting/engine/views/price-axis/iprice-axis-view';
 
 class PanePriceAxisViewRenderer implements IPaneRenderer {
     private _priceAxisViewRenderer: IPriceAxisViewRenderer | null = null;

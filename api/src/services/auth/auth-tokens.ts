@@ -1,9 +1,12 @@
 /** auth-tokens — registration, login, and the refresh-token rotation lifecycle. */
 import crypto from 'crypto';
+
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 import { type ObjectId, type WithId } from 'mongodb';
+
 import type { RefreshTokenDoc, SessionUser, UserDoc } from '@ereuna/shared';
+
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { sha256 } from '@/lib/crypto.js';

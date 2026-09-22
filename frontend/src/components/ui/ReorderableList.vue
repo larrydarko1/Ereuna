@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import AppIcon from '@/components/ui/AppIcon.vue';
 
 type ReorderableItem = { key: string; label: string };

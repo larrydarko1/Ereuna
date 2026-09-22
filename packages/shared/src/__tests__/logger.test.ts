@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
 import pino, { type Logger } from 'pino';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
 import { createLogger } from '#logger.js';
 
 /**

@@ -7,8 +7,10 @@
  */
 import 'dotenv/config';
 import { type Server } from 'http';
+
 import { OHLCV_INDEXES, REFERENCE_INDEXES, type IndexSpec } from '@ereuna/shared';
 import { startProbeServer } from '@ereuna/shared/service/probes';
+
 import { startAggregator, stopAggregator } from '@/aggregate/index.js';
 import { config } from '@/lib/config.js';
 import { closeDb, connectDb, getDb } from '@/lib/db.js';

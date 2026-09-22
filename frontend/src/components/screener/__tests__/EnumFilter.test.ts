@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import { i18n } from '@/i18n';
+import { describe, expect, it } from 'vitest';
+
 import EnumFilter from '@/components/screener/EnumFilter.vue';
+import { i18n } from '@/i18n';
 
 const SHORT = ['Energy', 'Health', 'Tech'];
 const LONG = Array.from({ length: 12 }, (_, index) => `Sector ${index}`);

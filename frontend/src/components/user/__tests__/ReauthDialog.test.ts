@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import { i18n } from '@/i18n';
+import { afterEach, describe, expect, it } from 'vitest';
+
 import ReauthDialog from '@/components/user/ReauthDialog.vue';
+import { i18n } from '@/i18n';
 
 const open = (props: Record<string, unknown> = {}): VueWrapper =>
     mount(ReauthDialog, {

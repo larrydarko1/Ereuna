@@ -13,12 +13,12 @@ import { getDefined, getNotNull } from '@/lib/charting/engine/helpers/assertions
 import { Delegate } from '@/lib/charting/engine/helpers/delegate';
 import { type ISubscription } from '@/lib/charting/engine/helpers/isubscription';
 import { type DeepPartial, merge } from '@/lib/charting/engine/helpers/strict-type-checks';
-import { type BarCoordinates, type BarPrice, type BarPrices } from '@/lib/charting/engine/model/data/bar';
-import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
-import { type FirstValue, type IPriceDataSource } from '@/lib/charting/engine/model/price/iprice-data-source';
 import { type LayoutOptions } from '@/lib/charting/engine/model/chart/layout-options';
 import { type LocalizationOptionsBase } from '@/lib/charting/engine/model/chart/localization-options';
-import { type PriceFormatterFn } from '@/lib/charting/engine/model/series/price-formatter-fn';
+import { sortSources } from '@/lib/charting/engine/model/chart/sort-sources';
+import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
+import { type BarCoordinates, type BarPrice, type BarPrices } from '@/lib/charting/engine/model/data/bar';
+import { type FirstValue, type IPriceDataSource } from '@/lib/charting/engine/model/price/iprice-data-source';
 import { PriceRangeImpl } from '@/lib/charting/engine/model/price/price-range-impl';
 import {
     canConvertPriceRangeFromLog,
@@ -38,7 +38,7 @@ import {
 } from '@/lib/charting/engine/model/price/price-scale-conversions';
 import { PriceTickMarkBuilder } from '@/lib/charting/engine/model/price/price-tick-mark-builder';
 import { type RangeImpl } from '@/lib/charting/engine/model/range-impl';
-import { sortSources } from '@/lib/charting/engine/model/chart/sort-sources';
+import { type PriceFormatterFn } from '@/lib/charting/engine/model/series/price-formatter-fn';
 import { type SeriesItemsIndexesRange, type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 
 export type PriceScaleMode = (typeof PriceScaleMode)[keyof typeof PriceScaleMode];

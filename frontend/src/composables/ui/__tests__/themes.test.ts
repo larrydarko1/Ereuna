@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { DEFAULT_THEME, isThemeId, THEMES } from '@/composables/ui/themes';
 
 const SWATCH = /^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/i;

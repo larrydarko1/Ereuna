@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
+
 import { CHART_STYLES, PANEL_SECTIONS, SUMMARY_FIELDS } from '@ereuna/shared';
+
+import { config } from '@/lib/config.js';
 import {
     chartSettingsSchema,
     idParam,
@@ -12,7 +15,6 @@ import {
     symbolSchema,
     usernameSchema,
 } from '@/lib/schemas.js';
-import { config } from '@/lib/config.js';
 
 describe('passwordSchema', () => {
     it('accepts a password meeting every rule', () => {

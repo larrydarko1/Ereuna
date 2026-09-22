@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
+import { beforeEach, describe, expect, it } from 'vitest';
+
 import AppTooltip from '@/components/ui/AppTooltip.vue';
 
 const tooltip = (): VueWrapper =>

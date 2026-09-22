@@ -5,18 +5,20 @@
  * can be imported without pulling in the implementation, which reaches most of the
  * model.
  */
+import { type IPriceScaleApi } from '@/lib/charting/engine/api/iprice-scale-api';
+import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
+import { type ITimeScaleApi } from '@/lib/charting/engine/api/itime-scale-api';
 import { type DeepPartial } from '@/lib/charting/engine/helpers/strict-type-checks';
-
 import { type ChartOptionsImpl } from '@/lib/charting/engine/model/chart/chart-model';
+import { type TouchMouseEventData } from '@/lib/charting/engine/model/chart/touch-mouse-event-data';
 import {
     type BarData,
     type HistogramData,
     type LineData,
     type WhitespaceData,
 } from '@/lib/charting/engine/model/data/data-consumer';
-import { type Time } from '@/lib/charting/engine/model/time/types';
-import { type CustomData, type ICustomSeriesPaneView } from '@/lib/charting/engine/model/series/icustom-series';
 import { type Point } from '@/lib/charting/engine/model/point';
+import { type CustomData, type ICustomSeriesPaneView } from '@/lib/charting/engine/model/series/icustom-series';
 import {
     type AreaSeriesPartialOptions,
     type BarSeriesPartialOptions,
@@ -29,11 +31,7 @@ import {
     type SeriesType,
 } from '@/lib/charting/engine/model/series/series-options';
 import { type Logical } from '@/lib/charting/engine/model/time/time-data';
-import { type TouchMouseEventData } from '@/lib/charting/engine/model/chart/touch-mouse-event-data';
-
-import { type IPriceScaleApi } from '@/lib/charting/engine/api/iprice-scale-api';
-import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
-import { type ITimeScaleApi } from '@/lib/charting/engine/api/itime-scale-api';
+import { type Time } from '@/lib/charting/engine/model/time/types';
 
 /**
  * Dimensions of the Chart Pane

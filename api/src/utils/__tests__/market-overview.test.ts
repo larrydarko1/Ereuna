@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+
 import type { StatsDoc } from '@ereuna/shared';
+
 import { toMarketOverview } from '@/utils/market-overview.js';
 
 /** A document shaped like the ingestor's, trimmed to what each case needs. */

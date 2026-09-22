@@ -5,7 +5,9 @@
  * Does NOT own: credentials or two-factor state (user-account.ts).
  */
 import { type ObjectId } from 'mongodb';
+
 import type { Preferences, UserDoc } from '@ereuna/shared';
+
 import { AppError } from '@/lib/app-error.js';
 import { getDb } from '@/lib/db.js';
 import { invalidateResults } from '@/services/screener/screener-crud.js';

@@ -1,8 +1,9 @@
-import { afterEach, describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { afterEach, describe, expect, it } from 'vitest';
+
+import CashDialog from '@/components/portfolio/CashDialog.vue';
 import { i18n } from '@/i18n';
 import { toDateInput } from '@/utils/formatters';
-import CashDialog from '@/components/portfolio/CashDialog.vue';
 
 const open = (props: Record<string, unknown> = {}): VueWrapper => mount(CashDialog, { props, attachTo: document.body });
 

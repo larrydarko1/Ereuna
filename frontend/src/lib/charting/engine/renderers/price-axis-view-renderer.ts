@@ -11,9 +11,7 @@ import {
 } from 'fancy-canvas';
 
 import { drawRoundRectWithBorder } from '@/lib/charting/engine/helpers/canvas-helpers';
-
 import { type TextWidthCache } from '@/lib/charting/engine/model/text-width-cache';
-
 import {
     type IPriceAxisViewRenderer,
     type PriceAxisViewRendererCommonData,

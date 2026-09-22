@@ -7,6 +7,7 @@
  * visible in the list the user built.
  */
 import type { WatchlistEntry, WatchlistRow, WatchlistSummary } from '@ereuna/shared';
+
 import { api, type ApiResult } from '@/api/client';
 
 export type WatchlistDetail = {

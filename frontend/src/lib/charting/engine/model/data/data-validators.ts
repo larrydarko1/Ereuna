@@ -9,10 +9,10 @@
  */
 import { assert, getDefined } from '@/lib/charting/engine/helpers/assertions';
 import { isFulfilledData, type SeriesDataItemTypeMap } from '@/lib/charting/engine/model/data/data-consumer';
-import { type IHorzScaleBehavior } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
 import { type CreatePriceLineOptions } from '@/lib/charting/engine/model/price/price-line-options';
 import { type SeriesMarker } from '@/lib/charting/engine/model/series/series-markers';
 import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
+import { type IHorzScaleBehavior } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
 
 type Checker<THorzScaleItem> = (item: SeriesDataItemTypeMap<THorzScaleItem>[SeriesType]) => void;
 

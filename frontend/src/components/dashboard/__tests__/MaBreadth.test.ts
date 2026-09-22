@@ -1,8 +1,10 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import { BREADTH_UNIVERSES, type BreadthUniverse, type MovingAverageBreadth } from '@ereuna/shared';
-import { i18n } from '@/i18n';
+
 import MaBreadth from '@/components/dashboard/MaBreadth.vue';
+import { i18n } from '@/i18n';
 
 type Series = Record<BreadthUniverse, MovingAverageBreadth[]>;
 

@@ -18,6 +18,7 @@
  * On a Redis outage the underlying bucket fails open (see lib/token-bucket.ts).
  */
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
+
 import { AppError } from '@/lib/app-error.js';
 import { bucketKey, consumeTokenBucket, type TokenBucketOptions } from '@/lib/token-bucket.js';
 import type { AuthRequest } from '@/middleware/auth.js';

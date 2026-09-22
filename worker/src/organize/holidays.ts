@@ -1,5 +1,6 @@
 /** The exchange holiday list, rebuilt each night. */
 import type { StatsDoc } from '@ereuna/shared';
+
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
 import { holidayCalendar } from '@/utils/holidays.js';

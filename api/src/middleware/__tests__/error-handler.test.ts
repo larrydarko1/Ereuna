@@ -1,8 +1,9 @@
+import type { RequestHandler } from 'express';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ZodError, z } from 'zod';
-import { AppError } from '@/lib/app-error.js';
+
 import { serve, type Harness } from '@/__tests__/support/http.js';
-import type { RequestHandler } from 'express';
+import { AppError } from '@/lib/app-error.js';
 
 let harness: Harness | null = null;
 

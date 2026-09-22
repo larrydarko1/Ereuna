@@ -6,47 +6,6 @@
  * where a caller's partial options are merged into a complete set before the model
  * ever sees them.
  */
-import {
-    ChartWidget,
-    type MouseEventParamsImpl,
-    type MouseEventParamsImplSupplier,
-} from '@/lib/charting/engine/gui/chart-widget';
-import { assert, getPresent, getDefined } from '@/lib/charting/engine/helpers/assertions';
-import { Delegate } from '@/lib/charting/engine/helpers/delegate';
-import { rejectOptions } from '@/lib/charting/engine/helpers/logger';
-import { clone, type DeepPartial, isBoolean, merge } from '@/lib/charting/engine/helpers/strict-type-checks';
-import { type ChartOptionsImpl, type ChartOptionsInternal } from '@/lib/charting/engine/model/chart/chart-model';
-import {
-    type DataUpdatesConsumer,
-    isFulfilledData,
-    type SeriesDataItemTypeMap,
-    type WhitespaceData,
-} from '@/lib/charting/engine/model/data/data-consumer';
-import { DataLayer, type DataUpdateResponse, type SeriesChanges } from '@/lib/charting/engine/model/data/data-layer';
-import { type CustomData, type ICustomSeriesPaneView } from '@/lib/charting/engine/model/series/icustom-series';
-import { type IHorzScaleBehavior } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
-import { type Series } from '@/lib/charting/engine/model/series/series';
-import { type SeriesPlotRow } from '@/lib/charting/engine/model/data/series-data';
-import {
-    type AreaSeriesPartialOptions,
-    type BarSeriesPartialOptions,
-    type BaselineSeriesPartialOptions,
-    type CandlestickSeriesPartialOptions,
-    type CustomSeriesOptions,
-    type CustomSeriesPartialOptions,
-    fillUpDownCandlesticksColors,
-    type HistogramSeriesPartialOptions,
-    type LineSeriesPartialOptions,
-    precisionByMinMove,
-    type PriceFormat,
-    type PriceFormatBuiltIn,
-    type SeriesOptionsMap,
-    type SeriesPartialOptions,
-    type SeriesPartialOptionsMap,
-    type SeriesStyleOptionsMap,
-    type SeriesType,
-} from '@/lib/charting/engine/model/series/series-options';
-import { type Logical } from '@/lib/charting/engine/model/time/time-data';
 import { getSeriesDataCreator } from '@/lib/charting/engine/api/get-series-data-creator';
 import {
     type IChartApiBase,
@@ -71,6 +30,47 @@ import {
 import { PriceScaleApi } from '@/lib/charting/engine/api/price-scale-api';
 import { SeriesApi } from '@/lib/charting/engine/api/series-api';
 import { TimeScaleApi } from '@/lib/charting/engine/api/time-scale-api';
+import {
+    ChartWidget,
+    type MouseEventParamsImpl,
+    type MouseEventParamsImplSupplier,
+} from '@/lib/charting/engine/gui/chart-widget';
+import { assert, getPresent, getDefined } from '@/lib/charting/engine/helpers/assertions';
+import { Delegate } from '@/lib/charting/engine/helpers/delegate';
+import { rejectOptions } from '@/lib/charting/engine/helpers/logger';
+import { clone, type DeepPartial, isBoolean, merge } from '@/lib/charting/engine/helpers/strict-type-checks';
+import { type ChartOptionsImpl, type ChartOptionsInternal } from '@/lib/charting/engine/model/chart/chart-model';
+import {
+    type DataUpdatesConsumer,
+    isFulfilledData,
+    type SeriesDataItemTypeMap,
+    type WhitespaceData,
+} from '@/lib/charting/engine/model/data/data-consumer';
+import { DataLayer, type DataUpdateResponse, type SeriesChanges } from '@/lib/charting/engine/model/data/data-layer';
+import { type SeriesPlotRow } from '@/lib/charting/engine/model/data/series-data';
+import { type CustomData, type ICustomSeriesPaneView } from '@/lib/charting/engine/model/series/icustom-series';
+import { type Series } from '@/lib/charting/engine/model/series/series';
+import {
+    type AreaSeriesPartialOptions,
+    type BarSeriesPartialOptions,
+    type BaselineSeriesPartialOptions,
+    type CandlestickSeriesPartialOptions,
+    type CustomSeriesOptions,
+    type CustomSeriesPartialOptions,
+    fillUpDownCandlesticksColors,
+    type HistogramSeriesPartialOptions,
+    type LineSeriesPartialOptions,
+    precisionByMinMove,
+    type PriceFormat,
+    type PriceFormatBuiltIn,
+    type SeriesOptionsMap,
+    type SeriesPartialOptions,
+    type SeriesPartialOptionsMap,
+    type SeriesStyleOptionsMap,
+    type SeriesType,
+} from '@/lib/charting/engine/model/series/series-options';
+import { type IHorzScaleBehavior } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
+import { type Logical } from '@/lib/charting/engine/model/time/time-data';
 
 export type IPriceScaleApiProvider<THorzScaleItem> = Pick<IChartApiBase<THorzScaleItem>, 'priceScale'>;
 

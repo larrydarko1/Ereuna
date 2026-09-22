@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { effectScope, nextTick, ref } from 'vue';
+
 import { useRowLimit, type UseRowLimitReturn } from '@/composables/ui/useRowLimit';
 
 /** The composable registers a watcher, so it needs a scope to be collected with. */

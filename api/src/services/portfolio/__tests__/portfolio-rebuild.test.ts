@@ -1,8 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ObjectId, type WithId } from 'mongodb';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type { TradeDoc } from '@ereuna/shared';
-import { AppError } from '@/lib/app-error.js';
+
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { AppError } from '@/lib/app-error.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));

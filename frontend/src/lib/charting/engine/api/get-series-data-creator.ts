@@ -15,7 +15,6 @@ import {
     type SeriesDataItemTypeMap,
     type SingleValueData,
 } from '@/lib/charting/engine/model/data/data-consumer';
-import { type CustomData } from '@/lib/charting/engine/model/series/icustom-series';
 import { type PlotRow, PlotRowValueIndex } from '@/lib/charting/engine/model/data/plot-data';
 import {
     type AreaPlotRow,
@@ -26,6 +25,7 @@ import {
     type LinePlotRow,
     type SeriesPlotRow,
 } from '@/lib/charting/engine/model/data/series-data';
+import { type CustomData } from '@/lib/charting/engine/model/series/icustom-series';
 import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
 
 type SeriesPlotRowToDataMap<THorzScaleItem> = {

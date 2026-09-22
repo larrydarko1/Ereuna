@@ -6,7 +6,6 @@
  * capped rather than cleared.
  */
 import { getDefined } from '@/lib/charting/engine/helpers/assertions';
-
 import { type IHorzScaleBehavior } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
 import { type TickMark } from '@/lib/charting/engine/model/time/tick-marks';
 

@@ -13,11 +13,12 @@
  * answer, not an error.
  */
 import { createApp } from 'vue';
-import App from '@/App.vue';
-import { router } from '@/router';
-import { i18n, initLocale } from '@/i18n';
-import { initTheme, useTheme } from '@/composables/ui/useTheme';
+
 import { initAuth } from '@/api/client';
+import App from '@/App.vue';
+import { initTheme, useTheme } from '@/composables/ui/useTheme';
+import { i18n, initLocale } from '@/i18n';
+import { router } from '@/router';
 import '@/styles/index.scss';
 
 const app = createApp(App);

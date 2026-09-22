@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { AGGREGATE_CHANNEL_PATTERN, BUCKET_MS, lastCandleKey, type AggregateMessage } from '@ereuna/shared';
+
 import { fakeRedis, type RedisStub } from '@/__tests__/support/redis.js';
 
 type Handler = (...args: unknown[]) => void;

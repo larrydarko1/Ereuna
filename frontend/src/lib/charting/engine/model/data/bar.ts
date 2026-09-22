@@ -6,7 +6,6 @@
  * compiler is made to care.
  */
 import { type Nominal } from '@/lib/charting/engine/helpers/nominal';
-
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 
 /**

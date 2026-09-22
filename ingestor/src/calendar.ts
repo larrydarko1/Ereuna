@@ -8,6 +8,7 @@
  * failure than ingesting a few hours of nothing on a closed holiday.
  */
 import type { StatsDoc } from '@ereuna/shared';
+
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
 

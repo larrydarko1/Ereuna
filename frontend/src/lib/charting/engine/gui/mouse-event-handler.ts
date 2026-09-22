@@ -10,10 +10,10 @@
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
 import { isFF, isIOS } from '@/lib/charting/engine/helpers/browsers';
 import { preventScrollByWheelClick } from '@/lib/charting/engine/helpers/events';
-import { MouseEventButton } from '@/lib/charting/engine/helpers/mouse-event-button';
 import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
-import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
+import { MouseEventButton } from '@/lib/charting/engine/helpers/mouse-event-button';
 import { type TouchMouseEventData } from '@/lib/charting/engine/model/chart/touch-mouse-event-data';
+import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 
 export type HandlerMouseEventCallback = (event: MouseEventHandlerMouseEvent) => void;
 

@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+
 import { PANEL_SECTIONS, SUMMARY_FIELDS } from '@ereuna/shared';
+
 import { mockApi } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
-import { loadPreferences } from '@/composables/data/usePreferences';
 import { usePanelLayout } from '@/composables/charts/usePanelLayout';
+import { loadPreferences } from '@/composables/data/usePreferences';
 
 const mock = mockApi();
 const { sections, summaryFields, save, reset } = usePanelLayout();

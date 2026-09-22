@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { logger } from '@/lib/logger.js';
+
 import { config } from '@/lib/config.js';
+import { logger } from '@/lib/logger.js';
 
 describe('the ingestor logger', () => {
     it("names every line `ingestor`, so its output is separable from the worker's", () => {

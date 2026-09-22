@@ -10,7 +10,9 @@
  * actually preceded it rather than against today's balance.
  */
 import type { ObjectId, WithId } from 'mongodb';
+
 import type { PortfolioDoc, PositionDoc, TradeDoc } from '@ereuna/shared';
+
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';

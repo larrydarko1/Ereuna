@@ -1,11 +1,12 @@
+import { mount } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { defineComponent } from 'vue';
-import { mount } from '@vue/test-utils';
 import { createRouter, createWebHistory, type Router } from 'vue-router';
+
 import { mockApi } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
-import { loadPreferences } from '@/composables/data/usePreferences';
 import { useChartSymbol, type UseChartSymbolReturn } from '@/composables/charts/useChartSymbol';
+import { loadPreferences } from '@/composables/data/usePreferences';
 
 const mock = mockApi();
 

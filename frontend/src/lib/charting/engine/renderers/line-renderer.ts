@@ -4,7 +4,6 @@
 import { type MediaCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { type LineStrokeColorerStyle } from '@/lib/charting/engine/model/series/series-bar-colorer';
-
 import {
     type LineItemBase,
     PaneRendererLineBase,

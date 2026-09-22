@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+
 import { setPasswordAfterRecovery } from '@/api/account';
 import { logout } from '@/api/auth';
 import { apiErrorMessage } from '@/api/client';

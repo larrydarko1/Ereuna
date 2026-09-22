@@ -1,6 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { register } from 'prom-client';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { OHLCV_COLLECTIONS, type AggregatorTimeframe } from '@ereuna/shared';
+
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 import type { CandleDoc } from '@/aggregate/writer.js';
 

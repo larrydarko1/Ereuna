@@ -6,10 +6,12 @@
  * on the button, so a truncated file is not a surprise.
  */
 import { ref, type Ref } from 'vue';
+
 import type { ScreenerResult } from '@ereuna/shared';
+
 import { fetchResults, type ResultsSource } from '@/composables/screener/useScreenerResults';
-import { i18n } from '@/i18n';
 import { findColumn, readColumn } from '@/constants/screener';
+import { i18n } from '@/i18n';
 import { CSV_TYPE, toCsv } from '@/utils/csv';
 import { downloadFile } from '@/utils/download';
 

@@ -5,16 +5,14 @@
  * otherwise be shared between charts, and applying options to one would change the
  * other.
  */
-import { isRunningOnClientSide } from '@/lib/charting/engine/helpers/is-running-on-client-side';
-
-import { type ChartOptionsInternal, TrackingModeExitMode } from '@/lib/charting/engine/model/chart/chart-model';
-
 import { crosshairOptionsDefaults } from '@/lib/charting/engine/api/options/crosshair-options-defaults';
 import { gridOptionsDefaults } from '@/lib/charting/engine/api/options/grid-options-defaults';
 import { layoutOptionsDefaults } from '@/lib/charting/engine/api/options/layout-options-defaults';
 import { priceScaleOptionsDefaults } from '@/lib/charting/engine/api/options/price-scale-options-defaults';
 import { timeScaleOptionsDefaults } from '@/lib/charting/engine/api/options/time-scale-options-defaults';
 import { watermarkOptionsDefaults } from '@/lib/charting/engine/api/options/watermark-options-defaults';
+import { isRunningOnClientSide } from '@/lib/charting/engine/helpers/is-running-on-client-side';
+import { type ChartOptionsInternal, TrackingModeExitMode } from '@/lib/charting/engine/model/chart/chart-model';
 
 export function chartOptionsDefaults<THorzScaleItem>(): ChartOptionsInternal<THorzScaleItem> {
     return {

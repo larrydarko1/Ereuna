@@ -5,10 +5,8 @@
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
-
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type BaselineStrokeColorerStyle } from '@/lib/charting/engine/model/series/series-bar-colorer';
-
 import { GradientStyleCache } from '@/lib/charting/engine/renderers/gradient-style-cache';
 import {
     type LineItemBase as LineStrokeItemBase,

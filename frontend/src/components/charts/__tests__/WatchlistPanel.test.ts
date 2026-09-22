@@ -1,10 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
-import { clearAuth } from '@/api/client';
-import { i18n } from '@/i18n';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { mockApi } from '@/__tests__/support/msw';
-import { formatNumber, formatPercent } from '@/utils/formatters';
+import { clearAuth } from '@/api/client';
 import WatchlistPanel from '@/components/charts/WatchlistPanel.vue';
+import { i18n } from '@/i18n';
+import { formatNumber, formatPercent } from '@/utils/formatters';
 
 const api = mockApi();
 

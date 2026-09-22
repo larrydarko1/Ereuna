@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import DonutChart from '@/components/viz/DonutChart.vue';
 
 const chart = (slices: { label: string; value: number }[], label = 'Allocation'): VueWrapper =>

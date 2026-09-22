@@ -1,9 +1,11 @@
-import { afterEach, describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { afterEach, describe, expect, it } from 'vitest';
+
 import type { TradeSignal } from '@ereuna/shared';
+
+import SignalsDialog from '@/components/charts/SignalsDialog.vue';
 import { i18n } from '@/i18n';
 import { formatCurrency, formatDate, formatNumber } from '@/utils/formatters';
-import SignalsDialog from '@/components/charts/SignalsDialog.vue';
 
 const signal = (over: Partial<TradeSignal> = {}): TradeSignal => ({
     date: '2026-03-04',

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import type { SessionUser } from '@ereuna/shared';
+
 import { changeUsername } from '@/api/account';
 import { apiErrorMessage } from '@/api/client';
 import AppField from '@/components/ui/AppField.vue';

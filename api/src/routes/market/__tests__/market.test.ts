@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
 
 const service = {

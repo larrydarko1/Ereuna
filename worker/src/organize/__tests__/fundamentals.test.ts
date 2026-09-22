@@ -1,9 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AnyBulkWriteOperation } from 'mongodb';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type { AssetInfoDoc } from '@ereuna/shared';
+
 import type { VendorStatement } from '@/lib/tiingo.js';
-import type { Asset } from '@/organize/universe.js';
 import type { Statement } from '@/organize/fundamentals.js';
+import type { Asset } from '@/organize/universe.js';
 
 vi.mock('@/lib/logger.js', () => ({
     logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },

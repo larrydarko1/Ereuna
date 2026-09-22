@@ -10,8 +10,10 @@
  * had been sending it as one.
  */
 import { computed, type ComputedRef } from 'vue';
+
 import type { ChartIndicator, ChartSettings, ChartTimeframe } from '@ereuna/shared';
 import { DEFAULT_INDICATORS } from '@ereuna/shared';
+
 import { patchPreferences, usePreferences } from '@/composables/data/usePreferences';
 
 export type UseChartSettingsReturn = {

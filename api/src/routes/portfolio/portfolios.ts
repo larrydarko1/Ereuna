@@ -13,12 +13,13 @@
  */
 import { Router } from 'express';
 import { z } from 'zod';
+
 import { config } from '@/lib/config.js';
 import { portfolioNumberSchema, symbolSchema } from '@/lib/schemas.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';
-import * as portfolioService from '@/services/portfolio/index.js';
 import { tradeInputSchema, toTradeFields } from '@/routes/portfolio/trades.js';
+import * as portfolioService from '@/services/portfolio/index.js';
 
 const numberParam = z.object({ number: portfolioNumberSchema });
 

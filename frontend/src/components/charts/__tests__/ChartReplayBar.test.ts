@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import { i18n } from '@/i18n';
+import { describe, expect, it } from 'vitest';
+
 import ChartReplayBar from '@/components/charts/ChartReplayBar.vue';
+import { i18n } from '@/i18n';
 
 const bar = (props: Record<string, unknown> = {}): VueWrapper =>
     mount(ChartReplayBar, {

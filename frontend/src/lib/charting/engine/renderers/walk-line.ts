@@ -6,6 +6,7 @@
  * either side of the segment it is drawing.
  */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+
 import { getDefined } from '@/lib/charting/engine/helpers/assertions';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type SeriesItemsIndexesRange } from '@/lib/charting/engine/model/time/time-data';

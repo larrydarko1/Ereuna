@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { mockApi } from '@/__tests__/support/msw';
 import { useTrades, type UseTradesReturn } from '@/composables/portfolio/useTrades';
 

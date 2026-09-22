@@ -1,6 +1,8 @@
 /** Everything derived from a symbol's own daily bars, computed in one pass. */
 import type { AnyBulkWriteOperation } from 'mongodb';
+
 import type { AssetInfoDoc } from '@ereuna/shared';
+
 import { logger } from '@/lib/logger.js';
 import { dailySeries, lifetimeStats, type LifetimeStats, type Series } from '@/organize/bars.js';
 import { generateSignals } from '@/organize/signals.js';

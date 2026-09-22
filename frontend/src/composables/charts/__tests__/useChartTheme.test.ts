@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { nextTick } from 'vue';
+
 import { useChartTheme, withAlpha } from '@/composables/charts/useChartTheme';
-import { useTheme } from '@/composables/ui/useTheme';
 import { DEFAULT_THEME } from '@/composables/ui/themes';
+import { useTheme } from '@/composables/ui/useTheme';
 
 const paint = (tokens: Record<string, string>): void => {
     for (const [token, value] of Object.entries(tokens)) {

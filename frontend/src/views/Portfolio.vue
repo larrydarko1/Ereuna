@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import type { TradeAction, TradeInput, TradeRow, ValuedPosition } from '@ereuna/shared';
+
 import type { PortfolioImport } from '@/api/portfolio';
-import BenchmarkStrip from '@/components/portfolio/BenchmarkStrip.vue';
 import BenchmarksDialog from '@/components/portfolio/BenchmarksDialog.vue';
+import BenchmarkStrip from '@/components/portfolio/BenchmarkStrip.vue';
 import CashDialog from '@/components/portfolio/CashDialog.vue';
 import ExportDialog from '@/components/portfolio/ExportDialog.vue';
 import ImportDialog from '@/components/portfolio/ImportDialog.vue';
@@ -22,10 +24,10 @@ import EmptyState from '@/components/ui/EmptyState.vue';
 import BarChart, { type Bar } from '@/components/viz/BarChart.vue';
 import DonutChart from '@/components/viz/DonutChart.vue';
 import LineChart from '@/components/viz/LineChart.vue';
+import { useMarketStatus } from '@/composables/charts/useMarketStatus';
 import { useLiveQuotes } from '@/composables/portfolio/useLiveQuotes';
 import { usePortfolios } from '@/composables/portfolio/usePortfolios';
 import { useTrades } from '@/composables/portfolio/useTrades';
-import { useMarketStatus } from '@/composables/charts/useMarketStatus';
 import { formatCurrency, formatDate, formatNumber } from '@/utils/formatters';
 
 type Dialog = 'trade' | 'cash' | 'settings' | 'benchmarks' | 'import' | 'export' | 'reset';

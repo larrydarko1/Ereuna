@@ -5,7 +5,6 @@
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { type SeriesItemsIndexesRange } from '@/lib/charting/engine/model/time/time-data';
-
 import { type LinePoint } from '@/lib/charting/engine/renderers/draw-line';
 
 export function drawSeriesPointMarkers<TItem extends LinePoint, TStyle extends CanvasRenderingContext2D['fillStyle']>(

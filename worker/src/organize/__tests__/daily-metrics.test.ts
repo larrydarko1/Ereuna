@@ -1,6 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AnyBulkWriteOperation } from 'mongodb';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type { AssetInfoDoc } from '@ereuna/shared';
+
 import type { LifetimeStats, Series } from '@/organize/bars.js';
 import type { Asset } from '@/organize/universe.js';
 

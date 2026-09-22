@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { BREADTH_UNIVERSES, OUTLOOK_TERMS } from '#market/overview.js';
 
 describe('BREADTH_UNIVERSES', () => {

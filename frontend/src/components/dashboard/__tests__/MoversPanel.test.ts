@@ -1,8 +1,10 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import type { MoverRow } from '@ereuna/shared';
-import { formatPercent } from '@/utils/formatters';
+
 import MoversPanel from '@/components/dashboard/MoversPanel.vue';
+import { formatPercent } from '@/utils/formatters';
 
 const panel = (gainers: MoverRow[], losers: MoverRow[]): VueWrapper =>
     mount(MoversPanel, { props: { gainers, losers } });

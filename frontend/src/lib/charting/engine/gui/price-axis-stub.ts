@@ -14,15 +14,13 @@ import {
     tryCreateCanvasRenderingTarget2D,
 } from 'fancy-canvas';
 
+import { createBoundCanvas, releaseCanvas } from '@/lib/charting/engine/gui/canvas-utils';
+import { type PriceAxisWidgetSide } from '@/lib/charting/engine/gui/price-axis-widget';
 import { clearRect } from '@/lib/charting/engine/helpers/canvas-helpers';
 import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
-
 import { type ChartOptionsBase } from '@/lib/charting/engine/model/chart/chart-model';
 import { InvalidationLevel } from '@/lib/charting/engine/model/chart/invalidate-mask';
 import { type PriceAxisRendererOptionsProvider } from '@/lib/charting/engine/renderers/price-axis-renderer-options-provider';
-
-import { createBoundCanvas, releaseCanvas } from '@/lib/charting/engine/gui/canvas-utils';
-import { type PriceAxisWidgetSide } from '@/lib/charting/engine/gui/price-axis-widget';
 
 export type PriceAxisStubParams = {
     rendererOptionsProvider: PriceAxisRendererOptionsProvider;

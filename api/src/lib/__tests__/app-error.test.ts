@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { AppError } from '@/lib/app-error.js';
 
 describe('AppError', () => {

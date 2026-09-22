@@ -3,6 +3,7 @@
  * so every Node service in the monorepo shares one redaction list and format.
  */
 import { createLogger } from '@ereuna/shared/logger';
+
 import { config } from '@/lib/config.js';
 
 export const logger = createLogger('api', {

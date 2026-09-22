@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import AppField from '@/components/ui/AppField.vue';
 
 const field = (props: Record<string, unknown> = {}): ReturnType<typeof mount> =>

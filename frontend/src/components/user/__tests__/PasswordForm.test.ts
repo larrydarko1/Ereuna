@@ -1,9 +1,10 @@
-import { beforeEach, describe, expect, it } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
-import { i18n } from '@/i18n';
+import { beforeEach, describe, expect, it } from 'vitest';
+
 import { mockApi } from '@/__tests__/support/msw';
 import { testRouter } from '@/__tests__/support/router';
 import PasswordForm from '@/components/user/PasswordForm.vue';
+import { i18n } from '@/i18n';
 
 const api = mockApi();
 

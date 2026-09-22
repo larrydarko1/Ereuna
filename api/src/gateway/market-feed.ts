@@ -10,6 +10,7 @@
  * to. It is not the shared singleton for the same reason.
  */
 import { Redis } from 'ioredis';
+
 import {
     AGGREGATE_CHANNEL_PATTERN,
     AGGREGATOR_TIMEFRAMES,
@@ -18,9 +19,10 @@ import {
     type AggregateMessage,
     type AggregatorTimeframe,
 } from '@ereuna/shared';
+
 import { config } from '@/lib/config.js';
-import { getRedis } from '@/lib/redis.js';
 import { logger } from '@/lib/logger.js';
+import { getRedis } from '@/lib/redis.js';
 
 export type BucketSink = (message: AggregateMessage) => void;
 

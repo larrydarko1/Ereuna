@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { REDACT_PATHS } from '#config/redact.js';
 
 describe('REDACT_PATHS', () => {

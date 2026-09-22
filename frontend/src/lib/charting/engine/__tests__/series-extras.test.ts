@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { mountChart, paint } from '@/lib/charting/__tests__/helpers/chart-harness';
 import { candlestickData, lineData, timeAt } from '@/lib/charting/__tests__/helpers/market-data';
-import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
 import { type IChartApi } from '@/lib/charting/engine/api/create-chart';
+import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
 import { type SeriesMarker } from '@/lib/charting/engine/model/series/series-markers';
 import { type Time } from '@/lib/charting/engine/model/time/types';
 import { LineStyle } from '@/lib/charting/engine/renderers/draw-line';

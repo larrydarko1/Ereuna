@@ -5,7 +5,6 @@
 import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
 import { type TextWidthCache } from '@/lib/charting/engine/model/text-width-cache';
-
 import { type LineWidth } from '@/lib/charting/engine/renderers/draw-line';
 
 export type PriceAxisViewRendererCommonData = {

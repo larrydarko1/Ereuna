@@ -1,11 +1,10 @@
 /**
  * The candlestick series' view.
  */
-import { type SeriesBarColorer } from '@/lib/charting/engine/model/series/series-bar-colorer';
 import { type SeriesPlotRow } from '@/lib/charting/engine/model/data/series-data';
+import { type SeriesBarColorer } from '@/lib/charting/engine/model/series/series-bar-colorer';
 import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 import { type CandlestickItem, PaneRendererCandlesticks } from '@/lib/charting/engine/renderers/candlesticks-renderer';
-
 import { BarsPaneViewBase } from '@/lib/charting/engine/views/pane/bars-pane-view-base';
 
 export class SeriesCandlesticksPaneView extends BarsPaneViewBase<

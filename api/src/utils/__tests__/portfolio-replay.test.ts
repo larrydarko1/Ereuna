@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { replayTrades, sortTrades, type ReplayTrade } from '@/utils/portfolio-replay.js';
 
 /** Build a trade with sensible defaults so each test states only what it is about. */

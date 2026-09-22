@@ -1,8 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+
 import { clearAuth } from '@/api/client';
-import { useChartTheme } from '@/composables/charts/useChartTheme';
 import ScreenshotDialog from '@/components/charts/ScreenshotDialog.vue';
+import { useChartTheme } from '@/composables/charts/useChartTheme';
 
 const open = (): VueWrapper => mount(ScreenshotDialog, { attachTo: document.body });
 

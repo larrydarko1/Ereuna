@@ -6,9 +6,10 @@
  * invalidate by key rather than updating a second copy.
  */
 import { isMarketHours } from '@ereuna/shared';
+
 import { config } from '@/lib/config.js';
-import { getRedis } from '@/lib/redis.js';
 import { logger } from '@/lib/logger.js';
+import { getRedis } from '@/lib/redis.js';
 
 /**
  * `price` follows the market session; `static` is reference data that changes

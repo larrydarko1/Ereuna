@@ -7,6 +7,14 @@
  * one each.
  */
 import { type Size, size } from 'fancy-canvas';
+
+import {
+    suggestChartSize,
+    suggestPriceScaleWidth,
+    suggestTimeScaleHeight,
+} from '@/lib/charting/engine/gui/internal-layout-sizes-hints';
+import { PaneWidget } from '@/lib/charting/engine/gui/pane-widget';
+import { TimeAxisWidget } from '@/lib/charting/engine/gui/time-axis-widget';
 import { getDefined, getNotNull } from '@/lib/charting/engine/helpers/assertions';
 import { isChromiumBased, isWindows } from '@/lib/charting/engine/helpers/browsers';
 import { Delegate } from '@/lib/charting/engine/helpers/delegate';
@@ -20,28 +28,21 @@ import {
     type ChartOptionsInternalBase,
     type IChartModelBase,
 } from '@/lib/charting/engine/model/chart/chart-model';
-import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
-import { type DefaultPriceScaleId } from '@/lib/charting/engine/model/price/default-price-scale';
-import { type IHorzScaleBehavior } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
 import {
     InvalidateMask,
     InvalidationLevel,
     type TimeScaleInvalidation,
     TimeScaleInvalidationType,
 } from '@/lib/charting/engine/model/chart/invalidate-mask';
-import { type Point } from '@/lib/charting/engine/model/point';
-import { Series } from '@/lib/charting/engine/model/series/series';
-import { type SeriesPlotRow } from '@/lib/charting/engine/model/data/series-data';
-import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
-import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 import { type TouchMouseEventData } from '@/lib/charting/engine/model/chart/touch-mouse-event-data';
-import {
-    suggestChartSize,
-    suggestPriceScaleWidth,
-    suggestTimeScaleHeight,
-} from '@/lib/charting/engine/gui/internal-layout-sizes-hints';
-import { PaneWidget } from '@/lib/charting/engine/gui/pane-widget';
-import { TimeAxisWidget } from '@/lib/charting/engine/gui/time-axis-widget';
+import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
+import { type SeriesPlotRow } from '@/lib/charting/engine/model/data/series-data';
+import { type Point } from '@/lib/charting/engine/model/point';
+import { type DefaultPriceScaleId } from '@/lib/charting/engine/model/price/default-price-scale';
+import { Series } from '@/lib/charting/engine/model/series/series';
+import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
+import { type IHorzScaleBehavior } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
+import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 
 export type MouseEventParamsImpl = {
     originalTime?: unknown;

@@ -13,15 +13,15 @@ import { type ISubscription } from '@/lib/charting/engine/helpers/isubscription'
 import { clamp } from '@/lib/charting/engine/helpers/mathex';
 import { type DeepPartial, isInteger, merge } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { type ChartModel } from '@/lib/charting/engine/model/chart/chart-model';
+import { type LocalizationOptions } from '@/lib/charting/engine/model/chart/localization-options';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { FormattedLabelsCache } from '@/lib/charting/engine/model/formatted-labels-cache';
+import { areRangesEqual, RangeImpl } from '@/lib/charting/engine/model/range-impl';
 import {
     type IHorzScaleBehavior,
     type InternalHorzScaleItem,
     type InternalHorzScaleItemKey,
 } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
-import { type LocalizationOptions } from '@/lib/charting/engine/model/chart/localization-options';
-import { areRangesEqual, RangeImpl } from '@/lib/charting/engine/model/range-impl';
 import { type TickMark, TickMarks } from '@/lib/charting/engine/model/time/tick-marks';
 import {
     type Logical,

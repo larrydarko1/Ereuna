@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import type { TierRow } from '@ereuna/shared';
+
 import { formatRatio } from '@/utils/formatters';
 
 const { rows, count = 5 } = defineProps<{

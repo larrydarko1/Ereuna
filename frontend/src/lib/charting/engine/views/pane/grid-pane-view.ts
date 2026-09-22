@@ -5,7 +5,6 @@ import { type Pane } from '@/lib/charting/engine/model/chart/pane';
 import { type TimeMark } from '@/lib/charting/engine/model/time/time-scale';
 import { GridRenderer, type GridRendererData } from '@/lib/charting/engine/renderers/grid-renderer';
 import { type IPaneRenderer } from '@/lib/charting/engine/renderers/ipane-renderer';
-
 import { type IUpdatablePaneView } from '@/lib/charting/engine/views/pane/iupdatable-pane-view';
 
 export class GridPaneView implements IUpdatablePaneView {

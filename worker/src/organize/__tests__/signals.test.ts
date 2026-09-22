@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import type { Series } from '@/organize/bars.js';
 import { generateSignals } from '@/organize/signals.js';
 

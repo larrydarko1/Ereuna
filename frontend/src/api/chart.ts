@@ -18,6 +18,7 @@ import type {
     ChartTimeframe,
     CorporateAction,
 } from '@ereuna/shared';
+
 import { api, type ApiResult } from '@/api/client';
 
 export type ChartEvents = {

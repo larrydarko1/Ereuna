@@ -6,7 +6,6 @@
  * the order the caller added them and a caller can see that.
  */
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
-
 import { type ZOrdered } from '@/lib/charting/engine/model/chart/idata-source';
 
 export function sortSources<T extends ZOrdered>(sources: readonly T[]): T[] {

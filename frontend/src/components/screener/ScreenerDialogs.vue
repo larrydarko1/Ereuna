@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+
 import ColumnsDialog from '@/components/screener/ColumnsDialog.vue';
 import AppDialog from '@/components/ui/AppDialog.vue';
 import PromptDialog from '@/components/ui/PromptDialog.vue';

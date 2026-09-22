@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+
 import type { ChartDrawings } from '@ereuna/shared';
+
 import { mockApi } from '@/__tests__/support/msw';
 import { clearDrawings, getDrawings, getEvents, getProfile, getSeries, saveDrawings, searchAssets } from '@/api/chart';
 

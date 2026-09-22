@@ -1,10 +1,11 @@
-import { afterEach, describe, expect, it } from 'vitest';
 import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
-import { authedUserId, optionalAuth, requireAuth, type AuthRequest } from '@/middleware/auth.js';
+import { afterEach, describe, expect, it } from 'vitest';
+
+import { quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
-import { quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
+import { authedUserId, optionalAuth, requireAuth, type AuthRequest } from '@/middleware/auth.js';
 
 let harness: Harness | null = null;
 

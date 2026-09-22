@@ -1,8 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createServer, type Server as HttpServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
+
 import jwt from 'jsonwebtoken';
 import { io as connect, type Socket as ClientSocket } from 'socket.io-client';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { QUOTE_TIMEFRAME, type AggregateMessage } from '@ereuna/shared';
 
 type Sink = (message: AggregateMessage) => void;

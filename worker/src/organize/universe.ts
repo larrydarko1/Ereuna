@@ -3,6 +3,7 @@
  * every job needs about them.
  */
 import type { AssetInfoDoc } from '@ereuna/shared';
+
 import { getDb } from '@/lib/db.js';
 
 export type Asset = {

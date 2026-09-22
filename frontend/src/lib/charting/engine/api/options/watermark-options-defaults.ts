@@ -3,7 +3,6 @@
  * asked to.
  */
 import { defaultFontFamily } from '@/lib/charting/engine/helpers/make-font';
-
 import { type WatermarkOptions } from '@/lib/charting/engine/model/chart/watermark';
 
 export const watermarkOptionsDefaults: WatermarkOptions = {

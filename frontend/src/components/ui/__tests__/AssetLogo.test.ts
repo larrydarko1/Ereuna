@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import AssetLogo from '@/components/ui/AssetLogo.vue';
 
 describe('AssetLogo', () => {

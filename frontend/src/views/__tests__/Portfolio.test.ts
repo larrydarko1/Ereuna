@@ -1,10 +1,12 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
-import { clearAuth } from '@/api/client';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type { PortfolioSummary, TradeRow } from '@ereuna/shared';
-import { i18n } from '@/i18n';
+
 import { mockApi } from '@/__tests__/support/msw';
 import { summary as makeSummary } from '@/__tests__/support/portfolio';
+import { clearAuth } from '@/api/client';
+import { i18n } from '@/i18n';
 import Portfolio from '@/views/Portfolio.vue';
 
 vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());

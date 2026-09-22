@@ -5,7 +5,6 @@
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { type SeriesItemsIndexesRange } from '@/lib/charting/engine/model/time/time-data';
-
 import { BitmapCoordinatesPaneRenderer } from '@/lib/charting/engine/renderers/bitmap-coordinates-pane-renderer';
 import { type LineItemBase } from '@/lib/charting/engine/renderers/line-renderer-base';
 

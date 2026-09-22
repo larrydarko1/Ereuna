@@ -6,6 +6,7 @@
  * job rather than a route's.
  */
 import type { Financials, MarketOverview, StatsDoc } from '@ereuna/shared';
+
 import { api, type ApiResult } from '@/api/client';
 
 export type MarketHoliday = {

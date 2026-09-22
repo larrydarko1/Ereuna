@@ -9,7 +9,9 @@
  * at a time — and it is what makes switching symbol a single message.
  */
 import { onScopeDispose, readonly, ref, watch, type DeepReadonly, type Ref } from 'vue';
+
 import type { ChartTimeframe, LiveCandle } from '@ereuna/shared';
+
 import { useSocket } from '@/api/socket';
 
 export type LiveCandleKey = {

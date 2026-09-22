@@ -1,5 +1,6 @@
 /** Shared pino logger factory used by every Node service in the monorepo. */
 import pino, { type Logger } from 'pino';
+
 import { REDACT_PATHS } from '#config/redact.js';
 
 type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';

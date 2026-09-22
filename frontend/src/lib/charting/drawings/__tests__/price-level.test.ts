@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { type DrawingStage, clickAt, pressKey, stage } from '@/lib/charting/__tests__/helpers/drawing-harness';
-import { LineStyle } from '@/lib/charting/engine/renderers/draw-line';
 import { type PriceLevelData, PriceLevelManager } from '@/lib/charting/drawings/price-level';
+import { LineStyle } from '@/lib/charting/engine/renderers/draw-line';
 
 type Levelled = { stage: DrawingStage; tool: PriceLevelManager };
 

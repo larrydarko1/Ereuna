@@ -1,8 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
 import type { PortfolioExport } from '@ereuna/shared';
-import { i18n } from '@/i18n';
+
 import ExportDialog from '@/components/portfolio/ExportDialog.vue';
+import { i18n } from '@/i18n';
 
 /** What `downloadFile` hands the browser, captured off the anchor it builds. */
 type Saved = { name: string; body: string; type: string };

@@ -3,7 +3,6 @@
  * caller's time and in logical bar indices, plus the scroll and fit operations.
  */
 import { type DeepPartial } from '@/lib/charting/engine/helpers/strict-type-checks';
-
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type Logical, type LogicalRange, type Range } from '@/lib/charting/engine/model/time/time-data';
 import { type HorzScaleOptions } from '@/lib/charting/engine/model/time/time-scale';

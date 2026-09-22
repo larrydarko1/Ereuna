@@ -1,5 +1,6 @@
 /** useMarketStatus — whether the US market is open, and why not when it is shut. */
 import { computed, onScopeDispose, readonly, ref, type ComputedRef, type Ref } from 'vue';
+
 import { getHolidays, type MarketHoliday } from '@/api/market';
 
 export type MarketStatus = 'open' | 'closed' | 'holiday';

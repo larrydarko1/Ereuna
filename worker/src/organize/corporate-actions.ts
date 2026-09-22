@@ -1,6 +1,7 @@
 /** Splits and dividends: recording them, and repairing what a split invalidates. */
 import type { OhlcvDoc } from '@ereuna/shared';
 import { INTRADAY_COLLECTIONS } from '@ereuna/shared';
+
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
 import { dailyHistory } from '@/lib/tiingo.js';

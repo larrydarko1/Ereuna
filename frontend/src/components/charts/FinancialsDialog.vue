@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import type { Financials } from '@ereuna/shared';
 import { numeric } from '@ereuna/shared';
+
 import AppDialog from '@/components/ui/AppDialog.vue';
 import { formatCompact, formatNumber } from '@/utils/formatters';
 import { growth } from '@/utils/numbers';

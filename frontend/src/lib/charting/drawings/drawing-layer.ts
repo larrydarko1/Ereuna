@@ -16,8 +16,8 @@
 import { type IChartApi } from '@/lib/charting/engine/api/create-chart';
 import { type MouseEventParams } from '@/lib/charting/engine/api/ichart-api';
 import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
-import { type Time } from '@/lib/charting/engine/model/time/types';
 import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
+import { type Time } from '@/lib/charting/engine/model/time/types';
 import { type CanvasPoint } from '@/lib/charting/shared/geometry';
 
 /**

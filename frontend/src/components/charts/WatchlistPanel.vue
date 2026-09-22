@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import { apiErrorMessage } from '@/api/client';
 import AppDialog from '@/components/ui/AppDialog.vue';
 import AppIcon from '@/components/ui/AppIcon.vue';

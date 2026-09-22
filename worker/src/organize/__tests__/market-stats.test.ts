@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { fakeDb, setPayload, type DbStub } from '@/__tests__/support/mongo.js';
 
 type Doc = Record<string, unknown>;

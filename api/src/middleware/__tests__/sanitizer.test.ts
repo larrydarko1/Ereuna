@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { sanitizeRequest } from '@/middleware/sanitizer.js';
+
 import { json, quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
+import { sanitizeRequest } from '@/middleware/sanitizer.js';
 
 let harness: Harness | null = null;
 

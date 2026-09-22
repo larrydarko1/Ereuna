@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import { i18n } from '@/i18n';
+import { describe, expect, it } from 'vitest';
+
 import TwoFactorPrompt from '@/components/auth/TwoFactorPrompt.vue';
+import { i18n } from '@/i18n';
 
 const prompt = (props: Record<string, unknown> = {}): VueWrapper =>
     mount(TwoFactorPrompt, { props, attachTo: document.body });

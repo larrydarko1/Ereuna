@@ -9,6 +9,7 @@
  * the stored history as well.
  */
 import { Counter } from 'prom-client';
+
 import {
     BUCKET_MS,
     aggregateChannel,
@@ -16,6 +17,7 @@ import {
     type AggregateMessage,
     type AggregatorTimeframe,
 } from '@ereuna/shared';
+
 import { logger } from '@/lib/logger.js';
 import { getPublisher } from '@/lib/redis.js';
 

@@ -5,14 +5,14 @@
  * form it delegates to, kept private because nothing here charts anything but
  * time.
  */
+import { ChartApi } from '@/lib/charting/engine/api/chart-api';
+import { type IChartApiBase } from '@/lib/charting/engine/api/ichart-api';
 import { assert } from '@/lib/charting/engine/helpers/assertions';
 import { type DeepPartial, isString } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { HorzScaleBehaviorTime } from '@/lib/charting/engine/model/time/horz-scale-behavior';
+import { type IHorzScaleBehavior } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
 import { type TimeChartOptions } from '@/lib/charting/engine/model/time/time-based-chart-options';
 import { type Time } from '@/lib/charting/engine/model/time/types';
-import { type IHorzScaleBehavior } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
-import { ChartApi } from '@/lib/charting/engine/api/chart-api';
-import { type IChartApiBase } from '@/lib/charting/engine/api/ichart-api';
 
 /**
  * Structure describing options of the chart with time points at the horizontal scale. Series options are to be set separately

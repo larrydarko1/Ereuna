@@ -1,6 +1,8 @@
 /** useScreenerResults — one page of matches, for one screener, all of them, or the hidden set. */
 import { computed, ref, watch, type ComputedRef, type Ref } from 'vue';
+
 import type { ScreenerResult, ScreenerResultPage } from '@ereuna/shared';
+
 import { apiErrorMessage, type ApiResult } from '@/api/client';
 import { getCombinedResults, getHiddenResults, getScreenerResults, type ResultsQuery } from '@/api/screener';
 import { i18n } from '@/i18n';

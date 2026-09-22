@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { effectScope, nextTick, ref } from 'vue';
+
 import type { ChartTimeframe } from '@ereuna/shared';
+
 import { mockApi } from '@/__tests__/support/msw';
 import { useChartSeries, type UseChartSeriesReturn } from '@/composables/charts/useChartSeries';
 

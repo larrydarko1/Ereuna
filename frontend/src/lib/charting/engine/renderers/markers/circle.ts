@@ -2,7 +2,6 @@
  * The circle marker shape.
  */
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
-
 import { type BitmapShapeItemCoordinates, shapeSize } from '@/lib/charting/engine/renderers/markers/utils';
 
 export function drawCircle(ctx: CanvasRenderingContext2D, coords: BitmapShapeItemCoordinates, size: number): void {

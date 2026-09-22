@@ -4,18 +4,17 @@
  * Split from `data-source.ts` so the widgets can depend on the shape without
  * depending on the base class.
  */
-import { type IAxisView } from '@/lib/charting/engine/views/pane/iaxis-view';
-import { type IPaneView } from '@/lib/charting/engine/views/pane/ipane-view';
-import { type IPriceAxisView } from '@/lib/charting/engine/views/price-axis/iprice-axis-view';
-import { type ITimeAxisView } from '@/lib/charting/engine/views/time-axis/itime-axis-view';
-
+import { type Pane } from '@/lib/charting/engine/model/chart/pane';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
+import { type PriceScale } from '@/lib/charting/engine/model/price/price-scale';
 import {
     type PrimitiveHoveredItem,
     type SeriesPrimitivePaneViewZOrder,
 } from '@/lib/charting/engine/model/series/iseries-primitive';
-import { type Pane } from '@/lib/charting/engine/model/chart/pane';
-import { type PriceScale } from '@/lib/charting/engine/model/price/price-scale';
+import { type IAxisView } from '@/lib/charting/engine/views/pane/iaxis-view';
+import { type IPaneView } from '@/lib/charting/engine/views/pane/ipane-view';
+import { type IPriceAxisView } from '@/lib/charting/engine/views/price-axis/iprice-axis-view';
+import { type ITimeAxisView } from '@/lib/charting/engine/views/time-axis/itime-axis-view';
 
 export type ZOrdered = {
     zorder(): number | null;

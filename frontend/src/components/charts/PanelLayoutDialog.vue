@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import { PANEL_SECTIONS, SUMMARY_FIELDS, type PanelSection, type SummaryField } from '@ereuna/shared';
+
 import { apiErrorMessage } from '@/api/client';
 import AppDialog from '@/components/ui/AppDialog.vue';
 import ReorderableList from '@/components/ui/ReorderableList.vue';

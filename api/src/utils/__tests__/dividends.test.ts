@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { dividendCashFlows, type DividendPayment } from '@/utils/dividends.js';
 import type { ReplayTrade } from '@/utils/portfolio-replay.js';
 

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+
 import { ALL_FILTER_KEYS, ENUM_FILTERS, MA_FILTERS, RANGE_FILTERS } from '@ereuna/shared';
+
 import { COLUMNS, DEFAULT_COLUMNS, FILTER_GROUPS, filterGroup, findColumn, readColumn } from '@/constants/screener';
 
 describe('filterGroup', () => {

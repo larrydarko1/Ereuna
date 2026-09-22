@@ -8,8 +8,10 @@
  * the error handler log once with full correlation.
  */
 import { randomUUID } from 'crypto';
+
 import type { NextFunction, Request, Response } from 'express';
 import type { Logger } from 'pino';
+
 import { logger } from '@/lib/logger.js';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

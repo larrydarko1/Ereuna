@@ -5,6 +5,7 @@
  * open without a restart.
  */
 import type { AssetInfoDoc } from '@ereuna/shared';
+
 import { getDb } from '@/lib/db.js';
 
 const EXCHANGES = ['NASDAQ', 'NYSE'];

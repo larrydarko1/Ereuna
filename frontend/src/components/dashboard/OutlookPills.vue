@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+
 import type { OutlookReading } from '@ereuna/shared';
+
 import { formatNumber } from '@/utils/formatters';
 
 const { readings } = defineProps<{ readings: OutlookReading[] }>();

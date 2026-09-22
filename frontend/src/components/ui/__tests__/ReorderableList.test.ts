@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import { i18n } from '@/i18n';
+import { describe, expect, it } from 'vitest';
+
 import ReorderableList from '@/components/ui/ReorderableList.vue';
+import { i18n } from '@/i18n';
 
 const ITEMS = [
     { key: 'summary', label: 'Summary' },

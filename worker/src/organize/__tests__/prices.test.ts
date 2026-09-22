@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { VendorMarketBar } from '@/lib/tiingo.js';
+
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import type { VendorMarketBar } from '@/lib/tiingo.js';
 
 type Asset = Awaited<ReturnType<typeof import('@/organize/universe.js').activeUniverse>>[number];
 const db: { current: DbStub } = { current: fakeDb() };

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { ScreenshotConfig } from '@/lib/charting';
+
 import AppDialog from '@/components/ui/AppDialog.vue';
 import { useChartTheme } from '@/composables/charts/useChartTheme';
+import type { ScreenshotConfig } from '@/lib/charting';
 
 const emit = defineEmits<{
     close: [];

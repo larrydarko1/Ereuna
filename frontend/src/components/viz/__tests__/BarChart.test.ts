@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import BarChart from '@/components/viz/BarChart.vue';
 
 const bars = (values: number[]): { label: string; value: number }[] =>

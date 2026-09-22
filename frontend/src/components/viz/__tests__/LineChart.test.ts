@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it, vi } from 'vitest';
+
 import LineChart from '@/components/viz/LineChart.vue';
 
 const points = (values: number[]): { label: string; value: number }[] =>

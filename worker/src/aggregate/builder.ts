@@ -14,7 +14,9 @@
  * constructed here.
  */
 import { Gauge } from 'prom-client';
+
 import { AGGREGATOR_TIMEFRAMES, type AggregateMessage, type AggregatorTimeframe } from '@ereuna/shared';
+
 import { bucketEnd, bucketStart } from '@/aggregate/buckets.js';
 import { publishCandle } from '@/aggregate/publisher.js';
 import { enqueue, type CandleDoc } from '@/aggregate/writer.js';

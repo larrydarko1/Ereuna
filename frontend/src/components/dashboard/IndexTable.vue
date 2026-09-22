@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import type { IndexPerformance } from '@ereuna/shared';
+
 import { direction, formatCurrency, formatRatio } from '@/utils/formatters';
 
 const { indexes } = defineProps<{ indexes: IndexPerformance[] }>();

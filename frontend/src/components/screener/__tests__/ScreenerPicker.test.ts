@@ -1,8 +1,10 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import type { ScreenerSummary } from '@ereuna/shared';
-import { i18n } from '@/i18n';
+
 import ScreenerPicker from '@/components/screener/ScreenerPicker.vue';
+import { i18n } from '@/i18n';
 
 const summary = (name: string, over: Partial<ScreenerSummary> = {}): ScreenerSummary => ({
     id: `id-${name}`,

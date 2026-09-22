@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
+
 import { SUMMARY_FIELDS } from '@ereuna/shared';
-import { i18n } from '@/i18n';
+
 import { SUMMARY_FIELD_SPECS, type SummaryFormat } from '@/constants/summaryFields';
+import { i18n } from '@/i18n';
 
 const FORMATS: readonly SummaryFormat[] = [
     'text',

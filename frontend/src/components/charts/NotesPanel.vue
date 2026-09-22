@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import type { NoteRow } from '@ereuna/shared';
+
 import { apiErrorMessage } from '@/api/client';
 import { createNote, deleteNote, getNotes, updateNote } from '@/api/note';
 import AppIcon from '@/components/ui/AppIcon.vue';

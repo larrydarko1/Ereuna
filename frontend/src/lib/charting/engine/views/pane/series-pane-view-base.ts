@@ -13,7 +13,6 @@ import {
 } from '@/lib/charting/engine/model/time/time-data';
 import { type ITimeScale } from '@/lib/charting/engine/model/time/time-scale';
 import { type IPaneRenderer } from '@/lib/charting/engine/renderers/ipane-renderer';
-
 import { type IUpdatablePaneView, type UpdateType } from '@/lib/charting/engine/views/pane/iupdatable-pane-view';
 
 export type SeriesPaneViewOptions = {

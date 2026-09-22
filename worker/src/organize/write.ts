@@ -1,6 +1,8 @@
 /** Bulk writes to `AssetInfo`, which is what most of the nightly jobs produce. */
 import type { AnyBulkWriteOperation, Collection } from 'mongodb';
+
 import type { AssetInfoDoc, CorporateAction } from '@ereuna/shared';
+
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';

@@ -5,6 +5,7 @@
  * next one starts on the same point so the join is continuous.
  */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+
 import { type PricedValue } from '@/lib/charting/engine/model/price/price-scale';
 import { type SeriesItemsIndexesRange, type TimedValue } from '@/lib/charting/engine/model/time/time-data';
 import { BitmapCoordinatesPaneRenderer } from '@/lib/charting/engine/renderers/bitmap-coordinates-pane-renderer';

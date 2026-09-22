@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+
 import { deleteAccount } from '@/api/account';
 import { apiErrorMessage, clearAuth } from '@/api/client';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';

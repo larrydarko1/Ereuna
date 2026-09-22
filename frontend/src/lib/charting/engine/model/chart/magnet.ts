@@ -3,12 +3,11 @@
  * the bar's own values under the pointer, not the pointer's own price.
  */
 import { getPresent } from '@/lib/charting/engine/helpers/assertions';
-
-import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { CrosshairMode, type CrosshairOptions } from '@/lib/charting/engine/model/chart/crosshair';
-import { type IPriceDataSource } from '@/lib/charting/engine/model/price/iprice-data-source';
 import { type Pane } from '@/lib/charting/engine/model/chart/pane';
+import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { PlotRowValueIndex } from '@/lib/charting/engine/model/data/plot-data';
+import { type IPriceDataSource } from '@/lib/charting/engine/model/price/iprice-data-source';
 import { type ISeries, Series } from '@/lib/charting/engine/model/series/series';
 import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
 import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';

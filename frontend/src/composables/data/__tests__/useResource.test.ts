@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { effectScope, nextTick, ref } from 'vue';
-import { i18n } from '@/i18n';
+
 import { useResource, type UseResourceReturn } from '@/composables/data/useResource';
+import { i18n } from '@/i18n';
 
 /** A deferred, so a test can decide the order two in-flight reads land in. */
 function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void; reject: (err: unknown) => void } {

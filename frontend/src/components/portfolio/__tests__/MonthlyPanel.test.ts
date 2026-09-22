@@ -1,9 +1,11 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import type { PortfolioValuePoint, TradeRow } from '@ereuna/shared';
+
+import MonthlyPanel from '@/components/portfolio/MonthlyPanel.vue';
 import { i18n } from '@/i18n';
 import { formatCurrency, formatPercent } from '@/utils/formatters';
-import MonthlyPanel from '@/components/portfolio/MonthlyPanel.vue';
 
 const point = (date: string, value: number): PortfolioValuePoint => ({ date, value });
 

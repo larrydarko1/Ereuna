@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import { PORTFOLIO_SLOTS } from '@/composables/portfolio/usePortfolios';
+import { describe, expect, it } from 'vitest';
+
 import PortfolioTabs from '@/components/portfolio/PortfolioTabs.vue';
+import { PORTFOLIO_SLOTS } from '@/composables/portfolio/usePortfolios';
 
 const tabs = (props: Record<string, unknown> = {}): VueWrapper =>
     mount(PortfolioTabs, { props: { selected: 0, opened: new Set([0]), blank: false, ...props } });

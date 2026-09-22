@@ -2,11 +2,9 @@
  * The watermark, as drawn on a pane.
  */
 import { makeFont } from '@/lib/charting/engine/helpers/make-font';
-
 import { type Watermark } from '@/lib/charting/engine/model/chart/watermark';
 import { type IPaneRenderer } from '@/lib/charting/engine/renderers/ipane-renderer';
 import { WatermarkRenderer, type WatermarkRendererData } from '@/lib/charting/engine/renderers/watermark-renderer';
-
 import { type IUpdatablePaneView } from '@/lib/charting/engine/views/pane/iupdatable-pane-view';
 
 export class WatermarkPaneView implements IUpdatablePaneView {

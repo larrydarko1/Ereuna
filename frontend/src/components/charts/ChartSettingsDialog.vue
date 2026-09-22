@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import { CHART_STYLES, DEFAULT_INDICATORS, type ChartIndicator, type ChartTimeframe } from '@ereuna/shared';
+
 import { apiErrorMessage } from '@/api/client';
 import AppDialog from '@/components/ui/AppDialog.vue';
-import { useChartTheme } from '@/composables/charts/useChartTheme';
 import { MAX_INDICATOR_PERIOD, useChartSettings } from '@/composables/charts/useChartSettings';
+import { useChartTheme } from '@/composables/charts/useChartTheme';
 
 // The overlays belong to one timeframe, so the dialog edits the set of the
 // chart it was opened from and leaves every other timeframe alone.

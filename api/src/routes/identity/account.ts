@@ -13,6 +13,7 @@
  */
 import { Router } from 'express';
 import { z } from 'zod';
+
 import { passwordSchema, requiredString, usernameSchema } from '@/lib/schemas.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';

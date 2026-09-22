@@ -5,12 +5,13 @@
  * `BarsInfo` is the shape `barsInLogicalRange` answers with, and reports how far
  * the request fell outside what the series actually holds.
  */
+import { type IPriceLine } from '@/lib/charting/engine/api/iprice-line';
+import { type IPriceScaleApi } from '@/lib/charting/engine/api/iprice-scale-api';
+import { type ISeriesPrimitive } from '@/lib/charting/engine/api/iseries-primitive-api';
 import { type IPriceFormatter } from '@/lib/charting/engine/formatters/iprice-formatter';
-
-import { type BarPrice } from '@/lib/charting/engine/model/data/bar';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
+import { type BarPrice } from '@/lib/charting/engine/model/data/bar';
 import { type SeriesDataItemTypeMap } from '@/lib/charting/engine/model/data/data-consumer';
-import { type Time } from '@/lib/charting/engine/model/time/types';
 import { type MismatchDirection } from '@/lib/charting/engine/model/data/plot-list';
 import { type CreatePriceLineOptions } from '@/lib/charting/engine/model/price/price-line-options';
 import { type SeriesMarker } from '@/lib/charting/engine/model/series/series-markers';
@@ -20,10 +21,7 @@ import {
     type SeriesType,
 } from '@/lib/charting/engine/model/series/series-options';
 import { type Range } from '@/lib/charting/engine/model/time/time-data';
-
-import { type IPriceLine } from '@/lib/charting/engine/api/iprice-line';
-import { type IPriceScaleApi } from '@/lib/charting/engine/api/iprice-scale-api';
-import { type ISeriesPrimitive } from '@/lib/charting/engine/api/iseries-primitive-api';
+import { type Time } from '@/lib/charting/engine/model/time/types';
 
 /**
  * The extent of the data change.

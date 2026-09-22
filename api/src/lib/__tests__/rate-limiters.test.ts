@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RequestHandler } from 'express';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { asUser, quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
 
 type Consume = { key: string; opts: { capacity: number; refillPerMs: number } };

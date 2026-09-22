@@ -8,6 +8,16 @@
  */
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
 import { notNull } from '@/lib/charting/engine/helpers/strict-type-checks';
+import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
+import { DataSource } from '@/lib/charting/engine/model/chart/data-source';
+import { type Pane } from '@/lib/charting/engine/model/chart/pane';
+import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
+import { type BarPrice } from '@/lib/charting/engine/model/data/bar';
+import { type PriceScale } from '@/lib/charting/engine/model/price/price-scale';
+import { type ISeries } from '@/lib/charting/engine/model/series/series';
+import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
+import { type InternalHorzScaleItem } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
+import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 import { type LineStyle, type LineWidth } from '@/lib/charting/engine/renderers/draw-line';
 import { CrosshairMarksPaneView } from '@/lib/charting/engine/views/pane/crosshair-marks-pane-view';
 import { CrosshairPaneView } from '@/lib/charting/engine/views/pane/crosshair-pane-view';
@@ -17,16 +27,6 @@ import { type IPriceAxisView } from '@/lib/charting/engine/views/price-axis/ipri
 import { type PriceAxisView } from '@/lib/charting/engine/views/price-axis/price-axis-view';
 import { CrosshairTimeAxisView } from '@/lib/charting/engine/views/time-axis/crosshair-time-axis-view';
 import { type ITimeAxisView } from '@/lib/charting/engine/views/time-axis/itime-axis-view';
-import { type BarPrice } from '@/lib/charting/engine/model/data/bar';
-import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
-import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
-import { DataSource } from '@/lib/charting/engine/model/chart/data-source';
-import { type InternalHorzScaleItem } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
-import { type Pane } from '@/lib/charting/engine/model/chart/pane';
-import { type PriceScale } from '@/lib/charting/engine/model/price/price-scale';
-import { type ISeries } from '@/lib/charting/engine/model/series/series';
-import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
-import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 
 export type CrosshairPriceAndCoordinate = {
     price: number;

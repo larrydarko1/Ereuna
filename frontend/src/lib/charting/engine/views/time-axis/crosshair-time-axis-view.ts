@@ -3,7 +3,6 @@
  */
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
 import { generateContrastColors } from '@/lib/charting/engine/helpers/color';
-
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
 import {
     type Crosshair,
@@ -14,7 +13,6 @@ import {
     TimeAxisViewRenderer,
     type TimeAxisViewRendererData,
 } from '@/lib/charting/engine/renderers/time-axis-view-renderer';
-
 import { type ITimeAxisView } from '@/lib/charting/engine/views/time-axis/itime-axis-view';
 
 export class CrosshairTimeAxisView implements ITimeAxisView {

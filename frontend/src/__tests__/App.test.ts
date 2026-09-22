@@ -1,9 +1,10 @@
-import { beforeEach, describe, expect, it } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
+import { beforeEach, describe, expect, it } from 'vitest';
 import type { Router } from 'vue-router';
-import { clearAuth } from '@/api/client';
+
 import { mockApi } from '@/__tests__/support/msw';
 import { testRouter } from '@/__tests__/support/router';
+import { clearAuth } from '@/api/client';
 import App from '@/App.vue';
 
 /** The routes the app renders without its header. */

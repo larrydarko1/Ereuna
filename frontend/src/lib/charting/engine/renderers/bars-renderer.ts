@@ -5,6 +5,7 @@
  * bars, so they are clamped rather than allowed to touch — `clampNub` is that.
  */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
 import { type BarCoordinates, type BarPrices } from '@/lib/charting/engine/model/data/bar';
 import { type BarColorerStyle } from '@/lib/charting/engine/model/series/series-bar-colorer';

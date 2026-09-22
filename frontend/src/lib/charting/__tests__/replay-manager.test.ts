@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { type OHLCData, ReplayManager } from '@/lib/charting/replay-manager';
 import { type UTCTimestamp } from '@/lib/charting/engine/model/time/types';
+import { type OHLCData, ReplayManager } from '@/lib/charting/replay-manager';
 
 /** 2023-11-14T22:13:20Z, then one bar a day. */
 const FIRST = 1700000000;

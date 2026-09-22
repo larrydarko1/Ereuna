@@ -14,6 +14,7 @@
  * direct GET, so the theme sync and the chart view's first load are one request.
  */
 import { readonly, ref, type Ref } from 'vue';
+
 import { isAuthenticated } from '@/api/client';
 import { loadPreferences, patchPreferences } from '@/composables/data/usePreferences';
 import { DEFAULT_THEME, isThemeId, THEMES, type ThemeId } from '@/composables/ui/themes';

@@ -1,8 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ObjectId, type WithId } from 'mongodb';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type { UserDoc } from '@ereuna/shared';
-import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+
 import { fakeArgon2, hashOf } from '@/__tests__/support/argon2.js';
+import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 vi.mock('argon2', () => ({ default: fakeArgon2 }));
 const db: { current: DbStub } = { current: fakeDb() };

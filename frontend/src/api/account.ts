@@ -1,5 +1,6 @@
 /** account — API wrappers for /api/account. */
 import type { SessionUser, TotpEnrolment } from '@ereuna/shared';
+
 import { api, type ApiResult } from '@/api/client';
 
 export function getAccount(): ApiResult<SessionUser> {

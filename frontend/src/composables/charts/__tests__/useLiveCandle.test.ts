@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { effectScope, nextTick, ref } from 'vue';
+
 import type { ChartTimeframe } from '@ereuna/shared';
+
 import { socket } from '@/__tests__/support/socket';
 import { useLiveCandle, type UseLiveCandleReturn } from '@/composables/charts/useLiveCandle';
 

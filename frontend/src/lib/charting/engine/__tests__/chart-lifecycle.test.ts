@@ -10,8 +10,8 @@ import {
 } from '@/lib/charting/__tests__/helpers/chart-harness';
 import { candlestickData, lineData } from '@/lib/charting/__tests__/helpers/market-data';
 import { createChart } from '@/lib/charting/engine/api/create-chart';
-import { ColorType } from '@/lib/charting/engine/model/chart/layout-options';
 import { CrosshairMode } from '@/lib/charting/engine/model/chart/crosshair';
+import { ColorType } from '@/lib/charting/engine/model/chart/layout-options';
 
 describe('createChart', () => {
     it('builds its widget tree inside the container it is given', () => {

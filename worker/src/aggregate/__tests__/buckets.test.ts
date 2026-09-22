@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { bucketEnd, bucketStart } from '@/aggregate/buckets.js';
 
 const at = (iso: string): number => Date.parse(iso);

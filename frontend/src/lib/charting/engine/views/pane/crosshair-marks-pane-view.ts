@@ -5,10 +5,10 @@
  * because this rebuilds on every pointer move.
  */
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
-import { type BarPrice } from '@/lib/charting/engine/model/data/bar';
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
-import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type Crosshair, CrosshairMode } from '@/lib/charting/engine/model/chart/crosshair';
+import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
+import { type BarPrice } from '@/lib/charting/engine/model/data/bar';
 import { type ISeries } from '@/lib/charting/engine/model/series/series';
 import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
 import { type SeriesItemsIndexesRange, type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';

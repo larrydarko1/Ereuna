@@ -11,7 +11,6 @@ import {
     type PriceAxisViewRendererOptions,
 } from '@/lib/charting/engine/renderers/iprice-axis-view-renderer';
 import { PriceAxisViewRenderer } from '@/lib/charting/engine/renderers/price-axis-view-renderer';
-
 import { type IPriceAxisView } from '@/lib/charting/engine/views/price-axis/iprice-axis-view';
 
 export abstract class PriceAxisView implements IPriceAxisView {

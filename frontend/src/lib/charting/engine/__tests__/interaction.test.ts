@@ -3,9 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { type ChartSurfaces, mountChart, paint, surfacesOf } from '@/lib/charting/__tests__/helpers/chart-harness';
 import { candlestickData, lineData } from '@/lib/charting/__tests__/helpers/market-data';
 import { click, doubleClick, drag, mouse, touch, touchDrag, wheel } from '@/lib/charting/__tests__/helpers/pointer';
-import { type DeepPartial } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { type ChartOptions, type IChartApi } from '@/lib/charting/engine/api/create-chart';
 import { type MouseEventParams } from '@/lib/charting/engine/api/ichart-api';
+import { type DeepPartial } from '@/lib/charting/engine/helpers/strict-type-checks';
 
 type Driven = { chart: IChartApi; surfaces: ChartSurfaces };
 

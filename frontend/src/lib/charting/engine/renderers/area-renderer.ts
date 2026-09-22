@@ -5,7 +5,6 @@ import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type AreaFillColorerStyle } from '@/lib/charting/engine/model/series/series-bar-colorer';
-
 import {
     type AreaFillItemBase,
     PaneRendererAreaBase,

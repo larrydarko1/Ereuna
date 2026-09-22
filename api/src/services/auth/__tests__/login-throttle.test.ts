@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AppError } from '@/lib/app-error.js';
+
 import { fakeRedis, type RedisStub } from '@/__tests__/support/redis.js';
+import { AppError } from '@/lib/app-error.js';
 
 const redis: { current: RedisStub } = { current: fakeRedis() };
 vi.mock('@/lib/redis.js', () => ({ getRedis: () => redis.current }));

@@ -1,9 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
-import { clearAuth } from '@/api/client';
-import { i18n } from '@/i18n';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { mockApi } from '@/__tests__/support/msw';
+import { clearAuth } from '@/api/client';
 import { DEFAULT_COLUMNS } from '@/constants/screener';
+import { i18n } from '@/i18n';
 import Screener from '@/views/Screener.vue';
 
 vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());

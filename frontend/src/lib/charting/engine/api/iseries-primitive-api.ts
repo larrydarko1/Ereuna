@@ -1,12 +1,11 @@
 /**
  * What a caller has to implement to draw its own thing onto a series.
  */
-import { type Time } from '@/lib/charting/engine/model/time/types';
-import { type ISeriesPrimitiveBase } from '@/lib/charting/engine/model/series/iseries-primitive';
-import { type SeriesOptionsMap, type SeriesType } from '@/lib/charting/engine/model/series/series-options';
-
 import { type IChartApiBase } from '@/lib/charting/engine/api/ichart-api';
 import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
+import { type ISeriesPrimitiveBase } from '@/lib/charting/engine/model/series/iseries-primitive';
+import { type SeriesOptionsMap, type SeriesType } from '@/lib/charting/engine/model/series/series-options';
+import { type Time } from '@/lib/charting/engine/model/time/types';
 
 /**
  * Object containing references to the chart and series instances, and a requestUpdate method for triggering

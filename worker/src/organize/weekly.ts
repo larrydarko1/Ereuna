@@ -1,6 +1,8 @@
 /** Weekly bars, rebuilt from the daily series. */
 import type { AnyBulkWriteOperation, Document } from 'mongodb';
+
 import type { OhlcvDoc } from '@ereuna/shared';
+
 import { bucketStart } from '@/aggregate/buckets.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';

@@ -1,5 +1,6 @@
 /** Technical trading signals for one symbol. */
 import { numeric } from '@ereuna/shared';
+
 import type { Series } from '@/organize/bars.js';
 import { macd, rsi, sma } from '@/utils/indicators.js';
 

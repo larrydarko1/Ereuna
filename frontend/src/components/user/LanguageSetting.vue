@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+
 import SettingCard from '@/components/user/SettingCard.vue';
 import { changeLocale, isSupportedLocale, SUPPORTED_LOCALES } from '@/i18n';
 

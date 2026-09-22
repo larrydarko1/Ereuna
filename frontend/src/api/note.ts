@@ -5,6 +5,7 @@
  * the two to disagree.
  */
 import type { NotePage, NoteRow } from '@ereuna/shared';
+
 import { api, type ApiResult } from '@/api/client';
 
 export type NoteQuery = {

@@ -12,7 +12,9 @@
  */
 import { Router } from 'express';
 import { z } from 'zod';
+
 import { CHART_TIMEFRAMES } from '@ereuna/shared';
+
 import { config } from '@/lib/config.js';
 import { symbolSchema } from '@/lib/schemas.js';
 import { authedUserId } from '@/middleware/auth.js';

@@ -1,15 +1,14 @@
 /**
  * Builds the area series' fill and its line from the series' plot rows.
  */
-import { type BarPrice } from '@/lib/charting/engine/model/data/bar';
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
+import { type BarPrice } from '@/lib/charting/engine/model/data/bar';
 import { type ISeries } from '@/lib/charting/engine/model/series/series';
 import { type ISeriesBarColorer } from '@/lib/charting/engine/model/series/series-bar-colorer';
 import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 import { type AreaFillItem, PaneRendererArea } from '@/lib/charting/engine/renderers/area-renderer';
 import { CompositeRenderer } from '@/lib/charting/engine/renderers/composite-renderer';
 import { type LineStrokeItem, PaneRendererLine } from '@/lib/charting/engine/renderers/line-renderer';
-
 import { LinePaneViewBase } from '@/lib/charting/engine/views/pane/line-pane-view-base';
 
 export class SeriesAreaPaneView extends LinePaneViewBase<'Area', AreaFillItem & LineStrokeItem, CompositeRenderer> {

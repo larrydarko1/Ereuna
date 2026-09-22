@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+
 import { i18n } from '@/i18n';
 import { allValid, validatePassword, validatePasswordConfirmation, validateUsername } from '@/utils/validation';
 

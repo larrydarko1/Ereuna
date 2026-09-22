@@ -12,6 +12,55 @@ import { VolumeFormatter } from '@/lib/charting/engine/formatters/volume-formatt
 import { getDefined, getNotNull } from '@/lib/charting/engine/helpers/assertions';
 import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
 import { isInteger, merge } from '@/lib/charting/engine/helpers/strict-type-checks';
+import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
+import { type Pane } from '@/lib/charting/engine/model/chart/pane';
+import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
+import { type BarPrice, type BarPrices } from '@/lib/charting/engine/model/data/bar';
+import { PlotRowValueIndex } from '@/lib/charting/engine/model/data/plot-data';
+import { MismatchDirection } from '@/lib/charting/engine/model/data/plot-list';
+import {
+    createSeriesPlotList,
+    type SeriesPlotList,
+    type SeriesPlotRow,
+} from '@/lib/charting/engine/model/data/series-data';
+import { CustomPriceLine } from '@/lib/charting/engine/model/price/custom-price-line';
+import { isDefaultPriceScale } from '@/lib/charting/engine/model/price/default-price-scale';
+import { type FirstValue, type IPriceDataSource } from '@/lib/charting/engine/model/price/iprice-data-source';
+import { PriceDataSource } from '@/lib/charting/engine/model/price/price-data-source';
+import { type PriceLineOptions } from '@/lib/charting/engine/model/price/price-line-options';
+import { PriceRangeImpl } from '@/lib/charting/engine/model/price/price-range-impl';
+import { type PriceScale } from '@/lib/charting/engine/model/price/price-scale';
+import { AutoscaleInfoImpl, type AutoScaleMargins } from '@/lib/charting/engine/model/series/autoscale-info-impl';
+import {
+    type CustomData,
+    type CustomSeriesWhitespaceData,
+    type ICustomSeriesPaneView,
+    type WhitespaceCheck,
+} from '@/lib/charting/engine/model/series/icustom-series';
+import {
+    type ISeriesPrimitiveBase,
+    type PrimitiveHoveredItem,
+    type SeriesPrimitivePaneViewZOrder,
+} from '@/lib/charting/engine/model/series/iseries-primitive';
+import { type ISeriesBarColorer, SeriesBarColorer } from '@/lib/charting/engine/model/series/series-bar-colorer';
+import { type InternalSeriesMarker, type SeriesMarker } from '@/lib/charting/engine/model/series/series-markers';
+import {
+    type SeriesOptionsMap,
+    type SeriesPartialOptionsMap,
+    type SeriesType,
+} from '@/lib/charting/engine/model/series/series-options';
+import {
+    type ISeriesPrimitivePaneViewWrapper,
+    SeriesPrimitiveWrapper,
+} from '@/lib/charting/engine/model/series/series-primitive-wrapper';
+import {
+    type AreaStyleOptions,
+    type BaselineStyleOptions,
+    type HistogramStyleOptions,
+    type LineStyleOptions,
+} from '@/lib/charting/engine/model/series/series-style-options';
+import { type InternalHorzScaleItem } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
+import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 import { SeriesAreaPaneView } from '@/lib/charting/engine/views/pane/area-pane-view';
 import { SeriesBarsPaneView } from '@/lib/charting/engine/views/pane/bars-pane-view';
 import { SeriesBaselinePaneView } from '@/lib/charting/engine/views/pane/baseline-pane-view';
@@ -29,55 +78,6 @@ import { SeriesPriceLinePaneView } from '@/lib/charting/engine/views/pane/series
 import { type IPriceAxisView } from '@/lib/charting/engine/views/price-axis/iprice-axis-view';
 import { SeriesPriceAxisView } from '@/lib/charting/engine/views/price-axis/series-price-axis-view';
 import { type ITimeAxisView } from '@/lib/charting/engine/views/time-axis/itime-axis-view';
-import { AutoscaleInfoImpl, type AutoScaleMargins } from '@/lib/charting/engine/model/series/autoscale-info-impl';
-import { type BarPrice, type BarPrices } from '@/lib/charting/engine/model/data/bar';
-import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
-import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
-import { CustomPriceLine } from '@/lib/charting/engine/model/price/custom-price-line';
-import { isDefaultPriceScale } from '@/lib/charting/engine/model/price/default-price-scale';
-import {
-    type CustomData,
-    type CustomSeriesWhitespaceData,
-    type ICustomSeriesPaneView,
-    type WhitespaceCheck,
-} from '@/lib/charting/engine/model/series/icustom-series';
-import { type InternalHorzScaleItem } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
-import { type FirstValue, type IPriceDataSource } from '@/lib/charting/engine/model/price/iprice-data-source';
-import {
-    type ISeriesPrimitiveBase,
-    type PrimitiveHoveredItem,
-    type SeriesPrimitivePaneViewZOrder,
-} from '@/lib/charting/engine/model/series/iseries-primitive';
-import { type Pane } from '@/lib/charting/engine/model/chart/pane';
-import { PlotRowValueIndex } from '@/lib/charting/engine/model/data/plot-data';
-import { MismatchDirection } from '@/lib/charting/engine/model/data/plot-list';
-import { PriceDataSource } from '@/lib/charting/engine/model/price/price-data-source';
-import { type PriceLineOptions } from '@/lib/charting/engine/model/price/price-line-options';
-import { PriceRangeImpl } from '@/lib/charting/engine/model/price/price-range-impl';
-import { type PriceScale } from '@/lib/charting/engine/model/price/price-scale';
-import { type ISeriesBarColorer, SeriesBarColorer } from '@/lib/charting/engine/model/series/series-bar-colorer';
-import {
-    createSeriesPlotList,
-    type SeriesPlotList,
-    type SeriesPlotRow,
-} from '@/lib/charting/engine/model/data/series-data';
-import { type InternalSeriesMarker, type SeriesMarker } from '@/lib/charting/engine/model/series/series-markers';
-import {
-    type SeriesOptionsMap,
-    type SeriesPartialOptionsMap,
-    type SeriesType,
-} from '@/lib/charting/engine/model/series/series-options';
-import {
-    type AreaStyleOptions,
-    type BaselineStyleOptions,
-    type HistogramStyleOptions,
-    type LineStyleOptions,
-} from '@/lib/charting/engine/model/series/series-style-options';
-import {
-    type ISeriesPrimitivePaneViewWrapper,
-    SeriesPrimitiveWrapper,
-} from '@/lib/charting/engine/model/series/series-primitive-wrapper';
-import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 
 type PrimitivePaneViewExtractor = (wrapper: SeriesPrimitiveWrapper) => readonly ISeriesPrimitivePaneViewWrapper[];
 

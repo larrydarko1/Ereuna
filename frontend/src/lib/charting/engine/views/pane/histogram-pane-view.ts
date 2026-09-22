@@ -2,7 +2,6 @@
  * The histogram series' view.
  */
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
-
 import { type BarPrice } from '@/lib/charting/engine/model/data/bar';
 import { type ISeriesBarColorer } from '@/lib/charting/engine/model/series/series-bar-colorer';
 import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
@@ -11,7 +10,6 @@ import {
     PaneRendererHistogram,
     type PaneRendererHistogramData,
 } from '@/lib/charting/engine/renderers/histogram-renderer';
-
 import { LinePaneViewBase } from '@/lib/charting/engine/views/pane/line-pane-view-base';
 
 export class SeriesHistogramPaneView extends LinePaneViewBase<'Histogram', HistogramItem, PaneRendererHistogram> {

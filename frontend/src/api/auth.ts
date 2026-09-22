@@ -8,6 +8,7 @@
  * return the settled session rather than the raw response.
  */
 import type { SessionUser } from '@ereuna/shared';
+
 import { api, clearAuth, setAccessToken, setSessionUser } from '@/api/client';
 import { adoptLocale } from '@/i18n';
 

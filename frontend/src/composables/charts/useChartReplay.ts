@@ -9,9 +9,10 @@
  * puts its position into a ref and cuts the series to match.
  */
 import { computed, onScopeDispose, ref, watch, type ComputedRef, type Ref } from 'vue';
-import { ReplayManager } from '@/lib/charting';
+
 import type { ChartBar, ChartPoint, OverlaySeries } from '@/composables/charts/useChartSeries';
 import { i18n } from '@/i18n';
+import { ReplayManager } from '@/lib/charting';
 import { timeToDate, timeValue } from '@/utils/chartTime';
 
 export type UseChartReplayReturn = {

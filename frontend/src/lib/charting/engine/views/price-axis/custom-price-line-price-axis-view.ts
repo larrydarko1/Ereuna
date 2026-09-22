@@ -2,7 +2,6 @@
  * A custom price line's label on the axis.
  */
 import { generateContrastColors } from '@/lib/charting/engine/helpers/color';
-
 import { type CustomPriceLine } from '@/lib/charting/engine/model/price/custom-price-line';
 import { type ISeries } from '@/lib/charting/engine/model/series/series';
 import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
@@ -10,7 +9,6 @@ import {
     type PriceAxisViewRendererCommonData,
     type PriceAxisViewRendererData,
 } from '@/lib/charting/engine/renderers/iprice-axis-view-renderer';
-
 import { PriceAxisView } from '@/lib/charting/engine/views/price-axis/price-axis-view';
 
 export class CustomPriceLinePriceAxisView extends PriceAxisView {

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import type { PatternMatch } from '@/lib/charting';
+
 import AppDialog from '@/components/ui/AppDialog.vue';
+import type { PatternMatch } from '@/lib/charting';
 import { formatDate, formatNumber } from '@/utils/formatters';
 
 const {

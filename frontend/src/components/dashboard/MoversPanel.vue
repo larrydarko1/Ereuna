@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+
 import type { MoverRow } from '@ereuna/shared';
+
 import { formatPercent } from '@/utils/formatters';
 
 const { gainers, losers } = defineProps<{

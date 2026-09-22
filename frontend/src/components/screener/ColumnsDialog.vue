@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import AppDialog from '@/components/ui/AppDialog.vue';
 import ReorderableList from '@/components/ui/ReorderableList.vue';
 import { COLUMNS } from '@/constants/screener';

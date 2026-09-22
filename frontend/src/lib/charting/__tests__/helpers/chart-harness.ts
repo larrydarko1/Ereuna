@@ -12,8 +12,8 @@
  */
 import { afterEach } from 'vitest';
 
-import { type DeepPartial } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { type ChartOptions, type IChartApi, createChart } from '@/lib/charting/engine/api/create-chart';
+import { type DeepPartial } from '@/lib/charting/engine/helpers/strict-type-checks';
 
 export type MountedChart = {
     chart: IChartApi;

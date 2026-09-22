@@ -2,7 +2,6 @@
  * Chooses where the marks on a price scale go, and what each one reads.
  */
 import { min } from '@/lib/charting/engine/helpers/mathex';
-
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type PriceMark, type PriceScale } from '@/lib/charting/engine/model/price/price-scale';
 import { PriceTickSpanCalculator } from '@/lib/charting/engine/model/price/price-tick-span-calculator';

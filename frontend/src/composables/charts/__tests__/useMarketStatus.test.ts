@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { effectScope, nextTick } from 'vue';
+
 import { mockApi } from '@/__tests__/support/msw';
 import { useMarketStatus, type UseMarketStatusReturn } from '@/composables/charts/useMarketStatus';
 

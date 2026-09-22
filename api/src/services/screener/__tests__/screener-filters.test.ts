@@ -1,6 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ObjectId } from 'mongodb';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { ALL_FILTER_FIELDS } from '@ereuna/shared';
+
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };

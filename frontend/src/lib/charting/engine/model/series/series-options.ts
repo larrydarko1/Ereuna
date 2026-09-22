@@ -3,7 +3,6 @@
  * in the values a caller usually means but did not write.
  */
 import { type DeepPartial } from '@/lib/charting/engine/helpers/strict-type-checks';
-import { type LineStyle, type LineWidth } from '@/lib/charting/engine/renderers/draw-line';
 import { type AutoScaleMargins } from '@/lib/charting/engine/model/series/autoscale-info-impl';
 import { type PriceFormatterFn } from '@/lib/charting/engine/model/series/price-formatter-fn';
 import {
@@ -15,6 +14,7 @@ import {
     type HistogramStyleOptions,
     type LineStyleOptions,
 } from '@/lib/charting/engine/model/series/series-style-options';
+import { type LineStyle, type LineWidth } from '@/lib/charting/engine/renderers/draw-line';
 
 /**
  * Represents series value formatting options.

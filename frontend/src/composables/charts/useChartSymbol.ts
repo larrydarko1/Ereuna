@@ -7,6 +7,7 @@
  */
 import { computed, type ComputedRef } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+
 import { patchPreferences, usePreferences } from '@/composables/data/usePreferences';
 
 export type UseChartSymbolReturn = {

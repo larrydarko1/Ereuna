@@ -21,9 +21,11 @@
  * user on top of the per-IP limit on the handshake itself.
  */
 import { type Server as HttpServer } from 'http';
+
 import jwt from 'jsonwebtoken';
 import { Server, type Socket } from 'socket.io';
 import { z } from 'zod';
+
 import {
     AGGREGATOR_TO_CHART,
     CHART_TIMEFRAMES,
@@ -35,11 +37,12 @@ import {
     type ChartTimeframe,
     type LiveCandle,
 } from '@ereuna/shared';
+
+import { readLastCandle, startMarketFeed, stopMarketFeed } from '@/gateway/market-feed.js';
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 import { symbolSchema } from '@/lib/schemas.js';
 import { consumeTokenBucket, type TokenBucketOptions } from '@/lib/token-bucket.js';
-import { readLastCandle, startMarketFeed, stopMarketFeed } from '@/gateway/market-feed.js';
 
 type FeedSocket = Socket & {
     userId: string;

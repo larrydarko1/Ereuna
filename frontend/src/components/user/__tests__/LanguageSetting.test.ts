@@ -1,8 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
-import { i18n, SUPPORTED_LOCALES } from '@/i18n';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { mockApi } from '@/__tests__/support/msw';
 import LanguageSetting from '@/components/user/LanguageSetting.vue';
+import { i18n, SUPPORTED_LOCALES } from '@/i18n';
 
 const api = mockApi();
 

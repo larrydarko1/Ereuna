@@ -1,5 +1,6 @@
 /** MongoDB document types for EreunaDB. */
 import type { ObjectId } from 'mongodb';
+
 import { OHLCV_COLLECTIONS } from '#db/indexes.js';
 
 export type UserDoc = {

@@ -6,9 +6,9 @@
  * patched adapter would agree with a broken interceptor as readily as with a
  * working one. It also means these suites survive swapping axios for fetch.
  */
-import { afterAll, afterEach, beforeAll } from 'vitest';
 import { http, HttpResponse, type JsonBodyType, type RequestHandler } from 'msw';
 import { setupServer, type SetupServer } from 'msw/node';
+import { afterAll, afterEach, beforeAll } from 'vitest';
 
 type Recorded = {
     method: string;

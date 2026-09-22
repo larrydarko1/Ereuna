@@ -1,7 +1,9 @@
 /** Financial statements, and the figures taken straight off the latest one. */
 import type { AnyBulkWriteOperation } from 'mongodb';
+
 import type { AssetInfoDoc } from '@ereuna/shared';
 import { numeric } from '@ereuna/shared';
+
 import { logger } from '@/lib/logger.js';
 import { statements, type VendorStatement, type VendorStatementItem } from '@/lib/tiingo.js';
 import { chunk, type Asset } from '@/organize/universe.js';

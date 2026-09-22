@@ -1,6 +1,8 @@
 /** Shared Zod schemas for request validation — the vocabulary route schemas are built from. */
 import { z } from 'zod';
+
 import { CHART_STYLES, CHART_TIMEFRAMES, PANEL_SECTIONS, SUMMARY_FIELDS } from '@ereuna/shared';
+
 import { config } from '@/lib/config.js';
 
 export type PaginationQuerySchema = z.ZodObject<{

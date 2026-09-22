@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+
 import type { ChartIndicator, ChartSettings, ChartTimeframe } from '@ereuna/shared';
 import { DEFAULT_INDICATORS } from '@ereuna/shared';
+
 import { mockApi } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
-import { loadPreferences } from '@/composables/data/usePreferences';
 import { MAX_INDICATOR_PERIOD, useChartSettings } from '@/composables/charts/useChartSettings';
+import { loadPreferences } from '@/composables/data/usePreferences';
 
 const mock = mockApi();
 

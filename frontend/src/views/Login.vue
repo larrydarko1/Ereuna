@@ -2,13 +2,14 @@
 import { computed, ref, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
+
+import { login, validateTwoFactor } from '@/api/auth';
+import { apiErrorMessage } from '@/api/client';
+import AuthLayout from '@/components/auth/AuthLayout.vue';
+import TwoFactorPrompt from '@/components/auth/TwoFactorPrompt.vue';
 import AppField from '@/components/ui/AppField.vue';
 import AppSpinner from '@/components/ui/AppSpinner.vue';
 import PasswordField from '@/components/ui/PasswordField.vue';
-import AuthLayout from '@/components/auth/AuthLayout.vue';
-import TwoFactorPrompt from '@/components/auth/TwoFactorPrompt.vue';
-import { login, validateTwoFactor } from '@/api/auth';
-import { apiErrorMessage } from '@/api/client';
 import { useTheme } from '@/composables/ui/useTheme';
 
 const { t } = useI18n();

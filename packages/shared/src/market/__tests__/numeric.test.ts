@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { numeric } from '#market/numeric.js';
 
 describe('numeric', () => {

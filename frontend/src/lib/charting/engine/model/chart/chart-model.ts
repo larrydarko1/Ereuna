@@ -12,23 +12,13 @@ import { Delegate } from '@/lib/charting/engine/helpers/delegate';
 import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
 import { type ISubscription } from '@/lib/charting/engine/helpers/isubscription';
 import { type DeepPartial, merge } from '@/lib/charting/engine/helpers/strict-type-checks';
-import { type PriceAxisViewRendererOptions } from '@/lib/charting/engine/renderers/iprice-axis-view-renderer';
-import { PriceAxisRendererOptionsProvider } from '@/lib/charting/engine/renderers/price-axis-renderer-options-provider';
-import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { Crosshair, type CrosshairOptions } from '@/lib/charting/engine/model/chart/crosshair';
-import { DefaultPriceScaleId, isDefaultPriceScale } from '@/lib/charting/engine/model/price/default-price-scale';
 import { type GridOptions } from '@/lib/charting/engine/model/chart/grid';
-import { type ICustomSeriesPaneView } from '@/lib/charting/engine/model/series/icustom-series';
-import {
-    type IHorzScaleBehavior,
-    type InternalHorzScaleItem,
-} from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
 import {
     InvalidateMask,
     InvalidationLevel,
     type ITimeScaleAnimation,
 } from '@/lib/charting/engine/model/chart/invalidate-mask';
-import { type IPriceDataSource } from '@/lib/charting/engine/model/price/iprice-data-source';
 import { ColorType, type LayoutOptions } from '@/lib/charting/engine/model/chart/layout-options';
 import {
     type LocalizationOptions,
@@ -36,15 +26,25 @@ import {
 } from '@/lib/charting/engine/model/chart/localization-options';
 import { Magnet } from '@/lib/charting/engine/model/chart/magnet';
 import { DEFAULT_STRETCH_FACTOR, Pane } from '@/lib/charting/engine/model/chart/pane';
-import { type Point } from '@/lib/charting/engine/model/point';
-import { type PriceScale, type PriceScaleOptions } from '@/lib/charting/engine/model/price/price-scale';
-import { type ISeries, Series, type SeriesOptionsInternal } from '@/lib/charting/engine/model/series/series';
-import { type SeriesOptionsMap, type SeriesType } from '@/lib/charting/engine/model/series/series-options';
-import { type TimeScaleChanges } from '@/lib/charting/engine/model/data/data-layer';
-import { type LogicalRange, type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
-import { type HorzScaleOptions, type ITimeScale, TimeScale } from '@/lib/charting/engine/model/time/time-scale';
 import { type TouchMouseEventData } from '@/lib/charting/engine/model/chart/touch-mouse-event-data';
 import { Watermark, type WatermarkOptions } from '@/lib/charting/engine/model/chart/watermark';
+import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
+import { type TimeScaleChanges } from '@/lib/charting/engine/model/data/data-layer';
+import { type Point } from '@/lib/charting/engine/model/point';
+import { DefaultPriceScaleId, isDefaultPriceScale } from '@/lib/charting/engine/model/price/default-price-scale';
+import { type IPriceDataSource } from '@/lib/charting/engine/model/price/iprice-data-source';
+import { type PriceScale, type PriceScaleOptions } from '@/lib/charting/engine/model/price/price-scale';
+import { type ICustomSeriesPaneView } from '@/lib/charting/engine/model/series/icustom-series';
+import { type ISeries, Series, type SeriesOptionsInternal } from '@/lib/charting/engine/model/series/series';
+import { type SeriesOptionsMap, type SeriesType } from '@/lib/charting/engine/model/series/series-options';
+import {
+    type IHorzScaleBehavior,
+    type InternalHorzScaleItem,
+} from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
+import { type LogicalRange, type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
+import { type HorzScaleOptions, type ITimeScale, TimeScale } from '@/lib/charting/engine/model/time/time-scale';
+import { type PriceAxisViewRendererOptions } from '@/lib/charting/engine/renderers/iprice-axis-view-renderer';
+import { PriceAxisRendererOptionsProvider } from '@/lib/charting/engine/renderers/price-axis-renderer-options-provider';
 
 /**
  * Represents options for how the chart is scrolled by the mouse and touch gestures.

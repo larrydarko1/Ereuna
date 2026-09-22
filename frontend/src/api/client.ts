@@ -15,8 +15,10 @@
  * localised here, once, so no call site has to know the error contract.
  */
 import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
+
 import type { SessionUser } from '@ereuna/shared';
 import { isErrorCode } from '@ereuna/shared';
+
 import { i18n } from '@/i18n';
 
 export type ApiResult<T> = Promise<AxiosResponse<T>>;

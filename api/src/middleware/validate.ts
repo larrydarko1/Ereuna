@@ -12,6 +12,7 @@
  */
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import type { ZodError, ZodType } from 'zod';
+
 import type { AuthRequest } from '@/middleware/auth.js';
 
 type Schemas = {

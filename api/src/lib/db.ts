@@ -6,8 +6,10 @@
  * before the connection exists.
  */
 import { MongoClient, type Db } from 'mongodb';
+
 import { INDEXES } from '@ereuna/shared';
 import { mongoConnection } from '@ereuna/shared/service/connections';
+
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 

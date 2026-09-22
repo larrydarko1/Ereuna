@@ -5,6 +5,7 @@
  * reads `process.env`.
  */
 import { z } from 'zod';
+
 import { loggerEnv, mongoEnv, nodeEnv, redisEnv } from '@ereuna/shared';
 
 const WORKER_ROLES = ['all', 'aggregate', 'organize'] as const;

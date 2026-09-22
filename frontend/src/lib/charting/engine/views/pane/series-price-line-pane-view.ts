@@ -3,7 +3,6 @@
  */
 import { type ISeries } from '@/lib/charting/engine/model/series/series';
 import { PriceLineSource, type SeriesType } from '@/lib/charting/engine/model/series/series-options';
-
 import { SeriesHorizontalLinePaneView } from '@/lib/charting/engine/views/pane/series-horizontal-line-pane-view';
 
 export class SeriesPriceLinePaneView extends SeriesHorizontalLinePaneView {

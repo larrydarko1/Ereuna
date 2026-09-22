@@ -6,6 +6,7 @@
  * function in `utils/indicators` expects.
  */
 import type { OhlcvDoc } from '@ereuna/shared';
+
 import { getDb } from '@/lib/db.js';
 
 export type Series = {

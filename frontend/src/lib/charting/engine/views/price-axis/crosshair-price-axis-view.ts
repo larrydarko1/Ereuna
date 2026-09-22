@@ -2,7 +2,6 @@
  * The crosshair's label on a price axis.
  */
 import { generateContrastColors } from '@/lib/charting/engine/helpers/color';
-
 import {
     type Crosshair,
     CrosshairMode,
@@ -13,7 +12,6 @@ import {
     type PriceAxisViewRendererCommonData,
     type PriceAxisViewRendererData,
 } from '@/lib/charting/engine/renderers/iprice-axis-view-renderer';
-
 import { PriceAxisView } from '@/lib/charting/engine/views/price-axis/price-axis-view';
 
 export type CrosshairPriceAxisViewValueProvider = (priceScale: PriceScale) => CrosshairPriceAndCoordinate;

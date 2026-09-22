@@ -1,10 +1,12 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import jwt from 'jsonwebtoken';
 import { ObjectId, type WithId } from 'mongodb';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type { UserDoc } from '@ereuna/shared';
-import { AppError } from '@/lib/app-error.js';
-import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+
 import { fakeArgon2, hashOf } from '@/__tests__/support/argon2.js';
+import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { AppError } from '@/lib/app-error.js';
 
 vi.mock('argon2', () => ({ default: fakeArgon2 }));
 vi.mock('@/lib/logger.js', () => ({

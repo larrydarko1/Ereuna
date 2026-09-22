@@ -6,6 +6,21 @@
  * internal view and renderer interfaces change underneath it.
  */
 import { type CanvasRenderingTarget2D } from 'fancy-canvas';
+
+import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
+import { type PriceScale } from '@/lib/charting/engine/model/price/price-scale';
+import {
+    type ISeriesPrimitiveAxisView,
+    type ISeriesPrimitiveBase,
+    type ISeriesPrimitivePaneRenderer,
+    type ISeriesPrimitivePaneView,
+    type PrimitiveHoveredItem,
+    type SeriesPrimitivePaneViewZOrder,
+} from '@/lib/charting/engine/model/series/iseries-primitive';
+import { type Series } from '@/lib/charting/engine/model/series/series';
+import { type AutoscaleInfo, type SeriesType } from '@/lib/charting/engine/model/series/series-options';
+import { type Logical, type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
+import { type ITimeScale } from '@/lib/charting/engine/model/time/time-scale';
 import { type IPaneRenderer } from '@/lib/charting/engine/renderers/ipane-renderer';
 import {
     type PriceAxisViewRendererCommonData,
@@ -16,20 +31,6 @@ import { type IPaneView } from '@/lib/charting/engine/views/pane/ipane-view';
 import { type IPriceAxisView } from '@/lib/charting/engine/views/price-axis/iprice-axis-view';
 import { PriceAxisView } from '@/lib/charting/engine/views/price-axis/price-axis-view';
 import { type ITimeAxisView } from '@/lib/charting/engine/views/time-axis/itime-axis-view';
-import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
-import {
-    type ISeriesPrimitiveAxisView,
-    type ISeriesPrimitiveBase,
-    type ISeriesPrimitivePaneRenderer,
-    type ISeriesPrimitivePaneView,
-    type PrimitiveHoveredItem,
-    type SeriesPrimitivePaneViewZOrder,
-} from '@/lib/charting/engine/model/series/iseries-primitive';
-import { type PriceScale } from '@/lib/charting/engine/model/price/price-scale';
-import { type Series } from '@/lib/charting/engine/model/series/series';
-import { type AutoscaleInfo, type SeriesType } from '@/lib/charting/engine/model/series/series-options';
-import { type Logical, type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
-import { type ITimeScale } from '@/lib/charting/engine/model/time/time-scale';
 
 type RendererCache<TBase, TWrapper> = {
     base: TBase;

@@ -7,11 +7,6 @@
  */
 import { getDefined } from '@/lib/charting/engine/helpers/assertions';
 import { type Mutable } from '@/lib/charting/engine/helpers/mutable';
-import { type CustomData } from '@/lib/charting/engine/model/series/icustom-series';
-import { type PlotRow, type PlotRowValue } from '@/lib/charting/engine/model/data/plot-data';
-import { type SeriesPlotRow } from '@/lib/charting/engine/model/data/series-data';
-import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
-import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 import {
     type AreaData,
     type BarData,
@@ -23,7 +18,12 @@ import {
     type SeriesDataItemTypeMap,
     type WhitespaceData,
 } from '@/lib/charting/engine/model/data/data-consumer';
+import { type PlotRow, type PlotRowValue } from '@/lib/charting/engine/model/data/plot-data';
+import { type SeriesPlotRow } from '@/lib/charting/engine/model/data/series-data';
+import { type CustomData } from '@/lib/charting/engine/model/series/icustom-series';
+import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
 import { type InternalHorzScaleItem } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
+import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 
 // The returned data is used for scaling the series, and providing the current value for the price scale
 type CustomDataToPlotRowValueConverter<THorzScaleItem> = (

@@ -1,9 +1,11 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import type { CorporateAction } from '@ereuna/shared';
+
+import ActionsPanel from '@/components/charts/ActionsPanel.vue';
 import { i18n } from '@/i18n';
 import { formatDate, formatNumber } from '@/utils/formatters';
-import ActionsPanel from '@/components/charts/ActionsPanel.vue';
 
 const panel = (actions: CorporateAction[], kind: 'dividends' | 'splits' = 'dividends'): VueWrapper =>
     mount(ActionsPanel, { props: { actions, kind } });

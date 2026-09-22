@@ -1,15 +1,12 @@
 /**
  * The handle returned by `priceScale()`, wrapping one of the pane's scales.
  */
+import { type IPriceScaleApi } from '@/lib/charting/engine/api/iprice-scale-api';
 import { type IChartWidgetBase } from '@/lib/charting/engine/gui/chart-widget';
-
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
 import { type DeepPartial } from '@/lib/charting/engine/helpers/strict-type-checks';
-
 import { isDefaultPriceScale } from '@/lib/charting/engine/model/price/default-price-scale';
 import { type PriceScale, type PriceScaleOptions } from '@/lib/charting/engine/model/price/price-scale';
-
-import { type IPriceScaleApi } from '@/lib/charting/engine/api/iprice-scale-api';
 
 export class PriceScaleApi implements IPriceScaleApi {
     private _chartWidget: IChartWidgetBase;

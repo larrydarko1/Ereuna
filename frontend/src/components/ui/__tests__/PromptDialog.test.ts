@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { afterEach, describe, expect, it } from 'vitest';
+
 import PromptDialog from '@/components/ui/PromptDialog.vue';
 
 const open = (props: Record<string, unknown> = {}): VueWrapper =>

@@ -7,9 +7,9 @@
 import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
-import { type Time } from '@/lib/charting/engine/model/time/types';
 import { type CustomSeriesOptions } from '@/lib/charting/engine/model/series/series-options';
 import { type Range } from '@/lib/charting/engine/model/time/time-data';
+import { type Time } from '@/lib/charting/engine/model/time/types';
 
 /**
  * Represents a whitespace data item, which is a data point without a value.

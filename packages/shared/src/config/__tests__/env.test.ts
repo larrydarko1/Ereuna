@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { hexSecret, loggerEnv, mongoEnv, nodeEnv, redisEnv, requiredSecret, tiingoEnv } from '#config/env.js';
 import { z } from 'zod';
+
+import { hexSecret, loggerEnv, mongoEnv, nodeEnv, redisEnv, requiredSecret, tiingoEnv } from '#config/env.js';
 
 const originalNodeEnv = process.env['NODE_ENV'];
 

@@ -6,9 +6,11 @@
  * filters built — rather than imported, because the module publishes the two
  * runners and nothing else.
  */
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ObjectId } from 'mongodb';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type { ScreenerDoc } from '@ereuna/shared';
+
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 vi.mock('@/lib/cache.js', () => ({

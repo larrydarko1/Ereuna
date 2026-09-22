@@ -5,10 +5,11 @@
  * when the ingestor runs.
  */
 import { computed, readonly, ref, type ComputedRef, type DeepReadonly, type Ref } from 'vue';
+
 import { apiErrorMessage, onSessionCleared } from '@/api/client';
 import { getFilterRegistry, type FilterDescriptor } from '@/api/screener';
-import { i18n } from '@/i18n';
 import { FILTER_GROUPS, filterGroup, type FilterGroup } from '@/constants/screener';
+import { i18n } from '@/i18n';
 
 export type FilterGrouping = {
     group: FilterGroup;

@@ -3,6 +3,7 @@
  * baseline.
  */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+
 import { type HoveredObject } from '@/lib/charting/engine/model/chart/chart-model';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { BitmapCoordinatesPaneRenderer } from '@/lib/charting/engine/renderers/bitmap-coordinates-pane-renderer';

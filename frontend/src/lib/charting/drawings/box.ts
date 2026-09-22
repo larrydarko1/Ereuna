@@ -6,15 +6,15 @@
  * pan or a scale change; `updateBoxCoordinates` is what re-derives the pixels
  * before anything reads them.
  */
+import { boundsOf, cornersOf, generateBoxId, resizeBox } from '@/lib/charting/drawings/box-shape';
+import { type Box, type BoxCorner, type BoxPoint } from '@/lib/charting/drawings/box-types';
+import { DrawingLayer } from '@/lib/charting/drawings/drawing-layer';
 import { type IChartApi } from '@/lib/charting/engine/api/create-chart';
 import { type MouseEventParams } from '@/lib/charting/engine/api/ichart-api';
 import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
-import { type Time } from '@/lib/charting/engine/model/time/types';
 import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
-import { type Box, type BoxCorner, type BoxPoint } from '@/lib/charting/drawings/box-types';
-import { boundsOf, cornersOf, generateBoxId, resizeBox } from '@/lib/charting/drawings/box-shape';
+import { type Time } from '@/lib/charting/engine/model/time/types';
 import { drawHandle } from '@/lib/charting/shared/canvas-path';
-import { DrawingLayer } from '@/lib/charting/drawings/drawing-layer';
 import { type CanvasPoint } from '@/lib/charting/shared/geometry';
 import { getThemeColor, hexToRgba } from '@/lib/charting/shared/theme-color';
 

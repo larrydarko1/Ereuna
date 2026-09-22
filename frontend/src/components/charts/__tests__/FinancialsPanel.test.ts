@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
+import FinancialsPanel from '@/components/charts/FinancialsPanel.vue';
 import { i18n } from '@/i18n';
 import { formatCompact, formatNumber } from '@/utils/formatters';
-import FinancialsPanel from '@/components/charts/FinancialsPanel.vue';
 
 type Metric = 'eps' | 'earnings' | 'sales';
 

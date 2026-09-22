@@ -1,9 +1,10 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
+import ChartLegend from '@/components/charts/ChartLegend.vue';
 import type { ChartQuote } from '@/constants/chart';
 import { i18n } from '@/i18n';
 import { formatNumber, formatPercent, formatSigned } from '@/utils/formatters';
-import ChartLegend from '@/components/charts/ChartLegend.vue';
 
 const quote = (over: Partial<ChartQuote> = {}): ChartQuote =>
     ({ open: 100, high: 110, low: 95, close: 105, change: 5, changePercent: 0.05, ...over }) as ChartQuote;

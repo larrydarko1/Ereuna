@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+
 import { ICON_CIRCLES, ICON_PATHS, type IconName } from '@/constants/icons';
 
 const {

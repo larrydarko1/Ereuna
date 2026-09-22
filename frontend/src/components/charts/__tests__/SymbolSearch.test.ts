@@ -1,9 +1,11 @@
-import { describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it, vi } from 'vitest';
+
 import type { AssetSummary } from '@ereuna/shared';
-import { i18n } from '@/i18n';
+
 import { mockApi } from '@/__tests__/support/msw';
 import SymbolSearch from '@/components/charts/SymbolSearch.vue';
+import { i18n } from '@/i18n';
 
 const api = mockApi();
 

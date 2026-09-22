@@ -1,9 +1,11 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import type { AssetProfile, SummaryField } from '@ereuna/shared';
-import { i18n } from '@/i18n';
-import { SUMMARY_FIELD_SPECS } from '@/constants/summaryFields';
+
 import SummaryPanel from '@/components/charts/SummaryPanel.vue';
+import { SUMMARY_FIELD_SPECS } from '@/constants/summaryFields';
+import { i18n } from '@/i18n';
 
 const FIELDS: SummaryField[] = ['symbol', 'name', 'exchange'];
 

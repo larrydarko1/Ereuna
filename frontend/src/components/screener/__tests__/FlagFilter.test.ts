@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import FlagFilter from '@/components/screener/FlagFilter.vue';
 
 const filter = (props: Record<string, unknown> = {}): VueWrapper => mount(FlagFilter, { props });

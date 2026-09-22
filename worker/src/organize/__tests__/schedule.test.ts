@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { msUntilNextRun } from '@/organize/schedule.js';
+
 import { config } from '@/lib/config.js';
+import { msUntilNextRun } from '@/organize/schedule.js';
 
 const HOUR_MS = 3_600_000;
 

@@ -16,6 +16,7 @@
  */
 import type { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
+
 import { AppError } from '@/lib/app-error.js';
 
 export function errorHandler(err: unknown, req: Request, res: Response, _next: NextFunction): void {

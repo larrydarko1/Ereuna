@@ -6,7 +6,9 @@
  * was quiet. Splitting them costs one socket and removes the coupling.
  */
 import { Redis } from 'ioredis';
+
 import { redisConnection } from '@ereuna/shared/service/connections';
+
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 

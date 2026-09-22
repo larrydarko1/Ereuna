@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import QrcodeVue from 'qrcode.vue';
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import QrcodeVue from 'qrcode.vue';
+
 import type { TotpEnrolment } from '@ereuna/shared';
+
 import { beginTwoFactor, confirmTwoFactor } from '@/api/account';
 import { apiErrorMessage } from '@/api/client';
 import AppDialog from '@/components/ui/AppDialog.vue';

@@ -11,7 +11,9 @@
  * it here would put the same knowledge in two processes.
  */
 import { Counter } from 'prom-client';
+
 import { TIINGO_STREAM, TIINGO_STREAM_MAXLEN } from '@ereuna/shared';
+
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 import { getRedis } from '@/lib/redis.js';

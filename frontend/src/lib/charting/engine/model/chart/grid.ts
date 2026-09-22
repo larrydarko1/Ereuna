@@ -1,11 +1,10 @@
 /**
  * The grid lines behind a pane's content.
  */
+import { type Pane } from '@/lib/charting/engine/model/chart/pane';
 import { type LineStyle } from '@/lib/charting/engine/renderers/draw-line';
 import { GridPaneView } from '@/lib/charting/engine/views/pane/grid-pane-view';
 import { type IUpdatablePaneView } from '@/lib/charting/engine/views/pane/iupdatable-pane-view';
-
-import { type Pane } from '@/lib/charting/engine/model/chart/pane';
 
 /** Grid line options. */
 type GridLineOptions = {

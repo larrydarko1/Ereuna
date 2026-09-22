@@ -7,6 +7,7 @@
  * rather than producing a service that connects and subscribes to nothing.
  */
 import { z } from 'zod';
+
 import { loggerEnv, mongoEnv, nodeEnv, redisEnv, tiingoEnv } from '@ereuna/shared';
 
 const Env = z.object({

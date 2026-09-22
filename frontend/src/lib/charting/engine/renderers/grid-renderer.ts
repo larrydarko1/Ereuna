@@ -4,9 +4,7 @@
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
-
 import { type PriceMark } from '@/lib/charting/engine/model/price/price-scale';
-
 import { BitmapCoordinatesPaneRenderer } from '@/lib/charting/engine/renderers/bitmap-coordinates-pane-renderer';
 import { type LineStyle, setLineStyle, strokeInPixel } from '@/lib/charting/engine/renderers/draw-line';
 

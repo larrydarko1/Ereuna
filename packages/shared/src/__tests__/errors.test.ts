@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { ERROR_CODES, isErrorCode } from '#errors.js';
 
 describe('ERROR_CODES', () => {

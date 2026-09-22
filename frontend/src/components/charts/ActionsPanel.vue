@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import type { CorporateAction } from '@ereuna/shared';
+
 import { useRowLimit } from '@/composables/ui/useRowLimit';
 import { formatDate, formatNumber } from '@/utils/formatters';
 

@@ -1,13 +1,15 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { CHART_TIMEFRAMES } from '@ereuna/shared';
 import type { AssetProfile } from '@ereuna/shared';
-import { clearAuth } from '@/api/client';
-import { i18n } from '@/i18n';
+
 import { mockApi } from '@/__tests__/support/msw';
+import { clearAuth } from '@/api/client';
+import PriceChart from '@/components/charts/PriceChart.vue';
 import { loadPreferences } from '@/composables/data/usePreferences';
 import { EOD_TIMEFRAMES, TIMEFRAME_LABELS } from '@/constants/chart';
-import PriceChart from '@/components/charts/PriceChart.vue';
+import { i18n } from '@/i18n';
 
 vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());
 

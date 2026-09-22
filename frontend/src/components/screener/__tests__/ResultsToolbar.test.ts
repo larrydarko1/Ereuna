@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import { i18n } from '@/i18n';
+import { describe, expect, it } from 'vitest';
+
 import ResultsToolbar from '@/components/screener/ResultsToolbar.vue';
 import { LIST_MODES } from '@/constants/screener';
+import { i18n } from '@/i18n';
 
 const toolbar = (props: Record<string, unknown> = {}): VueWrapper =>
     mount(ResultsToolbar, {

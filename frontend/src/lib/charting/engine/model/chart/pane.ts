@@ -13,15 +13,15 @@ import {
     type OverlayPriceScaleOptions,
     type VisiblePriceScaleOptions,
 } from '@/lib/charting/engine/model/chart/chart-model';
-import { DefaultPriceScaleId, isDefaultPriceScale } from '@/lib/charting/engine/model/price/default-price-scale';
 import { Grid } from '@/lib/charting/engine/model/chart/grid';
+import { sortSources } from '@/lib/charting/engine/model/chart/sort-sources';
+import { DefaultPriceScaleId, isDefaultPriceScale } from '@/lib/charting/engine/model/price/default-price-scale';
 import { type IPriceDataSource } from '@/lib/charting/engine/model/price/iprice-data-source';
 import {
     PriceScale,
     type PriceScaleOptions,
     type PriceScaleState,
 } from '@/lib/charting/engine/model/price/price-scale';
-import { sortSources } from '@/lib/charting/engine/model/chart/sort-sources';
 import { type ITimeScale } from '@/lib/charting/engine/model/time/time-scale';
 
 export type PriceScalePosition = 'left' | 'right' | 'overlay';

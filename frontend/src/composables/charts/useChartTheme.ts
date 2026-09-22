@@ -1,5 +1,6 @@
 /** useChartTheme — the chart's colours, in the form the renderer wants. */
 import { computed, type ComputedRef } from 'vue';
+
 import { useTheme } from '@/composables/ui/useTheme';
 
 export type ChartPalette = {

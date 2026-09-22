@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { OHLCV_INDEXES, REFERENCE_INDEXES } from '@ereuna/shared';
+
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 vi.mock('dotenv/config', () => ({}));

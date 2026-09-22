@@ -9,7 +9,9 @@
  * nowhere else: everything downstream sees a symbol, a price and an instant.
  */
 import { Counter } from 'prom-client';
+
 import { TIINGO_GROUP, TIINGO_STREAM } from '@ereuna/shared';
+
 import { applyTrade } from '@/aggregate/builder.js';
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';

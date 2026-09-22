@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { effectScope, ref, type Ref } from 'vue';
+
 import { mockApi } from '@/__tests__/support/msw';
 import { useScreenerFilters, type UseScreenerFiltersReturn } from '@/composables/screener/useScreenerFilters';
 

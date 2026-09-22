@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { register } from 'prom-client';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { TIINGO_STREAM, TIINGO_STREAM_MAXLEN } from '@ereuna/shared';
 
 /**

@@ -10,14 +10,14 @@ import { getDefined } from '@/lib/charting/engine/helpers/assertions';
 import { type Mutable } from '@/lib/charting/engine/helpers/mutable';
 import { type SeriesDataItemTypeMap } from '@/lib/charting/engine/model/data/data-consumer';
 import { type WhitespacePlotRow } from '@/lib/charting/engine/model/data/get-series-plot-row-creator';
+import { type SeriesPlotRow } from '@/lib/charting/engine/model/data/series-data';
+import { type Series, type SeriesUpdateInfo } from '@/lib/charting/engine/model/series/series';
+import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
 import {
     type IHorzScaleBehavior,
     type InternalHorzScaleItem,
     type InternalHorzScaleItemKey,
 } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
-import { type Series, type SeriesUpdateInfo } from '@/lib/charting/engine/model/series/series';
-import { type SeriesPlotRow } from '@/lib/charting/engine/model/data/series-data';
-import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
 import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 
 export type TimePointData = {

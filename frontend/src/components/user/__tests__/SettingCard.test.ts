@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import SettingCard from '@/components/user/SettingCard.vue';
 
 const card = (props: Record<string, unknown> = {}): VueWrapper =>

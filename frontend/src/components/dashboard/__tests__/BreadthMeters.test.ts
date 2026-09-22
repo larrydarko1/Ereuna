@@ -1,8 +1,10 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import type { BreadthSplit } from '@ereuna/shared';
-import { i18n } from '@/i18n';
+
 import BreadthMeters from '@/components/dashboard/BreadthMeters.vue';
+import { i18n } from '@/i18n';
 
 const split = (over: Partial<BreadthSplit> = {}): BreadthSplit => ({
     advancing: 0.6,

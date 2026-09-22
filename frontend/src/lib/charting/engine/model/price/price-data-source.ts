@@ -3,11 +3,10 @@
  * what its first value is and how to format one.
  */
 import { type IPriceFormatter } from '@/lib/charting/engine/formatters/iprice-formatter';
-
-import { type AutoscaleInfoImpl } from '@/lib/charting/engine/model/series/autoscale-info-impl';
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
 import { DataSource } from '@/lib/charting/engine/model/chart/data-source';
 import { type FirstValue, type IPriceDataSource } from '@/lib/charting/engine/model/price/iprice-data-source';
+import { type AutoscaleInfoImpl } from '@/lib/charting/engine/model/series/autoscale-info-impl';
 import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 
 export abstract class PriceDataSource extends DataSource implements IPriceDataSource {

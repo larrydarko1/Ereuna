@@ -1,9 +1,11 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import type { PortfolioStatsSnapshot } from '@ereuna/shared';
+
+import StatsGrid from '@/components/portfolio/StatsGrid.vue';
 import { i18n } from '@/i18n';
 import { formatCurrency, formatNumber } from '@/utils/formatters';
-import StatsGrid from '@/components/portfolio/StatsGrid.vue';
 
 const snapshot = (over: Partial<PortfolioStatsSnapshot> = {}): PortfolioStatsSnapshot => ({
     realizedPL: 1_500,

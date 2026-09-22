@@ -4,9 +4,10 @@
 import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
 import { undefinedIfNull } from '@/lib/charting/engine/helpers/strict-type-checks';
-
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
+import { type SeriesPlotRow } from '@/lib/charting/engine/model/data/series-data';
+import { type PriceScale } from '@/lib/charting/engine/model/price/price-scale';
 import {
     type CustomBarItemData,
     type CustomData,
@@ -16,13 +17,10 @@ import {
     type ICustomSeriesPaneView,
     type PriceToCoordinateConverter,
 } from '@/lib/charting/engine/model/series/icustom-series';
-import { type PriceScale } from '@/lib/charting/engine/model/price/price-scale';
 import { type Series } from '@/lib/charting/engine/model/series/series';
-import { type SeriesPlotRow } from '@/lib/charting/engine/model/data/series-data';
 import { type TimedValue } from '@/lib/charting/engine/model/time/time-data';
 import { type ITimeScale } from '@/lib/charting/engine/model/time/time-scale';
 import { type HoverState, type IPaneRenderer } from '@/lib/charting/engine/renderers/ipane-renderer';
-
 import { SeriesPaneViewBase } from '@/lib/charting/engine/views/pane/series-pane-view-base';
 
 type CustomBarItemBase = TimedValue;

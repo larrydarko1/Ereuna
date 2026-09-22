@@ -1,8 +1,9 @@
-import { describe, expect, it, vi } from 'vitest';
 import { mount, RouterLinkStub, type VueWrapper } from '@vue/test-utils';
-import { i18n } from '@/i18n';
-import { INVESTING_QUOTES } from '@/constants/quotes';
+import { describe, expect, it, vi } from 'vitest';
+
 import AuthLayout from '@/components/auth/AuthLayout.vue';
+import { INVESTING_QUOTES } from '@/constants/quotes';
+import { i18n } from '@/i18n';
 
 const layout = (props: Record<string, unknown> = {}, slot = '<form />'): VueWrapper =>
     mount(AuthLayout, {

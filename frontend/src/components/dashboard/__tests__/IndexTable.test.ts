@@ -1,6 +1,8 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import type { IndexPerformance } from '@ereuna/shared';
+
 import IndexTable from '@/components/dashboard/IndexTable.vue';
 
 const row = (symbol: string, over: Partial<IndexPerformance> = {}): IndexPerformance => ({

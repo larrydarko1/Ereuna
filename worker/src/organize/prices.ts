@@ -1,6 +1,8 @@
 /** The daily bar update: one whole-market call, upserted. */
 import type { AnyBulkWriteOperation } from 'mongodb';
+
 import type { OhlcvDoc } from '@ereuna/shared';
+
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';

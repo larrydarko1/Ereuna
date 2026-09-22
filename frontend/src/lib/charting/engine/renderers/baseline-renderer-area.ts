@@ -4,10 +4,8 @@
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
-
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type BaselineFillColorerStyle } from '@/lib/charting/engine/model/series/series-bar-colorer';
-
 import {
     type AreaFillItemBase,
     PaneRendererAreaBase,

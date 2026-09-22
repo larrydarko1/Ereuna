@@ -2,10 +2,9 @@
  * The handle returned by `createPriceLine`, wrapping the model's own
  * `CustomPriceLine`.
  */
+import { type IPriceLine } from '@/lib/charting/engine/api/iprice-line';
 import { type CustomPriceLine } from '@/lib/charting/engine/model/price/custom-price-line';
 import { type PriceLineOptions } from '@/lib/charting/engine/model/price/price-line-options';
-
-import { type IPriceLine } from '@/lib/charting/engine/api/iprice-line';
 
 export class PriceLine implements IPriceLine {
     private readonly _priceLine: CustomPriceLine;

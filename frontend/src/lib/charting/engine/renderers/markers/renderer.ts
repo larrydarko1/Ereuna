@@ -8,18 +8,16 @@ import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { ensureNever } from '@/lib/charting/engine/helpers/assertions';
 import { makeFont } from '@/lib/charting/engine/helpers/make-font';
-
 import { type HoveredObject } from '@/lib/charting/engine/model/chart/chart-model';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type SeriesMarkerShape } from '@/lib/charting/engine/model/series/series-markers';
 import { TextWidthCache } from '@/lib/charting/engine/model/text-width-cache';
 import { type SeriesItemsIndexesRange, type TimedValue } from '@/lib/charting/engine/model/time/time-data';
-
 import { BitmapCoordinatesPaneRenderer } from '@/lib/charting/engine/renderers/bitmap-coordinates-pane-renderer';
 import { drawArrowDown, drawArrowUp, hitTestArrow } from '@/lib/charting/engine/renderers/markers/arrow';
 import { drawCircle, hitTestCircle } from '@/lib/charting/engine/renderers/markers/circle';
-import { drawSquare, hitTestSquare } from '@/lib/charting/engine/renderers/markers/square';
 import { drawRoundedSquare, hitTestRoundedSquare } from '@/lib/charting/engine/renderers/markers/rounded-square';
+import { drawSquare, hitTestSquare } from '@/lib/charting/engine/renderers/markers/square';
 import { drawText, hitTestText } from '@/lib/charting/engine/renderers/markers/text';
 import { type BitmapShapeItemCoordinates } from '@/lib/charting/engine/renderers/markers/utils';
 

@@ -2,8 +2,8 @@
  * The baseline series' view: the two fills and the line, all keyed to where
  * the base value sits in the visible price range.
  */
-import { type BarPrice } from '@/lib/charting/engine/model/data/bar';
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
+import { type BarPrice } from '@/lib/charting/engine/model/data/bar';
 import { type ISeries } from '@/lib/charting/engine/model/series/series';
 import { type ISeriesBarColorer } from '@/lib/charting/engine/model/series/series-bar-colorer';
 import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
@@ -16,7 +16,6 @@ import {
     PaneRendererBaselineLine,
 } from '@/lib/charting/engine/renderers/baseline-renderer-line';
 import { CompositeRenderer } from '@/lib/charting/engine/renderers/composite-renderer';
-
 import { LinePaneViewBase } from '@/lib/charting/engine/views/pane/line-pane-view-base';
 
 export class SeriesBaselinePaneView extends LinePaneViewBase<

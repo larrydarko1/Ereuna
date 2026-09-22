@@ -2,11 +2,11 @@
  * The locale, and the caller's own overrides for formatting a price and a
  * time.
  */
-import { type Time } from '@/lib/charting/engine/model/time/types';
 import {
     type PercentageFormatterFn,
     type PriceFormatterFn,
 } from '@/lib/charting/engine/model/series/price-formatter-fn';
+import { type Time } from '@/lib/charting/engine/model/time/types';
 
 /**
  * A custom function used to override formatting of a time to a string.

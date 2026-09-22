@@ -1,11 +1,13 @@
 /** useChartSeries — the bars, volume and overlays behind one chart. */
 import { onScopeDispose, readonly, ref, watch, type Ref } from 'vue';
+
 import type { Candle, ChartOverlay, ChartTimeframe } from '@ereuna/shared';
 import { isIntraday } from '@ereuna/shared';
-import type { Time } from '@/lib/charting';
+
 import { getSeries } from '@/api/chart';
 import { apiErrorMessage } from '@/api/client';
 import { i18n } from '@/i18n';
+import type { Time } from '@/lib/charting';
 import { timeKey, timeValue } from '@/utils/chartTime';
 
 export type ChartBar = {

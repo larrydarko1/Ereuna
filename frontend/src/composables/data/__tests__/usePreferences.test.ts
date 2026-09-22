@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it } from 'vitest';
 import { HttpResponse, http } from 'msw';
+import { beforeEach, describe, expect, it } from 'vitest';
+
 import { mockApi, ORIGIN } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
 import { loadPreferences, patchPreferences, usePreferences } from '@/composables/data/usePreferences';

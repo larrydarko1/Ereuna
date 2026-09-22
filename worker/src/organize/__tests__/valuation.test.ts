@@ -1,6 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AnyBulkWriteOperation } from 'mongodb';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type { AssetInfoDoc } from '@ereuna/shared';
+
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 vi.mock('@/lib/logger.js', () => ({

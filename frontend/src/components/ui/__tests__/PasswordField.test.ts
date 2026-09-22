@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { i18n } from '@/i18n';
+import { describe, expect, it } from 'vitest';
+
 import PasswordField from '@/components/ui/PasswordField.vue';
+import { i18n } from '@/i18n';
 
 const field = (props: Record<string, unknown> = {}): ReturnType<typeof mount> =>
     mount(PasswordField, { props: { label: 'Password', modelValue: '', ...props } });

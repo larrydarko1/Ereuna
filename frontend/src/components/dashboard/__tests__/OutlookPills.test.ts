@@ -1,8 +1,10 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
 import type { OutlookReading } from '@ereuna/shared';
-import { i18n } from '@/i18n';
+
 import OutlookPills from '@/components/dashboard/OutlookPills.vue';
+import { i18n } from '@/i18n';
 
 const reading = (over: Partial<OutlookReading> = {}): OutlookReading => ({
     term: 'short',

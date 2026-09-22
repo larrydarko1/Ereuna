@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import AppIcon from '@/components/ui/AppIcon.vue';
 import type { SummaryFormat } from '@/constants/summaryFields';
 import { formatCompact, formatDate, formatNumber } from '@/utils/formatters';

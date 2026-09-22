@@ -9,7 +9,9 @@
  * full default order rather than an empty sidebar.
  */
 import { computed, type ComputedRef } from 'vue';
+
 import { PANEL_SECTIONS, SUMMARY_FIELDS, type PanelSection, type SummaryField } from '@ereuna/shared';
+
 import { patchPreferences, usePreferences } from '@/composables/data/usePreferences';
 
 export type UsePanelLayoutReturn = {

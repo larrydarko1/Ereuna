@@ -10,6 +10,7 @@
  * seven months of the year.
  */
 import { isMarketHours } from '@ereuna/shared';
+
 import { bucketStart } from '@/aggregate/buckets.js';
 import { closeSession, openBucketCount, seedWeekly, sweep } from '@/aggregate/builder.js';
 import { flush, pendingWrites, type CandleDoc } from '@/aggregate/writer.js';

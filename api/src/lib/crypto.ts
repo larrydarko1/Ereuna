@@ -9,6 +9,7 @@
  * these values are never looked up by their content, only read back by id.
  */
 import crypto from 'crypto';
+
 import { config } from '@/lib/config.js';
 
 const ALGORITHM = 'aes-256-gcm';

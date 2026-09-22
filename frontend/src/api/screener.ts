@@ -9,6 +9,7 @@
  * rather than vanishing.
  */
 import type { ScreenerFilterValue, ScreenerResultPage, ScreenerSummary } from '@ereuna/shared';
+
 import { api, type ApiResult } from '@/api/client';
 
 /** The filters written on a screener, keyed by filter slug. */

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import { getEvents, getProfile } from '@/api/chart';
 import ChartSidebar from '@/components/charts/ChartSidebar.vue';
 import PanelLayoutDialog from '@/components/charts/PanelLayoutDialog.vue';
@@ -9,8 +10,8 @@ import SymbolSearch from '@/components/charts/SymbolSearch.vue';
 import WatchlistPanel from '@/components/charts/WatchlistPanel.vue';
 import AssetLogo from '@/components/ui/AssetLogo.vue';
 import { useChartSymbol } from '@/composables/charts/useChartSymbol';
-import { useResource } from '@/composables/data/useResource';
 import { loadPreferences } from '@/composables/data/usePreferences';
+import { useResource } from '@/composables/data/useResource';
 
 type Pane = 'info' | 'chart' | 'watchlist';
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import { getProfile } from '@/api/chart';
 import { hideSymbol, unhideSymbol } from '@/api/preferences';
 import type { FilterValue } from '@/api/screener';
@@ -12,8 +13,8 @@ import ScreenerDialogs from '@/components/screener/ScreenerDialogs.vue';
 import ScreenerPicker from '@/components/screener/ScreenerPicker.vue';
 import WatchlistDialog from '@/components/screener/WatchlistDialog.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
-import { useResource } from '@/composables/data/useResource';
 import { adoptPreferences, loadPreferences, patchPreferences, usePreferences } from '@/composables/data/usePreferences';
+import { useResource } from '@/composables/data/useResource';
 import { useFilterRegistry } from '@/composables/screener/useFilterRegistry';
 import { EXPORT_LIMIT, useScreenerExport } from '@/composables/screener/useScreenerExport';
 import { useScreenerFilters } from '@/composables/screener/useScreenerFilters';

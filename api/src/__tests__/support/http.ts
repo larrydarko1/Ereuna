@@ -6,9 +6,11 @@
  * handler, body parsing — is the framework's behaviour, and a fake `req` agrees
  * with a broken middleware as readily as with a working one.
  */
-import express, { type Express, type RequestHandler } from 'express';
-import type { AddressInfo } from 'node:net';
 import type { Server } from 'node:http';
+import type { AddressInfo } from 'node:net';
+
+import express, { type Express, type RequestHandler } from 'express';
+
 import { errorHandler } from '@/middleware/error-handler.js';
 
 export type Harness = {

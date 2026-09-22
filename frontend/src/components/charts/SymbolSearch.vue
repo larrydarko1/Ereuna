@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, useId, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import type { AssetSummary } from '@ereuna/shared';
-import AppSpinner from '@/components/ui/AppSpinner.vue';
-import AssetLogo from '@/components/ui/AssetLogo.vue';
+
 import { searchAssets } from '@/api/chart';
 import { apiErrorMessage } from '@/api/client';
+import AppSpinner from '@/components/ui/AppSpinner.vue';
+import AssetLogo from '@/components/ui/AssetLogo.vue';
 import { useDebounceFn } from '@/composables/ui/useDebounce';
 
 const emit = defineEmits<{ select: [symbol: string] }>();

@@ -9,9 +9,11 @@
  * silently falling back. Infra endpoints keep a working localhost default for
  * dev convenience and are re-armed for production by the shared helpers.
  */
-import argon2 from 'argon2';
 import path from 'node:path';
+
+import argon2 from 'argon2';
 import { z } from 'zod';
+
 import { hexSecret, loggerEnv, mongoEnv, nodeEnv, redisEnv, requiredSecret } from '@ereuna/shared';
 
 const Env = z.object({

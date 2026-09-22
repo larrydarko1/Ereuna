@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { decryptSecret, encryptSecret, sha256 } from '@/lib/crypto.js';
 
 describe('encryptSecret / decryptSecret', () => {

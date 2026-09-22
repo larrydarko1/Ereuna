@@ -1,11 +1,13 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+
 import { PANEL_SECTIONS, SUMMARY_FIELDS } from '@ereuna/shared';
-import { clearAuth } from '@/api/client';
-import { i18n } from '@/i18n';
+
 import { mockApi } from '@/__tests__/support/msw';
-import { loadPreferences } from '@/composables/data/usePreferences';
+import { clearAuth } from '@/api/client';
 import PanelLayoutDialog from '@/components/charts/PanelLayoutDialog.vue';
+import { loadPreferences } from '@/composables/data/usePreferences';
+import { i18n } from '@/i18n';
 
 const api = mockApi();
 

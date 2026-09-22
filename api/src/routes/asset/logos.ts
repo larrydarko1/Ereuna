@@ -16,6 +16,7 @@
  */
 import { Router, type Request } from 'express';
 import { z } from 'zod';
+
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { validated } from '@/middleware/validate.js';

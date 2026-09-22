@@ -12,7 +12,6 @@ import {
     type HorizontalLineRendererData,
 } from '@/lib/charting/engine/renderers/horizontal-line-renderer';
 import { type IPaneRenderer } from '@/lib/charting/engine/renderers/ipane-renderer';
-
 import { type IPaneView } from '@/lib/charting/engine/views/pane/ipane-view';
 
 export abstract class SeriesHorizontalLinePaneView implements IPaneView {

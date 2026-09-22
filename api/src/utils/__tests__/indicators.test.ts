@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { ema, sma } from '@/utils/indicators.js';
 
 const bars = [10, 11, 12, 13, 14, 15].map((close, index) => ({ time: `2026-01-0${index + 1}`, close }));

@@ -1,10 +1,11 @@
-import { beforeEach, describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import { i18n } from '@/i18n';
+import { beforeEach, describe, expect, it } from 'vitest';
+
 import { clearAuth } from '@/api/client';
+import ThemePicker from '@/components/user/ThemePicker.vue';
 import { THEMES } from '@/composables/ui/themes';
 import { useTheme } from '@/composables/ui/useTheme';
-import ThemePicker from '@/components/user/ThemePicker.vue';
+import { i18n } from '@/i18n';
 
 const { currentTheme } = useTheme();
 

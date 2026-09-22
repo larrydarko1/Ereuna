@@ -1,13 +1,15 @@
-import { beforeEach, describe, expect, it } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
+import { beforeEach, describe, expect, it } from 'vitest';
+
 import { PANEL_SECTIONS } from '@ereuna/shared';
 import type { AssetProfile } from '@ereuna/shared';
+
+import { mockApi } from '@/__tests__/support/msw';
 import type { ChartEvents } from '@/api/chart';
 import { clearAuth } from '@/api/client';
-import { i18n } from '@/i18n';
-import { mockApi } from '@/__tests__/support/msw';
-import { loadPreferences } from '@/composables/data/usePreferences';
 import ChartSidebar from '@/components/charts/ChartSidebar.vue';
+import { loadPreferences } from '@/composables/data/usePreferences';
+import { i18n } from '@/i18n';
 
 const api = mockApi();
 

@@ -2,11 +2,12 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import AppField from '@/components/ui/AppField.vue';
-import AppSpinner from '@/components/ui/AppSpinner.vue';
-import AuthLayout from '@/components/auth/AuthLayout.vue';
+
 import { recover } from '@/api/auth';
 import { apiErrorMessage } from '@/api/client';
+import AuthLayout from '@/components/auth/AuthLayout.vue';
+import AppField from '@/components/ui/AppField.vue';
+import AppSpinner from '@/components/ui/AppSpinner.vue';
 import { useTheme } from '@/composables/ui/useTheme';
 
 const { t } = useI18n();

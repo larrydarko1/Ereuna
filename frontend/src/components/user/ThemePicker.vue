@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import SettingCard from '@/components/user/SettingCard.vue';
 import { isThemeId } from '@/composables/ui/themes';
 import { useTheme } from '@/composables/ui/useTheme';

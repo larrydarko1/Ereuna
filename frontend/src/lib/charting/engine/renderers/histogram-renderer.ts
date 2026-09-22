@@ -5,6 +5,7 @@
  * that rounding to device pixels cannot leave a one-pixel gap between neighbours.
  */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+
 import { type PricedValue } from '@/lib/charting/engine/model/price/price-scale';
 import {
     type SeriesItemsIndexesRange,

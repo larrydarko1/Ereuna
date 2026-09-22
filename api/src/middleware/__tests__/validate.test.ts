@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { validated } from '@/middleware/validate.js';
-import { AppError } from '@/lib/app-error.js';
+
 import { json, quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
+import { AppError } from '@/lib/app-error.js';
+import { validated } from '@/middleware/validate.js';
 
 let harness: Harness | null = null;
 

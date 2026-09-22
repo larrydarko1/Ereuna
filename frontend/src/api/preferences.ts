@@ -4,6 +4,7 @@
  * wants is a property of the user, not of any one chart.
  */
 import type { Preferences } from '@ereuna/shared';
+
 import { api, type ApiResult } from '@/api/client';
 
 export function getPreferences(): ApiResult<Preferences> {

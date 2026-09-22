@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { averageDailyVolatility, cagr, changeOver, extremes, macd, rsi, sma } from '@/utils/indicators.js';
 
 /** An ascending series, oldest first — the order every function here expects. */

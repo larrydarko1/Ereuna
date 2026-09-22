@@ -11,9 +11,12 @@
  * account `passwordResetRequired` — see `setPasswordAfterRecovery`.
  */
 import crypto from 'crypto';
+
 import argon2 from 'argon2';
 import { type ObjectId } from 'mongodb';
+
 import type { UserDoc } from '@ereuna/shared';
+
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';

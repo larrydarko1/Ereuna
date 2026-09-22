@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { effectScope } from 'vue';
+
 import type { ChartDrawings } from '@ereuna/shared';
+
 import { mockApi } from '@/__tests__/support/msw';
 import { useChartDrawings, type UseChartDrawingsReturn } from '@/composables/charts/useChartDrawings';
 

@@ -7,6 +7,7 @@
  */
 import { Router } from 'express';
 import { z } from 'zod';
+
 import { chartSettingsSchema, panelLayoutSchema, symbolSchema } from '@/lib/schemas.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';

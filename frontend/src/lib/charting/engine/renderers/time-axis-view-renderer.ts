@@ -8,7 +8,6 @@ import {
 } from 'fancy-canvas';
 
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
-
 import {
     type ITimeAxisViewRenderer,
     type TimeAxisViewRendererOptions,

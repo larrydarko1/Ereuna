@@ -5,8 +5,10 @@
  * the client can average them is the same data twice.
  */
 import type { ObjectId } from 'mongodb';
+
 import type { ChartSeries, ChartTimeframe } from '@ereuna/shared';
 import { DEFAULT_INDICATORS } from '@ereuna/shared';
+
 import { barSeries } from '@/services/market/index.js';
 import { getPreferences } from '@/services/user/index.js';
 import { ema, sma } from '@/utils/indicators.js';

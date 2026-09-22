@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+
 import type { MarketStatus } from '@/composables/charts/useMarketStatus';
 import type { ChartQuote, OverlayLabel } from '@/constants/chart';
 import { formatNumber, formatPercent, formatSigned } from '@/utils/formatters';

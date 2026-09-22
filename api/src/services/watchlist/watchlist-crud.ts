@@ -1,6 +1,8 @@
 /** watchlist-crud — create, rename, delete, list and reorder a user's watchlists. */
 import type { Collection, ObjectId, WithId } from 'mongodb';
+
 import type { WatchlistDoc, WatchlistSummary } from '@ereuna/shared';
+
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';

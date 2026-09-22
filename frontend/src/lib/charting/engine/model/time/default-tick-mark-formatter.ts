@@ -3,7 +3,6 @@
  * the shortest form that still distinguishes it from its neighbours.
  */
 import { ensureNever } from '@/lib/charting/engine/helpers/assertions';
-
 import { TickMarkType, type TimePoint } from '@/lib/charting/engine/model/time/types';
 
 export function defaultTickMarkFormatter(timePoint: TimePoint, tickMarkType: TickMarkType, locale: string): string {

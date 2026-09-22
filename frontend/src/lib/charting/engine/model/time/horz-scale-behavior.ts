@@ -10,7 +10,10 @@ import { DateTimeFormatter } from '@/lib/charting/engine/formatters/date-time-fo
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
 import { type Mutable } from '@/lib/charting/engine/helpers/mutable';
 import { type DeepPartial, merge } from '@/lib/charting/engine/helpers/strict-type-checks';
+import { type LocalizationOptions } from '@/lib/charting/engine/model/chart/localization-options';
 import { type SeriesDataItemTypeMap } from '@/lib/charting/engine/model/data/data-consumer';
+import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
+import { defaultTickMarkFormatter } from '@/lib/charting/engine/model/time/default-tick-mark-formatter';
 import {
     type DataItem,
     type HorzScaleItemConverterToInternalObj,
@@ -18,13 +21,10 @@ import {
     type InternalHorzScaleItem,
     type InternalHorzScaleItemKey,
 } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
-import { type LocalizationOptions } from '@/lib/charting/engine/model/chart/localization-options';
-import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
 import { type TickMark } from '@/lib/charting/engine/model/time/tick-marks';
+import { type TimeChartOptions } from '@/lib/charting/engine/model/time/time-based-chart-options';
 import { type TickMarkWeightValue, type TimeScalePoint } from '@/lib/charting/engine/model/time/time-data';
 import { markWithGreaterWeight, type TimeMark } from '@/lib/charting/engine/model/time/time-scale';
-import { defaultTickMarkFormatter } from '@/lib/charting/engine/model/time/default-tick-mark-formatter';
-import { type TimeChartOptions } from '@/lib/charting/engine/model/time/time-based-chart-options';
 import { fillWeightsForPoints } from '@/lib/charting/engine/model/time/time-scale-point-weight-generator';
 import {
     convertStringsToBusinessDays,

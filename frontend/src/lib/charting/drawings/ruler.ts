@@ -8,8 +8,8 @@
 import { type IChartApi } from '@/lib/charting/engine/api/create-chart';
 import { type MouseEventParams } from '@/lib/charting/engine/api/ichart-api';
 import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
-import { type Time } from '@/lib/charting/engine/model/time/types';
 import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
+import { type Time } from '@/lib/charting/engine/model/time/types';
 import { traceRoundedRect } from '@/lib/charting/shared/canvas-path';
 import { getThemeColor } from '@/lib/charting/shared/theme-color';
 import { timeToTimestamp } from '@/lib/charting/shared/time-conversion';

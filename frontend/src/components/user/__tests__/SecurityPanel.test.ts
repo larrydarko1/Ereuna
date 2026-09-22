@@ -1,8 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
-import { i18n } from '@/i18n';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { mockApi } from '@/__tests__/support/msw';
 import SecurityPanel from '@/components/user/SecurityPanel.vue';
+import { i18n } from '@/i18n';
 
 const api = mockApi();
 

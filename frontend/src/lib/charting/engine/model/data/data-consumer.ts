@@ -5,10 +5,10 @@
  * A whitespace item reserves its slot on the time scale without drawing anything,
  * which is how a series shows a gap rather than a straight line across it.
  */
-import { type Time } from '@/lib/charting/engine/model/time/types';
 import { type CustomData, type CustomSeriesWhitespaceData } from '@/lib/charting/engine/model/series/icustom-series';
 import { type Series } from '@/lib/charting/engine/model/series/series';
 import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
+import { type Time } from '@/lib/charting/engine/model/time/types';
 
 /**
  * Represents a whitespace data item, which is a data point without a value.

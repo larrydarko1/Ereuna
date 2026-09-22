@@ -1,9 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HttpResponse, http } from 'msw';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { mockApi, ORIGIN } from '@/__tests__/support/msw';
 import { clearAuth, setSessionUser } from '@/api/client';
-import { initTheme, useTheme } from '@/composables/ui/useTheme';
 import { DEFAULT_THEME } from '@/composables/ui/themes';
+import { initTheme, useTheme } from '@/composables/ui/useTheme';
 
 const mock = mockApi();
 const { currentTheme, applyTheme, syncTheme, themes } = useTheme();

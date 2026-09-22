@@ -1,10 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Router } from 'vue-router';
-import { clearAuth } from '@/api/client';
-import { i18n } from '@/i18n';
+
 import { mockApi } from '@/__tests__/support/msw';
 import { testRouter } from '@/__tests__/support/router';
+import { clearAuth } from '@/api/client';
+import { i18n } from '@/i18n';
 import Charts from '@/views/Charts.vue';
 
 vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());

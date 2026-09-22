@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { effectScope, nextTick, ref } from 'vue';
+
 import { socket } from '@/__tests__/support/socket';
 import { useLiveQuotes, type UseLiveQuotesReturn } from '@/composables/portfolio/useLiveQuotes';
 

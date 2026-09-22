@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
+import RangeFilter from '@/components/screener/RangeFilter.vue';
 import { i18n } from '@/i18n';
 import { formatNumber } from '@/utils/formatters';
-import RangeFilter from '@/components/screener/RangeFilter.vue';
 
 const filter = (props: Record<string, unknown> = {}): VueWrapper => mount(RangeFilter, { props });
 

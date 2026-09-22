@@ -3,14 +3,12 @@
  * that series formats prices.
  */
 import { generateContrastColors } from '@/lib/charting/engine/helpers/color';
-
 import { type ISeries, type LastValueDataResultWithData } from '@/lib/charting/engine/model/series/series';
 import { PriceAxisLastValueMode, type SeriesType } from '@/lib/charting/engine/model/series/series-options';
 import {
     type PriceAxisViewRendererCommonData,
     type PriceAxisViewRendererData,
 } from '@/lib/charting/engine/renderers/iprice-axis-view-renderer';
-
 import { PriceAxisView } from '@/lib/charting/engine/views/price-axis/price-axis-view';
 
 /**
