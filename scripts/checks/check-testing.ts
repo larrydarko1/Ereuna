@@ -51,7 +51,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
+import { REPO_ROOT as ROOT } from '@larrydarko/lint-config/gates/lib/repo-root';
 
 const VITEST_CONFIG = 'vitest.config.mts';
 const COVERAGE_SUMMARY = 'coverage/coverage-summary.json';

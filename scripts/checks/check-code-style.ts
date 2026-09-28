@@ -37,8 +37,8 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
-import { stripComments } from '../lib/strip-comments.ts';
+import { REPO_ROOT as ROOT } from '@larrydarko/lint-config/gates/lib/repo-root';
+import { stripComments } from '@larrydarko/lint-config/gates/lib/strip-comments';
 
 const SOURCE_ROOTS = ['api/src', 'worker/src', 'ingestor/src', 'frontend/src', 'packages/shared/src'];
 const ALIASED_ROOTS = ['api/src', 'worker/src', 'ingestor/src', 'frontend/src'];

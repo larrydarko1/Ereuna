@@ -29,7 +29,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
+import { REPO_ROOT as ROOT } from '@larrydarko/lint-config/gates/lib/repo-root';
 
 const ROUTES_DIR = 'api/src/routes';
 const INDEX_TS = 'api/src/index.ts';

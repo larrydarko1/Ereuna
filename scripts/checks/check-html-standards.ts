@@ -14,7 +14,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
+import { REPO_ROOT as ROOT } from '@larrydarko/lint-config/gates/lib/repo-root';
 
 const INDEX_HTML = 'frontend/index.html';
 const BASE_SCSS = 'frontend/src/styles/_base.scss';

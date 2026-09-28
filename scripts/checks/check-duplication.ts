@@ -35,7 +35,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
+import { REPO_ROOT as ROOT } from '@larrydarko/lint-config/gates/lib/repo-root';
 
 /** jscpd's JSON report, reduced to what this gate reads. */
 type CloneLocation = { name: string; start: number; end: number };

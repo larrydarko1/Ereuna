@@ -39,8 +39,8 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPO_ROOT as ROOT } from '../lib/repo-root.ts';
-import { stripComments } from '../lib/strip-comments.ts';
+import { REPO_ROOT as ROOT } from '@larrydarko/lint-config/gates/lib/repo-root';
+import { stripComments } from '@larrydarko/lint-config/gates/lib/strip-comments';
 
 const APP_ERROR = 'api/src/lib/app-error.ts';
 const HANDLER = 'api/src/middleware/error-handler.ts';

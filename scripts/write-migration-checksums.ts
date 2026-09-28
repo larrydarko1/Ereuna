@@ -13,7 +13,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { REPO_ROOT as ROOT } from './lib/repo-root.ts';
+import { REPO_ROOT as ROOT } from '@larrydarko/lint-config/gates/lib/repo-root';
 
 const MIGRATIONS_DIR = path.join(ROOT, 'db/migrations');
 const CHECKSUMS = path.join(MIGRATIONS_DIR, '.checksums.json');
