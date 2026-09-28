@@ -261,8 +261,7 @@ Ereuna/                              # npm workspaces monorepo
 ├── ingestor/                        # ONE socket to the vendor trade feed
 ├── db/                              # forward-only migrations + schema docs
 ├── e2e/                             # Playwright specs
-├── eslint/                          # 15 composed rule packs
-└── scripts/checks/                  # the 18 custom gates
+└── scripts/checks/                  # the 18 gates, configured for this repo
 ```
 
 ### The realtime path
@@ -320,11 +319,12 @@ every replica.
 npm run ci:check    # everything below, in order
 ```
 
-Eighteen custom gates in [`scripts/checks/`](scripts/checks/) — sixteen take no
-dependencies at all and read the tree with `node:fs` and the TypeScript compiler that
-was already here; the last two wrap `knip` and `jscpd`. Alongside them: ESLint (15
-composed rule packs), `prettier --check`, stylelint, typecheck, the unit suite with
-coverage, and Playwright.
+Eighteen gates in [`scripts/checks/`](scripts/checks/). Each is a thin wrapper over a gate
+from [@larrydarko/lint-config](https://www.npmjs.com/package/@larrydarko/lint-config), the
+package my projects share, and holds only this repo's answers — its paths, its
+thresholds, and the reason next to each one. Alongside them: ESLint (the same package's
+base and standards, wired to Ereuna's folders in `eslint.config.js`), `prettier --check`,
+stylelint, typecheck, the unit suite with coverage, and Playwright.
 
 Two gates are inverted from the written standard on purpose and say so in their own
 headers: `check-ws-standards.ts` _fails_ if a Redis adapter appears on the gateway, and
@@ -370,7 +370,8 @@ uses Node's native `WebSocket`, so there's no client library.
 driver.
 
 **Tooling** — Vite, vue-tsc, TypeScript, sass-embedded, tsx, tsc-alias, Vitest, MSW,
-Playwright, ESLint, Prettier, stylelint, knip, jscpd, concurrently.
+Playwright, concurrently, and [@larrydarko/lint-config](https://www.npmjs.com/package/@larrydarko/lint-config),
+which brings ESLint, Prettier, stylelint, knip and jscpd.
 
 **External** — Tiingo (market data).
 
