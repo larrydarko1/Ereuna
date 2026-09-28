@@ -13,7 +13,6 @@
  * Anything else throws rather than returning an empty result, so a migration
  * that grows a second pipeline fails here instead of passing on a silent [].
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { vi } from 'vitest';
 
 type Doc = Record<string, unknown>;

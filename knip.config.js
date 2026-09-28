@@ -4,7 +4,7 @@ export default knip({
     workspaces: {
         '.': {
             entry: ['scripts/**/*.ts!', 'e2e/support/global-setup.ts'],
-            project: ['scripts/**/*.ts!', 'eslint/*.js', 'e2e/**/*.ts', '*.{ts,mts,js}'],
+            project: ['scripts/**/*.ts!', 'e2e/**/*.ts', '*.{ts,mts,js}'],
         },
         frontend: { entry: ['index.html!'], project: ['src/**/*.{ts,vue}!', '*.ts'] },
         api: { project: ['src/**/*.ts!', '*.ts'] },

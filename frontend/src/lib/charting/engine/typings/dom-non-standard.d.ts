@@ -3,10 +3,9 @@
  *
  * Every block below merges into a global the DOM lib already declares — UIEvent,
  * Navigator, Window. Declaration merging is an `interface` feature: a `type`
- * alias of the same name is a duplicate-identifier error, so the whole file has
- * to opt out of the prefer-type rule.
+ * alias of the same name is a duplicate-identifier error, which is why the
+ * prefer-type rule is off for declaration files in eslint.config.js.
  */
-/* eslint-disable @typescript-eslint/consistent-type-definitions */
 /** https://developer.mozilla.org/en-US/docs/Web/API/InputDeviceCapabilities */
 interface InputDeviceCapabilities {
     firesTouchEvents?: boolean;
