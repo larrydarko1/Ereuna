@@ -17,4 +17,6 @@ export default knip({
         },
     },
     tags: ['-public'],
+    // System tools the db and redis scripts call, installed by Homebrew rather than npm.
+    ignoreBinaries: ['brew', 'redis-server'],
 });
