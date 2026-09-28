@@ -141,7 +141,7 @@ $bp-md: 768px;
 $bp-lg: 900px;
 $bp-xl: 1200px;
 
-/** Mobile-first media query: `@include above($bp-lg) { … }`. */
+// Mobile-first media query: `@include above($bp-lg) { … }`.
 @mixin above($breakpoint) {
     @media (min-width: $breakpoint) {
         @content;
