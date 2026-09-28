@@ -9,11 +9,10 @@
  */
 import { defineConfig, devices } from '@playwright/test';
 import { config as loadEnv } from 'dotenv';
-import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import { FRONTEND_URL, API_URL } from './support/constants';
 
-const e2eDir = dirname(fileURLToPath(import.meta.url));
+const e2eDir = import.meta.dirname;
 // `quiet` because anything that loads this config inherits its stdout, and
 // dotenv's banner is enough to make a tool reading JSON off this process fail
 const e2eEnv = loadEnv({ path: resolve(e2eDir, '.env.e2e'), quiet: true }).parsed ?? {};
