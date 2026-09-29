@@ -75,7 +75,7 @@
     },
     "devDependencies": {
         "@axe-core/playwright": "^4.13.0",
-        "@larrydarko/lint-config": "^0.1.0-beta.0",
+        "@larrydarko/lint-config": "^0.1.0-beta.1",
         "@playwright/test": "^1.63.0",
         "@vitest/coverage-v8": "^5.0.0",
         "@vue/test-utils": "^2.4.11",

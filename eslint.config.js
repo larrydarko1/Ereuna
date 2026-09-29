@@ -8,7 +8,7 @@
  * `no-restricted-syntax` is last-match-wins, not additive, so each area names the
  * whole list it wants rather than adding to an inherited one.
  */
-import { larry, PRESETS, NAMING_CONVENTION } from '@larrydarko/lint-config/eslint';
+import { larry, PRESETS, NAMING_CONVENTION, fullstackLayout, resolvePaths } from '@larrydarko/lint-config/eslint';
 import {
     fullstackStandards,
     apiSourceSelectors,
@@ -41,10 +41,16 @@ import {
     functionContractsPlugin,
 } from '@larrydarko/lint-config/eslint/fullstack';
 
-/** The fifth backend workspace, which the full-stack preset does not know about. */
-const INGESTOR = 'ingestor/src/**/*.ts';
-const { source, typedSource, node, ignores } = PRESETS.fullstack;
-const TYPED_SOURCE = [...typedSource, INGESTOR];
+/**
+ * The ingestor is the fifth workspace: one socket to the vendor's feed, outside the request
+ * cycle like the worker, so it takes the services role and every rule that role carries.
+ * Declared once; the preset's paths, the shared standards and the blocks below all read it.
+ */
+const WORKSPACES = { services: ['worker', 'ingestor'] };
+const { workspaces, services, backend } = fullstackLayout(WORKSPACES);
+const TYPED_SOURCE = resolvePaths('fullstack', {}, WORKSPACES).typedSource;
+/** Each backend's lib/, where the layering ban on services/ applies. */
+const BACKEND_LIBS = [workspaces.api, ...workspaces.services].map((dir) => `${dir}/src/lib/**/*.ts`);
 
 /**
  * A layering ban that only applies to a runtime import.
@@ -63,12 +69,8 @@ const runtimeOnly = (entries) => entries.map((entry) => ({ ...entry, allowTypeIm
 export default larry({
     preset: 'fullstack',
     rootDir: import.meta.dirname,
-    paths: {
-        source: [...source, INGESTOR],
-        typedSource: TYPED_SOURCE,
-        node: [...node, INGESTOR],
-        ignores: [...ignores, 'test-results/'],
-    },
+    workspaces: WORKSPACES,
+    paths: { ignores: [...PRESETS.fullstack.ignores, 'test-results/'] },
     /**
      * The charting fork arrived carrying `// eslint-disable-next-line deprecation/deprecation`
      * on two calls. That plugin is not installed here, so the directives were
@@ -266,7 +268,7 @@ export default larry({
         {
             // The ingestor rides with the worker: same shape, same Mongo and Redis
             // clients, same vendor.
-            files: ['worker/src/**/*.ts', INGESTOR],
+            files: services,
             ignores: [
                 '**/__tests__/**',
                 'worker/src/lib/config.ts',
@@ -291,18 +293,19 @@ export default larry({
             },
         },
         {
-            // worker/src/lib/db.ts is the worker's singleton, exactly as
-            // api/src/lib/db.ts is the api's — constructing the client is its job.
-            // The shared db standard only knows about the api's, so the worker's
-            // exemption is spelled out here.
-            files: ['worker/src/lib/db.ts'],
+            // Each service's lib/db.ts is that process's singleton, as api/src/lib/db.ts
+            // is the api's — constructing the client is its job. The shared db standard
+            // expects a service's client in its index.ts, so the exemption is spelled out
+            // here. Neither applies indexes (worker/src/index.ts does), so createIndex
+            // stays banned in them, unlike the api's.
+            files: workspaces.services.map((dir) => `${dir}/src/lib/db.ts`),
             rules: {
                 'no-restricted-syntax': [
                     'error',
                     ...outboundCallSelectors,
                     ...loggerCallSelectors,
                     ...errorHandlingSelectors,
-                    ...dbDbTsSelectors,
+                    ...dbWorkerIndexSelectors,
                     ...tsSourceSelectors,
                     noSingleLetterDeclaration,
                 ],
@@ -344,7 +347,7 @@ export default larry({
 
         // ── Restricted imports, composed per area ────────────────────────────
         {
-            files: ['api/src/**/*.ts', 'worker/src/**/*.ts'],
+            files: backend,
             rules: {
                 'no-restricted-imports': [
                     'error',
@@ -412,7 +415,7 @@ export default larry({
             },
         },
         {
-            files: ['api/src/lib/**/*.ts', 'worker/src/lib/**/*.ts'],
+            files: BACKEND_LIBS,
             ignores: ['**/__tests__/**'],
             rules: {
                 'no-restricted-imports': 'off',
