@@ -1,7 +1,7 @@
 /**
  * Crosshair defaults: magnet mode off, both lines drawn, labels on.
  */
-import { CrosshairMode, type CrosshairOptions } from '@/lib/charting/engine/model/chart/crosshair';
+import { CrosshairMode, type CrosshairOptions } from '@/lib/charting/engine/model/chart/crosshair-options';
 import { LineStyle } from '@/lib/charting/engine/renderers/draw-line';
 
 export const crosshairOptionsDefaults: CrosshairOptions = {

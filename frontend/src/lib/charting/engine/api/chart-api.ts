@@ -39,7 +39,7 @@ import { assert, getPresent, getDefined } from '@/lib/charting/engine/helpers/as
 import { Delegate } from '@/lib/charting/engine/helpers/delegate';
 import { rejectOptions } from '@/lib/charting/engine/helpers/logger';
 import { clone, type DeepPartial, isBoolean, merge } from '@/lib/charting/engine/helpers/strict-type-checks';
-import { type ChartOptionsImpl, type ChartOptionsInternal } from '@/lib/charting/engine/model/chart/chart-model';
+import { type ChartOptionsImpl, type ChartOptionsInternal } from '@/lib/charting/engine/model/chart/chart-options';
 import {
     type DataUpdatesConsumer,
     isFulfilledData,

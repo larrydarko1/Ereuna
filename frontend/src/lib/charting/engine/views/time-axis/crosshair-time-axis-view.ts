@@ -4,11 +4,8 @@
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
 import { generateContrastColors } from '@/lib/charting/engine/helpers/color';
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
-import {
-    type Crosshair,
-    CrosshairMode,
-    type TimeAndCoordinateProvider,
-} from '@/lib/charting/engine/model/chart/crosshair';
+import { type Crosshair, type TimeAndCoordinateProvider } from '@/lib/charting/engine/model/chart/crosshair';
+import { CrosshairMode } from '@/lib/charting/engine/model/chart/crosshair-options';
 import {
     TimeAxisViewRenderer,
     type TimeAxisViewRendererData,

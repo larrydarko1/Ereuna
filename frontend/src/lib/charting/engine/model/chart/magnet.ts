@@ -3,7 +3,7 @@
  * the bar's own values under the pointer, not the pointer's own price.
  */
 import { getPresent } from '@/lib/charting/engine/helpers/assertions';
-import { CrosshairMode, type CrosshairOptions } from '@/lib/charting/engine/model/chart/crosshair';
+import { CrosshairMode, type CrosshairOptions } from '@/lib/charting/engine/model/chart/crosshair-options';
 import { type Pane } from '@/lib/charting/engine/model/chart/pane';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { PlotRowValueIndex } from '@/lib/charting/engine/model/data/plot-data';

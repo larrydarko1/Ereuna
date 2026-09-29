@@ -6,7 +6,8 @@
  */
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
-import { type Crosshair, CrosshairMode } from '@/lib/charting/engine/model/chart/crosshair';
+import { type Crosshair } from '@/lib/charting/engine/model/chart/crosshair';
+import { CrosshairMode } from '@/lib/charting/engine/model/chart/crosshair-options';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type BarPrice } from '@/lib/charting/engine/model/data/bar';
 import { type ISeries } from '@/lib/charting/engine/model/series/series';

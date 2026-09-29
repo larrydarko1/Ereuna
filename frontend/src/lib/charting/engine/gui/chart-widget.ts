@@ -22,12 +22,11 @@ import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
 import { type ISubscription } from '@/lib/charting/engine/helpers/isubscription';
 import { rejectOptions } from '@/lib/charting/engine/helpers/logger';
 import { type DeepPartial } from '@/lib/charting/engine/helpers/strict-type-checks';
+import { ChartModel, type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
 import {
-    ChartModel,
     type ChartOptionsInternal,
     type ChartOptionsInternalBase,
-    type IChartModelBase,
-} from '@/lib/charting/engine/model/chart/chart-model';
+} from '@/lib/charting/engine/model/chart/chart-options';
 import {
     InvalidateMask,
     InvalidationLevel,

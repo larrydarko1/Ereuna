@@ -7,12 +7,12 @@ import { Delegate } from '@/lib/charting/engine/helpers/delegate';
 import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
 import { type ISubscription } from '@/lib/charting/engine/helpers/isubscription';
 import { clone, type DeepPartial } from '@/lib/charting/engine/helpers/strict-type-checks';
+import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
 import {
     type ChartOptionsBase,
-    type IChartModelBase,
     type OverlayPriceScaleOptions,
     type VisiblePriceScaleOptions,
-} from '@/lib/charting/engine/model/chart/chart-model';
+} from '@/lib/charting/engine/model/chart/chart-options';
 import { Grid } from '@/lib/charting/engine/model/chart/grid';
 import { sortSources } from '@/lib/charting/engine/model/chart/sort-sources';
 import { DefaultPriceScaleId, isDefaultPriceScale } from '@/lib/charting/engine/model/price/default-price-scale';

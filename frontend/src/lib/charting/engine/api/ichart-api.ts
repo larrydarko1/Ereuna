@@ -9,7 +9,7 @@ import { type IPriceScaleApi } from '@/lib/charting/engine/api/iprice-scale-api'
 import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
 import { type ITimeScaleApi } from '@/lib/charting/engine/api/itime-scale-api';
 import { type DeepPartial } from '@/lib/charting/engine/helpers/strict-type-checks';
-import { type ChartOptionsImpl } from '@/lib/charting/engine/model/chart/chart-model';
+import { type ChartOptionsImpl } from '@/lib/charting/engine/model/chart/chart-options';
 import { type TouchMouseEventData } from '@/lib/charting/engine/model/chart/touch-mouse-event-data';
 import {
     type BarData,

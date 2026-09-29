@@ -41,7 +41,8 @@ import { clearRect, clearRectWithGradient } from '@/lib/charting/engine/helpers/
 import { Delegate } from '@/lib/charting/engine/helpers/delegate';
 import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
 import { type ISubscription } from '@/lib/charting/engine/helpers/isubscription';
-import { type IChartModelBase, TrackingModeExitMode } from '@/lib/charting/engine/model/chart/chart-model';
+import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
+import { TrackingModeExitMode } from '@/lib/charting/engine/model/chart/chart-options';
 import { type IDataSource } from '@/lib/charting/engine/model/chart/idata-source';
 import { InvalidationLevel } from '@/lib/charting/engine/model/chart/invalidate-mask';
 import { KineticAnimation } from '@/lib/charting/engine/model/chart/kinetic-animation';
@@ -396,12 +397,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     public hitTest(x: Coordinate, y: Coordinate): HitTestResult | null {
-        const state = this._state;
-        if (state === null) {
-            return null;
-        }
-
-        return hitTestPane(state, x, y);
+        return this._state === null ? null : hitTestPane(this._state, x, y);
     }
 
     public setPriceAxisSize(width: number, position: PriceAxisWidgetSide): void {

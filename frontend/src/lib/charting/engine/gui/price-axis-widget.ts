@@ -29,7 +29,7 @@ import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
 import { clearRect, clearRectWithGradient } from '@/lib/charting/engine/helpers/canvas-helpers';
 import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
 import { makeFont } from '@/lib/charting/engine/helpers/make-font';
-import { type ChartOptionsInternalBase } from '@/lib/charting/engine/model/chart/chart-model';
+import { type ChartOptionsInternalBase } from '@/lib/charting/engine/model/chart/chart-options';
 import { type IDataSource } from '@/lib/charting/engine/model/chart/idata-source';
 import { InvalidationLevel } from '@/lib/charting/engine/model/chart/invalidate-mask';
 import { type LayoutOptions } from '@/lib/charting/engine/model/chart/layout-options';

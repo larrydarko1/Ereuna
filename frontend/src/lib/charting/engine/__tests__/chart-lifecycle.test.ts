@@ -10,7 +10,7 @@ import {
 } from '@/lib/charting/__tests__/helpers/chart-harness';
 import { candlestickData, lineData } from '@/lib/charting/__tests__/helpers/market-data';
 import { createChart } from '@/lib/charting/engine/api/create-chart';
-import { CrosshairMode } from '@/lib/charting/engine/model/chart/crosshair';
+import { CrosshairMode } from '@/lib/charting/engine/model/chart/crosshair-options';
 import { ColorType } from '@/lib/charting/engine/model/chart/layout-options';
 
 describe('createChart', () => {

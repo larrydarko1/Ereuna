@@ -1,7 +1,7 @@
 /**
  * The chart options once the horizontal scale is known to be time.
  */
-import { type ChartOptionsImpl } from '@/lib/charting/engine/model/chart/chart-model';
+import { type ChartOptionsImpl } from '@/lib/charting/engine/model/chart/chart-options';
 import { type TickMarkFormatter } from '@/lib/charting/engine/model/time/horz-scale-behavior';
 import { type HorzScaleOptions } from '@/lib/charting/engine/model/time/time-scale';
 import { type Time } from '@/lib/charting/engine/model/time/types';

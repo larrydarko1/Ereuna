@@ -12,7 +12,7 @@ import { priceScaleOptionsDefaults } from '@/lib/charting/engine/api/options/pri
 import { timeScaleOptionsDefaults } from '@/lib/charting/engine/api/options/time-scale-options-defaults';
 import { watermarkOptionsDefaults } from '@/lib/charting/engine/api/options/watermark-options-defaults';
 import { isRunningOnClientSide } from '@/lib/charting/engine/helpers/is-running-on-client-side';
-import { type ChartOptionsInternal, TrackingModeExitMode } from '@/lib/charting/engine/model/chart/chart-model';
+import { type ChartOptionsInternal, TrackingModeExitMode } from '@/lib/charting/engine/model/chart/chart-options';
 
 export function chartOptionsDefaults<THorzScaleItem>(): ChartOptionsInternal<THorzScaleItem> {
     return {

@@ -6,7 +6,7 @@
  */
 import { type Mutable } from '@/lib/charting/engine/helpers/mutable';
 import { type Nominal } from '@/lib/charting/engine/helpers/nominal';
-import { type ChartOptionsImpl } from '@/lib/charting/engine/model/chart/chart-model';
+import { type ChartOptionsImpl } from '@/lib/charting/engine/model/chart/chart-options';
 import { type LocalizationOptions } from '@/lib/charting/engine/model/chart/localization-options';
 import { type SeriesDataItemTypeMap } from '@/lib/charting/engine/model/data/data-consumer';
 import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';

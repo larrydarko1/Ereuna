@@ -12,7 +12,7 @@
 
 // The chart
 export { createChart } from '@/lib/charting/engine/api/create-chart';
-export { CrosshairMode } from '@/lib/charting/engine/model/chart/crosshair';
+export { CrosshairMode } from '@/lib/charting/engine/model/chart/crosshair-options';
 export { ColorType } from '@/lib/charting/engine/model/chart/layout-options';
 
 export type { IChartApi } from '@/lib/charting/engine/api/create-chart';
