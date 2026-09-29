@@ -70,7 +70,8 @@
         "db:checksums": "node scripts/write-migration-checksums.ts",
         "redisstart": "brew services start redis",
         "redisstop": "brew services stop redis",
-        "redis": "redis-server"
+        "redis": "redis-server",
+        "prepare": "husky"
     },
     "devDependencies": {
         "@axe-core/playwright": "^4.13.0",
