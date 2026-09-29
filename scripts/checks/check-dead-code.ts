@@ -6,8 +6,8 @@
  * each live in @larrydarko/lint-config/gates/dead-code.
  *
  * Nothing about this gate is repo-specific except the closing hint and the examples
- * in the footer, which is why the options object is three lines. Budgets are all
- * zero and stay there.
+ * in the footer, which is why the options object is two lines. There are no budgets:
+ * every category is at zero and stays there.
  *
  * What this repo learned from it, so the findings are not re-derived: the first run
  * reported every one of the 143 frontend files unreachable, because `index.html`
@@ -27,14 +27,6 @@
 import { checkDeadCode } from '@larrydarko/lint-config/gates/dead-code';
 
 checkDeadCode({
-    /**
-     * The one budget above zero, and a backlog rather than a licence. The charting
-     * fork's Crosshair model constructs its four views, and each view imports the
-     * `CrosshairMode` enum back from the model — upstream's layout, brought in whole.
-     * Moving the enum and the types the views read into their own module breaks all
-     * four; until then the count may only go down.
-     */
-    budgets: { cycles: 4 },
     checksDir: 'scripts/checks',
     notMachineChecked:
         'code reachable from an entry point but never reached at RUNTIME — a route nothing links to, a branch no config enables, a Redis channel with no publisher.',
