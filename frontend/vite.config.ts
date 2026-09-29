@@ -26,7 +26,7 @@ export default defineConfig({
                 // base, components and layout, all of which EMIT CSS — and
                 // since every SFC <style> block is its own Sass compilation,
                 // injecting the barrel would re-emit the entire global
-                // stylesheet, all 52 themes included, once per component.
+                // stylesheet, all themes included, once per component.
                 // index.scss is loaded once from main.ts; SFCs need the vars.
                 additionalData: (source: string, filename: string) =>
                     filename.endsWith('index.scss')
