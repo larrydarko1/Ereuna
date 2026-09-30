@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
- * SCSS architecture gate. The rules — the barrel forwarded and imported once, the
- * token layer injected by Vite, theme parity, no Sass colour maths on a runtime
+ * SCSS architecture gate. The rules — the entry imported once, the token layer
+ * injected by Vite, theme parity, no Sass colour maths on a runtime
  * token, no `@extend` inside an SFC, and self-hosted fonts — live in
  * @larrydarko/lint-config/gates/scss-standards.
  *
  * What stays here is this repo's answers.
  *
  * `injectionGuard` — Vite prepends `_variables.scss` to every stylesheet but
- * index.scss. The barrel `@use`s the partials that EMIT CSS, and every SFC <style>
- * block is its own Sass compilation, so injecting the barrel would re-emit the whole
+ * index.scss. The entry `@use`s the partials that EMIT CSS, and every SFC <style>
+ * block is its own Sass compilation, so injecting the entry would re-emit the whole
  * global stylesheet once per component.
  *
  * `themes` — six palettes, each a `$name` map of the same token keys, registered in
