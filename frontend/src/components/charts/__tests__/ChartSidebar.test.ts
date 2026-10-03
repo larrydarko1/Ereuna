@@ -2,11 +2,11 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { PANEL_SECTIONS } from '@ereuna/shared';
-import type { CorporateAction } from '@ereuna/shared';
+import type { ChartEvents, CorporateAction } from '@ereuna/shared';
 
+import { statement } from '@/__tests__/support/answers';
 import { assetProfile } from '@/__tests__/support/assets';
 import { mockApi } from '@/__tests__/support/msw';
-import type { ChartEvents } from '@/api/chart';
 import { clearAuth } from '@/api/client';
 import ChartSidebar from '@/components/charts/ChartSidebar.vue';
 import { loadPreferences } from '@/composables/data/usePreferences';
@@ -47,7 +47,7 @@ beforeEach(async () => {
     document.body.innerHTML = '';
     api.on('GET /api/preferences', preferences(null));
     api.on('GET /api/market/AAPL/financials', { symbol: 'AAPL', annual: [], quarterly: [] });
-    api.on('GET /api/notes', { items: [], total: 0, page: 1, pages: 1 });
+    api.on('GET /api/notes', { items: [], total: 0, page: 1, limit: 50 });
     await loadPreferences();
 });
 
@@ -138,7 +138,7 @@ describe('ChartSidebar', () => {
         api.on('GET /api/market/AAPL/financials', {
             symbol: 'AAPL',
             annual: [],
-            quarterly: [{ fiscalDateEnding: '2026-03-31', reportedEPS: 1.5, netIncome: 1, totalRevenue: 2 }],
+            quarterly: [statement('2026-03-31', { reportedEPS: 1.5, netIncome: 1, totalRevenue: 2 })],
         });
 
         const wrapper = await sidebar();

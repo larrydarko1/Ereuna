@@ -14,7 +14,10 @@
 import { Router } from 'express';
 import { z } from 'zod';
 
+import { recoveryCodeCountSchema, recoveryCodesSchema, sessionUserSchema, totpEnrolmentSchema } from '@ereuna/shared';
+
 import { passwordSchema, requiredString, usernameSchema } from '@/lib/schemas.js';
+import { send } from '@/lib/send.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';
 import * as authService from '@/services/auth/index.js';
@@ -43,7 +46,7 @@ export const router = Router();
 router.get(
     '/',
     ...validated({}, async (req, res): Promise<void> => {
-        res.json(await userService.getAccount(authedUserId(req)));
+        send(res, sessionUserSchema, await userService.getAccount(authedUserId(req)));
     }),
 );
 
@@ -58,7 +61,8 @@ router.patch(
 router.patch(
     '/username',
     ...validated({ body: changeUsernameBody }, async (req, res): Promise<void> => {
-        res.json(await userService.changeUsername(authedUserId(req), req.body.password, req.body.username));
+        const user = await userService.changeUsername(authedUserId(req), req.body.password, req.body.username);
+        send(res, sessionUserSchema, user);
     }),
 );
 
@@ -73,14 +77,14 @@ router.delete(
 router.post(
     '/2fa',
     ...validated({}, async (req, res): Promise<void> => {
-        res.json(await authService.beginTotpEnrolment(authedUserId(req)));
+        send(res, totpEnrolmentSchema, await authService.beginTotpEnrolment(authedUserId(req)));
     }),
 );
 
 router.post(
     '/2fa/confirm',
     ...validated({ body: totpCodeBody }, async (req, res): Promise<void> => {
-        res.json(await authService.confirmTotpEnrolment(authedUserId(req), req.body.code));
+        send(res, recoveryCodesSchema, await authService.confirmTotpEnrolment(authedUserId(req), req.body.code));
     }),
 );
 
@@ -96,14 +100,14 @@ router.post(
     '/recovery-codes',
     ...validated({ body: confirmPasswordBody }, async (req, res): Promise<void> => {
         const recoveryCodes = await authService.regenerateRecoveryCodes(authedUserId(req), req.body.password);
-        res.json({ recoveryCodes });
+        send(res, recoveryCodesSchema, { recoveryCodes });
     }),
 );
 
 router.get(
     '/recovery-codes',
     ...validated({}, async (req, res): Promise<void> => {
-        res.json({ remaining: await authService.countRemainingCodes(authedUserId(req)) });
+        send(res, recoveryCodeCountSchema, { remaining: await authService.countRemainingCodes(authedUserId(req)) });
     }),
 );
 

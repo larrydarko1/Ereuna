@@ -7,18 +7,15 @@
  * responsible for putting the client into the matching state — that is why they
  * return the settled session rather than the raw response.
  */
-import type { SessionUser } from '@ereuna/shared';
+import type { AuthSession, SessionUser, TwoFactorChallenge } from '@ereuna/shared';
 
 import { api, clearAuth, setAccessToken, setSessionUser } from '@/api/client';
 import { adoptLocale } from '@/i18n';
 
 type LoginResult = { requires2FA: true; tempToken: string } | { requires2FA: false; user: SessionUser };
 
-type AuthSuccess = { accessToken: string; user: SessionUser };
-type LoginResponse = AuthSuccess | { requires2FA: true; tempToken: string };
-
 export async function register(username: string, password: string): Promise<SessionUser> {
-    const { data } = await api.post<AuthSuccess>('/auth/register', { username, password });
+    const { data } = await api.post<AuthSession>('/auth/register', { username, password });
     return establish(data);
 }
 
@@ -27,7 +24,11 @@ export async function login(
     password: string,
     options: { rememberMe: boolean },
 ): Promise<LoginResult> {
-    const { data } = await api.post<LoginResponse>('/auth/login', { username, password, ...options });
+    const { data } = await api.post<AuthSession | TwoFactorChallenge>('/auth/login', {
+        username,
+        password,
+        ...options,
+    });
     if ('requires2FA' in data) return { requires2FA: true, tempToken: data.tempToken };
     return { requires2FA: false, user: establish(data) };
 }
@@ -37,7 +38,7 @@ export async function validateTwoFactor(
     code: string,
     options: { rememberMe: boolean },
 ): Promise<SessionUser> {
-    const { data } = await api.post<AuthSuccess>('/auth/2fa/validate', { tempToken, code, ...options });
+    const { data } = await api.post<AuthSession>('/auth/2fa/validate', { tempToken, code, ...options });
     return establish(data);
 }
 
@@ -46,7 +47,7 @@ export async function recover(
     recoveryCode: string,
     options: { rememberMe: boolean },
 ): Promise<SessionUser> {
-    const { data } = await api.post<AuthSuccess>('/auth/recover', { username, recoveryCode, ...options });
+    const { data } = await api.post<AuthSession>('/auth/recover', { username, recoveryCode, ...options });
     return establish(data);
 }
 
@@ -66,7 +67,7 @@ export async function logout(): Promise<void> {
     }
 }
 
-function establish(result: AuthSuccess): SessionUser {
+function establish(result: AuthSession): SessionUser {
     setAccessToken(result.accessToken);
     setSessionUser(result.user);
     adoptLocale(result.user.language);

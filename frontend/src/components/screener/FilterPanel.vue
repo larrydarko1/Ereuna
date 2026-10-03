@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 
-import type { FilterDescriptor, FilterValue } from '@/api/screener';
+import type { FilterDescriptor } from '@ereuna/shared';
+
+import type { FilterValue } from '@/api/screener';
 import DateFilter from '@/components/screener/DateFilter.vue';
 import EnumFilter from '@/components/screener/EnumFilter.vue';
 import FilterCard from '@/components/screener/FilterCard.vue';

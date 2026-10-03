@@ -1,7 +1,8 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 
-import type { FilterDescriptor } from '@/api/screener';
+import type { FilterDescriptor } from '@ereuna/shared';
+
 import FilterPanel from '@/components/screener/FilterPanel.vue';
 import type { FilterGrouping } from '@/composables/screener/useFilterRegistry';
 import type { ActiveFilter, FilterKind } from '@/composables/screener/useScreenerFilters';

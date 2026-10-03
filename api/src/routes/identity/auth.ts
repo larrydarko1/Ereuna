@@ -11,9 +11,12 @@ import { Router, type CookieOptions, type Request, type Response } from 'express
 import { ObjectId } from 'mongodb';
 import { z } from 'zod';
 
+import { accessTokenSchema, authSessionSchema, twoFactorChallengeSchema } from '@ereuna/shared';
+
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { passwordSchema, requiredString, usernameSchema } from '@/lib/schemas.js';
+import { send } from '@/lib/send.js';
 import { validated } from '@/middleware/validate.js';
 import * as authService from '@/services/auth/index.js';
 
@@ -81,7 +84,7 @@ router.post(
     ...validated({ body: registerBody }, async (req, res): Promise<void> => {
         const result = await authService.registerUser(req.body.username, req.body.password);
         setRefreshCookie(res, result.refreshToken, result.refreshMaxAge);
-        res.status(201).json({ accessToken: result.accessToken, user: result.user });
+        send(res.status(201), authSessionSchema, result);
     }),
 );
 
@@ -92,12 +95,12 @@ router.post(
         const result = await authService.loginUser(username, password, { rememberMe: rememberMe === true });
 
         if (result.requires2FA) {
-            res.json({ requires2FA: true, tempToken: result.tempToken });
+            send(res, twoFactorChallengeSchema, result);
             return;
         }
 
         setRefreshCookie(res, result.refreshToken, result.refreshMaxAge);
-        res.json({ accessToken: result.accessToken, user: result.user });
+        send(res, authSessionSchema, result);
     }),
 );
 
@@ -110,7 +113,7 @@ router.post(
             rememberMe: rememberMe === true,
         });
         setRefreshCookie(res, result.refreshToken, result.refreshMaxAge);
-        res.json({ accessToken: result.accessToken, user: result.user });
+        send(res, authSessionSchema, result);
     }),
 );
 
@@ -122,7 +125,7 @@ router.post(
             rememberMe: rememberMe === true,
         });
         setRefreshCookie(res, result.refreshToken, result.refreshMaxAge);
-        res.json({ accessToken: result.accessToken, user: result.user });
+        send(res, authSessionSchema, result);
     }),
 );
 
@@ -134,7 +137,7 @@ router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
 
     const result = await authService.rotateRefreshToken(rawToken);
     setRefreshCookie(res, result.refreshToken, result.refreshMaxAge);
-    res.json({ accessToken: result.accessToken });
+    send(res, accessTokenSchema, result);
 });
 
 /**

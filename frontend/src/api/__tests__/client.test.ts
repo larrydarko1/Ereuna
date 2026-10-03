@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 
 import type { SessionUser } from '@ereuna/shared';
 
-import { mockApi, ORIGIN } from '@/__tests__/support/msw';
+import { notePage } from '@/__tests__/support/answers';
+import { answer, mockApi, ORIGIN } from '@/__tests__/support/msw';
 import {
     api,
     apiErrorCode,
@@ -45,7 +46,7 @@ describe('the access token', () => {
 
     it('is sent as a bearer token when there is one', async () => {
         setAccessToken('access');
-        mock.on('GET /api/notes', { items: [] });
+        mock.on('GET /api/notes', notePage());
 
         await api.get('/notes');
 
@@ -53,7 +54,7 @@ describe('the access token', () => {
     });
 
     it('is left off entirely when there is none', async () => {
-        mock.on('GET /api/notes', { items: [] });
+        mock.on('GET /api/notes', notePage());
 
         await api.get('/notes');
 
@@ -136,14 +137,14 @@ describe('the 401 retry', () => {
                 if (request.headers.get('authorization') !== 'Bearer fresh') {
                     return HttpResponse.json({ error: 'INVALID_TOKEN' }, { status: 401 });
                 }
-                return HttpResponse.json({ items: [] });
+                return answer('GET /api/notes', notePage());
             }),
         );
         mock.on('POST /api/auth/refresh', { accessToken: 'fresh' });
 
         const response = await api.get('/notes');
 
-        expect(response.data).toEqual({ items: [] });
+        expect(response.data).toEqual(notePage());
         expect(served).toBe(2);
     });
 
@@ -153,12 +154,12 @@ describe('the 401 retry', () => {
         mock.server.use(
             http.get(`${ORIGIN}/api/notes`, ({ request }) =>
                 request.headers.get('authorization') === 'Bearer fresh'
-                    ? HttpResponse.json({ items: [] })
+                    ? answer('GET /api/notes', notePage())
                     : HttpResponse.json({ error: 'INVALID_TOKEN' }, { status: 401 }),
             ),
             http.post(`${ORIGIN}/api/auth/refresh`, () => {
                 refreshes += 1;
-                return HttpResponse.json({ accessToken: 'fresh' });
+                return answer('POST /api/auth/refresh', { accessToken: 'fresh' });
             }),
         );
 
@@ -187,7 +188,7 @@ describe('the 401 retry', () => {
         mock.server.use(
             http.post(`${ORIGIN}/api/auth/refresh`, () => {
                 refreshes += 1;
-                return HttpResponse.json({ accessToken: 'fresh' });
+                return answer('POST /api/auth/refresh', { accessToken: 'fresh' });
             }),
         );
         mock.on('POST /api/auth/login', { error: 'INVALID_CREDENTIALS' }, { status: 401 });
@@ -220,7 +221,7 @@ describe('the 401 retry', () => {
         mock.server.use(
             http.post(`${ORIGIN}/api/auth/refresh`, () => {
                 refreshes += 1;
-                return HttpResponse.json({ accessToken: 'fresh' });
+                return answer('POST /api/auth/refresh', { accessToken: 'fresh' });
             }),
         );
         mock.on('GET /api/notes', { error: 'INTERNAL' }, { status: 500 });

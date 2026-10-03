@@ -9,18 +9,11 @@
  */
 import { computed, ref, watch, type ComputedRef, type Ref } from 'vue';
 
+import type { FilterDescriptor, ScreenerFilters } from '@ereuna/shared';
 import { filterField } from '@ereuna/shared';
 
 import { apiErrorMessage } from '@/api/client';
-import {
-    clearAllFilters,
-    clearFilter,
-    getScreener,
-    setFilter,
-    type FilterDescriptor,
-    type FilterValue,
-    type ScreenerFilters,
-} from '@/api/screener';
+import { clearAllFilters, clearFilter, getScreener, setFilter, type FilterValue } from '@/api/screener';
 import { i18n } from '@/i18n';
 
 export type FilterKind = FilterDescriptor['kind'];

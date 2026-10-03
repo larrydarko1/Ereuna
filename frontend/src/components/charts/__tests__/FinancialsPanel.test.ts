@@ -1,21 +1,19 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 
+import type { Statement } from '@ereuna/shared';
+
+import { statement } from '@/__tests__/support/answers';
 import FinancialsPanel from '@/components/charts/FinancialsPanel.vue';
 import { i18n } from '@/i18n';
 import { formatCompact, formatNumber } from '@/utils/formatters';
 
 type Metric = 'eps' | 'earnings' | 'sales';
 
-const quarter = (date: string, over: Record<string, unknown> = {}): Record<string, unknown> => ({
-    fiscalDateEnding: date,
-    reportedEPS: 1,
-    netIncome: 1_000_000,
-    totalRevenue: 5_000_000,
-    ...over,
-});
+const quarter = (date: string, over: Statement['figures'] = {}): Statement =>
+    statement(date, { reportedEPS: 1, netIncome: 1_000_000, totalRevenue: 5_000_000, ...over });
 
-const panel = (rows: Record<string, unknown>[], metric: Metric = 'eps'): VueWrapper =>
+const panel = (rows: Statement[], metric: Metric = 'eps'): VueWrapper =>
     mount(FinancialsPanel, { props: { rows, metric } });
 
 const cells = (wrapper: VueWrapper, row = 0): string[] =>
@@ -27,10 +25,6 @@ const cells = (wrapper: VueWrapper, row = 0): string[] =>
 describe('FinancialsPanel', () => {
     it('shows one row per quarter the vendor reported', () => {
         expect(panel([quarter('2026-03-31'), quarter('2025-12-31')]).findAll('tbody tr')).toHaveLength(2);
-    });
-
-    it('skips a row with no fiscal date to key it by', () => {
-        expect(panel([quarter('2026-03-31'), { reportedEPS: 2 }]).findAll('tbody tr')).toHaveLength(1);
     });
 
     it('says which figure it has none of', () => {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { preferences } from '@/__tests__/support/answers';
 import { mockApi } from '@/__tests__/support/msw';
 import { getPreferences, hideSymbol, unhideSymbol, updatePreferences } from '@/api/preferences';
 
@@ -7,13 +8,13 @@ const mock = mockApi();
 
 describe('preferences', () => {
     it('reads them', async () => {
-        mock.on('GET /api/preferences', { language: 'en' });
+        mock.on('GET /api/preferences', preferences());
 
         await expect(getPreferences()).resolves.toMatchObject({ data: { language: 'en' } });
     });
 
     it('sends only the keys being changed', async () => {
-        mock.on('PATCH /api/preferences', { language: 'fr' });
+        mock.on('PATCH /api/preferences', preferences({ language: 'fr' }));
 
         await updatePreferences({ language: 'fr' });
 
@@ -21,7 +22,7 @@ describe('preferences', () => {
     });
 
     it('sends an explicit null to clear a nullable preference', async () => {
-        mock.on('PATCH /api/preferences', { theme: null });
+        mock.on('PATCH /api/preferences', preferences());
 
         await updatePreferences({ theme: null });
 

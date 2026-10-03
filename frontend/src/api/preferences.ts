@@ -3,7 +3,7 @@
  * Chart settings live here rather than under /api/charts: which overlays a user
  * wants is a property of the user, not of any one chart.
  */
-import type { Preferences } from '@ereuna/shared';
+import type { hiddenSymbolsSchema, Preferences, ResponseBody } from '@ereuna/shared';
 
 import { api, type ApiResult } from '@/api/client';
 
@@ -15,10 +15,10 @@ export function updatePreferences(patch: Partial<Preferences>): ApiResult<Prefer
     return api.patch<Preferences>('/preferences', patch);
 }
 
-export function hideSymbol(symbol: string): ApiResult<{ hiddenSymbols: string[] }> {
-    return api.post<{ hiddenSymbols: string[] }>(`/preferences/hidden/${encodeURIComponent(symbol)}`);
+export function hideSymbol(symbol: string): ApiResult<ResponseBody<typeof hiddenSymbolsSchema>> {
+    return api.post<ResponseBody<typeof hiddenSymbolsSchema>>(`/preferences/hidden/${encodeURIComponent(symbol)}`);
 }
 
-export function unhideSymbol(symbol: string): ApiResult<{ hiddenSymbols: string[] }> {
-    return api.delete<{ hiddenSymbols: string[] }>(`/preferences/hidden/${encodeURIComponent(symbol)}`);
+export function unhideSymbol(symbol: string): ApiResult<ResponseBody<typeof hiddenSymbolsSchema>> {
+    return api.delete<ResponseBody<typeof hiddenSymbolsSchema>>(`/preferences/hidden/${encodeURIComponent(symbol)}`);
 }

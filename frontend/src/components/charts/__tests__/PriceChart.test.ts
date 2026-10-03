@@ -2,8 +2,9 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CHART_TIMEFRAMES } from '@ereuna/shared';
-import type { AssetProfile } from '@ereuna/shared';
+import type { AssetProfile, Candle, ChartSeries } from '@ereuna/shared';
 
+import { chartSeries, noDrawings, preferences } from '@/__tests__/support/answers';
 import { assetProfile } from '@/__tests__/support/assets';
 import { elementOf } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
@@ -17,25 +18,27 @@ vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket'))
 
 const api = mockApi();
 
-const DAY = 86_400;
+const DAY_MS = 86_400_000;
+const FIRST_DAY = Date.UTC(2023, 10, 14);
 
 const RUN = Array.from({ length: 40 }, (_, index) => 100 + Math.sin(index / 3) * 10);
 
-const candle = (index: number, close: number): Record<string, unknown> => ({
-    time: 1_700_000_000 + index * DAY,
+/** A daily bar's time as the API writes it: the date alone. */
+const day = (index: number): string => new Date(FIRST_DAY + index * DAY_MS).toISOString().slice(0, 10);
+
+const candle = (index: number, close: number): Candle => ({
+    time: day(index),
     open: close - 1,
     high: close + 2,
     low: close - 2,
     close,
 });
 
-const series = (closesIn: number[] = RUN): Record<string, unknown> => ({
-    symbol: 'AAPL',
-    timeframe: 'daily',
-    candles: closesIn.map((close, index) => candle(index, close)),
-    volume: closesIn.map((_, index) => ({ time: 1_700_000_000 + index * DAY, value: 1_000_000 })),
-    overlays: [],
-});
+const series = (closesIn: number[] = RUN): ChartSeries =>
+    chartSeries('AAPL', {
+        candles: closesIn.map((close, index) => candle(index, close)),
+        volume: closesIn.map((_, index) => ({ time: day(index), value: 1_000_000 })),
+    });
 
 const profile = (over: Partial<AssetProfile> = {}): AssetProfile => assetProfile(over);
 
@@ -71,21 +74,12 @@ beforeEach(() => {
     clearAuth();
     localStorage.clear();
     document.body.innerHTML = '';
-    api.on('GET /api/preferences', {
-        language: 'en',
-        theme: null,
-        defaultSymbol: 'AAPL',
-        hiddenSymbols: [],
-        chartSettings: null,
-        panels: null,
-        screenerColumns: [],
-    });
+    api.on('GET /api/preferences', preferences());
     api.on('GET /api/charts/AAPL', series());
     api.on('GET /api/charts/MSFT', { ...series(), symbol: 'MSFT' });
-    api.on('GET /api/charts/AAPL/drawings', { drawings: [] });
-    api.on('GET /api/charts/MSFT/drawings', { drawings: [] });
+    api.on('GET /api/charts/AAPL/drawings', noDrawings());
+    api.on('GET /api/charts/MSFT/drawings', noDrawings());
     api.on('DELETE /api/charts/AAPL/drawings', null, { status: 204 });
-    api.on('GET /api/market/status', { status: 'closed', holiday: null });
 });
 
 describe('PriceChart', () => {
@@ -165,15 +159,7 @@ describe('PriceChart', () => {
     });
 
     it('flags an instrument hidden from the screener, which is when people ask why', async () => {
-        api.on('GET /api/preferences', {
-            language: 'en',
-            theme: null,
-            defaultSymbol: 'AAPL',
-            hiddenSymbols: ['AAPL'],
-            chartSettings: null,
-            panels: null,
-            screenerColumns: [],
-        });
+        api.on('GET /api/preferences', preferences({ hiddenSymbols: ['AAPL'] }));
         await loadPreferences(true);
 
         const wrapper = await chart({ profile: profile() });

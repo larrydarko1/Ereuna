@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { effectScope, nextTick, ref } from 'vue';
 
+import type { ScreenerResultPage } from '@ereuna/shared';
+
+import { screenerResult } from '@/__tests__/support/answers';
 import { mockApi } from '@/__tests__/support/msw';
 import {
     useScreenerResults,
@@ -10,8 +13,8 @@ import {
 
 const mock = mockApi();
 
-const page = (symbols: string[], total = symbols.length, pages = 1): Record<string, unknown> => ({
-    items: symbols.map((symbol) => ({ symbol, name: symbol, assetType: null, sector: null, exchange: null })),
+const page = (symbols: string[], total = symbols.length, pages = 1): ScreenerResultPage => ({
+    items: symbols.map((symbol) => screenerResult(symbol)),
     total,
     page: 1,
     pages,

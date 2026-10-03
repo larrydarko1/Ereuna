@@ -23,18 +23,22 @@ export type UseChartDrawingsReturn = {
 };
 
 /**
- * What this needs of each drawing tool: what it holds, and a way to put saved drawings
- * back. The lists stay opaque here — each tool checks what it is handed on the way in.
+ * What this needs of each drawing tool: what it holds, in the shape the API stores
+ * — so a tool whose drawing drifts from the shared schema fails the build here —
+ * and a way to put saved drawings back, which each tool checks on the way in.
  */
-type DrawingTool<TGet extends string, TLoad extends string> = Record<TGet, () => unknown[]> &
+type DrawingTool<TKind extends keyof ChartDrawings, TGet extends string, TLoad extends string> = Record<
+    TGet,
+    () => ChartDrawings[TKind]
+> &
     Record<TLoad, (saved: readonly unknown[]) => void>;
 
 type DrawingManagers = {
-    trendLines: DrawingTool<'getTrendLines', 'loadTrendLines'>;
-    boxes: DrawingTool<'getBoxes', 'loadBoxes'>;
-    textAnnotations: DrawingTool<'getAnnotations', 'loadAnnotations'>;
-    freehandPaths: DrawingTool<'getPaths', 'loadPaths'>;
-    priceLevels: DrawingTool<'serialize', 'deserialize'>;
+    trendLines: DrawingTool<'trendLines', 'getTrendLines', 'loadTrendLines'>;
+    boxes: DrawingTool<'boxes', 'getBoxes', 'loadBoxes'>;
+    textAnnotations: DrawingTool<'textAnnotations', 'getAnnotations', 'loadAnnotations'>;
+    freehandPaths: DrawingTool<'freehandPaths', 'getPaths', 'loadPaths'>;
+    priceLevels: DrawingTool<'priceLevels', 'serialize', 'deserialize'>;
 };
 
 type ChartKey = {

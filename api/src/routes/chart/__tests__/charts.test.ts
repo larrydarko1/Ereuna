@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { asUser, json, quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
+import { assetProfile, assetSummary, chartSeries, emptyDrawings } from '@/__tests__/support/responses.js';
 
 const chartService = {
     getChartSeries: vi.fn(),
@@ -25,23 +26,27 @@ const { config } = await import('@/lib/config.js');
 
 const USER = '507f1f77bcf86cd799439011';
 const USER_ID = new ObjectId(USER);
-const emptyDrawings = {
-    trendLines: [],
-    boxes: [],
-    textAnnotations: [],
-    freehandPaths: [],
-    priceLevels: [],
+const POINT = { time: '2026-05-04', price: 88.1, x: 120, y: 340 };
+const TREND_LINE = {
+    id: 'tl_1',
+    point1: POINT,
+    point2: { ...POINT, time: '2026-08-29', price: 121.6 },
+    color: '#2962ff',
+    lineWidth: 1,
+    lineStyle: 'solid',
+    locked: false,
+    extended: false,
 };
 
 let harness: Harness;
 
 beforeEach(async () => {
-    chartService.getChartSeries.mockResolvedValue({ bars: [] });
-    chartService.getDrawings.mockResolvedValue(emptyDrawings);
-    chartService.saveDrawings.mockResolvedValue(emptyDrawings);
+    chartService.getChartSeries.mockResolvedValue(chartSeries());
+    chartService.getDrawings.mockResolvedValue(emptyDrawings());
+    chartService.saveDrawings.mockResolvedValue(emptyDrawings());
     chartService.clearDrawings.mockResolvedValue(undefined);
-    marketService.searchAssets.mockResolvedValue([{ symbol: 'AAPL' }]);
-    marketService.assetProfile.mockResolvedValue({ symbol: 'AAPL' });
+    marketService.searchAssets.mockResolvedValue([assetSummary()]);
+    marketService.assetProfile.mockResolvedValue(assetProfile());
     marketService.earningsDates.mockResolvedValue(['2026-03-31']);
     marketService.corporateActions.mockResolvedValue([]);
     harness = await serve((app) => app.use('/api/charts', quietLogger, asUser(USER), router));
@@ -55,7 +60,7 @@ describe('GET /api/charts/search', () => {
     it('is not read as a ticker named "search"', async () => {
         const response = await harness.call('/api/charts/search?q=app');
 
-        expect(response.body).toEqual({ items: [{ symbol: 'AAPL' }] });
+        expect(response.body).toEqual({ items: [assetSummary()] });
         expect(marketService.searchAssets).toHaveBeenCalledWith('app', 20);
         expect(chartService.getChartSeries).not.toHaveBeenCalled();
     });
@@ -101,7 +106,7 @@ describe('GET /api/charts/:symbol/profile', () => {
     it('answers with the reference data', async () => {
         const response = await harness.call('/api/charts/aapl/profile');
 
-        expect(response.body).toEqual({ symbol: 'AAPL' });
+        expect(response.body).toEqual(assetProfile());
         expect(marketService.assetProfile).toHaveBeenCalledWith('AAPL');
     });
 });
@@ -132,27 +137,36 @@ describe('drawings', () => {
     it('reads the annotations for a timeframe', async () => {
         const response = await harness.call('/api/charts/aapl/drawings?timeframe=weekly');
 
-        expect(response.body).toEqual(emptyDrawings);
+        expect(response.body).toEqual(emptyDrawings());
         expect(chartService.getDrawings).toHaveBeenCalledWith(USER_ID, 'AAPL', 'weekly');
     });
 
-    it('stores the items opaquely — the renderer owns their geometry', async () => {
-        const body = { ...emptyDrawings, trendLines: [{ anything: 'at all' }] };
+    it('stores drawings in the shape the chart tools write', async () => {
+        const body = { ...emptyDrawings(), trendLines: [TREND_LINE] };
         const response = await harness.call('/api/charts/AAPL/drawings', json(body, 'PUT'));
 
         expect(response.status).toBe(200);
         expect(chartService.saveDrawings).toHaveBeenCalledWith(USER_ID, 'AAPL', 'daily', body);
     });
 
-    it('defaults every missing kind to an empty list', async () => {
-        await harness.call('/api/charts/AAPL/drawings', json({}, 'PUT'));
+    it('refuses an item no tool could load back', async () => {
+        const body = { ...emptyDrawings(), trendLines: [{ anything: 'at all' }] };
+        const response = await harness.call('/api/charts/AAPL/drawings', json(body, 'PUT'));
 
-        expect(chartService.saveDrawings).toHaveBeenCalledWith(USER_ID, 'AAPL', 'daily', emptyDrawings);
+        expect(response.status).toBe(422);
+        expect(chartService.saveDrawings).not.toHaveBeenCalled();
+    });
+
+    it('refuses a save that leaves a tool out', async () => {
+        const response = await harness.call('/api/charts/AAPL/drawings', json({ trendLines: [] }, 'PUT'));
+
+        expect(response.status).toBe(422);
     });
 
     it('refuses more items of one kind than the cap allows', async () => {
-        const trendLines = Array.from({ length: config.limits.drawingsPerKind + 1 }, () => ({}));
-        const response = await harness.call('/api/charts/AAPL/drawings', json({ trendLines }, 'PUT'));
+        const trendLines = Array.from({ length: config.limits.drawingsPerKind + 1 }, () => TREND_LINE);
+        const body = { ...emptyDrawings(), trendLines };
+        const response = await harness.call('/api/charts/AAPL/drawings', json(body, 'PUT'));
 
         expect(response.status).toBe(422);
         expect(chartService.saveDrawings).not.toHaveBeenCalled();

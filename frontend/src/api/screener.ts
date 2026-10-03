@@ -8,26 +8,17 @@
  * filter is real, but there is nothing to range over, so it renders disabled
  * rather than vanishing.
  */
-import type { ScreenerFilterValue, ScreenerResultPage, ScreenerSummary } from '@ereuna/shared';
+import type {
+    filterCatalogueSchema,
+    ResponseBody,
+    ScreenerDetail,
+    screenerFilterSetSchema,
+    screenerListSchema,
+    ScreenerResultPage,
+    ScreenerSummary,
+} from '@ereuna/shared';
 
 import { api, type ApiResult } from '@/api/client';
-
-/** The filters written on a screener, keyed by filter slug. */
-export type ScreenerFilters = Record<string, ScreenerFilterValue>;
-
-export type FilterDescriptor =
-    | { key: string; label: string; kind: 'range'; available: boolean; bounds: { min: number; max: number } | null }
-    | { key: string; label: string; kind: 'date'; available: boolean; bounds: { min: string; max: string } | null }
-    | { key: string; label: string; kind: 'enum'; available: boolean; options: string[] }
-    | {
-          key: string;
-          label: string;
-          kind: 'ma';
-          available: boolean;
-          directions: readonly string[];
-          targets: readonly string[];
-      }
-    | { key: string; label: string; kind: 'flag'; available: boolean };
 
 /** The value written for one filter. Which shape applies is decided by the
  *  descriptor's `kind`, which is why this is a union rather than a guess. */
@@ -43,20 +34,16 @@ export type ResultsQuery = {
     limit?: number;
 };
 
-type ScreenerDetail = ScreenerSummary & {
-    filters: ScreenerFilters;
-};
-
-export function getScreeners(): ApiResult<{ items: ScreenerSummary[] }> {
-    return api.get<{ items: ScreenerSummary[] }>('/screeners');
+export function getScreeners(): ApiResult<ResponseBody<typeof screenerListSchema>> {
+    return api.get<ResponseBody<typeof screenerListSchema>>('/screeners');
 }
 
 export function createScreener(name: string): ApiResult<ScreenerSummary> {
     return api.post<ScreenerSummary>('/screeners', { name });
 }
 
-export function getFilterRegistry(): ApiResult<{ items: FilterDescriptor[] }> {
-    return api.get<{ items: FilterDescriptor[] }>('/screeners/filters');
+export function getFilterRegistry(): ApiResult<ResponseBody<typeof filterCatalogueSchema>> {
+    return api.get<ResponseBody<typeof filterCatalogueSchema>>('/screeners/filters');
 }
 
 /** Results across every screener the user has switched on. */
@@ -85,19 +72,23 @@ export function getScreenerResults(name: string, query: ResultsQuery = {}): ApiR
     return api.get<ScreenerResultPage>(`/screeners/${encodeURIComponent(name)}/results`, { params: query });
 }
 
-export function setFilter(name: string, filter: string, value: FilterValue): ApiResult<{ filters: ScreenerFilters }> {
-    return api.put<{ filters: ScreenerFilters }>(
+export function setFilter(
+    name: string,
+    filter: string,
+    value: FilterValue,
+): ApiResult<ResponseBody<typeof screenerFilterSetSchema>> {
+    return api.put<ResponseBody<typeof screenerFilterSetSchema>>(
         `/screeners/${encodeURIComponent(name)}/filters/${encodeURIComponent(filter)}`,
         value,
     );
 }
 
-export function clearFilter(name: string, filter: string): ApiResult<{ filters: ScreenerFilters }> {
-    return api.delete<{ filters: ScreenerFilters }>(
+export function clearFilter(name: string, filter: string): ApiResult<ResponseBody<typeof screenerFilterSetSchema>> {
+    return api.delete<ResponseBody<typeof screenerFilterSetSchema>>(
         `/screeners/${encodeURIComponent(name)}/filters/${encodeURIComponent(filter)}`,
     );
 }
 
-export function clearAllFilters(name: string): ApiResult<{ filters: ScreenerFilters }> {
-    return api.delete<{ filters: ScreenerFilters }>(`/screeners/${encodeURIComponent(name)}/filters`);
+export function clearAllFilters(name: string): ApiResult<ResponseBody<typeof screenerFilterSetSchema>> {
+    return api.delete<ResponseBody<typeof screenerFilterSetSchema>>(`/screeners/${encodeURIComponent(name)}/filters`);
 }

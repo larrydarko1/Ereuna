@@ -2,7 +2,9 @@ import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { Financials } from '@ereuna/shared';
+import { STATEMENT_FIELDS } from '@ereuna/shared';
 
+import { statement } from '@/__tests__/support/answers';
 import FinancialsDialog from '@/components/charts/FinancialsDialog.vue';
 import { i18n } from '@/i18n';
 import { formatCompact, formatNumber } from '@/utils/formatters';
@@ -10,10 +12,10 @@ import { formatCompact, formatNumber } from '@/utils/formatters';
 const statements = (over: Partial<Financials> = {}): Financials => ({
     symbol: 'AAPL',
     annual: [
-        { fiscalDateEnding: '2025-12-31', totalRevenue: 400_000_000, rps: 24 },
-        { fiscalDateEnding: '2024-12-31', totalRevenue: 320_000_000, rps: 20 },
+        statement('2025-12-31', { totalRevenue: 400_000_000, rps: 24 }),
+        statement('2024-12-31', { totalRevenue: 320_000_000, rps: 20 }),
     ],
-    quarterly: [{ fiscalDateEnding: '2026-03-31', totalRevenue: 110_000_000 }],
+    quarterly: [statement('2026-03-31', { totalRevenue: 110_000_000 })],
     ...over,
 });
 
@@ -85,24 +87,12 @@ describe('FinancialsDialog', () => {
         expect($('.financials-dialog__periods button:last-child').getAttribute('aria-pressed')).toBe('true');
     });
 
-    it('heads a column it could not read as a date with the date itself', () => {
-        open({ statements: statements({ annual: [{ fiscalDateEnding: 'not-a-date', rps: 1 }] }) });
-
-        expect(headers()).toEqual(['not-a-date']);
-    });
-
-    it('skips a filing with no fiscal date to head it', () => {
-        open({ statements: statements({ annual: [{ totalRevenue: 1 }] }) });
-
-        expect(headers()).toHaveLength(0);
-    });
-
     it('shows every line any period reported, not only the newest', () => {
         open({
             statements: statements({
                 annual: [
-                    { fiscalDateEnding: '2025-12-31', totalRevenue: 1 },
-                    { fiscalDateEnding: '2024-12-31', totalRevenue: 1, rps: 5 },
+                    statement('2025-12-31', { totalRevenue: 1 }),
+                    statement('2024-12-31', { totalRevenue: 1, rps: 5 }),
                 ],
             }),
         });
@@ -110,12 +100,14 @@ describe('FinancialsDialog', () => {
         expect(all('tbody th').length).toBe(2);
     });
 
-    it('names a line from the locale, and falls back to the filing’s own name', () => {
-        open({ statements: statements({ annual: [{ fiscalDateEnding: '2025-12-31', someOddLine: 1, rps: 2 }] }) });
+    it('names each line from the locale', () => {
+        open({ statements: statements({ annual: [statement('2025-12-31', { totalRevenue: 1, rps: 2 })] }) });
         const labels = all('tbody th').map((node) => node.textContent?.trim());
 
-        expect(labels[0]).toBe('someOddLine');
-        expect(labels[1]).toBe(i18n.global.t('financials.attributes.rps'));
+        expect(labels).toEqual([
+            i18n.global.t('financials.attributes.totalRevenue'),
+            i18n.global.t('financials.attributes.rps'),
+        ]);
     });
 
     it('abbreviates the large figures and writes the small ones out', () => {
@@ -129,7 +121,7 @@ describe('FinancialsDialog', () => {
     it('dashes a line a period did not report', () => {
         open({
             statements: statements({
-                annual: [{ fiscalDateEnding: '2025-12-31', rps: 1 }, { fiscalDateEnding: '2024-12-31' }],
+                annual: [statement('2025-12-31', { rps: 1 }), statement('2024-12-31')],
             }),
         });
 
@@ -152,10 +144,7 @@ describe('FinancialsDialog', () => {
     it('colours growth and contraction apart', () => {
         open({
             statements: statements({
-                annual: [
-                    { fiscalDateEnding: '2025-12-31', rps: 8 },
-                    { fiscalDateEnding: '2024-12-31', rps: 10 },
-                ],
+                annual: [statement('2025-12-31', { rps: 8 }), statement('2024-12-31', { rps: 10 })],
             }),
         });
 
@@ -172,12 +161,12 @@ describe('FinancialsDialog', () => {
         expect(all('.financials-dialog__description').length).toBeGreaterThan(0);
     });
 
-    it('shows no explanation for a line the locale never described', async () => {
-        open({ statements: statements({ annual: [{ fiscalDateEnding: '2025-12-31', someOddLine: 1 }] }) });
-
-        await click($('.financials-dialog__toggle input'));
-
-        expect(all('.financials-dialog__description')).toHaveLength(0);
+    // The API sends only the line items the shared list names, and the table
+    // prints each one through the locale: a field listed without a label would
+    // reach the reader as a raw vendor code
+    it.each(STATEMENT_FIELDS)('labels and describes %s', (field) => {
+        expect(i18n.global.te(`financials.attributes.${field}`)).toBe(true);
+        expect(i18n.global.te(`financials.tooltips.${field}`)).toBe(true);
     });
 
     it('closes on the dialog close', async () => {

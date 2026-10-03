@@ -13,8 +13,16 @@
 import { Router } from 'express';
 import { z } from 'zod';
 
+import {
+    watchlistDetailSchema,
+    watchlistEntriesSchema,
+    watchlistListSchema,
+    watchlistSummarySchema,
+} from '@ereuna/shared';
+
 import { config } from '@/lib/config.js';
 import { resourceNameSchema, symbolSchema } from '@/lib/schemas.js';
+import { send } from '@/lib/send.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';
 import * as watchlistService from '@/services/watchlist/index.js';
@@ -34,14 +42,18 @@ export const router = Router();
 router.get(
     '/',
     ...validated({}, async (req, res): Promise<void> => {
-        res.json({ items: await watchlistService.listWatchlists(authedUserId(req)) });
+        send(res, watchlistListSchema, { items: await watchlistService.listWatchlists(authedUserId(req)) });
     }),
 );
 
 router.post(
     '/',
     ...validated({ body: createBody }, async (req, res): Promise<void> => {
-        res.status(201).json(await watchlistService.createWatchlist(authedUserId(req), req.body.name));
+        send(
+            res.status(201),
+            watchlistSummarySchema,
+            await watchlistService.createWatchlist(authedUserId(req), req.body.name),
+        );
     }),
 );
 
@@ -49,21 +61,23 @@ router.post(
 router.put(
     '/order',
     ...validated({ body: orderBody }, async (req, res): Promise<void> => {
-        res.json({ items: await watchlistService.reorderWatchlists(authedUserId(req), req.body.names) });
+        const items = await watchlistService.reorderWatchlists(authedUserId(req), req.body.names);
+        send(res, watchlistListSchema, { items });
     }),
 );
 
 router.get(
     '/:name',
     ...validated({ params: nameParam }, async (req, res): Promise<void> => {
-        res.json(await watchlistService.getWatchlistRows(authedUserId(req), req.params.name));
+        send(res, watchlistDetailSchema, await watchlistService.getWatchlistRows(authedUserId(req), req.params.name));
     }),
 );
 
 router.patch(
     '/:name',
     ...validated({ params: nameParam, body: renameBody }, async (req, res): Promise<void> => {
-        res.json(await watchlistService.renameWatchlist(authedUserId(req), req.params.name, req.body.name));
+        const summary = await watchlistService.renameWatchlist(authedUserId(req), req.params.name, req.body.name);
+        send(res, watchlistSummarySchema, summary);
     }),
 );
 
@@ -79,7 +93,7 @@ router.put(
     '/:name/tickers',
     ...validated({ params: nameParam, body: tickerOrderBody }, async (req, res): Promise<void> => {
         const list = await watchlistService.reorderTickers(authedUserId(req), req.params.name, req.body.symbols);
-        res.json({ list });
+        send(res, watchlistEntriesSchema, { list });
     }),
 );
 
@@ -87,7 +101,7 @@ router.post(
     '/:name/tickers',
     ...validated({ params: nameParam, body: addTickerBody }, async (req, res): Promise<void> => {
         const list = await watchlistService.addTicker(authedUserId(req), req.params.name, req.body.symbol);
-        res.status(201).json({ list });
+        send(res.status(201), watchlistEntriesSchema, { list });
     }),
 );
 
@@ -95,6 +109,6 @@ router.delete(
     '/:name/tickers/:symbol',
     ...validated({ params: tickerParams }, async (req, res): Promise<void> => {
         const list = await watchlistService.removeTicker(authedUserId(req), req.params.name, req.params.symbol);
-        res.json({ list });
+        send(res, watchlistEntriesSchema, { list });
     }),
 );

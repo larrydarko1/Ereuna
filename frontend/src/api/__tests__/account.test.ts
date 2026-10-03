@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { sessionUser } from '@/__tests__/support/answers';
 import { mockApi } from '@/__tests__/support/msw';
 import {
     beginTwoFactor,
@@ -18,11 +19,11 @@ const mock = mockApi();
 
 describe('reads', () => {
     it('gets the account', async () => {
-        mock.on('GET /api/account', { username: 'larry' });
+        mock.on('GET /api/account', sessionUser());
 
         const { data } = await getAccount();
 
-        expect(data).toEqual({ username: 'larry' });
+        expect(data).toEqual(sessionUser());
         expect(mock.last().method).toBe('GET');
     });
 
@@ -43,7 +44,7 @@ describe('credential changes', () => {
     });
 
     it('re-authenticates a username change', async () => {
-        mock.on('PATCH /api/account/username', { username: 'newname' });
+        mock.on('PATCH /api/account/username', sessionUser({ username: 'newname' }));
 
         await changeUsername('pw', 'newname');
 

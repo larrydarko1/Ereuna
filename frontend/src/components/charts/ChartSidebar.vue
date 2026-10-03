@@ -2,9 +2,8 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import type { AssetProfile, CorporateAction } from '@ereuna/shared';
+import type { AssetProfile, ChartEvents, CorporateAction, Statement } from '@ereuna/shared';
 
-import type { ChartEvents } from '@/api/chart';
 import { getFinancials } from '@/api/market';
 import ActionsPanel from '@/components/charts/ActionsPanel.vue';
 import FinancialsDialog from '@/components/charts/FinancialsDialog.vue';
@@ -41,7 +40,7 @@ const financials = useResource(
     { enabled: (current): boolean => current !== '' },
 );
 
-const quarterly = computed<readonly Record<string, unknown>[]>(() => financials.data.value?.quarterly ?? []);
+const quarterly = computed<readonly Statement[]>(() => financials.data.value?.quarterly ?? []);
 </script>
 
 <template>

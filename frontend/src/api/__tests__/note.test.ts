@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { noteRow } from '@/__tests__/support/answers';
 import { mockApi } from '@/__tests__/support/msw';
 import { createNote, deleteNote, getNotes, updateNote } from '@/api/note';
 
@@ -26,7 +27,7 @@ describe('getNotes', () => {
 
 describe('writes', () => {
     it('creates a note against a symbol', async () => {
-        mock.on('POST /api/notes', { id: '1' });
+        mock.on('POST /api/notes', noteRow({ id: '1' }));
 
         await createNote('AAPL', 'buy the dip');
 
@@ -34,7 +35,7 @@ describe('writes', () => {
     });
 
     it('addresses a revision by the note id alone', async () => {
-        mock.on('PATCH /api/notes/abc', { id: 'abc' });
+        mock.on('PATCH /api/notes/abc', noteRow({ id: 'abc' }));
 
         await updateNote('abc', 'revised');
 

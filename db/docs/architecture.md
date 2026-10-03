@@ -167,7 +167,7 @@ once and never queries inside them.
 | `userId` | ObjectId | |
 | `symbol` | string | |
 | `timeframe` | string | One of the seven chart timeframes. |
-| `drawings` | object | Five arrays: trend lines, boxes, text annotations, freehand paths, price levels. |
+| `drawings` | object | Five arrays: trend lines, boxes, text annotations, freehand paths, price levels — each item in the shape its tool writes, validated on save against `chartDrawingsSchema` in `packages/shared/src/responses/chart.ts`. |
 | `createdAt` | Date | |
 | `updatedAt` | Date | |
 

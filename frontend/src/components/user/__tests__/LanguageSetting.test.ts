@@ -1,6 +1,7 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { preferences } from '@/__tests__/support/answers';
 import { mockApi } from '@/__tests__/support/msw';
 import LanguageSetting from '@/components/user/LanguageSetting.vue';
 import { i18n, SUPPORTED_LOCALES } from '@/i18n';
@@ -17,7 +18,7 @@ const pick = async (wrapper: VueWrapper, locale: string): Promise<void> => {
 };
 
 beforeEach(() => {
-    api.on('PATCH /api/preferences', { language: 'fr' });
+    api.on('PATCH /api/preferences', preferences({ language: 'fr' }));
 });
 
 describe('LanguageSetting', () => {

@@ -12,7 +12,10 @@
 import { Router } from 'express';
 import { z } from 'zod';
 
+import { financialsSchema, holidayCalendarSchema, marketOverviewSchema } from '@ereuna/shared';
+
 import { symbolSchema } from '@/lib/schemas.js';
+import { send } from '@/lib/send.js';
 import { validated } from '@/middleware/validate.js';
 import * as marketService from '@/services/market/index.js';
 
@@ -23,14 +26,14 @@ export const router = Router();
 router.get(
     '/stats',
     ...validated({}, async (_req, res): Promise<void> => {
-        res.json(await marketService.marketStats());
+        send(res, marketOverviewSchema, await marketService.marketStats());
     }),
 );
 
 router.get(
     '/holidays',
     ...validated({}, async (_req, res): Promise<void> => {
-        res.json(await marketService.holidays());
+        send(res, holidayCalendarSchema, { holidays: await marketService.holidays() });
     }),
 );
 
@@ -38,6 +41,6 @@ router.get(
 router.get(
     '/:symbol/financials',
     ...validated({ params: symbolParam }, async (req, res): Promise<void> => {
-        res.json(await marketService.financials(req.params.symbol));
+        send(res, financialsSchema, await marketService.financials(req.params.symbol));
     }),
 );

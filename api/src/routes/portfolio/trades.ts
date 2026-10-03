@@ -10,8 +10,11 @@ import { Router } from 'express';
 import { ObjectId } from 'mongodb';
 import { z } from 'zod';
 
+import { tradePageSchema, tradeRowSchema } from '@ereuna/shared';
+
 import { config } from '@/lib/config.js';
 import { idParam, makePaginationQuery, portfolioNumberSchema, symbolSchema } from '@/lib/schemas.js';
+import { send } from '@/lib/send.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';
 import * as portfolioService from '@/services/portfolio/index.js';
@@ -69,13 +72,12 @@ router.get(
     '/',
     ...validated({ params: numberParam, query: listQuery }, async (req, res): Promise<void> => {
         const { page, limit, symbol } = req.validatedQuery;
-        res.json(
-            await portfolioService.getTradePage(authedUserId(req), req.params.number, {
-                page,
-                limit,
-                ...(symbol !== undefined ? { symbol } : {}),
-            }),
-        );
+        const trades = await portfolioService.getTradePage(authedUserId(req), req.params.number, {
+            page,
+            limit,
+            ...(symbol !== undefined ? { symbol } : {}),
+        });
+        send(res, tradePageSchema, trades);
     }),
 );
 
@@ -83,7 +85,7 @@ router.post(
     '/',
     ...validated({ params: numberParam, body: tradeInputSchema }, async (req, res): Promise<void> => {
         const trade = await portfolioService.addTrade(authedUserId(req), req.params.number, toTradeFields(req.body));
-        res.status(201).json(trade);
+        send(res.status(201), tradeRowSchema, trade);
     }),
 );
 
@@ -96,7 +98,7 @@ router.patch(
             new ObjectId(req.params.id),
             toTradeFields(req.body),
         );
-        res.json(trade);
+        send(res, tradeRowSchema, trade);
     }),
 );
 

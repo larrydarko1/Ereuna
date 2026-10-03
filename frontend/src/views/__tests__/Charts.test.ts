@@ -2,6 +2,8 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Router } from 'vue-router';
 
+import { noDrawings, preferences } from '@/__tests__/support/answers';
+import { assetProfile, assetSummary } from '@/__tests__/support/assets';
 import { mockApi } from '@/__tests__/support/msw';
 import { testRouter } from '@/__tests__/support/router';
 import { clearAuth } from '@/api/client';
@@ -23,7 +25,7 @@ const PriceChartStub = {
 
 const api = mockApi();
 
-const PROFILE = { symbol: 'AAPL', name: 'Apple Inc', exchange: 'NASDAQ' };
+const PROFILE = assetProfile({ symbol: 'AAPL', name: 'Apple Inc', exchange: 'NASDAQ' });
 
 const view = async (path = '/charts/aapl'): Promise<{ wrapper: VueWrapper; router: Router }> => {
     const router = testRouter();
@@ -42,29 +44,15 @@ beforeEach(() => {
     clearAuth();
     localStorage.clear();
     document.body.innerHTML = '';
-    api.on('GET /api/preferences', {
-        language: 'en',
-        theme: null,
-        defaultSymbol: 'AAPL',
-        hiddenSymbols: [],
-        chartSettings: null,
-        panels: null,
-        screenerColumns: [],
-    });
+    api.on('GET /api/preferences', preferences());
     api.on('GET /api/charts/AAPL/profile', PROFILE);
-    api.on('GET /api/charts/MSFT/profile', { symbol: 'MSFT', name: 'Microsoft', exchange: 'NASDAQ' });
+    api.on('GET /api/charts/MSFT/profile', assetProfile({ symbol: 'MSFT', name: 'Microsoft', exchange: 'NASDAQ' }));
     api.on('GET /api/charts/AAPL/events', { earnings: [], dividends: [], splits: [] });
     api.on('GET /api/charts/MSFT/events', { earnings: [], dividends: [], splits: [] });
-    api.on('GET /api/charts/AAPL/series', { symbol: 'AAPL', timeframe: 'daily', candles: [] });
-    api.on('GET /api/charts/MSFT/series', { symbol: 'MSFT', timeframe: 'daily', candles: [] });
-    api.on('GET /api/charts/AAPL/signals', { signals: [] });
-    api.on('GET /api/charts/MSFT/signals', { signals: [] });
-    api.on('GET /api/charts/AAPL/drawings', { drawings: [] });
+    api.on('GET /api/charts/AAPL/drawings', noDrawings());
     api.on('GET /api/market/AAPL/financials', { symbol: 'AAPL', annual: [], quarterly: [] });
     api.on('GET /api/market/MSFT/financials', { symbol: 'MSFT', annual: [], quarterly: [] });
-    api.on('GET /api/notes', { items: [], total: 0, page: 1, pages: 1 });
-    api.on('GET /api/market/news', { items: [] });
-    api.on('GET /api/market/status', { status: 'closed', holiday: null });
+    api.on('GET /api/notes', { items: [], total: 0, page: 1, limit: 50 });
     api.on('GET /api/watchlists', { items: [] });
 });
 
@@ -91,7 +79,7 @@ describe('Charts', () => {
     });
 
     it('falls back to the ticker when the profile names nothing', async () => {
-        api.on('GET /api/charts/AAPL/profile', { symbol: 'AAPL', name: null, exchange: null });
+        api.on('GET /api/charts/AAPL/profile', assetProfile({ symbol: 'AAPL', name: null, exchange: null }));
 
         const { wrapper } = await view();
 
@@ -117,7 +105,7 @@ describe('Charts', () => {
 
     it('follows the symbol the search picked', async () => {
         vi.useFakeTimers();
-        api.on('GET /api/charts/search', { items: [{ symbol: 'MSFT', name: 'Microsoft', exchange: 'NASDAQ' }] });
+        api.on('GET /api/charts/search', { items: [assetSummary('MSFT', { name: 'Microsoft' })] });
         const { wrapper, router } = await view();
 
         await wrapper.get('.symbol-search__input').setValue('msft');

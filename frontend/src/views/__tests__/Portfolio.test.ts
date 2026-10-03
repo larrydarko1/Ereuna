@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { PortfolioSummary, TradeRow } from '@ereuna/shared';
 
+import { portfolioRow } from '@/__tests__/support/answers';
 import { elementOf, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { summary as makeSummary } from '@/__tests__/support/portfolio';
@@ -41,9 +42,9 @@ const position = (symbol: string): PortfolioSummary['positions'][number] => ({
 });
 
 const seed = (over: Partial<PortfolioSummary> = {}, trades: TradeRow[] = [trade()]): void => {
-    api.on('GET /api/portfolios', { items: [{ number: 0, cash: 10_000 }] });
+    api.on('GET /api/portfolios', { items: [portfolioRow()] });
     api.on('GET /api/portfolios/0', makeSummary(over));
-    api.on('GET /api/portfolios/0/trades', { items: trades, total: trades.length, page: 1, pages: 1 });
+    api.on('GET /api/portfolios/0/trades', { items: trades, total: trades.length, page: 1, limit: 50 });
 };
 
 const view = async (): Promise<VueWrapper> => {
@@ -111,7 +112,6 @@ beforeEach(() => {
     clearAuth();
     localStorage.clear();
     document.body.innerHTML = '';
-    api.on('GET /api/market/status', { status: 'closed', holiday: null });
 });
 
 describe('Portfolio', () => {
@@ -129,7 +129,7 @@ describe('Portfolio', () => {
     it('offers a way in when the slot is empty', async () => {
         api.on('GET /api/portfolios', { items: [] });
         api.on('GET /api/portfolios/0', { error: 'PORTFOLIO_NOT_FOUND' }, { status: 404 });
-        api.on('GET /api/portfolios/0/trades', { items: [], total: 0, page: 1, pages: 1 });
+        api.on('GET /api/portfolios/0/trades', { items: [], total: 0, page: 1, limit: 50 });
 
         const wrapper = await view();
 
@@ -164,7 +164,7 @@ describe('Portfolio', () => {
     it('switches slot, dropping the blotter that belonged to the last one', async () => {
         seed();
         api.on('GET /api/portfolios/2', makeSummary({ number: 2 }));
-        api.on('GET /api/portfolios/2/trades', { items: [], total: 0, page: 1, pages: 1 });
+        api.on('GET /api/portfolios/2/trades', { items: [], total: 0, page: 1, limit: 50 });
         const wrapper = await view();
 
         await wrapper.findAll('.portfolio-tabs__slot')[2]?.trigger('click');
@@ -288,7 +288,17 @@ describe('Portfolio', () => {
                 stats: null,
                 valueHistory: [],
             },
-            trades: [trade()],
+            trades: [
+                {
+                    action: 'buy',
+                    symbol: 'AAPL',
+                    shares: 10,
+                    price: 100,
+                    total: 1000,
+                    commission: 1,
+                    tradeDate: '2026-01-05',
+                },
+            ],
         });
         const wrapper = await view();
 

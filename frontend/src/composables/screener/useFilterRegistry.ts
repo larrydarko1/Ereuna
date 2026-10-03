@@ -6,8 +6,10 @@
  */
 import { computed, readonly, ref, type ComputedRef, type DeepReadonly, type Ref } from 'vue';
 
+import type { FilterDescriptor } from '@ereuna/shared';
+
 import { apiErrorMessage, onSessionCleared } from '@/api/client';
-import { getFilterRegistry, type FilterDescriptor } from '@/api/screener';
+import { getFilterRegistry } from '@/api/screener';
 import { FILTER_GROUPS, filterGroup, type FilterGroup } from '@/constants/screener';
 import { i18n } from '@/i18n';
 

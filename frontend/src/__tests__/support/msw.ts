@@ -12,6 +12,8 @@ import { afterAll, afterEach, beforeAll } from 'vitest';
 
 import { isOneOf } from '@ereuna/shared';
 
+import { assertApiAnswer } from '@/__tests__/support/contract';
+
 type Recorded = {
     method: string;
     path: string;
@@ -26,8 +28,13 @@ type ApiMock = {
     calls: Recorded[];
     /** The last request that reached a handler. */
     last: () => Recorded;
-    /** Answer `METHOD /api/path` with `body`, once or for the rest of the test. */
-    on: (route: string, body: JsonBodyType, init?: { status?: number; once?: boolean }) => void;
+    /**
+     * Answer `METHOD /api/path` with `body`, once or for the rest of the test.
+     * The route must be one the API serves and the body one its schema sends —
+     * see `contract.ts` — unless `malformed` says the test is about surviving
+     * an answer the API never gives.
+     */
+    on: (route: string, body: JsonBodyType, init?: { status?: number; once?: boolean; malformed?: boolean }) => void;
 };
 
 /** The origin jsdom serves the app from, so a relative `/api` path resolves. */
@@ -57,6 +64,16 @@ const record = async (request: Request): Promise<Recorded> => {
 };
 
 /**
+ * A success body for a hand-built handler — one that holds its answer back, or
+ * answers by what the request carried — checked against the route's schema the
+ * way `on()` checks its own. An error body is built with `HttpResponse` as usual.
+ */
+export function answer(route: string, body: JsonBodyType): Response {
+    assertApiAnswer(route, 200, body);
+    return HttpResponse.json(body);
+}
+
+/**
  * Start a server for one suite. Call at module scope; it registers its own
  * lifecycle hooks.
  */
@@ -75,11 +92,12 @@ export function mockApi(): ApiMock {
         on: (route, body, init = {}) => {
             const [method = 'GET', path] = route.split(' ');
             if (!isOneOf(METHODS, method)) throw new Error(`no handler for the method in "${route}"`);
+            const status = init.status ?? 200;
+            if (init.malformed !== true) assertApiAnswer(route, status, body);
             const handler = HANDLERS[method](
                 `${ORIGIN}${path ?? ''}`,
                 async ({ request }) => {
                     calls.push(await record(request));
-                    const status = init.status ?? 200;
                     return status === 204 ? new HttpResponse(null, { status }) : HttpResponse.json(body, { status });
                 },
                 init.once === true ? { once: true } : undefined,

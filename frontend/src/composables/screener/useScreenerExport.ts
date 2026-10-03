@@ -59,14 +59,7 @@ export function useScreenerExport(options: {
                 translate('screener.name'),
                 ...columns.map((path) => translate(`screener.fields.${findColumn(path)?.filterKey ?? path}`)),
             ];
-            const body = rows.map((row) => [
-                row.symbol,
-                row.name,
-                ...columns.map((path) => {
-                    const value = readColumn(row, path);
-                    return typeof value === 'string' || typeof value === 'number' ? value : null;
-                }),
-            ]);
+            const body = rows.map((row) => [row.symbol, row.name, ...columns.map((path) => readColumn(row, path))]);
 
             downloadFile(`${options.filename()}.csv`, toCsv(headers, body), CSV_TYPE);
         } catch {

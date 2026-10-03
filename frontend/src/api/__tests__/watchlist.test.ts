@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { watchlistSummary } from '@/__tests__/support/answers';
 import { mockApi } from '@/__tests__/support/msw';
 import {
     addTicker,
@@ -23,7 +24,7 @@ describe('the collection', () => {
     });
 
     it('creates one by name', async () => {
-        mock.on('POST /api/watchlists', { name: 'Tech' });
+        mock.on('POST /api/watchlists', watchlistSummary('Tech'));
 
         await createWatchlist('Tech');
 
@@ -57,7 +58,7 @@ describe('one list', () => {
     });
 
     it('renames it', async () => {
-        mock.on('PATCH /api/watchlists/Tech', { name: 'Growth' });
+        mock.on('PATCH /api/watchlists/Tech', watchlistSummary('Growth'));
 
         await renameWatchlist('Tech', 'Growth');
 

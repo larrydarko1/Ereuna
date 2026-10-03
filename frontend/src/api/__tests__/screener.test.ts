@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { screenerSummary } from '@/__tests__/support/answers';
 import { mockApi } from '@/__tests__/support/msw';
 import {
     clearAllFilters,
@@ -27,7 +28,7 @@ describe('the collection', () => {
     });
 
     it('creates one by name', async () => {
-        mock.on('POST /api/screeners', { name: 'Value' });
+        mock.on('POST /api/screeners', screenerSummary('Value'));
 
         await createScreener('Value');
 
@@ -35,7 +36,9 @@ describe('the collection', () => {
     });
 
     it('reads the registry the panels are built from, rather than hardcoding it', async () => {
-        mock.on('GET /api/screeners/filters', { items: [{ key: 'price', kind: 'range', available: true }] });
+        mock.on('GET /api/screeners/filters', {
+            items: [{ key: 'price', label: 'Price', kind: 'range', available: true, bounds: { min: 0, max: 100 } }],
+        });
 
         const { data } = await getFilterRegistry();
 
@@ -72,7 +75,7 @@ describe('results', () => {
 
 describe('one screener', () => {
     it('reads it with its filters', async () => {
-        mock.on('GET /api/screeners/Value', { name: 'Value', filters: {} });
+        mock.on('GET /api/screeners/Value', { ...screenerSummary('Value'), filters: {} });
 
         await getScreener('Value');
 
@@ -80,7 +83,7 @@ describe('one screener', () => {
     });
 
     it('patches only what changed', async () => {
-        mock.on('PATCH /api/screeners/Value', { name: 'Value', include: false });
+        mock.on('PATCH /api/screeners/Value', screenerSummary('Value', { include: false }));
 
         await updateScreener('Value', { include: false });
 

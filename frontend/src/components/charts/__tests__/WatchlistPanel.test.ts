@@ -1,6 +1,9 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { WatchlistSummary } from '@ereuna/shared';
+
+import { watchlistRow as row, watchlistSummary } from '@/__tests__/support/answers';
 import { elementOf, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
@@ -10,18 +13,7 @@ import { formatNumber, formatPercent } from '@/utils/formatters';
 
 const api = mockApi();
 
-const summary = (name: string, tickerCount = 0): Record<string, unknown> => ({
-    id: name,
-    name,
-    position: 0,
-    tickerCount,
-    updatedAt: '2026-03-02T00:00:00.000Z',
-});
-
-const row = (ticker: string, quote: Record<string, unknown> | null = null): Record<string, unknown> => ({
-    ticker,
-    quote,
-});
+const summary = (name: string, tickerCount = 0): WatchlistSummary => watchlistSummary(name, { id: name, tickerCount });
 
 const panel = async (props: Record<string, unknown> = {}): Promise<VueWrapper> => {
     const wrapper = mount(WatchlistPanel, { props, attachTo: document.body });
@@ -156,7 +148,12 @@ describe('WatchlistPanel', () => {
 
     it('adds a symbol upper-cased, whatever was typed', async () => {
         seed();
-        api.on('POST /api/watchlists/Tech/tickers', { list: [{ ticker: 'AAPL' }, { ticker: 'NVDA' }] });
+        api.on('POST /api/watchlists/Tech/tickers', {
+            list: [
+                { ticker: 'AAPL', exchange: 'NASDAQ' },
+                { ticker: 'NVDA', exchange: 'NASDAQ' },
+            ],
+        });
         const wrapper = await panel();
 
         await wrapper.get('.watchlist__add-input').setValue(' nvda ');
@@ -183,7 +180,7 @@ describe('WatchlistPanel', () => {
 
     it('removes a symbol from the list', async () => {
         seed();
-        api.on('DELETE /api/watchlists/Tech/tickers/MSFT', { list: [{ ticker: 'AAPL' }] });
+        api.on('DELETE /api/watchlists/Tech/tickers/MSFT', { list: [{ ticker: 'AAPL', exchange: 'NASDAQ' }] });
         const wrapper = await panel();
 
         await icon(wrapper, 1, i18n.global.t('watchlist.removeSymbol', { symbol: 'MSFT' })).trigger('click');
@@ -194,7 +191,12 @@ describe('WatchlistPanel', () => {
 
     it('reorders the list, sending the whole new order', async () => {
         seed();
-        api.on('PUT /api/watchlists/Tech/tickers', { list: [{ ticker: 'MSFT' }, { ticker: 'AAPL' }] });
+        api.on('PUT /api/watchlists/Tech/tickers', {
+            list: [
+                { ticker: 'MSFT', exchange: 'NASDAQ' },
+                { ticker: 'AAPL', exchange: 'NASDAQ' },
+            ],
+        });
         const wrapper = await panel();
 
         await icon(wrapper, 1, i18n.global.t('watchlist.moveUp', { symbol: 'MSFT' })).trigger('click');

@@ -24,15 +24,22 @@ import {
     MA_FILTERS,
     MA_TARGETS,
     RANGE_FILTERS,
+    filterCatalogueSchema,
     findDateFilter,
     findEnumFilter,
     findFlagFilter,
     findMaFilter,
     findRangeFilter,
+    screenerDetailSchema,
+    screenerFilterSetSchema,
+    screenerListSchema,
+    screenerResultPageSchema,
+    screenerSummarySchema,
 } from '@ereuna/shared';
 
 import { AppError } from '@/lib/app-error.js';
 import { makePaginationQuery, resourceNameSchema } from '@/lib/schemas.js';
+import { send } from '@/lib/send.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';
 import * as screenerService from '@/services/screener/index.js';
@@ -76,14 +83,18 @@ function missingField(filter: string, field: string): AppError {
 router.get(
     '/',
     ...validated({}, async (req, res): Promise<void> => {
-        res.json({ items: await screenerService.listScreeners(authedUserId(req)) });
+        send(res, screenerListSchema, { items: await screenerService.listScreeners(authedUserId(req)) });
     }),
 );
 
 router.post(
     '/',
     ...validated({ body: createBody }, async (req, res): Promise<void> => {
-        res.status(201).json(await screenerService.createScreener(authedUserId(req), req.body.name));
+        send(
+            res.status(201),
+            screenerSummarySchema,
+            await screenerService.createScreener(authedUserId(req), req.body.name),
+        );
     }),
 );
 
@@ -137,7 +148,7 @@ router.get(
             ),
         ]);
 
-        res.json({
+        send(res, filterCatalogueSchema, {
             items: [
                 ...ranges,
                 ...enums,
@@ -147,8 +158,8 @@ router.get(
                     label: spec.label,
                     kind: 'ma' as const,
                     available: true,
-                    directions: MA_DIRECTIONS,
-                    targets: MA_TARGETS,
+                    directions: [...MA_DIRECTIONS],
+                    targets: [...MA_TARGETS],
                 })),
                 ...FLAG_FILTERS.map((spec) => ({
                     key: spec.key,
@@ -168,14 +179,13 @@ router.get(
         const { page, limit } = req.validatedQuery;
         const prefs = await getPreferences(userId);
 
-        res.json(
-            await screenerService.runIncludedScreeners(userId, {
-                page,
-                limit,
-                columns: prefs.screenerColumns,
-                hiddenSymbols: prefs.hiddenSymbols,
-            }),
-        );
+        const results = await screenerService.runIncludedScreeners(userId, {
+            page,
+            limit,
+            columns: prefs.screenerColumns,
+            hiddenSymbols: prefs.hiddenSymbols,
+        });
+        send(res, screenerResultPageSchema, results);
     }),
 );
 
@@ -187,14 +197,13 @@ router.get(
         const { page, limit } = req.validatedQuery;
         const prefs = await getPreferences(userId);
 
-        res.json(
-            await screenerService.runHiddenSymbols(userId, {
-                page,
-                limit,
-                columns: prefs.screenerColumns,
-                hiddenSymbols: prefs.hiddenSymbols,
-            }),
-        );
+        const results = await screenerService.runHiddenSymbols(userId, {
+            page,
+            limit,
+            columns: prefs.screenerColumns,
+            hiddenSymbols: prefs.hiddenSymbols,
+        });
+        send(res, screenerResultPageSchema, results);
     }),
 );
 
@@ -202,7 +211,7 @@ router.get(
     '/:name',
     ...validated({ params: nameParam }, async (req, res): Promise<void> => {
         const screener = await screenerService.getScreener(authedUserId(req), req.params.name);
-        res.json({ ...screenerService.toSummary(screener), filters: screener.filters });
+        send(res, screenerDetailSchema, { ...screenerService.toSummary(screener), filters: screener.filters });
     }),
 );
 
@@ -221,7 +230,7 @@ router.patch(
             summary = await screenerService.renameScreener(userId, name, req.body.name);
         }
 
-        res.json(summary);
+        send(res, screenerSummarySchema, summary);
     }),
 );
 
@@ -240,14 +249,13 @@ router.get(
         const { page, limit } = req.validatedQuery;
         const prefs = await getPreferences(userId);
 
-        res.json(
-            await screenerService.runScreener(userId, req.params.name, {
-                page,
-                limit,
-                columns: prefs.screenerColumns,
-                hiddenSymbols: prefs.hiddenSymbols,
-            }),
-        );
+        const results = await screenerService.runScreener(userId, req.params.name, {
+            page,
+            limit,
+            columns: prefs.screenerColumns,
+            hiddenSymbols: prefs.hiddenSymbols,
+        });
+        send(res, screenerResultPageSchema, results);
     }),
 );
 
@@ -268,14 +276,14 @@ router.put(
                 ...(body.min !== undefined ? { min: body.min } : {}),
                 ...(body.max !== undefined ? { max: body.max } : {}),
             });
-            res.json({ filters: screener.filters });
+            send(res, screenerFilterSetSchema, screener);
             return;
         }
 
         if (findEnumFilter(filter) !== null) {
             if (body.values === undefined) throw missingField(filter, 'values');
             const screener = await screenerService.setEnumFilter(userId, name, filter, body.values);
-            res.json({ filters: screener.filters });
+            send(res, screenerFilterSetSchema, screener);
             return;
         }
 
@@ -284,7 +292,7 @@ router.put(
                 ...(body.from !== undefined ? { from: body.from } : {}),
                 ...(body.to !== undefined ? { to: body.to } : {}),
             });
-            res.json({ filters: screener.filters });
+            send(res, screenerFilterSetSchema, screener);
             return;
         }
 
@@ -293,14 +301,14 @@ router.put(
                 throw missingField(filter, 'direction and target');
             }
             const screener = await screenerService.setMaFilter(userId, name, filter, body.direction, body.target);
-            res.json({ filters: screener.filters });
+            send(res, screenerFilterSetSchema, screener);
             return;
         }
 
         if (findFlagFilter(filter) !== null) {
             if (body.enabled === undefined) throw missingField(filter, 'enabled');
             const screener = await screenerService.setFlagFilter(userId, name, filter, { enabled: body.enabled });
-            res.json({ filters: screener.filters });
+            send(res, screenerFilterSetSchema, screener);
             return;
         }
 
@@ -314,7 +322,7 @@ router.delete(
     '/:name/filters/:filter',
     ...validated({ params: filterParams }, async (req, res): Promise<void> => {
         const screener = await screenerService.clearFilter(authedUserId(req), req.params.name, req.params.filter);
-        res.json({ filters: screener.filters });
+        send(res, screenerFilterSetSchema, screener);
     }),
 );
 
@@ -322,6 +330,6 @@ router.delete(
     '/:name/filters',
     ...validated({ params: nameParam }, async (req, res): Promise<void> => {
         const screener = await screenerService.resetFilters(authedUserId(req), req.params.name);
-        res.json({ filters: screener.filters });
+        send(res, screenerFilterSetSchema, screener);
     }),
 );

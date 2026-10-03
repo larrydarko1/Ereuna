@@ -6,34 +6,29 @@
  * The profile is the reference data behind the summary sidebar. Every numeric
  * field is a real number or null — the raw documents carry missing values as 0,
  * as NaN and as the string "NaN", and the API normalises all three away.
- * Drawings are stored opaquely, one document per (symbol, timeframe). Item
- * geometry is the renderer's business, so the API only counts them — which is
- * why the item type here is `unknown` rather than a shape this layer invents.
+ * Drawings are stored one document per (symbol, timeframe), in the shapes the
+ * chart's tools write — the shared schema the API validates a save against and
+ * answers a load with, so what comes back is something a tool can load.
  */
 import type {
     AssetProfile,
-    AssetSummary,
+    assetSearchSchema,
     ChartDrawings,
+    ChartEvents,
     ChartSeries,
     ChartTimeframe,
-    CorporateAction,
+    ResponseBody,
 } from '@ereuna/shared';
 
 import { api, type ApiResult } from '@/api/client';
-
-export type ChartEvents = {
-    earnings: string[]; // Fiscal period end dates, ISO 8601
-    dividends: CorporateAction[];
-    splits: CorporateAction[];
-};
 
 type SeriesOptions = {
     timeframe?: ChartTimeframe;
     before?: string; // Cursor for paging backwards: the newest bars strictly older than this
 };
 
-export function searchAssets(q: string, limit?: number): ApiResult<{ items: AssetSummary[] }> {
-    return api.get<{ items: AssetSummary[] }>('/charts/search', { params: { q, limit } });
+export function searchAssets(q: string, limit?: number): ApiResult<ResponseBody<typeof assetSearchSchema>> {
+    return api.get<ResponseBody<typeof assetSearchSchema>>('/charts/search', { params: { q, limit } });
 }
 
 export function getSeries(symbol: string, options: SeriesOptions = {}): ApiResult<ChartSeries> {

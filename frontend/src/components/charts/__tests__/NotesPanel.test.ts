@@ -21,7 +21,7 @@ const note = (over: Partial<NoteRow> = {}): NoteRow => ({
 });
 
 const panel = async (items: NoteRow[], symbol = 'AAPL'): Promise<VueWrapper> => {
-    api.on('GET /api/notes', { items, total: items.length, page: 1, pages: 1 });
+    api.on('GET /api/notes', { items, total: items.length, page: 1, limit: 50 });
     const wrapper = mount(NotesPanel, { props: { symbol } });
     await flushPromises();
     return wrapper;

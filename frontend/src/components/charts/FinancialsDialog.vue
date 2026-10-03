@@ -2,8 +2,8 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import type { Financials } from '@ereuna/shared';
-import { numeric } from '@ereuna/shared';
+import type { Financials, Statement, StatementField } from '@ereuna/shared';
+import { isOneOf, STATEMENT_FIELDS } from '@ereuna/shared';
 
 import AppDialog from '@/components/ui/AppDialog.vue';
 import { formatCompact, formatNumber } from '@/utils/formatters';
@@ -28,22 +28,18 @@ const COMPACT_THRESHOLD = 100_000;
 
 const PERIODS = ['annual', 'quarterly'] as const;
 
-const i18n = useI18n();
-const { t } = i18n;
+const { t } = useI18n();
 
 const period = ref<(typeof PERIODS)[number]>('annual');
 const showDescriptions = ref(false);
 
-const periods = computed<readonly Record<string, unknown>[]>(() => {
+const periods = computed<readonly Statement[]>(() => {
     if (statements === null) return [];
     return period.value === 'annual' ? statements.annual : statements.quarterly;
 });
 
 const columns = computed<Column[]>(() =>
-    periods.value.flatMap((row) => {
-        const date = row['fiscalDateEnding'];
-        return typeof date === 'string' ? [{ key: date, label: periodLabel(date) }] : [];
-    }),
+    periods.value.map((row) => ({ key: row.fiscalDateEnding, label: periodLabel(row.fiscalDateEnding) })),
 );
 
 /**
@@ -51,11 +47,11 @@ const columns = computed<Column[]>(() =>
  * Taking the keys of the newest period alone — which is what the old popup did
  * — hides any line a company reported for years and then stopped.
  */
-const attributes = computed<string[]>(() => {
-    const seen = new Set<string>();
+const attributes = computed<StatementField[]>(() => {
+    const seen = new Set<StatementField>();
     for (const row of periods.value) {
-        for (const key of Object.keys(row)) {
-            if (key !== 'fiscalDateEnding') seen.add(key);
+        for (const key of Object.keys(row.figures)) {
+            if (isOneOf(STATEMENT_FIELDS, key)) seen.add(key);
         }
     }
     return [...seen];
@@ -64,11 +60,11 @@ const attributes = computed<string[]>(() => {
 /** One row of the table: a label, its cells, and the change into each cell. */
 const rows = computed(() =>
     attributes.value.map((attribute) => {
-        const values = periods.value.map((row) => numeric(row[attribute]));
+        const values = periods.value.map((row) => row.figures[attribute] ?? null);
         return {
             attribute,
-            label: translate(`financials.attributes.${attribute}`) ?? attribute,
-            description: translate(`financials.tooltips.${attribute}`) ?? '',
+            label: t(`financials.attributes.${attribute}`),
+            description: t(`financials.tooltips.${attribute}`),
             cells: values.map((value, index) => ({
                 key: columns.value[index]?.key ?? String(index),
                 value: format(value),
@@ -80,16 +76,6 @@ const rows = computed(() =>
     }),
 );
 
-/**
- * A translation if there is one, else null.
- * The statements carry whatever line items the filing had, and no locale file
- * is going to name all of them; asking for a key that does not exist would
- * print the key itself into the table.
- */
-function translate(key: string): string | null {
-    return i18n.te(key) ? t(key) : null;
-}
-
 function format(value: number | null): string {
     if (value === null) return '—';
     return Math.abs(value) >= COMPACT_THRESHOLD ? formatCompact(value) : formatNumber(value, 2);
@@ -98,7 +84,6 @@ function format(value: number | null): string {
 /** "Q3 2024" for a quarter, "2024" for a year. */
 function periodLabel(iso: string): string {
     const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) return iso;
     const year = date.getUTCFullYear();
     return period.value === 'annual' ? String(year) : `Q${Math.floor(date.getUTCMonth() / 3) + 1} ${year}`;
 }

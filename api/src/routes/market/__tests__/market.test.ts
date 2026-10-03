@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
+import { marketOverview } from '@/__tests__/support/responses.js';
 
 const service = {
     marketStats: vi.fn(),
@@ -12,12 +13,18 @@ vi.mock('@/services/market/index.js', () => service);
 
 const { router } = await import('@/routes/market/market.js');
 
+const STATEMENTS = {
+    symbol: 'AAPL',
+    annual: [{ fiscalDateEnding: '2025-12-31T00:00:00.000Z', figures: { totalRevenue: 1000, eps: null } }],
+    quarterly: [],
+};
+
 let harness: Harness;
 
 beforeEach(async () => {
-    service.marketStats.mockResolvedValue({ breadth: {} });
+    service.marketStats.mockResolvedValue(marketOverview());
     service.holidays.mockResolvedValue([{ date: '2026-12-25', name: 'Christmas' }]);
-    service.financials.mockResolvedValue({ annual: [] });
+    service.financials.mockResolvedValue(STATEMENTS);
     harness = await serve((app) => app.use('/api/market', quietLogger, router));
 });
 
@@ -30,7 +37,7 @@ describe('GET /api/market/stats', () => {
         const response = await harness.call('/api/market/stats');
 
         expect(response.status).toBe(200);
-        expect(response.body).toEqual({ breadth: {} });
+        expect(response.body).toEqual(marketOverview());
     });
 });
 
@@ -38,7 +45,7 @@ describe('GET /api/market/holidays', () => {
     it('answers with the exchange calendar', async () => {
         const response = await harness.call('/api/market/holidays');
 
-        expect(response.body).toEqual([{ date: '2026-12-25', name: 'Christmas' }]);
+        expect(response.body).toEqual({ holidays: [{ date: '2026-12-25', name: 'Christmas' }] });
     });
 });
 
@@ -46,7 +53,7 @@ describe('GET /api/market/:symbol/financials', () => {
     it('answers with the statements for the symbol', async () => {
         const response = await harness.call('/api/market/aapl/financials');
 
-        expect(response.body).toEqual({ annual: [] });
+        expect(response.body).toEqual(STATEMENTS);
         expect(service.financials).toHaveBeenCalledWith('AAPL');
     });
 

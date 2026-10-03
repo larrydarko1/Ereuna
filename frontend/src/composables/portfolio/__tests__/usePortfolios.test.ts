@@ -1,23 +1,22 @@
-import { HttpResponse, http } from 'msw';
+import { http } from 'msw';
 import { describe, expect, it, vi } from 'vitest';
 
-import { mockApi, ORIGIN } from '@/__tests__/support/msw';
+import type { PortfolioExport, PortfolioRow, PortfolioSummary, ValuedPosition } from '@ereuna/shared';
+
+import { portfolioRow } from '@/__tests__/support/answers';
+import { answer, mockApi, ORIGIN } from '@/__tests__/support/msw';
 import { usePortfolios, type UsePortfoliosReturn } from '@/composables/portfolio/usePortfolios';
 
 const mock = mockApi();
 
-const slot = (number: number): Record<string, unknown> => ({
-    number,
-    cash: 0,
-    baseValue: 0,
-    leverage: 1,
-    defaultCommission: 0,
-    benchmarks: [],
-    positionCount: 0,
-    updatedAt: '2026-03-02T00:00:00.000Z',
-});
+const EXPORT: PortfolioExport = {
+    portfolio: { baseValue: 0, leverage: 1, defaultCommission: 0, benchmarks: [], stats: null, valueHistory: [] },
+    trades: [],
+};
 
-const summary = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
+const slot = (number: number): PortfolioRow => portfolioRow({ number, cash: 0, baseValue: 0 });
+
+const summary = (over: Partial<PortfolioSummary> = {}): PortfolioSummary => ({
     number: 0,
     cash: 1000,
     baseValue: 10000,
@@ -40,7 +39,7 @@ const summary = (over: Record<string, unknown> = {}): Record<string, unknown> =>
     ...over,
 });
 
-const position = (symbol: string): Record<string, unknown> => ({
+const position = (symbol: string): ValuedPosition => ({
     symbol,
     side: 'long',
     shares: 1,
@@ -122,10 +121,10 @@ describe('reload', () => {
         void portfolios.select(7);
         await vi.waitFor(() => expect(Object.keys(release)).toHaveLength(2));
 
-        release['7']?.(HttpResponse.json(summary({ number: 7, cash: 77 })));
+        release['7']?.(answer('GET /api/portfolios/7', summary({ number: 7, cash: 77 })));
         await vi.waitFor(() => expect(portfolios.summary.value).toMatchObject({ number: 7 }));
 
-        release['0']?.(HttpResponse.json(summary({ number: 0, cash: 1 })));
+        release['0']?.(answer('GET /api/portfolios/0', summary({ number: 0, cash: 1 })));
         await first;
 
         expect(portfolios.summary.value).toMatchObject({ number: 7 });
@@ -194,13 +193,28 @@ describe('the writes', () => {
     };
 
     it.each([
-        ['base value', 'PUT /api/portfolios/0/base-value', (p: UsePortfoliosReturn) => p.saveBaseValue(5000)],
-        ['leverage', 'PUT /api/portfolios/0/leverage', (p: UsePortfoliosReturn) => p.saveLeverage(2)],
-        ['commission', 'PUT /api/portfolios/0/commission', (p: UsePortfoliosReturn) => p.saveCommission(1)],
-        ['benchmarks', 'PUT /api/portfolios/0/benchmarks', (p: UsePortfoliosReturn) => p.saveBenchmarks(['SPY'])],
-    ])('re-reads the whole slot after setting the %s', async (_case, route, act) => {
+        [
+            'base value',
+            'PUT /api/portfolios/0/base-value',
+            { baseValue: 5000 },
+            (p: UsePortfoliosReturn) => p.saveBaseValue(5000),
+        ],
+        ['leverage', 'PUT /api/portfolios/0/leverage', { leverage: 2 }, (p: UsePortfoliosReturn) => p.saveLeverage(2)],
+        [
+            'commission',
+            'PUT /api/portfolios/0/commission',
+            { defaultCommission: 1 },
+            (p: UsePortfoliosReturn) => p.saveCommission(1),
+        ],
+        [
+            'benchmarks',
+            'PUT /api/portfolios/0/benchmarks',
+            { benchmarks: ['SPY'] },
+            (p: UsePortfoliosReturn) => p.saveBenchmarks(['SPY']),
+        ],
+    ])('re-reads the whole slot after setting the %s', async (_case, route, answer, act) => {
         arm();
-        mock.on(route, {});
+        mock.on(route, answer);
         const portfolios = build();
 
         await act(portfolios);
@@ -234,10 +248,10 @@ describe('the writes', () => {
 
 describe('export and import', () => {
     it('hands back the export envelope', async () => {
-        mock.on('GET /api/portfolios/0/export', { portfolio: {}, trades: [] });
+        mock.on('GET /api/portfolios/0/export', EXPORT);
         const portfolios = build();
 
-        await expect(portfolios.exportCurrent()).resolves.toEqual({ portfolio: {}, trades: [] });
+        await expect(portfolios.exportCurrent()).resolves.toEqual(EXPORT);
     });
 
     it('answers with how many trades went in, and re-reads', async () => {

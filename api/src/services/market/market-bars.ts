@@ -1,20 +1,13 @@
 /** market-bars — OHLCV series reads, one collection per timeframe. */
-import { z } from 'zod';
-
 import type { ChartSeries, ChartTimeframe, OhlcvDoc } from '@ereuna/shared';
-import { OHLCV_COLLECTIONS, isIntraday } from '@ereuna/shared';
+import { chartSeriesSchema, OHLCV_COLLECTIONS, isIntraday } from '@ereuna/shared';
 
 import { marketKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
 
 type BarSeries = Pick<ChartSeries, 'candles' | 'volume'>;
 
-const barSeriesSchema: z.ZodType<BarSeries> = z.object({
-    candles: z.array(
-        z.object({ time: z.string(), open: z.number(), high: z.number(), low: z.number(), close: z.number() }),
-    ),
-    volume: z.array(z.object({ time: z.string(), value: z.number() })),
-});
+const barSeriesSchema = chartSeriesSchema.pick({ candles: true, volume: true });
 
 const PAGE_SIZE: Record<ChartTimeframe, number> = {
     daily: 1250,

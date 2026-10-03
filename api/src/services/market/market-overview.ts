@@ -6,12 +6,14 @@
  * leaves (utils/market-overview.ts) rather than passed through. Passing the
  * raw document through only moved the ingestor's vocabulary into the browser,
  * where a renamed field showed up as a blank panel instead of a failing test.
- * The holiday document is still passed through: it is one array of dates with
- * nothing to model.
+ * The holiday calendar and the statements are reshaped the same way: a stored
+ * document carries its `_id` and whatever else its writer put beside the figures,
+ * and none of that is the client's.
  */
 import { z } from 'zod';
 
-import type { Financials, MarketOverview, StatsDoc } from '@ereuna/shared';
+import type { Financials, MarketHoliday, MarketOverview, Statement, StatsDoc } from '@ereuna/shared';
+import { holidayCalendarSchema, numeric, STATEMENT_FIELDS } from '@ereuna/shared';
 
 import { AppError } from '@/lib/app-error.js';
 import { marketKey, withCache } from '@/lib/cache.js';
@@ -37,8 +39,11 @@ export async function marketStats(): Promise<MarketOverview> {
     return toMarketOverview(await statsDocument('marketStats'));
 }
 
-export async function holidays(): Promise<StatsDoc> {
-    return statsDocument('Holidays');
+export async function holidays(): Promise<MarketHoliday[]> {
+    const doc = await statsDocument('Holidays');
+    const parsed = holidayCalendarSchema.shape.holidays.safeParse(doc['Holidays'] ?? []);
+    if (!parsed.success) throw new AppError(500, 'INTERNAL', 'The Holidays document does not hold a calendar');
+    return parsed.data;
 }
 
 /**
@@ -51,8 +56,8 @@ export async function financials(symbol: string): Promise<Financials> {
     const asset = await getAsset(symbol);
     return {
         symbol,
-        annual: asset.AnnualFinancials ?? [],
-        quarterly: asset.quarterlyFinancials ?? [],
+        annual: (asset.AnnualFinancials ?? []).flatMap(toStatement),
+        quarterly: (asset.quarterlyFinancials ?? []).flatMap(toStatement),
     };
 }
 
@@ -68,4 +73,21 @@ async function statsDocument(id: string): Promise<StatsDoc> {
 
     if (doc === null) throw new AppError(404, 'NOT_FOUND', `Stats document ${id} has not been ingested`);
     return doc;
+}
+
+/**
+ * One stored period as the table reads it: its end date, and the named line
+ * items as numbers or null. A period without a readable end date is dropped —
+ * there is no column to put it in.
+ */
+function toStatement(row: Record<string, unknown>): Statement[] {
+    const ending = row['fiscalDateEnding'];
+    const date = ending instanceof Date || typeof ending === 'string' ? new Date(ending) : null;
+    if (date === null || Number.isNaN(date.getTime())) return [];
+
+    const figures: Statement['figures'] = {};
+    for (const field of STATEMENT_FIELDS) {
+        if (field in row) figures[field] = numeric(row[field]);
+    }
+    return [{ fiscalDateEnding: date.toISOString(), figures }];
 }

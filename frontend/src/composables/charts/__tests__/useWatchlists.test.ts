@@ -1,29 +1,23 @@
 import { HttpResponse, http } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import type { WatchlistDetail, WatchlistSummary } from '@ereuna/shared';
 import { isRecord } from '@ereuna/shared';
 
-import { mockApi, ORIGIN } from '@/__tests__/support/msw';
+import { watchlistRow, watchlistSummary } from '@/__tests__/support/answers';
+import { answer, mockApi, ORIGIN } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
 import { useWatchlists } from '@/composables/charts/useWatchlists';
 
 const mock = mockApi();
 const watchlists = useWatchlists();
 
-const summary = (name: string, position = 0, tickerCount = 0, tickers: string[] = []): Record<string, unknown> => ({
-    id: name,
-    name,
-    position,
-    tickerCount,
-    tickers,
-    updatedAt: '2026-03-02T00:00:00.000Z',
-});
+const summary = (name: string, position = 0, tickerCount = 0, tickers: string[] = []): WatchlistSummary =>
+    watchlistSummary(name, { id: name, position, tickerCount, tickers });
 
-const row = (ticker: string): Record<string, unknown> => ({ ticker, quote: null });
-
-const detail = (name: string, tickers: string[]): Record<string, unknown> => ({
+const detail = (name: string, tickers: string[]): WatchlistDetail => ({
     name,
-    rows: tickers.map(row),
+    rows: tickers.map((ticker) => watchlistRow(ticker)),
 });
 
 beforeEach(() => {
@@ -82,7 +76,7 @@ describe('load', () => {
         mock.server.use(
             http.get(`${ORIGIN}/api/watchlists`, () => {
                 reads += 1;
-                return HttpResponse.json({ items: [] });
+                return answer('GET /api/watchlists', { items: [] });
             }),
         );
 
@@ -197,7 +191,7 @@ describe('managing the lists', () => {
         await watchlists.remove('Tech');
 
         expect(watchlists.activeName.value).toBe('Energy');
-        expect(watchlists.rows.value).toEqual([{ ticker: 'XOM', quote: null }]);
+        expect(watchlists.rows.value).toEqual([watchlistRow('XOM')]);
     });
 
     it('leaves nothing open after deleting the last list', async () => {
@@ -241,7 +235,7 @@ describe('managing the tickers', () => {
         mock.server.use(
             http.delete(`${ORIGIN}/api/watchlists/Tech/tickers/AAPL`, () => {
                 expect(watchlists.rows.value).toEqual([]);
-                return HttpResponse.json({ list: [] });
+                return answer('DELETE /api/watchlists/Tech/tickers/AAPL', { list: [] });
             }),
         );
 
@@ -303,7 +297,7 @@ describe('addTickers', () => {
                 const body: unknown = await request.json();
                 return isRecord(body) && body['symbol'] === 'NOPE'
                     ? HttpResponse.json({ error: 'ASSET_NOT_FOUND' }, { status: 404 })
-                    : HttpResponse.json({ list: [] });
+                    : answer('POST /api/watchlists/Tech/tickers', { list: [] });
             }),
         );
         mock.on('GET /api/watchlists/Tech', detail('Tech', ['AAPL', 'MSFT']));

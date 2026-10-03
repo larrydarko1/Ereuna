@@ -53,10 +53,15 @@ describe('marketStats', () => {
 });
 
 describe('holidays', () => {
-    it('passes the document through — one array of dates has nothing to model', async () => {
-        const doc = { _id: 'Holidays', Holidays: [{ date: '2026-01-01', name: 'New Year' }] };
+    it('answers with the calendar the document holds, and nothing else of it', async () => {
+        const doc = { _id: 'Holidays', updatedAt: new Date(0), Holidays: [{ date: '2026-01-01', name: 'New Year' }] };
         db.current = fakeDb({ Stats: [doc] });
-        await expect(holidays()).resolves.toEqual(doc);
+        await expect(holidays()).resolves.toEqual([{ date: '2026-01-01', name: 'New Year' }]);
+    });
+
+    it('fails as a server error when the document holds something other than a calendar', async () => {
+        db.current = fakeDb({ Stats: [{ _id: 'Holidays', Holidays: [{ date: 20260101 }] }] });
+        await expect(holidays()).rejects.toMatchObject({ status: 500, code: 'INTERNAL' });
     });
 
     it("holds it for a day, because it changes on the ingestor's schedule", async () => {
@@ -72,17 +77,29 @@ describe('holidays', () => {
 });
 
 describe('financials', () => {
-    it('returns both statement sets for a covered symbol', async () => {
+    it('returns both statement sets for a covered symbol, each figure a number or null', async () => {
         state.asset = {
             Symbol: 'AAPL',
-            AnnualFinancials: [{ year: 2025 }],
-            quarterlyFinancials: [{ quarter: 'Q2' }],
+            AnnualFinancials: [{ fiscalDateEnding: new Date('2025-09-27'), totalRevenue: 416e9, eps: 'NaN' }],
+            quarterlyFinancials: [{ fiscalDateEnding: '2025-06-28T00:00:00.000Z', netIncome: '23.4e9' }],
         };
         await expect(financials('AAPL')).resolves.toEqual({
             symbol: 'AAPL',
-            annual: [{ year: 2025 }],
-            quarterly: [{ quarter: 'Q2' }],
+            annual: [{ fiscalDateEnding: '2025-09-27T00:00:00.000Z', figures: { totalRevenue: 416e9, eps: null } }],
+            quarterly: [{ fiscalDateEnding: '2025-06-28T00:00:00.000Z', figures: { netIncome: 23.4e9 } }],
         });
+    });
+
+    it('drops a line item no locale has a label for, and a period with no readable end date', async () => {
+        state.asset = {
+            Symbol: 'AAPL',
+            quarterlyFinancials: [
+                { fiscalDateEnding: new Date('2025-06-28'), totalRevenue: 1, vendorNewCode: 2 },
+                { fiscalDateEnding: 'not a date', totalRevenue: 1 },
+            ],
+        };
+        const { quarterly } = await financials('AAPL');
+        expect(quarterly).toEqual([{ fiscalDateEnding: '2025-06-28T00:00:00.000Z', figures: { totalRevenue: 1 } }]);
     });
 
     it('answers empty lists for an uncovered symbol — that is not the same as the asset not existing', async () => {

@@ -6,25 +6,26 @@
  * than being dropped — a symbol the ingestor has not reached should still be
  * visible in the list the user built.
  */
-import type { WatchlistEntry, WatchlistRow, WatchlistSummary } from '@ereuna/shared';
+import type {
+    ResponseBody,
+    WatchlistDetail,
+    watchlistEntriesSchema,
+    watchlistListSchema,
+    WatchlistSummary,
+} from '@ereuna/shared';
 
 import { api, type ApiResult } from '@/api/client';
 
-type WatchlistDetail = {
-    name: string;
-    rows: WatchlistRow[];
-};
-
-export function getWatchlists(): ApiResult<{ items: WatchlistSummary[] }> {
-    return api.get<{ items: WatchlistSummary[] }>('/watchlists');
+export function getWatchlists(): ApiResult<ResponseBody<typeof watchlistListSchema>> {
+    return api.get<ResponseBody<typeof watchlistListSchema>>('/watchlists');
 }
 
 export function createWatchlist(name: string): ApiResult<WatchlistSummary> {
     return api.post<WatchlistSummary>('/watchlists', { name });
 }
 
-export function reorderWatchlists(names: readonly string[]): ApiResult<{ items: WatchlistSummary[] }> {
-    return api.put<{ items: WatchlistSummary[] }>('/watchlists/order', { names });
+export function reorderWatchlists(names: readonly string[]): ApiResult<ResponseBody<typeof watchlistListSchema>> {
+    return api.put<ResponseBody<typeof watchlistListSchema>>('/watchlists/order', { names });
 }
 
 export function getWatchlist(name: string): ApiResult<WatchlistDetail> {
@@ -39,16 +40,23 @@ export function deleteWatchlist(name: string): ApiResult<void> {
     return api.delete<void>(`/watchlists/${encodeURIComponent(name)}`);
 }
 
-export function reorderTickers(name: string, symbols: readonly string[]): ApiResult<{ list: WatchlistEntry[] }> {
-    return api.put<{ list: WatchlistEntry[] }>(`/watchlists/${encodeURIComponent(name)}/tickers`, { symbols });
+export function reorderTickers(
+    name: string,
+    symbols: readonly string[],
+): ApiResult<ResponseBody<typeof watchlistEntriesSchema>> {
+    return api.put<ResponseBody<typeof watchlistEntriesSchema>>(`/watchlists/${encodeURIComponent(name)}/tickers`, {
+        symbols,
+    });
 }
 
-export function addTicker(name: string, symbol: string): ApiResult<{ list: WatchlistEntry[] }> {
-    return api.post<{ list: WatchlistEntry[] }>(`/watchlists/${encodeURIComponent(name)}/tickers`, { symbol });
+export function addTicker(name: string, symbol: string): ApiResult<ResponseBody<typeof watchlistEntriesSchema>> {
+    return api.post<ResponseBody<typeof watchlistEntriesSchema>>(`/watchlists/${encodeURIComponent(name)}/tickers`, {
+        symbol,
+    });
 }
 
-export function removeTicker(name: string, symbol: string): ApiResult<{ list: WatchlistEntry[] }> {
-    return api.delete<{ list: WatchlistEntry[] }>(
+export function removeTicker(name: string, symbol: string): ApiResult<ResponseBody<typeof watchlistEntriesSchema>> {
+    return api.delete<ResponseBody<typeof watchlistEntriesSchema>>(
         `/watchlists/${encodeURIComponent(name)}/tickers/${encodeURIComponent(symbol)}`,
     );
 }

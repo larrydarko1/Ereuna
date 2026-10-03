@@ -9,7 +9,10 @@ import { Router } from 'express';
 import { ObjectId } from 'mongodb';
 import { z } from 'zod';
 
+import { notePageSchema, noteRowSchema } from '@ereuna/shared';
+
 import { idParam, makePaginationQuery, symbolSchema } from '@/lib/schemas.js';
+import { send } from '@/lib/send.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';
 import * as noteService from '@/services/note/index.js';
@@ -29,13 +32,12 @@ router.get(
     '/',
     ...validated({ query: listQuery }, async (req, res): Promise<void> => {
         const { page, limit, symbol } = req.validatedQuery;
-        res.json(
-            await noteService.getNotePage(authedUserId(req), {
-                page,
-                limit,
-                ...(symbol !== undefined ? { symbol } : {}),
-            }),
-        );
+        const notes = await noteService.getNotePage(authedUserId(req), {
+            page,
+            limit,
+            ...(symbol !== undefined ? { symbol } : {}),
+        });
+        send(res, notePageSchema, notes);
     }),
 );
 
@@ -43,7 +45,7 @@ router.post(
     '/',
     ...validated({ body: createBody }, async (req, res): Promise<void> => {
         const note = await noteService.createNote(authedUserId(req), req.body.symbol, req.body.message);
-        res.status(201).json(note);
+        send(res.status(201), noteRowSchema, note);
     }),
 );
 
@@ -51,7 +53,7 @@ router.patch(
     '/:id',
     ...validated({ params: idParam, body: updateBody }, async (req, res): Promise<void> => {
         const note = await noteService.updateNote(authedUserId(req), new ObjectId(req.params.id), req.body.message);
-        res.json(note);
+        send(res, noteRowSchema, note);
     }),
 );
 

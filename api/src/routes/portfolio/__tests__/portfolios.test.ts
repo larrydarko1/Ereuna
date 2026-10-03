@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { asUser, json, quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
+import { portfolioExport, portfolioRow, portfolioSummary } from '@/__tests__/support/responses.js';
 
 const service = {
     listPortfolios: vi.fn(),
@@ -28,14 +29,14 @@ const trade = { action: 'buy', symbol: 'AAPL', shares: 10, price: 180, total: 18
 let harness: Harness;
 
 beforeEach(async () => {
-    service.listPortfolios.mockResolvedValue([{ number: 0 }]);
-    service.getSummary.mockResolvedValue({ number: 0, value: 1000 });
+    service.listPortfolios.mockResolvedValue([portfolioRow()]);
+    service.getSummary.mockResolvedValue(portfolioSummary());
     service.deletePortfolio.mockResolvedValue(undefined);
     service.setBaseValue.mockResolvedValue({ baseValue: 10000, leverage: 1 });
     service.setLeverage.mockResolvedValue(2);
     service.setDefaultCommission.mockResolvedValue(1.5);
     service.setBenchmarks.mockResolvedValue(['SPY']);
-    service.exportPortfolio.mockResolvedValue({ trades: [], portfolio: {} });
+    service.exportPortfolio.mockResolvedValue(portfolioExport());
     service.replaceTrades.mockResolvedValue(1);
     harness = await serve((app) => app.use('/api/portfolios', quietLogger, asUser(USER), router));
 });
@@ -48,7 +49,7 @@ describe('reads', () => {
     it('lists the opened slots under an items key', async () => {
         const response = await harness.call('/api/portfolios');
 
-        expect(response.body).toEqual({ items: [{ number: 0 }] });
+        expect(response.body).toEqual({ items: [portfolioRow()] });
         expect(service.listPortfolios).toHaveBeenCalledWith(USER_ID);
     });
 
@@ -75,7 +76,7 @@ describe('reads', () => {
     it('exports the log and the summary together', async () => {
         const response = await harness.call('/api/portfolios/0/export');
 
-        expect(response.body).toEqual({ trades: [], portfolio: {} });
+        expect(response.body).toEqual(portfolioExport());
     });
 });
 

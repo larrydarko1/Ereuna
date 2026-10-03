@@ -3,22 +3,17 @@ import { effectScope } from 'vue';
 
 import type { ChartDrawings } from '@ereuna/shared';
 
+import { box, noDrawings, trendLine } from '@/__tests__/support/answers';
 import { mockApi } from '@/__tests__/support/msw';
 import { useChartDrawings, type UseChartDrawingsReturn } from '@/composables/charts/useChartDrawings';
 
 const mock = mockApi();
 
-const EMPTY: ChartDrawings = {
-    trendLines: [],
-    boxes: [],
-    textAnnotations: [],
-    freehandPaths: [],
-    priceLevels: [],
-};
+const EMPTY: ChartDrawings = noDrawings();
 
 const key = { symbol: 'AAPL', timeframe: 'daily' as const };
 
-const withLine: ChartDrawings = { ...EMPTY, trendLines: [{ id: '1' }] };
+const withLine: ChartDrawings = { ...EMPTY, trendLines: [trendLine('1')] };
 /** The five renderer managers, each of which owns one kind of annotation. */
 function fakeManagers(): {
     managers: Parameters<UseChartDrawingsReturn['attach']>[0];
@@ -80,7 +75,7 @@ describe('attach', () => {
     it('reports a canvas that already holds one', () => {
         const { drawings } = inScope();
         const managers = fakeManagers();
-        managers.set({ boxes: [{ id: 'b' }] });
+        managers.set({ boxes: [box('b')] });
 
         drawings.attach(managers.managers);
 
@@ -105,7 +100,7 @@ describe('load', () => {
         mock.on('GET /api/charts/AAPL/drawings', { error: 'INTERNAL' }, { status: 500 });
         const { drawings } = inScope();
         const managers = fakeManagers();
-        managers.set({ trendLines: [{ id: 'stale' }] });
+        managers.set({ trendLines: [trendLine('stale')] });
         drawings.attach(managers.managers);
 
         await drawings.load(key);
@@ -143,12 +138,12 @@ describe('save', () => {
         mock.on('PUT /api/charts/AAPL/drawings', withLine);
         const { drawings } = inScope();
         const managers = fakeManagers();
-        managers.set({ trendLines: [{ id: '1' }] });
+        managers.set({ trendLines: [trendLine('1')] });
         drawings.attach(managers.managers);
 
         await drawings.save(key);
 
-        expect(mock.last().body).toMatchObject({ trendLines: [{ id: '1' }] });
+        expect(mock.last().body).toMatchObject({ trendLines: [trendLine('1')] });
         expect(drawings.hasDrawings.value).toBe(true);
     });
 
@@ -215,7 +210,7 @@ describe('snapshot and restore', () => {
     it('carries the canvas across a series rebuild without a read or a write', () => {
         const { drawings } = inScope();
         const managers = fakeManagers();
-        managers.set({ boxes: [{ id: 'b' }] });
+        managers.set({ boxes: [box('b')] });
         drawings.attach(managers.managers);
 
         const taken = drawings.snapshot();
@@ -251,7 +246,7 @@ describe('clear', () => {
         mock.on('DELETE /api/charts/AAPL/drawings', null, { status: 204 });
         const { drawings } = inScope();
         const managers = fakeManagers();
-        managers.set({ trendLines: [{ id: '1' }] });
+        managers.set({ trendLines: [trendLine('1')] });
         drawings.attach(managers.managers);
 
         await drawings.clear(key);

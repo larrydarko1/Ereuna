@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { asUser, json, quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
+import { sessionUser } from '@/__tests__/support/responses.js';
 import { failedFieldsOf } from '@/__tests__/support/values.js';
 
 const authService = {
@@ -33,13 +34,13 @@ let harness: Harness;
 
 beforeEach(async () => {
     authService.beginTotpEnrolment.mockResolvedValue({ secret: 'S', uri: 'otpauth://x' });
-    authService.confirmTotpEnrolment.mockResolvedValue(['code-1']);
+    authService.confirmTotpEnrolment.mockResolvedValue({ recoveryCodes: ['code-1'] });
     authService.disableTotp.mockResolvedValue(undefined);
     authService.regenerateRecoveryCodes.mockResolvedValue(['code-1', 'code-2']);
     authService.countRemainingCodes.mockResolvedValue(7);
-    userService.getAccount.mockResolvedValue({ username: 'larry' });
+    userService.getAccount.mockResolvedValue(sessionUser());
     userService.changePassword.mockResolvedValue(undefined);
-    userService.changeUsername.mockResolvedValue({ username: 'newname' });
+    userService.changeUsername.mockResolvedValue(sessionUser({ username: 'newname' }));
     userService.deleteAccount.mockResolvedValue(undefined);
     userService.setPasswordAfterRecovery.mockResolvedValue(undefined);
     harness = await serve((app) => app.use('/api/account', quietLogger, asUser(USER), router));
@@ -53,8 +54,16 @@ describe('GET /api/account', () => {
     it('answers with the current user', async () => {
         const response = await harness.call('/api/account');
 
-        expect(response.body).toEqual({ username: 'larry' });
+        expect(response.body).toEqual(sessionUser());
         expect(userService.getAccount).toHaveBeenCalledWith(USER_ID);
+    });
+
+    it('sends only what the session schema lists, whatever the service hands back', async () => {
+        userService.getAccount.mockResolvedValue({ ...sessionUser(), passwordHash: 'hash', recoveryCodeHashes: ['h'] });
+
+        const response = await harness.call('/api/account');
+
+        expect(response.body).toEqual(sessionUser());
     });
 });
 
@@ -95,7 +104,7 @@ describe('PATCH /api/account/username', () => {
             json({ password: 'old', username: 'newname' }, 'PATCH'),
         );
 
-        expect(response.body).toEqual({ username: 'newname' });
+        expect(response.body).toEqual(sessionUser({ username: 'newname' }));
         expect(userService.changeUsername).toHaveBeenCalledWith(USER_ID, 'old', 'newname');
     });
 
@@ -136,7 +145,7 @@ describe('two-factor enrolment', () => {
     it('confirms enrolment and answers with the recovery codes', async () => {
         const response = await harness.call('/api/account/2fa/confirm', json({ code: '123456' }));
 
-        expect(response.body).toEqual(['code-1']);
+        expect(response.body).toEqual({ recoveryCodes: ['code-1'] });
         expect(authService.confirmTotpEnrolment).toHaveBeenCalledWith(USER_ID, '123456');
     });
 

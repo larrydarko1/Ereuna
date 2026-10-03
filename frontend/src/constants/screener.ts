@@ -8,7 +8,8 @@
  * A filter added to the shared registry without a group here lands in the
  * catch-all group rather than disappearing, and the audit test names it.
  */
-import { ENUM_FILTERS, isList, isRecord, MA_FILTERS, RANGE_FILTERS } from '@ereuna/shared';
+import type { ScreenerResult } from '@ereuna/shared';
+import { ENUM_FILTERS, isOneOf, MA_FILTERS, RANGE_FILTERS, SCREENER_COLUMNS } from '@ereuna/shared';
 
 export type FilterGroup = (typeof FILTER_GROUPS)[number];
 
@@ -228,19 +229,12 @@ export function filterGroup(key: string): FilterGroup {
 }
 
 /**
- * Read a column out of a result row.
- * Column paths are the AssetInfo paths the API projects, so they are dotted
- * and may step through an array index — `quarterlyFinancials.0.roe` comes back
- * nested, not as a flat key.
+ * Read a column out of a result row. The API answers each chosen column flat
+ * under its AssetInfo path — `quarterlyFinancials.0.roe` is one key — and a path
+ * the registry does not know is never one it answers.
  */
-export function readColumn(row: Record<string, unknown>, path: string): unknown {
-    let cursor: unknown = row;
-    for (const segment of path.split('.')) {
-        if (isList(cursor)) cursor = cursor[Number(segment)];
-        else if (isRecord(cursor)) cursor = cursor[segment];
-        else return null;
-    }
-    return cursor ?? null;
+export function readColumn(row: ScreenerResult, path: string): number | string | null {
+    return isOneOf(SCREENER_COLUMNS, path) ? (row.columns[path] ?? null) : null;
 }
 
 export function findColumn(path: string): ColumnSpec | null {

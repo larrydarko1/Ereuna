@@ -1,6 +1,7 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { sessionUser } from '@/__tests__/support/answers';
 import { elementOf } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import UsernameForm from '@/components/user/UsernameForm.vue';
@@ -64,7 +65,7 @@ describe('UsernameForm', () => {
     });
 
     it('sends the trimmed name with the password', async () => {
-        api.on('PATCH /api/account/username', { id: '1', username: 'newname', twoFactorEnabled: false });
+        api.on('PATCH /api/account/username', sessionUser({ id: '1', username: 'newname' }));
         const wrapper = form();
 
         await fill(wrapper, '  newname  ', 'secret');
@@ -74,7 +75,7 @@ describe('UsernameForm', () => {
     });
 
     it('reports the renamed account upward and confirms it', async () => {
-        const user = { id: '1', username: 'newname', twoFactorEnabled: false };
+        const user = sessionUser({ id: '1', username: 'newname' });
         api.on('PATCH /api/account/username', user);
         const wrapper = form();
 
@@ -85,7 +86,7 @@ describe('UsernameForm', () => {
     });
 
     it('empties the form once the rename lands', async () => {
-        api.on('PATCH /api/account/username', { id: '1', username: 'newname', twoFactorEnabled: false });
+        api.on('PATCH /api/account/username', sessionUser({ id: '1', username: 'newname' }));
         const wrapper = form();
 
         await fill(wrapper, 'newname', 'secret');
@@ -107,7 +108,7 @@ describe('UsernameForm', () => {
     });
 
     it('locks the button while the rename is in flight', async () => {
-        api.on('PATCH /api/account/username', { id: '1', username: 'newname', twoFactorEnabled: false });
+        api.on('PATCH /api/account/username', sessionUser({ id: '1', username: 'newname' }));
         const wrapper = form();
 
         await fill(wrapper, 'newname', 'secret');
@@ -118,7 +119,7 @@ describe('UsernameForm', () => {
     });
 
     it('sends one rename however fast the button is pressed', async () => {
-        api.on('PATCH /api/account/username', { id: '1', username: 'newname', twoFactorEnabled: false });
+        api.on('PATCH /api/account/username', sessionUser({ id: '1', username: 'newname' }));
         const wrapper = form();
 
         await fill(wrapper, 'newname', 'secret');

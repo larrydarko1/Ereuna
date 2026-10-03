@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import { mockApi } from '@/__tests__/support/msw';
+import { overview } from '@/__tests__/support/overview';
 import { getFinancials, getHolidays, getMarketStats } from '@/api/market';
 
 const mock = mockApi();
 
 describe('market reads', () => {
     it('reads the summary, whose ingest timestamp is a field on it', async () => {
-        mock.on('GET /api/market/stats', { updatedAt: '2026-03-02T00:00:00.000Z' });
+        mock.on('GET /api/market/stats', overview({ updatedAt: '2026-03-02T00:00:00.000Z' }));
 
         await expect(getMarketStats()).resolves.toMatchObject({
             data: { updatedAt: '2026-03-02T00:00:00.000Z' },
@@ -15,11 +16,11 @@ describe('market reads', () => {
     });
 
     it('reads the holiday calendar', async () => {
-        mock.on('GET /api/market/holidays', { Holidays: [{ date: '2026-12-25', name: 'Christmas' }] });
+        mock.on('GET /api/market/holidays', { holidays: [{ date: '2026-12-25', name: 'Christmas' }] });
 
         const { data } = await getHolidays();
 
-        expect(data.Holidays).toHaveLength(1);
+        expect(data.holidays).toHaveLength(1);
     });
 
     it('reads the financial statements for one symbol', async () => {

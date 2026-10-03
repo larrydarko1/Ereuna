@@ -2,18 +2,16 @@ import { describe, expect, it } from 'vitest';
 
 import type { ChartDrawings } from '@ereuna/shared';
 
+import { box, chartSeries, noDrawings } from '@/__tests__/support/answers';
+import { assetProfile } from '@/__tests__/support/assets';
 import { mockApi } from '@/__tests__/support/msw';
 import { clearDrawings, getDrawings, getEvents, getProfile, getSeries, saveDrawings, searchAssets } from '@/api/chart';
 
 const mock = mockApi();
 
-const drawings: ChartDrawings = {
-    trendLines: [],
-    boxes: [],
-    textAnnotations: [],
-    freehandPaths: [],
-    priceLevels: [],
-};
+const drawings: ChartDrawings = noDrawings();
+
+const BOX = box('box_1');
 
 describe('searchAssets', () => {
     it('sends the term, and no limit when none was given', async () => {
@@ -36,7 +34,7 @@ describe('searchAssets', () => {
 
 describe('getSeries', () => {
     it('asks for the symbol with no options at all by default', async () => {
-        mock.on('GET /api/charts/AAPL', { symbol: 'AAPL', candles: [] });
+        mock.on('GET /api/charts/AAPL', chartSeries());
 
         await getSeries('AAPL');
 
@@ -44,7 +42,7 @@ describe('getSeries', () => {
     });
 
     it('sends the timeframe and the paging cursor', async () => {
-        mock.on('GET /api/charts/AAPL', { symbol: 'AAPL', candles: [] });
+        mock.on('GET /api/charts/AAPL', chartSeries());
 
         await getSeries('AAPL', { timeframe: 'weekly', before: '2026-03-02' });
 
@@ -52,7 +50,7 @@ describe('getSeries', () => {
     });
 
     it('encodes the symbol', async () => {
-        mock.on('GET /api/charts/:symbol', { symbol: 'BRK/B', candles: [] });
+        mock.on('GET /api/charts/:symbol', chartSeries('BRK/B'));
 
         await getSeries('BRK/B');
 
@@ -62,7 +60,7 @@ describe('getSeries', () => {
 
 describe('getProfile', () => {
     it('reads the reference data behind the sidebar', async () => {
-        mock.on('GET /api/charts/AAPL/profile', { symbol: 'AAPL' });
+        mock.on('GET /api/charts/AAPL/profile', assetProfile());
 
         await expect(getProfile('AAPL')).resolves.toMatchObject({ data: { symbol: 'AAPL' } });
     });
@@ -96,12 +94,12 @@ describe('drawings', () => {
     });
 
     it('saves the items as the renderer produced them', async () => {
-        mock.on('PUT /api/charts/AAPL/drawings', drawings);
+        mock.on('PUT /api/charts/AAPL/drawings', { ...drawings, boxes: [BOX] });
 
-        await saveDrawings('AAPL', 'weekly', { ...drawings, boxes: [{ anything: 'at all' }] });
+        await saveDrawings('AAPL', 'weekly', { ...drawings, boxes: [BOX] });
 
         expect(mock.last().search.get('timeframe')).toBe('weekly');
-        expect(mock.last().body).toMatchObject({ boxes: [{ anything: 'at all' }] });
+        expect(mock.last().body).toMatchObject({ boxes: [BOX] });
     });
 
     it('clears one timeframe', async () => {

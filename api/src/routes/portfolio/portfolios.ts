@@ -14,8 +14,22 @@
 import { Router } from 'express';
 import { z } from 'zod';
 
+import {
+    baseValueSchema,
+    benchmarksSchema,
+    defaultCommissionSchema,
+    importResultSchema,
+    leverageSchema,
+    portfolioExportSchema,
+    portfolioListSchema,
+    portfolioStatsSchema,
+    portfolioSummarySchema,
+    valuePointSchema,
+} from '@ereuna/shared';
+
 import { config } from '@/lib/config.js';
 import { portfolioNumberSchema, symbolSchema } from '@/lib/schemas.js';
+import { send } from '@/lib/send.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';
 import { tradeInputSchema, toTradeFields } from '@/routes/portfolio/trades.js';
@@ -30,59 +44,9 @@ const commissionBody = z.object({
 });
 const benchmarksBody = z.object({ symbols: z.array(symbolSchema).max(config.limits.benchmarksPerPortfolio) });
 
-const extremeSchema = z.object({
-    ticker: z.string().max(32),
-    amount: z.number(),
-    tradeCount: z.number().int().nonnegative(),
-});
-
-// `z.number()` already rejects Infinity and NaN in Zod 4 — `.finite()` there is
-// a documented no-op, so these names say what the schema does, not what it calls
-const finite = z.number();
-const nullableFinite = z.number().nullable();
-
-const statsSchema = z.object({
-    realizedPL: finite,
-    realizedPLPercent: finite,
-    winnerCount: z.number().int().nonnegative(),
-    loserCount: z.number().int().nonnegative(),
-    breakevenCount: z.number().int().nonnegative(),
-    winnerPercent: finite,
-    loserPercent: finite,
-    breakevenPercent: finite,
-    avgGain: finite,
-    avgLoss: finite,
-    avgGainAbs: finite,
-    avgLossAbs: finite,
-    avgPositionSize: finite,
-    avgHoldTimeWinners: finite,
-    avgHoldTimeLosers: finite,
-    gainLossRatio: nullableFinite,
-    profitFactor: nullableFinite,
-    riskRewardRatio: nullableFinite,
-    sortinoRatio: nullableFinite,
-    totalCommission: finite,
-    longCount: z.number().int().nonnegative(),
-    shortCount: z.number().int().nonnegative(),
-    biggestWinner: extremeSchema.nullable(),
-    biggestLoser: extremeSchema.nullable(),
-    tradeReturnsChart: z.object({
-        bins: z
-            .array(
-                z.object({
-                    min: finite,
-                    max: finite,
-                    range: z.string().max(64),
-                    count: z.number().int().nonnegative(),
-                    positive: z.boolean(),
-                }),
-            )
-            .max(500),
-        medianBinIndex: z.number().int().min(-1),
-    }),
-});
-
-const valueHistorySchema = z.array(z.object({ date: z.iso.date(), value: finite })).max(config.limits.importRows);
+// A declared snapshot is checked against the schema the export answers with, so
+// a file a user downloaded is always one they can upload
+const valueHistorySchema = z.array(valuePointSchema).max(config.limits.importRows);
 
 const importBody = z.object({
     trades: z.array(tradeInputSchema).max(config.limits.importRows),
@@ -92,7 +56,7 @@ const importBody = z.object({
             leverage: z.number().min(1).max(config.limits.maxLeverage).optional(),
             defaultCommission: z.number().nonnegative().max(config.limits.maxCommission).optional(),
             benchmarks: z.array(symbolSchema).max(config.limits.benchmarksPerPortfolio).optional(),
-            stats: statsSchema.nullish(),
+            stats: portfolioStatsSchema.nullish(),
             valueHistory: valueHistorySchema.optional(),
         })
         .optional(),
@@ -103,14 +67,14 @@ export const router = Router();
 router.get(
     '/',
     ...validated({}, async (req, res): Promise<void> => {
-        res.json({ items: await portfolioService.listPortfolios(authedUserId(req)) });
+        send(res, portfolioListSchema, { items: await portfolioService.listPortfolios(authedUserId(req)) });
     }),
 );
 
 router.get(
     '/:number',
     ...validated({ params: numberParam }, async (req, res): Promise<void> => {
-        res.json(await portfolioService.getSummary(authedUserId(req), req.params.number));
+        send(res, portfolioSummarySchema, await portfolioService.getSummary(authedUserId(req), req.params.number));
     }),
 );
 
@@ -126,7 +90,7 @@ router.put(
     '/:number/base-value',
     ...validated({ params: numberParam, body: baseValueBody }, async (req, res): Promise<void> => {
         const portfolio = await portfolioService.setBaseValue(authedUserId(req), req.params.number, req.body.baseValue);
-        res.json({ baseValue: portfolio.baseValue });
+        send(res, baseValueSchema, portfolio);
     }),
 );
 
@@ -134,7 +98,7 @@ router.put(
     '/:number/leverage',
     ...validated({ params: numberParam, body: leverageBody }, async (req, res): Promise<void> => {
         const leverage = await portfolioService.setLeverage(authedUserId(req), req.params.number, req.body.leverage);
-        res.json({ leverage });
+        send(res, leverageSchema, { leverage });
     }),
 );
 
@@ -146,7 +110,7 @@ router.put(
             req.params.number,
             req.body.commission,
         );
-        res.json({ defaultCommission });
+        send(res, defaultCommissionSchema, { defaultCommission });
     }),
 );
 
@@ -154,14 +118,14 @@ router.put(
     '/:number/benchmarks',
     ...validated({ params: numberParam, body: benchmarksBody }, async (req, res): Promise<void> => {
         const benchmarks = await portfolioService.setBenchmarks(authedUserId(req), req.params.number, req.body.symbols);
-        res.json({ benchmarks });
+        send(res, benchmarksSchema, { benchmarks });
     }),
 );
 
 router.get(
     '/:number/export',
     ...validated({ params: numberParam }, async (req, res): Promise<void> => {
-        res.json(await portfolioService.exportPortfolio(authedUserId(req), req.params.number));
+        send(res, portfolioExportSchema, await portfolioService.exportPortfolio(authedUserId(req), req.params.number));
     }),
 );
 
@@ -190,6 +154,6 @@ router.post(
             },
         );
 
-        res.json({ imported });
+        send(res, importResultSchema, { imported });
     }),
 );

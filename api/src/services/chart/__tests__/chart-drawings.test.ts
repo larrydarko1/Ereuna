@@ -22,7 +22,10 @@ const empty = (): ChartDrawings => ({
     priceLevels: [],
 });
 
-const withOne = (): ChartDrawings => ({ ...empty(), priceLevels: [{ price: 100 }] });
+const withOne = (): ChartDrawings => ({
+    ...empty(),
+    priceLevels: [{ id: 'pl_1', price: 100, color: '#2962ff', text: '', lineWidth: 1, lineStyle: 0 }],
+});
 
 beforeEach(() => {
     db.current = fakeDb({ ChartDrawings: [] });

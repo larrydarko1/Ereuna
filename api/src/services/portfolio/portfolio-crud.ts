@@ -6,7 +6,14 @@
  */
 import type { Collection, ObjectId, WithId } from 'mongodb';
 
-import type { PortfolioDoc, PortfolioStatsSnapshot, PortfolioValuePoint, PositionDoc, TradeDoc } from '@ereuna/shared';
+import type {
+    PortfolioDoc,
+    PortfolioRow,
+    PortfolioStatsSnapshot,
+    PortfolioValuePoint,
+    PositionDoc,
+    TradeDoc,
+} from '@ereuna/shared';
 
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
@@ -27,24 +34,13 @@ export type DeclaredState = {
     valueHistory?: PortfolioValuePoint[];
 };
 
-type PortfolioSummaryRow = {
-    number: number;
-    cash: number;
-    baseValue: number;
-    leverage: number;
-    defaultCommission: number;
-    benchmarks: string[];
-    positionCount: number;
-    updatedAt: Date;
-};
-
 /**
  * Every slot the user has actually used.
  * Slots are created on first write, not up front: a user with one portfolio has
  * one document, and `GET /api/portfolios` returning one row is the truthful
  * answer rather than ten empty ones.
  */
-export async function listPortfolios(userId: ObjectId): Promise<PortfolioSummaryRow[]> {
+export async function listPortfolios(userId: ObjectId): Promise<PortfolioRow[]> {
     const [portfolios, counts] = await Promise.all([
         collection().find({ userId }).sort({ number: 1 }).toArray(),
         getDb()
@@ -65,7 +61,7 @@ export async function listPortfolios(userId: ObjectId): Promise<PortfolioSummary
         defaultCommission: doc.defaultCommission,
         benchmarks: doc.benchmarks,
         positionCount: byNumber.get(doc.number) ?? 0,
-        updatedAt: doc.updatedAt,
+        updatedAt: doc.updatedAt.toISOString(),
     }));
 }
 

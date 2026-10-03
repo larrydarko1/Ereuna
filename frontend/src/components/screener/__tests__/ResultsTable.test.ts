@@ -3,23 +3,23 @@ import { describe, expect, it } from 'vitest';
 
 import type { ScreenerResult } from '@ereuna/shared';
 
+import { screenerResult } from '@/__tests__/support/answers';
 import ResultsTable from '@/components/screener/ResultsTable.vue';
 import { i18n } from '@/i18n';
 import { formatCompact, formatNumber } from '@/utils/formatters';
 
 const COLUMNS = ['TimeSeries.close', 'MarketCapitalization', 'Gap'];
 
-const result = (symbol: string, over: Record<string, unknown> = {}): ScreenerResult => ({
-    symbol,
-    name: `${symbol} Inc`,
-    assetType: 'Stock',
-    sector: 'Tech',
-    exchange: 'NASDAQ',
-    TimeSeries: { close: 123.456 },
-    MarketCapitalization: 2_500_000_000,
-    Gap: 1.25,
-    ...over,
-});
+const result = (
+    symbol: string,
+    columns: ScreenerResult['columns'] = {},
+    over: Partial<ScreenerResult> = {},
+): ScreenerResult =>
+    screenerResult(symbol, {
+        sector: 'Tech',
+        columns: { 'TimeSeries.close': 123.456, 'MarketCapitalization': 2_500_000_000, 'Gap': 1.25, ...columns },
+        ...over,
+    });
 
 const table = (props: Record<string, unknown> = {}): VueWrapper =>
     mount(ResultsTable, { props: { items: [result('AAPL')], columns: COLUMNS, ...props } });
@@ -54,17 +54,17 @@ describe('ResultsTable', () => {
 
     it('dashes a missing figure rather than printing null', () => {
         expect(
-            cells(table({ items: [result('AAPL', { TimeSeries: {}, MarketCapitalization: null, Gap: '' })] })),
+            cells(
+                table({
+                    items: [result('AAPL', { 'TimeSeries.close': null, 'MarketCapitalization': null, 'Gap': null })],
+                }),
+            ),
         ).toEqual(['—', '—', '—']);
-    });
-
-    it('dashes a figure that is not finite', () => {
-        expect(cells(table({ items: [result('AAPL', { Gap: Number.POSITIVE_INFINITY })] }))[2]).toBe('—');
     });
 
     it('dashes a name the vendor never supplied', () => {
         expect(
-            table({ items: [result('AAPL', { name: null })] })
+            table({ items: [result('AAPL', {}, { name: null })] })
                 .get('.results-table__td--name')
                 .text(),
         ).toBe('—');

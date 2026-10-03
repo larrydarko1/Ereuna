@@ -55,7 +55,6 @@ function cell(row: ScreenerResult, path: string, format: ColumnFormat): string {
     if (value === null || value === '') return PLACEHOLDER;
 
     if (typeof value === 'number') {
-        if (!Number.isFinite(value)) return PLACEHOLDER;
         switch (format) {
             case 'compact':
                 return formatCompact(value);
@@ -68,7 +67,7 @@ function cell(row: ScreenerResult, path: string, format: ColumnFormat): string {
         }
     }
 
-    return typeof value === 'string' ? value : PLACEHOLDER;
+    return value;
 }
 
 function isNegative(row: ScreenerResult, path: string, format: ColumnFormat): boolean {

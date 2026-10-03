@@ -1,10 +1,9 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { mockApi } from '@/__tests__/support/msw';
 import { overview } from '@/__tests__/support/overview';
 import { i18n } from '@/i18n';
-import { toDateInput } from '@/utils/formatters';
 import Dashboard from '@/views/Dashboard.vue';
 
 const api = mockApi();
@@ -14,11 +13,6 @@ const view = async (): Promise<VueWrapper> => {
     await flushPromises();
     return wrapper;
 };
-
-beforeEach(() => {
-    api.on('GET /api/market/calendar', { date: toDateInput(new Date()), earnings: [], dividends: [], splits: [] });
-    api.on('GET /api/market/news', { items: [] });
-});
 
 describe('Dashboard', () => {
     it('reads the whole summary in one request', async () => {

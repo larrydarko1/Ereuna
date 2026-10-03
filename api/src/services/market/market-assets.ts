@@ -9,7 +9,7 @@ import type {
     SummaryField,
     TradeSignal,
 } from '@ereuna/shared';
-import { isRecord, numeric } from '@ereuna/shared';
+import { assetSummarySchema, isRecord, numeric } from '@ereuna/shared';
 
 import { AppError } from '@/lib/app-error.js';
 import { marketKey, withCache } from '@/lib/cache.js';
@@ -17,18 +17,7 @@ import { getDb } from '@/lib/db.js';
 import type { DividendPayment } from '@/utils/dividends.js';
 import { escapeRegex } from '@/utils/regex.js';
 
-const assetSummariesSchema: z.ZodType<AssetSummary[]> = z.array(
-    z.object({
-        symbol: z.string(),
-        name: z.string().nullable(),
-        isin: z.string().nullable(),
-        exchange: z.string().nullable(),
-        assetType: z.string().nullable(),
-        currency: z.string().nullable(),
-        sector: z.string().nullable(),
-        marketCap: z.number().nullable(),
-    }),
-);
+const assetSummariesSchema = z.array(assetSummarySchema);
 
 const MAX_SEARCH_RESULTS = 50;
 

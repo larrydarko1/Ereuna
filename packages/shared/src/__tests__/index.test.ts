@@ -35,6 +35,13 @@ describe('the package barrel', () => {
         'findRangeFilter',
         'DEFAULT_INDICATORS',
         'numeric',
+        'SCREENER_COLUMNS',
+        'STATEMENT_FIELDS',
+        'sessionUserSchema',
+        'chartDrawingsSchema',
+        'screenerResultPageSchema',
+        'portfolioSummarySchema',
+        'quoteSchema',
     ])('re-exports %s', (name) => {
         expect(shared).toHaveProperty(name);
     });

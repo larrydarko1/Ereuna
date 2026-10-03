@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { asUser, json, quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
+import { watchlistSummary } from '@/__tests__/support/responses.js';
 
 const service = {
     listWatchlists: vi.fn(),
@@ -21,14 +22,20 @@ const { router } = await import('@/routes/watchlist/watchlists.js');
 
 const USER = '507f1f77bcf86cd799439011';
 const USER_ID = new ObjectId(USER);
-const list = { name: 'Tech', tickers: ['AAPL'] };
+const summary = watchlistSummary();
+const entries = [{ ticker: 'AAPL', exchange: 'NASDAQ' }];
+const detail = { name: 'Tech', rows: [{ ticker: 'AAPL', exchange: 'NASDAQ', quote: null }] };
 
 let harness: Harness;
 
 beforeEach(async () => {
-    for (const mock of Object.values(service)) mock.mockResolvedValue(list);
-    service.listWatchlists.mockResolvedValue([list]);
-    service.reorderWatchlists.mockResolvedValue([list]);
+    service.listWatchlists.mockResolvedValue([summary]);
+    service.createWatchlist.mockResolvedValue(summary);
+    service.reorderWatchlists.mockResolvedValue([summary]);
+    service.getWatchlistRows.mockResolvedValue(detail);
+    service.renameWatchlist.mockResolvedValue(summary);
+    for (const mock of [service.reorderTickers, service.addTicker, service.removeTicker])
+        mock.mockResolvedValue(entries);
     service.deleteWatchlist.mockResolvedValue(undefined);
     harness = await serve((app) => app.use('/api/watchlists', quietLogger, asUser(USER), router));
 });
@@ -41,7 +48,7 @@ describe('collection routes', () => {
     it('lists the user lists under an items key', async () => {
         const response = await harness.call('/api/watchlists');
 
-        expect(response.body).toEqual({ items: [list] });
+        expect(response.body).toEqual({ items: [summary] });
         expect(service.listWatchlists).toHaveBeenCalledWith(USER_ID);
     });
 
@@ -65,7 +72,7 @@ describe('PUT /api/watchlists/order', () => {
         const response = await harness.call('/api/watchlists/order', json({ names: ['Tech', 'Energy'] }, 'PUT'));
 
         expect(response.status).toBe(200);
-        expect(response.body).toEqual({ items: [list] });
+        expect(response.body).toEqual({ items: [summary] });
         expect(service.reorderWatchlists).toHaveBeenCalledWith(USER_ID, ['Tech', 'Energy']);
     });
 
@@ -82,7 +89,7 @@ describe('single list routes', () => {
     it('reads one list with its quotes', async () => {
         const response = await harness.call('/api/watchlists/Tech');
 
-        expect(response.body).toEqual(list);
+        expect(response.body).toEqual(detail);
         expect(service.getWatchlistRows).toHaveBeenCalledWith(USER_ID, 'Tech');
     });
 
@@ -104,7 +111,7 @@ describe('ticker routes', () => {
     it('sets the ticker order', async () => {
         const response = await harness.call('/api/watchlists/Tech/tickers', json({ symbols: ['aapl', 'msft'] }, 'PUT'));
 
-        expect(response.body).toEqual({ list });
+        expect(response.body).toEqual({ list: entries });
         expect(service.reorderTickers).toHaveBeenCalledWith(USER_ID, 'Tech', ['AAPL', 'MSFT']);
     });
 
@@ -120,7 +127,7 @@ describe('ticker routes', () => {
         const response = await harness.call('/api/watchlists/Tech/tickers', json({ symbol: 'aapl' }));
 
         expect(response.status).toBe(201);
-        expect(response.body).toEqual({ list });
+        expect(response.body).toEqual({ list: entries });
         expect(service.addTicker).toHaveBeenCalledWith(USER_ID, 'Tech', 'AAPL');
     });
 

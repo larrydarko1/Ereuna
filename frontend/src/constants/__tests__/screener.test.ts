@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { ALL_FILTER_KEYS, ENUM_FILTERS, MA_FILTERS, RANGE_FILTERS } from '@ereuna/shared';
 
+import { screenerResult } from '@/__tests__/support/answers';
 import { COLUMNS, DEFAULT_COLUMNS, FILTER_GROUPS, filterGroup, findColumn, readColumn } from '@/constants/screener';
 
 describe('filterGroup', () => {
@@ -54,29 +55,24 @@ describe('COLUMNS', () => {
 });
 
 describe('readColumn', () => {
-    it('reads a flat key', () => {
-        expect(readColumn({ PERatio: 24.9 }, 'PERatio')).toBe(24.9);
+    it('reads a column the row carries, by its path', () => {
+        expect(readColumn(screenerResult('AAPL', { columns: { 'TimeSeries.close': 180 } }), 'TimeSeries.close')).toBe(
+            180,
+        );
+        expect(
+            readColumn(
+                screenerResult('AAPL', { columns: { 'quarterlyFinancials.0.roe': 0.2 } }),
+                'quarterlyFinancials.0.roe',
+            ),
+        ).toBe(0.2);
     });
 
-    it('steps through a dotted path', () => {
-        expect(readColumn({ TimeSeries: { close: 180 } }, 'TimeSeries.close')).toBe(180);
-    });
-
-    it('steps through an array index', () => {
-        expect(readColumn({ quarterlyFinancials: [{ roe: 0.2 }] }, 'quarterlyFinancials.0.roe')).toBe(0.2);
-    });
-
-    it('answers null when the path runs out', () => {
-        expect(readColumn({}, 'TimeSeries.close')).toBeNull();
-        expect(readColumn({ TimeSeries: null }, 'TimeSeries.close')).toBeNull();
-        expect(readColumn({ TimeSeries: 5 }, 'TimeSeries.close')).toBeNull();
-    });
-
-    it('answers null rather than undefined for a missing leaf', () => {
-        expect(readColumn({ TimeSeries: {} }, 'TimeSeries.close')).toBeNull();
+    it('answers null for a column the row does not carry, or one the registry never heard of', () => {
+        expect(readColumn(screenerResult('AAPL'), 'TimeSeries.close')).toBeNull();
+        expect(readColumn(screenerResult('AAPL'), 'MadeUpField')).toBeNull();
     });
 
     it('keeps a legitimate zero', () => {
-        expect(readColumn({ PERatio: 0 }, 'PERatio')).toBe(0);
+        expect(readColumn(screenerResult('AAPL', { columns: { PERatio: 0 } }), 'PERatio')).toBe(0);
     });
 });

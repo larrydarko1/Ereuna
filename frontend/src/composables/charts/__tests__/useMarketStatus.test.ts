@@ -20,7 +20,7 @@ function inScope(alwaysOpen = false): { status: UseMarketStatusReturn; stop: () 
 
 beforeEach(() => {
     vi.useFakeTimers();
-    mock.on('GET /api/market/holidays', { Holidays: [{ date: '2026-12-25', name: 'Christmas' }] });
+    mock.on('GET /api/market/holidays', { holidays: [{ date: '2026-12-25', name: 'Christmas' }] });
 });
 
 afterEach(() => {

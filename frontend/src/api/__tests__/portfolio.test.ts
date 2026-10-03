@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
+import { portfolioRow } from '@/__tests__/support/answers';
 import { mockApi } from '@/__tests__/support/msw';
+import { summary } from '@/__tests__/support/portfolio';
 import {
     deletePortfolio,
     exportPortfolio,
@@ -17,13 +19,13 @@ const mock = mockApi();
 
 describe('reads', () => {
     it('lists the slots the user has opened', async () => {
-        mock.on('GET /api/portfolios', { items: [{ number: 0 }] });
+        mock.on('GET /api/portfolios', { items: [portfolioRow()] });
 
         await expect(getPortfolios()).resolves.toMatchObject({ data: { items: [{ number: 0 }] } });
     });
 
     it('reads one valued slot', async () => {
-        mock.on('GET /api/portfolios/2', { number: 2 });
+        mock.on('GET /api/portfolios/2', summary({ number: 2 }));
 
         await getPortfolio(2);
 
@@ -31,7 +33,17 @@ describe('reads', () => {
     });
 
     it('exports the log and the settings together', async () => {
-        mock.on('GET /api/portfolios/0/export', { portfolio: {}, trades: [] });
+        mock.on('GET /api/portfolios/0/export', {
+            portfolio: {
+                baseValue: 0,
+                leverage: 1,
+                defaultCommission: 0,
+                benchmarks: [],
+                stats: null,
+                valueHistory: [],
+            },
+            trades: [],
+        });
 
         await expect(exportPortfolio(0)).resolves.toMatchObject({ data: { trades: [] } });
     });

@@ -2,6 +2,7 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { Router } from 'vue-router';
 
+import { preferences, sessionUser } from '@/__tests__/support/answers';
 import { elementOf } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { testRouter } from '@/__tests__/support/router';
@@ -11,7 +12,7 @@ import Login from '@/views/Login.vue';
 
 const api = mockApi();
 
-const USER = { id: 'u1', username: 'larry', twoFactorEnabled: false };
+const USER = sessionUser({ id: 'u1', twoFactorEnabled: false });
 
 const view = async (path = '/login'): Promise<{ wrapper: VueWrapper; router: Router }> => {
     const router = testRouter();
@@ -40,15 +41,7 @@ const verify = async (wrapper: VueWrapper, code: string): Promise<void> => {
 
 beforeEach(() => {
     clearAuth();
-    api.on('GET /api/preferences', {
-        language: 'en',
-        theme: null,
-        defaultSymbol: 'AAPL',
-        hiddenSymbols: [],
-        chartSettings: null,
-        panels: null,
-        screenerColumns: [],
-    });
+    api.on('GET /api/preferences', preferences());
 });
 
 describe('Login', () => {

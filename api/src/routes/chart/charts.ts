@@ -13,10 +13,19 @@
 import { Router } from 'express';
 import { z } from 'zod';
 
-import { CHART_TIMEFRAMES } from '@ereuna/shared';
+import {
+    assetProfileSchema,
+    assetSearchSchema,
+    CHART_TIMEFRAMES,
+    chartDrawingsSchema,
+    chartEventsSchema,
+    chartSeriesSchema,
+    DRAWING_KINDS,
+} from '@ereuna/shared';
 
 import { config } from '@/lib/config.js';
 import { symbolSchema } from '@/lib/schemas.js';
+import { send } from '@/lib/send.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';
 import * as chartService from '@/services/chart/index.js';
@@ -35,17 +44,6 @@ const searchQuery = z.object({
     limit: z.coerce.number().int().min(1).max(50).default(20),
 });
 
-/** Item geometry belongs to the renderer, so items are stored opaquely and only counted. */
-const drawingItems = z.array(z.unknown()).max(config.limits.drawingsPerKind).default([]);
-
-const drawingsBody = z.object({
-    trendLines: drawingItems,
-    boxes: drawingItems,
-    textAnnotations: drawingItems,
-    freehandPaths: drawingItems,
-    priceLevels: drawingItems,
-});
-
 /** Corporate-action markers returned by default; `all=true` returns the full history. */
 const DEFAULT_EVENT_LIMIT = 4;
 const MAX_EVENT_LIMIT = 500;
@@ -54,6 +52,12 @@ const seriesQuery = timeframeQuery.extend({
     before: z.iso.datetime({ offset: true }).or(z.iso.date()).optional(),
 });
 
+/** The same shapes a load answers with, so a drawing saved is one a tool can load back. */
+const drawingsBody = chartDrawingsSchema.refine(
+    (drawings) => DRAWING_KINDS.every((kind) => drawings[kind].length <= config.limits.drawingsPerKind),
+    { message: `At most ${config.limits.drawingsPerKind} drawings of each kind` },
+);
+
 export const router = Router();
 
 /** Registered before `/:symbol` so `search` is not read as a ticker. */
@@ -61,7 +65,7 @@ router.get(
     '/search',
     ...validated({ query: searchQuery }, async (req, res): Promise<void> => {
         const { q, limit } = req.validatedQuery;
-        res.json({ items: await marketService.searchAssets(q, limit) });
+        send(res, assetSearchSchema, { items: await marketService.searchAssets(q, limit) });
     }),
 );
 
@@ -69,18 +73,17 @@ router.get(
     '/:symbol',
     ...validated({ params: symbolParam, query: seriesQuery }, async (req, res): Promise<void> => {
         const { timeframe, before } = req.validatedQuery;
-        res.json(
-            await chartService.getChartSeries(authedUserId(req), req.params.symbol, timeframe, {
-                ...(before !== undefined ? { before: new Date(before) } : {}),
-            }),
-        );
+        const series = await chartService.getChartSeries(authedUserId(req), req.params.symbol, timeframe, {
+            ...(before !== undefined ? { before: new Date(before) } : {}),
+        });
+        send(res, chartSeriesSchema, series);
     }),
 );
 
 router.get(
     '/:symbol/profile',
     ...validated({ params: symbolParam }, async (req, res): Promise<void> => {
-        res.json(await marketService.assetProfile(req.params.symbol));
+        send(res, assetProfileSchema, await marketService.assetProfile(req.params.symbol));
     }),
 );
 
@@ -96,7 +99,7 @@ router.get(
             marketService.corporateActions(symbol, 'splits', limit),
         ]);
 
-        res.json({ earnings, dividends, splits });
+        send(res, chartEventsSchema, { earnings, dividends, splits });
     }),
 );
 
@@ -108,7 +111,7 @@ router.get(
             req.params.symbol,
             req.validatedQuery.timeframe,
         );
-        res.json(drawings);
+        send(res, chartDrawingsSchema, drawings);
     }),
 );
 
@@ -123,7 +126,7 @@ router.put(
                 req.validatedQuery.timeframe,
                 req.body,
             );
-            res.json(drawings);
+            send(res, chartDrawingsSchema, drawings);
         },
     ),
 );

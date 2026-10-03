@@ -1,7 +1,9 @@
 /** useMarketStatus — whether the US market is open, and why not when it is shut. */
 import { computed, onScopeDispose, readonly, ref, type ComputedRef, type Ref } from 'vue';
 
-import { getHolidays, type MarketHoliday } from '@/api/market';
+import type { MarketHoliday } from '@ereuna/shared';
+
+import { getHolidays } from '@/api/market';
 
 export type MarketStatus = 'open' | 'closed' | 'holiday';
 
@@ -76,7 +78,7 @@ export function useMarketStatus(alwaysOpen: () => boolean): UseMarketStatusRetur
 function loadHolidays(): Promise<void> {
     loaded ??= getHolidays()
         .then(({ data }) => {
-            holidays.value = data.Holidays ?? [];
+            holidays.value = data.holidays;
         })
         .catch(() => {
             // A missing calendar costs the holiday label, not the badge: the

@@ -2,6 +2,7 @@
 import type { ObjectId } from 'mongodb';
 
 import { OHLCV_COLLECTIONS } from '#db/indexes.js';
+import type { ChartDrawings } from '#responses/chart.js';
 
 export type UserDoc = {
     username: string;
@@ -171,14 +172,6 @@ export type NoteDoc = {
     message: string;
     createdAt: Date;
     updatedAt: Date;
-};
-
-export type ChartDrawings = {
-    trendLines: unknown[];
-    boxes: unknown[];
-    textAnnotations: unknown[];
-    freehandPaths: unknown[];
-    priceLevels: unknown[];
 };
 
 export type ChartDrawingDoc = {

@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { asUser, json, quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
 import { anything } from '@/__tests__/support/matchers.js';
+import { tradeRow } from '@/__tests__/support/responses.js';
 import { failedFieldsOf } from '@/__tests__/support/values.js';
 
 const service = {
@@ -32,9 +33,9 @@ const buy = {
 let harness: Harness;
 
 beforeEach(async () => {
-    service.getTradePage.mockResolvedValue({ items: [], total: 0 });
-    service.addTrade.mockResolvedValue({ id: ID });
-    service.updateTrade.mockResolvedValue({ id: ID });
+    service.getTradePage.mockResolvedValue({ items: [tradeRow({ id: ID })], total: 1, page: 1, limit: 50 });
+    service.addTrade.mockResolvedValue(tradeRow({ id: ID }));
+    service.updateTrade.mockResolvedValue(tradeRow({ id: ID }));
     service.deleteTrade.mockResolvedValue(undefined);
     harness = await serve((app) => app.use('/api/portfolios/:number/trades', quietLogger, asUser(USER), router));
 });

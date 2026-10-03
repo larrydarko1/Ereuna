@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { asUser, json, quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
+import { preferences } from '@/__tests__/support/responses.js';
 
 const service = {
     getPreferences: vi.fn(),
@@ -20,8 +21,8 @@ const USER_ID = new ObjectId(USER);
 let harness: Harness;
 
 beforeEach(async () => {
-    service.getPreferences.mockResolvedValue({ language: 'en' });
-    service.updatePreferences.mockResolvedValue({ language: 'fr' });
+    service.getPreferences.mockResolvedValue(preferences());
+    service.updatePreferences.mockResolvedValue(preferences({ language: 'fr' }));
     service.hideSymbol.mockResolvedValue(['AAPL']);
     service.unhideSymbol.mockResolvedValue([]);
     harness = await serve((app) => app.use('/api/preferences', quietLogger, asUser(USER), router));
@@ -36,7 +37,7 @@ describe('GET /api/preferences', () => {
         const response = await harness.call('/api/preferences');
 
         expect(response.status).toBe(200);
-        expect(response.body).toEqual({ language: 'en' });
+        expect(response.body).toEqual(preferences());
         expect(service.getPreferences).toHaveBeenCalledWith(USER_ID);
     });
 });

@@ -242,6 +242,42 @@ describe('runHiddenSymbols', () => {
         });
     });
 
+    it('answers each chosen column flat under its path: a figure as a number, a category as text', async () => {
+        db.current = fakeDb({
+            AssetInfo: [
+                {
+                    Symbol: 'AAPL',
+                    Name: 'Apple Inc',
+                    AssetType: 'Stock',
+                    Sector: 'Technology',
+                    Exchange: 'NASDAQ',
+                    PERatio: 'NaN',
+                    Country: 'USA',
+                    quarterlyFinancials: [{ roe: 0.42 }],
+                    _internal: 'not a column',
+                },
+            ],
+        });
+
+        const page = await runHiddenSymbols(USER_ID, {
+            page: 1,
+            limit: 10,
+            hiddenSymbols: ['AAPL'],
+            columns: ['PERatio', 'Country', 'quarterlyFinancials.0.roe'],
+        });
+
+        expect(page.items).toEqual([
+            {
+                symbol: 'AAPL',
+                name: 'Apple Inc',
+                assetType: 'Stock',
+                sector: 'Technology',
+                exchange: 'NASDAQ',
+                columns: { 'PERatio': null, 'Country': 'USA', 'quarterlyFinancials.0.roe': 0.42 },
+            },
+        ]);
+    });
+
     it('cuts the page before reshaping it, so only the returned rows are projected', async () => {
         await runHiddenSymbols(USER_ID, { page: 1, limit: 10, hiddenSymbols: ['AAPL'] });
 

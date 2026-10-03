@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import { numeric } from '@ereuna/shared';
+import type { Statement } from '@ereuna/shared';
 
 import { useRowLimit } from '@/composables/ui/useRowLimit';
 import { formatCompact, formatDate, formatNumber } from '@/utils/formatters';
@@ -16,7 +16,7 @@ type Quarter = {
 };
 
 const { rows, metric } = defineProps<{
-    rows: readonly Record<string, unknown>[];
+    rows: readonly Statement[];
     metric: 'eps' | 'earnings' | 'sales';
 }>();
 
@@ -37,21 +37,14 @@ const { t } = useI18n();
 
 const all = computed<Quarter[]>(() => {
     const field = FIELDS[metric];
-    const values = rows.map((row) => numeric(row[field]));
+    const values = rows.map((row) => row.figures[field] ?? null);
 
-    return rows.flatMap((row, index) => {
-        const date = row['fiscalDateEnding'];
-        if (typeof date !== 'string') return [];
-
-        return [
-            {
-                date,
-                value: values[index] ?? null,
-                quarterOverQuarter: growth(values[index] ?? null, values[index + 1] ?? null),
-                yearOverYear: growth(values[index] ?? null, values[index + QUARTERS_IN_YEAR] ?? null),
-            },
-        ];
-    });
+    return rows.map((row, index) => ({
+        date: row.fiscalDateEnding,
+        value: values[index] ?? null,
+        quarterOverQuarter: growth(values[index] ?? null, values[index + 1] ?? null),
+        yearOverYear: growth(values[index] ?? null, values[index + QUARTERS_IN_YEAR] ?? null),
+    }));
 });
 
 const { rows: quarters, expanded, toggleable, hidden, toggle } = useRowLimit(() => all.value, DEFAULT_ROWS);

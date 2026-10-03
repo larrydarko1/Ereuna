@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { json, quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
+import { sessionUser } from '@/__tests__/support/responses.js';
 
 const service = {
     registerUser: vi.fn(),
@@ -25,7 +26,7 @@ const session = {
     accessToken: 'access',
     refreshToken: 'refresh',
     refreshMaxAge: 604800000,
-    user: { id: USER, username: 'larry' },
+    user: sessionUser({ id: USER }),
 };
 
 let harness: Harness;

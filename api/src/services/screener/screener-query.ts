@@ -5,16 +5,21 @@
  */
 import type { Document, Filter, WithId } from 'mongodb';
 import { type ObjectId } from 'mongodb';
-import { z } from 'zod';
 
 import {
     DATE_FILTERS,
     ENUM_FILTERS,
     FLAG_FILTERS,
+    isList,
     isOneOf,
+    isRecord,
     MA_FILTERS,
+    numeric,
     RANGE_FILTERS,
+    SCREENER_COLUMNS,
+    screenerResultPageSchema,
     type AssetInfoDoc,
+    type ScreenerColumn,
     type ScreenerDoc,
     type ScreenerFilterValue,
     type ScreenerResult,
@@ -28,28 +33,13 @@ import { getScreener } from '@/services/screener/screener-crud.js';
 /** One branch of the combined query, tagged with the screener that produced it. */
 type TaggedAsset = AssetInfoDoc & { screeners: string[] };
 
-const screenerResultPageSchema: z.ZodType<ScreenerResultPage> = z.object({
-    items: z.array(
-        z
-            .object({
-                symbol: z.string(),
-                name: z.string().nullable(),
-                assetType: z.string().nullable(),
-                sector: z.string().nullable(),
-                exchange: z.string().nullable(),
-                screeners: z.array(z.string()).exactOptional(),
-            })
-            .catchall(z.unknown()),
-    ),
-    total: z.number(),
-    page: z.number(),
-    pages: z.number(),
-});
-
 /** A column path that steps through an array index, like `quarterlyFinancials.0.roe`. */
 const INDEXED_COLUMN = /^(?<array>[^.]+)\.(?<index>\d+)\.(?<field>.+)$/;
 
 const MA_DIRECTIONS = ['abv', 'blw'] as const;
+
+/** The categorical columns, whose cells are text; every other column is a figure. */
+const TEXT_COLUMNS: ReadonlySet<string> = new Set(ENUM_FILTERS.map((spec) => spec.queryPath));
 
 /** Columns every result carries, on top of whatever the user has selected. */
 const BASE_PROJECTION = {
@@ -193,7 +183,8 @@ async function executeCombined(
     screeners: WithId<ScreenerDoc>[],
     options: { page: number; limit: number; columns: string[]; hiddenSymbols: string[] },
 ): Promise<ScreenerResultPage> {
-    const { page, limit, columns, hiddenSymbols } = options;
+    const { page, limit, hiddenSymbols } = options;
+    const columns = selectedColumns(options.columns);
     const projection = buildProjection(columns);
 
     const branch = (screener: WithId<ScreenerDoc>): Document[] => [
@@ -237,14 +228,16 @@ async function executeCombined(
         .toArray();
 
     const total = result?.total[0]?.value ?? 0;
-    return { items: (result?.items ?? []).map(toResult), total, page, pages: Math.ceil(total / limit) };
+    const items = (result?.items ?? []).map((asset) => ({ ...toResult(asset, columns), screeners: asset.screeners }));
+    return { items, total, page, pages: Math.ceil(total / limit) };
 }
 
 async function executeQuery(
     query: Filter<AssetInfoDoc>,
     options: { page: number; limit: number; columns: string[] },
 ): Promise<ScreenerResultPage> {
-    const { page, limit, columns } = options;
+    const { page, limit } = options;
+    const columns = selectedColumns(options.columns);
     const assets = getDb().collection<AssetInfoDoc>('AssetInfo');
     const projection = buildProjection(columns);
 
@@ -267,20 +260,19 @@ async function executeQuery(
     ]);
 
     return {
-        items: items.map(toResult),
+        items: items.map((asset) => toResult(asset, columns)),
         total,
         page,
         pages: Math.ceil(total / limit),
     };
 }
 
-function buildProjection(columns: string[]): Record<string, unknown> {
-    const allowed = new Set<string>([
-        ...RANGE_FILTERS.map((spec) => spec.queryPath),
-        ...ENUM_FILTERS.map((spec) => spec.queryPath),
-        ...MA_FILTERS.map((spec) => spec.path),
-    ]);
+/** The user's columns that the registry knows, in their order: a preference naming anything else is ignored. */
+function selectedColumns(columns: readonly string[]): ScreenerColumn[] {
+    return columns.filter((column): column is ScreenerColumn => isOneOf(SCREENER_COLUMNS, column));
+}
 
+function buildProjection(columns: readonly ScreenerColumn[]): Record<string, unknown> {
     const projection: Record<string, unknown> = { ...BASE_PROJECTION };
     // Array name → index → the fields wanted from that element. Several columns
     // out of the same quarter cost one rebuilt element between them, not one
@@ -288,8 +280,6 @@ function buildProjection(columns: string[]): Record<string, unknown> {
     const indexed = new Map<string, Map<number, Set<string>>>();
 
     for (const column of columns) {
-        if (!allowed.has(column)) continue;
-
         const parsed = parseIndexedColumn(column);
         if (parsed === null) {
             projection[column] = 1;
@@ -342,16 +332,39 @@ function pickElementFields(array: string, index: number, fields: Set<string> | u
     };
 }
 
-function toResult(doc: AssetInfoDoc): ScreenerResult {
-    const { Symbol, Name, AssetType, Sector, Exchange, ...rest } = doc;
+/**
+ * One projected asset as a result row: the base fields, and each selected column
+ * read off its AssetInfo path — which may step through an array index, so
+ * `quarterlyFinancials.0.roe` comes back flat under its own name.
+ */
+function toResult(doc: AssetInfoDoc, columns: readonly ScreenerColumn[]): ScreenerResult {
+    const cells: ScreenerResult['columns'] = {};
+    for (const column of columns) cells[column] = cellOf(column, valueAt(doc, column));
     return {
-        ...rest,
-        symbol: Symbol,
-        name: Name ?? null,
-        assetType: AssetType ?? null,
-        sector: Sector ?? null,
-        exchange: Exchange ?? null,
+        symbol: doc.Symbol,
+        name: doc.Name ?? null,
+        assetType: doc.AssetType ?? null,
+        sector: doc.Sector ?? null,
+        exchange: doc.Exchange ?? null,
+        columns: cells,
     };
+}
+
+/** A category column reads as text and every other one as a figure; anything else in either is empty. */
+function cellOf(column: ScreenerColumn, value: unknown): number | string | null {
+    if (!TEXT_COLUMNS.has(column)) return numeric(value);
+    return typeof value === 'string' ? value : null;
+}
+
+/** The value at a dotted path, stepping through objects and array indexes. */
+function valueAt(doc: unknown, path: string): unknown {
+    let cursor = doc;
+    for (const segment of path.split('.')) {
+        if (isList(cursor)) cursor = cursor[Number(segment)];
+        else if (isRecord(cursor)) cursor = cursor[segment];
+        else return null;
+    }
+    return cursor;
 }
 
 /** A stored date range: two parseable ISO-8601 strings. */

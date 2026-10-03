@@ -1,7 +1,7 @@
 /** usePortfolios — the ten slots, which one is open, and its settled state. */
 import { computed, ref, type ComputedRef, type Ref } from 'vue';
 
-import type { PortfolioExport, PortfolioSummary } from '@ereuna/shared';
+import type { PortfolioExport, PortfolioRow, PortfolioSummary } from '@ereuna/shared';
 
 import { apiErrorCode, apiErrorMessage } from '@/api/client';
 import {
@@ -15,7 +15,6 @@ import {
     setDefaultCommission,
     setLeverage,
     type PortfolioImport,
-    type PortfolioRow,
 } from '@/api/portfolio';
 import { i18n } from '@/i18n';
 

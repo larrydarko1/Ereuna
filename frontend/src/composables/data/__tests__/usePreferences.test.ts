@@ -1,7 +1,7 @@
-import { HttpResponse, http } from 'msw';
+import { http } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { mockApi, ORIGIN } from '@/__tests__/support/msw';
+import { answer, mockApi, ORIGIN } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
 import { loadPreferences, patchPreferences, usePreferences } from '@/composables/data/usePreferences';
 
@@ -30,7 +30,7 @@ describe('loadPreferences', () => {
         mock.server.use(
             http.get(`${ORIGIN}/api/preferences`, () => {
                 reads += 1;
-                return HttpResponse.json(stored);
+                return answer('GET /api/preferences', stored);
             }),
         );
 
@@ -46,7 +46,7 @@ describe('loadPreferences', () => {
         mock.server.use(
             http.get(`${ORIGIN}/api/preferences`, () => {
                 reads += 1;
-                return HttpResponse.json(stored);
+                return answer('GET /api/preferences', stored);
             }),
         );
 
@@ -84,7 +84,7 @@ describe('patchPreferences', () => {
                 // Read at the moment the request is in flight: the optimistic
                 // value is what a component is rendering right now.
                 expect(preferences.value?.theme).toBe('dracula');
-                return HttpResponse.json({ ...stored, theme: 'dracula' });
+                return answer('PATCH /api/preferences', { ...stored, theme: 'dracula' });
             }),
         );
 

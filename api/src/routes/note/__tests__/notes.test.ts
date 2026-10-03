@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { asUser, json, quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
+import { noteRow } from '@/__tests__/support/responses.js';
 
 const service = {
     getNotePage: vi.fn(),
@@ -21,9 +22,9 @@ const ID = '507f191e810c19729de860ea';
 let harness: Harness;
 
 beforeEach(async () => {
-    service.getNotePage.mockResolvedValue({ items: [], total: 0 });
-    service.createNote.mockResolvedValue({ id: ID });
-    service.updateNote.mockResolvedValue({ id: ID });
+    service.getNotePage.mockResolvedValue({ items: [noteRow({ id: ID })], total: 1, page: 1, limit: 50 });
+    service.createNote.mockResolvedValue(noteRow({ id: ID }));
+    service.updateNote.mockResolvedValue(noteRow({ id: ID }));
     service.deleteNote.mockResolvedValue(undefined);
     harness = await serve((app) => app.use('/api/notes', quietLogger, asUser(USER), router));
 });
@@ -59,7 +60,7 @@ describe('POST /api/notes', () => {
         const response = await harness.call('/api/notes', json({ symbol: 'aapl', message: '  buy the dip  ' }));
 
         expect(response.status).toBe(201);
-        expect(response.body).toEqual({ id: ID });
+        expect(response.body).toEqual(noteRow({ id: ID }));
         expect(service.createNote).toHaveBeenCalledWith(USER_ID, 'AAPL', 'buy the dip');
     });
 

@@ -1,5 +1,11 @@
 /** account — API wrappers for /api/account. */
-import type { SessionUser, TotpEnrolment } from '@ereuna/shared';
+import type {
+    recoveryCodeCountSchema,
+    recoveryCodesSchema,
+    ResponseBody,
+    SessionUser,
+    TotpEnrolment,
+} from '@ereuna/shared';
 
 import { api, type ApiResult } from '@/api/client';
 
@@ -23,8 +29,8 @@ export function beginTwoFactor(): ApiResult<TotpEnrolment> {
     return api.post<TotpEnrolment>('/account/2fa');
 }
 
-export function confirmTwoFactor(code: string): ApiResult<{ recoveryCodes: string[] }> {
-    return api.post<{ recoveryCodes: string[] }>('/account/2fa/confirm', { code });
+export function confirmTwoFactor(code: string): ApiResult<ResponseBody<typeof recoveryCodesSchema>> {
+    return api.post<ResponseBody<typeof recoveryCodesSchema>>('/account/2fa/confirm', { code });
 }
 
 /** Both factors, not just the second: dropping 2FA must not be possible for
@@ -35,8 +41,8 @@ export function disableTwoFactor(password: string, code: string): ApiResult<void
 
 /** Re-authenticated: a fresh set voids the old one, and each code it issues
  *  signs in on its own. */
-export function regenerateRecoveryCodes(password: string): ApiResult<{ recoveryCodes: string[] }> {
-    return api.post<{ recoveryCodes: string[] }>('/account/recovery-codes', { password });
+export function regenerateRecoveryCodes(password: string): ApiResult<ResponseBody<typeof recoveryCodesSchema>> {
+    return api.post<ResponseBody<typeof recoveryCodesSchema>>('/account/recovery-codes', { password });
 }
 
 /** Only accepted on a session opened with a recovery code — there is no
@@ -45,6 +51,6 @@ export function setPasswordAfterRecovery(newPassword: string): ApiResult<void> {
     return api.post<void>('/account/recovery-password', { newPassword });
 }
 
-export function countRecoveryCodes(): ApiResult<{ remaining: number }> {
-    return api.get<{ remaining: number }>('/account/recovery-codes');
+export function countRecoveryCodes(): ApiResult<ResponseBody<typeof recoveryCodeCountSchema>> {
+    return api.get<ResponseBody<typeof recoveryCodeCountSchema>>('/account/recovery-codes');
 }

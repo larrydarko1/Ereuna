@@ -8,20 +8,19 @@
  * and `valueHistory`. Ereuna simulates: a user bringing in a track record their
  * log cannot reproduce is stating it, and stating it is their prerogative.
  */
-import type { PortfolioExport, PortfolioSummary } from '@ereuna/shared';
+import type {
+    baseValueSchema,
+    benchmarksSchema,
+    defaultCommissionSchema,
+    importResultSchema,
+    leverageSchema,
+    PortfolioExport,
+    portfolioListSchema,
+    PortfolioSummary,
+    ResponseBody,
+} from '@ereuna/shared';
 
 import { api, type ApiResult } from '@/api/client';
-
-export type PortfolioRow = {
-    number: number;
-    cash: number;
-    baseValue: number;
-    leverage: number;
-    defaultCommission: number;
-    benchmarks: string[];
-    positionCount: number;
-    updatedAt: string;
-};
 
 /**
  * A portfolio file as the user chose it. The client checks only that it holds a
@@ -32,8 +31,8 @@ export type PortfolioImport = {
     portfolio?: unknown;
 };
 
-export function getPortfolios(): ApiResult<{ items: PortfolioRow[] }> {
-    return api.get<{ items: PortfolioRow[] }>('/portfolios');
+export function getPortfolios(): ApiResult<ResponseBody<typeof portfolioListSchema>> {
+    return api.get<ResponseBody<typeof portfolioListSchema>>('/portfolios');
 }
 
 export function getPortfolio(number: number): ApiResult<PortfolioSummary> {
@@ -44,8 +43,8 @@ export function deletePortfolio(number: number): ApiResult<void> {
     return api.delete<void>(`/portfolios/${number}`);
 }
 
-export function setBaseValue(number: number, baseValue: number): ApiResult<{ baseValue: number }> {
-    return api.put<{ baseValue: number }>(`/portfolios/${number}/base-value`, { baseValue });
+export function setBaseValue(number: number, baseValue: number): ApiResult<ResponseBody<typeof baseValueSchema>> {
+    return api.put<ResponseBody<typeof baseValueSchema>>(`/portfolios/${number}/base-value`, { baseValue });
 }
 
 /**
@@ -53,18 +52,24 @@ export function setBaseValue(number: number, baseValue: number): ApiResult<{ bas
  * new ceiling and is refused when the book already held no longer fits, so this
  * can fail on a portfolio that has not been touched in months.
  */
-export function setLeverage(number: number, leverage: number): ApiResult<{ leverage: number }> {
-    return api.put<{ leverage: number }>(`/portfolios/${number}/leverage`, { leverage });
+export function setLeverage(number: number, leverage: number): ApiResult<ResponseBody<typeof leverageSchema>> {
+    return api.put<ResponseBody<typeof leverageSchema>>(`/portfolios/${number}/leverage`, { leverage });
 }
 
 /** The commission written onto a trade that does not carry its own. Changing it
  *  never re-prices a trade already in the log — those settled at write time. */
-export function setDefaultCommission(number: number, commission: number): ApiResult<{ defaultCommission: number }> {
-    return api.put<{ defaultCommission: number }>(`/portfolios/${number}/commission`, { commission });
+export function setDefaultCommission(
+    number: number,
+    commission: number,
+): ApiResult<ResponseBody<typeof defaultCommissionSchema>> {
+    return api.put<ResponseBody<typeof defaultCommissionSchema>>(`/portfolios/${number}/commission`, { commission });
 }
 
-export function setBenchmarks(number: number, symbols: readonly string[]): ApiResult<{ benchmarks: string[] }> {
-    return api.put<{ benchmarks: string[] }>(`/portfolios/${number}/benchmarks`, { symbols });
+export function setBenchmarks(
+    number: number,
+    symbols: readonly string[],
+): ApiResult<ResponseBody<typeof benchmarksSchema>> {
+    return api.put<ResponseBody<typeof benchmarksSchema>>(`/portfolios/${number}/benchmarks`, { symbols });
 }
 
 export function exportPortfolio(number: number): ApiResult<PortfolioExport> {
@@ -76,6 +81,9 @@ export function exportPortfolio(number: number): ApiResult<PortfolioExport> {
  * Answers with the number of trades accepted, not a summary: the replay has
  * already run, so the caller re-reads `getPortfolio` for the settled state.
  */
-export function importPortfolio(number: number, payload: PortfolioImport): ApiResult<{ imported: number }> {
-    return api.post<{ imported: number }>(`/portfolios/${number}/import`, payload);
+export function importPortfolio(
+    number: number,
+    payload: PortfolioImport,
+): ApiResult<ResponseBody<typeof importResultSchema>> {
+    return api.post<ResponseBody<typeof importResultSchema>>(`/portfolios/${number}/import`, payload);
 }

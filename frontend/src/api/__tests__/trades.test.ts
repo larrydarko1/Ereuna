@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { TradeInput } from '@ereuna/shared';
 
+import { tradeRow } from '@/__tests__/support/answers';
 import { mockApi } from '@/__tests__/support/msw';
 import { addTrade, deleteTrade, getTrades, updateTrade } from '@/api/trades';
 
@@ -37,7 +38,7 @@ describe('getTrades', () => {
 
 describe('writes', () => {
     it('posts a trade as given, without inventing the optional fields', async () => {
-        mock.on('POST /api/portfolios/0/trades', { id: '1' });
+        mock.on('POST /api/portfolios/0/trades', tradeRow({ id: '1' }));
 
         await addTrade(0, buy);
 
@@ -45,7 +46,7 @@ describe('writes', () => {
     });
 
     it('posts a cash movement that names no instrument', async () => {
-        mock.on('POST /api/portfolios/0/trades', { id: '1' });
+        mock.on('POST /api/portfolios/0/trades', tradeRow({ id: '1' }));
 
         await addTrade(0, { action: 'deposit', total: 5000, tradeDate: '2026-03-02' });
 
@@ -53,7 +54,7 @@ describe('writes', () => {
     });
 
     it('addresses a correction by slot and trade id', async () => {
-        mock.on('PATCH /api/portfolios/2/trades/abc', { id: 'abc' });
+        mock.on('PATCH /api/portfolios/2/trades/abc', tradeRow({ id: 'abc' }));
 
         await updateTrade(2, 'abc', buy);
 

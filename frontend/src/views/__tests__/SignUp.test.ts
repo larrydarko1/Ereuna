@@ -2,6 +2,7 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { Router } from 'vue-router';
 
+import { sessionUser } from '@/__tests__/support/answers';
 import { mockApi } from '@/__tests__/support/msw';
 import { testRouter } from '@/__tests__/support/router';
 import { clearAuth } from '@/api/client';
@@ -10,7 +11,7 @@ import SignUp from '@/views/SignUp.vue';
 
 const api = mockApi();
 
-const USER = { id: 'u1', username: 'larry', twoFactorEnabled: false };
+const USER = sessionUser({ id: 'u1', twoFactorEnabled: false });
 
 const view = async (): Promise<{ wrapper: VueWrapper; router: Router }> => {
     const router = testRouter();

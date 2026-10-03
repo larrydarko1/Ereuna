@@ -1,6 +1,10 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { ScreenerResultPage, ScreenerSummary } from '@ereuna/shared';
+
+import { preferences, screenerResult, screenerSummary } from '@/__tests__/support/answers';
+import { assetProfile } from '@/__tests__/support/assets';
 import { elementOf, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
@@ -23,37 +27,13 @@ const PriceChartStub = {
 
 const api = mockApi();
 
-const screener = (name: string, over: Record<string, unknown> = {}): Record<string, unknown> => ({
-    id: name,
-    name,
-    include: true,
-    filterCount: 1,
-    updatedAt: '2026-03-01T00:00:00.000Z',
-    ...over,
-});
+const screener = (name: string): ScreenerSummary => screenerSummary(name, { id: name, filterCount: 1 });
 
-const page = (symbols: string[], pages = 1): Record<string, unknown> => ({
-    items: symbols.map((symbol) => ({
-        symbol,
-        name: `${symbol} Inc`,
-        assetType: 'Stock',
-        sector: 'Tech',
-        exchange: 'NASDAQ',
-    })),
+const page = (symbols: string[], pages = 1): ScreenerResultPage => ({
+    items: symbols.map((symbol) => screenerResult(symbol, { sector: 'Tech' })),
     total: symbols.length,
     page: 1,
     pages,
-});
-
-const preferences = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
-    language: 'en',
-    theme: null,
-    defaultSymbol: 'AAPL',
-    hiddenSymbols: [],
-    chartSettings: null,
-    panels: null,
-    screenerColumns: [],
-    ...over,
 });
 
 const view = async (): Promise<VueWrapper> => {
@@ -104,9 +84,9 @@ beforeEach(() => {
     api.on('GET /api/screeners/results', page(['AAPL', 'MSFT', 'NVDA']));
     api.on('GET /api/screeners/hidden/results', page([]));
     api.on('GET /api/watchlists', { items: [] });
-    api.on('GET /api/charts/AAPL/profile', { symbol: 'AAPL', name: 'Apple Inc', exchange: 'NASDAQ' });
-    api.on('GET /api/charts/MSFT/profile', { symbol: 'MSFT', name: 'Microsoft', exchange: 'NASDAQ' });
-    api.on('GET /api/charts/NVDA/profile', { symbol: 'NVDA', name: 'Nvidia', exchange: 'NASDAQ' });
+    api.on('GET /api/charts/AAPL/profile', assetProfile({ symbol: 'AAPL', name: 'Apple Inc', exchange: 'NASDAQ' }));
+    api.on('GET /api/charts/MSFT/profile', assetProfile({ symbol: 'MSFT', name: 'Microsoft', exchange: 'NASDAQ' }));
+    api.on('GET /api/charts/NVDA/profile', assetProfile({ symbol: 'NVDA', name: 'Nvidia', exchange: 'NASDAQ' }));
 });
 
 describe('Screener', () => {
@@ -170,7 +150,7 @@ describe('Screener', () => {
     it('reads the hidden list from its own route, with the columns every other list has', async () => {
         api.on('GET /api/preferences', preferences({ hiddenSymbols: ['TSLA'] }));
         api.on('GET /api/screeners/hidden/results', page(['TSLA']));
-        api.on('GET /api/charts/TSLA/profile', { symbol: 'TSLA', name: 'Tesla', exchange: 'NASDAQ' });
+        api.on('GET /api/charts/TSLA/profile', assetProfile({ symbol: 'TSLA', name: 'Tesla', exchange: 'NASDAQ' }));
         const wrapper = await view();
 
         await click(mode(wrapper, 2));
@@ -197,7 +177,7 @@ describe('Screener', () => {
     });
 
     it('applies a filter, then reloads both the matches and the screener counts', async () => {
-        api.on('PUT /api/screeners/Growth/filters/market-cap', { filters: { 'market-cap': { min: 1 } } });
+        api.on('PUT /api/screeners/Growth/filters/market-cap', { filters: { MarketCap: [1, 100] } });
         const wrapper = await view();
         const before = api.calls.length;
 
@@ -411,10 +391,7 @@ describe('Screener', () => {
 
     it('marks a combined-list symbol that more than one screener matched', async () => {
         api.on('GET /api/screeners/results', {
-            items: [
-                { symbol: 'AAPL', name: 'Apple', assetType: null, sector: null, exchange: null, screeners: ['A', 'B'] },
-                { symbol: 'MSFT', name: 'Microsoft', assetType: null, sector: null, exchange: null, screeners: ['A'] },
-            ],
+            items: [screenerResult('AAPL', { screeners: ['A', 'B'] }), screenerResult('MSFT', { screeners: ['A'] })],
             total: 2,
             page: 1,
             pages: 1,

@@ -24,6 +24,12 @@
  * `packageJson` points at the API's manifest so a fixed-window limiter library is
  * caught in the dependency list, not only at an import.
  *
+ * `responses` — every route answers through `send()` in api/src/lib/send.ts,
+ * which parses the data with a schema from packages/shared/src/responses/ and so
+ * drops every field the schema does not list, and turns one that does not fit
+ * into a 500. The frontend half of the same contract is `frontend/src/__tests__/support/contract.ts`
+ * which holds every mocked answer to the schema its route sends with.
+ *
  * Rules this gate does not own, deliberately: helmet's directives and HSTS belong
  * to check-security-drift.ts, the error shape to check-error-handling.ts, the socket
  * handshake to check-ws-standards.ts, and declaration order to
@@ -41,4 +47,8 @@ checkApiStandards({
     packageJson: 'api/package.json',
     tiers: ['strictLimiter', 'standardLimiter', 'relaxedLimiter', 'assetLimiter'],
     optionalAuth: 'optionalAuth',
+    responses: {
+        helper: 'api/src/lib/send.ts',
+        schemasDir: 'packages/shared/src/responses',
+    },
 });
