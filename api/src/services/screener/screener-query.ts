@@ -5,11 +5,13 @@
  */
 import type { Document, Filter, WithId } from 'mongodb';
 import { type ObjectId } from 'mongodb';
+import { z } from 'zod';
 
 import {
     DATE_FILTERS,
     ENUM_FILTERS,
     FLAG_FILTERS,
+    isOneOf,
     MA_FILTERS,
     RANGE_FILTERS,
     type AssetInfoDoc,
@@ -26,10 +28,30 @@ import { getScreener } from '@/services/screener/screener-crud.js';
 /** One branch of the combined query, tagged with the screener that produced it. */
 type TaggedAsset = AssetInfoDoc & { screeners: string[] };
 
-/** Columns every result carries, on top of whatever the user has selected. */
+const screenerResultPageSchema: z.ZodType<ScreenerResultPage> = z.object({
+    items: z.array(
+        z
+            .object({
+                symbol: z.string(),
+                name: z.string().nullable(),
+                assetType: z.string().nullable(),
+                sector: z.string().nullable(),
+                exchange: z.string().nullable(),
+                screeners: z.array(z.string()).exactOptional(),
+            })
+            .catchall(z.unknown()),
+    ),
+    total: z.number(),
+    page: z.number(),
+    pages: z.number(),
+});
+
 /** A column path that steps through an array index, like `quarterlyFinancials.0.roe`. */
 const INDEXED_COLUMN = /^(?<array>[^.]+)\.(?<index>\d+)\.(?<field>.+)$/;
 
+const MA_DIRECTIONS = ['abv', 'blw'] as const;
+
+/** Columns every result carries, on top of whatever the user has selected. */
 const BASE_PROJECTION = {
     _id: 0,
     Symbol: 1,
@@ -49,6 +71,7 @@ export async function runScreener(
 
     return withCache(
         userKey(userId.toHexString(), 'screener', screener._id.toHexString(), String(page), String(limit)),
+        screenerResultPageSchema,
         () => executeQuery(buildQuery(screener.filters, hiddenSymbols), { page, limit, columns }),
         { dataType: 'price' },
     );
@@ -67,6 +90,7 @@ export async function runIncludedScreeners(
 
     return withCache(
         userKey(userId.toHexString(), 'screener', 'combined', String(page), String(limit)),
+        screenerResultPageSchema,
         () => executeCombined(screeners, { page, limit, columns, hiddenSymbols }),
         { dataType: 'price' },
     );
@@ -87,6 +111,7 @@ export async function runHiddenSymbols(
 
     return withCache(
         userKey(userId.toHexString(), 'screener', 'hidden', String(page), String(limit)),
+        screenerResultPageSchema,
         () => executeQuery({ Symbol: { $in: hiddenSymbols } }, { page, limit, columns }),
         { dataType: 'price' },
     );
@@ -356,6 +381,6 @@ function isRange(value: unknown): value is [number, number] {
 function parseMaRelation(value: string): { direction: 'abv' | 'blw'; target: string } | null {
     const match = /^(abv|blw)(10|20|50|200|[Pp]rice)$/.exec(value);
     const [, direction, target] = match ?? [];
-    if (direction === undefined || target === undefined) return null;
-    return { direction: direction as 'abv' | 'blw', target: target.toLowerCase() === 'price' ? 'price' : target };
+    if (!isOneOf(MA_DIRECTIONS, direction) || target === undefined) return null;
+    return { direction, target: target.toLowerCase() === 'price' ? 'price' : target };
 }

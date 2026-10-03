@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { listAt } from '@/__tests__/support/values.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
 
@@ -54,16 +55,16 @@ describe('dailySeries', () => {
     it('matches only the symbols asked for, and slices to the window', async () => {
         db.current = fakeDb({ OHCLVData: [] });
         await dailySeries(['AAPL', 'MSFT'], 50);
-        const [pipeline] = db.current.of('OHCLVData').filters as Record<string, unknown>[][];
-        expect(pipeline?.[0]).toEqual({ $match: { tickerID: { $in: ['AAPL', 'MSFT'] } } });
-        expect(pipeline?.[3]).toEqual({ $project: { bars: { $slice: ['$bars', 50] } } });
+        const pipeline = listAt(db.current.of('OHCLVData').filters, 0);
+        expect(pipeline[0]).toEqual({ $match: { tickerID: { $in: ['AAPL', 'MSFT'] } } });
+        expect(pipeline[3]).toEqual({ $project: { bars: { $slice: ['$bars', 50] } } });
     });
 
     it('defaults the window to 400 bars', async () => {
         db.current = fakeDb({ OHCLVData: [] });
         await dailySeries(['AAPL']);
-        const [pipeline] = db.current.of('OHCLVData').filters as Record<string, unknown>[][];
-        expect(pipeline?.[3]).toEqual({ $project: { bars: { $slice: ['$bars', 400] } } });
+        const pipeline = listAt(db.current.of('OHCLVData').filters, 0);
+        expect(pipeline[3]).toEqual({ $project: { bars: { $slice: ['$bars', 400] } } });
     });
 
     it('keys the map by symbol, one entry per symbol that had bars', async () => {
@@ -100,7 +101,7 @@ describe('lifetimeStats', () => {
     it('groups ascending, so `$first` is the listing and `$last` is the latest bar', async () => {
         db.current = fakeDb({ OHCLVData: [] });
         await lifetimeStats();
-        const [pipeline] = db.current.of('OHCLVData').filters as Record<string, unknown>[][];
-        expect(pipeline?.[0]).toEqual({ $sort: { tickerID: 1, timestamp: 1 } });
+        const pipeline = listAt(db.current.of('OHCLVData').filters, 0);
+        expect(pipeline[0]).toEqual({ $sort: { tickerID: 1, timestamp: 1 } });
     });
 });

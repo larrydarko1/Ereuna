@@ -14,10 +14,10 @@
  * Errors: the API sends a stable `code` and never English. Every response is
  * localised here, once, so no call site has to know the error contract.
  */
-import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
+import axios, { isAxiosError, type AxiosResponse } from 'axios';
 
 import type { SessionUser } from '@ereuna/shared';
-import { isErrorCode } from '@ereuna/shared';
+import { isErrorCode, isRecord } from '@ereuna/shared';
 
 import { i18n } from '@/i18n';
 
@@ -52,11 +52,13 @@ export function findSessionUser(): SessionUser | null {
     const raw = localStorage.getItem(USER_KEY);
     if (raw === null) return null;
     try {
-        return JSON.parse(raw) as SessionUser;
+        const stored: unknown = JSON.parse(raw);
+        if (isSessionUser(stored)) return stored;
     } catch {
-        localStorage.removeItem(USER_KEY);
-        return null;
+        // Unparseable: dropped below, like a hint of the wrong shape
     }
+    localStorage.removeItem(USER_KEY);
+    return null;
 }
 
 export function isAuthenticated(): boolean {
@@ -90,14 +92,33 @@ export async function initAuth(): Promise<boolean> {
 
 /** The localised message for a rejected request, or `fallback` when there is none. */
 export function apiErrorMessage(err: unknown, fallback: string): string {
-    const message = (err as { response?: { data?: { error?: unknown } } }).response?.data?.error;
+    const message = errorBody(err)?.['error'];
     return typeof message === 'string' && message !== '' ? message : fallback;
 }
 
 /** The raw error code, for the rare caller that must branch on which failure it was. */
 export function apiErrorCode(err: unknown): string | null {
-    const code = (err as { response?: { data?: { code?: unknown } } }).response?.data?.code;
+    const code = errorBody(err)?.['code'];
     return typeof code === 'string' ? code : null;
+}
+
+/** The JSON body of a failed API call, when it has one. */
+function errorBody(err: unknown): Record<string, unknown> | undefined {
+    if (!isAxiosError<unknown>(err)) return undefined;
+    const data = err.response?.data;
+    return isRecord(data) ? data : undefined;
+}
+
+/** The stored session hint, checked: it is whatever an older build or another tab left in storage. */
+function isSessionUser(value: unknown): value is SessionUser {
+    return (
+        isRecord(value) &&
+        typeof value['id'] === 'string' &&
+        typeof value['username'] === 'string' &&
+        typeof value['language'] === 'string' &&
+        typeof value['twoFactorEnabled'] === 'boolean' &&
+        typeof value['passwordResetRequired'] === 'boolean'
+    );
 }
 
 /**
@@ -107,21 +128,19 @@ export function apiErrorCode(err: unknown): string | null {
  * machine-readable field in the response.
  */
 function localizeApiError(err: unknown): void {
-    const data = (err as { response?: { data?: { error?: unknown; code?: string; params?: Record<string, unknown> } } })
-        .response?.data;
-    if (data === undefined) return;
+    const data = errorBody(err);
+    const code = data?.['error'];
+    if (data === undefined || typeof code !== 'string') return;
 
-    const code = data.error;
-    if (typeof code !== 'string') return;
-
-    data.code = code;
+    data['code'] = code;
     const key = `errors.${code}`;
+    const params = data['params'];
     if (i18n.global.te(key)) {
-        data.error = i18n.global.t(key, data.params ?? {});
+        data['error'] = i18n.global.t(key, isRecord(params) ? params : {});
     } else if (isErrorCode(code) || /^[A-Z][A-Z0-9_]+$/.test(code)) {
         // A code with no translation yet. Show something human rather than
         // ever putting a raw SCREAMING_SNAKE code in front of a user.
-        data.error = i18n.global.t('errors.INTERNAL');
+        data['error'] = i18n.global.t('errors.INTERNAL');
     }
 }
 
@@ -157,8 +176,8 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (response) => response,
     async (err: unknown) => {
-        const original = (err as { config?: InternalAxiosRequestConfig & { _retry?: boolean } }).config;
-        const status = (err as { response?: { status?: number } }).response?.status;
+        const original = isAxiosError(err) ? err.config : undefined;
+        const status = isAxiosError(err) ? err.response?.status : undefined;
         // /auth/* is excluded: a failed sign-in is an answer, not an expired
         // session, and refreshing on it would turn one bad password into a
         // pointless round trip.
@@ -179,3 +198,11 @@ api.interceptors.response.use(
         return Promise.reject(err);
     },
 );
+
+declare module 'axios' {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- axios declares this as an interface; only an interface merges
+    interface InternalAxiosRequestConfig {
+        /** Set on a request the 401 handler has already retried once; axios copies it onto the retry */
+        _retry?: boolean;
+    }
+}

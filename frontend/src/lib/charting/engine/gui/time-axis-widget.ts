@@ -18,7 +18,7 @@ import {
 
 import { createBoundCanvas, releaseCanvas } from '@/lib/charting/engine/gui/canvas-utils';
 import { type ChartWidget } from '@/lib/charting/engine/gui/chart-widget';
-import { drawBackground, drawForeground, drawSourcePaneViews } from '@/lib/charting/engine/gui/draw-functions';
+import { drawBackground, drawForeground, drawViews } from '@/lib/charting/engine/gui/draw-functions';
 import { type ITimeAxisViewsGetter } from '@/lib/charting/engine/gui/iaxis-view-getters';
 import {
     MouseEventHandler,
@@ -35,7 +35,6 @@ import { makeFont } from '@/lib/charting/engine/helpers/make-font';
 import { type IDataSource } from '@/lib/charting/engine/model/chart/idata-source';
 import { InvalidationLevel } from '@/lib/charting/engine/model/chart/invalidate-mask';
 import { type LayoutOptions } from '@/lib/charting/engine/model/chart/layout-options';
-import { type Pane } from '@/lib/charting/engine/model/chart/pane';
 import { type SeriesPrimitivePaneViewZOrder } from '@/lib/charting/engine/model/series/iseries-primitive';
 import { TextWidthCache } from '@/lib/charting/engine/model/text-width-cache';
 import { type IHorzScaleBehavior } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
@@ -347,20 +346,14 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
         const sources = this._chart.model().serieses();
 
         for (const source of sources) {
-            drawSourcePaneViews(
-                axisViewsGetter,
-                (renderer: IPaneRenderer) => drawBackground(renderer, target, { isHovered: false }),
-                source,
-                undefined as unknown as Pane,
+            drawViews(axisViewsGetter(source), (renderer: IPaneRenderer) =>
+                drawBackground(renderer, target, { isHovered: false }),
             );
         }
 
         for (const source of sources) {
-            drawSourcePaneViews(
-                axisViewsGetter,
-                (renderer: IPaneRenderer) => drawForeground(renderer, target, { isHovered: false }),
-                source,
-                undefined as unknown as Pane,
+            drawViews(axisViewsGetter(source), (renderer: IPaneRenderer) =>
+                drawForeground(renderer, target, { isHovered: false }),
             );
         }
     }

@@ -28,7 +28,7 @@ import {
     recordLoginFailure,
 } from '@/services/auth/login-throttle.js';
 
-export type RecoveryCodeSet = {
+type RecoveryCodeSet = {
     plaintext: string[];
     hashes: string[];
 };

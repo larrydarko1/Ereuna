@@ -4,6 +4,7 @@
  * It is logical rather than an index range because the edges may be fractional and
  * may sit past the last bar — the right offset is exactly that.
  */
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { RangeImpl } from '@/lib/charting/engine/model/range-impl';
 import { type Logical, type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 
@@ -20,8 +21,8 @@ export class TimeScaleVisibleRange {
         }
 
         return new RangeImpl(
-            Math.floor(this._logicalRange.left()) as TimePointIndex,
-            Math.ceil(this._logicalRange.right()) as TimePointIndex,
+            nominal<TimePointIndex>(Math.floor(this._logicalRange.left())),
+            nominal<TimePointIndex>(Math.ceil(this._logicalRange.right())),
         );
     }
 

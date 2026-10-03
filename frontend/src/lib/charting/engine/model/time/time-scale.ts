@@ -8,9 +8,11 @@
  */
 import { lowerBound } from '@/lib/charting/engine/helpers/algorithms';
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
+import { callerType } from '@/lib/charting/engine/helpers/caller-type';
 import { Delegate } from '@/lib/charting/engine/helpers/delegate';
 import { type ISubscription } from '@/lib/charting/engine/helpers/isubscription';
 import { clamp } from '@/lib/charting/engine/helpers/mathex';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type DeepPartial, isInteger, merge } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { type ChartModel } from '@/lib/charting/engine/model/chart/chart-model';
 import { type LocalizationOptions } from '@/lib/charting/engine/model/chart/localization-options';
@@ -368,7 +370,7 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
         ) {
             // Past the end of the data: the last bar is the nearest one, and
             // nothing sits on the time itself
-            return { index: (this._points.length - 1) as TimePointIndex, exact: false };
+            return { index: nominal<TimePointIndex>(this._points.length - 1), exact: false };
         }
 
         const index = lowerBound(
@@ -384,7 +386,7 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
             pointAtIndex !== undefined &&
             this._horzScaleBehavior.key(time) >= this._horzScaleBehavior.key(pointAtIndex.time);
 
-        return { index: index as TimePointIndex, exact };
+        return { index: nominal<TimePointIndex>(index), exact };
     }
 
     public isEmpty(): boolean {
@@ -413,8 +415,8 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
         }
 
         const range: LogicalRange = {
-            from: visibleBars.left() as number as Logical,
-            to: visibleBars.right() as number as Logical,
+            from: nominal<Logical>(visibleBars.left()),
+            to: nominal<Logical>(visibleBars.right()),
         };
 
         return this.timeRangeForLogicalRange(range);
@@ -428,15 +430,15 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
         const lastIndex = getNotNull(this._lastIndex());
 
         return {
-            from: getNotNull(this.indexToTimeScalePoint(Math.max(firstIndex, from) as TimePointIndex)),
-            to: getNotNull(this.indexToTimeScalePoint(Math.min(lastIndex, to) as TimePointIndex)),
+            from: getNotNull(this.indexToTimeScalePoint(nominal<TimePointIndex>(Math.max(firstIndex, from)))),
+            to: getNotNull(this.indexToTimeScalePoint(nominal<TimePointIndex>(Math.min(lastIndex, to)))),
         };
     }
 
     public logicalRangeForTimeRange(range: Range<InternalHorzScaleItem>): LogicalRange {
         return {
-            from: getNotNull(this.timeToNearestIndex(range.from)) as number as Logical,
-            to: getNotNull(this.timeToNearestIndex(range.to)) as number as Logical,
+            from: nominal<Logical>(getNotNull(this.timeToNearestIndex(range.from))),
+            to: nominal<Logical>(getNotNull(this.timeToNearestIndex(range.to))),
         };
     }
 
@@ -490,13 +492,12 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
 
     public indexToCoordinate(index: TimePointIndex): Coordinate {
         if (this.isEmpty() || !isInteger(index)) {
-            return 0 as Coordinate;
+            return nominal<Coordinate>(0);
         }
 
         const baseIndex = this.baseIndex();
         const deltaFromRight = baseIndex + this._rightOffset - index;
-        const coordinate = this._width - (deltaFromRight + 0.5) * this._barSpacing - 1;
-        return coordinate as Coordinate;
+        return nominal<Coordinate>(this._width - (deltaFromRight + 0.5) * this._barSpacing - 1);
     }
 
     public indexesToCoordinates<T extends TimedValue>(points: T[], visibleRange?: SeriesItemsIndexesRange): void {
@@ -509,13 +510,12 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
             if (point === undefined) continue;
 
             const deltaFromRight = baseIndex + this._rightOffset - point.time;
-            const coordinate = this._width - (deltaFromRight + 0.5) * this._barSpacing - 1;
-            point.x = coordinate as Coordinate;
+            point.x = nominal<Coordinate>(this._width - (deltaFromRight + 0.5) * this._barSpacing - 1);
         }
     }
 
     public coordinateToIndex(x: Coordinate): TimePointIndex {
-        return Math.ceil(this._coordinateToFloatIndex(x)) as TimePointIndex;
+        return nominal<TimePointIndex>(Math.ceil(this._coordinateToFloatIndex(x)));
     }
 
     public setRightOffset(offset: number): void {
@@ -570,10 +570,10 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
         const items = this._tickMarks.build(spacing, maxLabelWidth);
 
         // according to indexPerLabel value this value means "earliest index which _might be_ used as the second label on time scale"
-        const earliestIndexOfSecondLabel = (this._firstIndex() as number) + indexPerLabel;
+        const earliestIndexOfSecondLabel = getNotNull(this._firstIndex()) + indexPerLabel;
 
         // according to indexPerLabel value this value means "earliest index which _might be_ used as the second last label on time scale"
-        const indexOfSecondLastLabel = (this._lastIndex() as number) - indexPerLabel;
+        const indexOfSecondLastLabel = getNotNull(this._lastIndex()) - indexPerLabel;
 
         const isAllScalingAndScrollingDisabled = this._isInteractionDisabled();
         const isLeftEdgeFixed = this._options.fixLeftEdge || isAllScalingAndScrollingDisabled;
@@ -792,7 +792,7 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
         // so in methods which should known whether it is set or not
         // we should check field `_baseIndexOrNull` instead of getter `baseIndex()`
         // see minRightOffset for example
-        return this._baseIndexOrNull ?? (0 as TimePointIndex);
+        return this._baseIndexOrNull ?? nominal<TimePointIndex>(0);
     }
 
     public setVisibleRange(range: RangeImpl<TimePointIndex>): void {
@@ -812,17 +812,17 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
             return;
         }
 
-        this.setVisibleRange(new RangeImpl(first, (last + this._options.rightOffset) as TimePointIndex));
+        this.setVisibleRange(new RangeImpl(first, nominal<TimePointIndex>(last + this._options.rightOffset)));
     }
 
     public setLogicalRange(range: LogicalRange): void {
-        const barRange = new RangeImpl(range.from as number as TimePointIndex, range.to as number as TimePointIndex);
+        const barRange = new RangeImpl(nominal<TimePointIndex>(range.from), nominal<TimePointIndex>(range.to));
         this.setVisibleRange(barRange);
     }
 
     public formatDateTime(timeScalePoint: TimeScalePoint): string {
         if (this._localizationOptions.timeFormatter !== undefined) {
-            return this._localizationOptions.timeFormatter(timeScalePoint.originalTime as THorzScaleItem);
+            return this._localizationOptions.timeFormatter(callerType<THorzScaleItem>(timeScalePoint.originalTime));
         }
 
         return this._horzScaleBehavior.formatHorzItem(timeScalePoint.time);
@@ -843,11 +843,11 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
     }
 
     private _firstIndex(): TimePointIndex | null {
-        return this._points.length === 0 ? null : (0 as TimePointIndex);
+        return this._points.length === 0 ? null : nominal<TimePointIndex>(0);
     }
 
     private _lastIndex(): TimePointIndex | null {
-        return this._points.length === 0 ? null : ((this._points.length - 1) as TimePointIndex);
+        return this._points.length === 0 ? null : nominal<TimePointIndex>(this._points.length - 1);
     }
 
     private _rightOffsetForCoordinate(x: Coordinate): number {
@@ -893,7 +893,7 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
         const rightBorder = this._rightOffset + baseIndex;
         const leftBorder = rightBorder - newBarsLength + 1;
 
-        const logicalRange = new RangeImpl(leftBorder as Logical, rightBorder as Logical);
+        const logicalRange = new RangeImpl(nominal<Logical>(leftBorder), nominal<Logical>(rightBorder));
         this._setVisibleRange(new TimeScaleVisibleRange(logicalRange));
     }
 

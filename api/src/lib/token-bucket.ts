@@ -1,4 +1,6 @@
 /** Distributed token-bucket rate limiter backed by Redis. */
+import { z } from 'zod';
+
 import { logger } from '@/lib/logger.js';
 import { getRedis } from '@/lib/redis.js';
 
@@ -7,11 +9,14 @@ export type TokenBucketOptions = {
     refillPerMs: number;
 };
 
-export type ConsumeResult = {
+type ConsumeResult = {
     allowed: boolean;
     remaining: number;
     retryAfterMs: number;
 };
+
+/** Redis hands Lua numbers back as integers, so the script's reply is three of them. */
+const scriptReply = z.tuple([z.number(), z.number(), z.number()]);
 
 /**
  * Atomic refill-and-consume. State per key is a hash of { tokens, ts }; an
@@ -67,16 +72,9 @@ const FAIL_OPEN: ConsumeResult = { allowed: true, remaining: 0, retryAfterMs: 0 
 export async function consumeTokenBucket(key: string, opts: TokenBucketOptions, cost = 1): Promise<ConsumeResult> {
     const ttlMs = Math.ceil(opts.capacity / opts.refillPerMs) + 1000;
     try {
-        const res = (await getRedis().eval(
-            SCRIPT,
-            1,
-            key,
-            opts.capacity,
-            opts.refillPerMs,
-            Date.now(),
-            cost,
-            ttlMs,
-        )) as [number, number, number];
+        const res = scriptReply.parse(
+            await getRedis().eval(SCRIPT, 1, key, opts.capacity, opts.refillPerMs, Date.now(), cost, ttlMs),
+        );
         return { allowed: res[0] === 1, remaining: res[1], retryAfterMs: res[2] };
     } catch (err) {
         logger.warn({ err, key }, 'Token bucket check failed — allowing (fail-open)');

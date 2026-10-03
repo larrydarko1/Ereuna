@@ -1,7 +1,7 @@
 import { register } from 'prom-client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { TIINGO_STREAM, TIINGO_STREAM_MAXLEN } from '@ereuna/shared';
+import { isRecord, TIINGO_STREAM, TIINGO_STREAM_MAXLEN } from '@ereuna/shared';
 
 /**
  * A WebSocket double. `runSession` drives a browser-shaped socket, so the test
@@ -35,8 +35,8 @@ class FakeSocket {
     }
 
     /** What the session sent, parsed, so assertions read the protocol not the JSON. */
-    events(): { eventName?: string; eventData?: Record<string, unknown> }[] {
-        return this.sent.map((raw) => JSON.parse(raw) as { eventName?: string });
+    events(): Record<string, unknown>[] {
+        return this.sent.map((raw): unknown => JSON.parse(raw)).filter(isRecord);
     }
 }
 
@@ -70,7 +70,7 @@ async function connected(
     shouldStop: () => boolean = () => false,
 ): Promise<{ socket: FakeSocket; done: Promise<void> }> {
     const done = runSession(['AAPL'], shouldStop);
-    const socket = FakeSocket.last as FakeSocket;
+    const socket = FakeSocket.last!;
     socket.onopen?.();
     socket.onmessage?.({ data: ACK });
     await Promise.resolve();
@@ -106,7 +106,7 @@ describe('the handshake', () => {
         void runSession(['AAPL', 'MSFT'], () => false);
         FakeSocket.last?.onopen?.();
 
-        const [subscribe] = (FakeSocket.last as FakeSocket).events();
+        const [subscribe] = FakeSocket.last!.events();
         expect(subscribe).toEqual({
             eventName: 'subscribe',
             authorization: config.tiingo.key,
@@ -194,8 +194,8 @@ describe('ending the session', () => {
         await vi.advanceTimersByTimeAsync(1_000);
         await done;
 
-        expect(socket.events().map((event) => event.eventName)).toEqual(['subscribe', 'unsubscribe']);
-        expect(socket.events()[1]?.eventData).toEqual({ subscriptionId: 77, tickers: ['AAPL'] });
+        expect(socket.events().map((event) => event['eventName'])).toEqual(['subscribe', 'unsubscribe']);
+        expect(socket.events()[1]?.['eventData']).toEqual({ subscriptionId: 77, tickers: ['AAPL'] });
         expect(socket.closed).toBe(true);
     });
 
@@ -208,14 +208,14 @@ describe('ending the session', () => {
         await vi.advanceTimersByTimeAsync(1_000);
         await done;
 
-        expect((FakeSocket.last as FakeSocket).events().map((event) => event.eventName)).toEqual(['subscribe']);
+        expect(FakeSocket.last!.events().map((event) => event['eventName'])).toEqual(['subscribe']);
     });
 
     it('stops only once however long the stop signal stays raised', async () => {
         const { socket, done } = await connected(() => true);
         await vi.advanceTimersByTimeAsync(5_000);
         await done;
-        expect(socket.events().filter((event) => event.eventName === 'unsubscribe')).toHaveLength(1);
+        expect(socket.events().filter((event) => event['eventName'] === 'unsubscribe')).toHaveLength(1);
     });
 
     it('resolves when the socket closes under it, rather than rejecting', async () => {

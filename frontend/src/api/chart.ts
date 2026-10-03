@@ -27,7 +27,7 @@ export type ChartEvents = {
     splits: CorporateAction[];
 };
 
-export type SeriesOptions = {
+type SeriesOptions = {
     timeframe?: ChartTimeframe;
     before?: string; // Cursor for paging backwards: the newest bars strictly older than this
 };

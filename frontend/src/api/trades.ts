@@ -12,7 +12,7 @@ import type { TradeInput, TradePage, TradeRow } from '@ereuna/shared';
 
 import { api, type ApiResult } from '@/api/client';
 
-export type TradeQuery = {
+type TradeQuery = {
     page?: number;
     limit?: number;
     symbol?: string;

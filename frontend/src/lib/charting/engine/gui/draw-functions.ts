@@ -11,6 +11,7 @@ import { type IPaneViewsGetter } from '@/lib/charting/engine/gui/ipane-view-gett
 import { type IDataSource } from '@/lib/charting/engine/model/chart/idata-source';
 import { type Pane } from '@/lib/charting/engine/model/chart/pane';
 import { type HoverState, type IPaneRenderer } from '@/lib/charting/engine/renderers/ipane-renderer';
+import { type IPaneView } from '@/lib/charting/engine/views/pane/ipane-view';
 
 export type DrawFunction = (renderer: IPaneRenderer, target: CanvasRenderingTarget2D, hover: HoverState) => void;
 
@@ -30,10 +31,13 @@ export function drawSourcePaneViews(
     source: IDataSource,
     pane: Pane,
 ): void {
-    const paneViews = paneViewsGetter(source, pane);
+    drawViews(paneViewsGetter(source, pane), drawRendererFn);
+}
 
-    for (const paneView of paneViews) {
-        const renderer = paneView.renderer();
+/** Draws every view in the list that has a renderer, in order. */
+export function drawViews(views: readonly IPaneView[], drawRendererFn: DrawRendererFn): void {
+    for (const view of views) {
+        const renderer = view.renderer();
         if (renderer !== null) {
             drawRendererFn(renderer);
         }

@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import type { ChartIndicator, ChartSettings, ChartTimeframe } from '@ereuna/shared';
-import { DEFAULT_INDICATORS } from '@ereuna/shared';
+import { DEFAULT_INDICATORS, isList } from '@ereuna/shared';
 
 import { mockApi } from '@/__tests__/support/msw';
+import { at, recordAt } from '@/__tests__/support/values';
 import { clearAuth } from '@/api/client';
 import { MAX_INDICATOR_PERIOD, useChartSettings } from '@/composables/charts/useChartSettings';
 import { loadPreferences } from '@/composables/data/usePreferences';
@@ -33,8 +34,11 @@ const draft = (indicators: ChartIndicator[]): ChartSettings => ({
     indicators: { daily: indicators },
 });
 
-const savedIndicators = (timeframe: ChartTimeframe = 'daily'): ChartIndicator[] =>
-    (mock.last().body as { chartSettings: ChartSettings }).chartSettings.indicators[timeframe] ?? [];
+/** The indicators the last save sent for one timeframe; none when it sent no list for it. */
+const savedIndicators = (timeframe: ChartTimeframe = 'daily'): unknown[] => {
+    const indicators = recordAt(mock.last().body, 'chartSettings', 'indicators')[timeframe];
+    return isList(indicators) ? indicators : [];
+};
 
 beforeEach(() => {
     clearAuth();
@@ -81,7 +85,7 @@ describe('save', () => {
 
         await save(draft([{ type: 'SMA', period: 20.6, visible: true }]));
 
-        expect(savedIndicators()[0]?.period).toBe(21);
+        expect(at(savedIndicators(), 0, 'period')).toBe(21);
     });
 
     it('replaces the NaN a number input holds between keystrokes', async () => {
@@ -89,7 +93,7 @@ describe('save', () => {
 
         await save(draft([{ type: 'SMA', period: Number.NaN, visible: true }]));
 
-        expect(savedIndicators()[0]?.period).toBe(1);
+        expect(at(savedIndicators(), 0, 'period')).toBe(1);
     });
 
     it('brings a period inside the bounds the API validates against', async () => {
@@ -102,7 +106,7 @@ describe('save', () => {
             ]),
         );
 
-        expect(savedIndicators().map((one) => one.period)).toEqual([1, MAX_INDICATOR_PERIOD]);
+        expect(savedIndicators().map((one) => at(one, 'period'))).toEqual([1, MAX_INDICATOR_PERIOD]);
     });
 
     it('leaves the rest of the indicator alone', async () => {

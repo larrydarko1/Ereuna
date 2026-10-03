@@ -1,6 +1,7 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import SecurityPanel from '@/components/user/SecurityPanel.vue';
 import { i18n } from '@/i18n';
@@ -21,7 +22,7 @@ const $ = (selector: string): HTMLElement => {
 };
 
 const type = async (selector: string, value: string): Promise<void> => {
-    const field = $(selector) as HTMLInputElement;
+    const field = query(selector, HTMLInputElement);
     field.value = value;
     field.dispatchEvent(new Event('input', { bubbles: true }));
     await Promise.resolve();

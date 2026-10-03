@@ -2,11 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import { boundsOf, cornersOf, generateBoxId, resizeBox } from '@/lib/charting/drawings/box-shape';
 import { type Box, type BoxPoint } from '@/lib/charting/drawings/box-types';
+import { secondsToTime } from '@/lib/charting/shared/time-conversion';
 
 function point(x: number, y: number): BoxPoint {
     // Price runs opposite to a canvas y, which is what makes a corner drag carry
     // both halves of the same point
-    return { time: x as BoxPoint['time'], price: -y, x, y };
+    return { time: secondsToTime(x), price: -y, x, y };
 }
 
 function boxFrom(first: BoxPoint, second: BoxPoint): Box {

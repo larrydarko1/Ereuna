@@ -1,6 +1,8 @@
 import { HttpResponse, http } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { isRecord } from '@ereuna/shared';
+
 import { mockApi, ORIGIN } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
 import { useWatchlists } from '@/composables/charts/useWatchlists';
@@ -298,8 +300,8 @@ describe('addTickers', () => {
     it('reports what went in and what the API refused, one symbol at a time', async () => {
         mock.server.use(
             http.post(`${ORIGIN}/api/watchlists/Tech/tickers`, async ({ request }) => {
-                const { symbol } = (await request.json()) as { symbol: string };
-                return symbol === 'NOPE'
+                const body: unknown = await request.json();
+                return isRecord(body) && body['symbol'] === 'NOPE'
                     ? HttpResponse.json({ error: 'ASSET_NOT_FOUND' }, { status: 404 })
                     : HttpResponse.json({ list: [] });
             }),

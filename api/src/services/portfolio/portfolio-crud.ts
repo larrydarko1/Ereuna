@@ -15,17 +15,6 @@ import { getAsset } from '@/services/market/index.js';
 import { readTrades, rebuild, validateLog } from '@/services/portfolio/portfolio-rebuild.js';
 import { DEFAULT_LEVERAGE } from '@/utils/portfolio-replay.js';
 
-export type PortfolioSummaryRow = {
-    number: number;
-    cash: number;
-    baseValue: number;
-    leverage: number;
-    defaultCommission: number;
-    benchmarks: string[];
-    positionCount: number;
-    updatedAt: Date;
-};
-
 export type PortfolioSettings = {
     baseValue?: number;
     leverage?: number;
@@ -36,6 +25,17 @@ export type PortfolioSettings = {
 export type DeclaredState = {
     stats?: PortfolioStatsSnapshot;
     valueHistory?: PortfolioValuePoint[];
+};
+
+type PortfolioSummaryRow = {
+    number: number;
+    cash: number;
+    baseValue: number;
+    leverage: number;
+    defaultCommission: number;
+    benchmarks: string[];
+    positionCount: number;
+    updatedAt: Date;
 };
 
 /**

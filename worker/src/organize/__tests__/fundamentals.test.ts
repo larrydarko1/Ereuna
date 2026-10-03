@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AssetInfoDoc } from '@ereuna/shared';
 
+import { at, dateAt, listAt, recordAt } from '@/__tests__/support/values.js';
 import type { VendorStatement } from '@/lib/tiingo.js';
-import type { Statement } from '@/organize/fundamentals.js';
 import type { Asset } from '@/organize/universe.js';
 
 vi.mock('@/lib/logger.js', () => ({
@@ -66,11 +66,13 @@ function filing(date: string, quarter: number, income: Record<string, number> = 
 
 /** The `$set` payload written for one symbol. */
 function fieldsFor(symbol: string): Record<string, unknown> {
-    const operation = state.written.find(
-        (write) => (write as { updateOne: { filter: { Symbol: string } } }).updateOne.filter.Symbol === symbol,
-    ) as { updateOne: { update: { $set: Record<string, unknown> } } } | undefined;
-    return operation?.updateOne.update.$set ?? {};
+    // Every write here is a per-symbol updateOne, so the path is there on each of them
+    const operation = state.written.find((write) => at(write, 'updateOne', 'filter', 'Symbol') === symbol);
+    return operation === undefined ? {} : recordAt(operation, 'updateOne', 'update', '$set');
 }
+
+/** One statement list written for a symbol, newest first. */
+const statementsOf = (symbol: string, list = 'quarterlyFinancials'): unknown[] => listAt(fieldsFor(symbol), list);
 
 beforeEach(() => {
     vendor.bySymbol = new Map();
@@ -105,11 +107,8 @@ describe('splitting the filings', () => {
     it('files quarter zero as an annual report and everything else as a quarter', async () => {
         vendor.bySymbol.set('AAPL', [filing('2026-06-30', 2), filing('2025-12-31', 0)]);
         await updateFundamentals([asset('AAPL')]);
-        const fields = fieldsFor('AAPL');
-        expect((fields['quarterlyFinancials'] as Statement[]).map((one) => one.fiscalDateEnding)).toEqual([
-            new Date('2026-06-30'),
-        ]);
-        expect((fields['AnnualFinancials'] as Statement[]).map((one) => one.fiscalDateEnding)).toEqual([
+        expect(statementsOf('AAPL').map((one) => at(one, 'fiscalDateEnding'))).toEqual([new Date('2026-06-30')]);
+        expect(statementsOf('AAPL', 'AnnualFinancials').map((one) => at(one, 'fiscalDateEnding'))).toEqual([
             new Date('2025-12-31'),
         ]);
     });
@@ -117,9 +116,7 @@ describe('splitting the filings', () => {
     it('sorts each list newest first, whatever order the vendor sent', async () => {
         vendor.bySymbol.set('AAPL', [filing('2025-03-31', 1), filing('2026-06-30', 2), filing('2025-12-31', 4)]);
         await updateFundamentals([asset('AAPL')]);
-        const dates = (fieldsFor('AAPL')['quarterlyFinancials'] as Statement[]).map((one) =>
-            one.fiscalDateEnding.toISOString().slice(0, 10),
-        );
+        const dates = statementsOf('AAPL').map((one) => dateAt(one, 'fiscalDateEnding').toISOString().slice(0, 10));
         expect(dates).toEqual(['2026-06-30', '2025-12-31', '2025-03-31']);
     });
 
@@ -134,7 +131,7 @@ describe('splitting the filings', () => {
     it('flattens all four sections into one object, the way the screener addresses them', async () => {
         vendor.bySymbol.set('AAPL', [filing('2026-06-30', 2)]);
         await updateFundamentals([asset('AAPL')]);
-        const [latest] = fieldsFor('AAPL')['quarterlyFinancials'] as Statement[];
+        const [latest] = statementsOf('AAPL');
         expect(latest).toMatchObject({ bookVal: 5, debt: 200, freeCashFlow: 90, cashAndEq: 300 });
     });
 
@@ -145,8 +142,8 @@ describe('splitting the filings', () => {
         } as NonNullable<VendorStatement['statementData']>;
         vendor.bySymbol.set('AAPL', [nulled]);
         await updateFundamentals([asset('AAPL')]);
-        const [latest] = fieldsFor('AAPL')['quarterlyFinancials'] as Statement[];
-        expect(latest?.['bookVal']).toBe(0);
+        const [latest] = statementsOf('AAPL');
+        expect(at(latest, 'bookVal')).toBe(0);
     });
 
     it('ignores an item with no data code', async () => {
@@ -154,8 +151,8 @@ describe('splitting the filings', () => {
         anonymous.statementData = { balanceSheet: [{ value: 5 }] } as NonNullable<VendorStatement['statementData']>;
         vendor.bySymbol.set('AAPL', [anonymous]);
         await updateFundamentals([asset('AAPL')]);
-        const [latest] = fieldsFor('AAPL')['quarterlyFinancials'] as Statement[];
-        expect(Object.keys(latest ?? {}).sort()).toEqual([
+        const [latest] = statementsOf('AAPL');
+        expect(Object.keys(recordAt(latest)).sort()).toEqual([
             'fiscalDateEnding',
             'netIncome',
             'reportedEPS',
@@ -168,7 +165,7 @@ describe('splitting the filings', () => {
         bare.statementData = {} as NonNullable<VendorStatement['statementData']>;
         vendor.bySymbol.set('AAPL', [bare]);
         await updateFundamentals([asset('AAPL')]);
-        const [latest] = fieldsFor('AAPL')['quarterlyFinancials'] as Statement[];
+        const [latest] = statementsOf('AAPL');
         expect(latest).toMatchObject({ reportedEPS: 0, totalRevenue: 0, netIncome: 0 });
     });
 });

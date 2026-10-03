@@ -36,12 +36,12 @@ import ru from '@/i18n/locales/ru.json';
 import tr from '@/i18n/locales/tr.json';
 import zh from '@/i18n/locales/zh.json';
 
-export type AppLocale = (typeof SUPPORTED_LOCALES)[number]['code'];
+type AppLocale = (typeof SUPPORTED_LOCALES)[number]['code'];
 
 /** English is the reference shape: every other locale must match it key for key. */
-export type MessageSchema = typeof en;
+type MessageSchema = typeof en;
 
-export type LocaleMeta = {
+type LocaleMeta = {
     code: string;
     /** The language's name in that language — what a picker should show. */
     label: string;

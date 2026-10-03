@@ -1,6 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { query } from '@/__tests__/support/dom';
 import ReplayStartDialog from '@/components/charts/ReplayStartDialog.vue';
 import { i18n } from '@/i18n';
 
@@ -13,7 +14,7 @@ const $ = (selector: string): HTMLElement => {
     return element;
 };
 
-const field = (): HTMLInputElement => $('.replay-start__input') as HTMLInputElement;
+const field = (): HTMLInputElement => query('.replay-start__input', HTMLInputElement);
 
 const type = async (value: string): Promise<void> => {
     field().value = value;

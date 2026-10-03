@@ -153,13 +153,10 @@ describe('POST /api/portfolios/:number/import', () => {
             json({ trades: [], portfolio: { baseValue: 5000, benchmarks: ['spy'] } }),
         );
 
-        const [, , , options] = service.replaceTrades.mock.calls[0] as [
-            unknown,
-            unknown,
-            unknown,
-            { settings: object },
-        ];
-        expect(options.settings).toEqual({ baseValue: 5000, benchmarks: ['SPY'] });
+        expect(service.replaceTrades).toHaveBeenCalledWith(USER_ID, 0, [], {
+            settings: { baseValue: 5000, benchmarks: ['SPY'] },
+            declared: {},
+        });
     });
 
     it('drops a null stats block rather than declaring it', async () => {
@@ -168,13 +165,10 @@ describe('POST /api/portfolios/:number/import', () => {
             json({ trades: [], portfolio: { stats: null, valueHistory: [{ date: '2026-03-02', value: 10 }] } }),
         );
 
-        const [, , , options] = service.replaceTrades.mock.calls[0] as [
-            unknown,
-            unknown,
-            unknown,
-            { declared: Record<string, unknown> },
-        ];
-        expect(options.declared).toEqual({ valueHistory: [{ date: '2026-03-02', value: 10 }] });
+        expect(service.replaceTrades).toHaveBeenCalledWith(USER_ID, 0, [], {
+            settings: {},
+            declared: { valueHistory: [{ date: '2026-03-02', value: 10 }] },
+        });
     });
 
     it('carries a declared stats block through', async () => {
@@ -208,13 +202,7 @@ describe('POST /api/portfolios/:number/import', () => {
 
         await harness.call('/api/portfolios/0/import', json({ trades: [], portfolio: { stats } }));
 
-        const [, , , options] = service.replaceTrades.mock.calls[0] as [
-            unknown,
-            unknown,
-            unknown,
-            { declared: { stats?: unknown } },
-        ];
-        expect(options.declared.stats).toEqual(stats);
+        expect(service.replaceTrades).toHaveBeenCalledWith(USER_ID, 0, [], { settings: {}, declared: { stats } });
     });
 
     it('refuses an import beyond the row cap', async () => {

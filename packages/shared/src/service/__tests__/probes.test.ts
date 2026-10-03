@@ -1,5 +1,4 @@
 import type { Server } from 'node:http';
-import type { AddressInfo } from 'node:net';
 
 import { register } from 'prom-client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -16,8 +15,11 @@ function start(options: { token?: string } = {}): Promise<string> {
     server = startProbeServer({ port: 0, ...options });
     return new Promise((resolve) => {
         server?.once('listening', () => {
-            const { port } = server?.address() as AddressInfo;
-            resolve(`http://127.0.0.1:${port}`);
+            const address = server?.address();
+            // A TCP listener reports an object; only a pipe or socket path reports a string
+            if (address === null || address === undefined || typeof address === 'string')
+                throw new Error('not on a TCP port');
+            resolve(`http://127.0.0.1:${address.port}`);
         });
     });
 }

@@ -10,6 +10,8 @@ import { http, HttpResponse, type JsonBodyType, type RequestHandler } from 'msw'
 import { setupServer, type SetupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll } from 'vitest';
 
+import { isOneOf } from '@ereuna/shared';
+
 type Recorded = {
     method: string;
     path: string;
@@ -18,7 +20,7 @@ type Recorded = {
     body: unknown;
 };
 
-export type ApiMock = {
+type ApiMock = {
     server: SetupServer;
     /** Every request that reached a handler, oldest first. */
     calls: Recorded[];
@@ -30,6 +32,17 @@ export type ApiMock = {
 
 /** The origin jsdom serves the app from, so a relative `/api` path resolves. */
 export const ORIGIN = 'http://localhost:3000';
+
+const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const;
+
+/** The handler builder for each method a route string may start with. */
+const HANDLERS: Record<(typeof METHODS)[number], typeof http.get> = {
+    GET: http.get,
+    POST: http.post,
+    PUT: http.put,
+    PATCH: http.patch,
+    DELETE: http.delete,
+};
 
 const record = async (request: Request): Promise<Recorded> => {
     const url = new URL(request.url);
@@ -60,8 +73,9 @@ export function mockApi(): ApiMock {
             return entry;
         },
         on: (route, body, init = {}) => {
-            const [method, path] = route.split(' ');
-            const handler = http[(method ?? 'GET').toLowerCase() as 'get'](
+            const [method = 'GET', path] = route.split(' ');
+            if (!isOneOf(METHODS, method)) throw new Error(`no handler for the method in "${route}"`);
+            const handler = HANDLERS[method](
                 `${ORIGIN}${path ?? ''}`,
                 async ({ request }) => {
                     calls.push(await record(request));

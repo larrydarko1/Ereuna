@@ -1,7 +1,9 @@
 import { ObjectId } from 'mongodb';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { statsSnapshot } from '@/__tests__/support/fixtures.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { at, recordAt } from '@/__tests__/support/values.js';
 import { AppError } from '@/lib/app-error.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
@@ -73,11 +75,7 @@ function portfolio(overrides: Record<string, unknown> = {}): Record<string, unkn
 }
 
 const setOf = (index = 0): Record<string, unknown> =>
-    (
-        db.current.of('Portfolios').writes.filter((w) => w.method === 'updateOne')[index]?.args[1] as {
-            $set: Record<string, unknown>;
-        }
-    ).$set;
+    recordAt(db.current.of('Portfolios').writes.filter((w) => w.method === 'updateOne')[index]?.args, 1, '$set');
 
 beforeEach(() => {
     db.current = fakeDb();
@@ -109,9 +107,7 @@ describe('listPortfolios', () => {
         db.current = fakeDb({ Portfolios: [], Positions: [] });
         await listPortfolios(USER_ID);
         expect(db.current.of('Portfolios').filters[0]).toEqual({ userId: USER_ID });
-        expect((db.current.of('Positions').filters[0] as { $match: unknown }[])[0]).toEqual({
-            $match: { userId: USER_ID },
-        });
+        expect(at(db.current.of('Positions').filters, 0, 0)).toEqual({ $match: { userId: USER_ID } });
     });
 
     it('returns nothing for a user with no portfolios', async () => {
@@ -149,7 +145,7 @@ describe('getOrCreatePortfolio', () => {
         db.current = fakeDb({ Portfolios: [portfolio({ cash: 5_000 })] });
         const update = db.current.of('Portfolios');
         await getOrCreatePortfolio(USER_ID, 0);
-        expect(Object.keys(update.writes[0]?.args[1] as object)).toEqual(['$setOnInsert']);
+        expect(Object.keys(recordAt(update.writes[0]?.args, 1))).toEqual(['$setOnInsert']);
     });
 
     it('throws when the upsert somehow returns nothing', async () => {
@@ -281,7 +277,7 @@ describe('writeSettings', () => {
 describe('applyDeclaredState', () => {
     it('overwrites the derived fields with what the owner declared', async () => {
         db.current = fakeDb({ Portfolios: [portfolio()] });
-        const stats = { totalReturn: 0.42 } as never;
+        const stats = statsSnapshot({ realizedPL: 0.42 });
         await applyDeclaredState(USER_ID, 0, { stats });
         expect(setOf()['stats']).toBe(stats);
     });

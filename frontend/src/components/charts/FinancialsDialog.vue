@@ -26,10 +26,12 @@ const emit = defineEmits<{ close: [] }>();
 /** Above this, a figure reads better abbreviated than written out in full. */
 const COMPACT_THRESHOLD = 100_000;
 
+const PERIODS = ['annual', 'quarterly'] as const;
+
 const i18n = useI18n();
 const { t } = i18n;
 
-const period = ref<'annual' | 'quarterly'>('annual');
+const period = ref<(typeof PERIODS)[number]>('annual');
 const showDescriptions = ref(false);
 
 const periods = computed<readonly Record<string, unknown>[]>(() => {
@@ -115,7 +117,7 @@ const formatChange = (value: number | null): string => (value === null ? '' : `$
                 role="group"
                 :aria-label="t('financials.period')">
                 <button
-                    v-for="option in ['annual', 'quarterly'] as const"
+                    v-for="option in PERIODS"
                     :key="option"
                     type="button"
                     class="financials-dialog__period"

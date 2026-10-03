@@ -1,4 +1,5 @@
 import cookieParser from 'cookie-parser';
+import { ObjectId } from 'mongodb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { json, quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
@@ -119,9 +120,7 @@ describe('POST /api/auth/2fa/validate', () => {
 
         expect(response.status).toBe(200);
         expect(service.verify2FATempToken).toHaveBeenCalledWith('temp');
-        const [userId, code] = service.validateTotpLogin.mock.calls[0] as [{ toHexString: () => string }, string];
-        expect(userId.toHexString()).toBe(USER);
-        expect(code).toBe('123456');
+        expect(service.validateTotpLogin).toHaveBeenCalledWith(new ObjectId(USER), '123456', { rememberMe: false });
         expect(refreshCookie(response)).toContain('refreshToken=refresh');
     });
 

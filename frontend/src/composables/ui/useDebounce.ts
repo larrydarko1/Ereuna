@@ -10,9 +10,9 @@
 import { getCurrentScope, onScopeDispose } from 'vue';
 
 /** A debounced function, with a real canceller for the pending call. */
-export type Cancelable<TArgs extends unknown[]> = ((...args: TArgs) => void) & { cancel: () => void };
+type Cancelable<TArgs extends unknown[]> = ((...args: TArgs) => void) & { cancel: () => void };
 
-export type DebounceOptions = {
+type DebounceOptions = {
     ms?: number;
     maxWait?: number;
 };
@@ -45,16 +45,15 @@ export function useDebounceFn<TArgs extends unknown[]>(
         lastArgs = undefined;
     };
 
-    const debounced = ((...args: TArgs): void => {
+    const debounced = (...args: TArgs): void => {
         lastArgs = args;
         if (timer !== undefined) clearTimeout(timer);
         if (options.maxWait !== undefined && maxTimer === undefined) {
             maxTimer = setTimeout(invoke, options.maxWait);
         }
         timer = setTimeout(invoke, ms);
-    }) as Cancelable<TArgs>;
+    };
 
-    debounced.cancel = cancel;
     if (getCurrentScope() !== undefined) onScopeDispose(cancel);
-    return debounced;
+    return Object.assign(debounced, { cancel });
 }

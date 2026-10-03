@@ -11,6 +11,7 @@ import { gradientColorAtPercent } from '@/lib/charting/engine/helpers/color';
 import { Delegate } from '@/lib/charting/engine/helpers/delegate';
 import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
 import { type ISubscription } from '@/lib/charting/engine/helpers/isubscription';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type DeepPartial, merge } from '@/lib/charting/engine/helpers/strict-type-checks';
 import {
     type ChartOptionsInternal,
@@ -36,10 +37,7 @@ import { type PriceScale, type PriceScaleOptions } from '@/lib/charting/engine/m
 import { type ICustomSeriesPaneView } from '@/lib/charting/engine/model/series/icustom-series';
 import { type ISeries, Series, type SeriesOptionsInternal } from '@/lib/charting/engine/model/series/series';
 import { type SeriesOptionsMap, type SeriesType } from '@/lib/charting/engine/model/series/series-options';
-import {
-    type IHorzScaleBehavior,
-    type InternalHorzScaleItem,
-} from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
+import { type IHorzScaleBehavior } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
 import { type LogicalRange, type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 import { type ITimeScale, TimeScale } from '@/lib/charting/engine/model/time/time-scale';
 import { type PriceAxisViewRendererOptions } from '@/lib/charting/engine/renderers/iprice-axis-view-renderer';
@@ -50,12 +48,12 @@ export type HoveredObject = {
     externalId?: string | undefined;
 };
 
-export type HoveredSource = {
+type HoveredSource = {
     source: IPriceDataSource;
     object?: HoveredObject | undefined;
 };
 
-export type PriceScaleOnPane = {
+type PriceScaleOnPane = {
     priceScale: PriceScale;
     pane: Pane;
 };
@@ -126,7 +124,7 @@ export type IChartModelBase = {
 };
 
 /** One move of the crosshair, as `moveCrosshairTo` takes it. */
-export type CrosshairMove = {
+type CrosshairMove = {
     x: Coordinate;
     y: Coordinate;
     pane: Pane;
@@ -409,7 +407,7 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
         }
 
         const timeScaleWidth = timeScale.width();
-        pointX = Math.max(1, Math.min(pointX, timeScaleWidth)) as Coordinate;
+        pointX = nominal<Coordinate>(Math.max(1, Math.min(pointX, timeScaleWidth)));
 
         timeScale.zoom(pointX, scale);
 
@@ -417,7 +415,7 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
     }
 
     public scrollChart(x: Coordinate): void {
-        this.startScrollTime(0 as Coordinate);
+        this.startScrollTime(nominal<Coordinate>(0));
         this.scrollTimeTo(x);
         this.endScrollTime();
     }
@@ -464,7 +462,7 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
 
         const visibleBars = this._timeScale.visibleStrictRange();
         if (visibleBars !== null) {
-            index = Math.min(Math.max(visibleBars.left(), index), visibleBars.right()) as TimePointIndex;
+            index = nominal<TimePointIndex>(Math.min(Math.max(visibleBars.left(), index), visibleBars.right()));
         }
 
         const priceScale = pane.defaultPriceScale();
@@ -490,7 +488,9 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
         const priceScale = pane.defaultPriceScale();
         const firstValue = priceScale.firstValue();
         const coordinateY = priceScale.priceToCoordinate(price, getNotNull(firstValue));
-        const index = this._timeScale.timeToNearestIndex(horizontalPosition as InternalHorzScaleItem);
+        const index = this._timeScale.timeToNearestIndex(
+            this._horzScaleBehavior.convertHorzItemToInternal(horizontalPosition),
+        );
         const coordinateX = this._timeScale.indexToCoordinate(getNotNull(index));
 
         this.moveCrosshairTo({ x: coordinateX, y: coordinateY, pane, event: null, silent: true });
@@ -522,13 +522,13 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
 
     public updateTimeScale(changes: TimeScaleChanges): void {
         const { baseIndex: newBaseIndex, points: newPoints, firstChangedPointIndex } = changes;
-        const oldFirstTime = this._timeScale.indexToTime(0 as TimePointIndex);
+        const oldFirstTime = this._timeScale.indexToTime(nominal<TimePointIndex>(0));
 
         if (newPoints !== undefined && firstChangedPointIndex !== undefined) {
             this._timeScale.update(newPoints, firstChangedPointIndex);
         }
 
-        const newFirstTime = this._timeScale.indexToTime(0 as TimePointIndex);
+        const newFirstTime = this._timeScale.indexToTime(nominal<TimePointIndex>(0));
 
         const currentBaseIndex = this._timeScale.baseIndex();
         const visibleBars = this._timeScale.visibleStrictRange();

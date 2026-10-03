@@ -30,7 +30,7 @@ async function ensureIndexes(): Promise<void> {
 
     for (const { collection, keys, options } of specs) {
         try {
-            // eslint-disable-next-line contracts/no-db-await-in-loop, no-restricted-syntax
+            // eslint-disable-next-line contracts/no-db-await-in-loop, no-restricted-syntax -- the worker is this repo's manifest applier, and on half a billion bars the builds go one at a time
             await db.collection(collection).createIndex(keys, options ?? {});
         } catch (err) {
             logger.error({ err, collection, keys }, 'Index could not be created');

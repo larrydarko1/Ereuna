@@ -26,7 +26,7 @@ function build(days = DAYS): {
         { type: 'SMA', period: 10, points: days.map((day) => ({ time: day as Time, value: 9 })) },
     ]);
     const scope = effectScope();
-    const replay = scope.run(() => useChartReplay(bars, volume, overlays)) as UseChartReplayReturn;
+    const replay = scope.run(() => useChartReplay(bars, volume, overlays))!;
     return { replay, bars, stop: () => scope.stop() };
 }
 

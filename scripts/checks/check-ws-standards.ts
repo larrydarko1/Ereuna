@@ -19,8 +19,12 @@
  * not a personal room, and the room names come from helpers so the join site and the
  * emit site cannot spell them differently.
  *
- * No `authModule`: the gateway verifies the handshake token inline, with the same
- * secret and pinned algorithm as REST.
+ * `authModule` points the auth rules at `verifyAccessToken` in the REST middleware,
+ * because the handshake calls that rather than `jwt.verify`. It used to verify inline,
+ * and an inline verify accepted the 2FA challenge token, which is signed with the
+ * same secret: a password alone held a live market feed. The shared function refuses
+ * any token carrying a `type`, so REST and the socket now agree on what a session is,
+ * and the gate checks the secret and the pinned algorithm in that function's body.
  *
  * `sessionTeardown` — the client registers `disconnectSocket` with
  * `onSessionCleared`, so the connection dies with the session rather than outliving
@@ -39,6 +43,7 @@ checkWsStandards({
         headerPhrase: 'no Redis adapter',
         why: 'Every pod already runs its own `psubscribe aggr:*`, so it holds every bucket its own sockets need; the adapter would republish each message across the cluster for every other pod to discard. If the fan-out model ever changes, change the header first.',
     },
+    authModule: { file: 'api/src/middleware/auth.ts', fn: 'verifyAccessToken' },
     rooms: { join: 'helpers' },
     sessionTeardown: 'onSessionCleared',
 });

@@ -6,6 +6,7 @@
  * expects when they mean to stop somewhere exact.
  */
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 
 type TimeAndPosition = {
@@ -117,9 +118,11 @@ export class KineticAnimation {
     public getPosition(time: number): Coordinate {
         const startPosition = getNotNull(this._animationStartPosition);
         const durationMsecs = time - startPosition.time;
-        return (startPosition.position +
-            (this._speedPxPerMsec * (Math.pow(this._dumpingCoeff, durationMsecs) - 1)) /
-                Math.log(this._dumpingCoeff)) as Coordinate;
+        return nominal<Coordinate>(
+            startPosition.position +
+                (this._speedPxPerMsec * (Math.pow(this._dumpingCoeff, durationMsecs) - 1)) /
+                    Math.log(this._dumpingCoeff),
+        );
     }
 
     public finished(time: number): boolean {

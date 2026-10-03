@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { mountChart, paint } from '@/lib/charting/__tests__/helpers/chart-harness';
 import { candlestickData, lineData, timeAt } from '@/lib/charting/__tests__/helpers/market-data';
 import { type IChartApi } from '@/lib/charting/engine/api/create-chart';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
+import { type Logical } from '@/lib/charting/engine/model/time/time-data';
 
 function chartWithBars(count = 50): IChartApi {
     const { chart } = mountChart();
@@ -109,9 +111,9 @@ describe('converting between a coordinate and a point on the scale', () => {
     it('round-trips a logical index', () => {
         const chart = chartWithBars();
 
-        const x = chart.timeScale().logicalToCoordinate(12 as never);
+        const x = chart.timeScale().logicalToCoordinate(nominal<Logical>(12));
         expect(x).not.toBeNull();
-        expect(chart.timeScale().coordinateToLogical(x as number)).toBeCloseTo(12, 5);
+        expect(chart.timeScale().coordinateToLogical(x!)).toBeCloseTo(12, 5);
     });
 
     it('round-trips a time that is on a bar', () => {
@@ -119,7 +121,7 @@ describe('converting between a coordinate and a point on the scale', () => {
 
         const x = chart.timeScale().timeToCoordinate(timeAt(12));
         expect(x).not.toBeNull();
-        expect(chart.timeScale().coordinateToTime(x as number)).toBe(timeAt(12));
+        expect(chart.timeScale().coordinateToTime(x!)).toBe(timeAt(12));
     });
 
     it('answers null for a time no bar sits on', () => {
@@ -131,7 +133,7 @@ describe('converting between a coordinate and a point on the scale', () => {
     it('answers null for every conversion while the scale is empty', () => {
         const { chart } = mountChart();
 
-        expect(chart.timeScale().logicalToCoordinate(0 as never)).toBeNull();
+        expect(chart.timeScale().logicalToCoordinate(nominal<Logical>(0))).toBeNull();
         expect(chart.timeScale().coordinateToLogical(100)).toBeNull();
         expect(chart.timeScale().timeToCoordinate(timeAt(0))).toBeNull();
         expect(chart.timeScale().coordinateToTime(100)).toBeNull();

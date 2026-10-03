@@ -26,8 +26,8 @@ export type PriceAxisStubParams = {
     rendererOptionsProvider: PriceAxisRendererOptionsProvider;
 };
 
-export type BorderVisibleGetter = () => boolean;
-export type ColorGetter = () => string;
+type BorderVisibleGetter = () => boolean;
+type ColorGetter = () => string;
 
 export class PriceAxisStub implements IDestroyable {
     private readonly _cell: HTMLDivElement;

@@ -2,6 +2,7 @@
  * The base for the two OHLC views, holding the part that reads open, high,
  * low and close out of a plot row.
  */
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { undefinedIfNull } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
@@ -44,15 +45,15 @@ export abstract class BarsPaneViewBase<
     ): BarCandlestickItemBase {
         return {
             time: time,
-            open: bar.value[PlotRowValueIndex.Open] as BarPrice,
-            high: bar.value[PlotRowValueIndex.High] as BarPrice,
-            low: bar.value[PlotRowValueIndex.Low] as BarPrice,
-            close: bar.value[PlotRowValueIndex.Close] as BarPrice,
-            x: NaN as Coordinate,
-            openY: NaN as Coordinate,
-            highY: NaN as Coordinate,
-            lowY: NaN as Coordinate,
-            closeY: NaN as Coordinate,
+            open: nominal<BarPrice>(bar.value[PlotRowValueIndex.Open]),
+            high: nominal<BarPrice>(bar.value[PlotRowValueIndex.High]),
+            low: nominal<BarPrice>(bar.value[PlotRowValueIndex.Low]),
+            close: nominal<BarPrice>(bar.value[PlotRowValueIndex.Close]),
+            x: nominal<Coordinate>(NaN),
+            openY: nominal<Coordinate>(NaN),
+            highY: nominal<Coordinate>(NaN),
+            lowY: nominal<Coordinate>(NaN),
+            closeY: nominal<Coordinate>(NaN),
         };
     }
 

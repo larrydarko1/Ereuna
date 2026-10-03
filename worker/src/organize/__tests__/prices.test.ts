@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { at, listAt } from '@/__tests__/support/values.js';
 import type { VendorMarketBar } from '@/lib/tiingo.js';
 
 type Asset = Awaited<ReturnType<typeof import('@/organize/universe.js').activeUniverse>>[number];
@@ -50,11 +51,12 @@ function row(overrides: Partial<VendorMarketBar> = {}): VendorMarketBar {
         splitFactor: 1,
         divCash: 0,
         ...overrides,
-    } as VendorMarketBar;
+    };
 }
 
-const opsOn = (collection: string): Record<string, unknown>[] =>
-    db.current.of(collection).writes.flatMap((write) => write.args[0] as Record<string, unknown>[]);
+/** Every bulk operation written to `collection`, across all its writes. */
+const opsOn = (collection: string): unknown[] =>
+    db.current.of(collection).writes.flatMap((write) => listAt(write.args, 0));
 
 beforeEach(() => {
     db.current = fakeDb();
@@ -78,24 +80,17 @@ describe('updateDailyPrices', () => {
         await expect(updateDailyPrices([asset('AAPL')])).resolves.toMatchObject({ written: 1 });
     });
 
-    it('ignores a row with no ticker at all', async () => {
-        vendor.rows = [{ ...row(), ticker: undefined } as unknown as VendorMarketBar];
-        await expect(updateDailyPrices([asset('AAPL')])).resolves.toMatchObject({ written: 0 });
-    });
-
     it('upserts the bar on (tickerID, timestamp), stamped at midnight UTC', async () => {
         vendor.rows = [row()];
         await updateDailyPrices([asset('AAPL')]);
 
-        const [operation] = opsOn('OHCLVData') as {
-            updateOne: { filter: Record<string, unknown>; update: { $set: Record<string, unknown> }; upsert: boolean };
-        }[];
-        expect(operation?.updateOne.upsert).toBe(true);
-        expect(operation?.updateOne.filter).toEqual({
+        const [operation] = opsOn('OHCLVData');
+        expect(at(operation, 'updateOne', 'upsert')).toBe(true);
+        expect(at(operation, 'updateOne', 'filter')).toEqual({
             tickerID: 'AAPL',
             timestamp: new Date('2026-09-04T00:00:00.000Z'),
         });
-        expect(operation?.updateOne.update.$set).toEqual({
+        expect(at(operation, 'updateOne', 'update', '$set')).toEqual({
             tickerID: 'AAPL',
             timestamp: new Date('2026-09-04T00:00:00.000Z'),
             open: 100,
@@ -106,20 +101,20 @@ describe('updateDailyPrices', () => {
         });
     });
 
-    it('keeps the adjusted prices, which is the whole series it is joining', async () => {
-        vendor.rows = [{ ...row(), open: 1, high: 1, low: 1, close: 1, volume: 1 } as unknown as VendorMarketBar];
+    it('stores the adjusted prices, which is the whole series it is joining', async () => {
+        vendor.rows = [row()];
         await updateDailyPrices([asset('AAPL')]);
-        const [operation] = opsOn('OHCLVData') as { updateOne: { update: { $set: { close: number } } } }[];
-        expect(operation?.updateOne.update.$set.close).toBe(105);
+        const [operation] = opsOn('OHCLVData');
+        expect(at(operation, 'updateOne', 'update', '$set', 'close')).toBe(105);
     });
 
+    // A row short of a field never gets this far: the vendor client drops it
     it.each([
         ['an unparseable date', { date: 'not a date' }],
-        ['a missing adjusted close', { adjClose: undefined }],
-        ['a non-numeric adjusted volume', { adjVolume: 'lots' }],
         ['an infinite adjusted high', { adjHigh: Number.POSITIVE_INFINITY }],
+        ['a NaN adjusted close', { adjClose: Number.NaN }],
     ])('drops a row with %s rather than half-filling the bar', async (_label, overrides) => {
-        vendor.rows = [{ ...row(), ...overrides } as unknown as VendorMarketBar];
+        vendor.rows = [row(overrides)];
         await expect(updateDailyPrices([asset('AAPL')])).resolves.toMatchObject({ written: 0 });
     });
 
@@ -127,11 +122,9 @@ describe('updateDailyPrices', () => {
         vendor.rows = [row()];
         await updateDailyPrices([asset('AAPL')]);
 
-        const [operation] = opsOn('OHCLVData1m') as {
-            updateOne: { filter: { timestamp: Date }; update: { $setOnInsert: Record<string, unknown> } };
-        }[];
-        expect(operation?.updateOne.filter.timestamp).toEqual(new Date('2026-09-04T20:00:00.000Z'));
-        expect(operation?.updateOne.update.$setOnInsert).toEqual({
+        const [operation] = opsOn('OHCLVData1m');
+        expect(at(operation, 'updateOne', 'filter', 'timestamp')).toEqual(new Date('2026-09-04T20:00:00.000Z'));
+        expect(at(operation, 'updateOne', 'update', '$setOnInsert')).toEqual({
             tickerID: 'AAPL',
             timestamp: new Date('2026-09-04T20:00:00.000Z'),
             open: 105,
@@ -204,9 +197,7 @@ describe('refetchHistory', () => {
     });
 
     it('returns how many bars it stored, dropping the unusable ones', async () => {
-        await expect(
-            refetchHistory('AAPL', [row(), { ...row(), adjClose: undefined } as unknown as VendorMarketBar]),
-        ).resolves.toBe(1);
+        await expect(refetchHistory('AAPL', [row(), row({ adjClose: Number.NaN })])).resolves.toBe(1);
     });
 
     it('batches a long history', async () => {

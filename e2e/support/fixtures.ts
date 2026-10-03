@@ -17,7 +17,7 @@ type WorkerFixtures = {
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
     redis: [
-        // eslint-disable-next-line no-empty-pattern
+        // eslint-disable-next-line no-empty-pattern -- Playwright reads a fixture's dependencies from its destructured first argument, so a fixture with none must still destructure
         async ({}, use) => {
             const client = createRedis();
             await client.connect();
@@ -34,7 +34,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
         { auto: true },
     ],
     authedUser: [
-        // eslint-disable-next-line no-empty-pattern
+        // eslint-disable-next-line no-empty-pattern -- Playwright reads a fixture's dependencies from its destructured first argument, so a fixture with none must still destructure
         async ({}, use) => {
             await use(uniqueUser());
         },

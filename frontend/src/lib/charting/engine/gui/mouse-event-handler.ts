@@ -7,21 +7,14 @@
  * from a drag by distance and time, and suppresses the synthetic mouse events a
  * browser fires after a touch.
  */
-import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
+import { getDefined, getNotNull } from '@/lib/charting/engine/helpers/assertions';
 import { isFF, isIOS } from '@/lib/charting/engine/helpers/browsers';
 import { preventScrollByWheelClick } from '@/lib/charting/engine/helpers/events';
 import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
 import { MouseEventButton } from '@/lib/charting/engine/helpers/mouse-event-button';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type TouchMouseEventData } from '@/lib/charting/engine/model/chart/touch-mouse-event-data';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
-
-export type HandlerMouseEventCallback = (event: MouseEventHandlerMouseEvent) => void;
-
-export type HandlerTouchEventCallback = (event: MouseEventHandlerTouchEvent) => void;
-
-type EmptyCallback = () => void;
-
-type PinchEventCallback = (middlePoint: Position, scale: number) => void;
 
 export type MouseEventHandlers = {
     pinchStartEvent?: EmptyCallback;
@@ -77,11 +70,19 @@ export type Position = {
     y: number;
 };
 
+type HandlerMouseEventCallback = (event: MouseEventHandlerMouseEvent) => void;
+
+type HandlerTouchEventCallback = (event: MouseEventHandlerTouchEvent) => void;
+
+type EmptyCallback = () => void;
+
+type PinchEventCallback = (middlePoint: Position, scale: number) => void;
+
 type Delay = (typeof Delay)[keyof typeof Delay];
 
 type Constants = (typeof Constants)[keyof typeof Constants];
 
-export type MouseEventHandlerOptions = {
+type MouseEventHandlerOptions = {
     treatVertTouchDragAsPageScroll: () => boolean;
     treatHorzTouchDragAsPageScroll: () => boolean;
 };
@@ -384,10 +385,8 @@ export class MouseEventHandler implements IDestroyable {
                     this._tapPosition,
                 );
                 if (manhattanDistance < Constants.DoubleTapManhattanDistance && !this._cancelTap) {
-                    this._processTouchEvent(
-                        compatEvent as unknown as MouseEventHandlerTouchEvent,
-                        this._handler.doubleTapEvent,
-                    );
+                    // A dblclick is no mouse* type, so the compat event already reports isTouch at runtime
+                    this._processTouchEvent({ ...compatEvent, isTouch: true }, this._handler.doubleTapEvent);
                 }
                 this._resetTapTimeout();
             }
@@ -635,11 +634,12 @@ export class MouseEventHandler implements IDestroyable {
                     return;
                 }
 
-                if (event.composed && this._target.contains(event.composedPath()[0] as Element)) {
+                const [origin] = event.composedPath();
+                if (event.composed && origin instanceof Node && this._target.contains(origin)) {
                     return;
                 }
 
-                if (event.target !== null && this._target.contains(event.target as Element)) {
+                if (event.target instanceof Node && this._target.contains(event.target)) {
                     return;
                 }
 
@@ -823,20 +823,19 @@ export class MouseEventHandler implements IDestroyable {
     private _makeCompatEvent(event: MouseEvent): MouseEventHandlerMouseEvent;
     private _makeCompatEvent(event: TouchEvent, touch: Touch): MouseEventHandlerTouchEvent;
     private _makeCompatEvent(event: MouseEvent | TouchEvent, touch?: Touch): TouchMouseEvent {
-        // TouchEvent has no clientX/Y coordinates:
-        // We have to use the last Touch instead
-        const eventLike = touch ?? (event as MouseEvent);
+        // TouchEvent has no clientX/Y, so the touch overload passes the Touch to read them from instead
+        const eventLike = getDefined(touch ?? ('clientX' in event ? event : undefined));
         const box = this._target.getBoundingClientRect();
 
         return {
-            clientX: eventLike.clientX as Coordinate,
-            clientY: eventLike.clientY as Coordinate,
-            pageX: eventLike.pageX as Coordinate,
-            pageY: eventLike.pageY as Coordinate,
-            screenX: eventLike.screenX as Coordinate,
-            screenY: eventLike.screenY as Coordinate,
-            localX: (eventLike.clientX - box.left) as Coordinate,
-            localY: (eventLike.clientY - box.top) as Coordinate,
+            clientX: nominal<Coordinate>(eventLike.clientX),
+            clientY: nominal<Coordinate>(eventLike.clientY),
+            pageX: nominal<Coordinate>(eventLike.pageX),
+            pageY: nominal<Coordinate>(eventLike.pageY),
+            screenX: nominal<Coordinate>(eventLike.screenX),
+            screenY: nominal<Coordinate>(eventLike.screenY),
+            localX: nominal<Coordinate>(eventLike.clientX - box.left),
+            localY: nominal<Coordinate>(eventLike.clientY - box.top),
 
             ctrlKey: event.ctrlKey,
             altKey: event.altKey,

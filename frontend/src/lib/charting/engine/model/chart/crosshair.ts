@@ -7,6 +7,7 @@
  * tracked separately.
  */
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { notNull } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
 import { type CrosshairOptions } from '@/lib/charting/engine/model/chart/crosshair-options';
@@ -38,7 +39,7 @@ type CrosshairTimeAndCoordinate = {
     coordinate: number;
 };
 
-export type PriceAndCoordinateProvider = (priceScale: PriceScale) => CrosshairPriceAndCoordinate;
+type PriceAndCoordinateProvider = (priceScale: PriceScale) => CrosshairPriceAndCoordinate;
 
 export type TimeAndCoordinateProvider = () => CrosshairTimeAndCoordinate | null;
 
@@ -51,7 +52,7 @@ type RawIndexProvider = () => TimePointIndex;
 export class Crosshair extends DataSource {
     private _pane: Pane | null = null;
     private _price = NaN;
-    private _index: TimePointIndex = 0 as TimePointIndex;
+    private _index: TimePointIndex = nominal<TimePointIndex>(0);
     private _visible = true;
     private readonly _model: IChartModelBase;
     private _priceAxisViews = new Map<PriceScale, CrosshairPriceAxisView>();
@@ -62,11 +63,11 @@ export class Crosshair extends DataSource {
     private readonly _options: CrosshairOptions;
     private readonly _paneView: CrosshairPaneView;
 
-    private _x: Coordinate = NaN as Coordinate;
-    private _y: Coordinate = NaN as Coordinate;
+    private _x: Coordinate = nominal<Coordinate>(NaN);
+    private _y: Coordinate = nominal<Coordinate>(NaN);
 
-    private _originX: Coordinate = NaN as Coordinate;
-    private _originY: Coordinate = NaN as Coordinate;
+    private _originX: Coordinate = nominal<Coordinate>(NaN);
+    private _originY: Coordinate = nominal<Coordinate>(NaN);
 
     public constructor(model: IChartModelBase, options: CrosshairOptions) {
         super();
@@ -112,7 +113,7 @@ export class Crosshair extends DataSource {
 
         // for current position always return both price and coordinate
         this._currentPosPriceProvider = valuePriceProvider(
-            () => this._price as BarPrice,
+            () => nominal<BarPrice>(this._price),
             () => this._y,
         );
 
@@ -135,8 +136,8 @@ export class Crosshair extends DataSource {
     }
 
     public clearOriginCoord(): void {
-        this._originX = NaN as Coordinate;
-        this._originY = NaN as Coordinate;
+        this._originX = nominal<Coordinate>(NaN);
+        this._originY = nominal<Coordinate>(NaN);
     }
 
     public originCoordX(): Coordinate {
@@ -178,8 +179,8 @@ export class Crosshair extends DataSource {
         this._setIndexToLastSeriesBarIndex();
 
         this._price = NaN;
-        this._x = NaN as Coordinate;
-        this._y = NaN as Coordinate;
+        this._x = nominal<Coordinate>(NaN);
+        this._y = nominal<Coordinate>(NaN);
         this._pane = null;
 
         this.clearOriginCoord();
@@ -246,7 +247,7 @@ export class Crosshair extends DataSource {
         const priceScale = this._priceScaleByPane(newPane);
 
         this._index = newIndex;
-        this._x = isNaN(newIndex) ? (NaN as Coordinate) : this._model.timeScale().indexToCoordinate(newIndex);
+        this._x = isNaN(newIndex) ? nominal<Coordinate>(NaN) : this._model.timeScale().indexToCoordinate(newIndex);
         this._pane = newPane;
 
         const firstValue = priceScale !== null ? priceScale.firstValue() : null;
@@ -255,7 +256,7 @@ export class Crosshair extends DataSource {
             this._y = priceScale.priceToCoordinate(newPrice, firstValue);
         } else {
             this._price = NaN;
-            this._y = NaN as Coordinate;
+            this._y = nominal<Coordinate>(NaN);
         }
 
         return (
@@ -272,8 +273,8 @@ export class Crosshair extends DataSource {
             .serieses()
             .map((s: ISeries<SeriesType>) => s.bars().lastIndex())
             .filter(notNull);
-        const lastBarIndex = lastIndexes.length === 0 ? null : (Math.max(...lastIndexes) as TimePointIndex);
-        this._index = lastBarIndex !== null ? lastBarIndex : (NaN as TimePointIndex);
+        const lastBarIndex = lastIndexes.length === 0 ? null : nominal<TimePointIndex>(Math.max(...lastIndexes));
+        this._index = lastBarIndex !== null ? lastBarIndex : nominal<TimePointIndex>(NaN);
     }
 
     private _createPriceAxisViewOnDemand(

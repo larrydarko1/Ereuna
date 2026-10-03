@@ -7,13 +7,13 @@
  */
 import { lowerBound, upperBound } from '@/lib/charting/engine/helpers/algorithms';
 import { getDefined, getNotNull } from '@/lib/charting/engine/helpers/assertions';
-import { type Nominal } from '@/lib/charting/engine/helpers/nominal';
+import { type Nominal, nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type PlotRow, type PlotRowValueIndex } from '@/lib/charting/engine/model/data/plot-data';
 import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 
 export type MismatchDirection = (typeof MismatchDirection)[keyof typeof MismatchDirection];
 
-export type MinMax = {
+type MinMax = {
     min: number;
     max: number;
 };
@@ -56,11 +56,11 @@ export class PlotList<TPlotRowType extends PlotRow = PlotRow> {
     }
 
     public firstIndex(): TimePointIndex | null {
-        return this.size() > 0 ? this._indexAt(0 as PlotRowIndex) : null;
+        return this.size() > 0 ? this._indexAt(nominal<PlotRowIndex>(0)) : null;
     }
 
     public lastIndex(): TimePointIndex | null {
-        return this.size() > 0 ? this._indexAt((this._items.length - 1) as PlotRowIndex) : null;
+        return this.size() > 0 ? this._indexAt(nominal<PlotRowIndex>(this._items.length - 1)) : null;
     }
 
     public size(): number {
@@ -155,23 +155,23 @@ export class PlotList<TPlotRowType extends PlotRow = PlotRow> {
             nearestLeftPos = nearestLeftPos - 1;
         }
 
-        return nearestLeftPos !== this._items.length && this._indexAt(nearestLeftPos as PlotRowIndex) < index
-            ? (nearestLeftPos as PlotRowIndex)
+        return nearestLeftPos !== this._items.length && this._indexAt(nominal<PlotRowIndex>(nearestLeftPos)) < index
+            ? nominal<PlotRowIndex>(nearestLeftPos)
             : null;
     }
 
     private _searchNearestRight(index: TimePointIndex): PlotRowIndex | null {
         const nearestRightPos = this._upperbound(index);
-        return nearestRightPos !== this._items.length && index < this._indexAt(nearestRightPos as PlotRowIndex)
-            ? (nearestRightPos as PlotRowIndex)
+        return nearestRightPos !== this._items.length && index < this._indexAt(nominal<PlotRowIndex>(nearestRightPos))
+            ? nominal<PlotRowIndex>(nearestRightPos)
             : null;
     }
 
     private _bsearch(index: TimePointIndex): PlotRowIndex | null {
         const start = this._lowerbound(index);
-        const item = this._items[start as PlotRowIndex];
+        const item = this._items[nominal<PlotRowIndex>(start)];
         if (item !== undefined && !(index < item.index)) {
-            return start as PlotRowIndex;
+            return nominal<PlotRowIndex>(start);
         }
 
         return null;
@@ -237,9 +237,13 @@ export class PlotList<TPlotRowType extends PlotRow = PlotRow> {
         const cachedHigh = Math.max(cachedLow, Math.floor(clampedEnd / CHUNK_SIZE) * CHUNK_SIZE);
 
         {
-            const startIndex = this._lowerbound(clampedStart as TimePointIndex);
-            const endIndex = this._upperbound(Math.min(clampedEnd, cachedLow, end) as TimePointIndex); // non-inclusive end
-            const plotMinMax = this._plotMinMax(startIndex as PlotRowIndex, endIndex as PlotRowIndex, plotIndex);
+            const startIndex = this._lowerbound(nominal<TimePointIndex>(clampedStart));
+            const endIndex = this._upperbound(nominal<TimePointIndex>(Math.min(clampedEnd, cachedLow, end))); // non-inclusive end
+            const plotMinMax = this._plotMinMax(
+                nominal<PlotRowIndex>(startIndex),
+                nominal<PlotRowIndex>(endIndex),
+                plotIndex,
+            );
             result = mergeMinMax(result, plotMinMax);
         }
 
@@ -256,9 +260,13 @@ export class PlotList<TPlotRowType extends PlotRow = PlotRow> {
 
             let chunkMinMax = minMaxCache.get(chunkIndex);
             if (chunkMinMax === undefined) {
-                const chunkStart = this._lowerbound((chunkIndex * CHUNK_SIZE) as TimePointIndex);
-                const chunkEnd = this._upperbound(((chunkIndex + 1) * CHUNK_SIZE - 1) as TimePointIndex);
-                chunkMinMax = this._plotMinMax(chunkStart as PlotRowIndex, chunkEnd as PlotRowIndex, plotIndex);
+                const chunkStart = this._lowerbound(nominal<TimePointIndex>(chunkIndex * CHUNK_SIZE));
+                const chunkEnd = this._upperbound(nominal<TimePointIndex>((chunkIndex + 1) * CHUNK_SIZE - 1));
+                chunkMinMax = this._plotMinMax(
+                    nominal<PlotRowIndex>(chunkStart),
+                    nominal<PlotRowIndex>(chunkEnd),
+                    plotIndex,
+                );
                 minMaxCache.set(chunkIndex, chunkMinMax);
             }
 
@@ -267,9 +275,13 @@ export class PlotList<TPlotRowType extends PlotRow = PlotRow> {
 
         // tail
         {
-            const startIndex = this._lowerbound(cachedHigh as TimePointIndex);
-            const endIndex = this._upperbound(clampedEnd as TimePointIndex); // non-inclusive end
-            const plotMinMax = this._plotMinMax(startIndex as PlotRowIndex, endIndex as PlotRowIndex, plotIndex);
+            const startIndex = this._lowerbound(nominal<TimePointIndex>(cachedHigh));
+            const endIndex = this._upperbound(nominal<TimePointIndex>(clampedEnd)); // non-inclusive end
+            const plotMinMax = this._plotMinMax(
+                nominal<PlotRowIndex>(startIndex),
+                nominal<PlotRowIndex>(endIndex),
+                plotIndex,
+            );
             result = mergeMinMax(result, plotMinMax);
         }
 

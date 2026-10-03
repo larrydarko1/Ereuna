@@ -1,7 +1,7 @@
 /** The exchange holiday calendar, computed rather than fetched. */
 
 /** A holiday, as the ingestor and the client read it. */
-export type Holiday = {
+type Holiday = {
     date: string; // YYYY-MM-DD in the exchange's own timezone
     name: string;
 };
@@ -92,7 +92,7 @@ function easter(year: number): number {
 
     return Date.UTC(year, month - 1, day);
 }
-/* eslint-enable no-restricted-syntax */
+/* eslint-enable no-restricted-syntax -- the algorithm ends here */
 
 function iso(at: number): string {
     return new Date(at).toISOString().slice(0, 10);

@@ -10,11 +10,12 @@ import { formatDate, formatNumber } from '@/utils/formatters';
 const panel = (actions: CorporateAction[], kind: 'dividends' | 'splits' = 'dividends'): VueWrapper =>
     mount(ActionsPanel, { props: { actions, kind } });
 
+/** `null` is the vendor sending no figure, which arrives as the field being absent. */
 const dividend = (amount: number | null = 0.24): CorporateAction =>
-    ({ date: '2026-02-10', amount }) as unknown as CorporateAction;
+    amount === null ? { date: '2026-02-10' } : { date: '2026-02-10', amount };
 
 const split = (ratio: number | null = 4): CorporateAction =>
-    ({ date: '2026-02-10', ratio }) as unknown as CorporateAction;
+    ratio === null ? { date: '2026-02-10' } : { date: '2026-02-10', ratio };
 
 /** More than the four rows the short list holds, so the control is offered. */
 const many = (count: number): CorporateAction[] => Array.from({ length: count }, () => dividend());

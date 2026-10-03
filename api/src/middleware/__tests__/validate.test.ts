@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
 import { json, quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
+import { failedFieldsOf } from '@/__tests__/support/values.js';
 import { AppError } from '@/lib/app-error.js';
 import { validated } from '@/middleware/validate.js';
 
@@ -115,9 +116,8 @@ describe('aggregating failures', () => {
         });
 
         const response = await harness.call('/t/abc?limit=x', json({ shares: 'a', price: 'b' }));
-        const body = response.body as { errors: { field: string }[] };
         expect(response.status).toBe(422);
-        expect(body.errors.map((issue) => issue.field).sort()).toEqual(['id', 'limit', 'price', 'shares']);
+        expect(failedFieldsOf(response.body).sort()).toEqual(['id', 'limit', 'price', 'shares']);
     });
 
     it('names a root-level failure as root rather than leaving the field empty', async () => {
@@ -126,8 +126,7 @@ describe('aggregating failures', () => {
             app.post('/t', ...validated({ body: z.string() }, (_req, res) => void res.json({ ok: true })));
         });
 
-        const body = (await harness.call('/t', json({ a: 1 }))).body as { errors: { field: string }[] };
-        expect(body.errors[0]?.field).toBe('(root)');
+        expect(failedFieldsOf((await harness.call('/t', json({ a: 1 }))).body)).toEqual(['(root)']);
     });
 });
 

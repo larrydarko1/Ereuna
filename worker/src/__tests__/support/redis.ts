@@ -16,7 +16,7 @@ type MultiStub = {
 
 export type RedisStub = {
     xgroup: Mock;
-    xreadgroup: Mock;
+    xreadgroup: Mock<(...args: unknown[]) => Promise<unknown>>;
     xack: Mock;
     multi: Mock;
     quit: Mock;
@@ -47,7 +47,7 @@ export function fakeRedis(): RedisStub {
 
     return {
         xgroup: vi.fn(() => Promise.resolve('OK')),
-        xreadgroup: vi.fn(() => Promise.resolve(null)),
+        xreadgroup: vi.fn((..._args: unknown[]): Promise<unknown> => Promise.resolve(null)),
         xack: vi.fn(() => Promise.resolve(1)),
         multi,
         quit: vi.fn(() => Promise.resolve('OK')),

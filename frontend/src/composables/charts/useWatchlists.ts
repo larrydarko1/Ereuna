@@ -29,7 +29,7 @@ import {
     reorderWatchlists,
 } from '@/api/watchlist';
 
-export type UseWatchlistsReturn = {
+type UseWatchlistsReturn = {
     lists: DeepReadonly<Ref<WatchlistSummary[]>>;
     activeName: DeepReadonly<Ref<string | null>>;
     rows: DeepReadonly<Ref<WatchlistRow[]>>;

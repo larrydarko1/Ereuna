@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { TradeDoc } from '@ereuna/shared';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { at } from '@/__tests__/support/values.js';
 import { AppError } from '@/lib/app-error.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
@@ -161,14 +162,12 @@ describe('addTrade', () => {
 
     it('settles the default commission onto the row, so a later change cannot re-price it', async () => {
         await addTrade(USER_ID, 0, input({ commission: null }));
-        const document = db.current.of('Trades').writes[0]?.args[0] as { commission: number };
-        expect(document.commission).toBe(4.95);
+        expect(at(db.current.of('Trades').writes[0]?.args, 0, 'commission')).toBe(4.95);
     });
 
     it('keeps a commission the client stated', async () => {
         await addTrade(USER_ID, 0, input({ commission: 0 }));
-        const document = db.current.of('Trades').writes[0]?.args[0] as { commission: number };
-        expect(document.commission).toBe(0);
+        expect(at(db.current.of('Trades').writes[0]?.args, 0, 'commission')).toBe(0);
     });
 
     it('checks the symbol exists', async () => {

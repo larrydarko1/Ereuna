@@ -2,12 +2,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { drawHandle, traceRoundedRect } from '@/lib/charting/shared/canvas-path';
 
+type Recorder = (...args: unknown[]) => void;
+type RecordingContext = Record<
+    'beginPath' | 'closePath' | 'moveTo' | 'lineTo' | 'quadraticCurveTo' | 'arc' | 'fill' | 'stroke',
+    Recorder
+> & { calls: string[]; fillStyle: string; strokeStyle: string; lineWidth: number };
+
 /**
  * jsdom has no 2D context, so the calls are recorded instead of rasterised —
  * what these functions are responsible for is the path they trace and the order
  * they trace it in, not the pixels a real canvas would produce.
  */
-function recordingContext(): CanvasRenderingContext2D & { calls: string[] } {
+function recordingContext(): RecordingContext {
     const calls: string[] = [];
     const record =
         (name: string) =>
@@ -25,11 +31,14 @@ function recordingContext(): CanvasRenderingContext2D & { calls: string[] } {
         arc: record('arc'),
         fill: record('fill'),
         stroke: record('stroke'),
-    } as unknown as CanvasRenderingContext2D & { calls: string[] };
+        fillStyle: '',
+        strokeStyle: '',
+        lineWidth: 1,
+    };
 }
 
 describe('traceRoundedRect', () => {
-    let ctx: CanvasRenderingContext2D & { calls: string[] };
+    let ctx: RecordingContext;
 
     beforeEach(() => {
         ctx = recordingContext();
@@ -75,7 +84,8 @@ describe('traceRoundedRect', () => {
 
     it('does not use the native roundRect, which Safari 14 does not have', () => {
         const roundRect = vi.fn();
-        traceRoundedRect({ ...ctx, roundRect } as unknown as CanvasRenderingContext2D, {
+        const withNative = { ...ctx, roundRect };
+        traceRoundedRect(withNative, {
             x: 0,
             y: 0,
             width: 10,

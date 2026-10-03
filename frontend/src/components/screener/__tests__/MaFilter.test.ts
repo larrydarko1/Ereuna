@@ -1,6 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 
+import { elementOf } from '@/__tests__/support/dom';
 import MaFilter from '@/components/screener/MaFilter.vue';
 import { i18n } from '@/i18n';
 
@@ -21,15 +22,15 @@ describe('MaFilter', () => {
     it('starts on the first of each when nothing is stored', () => {
         const selects = filter().findAll('select');
 
-        expect((selects[0]?.element as HTMLSelectElement).value).toBe('abv');
-        expect((selects[1]?.element as HTMLSelectElement).value).toBe('price');
+        expect(elementOf(selects[0]?.element, HTMLSelectElement).value).toBe('abv');
+        expect(elementOf(selects[1]?.element, HTMLSelectElement).value).toBe('price');
     });
 
     it('starts on the stored pair when there is one', () => {
         const selects = filter({ value: { direction: 'blw', target: '200' } }).findAll('select');
 
-        expect((selects[0]?.element as HTMLSelectElement).value).toBe('blw');
-        expect((selects[1]?.element as HTMLSelectElement).value).toBe('200');
+        expect(elementOf(selects[0]?.element, HTMLSelectElement).value).toBe('blw');
+        expect(elementOf(selects[1]?.element, HTMLSelectElement).value).toBe('200');
     });
 
     it('returns to the defaults when the filter is cleared', async () => {

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { PortfolioExport } from '@ereuna/shared';
 
+import { query } from '@/__tests__/support/dom';
 import ExportDialog from '@/components/portfolio/ExportDialog.vue';
 import { i18n } from '@/i18n';
 
@@ -29,7 +30,7 @@ const EXPORT: PortfolioExport = {
             tradeDate: '2026-02-01',
         },
     ],
-} as unknown as PortfolioExport;
+};
 
 const saved: Saved[] = [];
 
@@ -74,14 +75,14 @@ describe('ExportDialog', () => {
     it('starts on the format that keeps everything', () => {
         open();
 
-        expect(($('input[value="json"]') as HTMLInputElement).checked).toBe(true);
+        expect(query('input[value="json"]', HTMLInputElement).checked).toBe(true);
         expect($('.form-hint').textContent).toBe(i18n.global.t('portfolio.exportJsonHint'));
     });
 
     it('explains what the spreadsheet format leaves out', async () => {
         open();
 
-        ($('input[value="csv"]') as HTMLInputElement).click();
+        query('input[value="csv"]', HTMLInputElement).click();
         await Promise.resolve();
 
         expect($('.form-hint').textContent).toBe(i18n.global.t('portfolio.exportCsvHint'));
@@ -109,7 +110,7 @@ describe('ExportDialog', () => {
     it('writes the trade log alone as CSV, headed by its columns', async () => {
         captureDownloads();
         open();
-        ($('input[value="csv"]') as HTMLInputElement).click();
+        query('input[value="csv"]', HTMLInputElement).click();
         await Promise.resolve();
 
         await download();

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AssetInfoDoc } from '@ereuna/shared';
 
+import { at, recordAt } from '@/__tests__/support/values.js';
 import type { LifetimeStats, Series } from '@/organize/bars.js';
 import type { Asset } from '@/organize/universe.js';
 
@@ -71,10 +72,9 @@ function fieldsFor(symbol: string): Record<string, unknown> {
     const merged: Record<string, unknown> = {};
     for (const batch of state.written) {
         for (const operation of batch) {
-            const update = operation as {
-                updateOne: { filter: { Symbol: string }; update: { $set: Record<string, unknown> } };
-            };
-            if (update.updateOne.filter.Symbol === symbol) Object.assign(merged, update.updateOne.update.$set);
+            if (at(operation, 'updateOne', 'filter', 'Symbol') === symbol) {
+                Object.assign(merged, recordAt(operation, 'updateOne', 'update', '$set'));
+            }
         }
     }
     return merged;

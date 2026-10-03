@@ -8,7 +8,7 @@
  * request takes a sequence number here and a late one is dropped, so what is on
  * screen always belongs to the key that is current.
  */
-import { getCurrentScope, onScopeDispose, readonly, ref, watch, type DeepReadonly, type Ref } from 'vue';
+import { getCurrentScope, onScopeDispose, readonly, ref, shallowRef, watch, type DeepReadonly, type Ref } from 'vue';
 
 import { apiErrorMessage } from '@/api/client';
 import { i18n } from '@/i18n';
@@ -21,7 +21,7 @@ export type UseResourceReturn<TValue> = {
     mutate: (value: TValue | null) => void;
 };
 
-export type ResourceOptions<TKey> = {
+type ResourceOptions<TKey> = {
     enabled?: (key: TKey) => boolean;
 };
 
@@ -30,7 +30,8 @@ export function useResource<TKey, TValue>(
     fetcher: (key: TKey) => Promise<TValue>,
     options: ResourceOptions<TKey> = {},
 ): UseResourceReturn<TValue> {
-    const data = ref<TValue | null>(null) as Ref<TValue | null>;
+    // Shallow because the value is only ever replaced whole, never edited in place
+    const data = shallowRef<TValue | null>(null);
     const pending = ref(false);
     const error = ref<string | null>(null);
 

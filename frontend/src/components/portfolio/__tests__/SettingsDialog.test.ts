@@ -1,6 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { elementOf } from '@/__tests__/support/dom';
 import SettingsDialog from '@/components/portfolio/SettingsDialog.vue';
 
 const SUMMARY = { baseValue: 100_000, leverage: 2, defaultCommission: 1 };
@@ -18,7 +19,7 @@ const $ = (selector: string): HTMLElement => {
 const rows = (): HTMLElement[] => [...document.body.querySelectorAll<HTMLElement>('.settings-dialog__row')];
 
 const edit = async (row: number, value: string): Promise<void> => {
-    const field = rows()[row]?.querySelector('input') as HTMLInputElement;
+    const field = elementOf(rows()[row]?.querySelector('input'), HTMLInputElement);
     field.value = value;
     field.dispatchEvent(new Event('input', { bubbles: true }));
     await Promise.resolve();
@@ -39,7 +40,7 @@ describe('SettingsDialog', () => {
     it('starts on the settings the portfolio already has', () => {
         open();
 
-        expect(rows().map((row) => (row.querySelector('input') as HTMLInputElement).value)).toEqual([
+        expect(rows().map((row) => elementOf(row.querySelector('input'), HTMLInputElement).value)).toEqual([
             '100000',
             '2',
             '1',

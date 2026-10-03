@@ -30,7 +30,7 @@ function inScope(key: () => { symbol: string; timeframe: ChartTimeframe; overlay
     stop: () => void;
 } {
     const scope = effectScope();
-    const chart = scope.run(() => useChartSeries(() => ({ overlays: '', ...key() }))) as UseChartSeriesReturn;
+    const chart = scope.run(() => useChartSeries(() => ({ overlays: '', ...key() })))!;
     return { chart, stop: () => scope.stop() };
 }
 

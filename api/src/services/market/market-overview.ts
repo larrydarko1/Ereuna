@@ -9,6 +9,8 @@
  * The holiday document is still passed through: it is one array of dates with
  * nothing to model.
  */
+import { z } from 'zod';
+
 import type { Financials, MarketOverview, StatsDoc } from '@ereuna/shared';
 
 import { AppError } from '@/lib/app-error.js';
@@ -16,6 +18,12 @@ import { marketKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
 import { getAsset } from '@/services/market/market-assets.js';
 import { toMarketOverview } from '@/utils/market-overview.js';
+
+// `updatedAt` leaves Redis as a string and is turned back into the Date the document holds
+const statsDocSchema: z.ZodType<StatsDoc | null> = z
+    .object({ _id: z.string(), updatedAt: z.coerce.date().exactOptional() })
+    .catchall(z.unknown())
+    .nullable();
 
 /** One day. Holidays change on the ingestor's schedule, not ours. */
 const DAY_SECONDS = 86_400;
@@ -53,6 +61,7 @@ async function statsDocument(id: string): Promise<StatsDoc> {
     const isCalendar = id === 'Holidays';
     const doc = await withCache(
         marketKey('stats', id),
+        statsDocSchema,
         async () => getDb().collection<StatsDoc>('Stats').findOne({ _id: id }),
         { ...(isCalendar ? { ttl: DAY_SECONDS } : {}), dataType: isCalendar ? 'static' : 'price' },
     );

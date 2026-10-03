@@ -7,6 +7,7 @@
  */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type PricedValue } from '@/lib/charting/engine/model/price/price-scale';
 import { type SeriesItemsIndexesRange, type TimedValue } from '@/lib/charting/engine/model/time/time-data';
@@ -53,7 +54,7 @@ export abstract class PaneRendererAreaBase<
         const { items, visibleRange, barWidth, lineWidth, lineStyle, lineType } = this._data;
         const baseLevelCoordinate =
             this._data.baseLevelCoordinate ??
-            ((this._data.invertFilledArea ? 0 : renderingScope.mediaSize.height) as Coordinate);
+            nominal<Coordinate>(this._data.invertFilledArea ? 0 : renderingScope.mediaSize.height);
 
         if (visibleRange === null) {
             return;

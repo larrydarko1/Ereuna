@@ -16,7 +16,7 @@ import { optimalCandlestickWidth } from '@/lib/charting/engine/renderers/optimal
 
 export type CandlestickItem = {} & BarCandlestickItemBase & CandlesticksColorerStyle;
 
-export type PaneRendererCandlesticksData = {
+type PaneRendererCandlesticksData = {
     bars: readonly CandlestickItem[];
 
     barSpacing: number;

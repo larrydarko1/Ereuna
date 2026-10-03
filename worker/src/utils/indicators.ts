@@ -4,13 +4,13 @@
  * newest last — and every caller sorts that way.
  */
 
-export type MacdOptions = {
+type MacdOptions = {
     fast?: number;
     slow?: number;
     signalPeriod?: number;
 };
 
-export type MacdSeries = {
+type MacdSeries = {
     macd: number[];
     signal: number[];
 };

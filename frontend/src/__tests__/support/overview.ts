@@ -1,5 +1,5 @@
 /** The market overview fixture — one ingested document the dashboard reads. */
-import { BREADTH_UNIVERSES, type MarketOverview } from '@ereuna/shared';
+import type { BreadthUniverse, MarketOverview } from '@ereuna/shared';
 
 export function overview(over: Partial<MarketOverview> = {}): MarketOverview {
     return {
@@ -24,9 +24,7 @@ export function overview(over: Partial<MarketOverview> = {}): MarketOverview {
             newLows: 0.5,
             neutral: 0.3,
         },
-        movingAverages: Object.fromEntries(
-            BREADTH_UNIVERSES.map((universe) => [universe, [{ period: 50, above: 0.6, below: 0.4 }]]),
-        ) as MarketOverview['movingAverages'],
+        movingAverages: byUniverse(() => [{ period: 50, above: 0.6, below: 0.4 }]),
         sectors: [
             { name: 'Tech', averageReturn: 0.05, count: 40 },
             { name: 'Energy', averageReturn: -0.02, count: 20 },
@@ -38,5 +36,21 @@ export function overview(over: Partial<MarketOverview> = {}): MarketOverview {
         gainers: [{ symbol: 'AAPL', dailyReturn: 0.05 }],
         losers: [{ symbol: 'F', dailyReturn: -0.04 }],
         ...over,
+    };
+}
+
+/**
+ * One value per breadth universe. Spelled out rather than built from the shared list,
+ * so a universe added there is a compile error here instead of a missing key.
+ */
+export function byUniverse<T>(make: (universe: BreadthUniverse) => T): Record<BreadthUniverse, T> {
+    return {
+        all: make('all'),
+        stock: make('stock'),
+        etf: make('etf'),
+        fund: make('fund'),
+        otc: make('otc'),
+        pink: make('pink'),
+        crypto: make('crypto'),
     };
 }

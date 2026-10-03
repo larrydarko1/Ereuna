@@ -8,6 +8,7 @@ import { apiErrorMessage } from '@/api/client';
 import AppDialog from '@/components/ui/AppDialog.vue';
 import { MAX_INDICATOR_PERIOD, useChartSettings } from '@/composables/charts/useChartSettings';
 import { useChartTheme } from '@/composables/charts/useChartTheme';
+import { targetOf } from '@/utils/dom';
 
 // The overlays belong to one timeframe, so the dialog edits the set of the
 // chart it was opened from and leaves every other timeframe alone.
@@ -54,8 +55,8 @@ function restoreDefaults(): void {
  * string rather than a number. Reading it back as one keeps the draft typed
  * and lets the field be cleared mid-edit without writing NaN into it.
  */
-function setPeriod(indicator: ChartIndicator, value: string): void {
-    const parsed = Number.parseInt(value, 10);
+function setPeriod(indicator: ChartIndicator, event: Event): void {
+    const parsed = Number.parseInt(targetOf(event, HTMLInputElement).value, 10);
     indicator.period = Number.isFinite(parsed) ? parsed : 1;
 }
 </script>
@@ -122,7 +123,7 @@ function setPeriod(indicator: ChartIndicator, value: string): void {
                         :max="MAX_INDICATOR_PERIOD"
                         :value="indicator.period"
                         :aria-label="t('charts.settings.overlayPeriod', { number: index + 1 })"
-                        @input="setPeriod(indicator, ($event.target as HTMLInputElement).value)" />
+                        @input="setPeriod(indicator, $event)" />
                 </div>
             </fieldset>
 

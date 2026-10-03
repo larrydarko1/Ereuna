@@ -8,7 +8,7 @@ import type { NotePage, NoteRow } from '@ereuna/shared';
 
 import { api, type ApiResult } from '@/api/client';
 
-export type NoteQuery = {
+type NoteQuery = {
     page?: number;
     limit?: number;
     symbol?: string;

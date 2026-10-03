@@ -3,6 +3,13 @@
  */
 import { type CanvasPoint } from '@/lib/charting/shared/geometry';
 
+/** Only the context members each function draws with, so a recording fake can stand in for a canvas. */
+type PathContext = Pick<CanvasRenderingContext2D, 'beginPath' | 'moveTo' | 'lineTo' | 'quadraticCurveTo' | 'closePath'>;
+type HandleContext = Pick<
+    CanvasRenderingContext2D,
+    'beginPath' | 'arc' | 'fill' | 'stroke' | 'fillStyle' | 'strokeStyle' | 'lineWidth'
+>;
+
 /**
  * Traces a rounded rectangle as the current path, leaving it to the caller to
  * fill or stroke it.
@@ -11,7 +18,7 @@ import { type CanvasPoint } from '@/lib/charting/shared/geometry';
  * Safari 16 and the browserslist floor here is Safari 14.
  */
 export function traceRoundedRect(
-    ctx: CanvasRenderingContext2D,
+    ctx: PathContext,
     bounds: { x: number; y: number; width: number; height: number; radius: number },
 ): void {
     const { x, y, width, height, radius } = bounds;
@@ -38,7 +45,7 @@ export function traceRoundedRect(
  * underneath with it.
  */
 export function drawHandle(
-    ctx: CanvasRenderingContext2D,
+    ctx: HandleContext,
     at: CanvasPoint,
     style: { radius: number; color: string; holeColor: string },
 ): void {

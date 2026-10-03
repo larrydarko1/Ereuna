@@ -5,7 +5,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { UserDoc } from '@ereuna/shared';
 
 import { fakeArgon2, hashOf } from '@/__tests__/support/argon2.js';
+import { userDoc } from '@/__tests__/support/fixtures.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { at, recordAt } from '@/__tests__/support/values.js';
 import { AppError } from '@/lib/app-error.js';
 
 vi.mock('argon2', () => ({ default: fakeArgon2 }));
@@ -43,23 +45,10 @@ const liveCode = (secret = SECRET): string =>
     }).generate();
 
 function user(overrides: Partial<UserDoc> = {}): WithId<UserDoc> {
-    return {
-        _id: USER_ID,
-        username: 'Larry',
-        usernameLower: 'larry',
-        passwordHash: hashOf('Str0ng!pass'),
-        totpSecretEncrypted: null,
-        pendingTotpSecretEncrypted: null,
-        totpEnabled: false,
-        recoveryCodeHashes: [],
-        passwordResetRequired: false,
-        language: 'en',
-        ...overrides,
-    } as WithId<UserDoc>;
+    return userDoc({ _id: USER_ID, passwordHash: hashOf('Str0ng!pass'), ...overrides });
 }
 
-const written = (): Record<string, unknown> =>
-    (db.current.of('Users').writes[0]?.args[1] as { $set: Record<string, unknown> }).$set;
+const written = (): Record<string, unknown> => recordAt(db.current.of('Users').writes[0]?.args, 1, '$set');
 
 beforeEach(() => {
     db.current = fakeDb();
@@ -153,7 +142,7 @@ describe('validateTotpLogin', () => {
     it('passes the remember-me choice through to the session', async () => {
         db.current = fakeDb({ Users: [enabled()] });
         await validateTotpLogin(USER_ID, liveCode(), { rememberMe: false });
-        expect((issued.calls[0] as unknown[])[1]).toEqual({ rememberMe: false });
+        expect(at(issued.calls, 0, 1)).toEqual({ rememberMe: false });
     });
 
     it('refuses a wrong code', async () => {

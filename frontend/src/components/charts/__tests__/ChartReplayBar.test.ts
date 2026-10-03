@@ -1,6 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 
+import { elementOf } from '@/__tests__/support/dom';
 import ChartReplayBar from '@/components/charts/ChartReplayBar.vue';
 import { i18n } from '@/i18n';
 
@@ -53,7 +54,7 @@ describe('ChartReplayBar', () => {
     });
 
     it('shows the scrubber where the replay has got to', () => {
-        expect((bar({ progress: 40 }).get('.replay__scrubber').element as HTMLInputElement).value).toBe('40');
+        expect(elementOf(bar({ progress: 40 }).get('.replay__scrubber').element, HTMLInputElement).value).toBe('40');
     });
 
     it('seeks to the position the scrubber was dragged to', async () => {

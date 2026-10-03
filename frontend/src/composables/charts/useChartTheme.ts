@@ -3,7 +3,7 @@ import { computed, type ComputedRef } from 'vue';
 
 import { useTheme } from '@/composables/ui/useTheme';
 
-export type ChartPalette = {
+type ChartPalette = {
     background: string;
     surface: string;
     border: string;

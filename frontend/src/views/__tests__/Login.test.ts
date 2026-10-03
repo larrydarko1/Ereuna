@@ -2,6 +2,7 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { Router } from 'vue-router';
 
+import { elementOf } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { testRouter } from '@/__tests__/support/router';
 import { clearAuth } from '@/api/client';
@@ -174,7 +175,7 @@ describe('Login', () => {
         await flushPromises();
 
         expect(wrapper.find('.prompt').exists()).toBe(false);
-        expect((wrapper.findAll('input')[1]?.element as HTMLInputElement).value).toBe('');
+        expect(elementOf(wrapper.findAll('input')[1]?.element, HTMLInputElement).value).toBe('');
     });
 
     it('offers the way to recovery and to signing up', async () => {

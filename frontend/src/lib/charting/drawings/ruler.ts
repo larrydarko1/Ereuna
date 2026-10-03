@@ -14,7 +14,7 @@ import { traceRoundedRect } from '@/lib/charting/shared/canvas-path';
 import { getThemeColor } from '@/lib/charting/shared/theme-color';
 import { timeToTimestamp } from '@/lib/charting/shared/time-conversion';
 
-export type RulerPoint = {
+type RulerPoint = {
     time: Time;
     price: number;
     x: number;

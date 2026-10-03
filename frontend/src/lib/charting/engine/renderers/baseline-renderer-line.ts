@@ -5,6 +5,7 @@
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type BaselineStrokeColorerStyle } from '@/lib/charting/engine/model/series/series-bar-colorer';
 import { GradientStyleCache } from '@/lib/charting/engine/renderers/gradient-style-cache';
@@ -15,7 +16,7 @@ import {
 } from '@/lib/charting/engine/renderers/line-renderer-base';
 
 export type BaselineStrokeItem = LineStrokeItemBase & BaselineStrokeColorerStyle;
-export type PaneRendererBaselineLineData = {
+type PaneRendererBaselineLineData = {
     baseLevelCoordinate: Coordinate;
 } & PaneRendererLineDataBase<BaselineStrokeItem>;
 
@@ -35,7 +36,7 @@ export class PaneRendererBaselineLine extends PaneRendererLineBase<PaneRendererB
             topColor2: item.topLineColor,
             bottomColor1: item.bottomLineColor,
             bottomColor2: item.bottomLineColor,
-            bottom: renderingScope.bitmapSize.height as Coordinate,
+            bottom: nominal<Coordinate>(renderingScope.bitmapSize.height),
             baseLevelCoordinate: data.baseLevelCoordinate,
         });
     }

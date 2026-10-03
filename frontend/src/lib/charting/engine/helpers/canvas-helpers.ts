@@ -7,7 +7,7 @@
  */
 type LeftTopRightTopRightBottomLeftBottomRadii = [number, number, number, number];
 
-export type RoundRectBox = {
+type RoundRectBox = {
     left: number;
     top: number;
     width: number;
@@ -17,7 +17,7 @@ export type RoundRectBox = {
     outerRadius: LeftTopRightTopRightBottomLeftBottomRadii;
 };
 
-export type RoundRectStyle = {
+type RoundRectStyle = {
     backgroundColor: string;
     borderColor: string;
     borderWidth: number;
@@ -140,7 +140,9 @@ function changeBorderRadius(
     borderRadius: LeftTopRightTopRightBottomLeftBottomRadii,
     offset: number,
 ): typeof borderRadius {
-    return borderRadius.map((x: number) => (x === 0 ? x : x + offset)) as typeof borderRadius;
+    const shift = (radius: number): number => (radius === 0 ? radius : radius + offset);
+    const [leftTop, rightTop, rightBottom, leftBottom] = borderRadius;
+    return [shift(leftTop), shift(rightTop), shift(rightBottom), shift(leftBottom)];
 }
 
 function drawRoundRect(

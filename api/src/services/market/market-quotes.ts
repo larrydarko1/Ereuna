@@ -1,9 +1,22 @@
 /** market-quotes — latest and previous closes, read from the daily bar collection. */
+import { z } from 'zod';
+
 import type { OhlcvDoc, Quote } from '@ereuna/shared';
 
 import { marketKey, withCache } from '@/lib/cache.js';
 import { sha256 } from '@/lib/crypto.js';
 import { getDb } from '@/lib/db.js';
+
+const quotesSchema: z.ZodType<Quote[]> = z.array(
+    z.object({
+        symbol: z.string(),
+        close: z.number(),
+        timestamp: z.string(),
+        previousClose: z.number().nullable(),
+        change: z.number().nullable(),
+        changePercent: z.number().nullable(),
+    }),
+);
 
 /**
  * Symbols per aggregation. The pipeline sorts before grouping, so an unbounded
@@ -52,6 +65,7 @@ export async function quotes(symbols: readonly string[]): Promise<Quote[]> {
     // and sorting makes two callers requesting the same symbols share one entry.
     return withCache(
         marketKey('quotes', sha256([...symbols].sort().join(','))),
+        quotesSchema,
         async () => {
             const results: Quote[] = [];
 

@@ -7,8 +7,9 @@
  * itself.
  */
 import { getDefined } from '@/lib/charting/engine/helpers/assertions';
+import { callerType } from '@/lib/charting/engine/helpers/caller-type';
 import { type Mutable } from '@/lib/charting/engine/helpers/mutable';
-import { type SeriesDataItemTypeMap } from '@/lib/charting/engine/model/data/data-consumer';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type WhitespacePlotRow } from '@/lib/charting/engine/model/data/get-series-plot-row-creator';
 import { type SeriesPlotRow } from '@/lib/charting/engine/model/data/series-data';
 import { type Series, type SeriesUpdateInfo } from '@/lib/charting/engine/model/series/series';
@@ -29,20 +30,13 @@ export type TimePointData = {
     mapping: Map<Series<SeriesType>, Mutable<SeriesPlotRow<SeriesType> | WhitespacePlotRow>>;
 };
 
-export type SeriesDataItemWithOriginalTime<
-    TSeriesType extends SeriesType,
-    THorzScaleItem,
-> = SeriesDataItemTypeMap<THorzScaleItem>[TSeriesType] & {
-    originalTime: THorzScaleItem;
-};
-
 type SeriesRowsTimeSpan = {
     firstTime: InternalHorzScaleItemKey;
     lastTime: InternalHorzScaleItemKey;
 };
 
 export function createEmptyTimePointData(timePoint: InternalHorzScaleItem): TimePointData {
-    return { index: 0 as TimePointIndex, mapping: new Map(), timePoint };
+    return { index: nominal<TimePointIndex>(0), mapping: new Map(), timePoint };
 }
 
 export function seriesUpdateInfo<TSeriesType extends SeriesType, THorzScaleItem>(
@@ -69,19 +63,11 @@ export function timeScalePointTime<TSeriesType extends SeriesType, THorzScaleIte
     let result: THorzScaleItem | undefined;
     mergedPointData.forEach((v: SeriesPlotRow<TSeriesType> | WhitespacePlotRow) => {
         if (result === undefined) {
-            result = v.originalTime as THorzScaleItem;
+            result = callerType<THorzScaleItem>(v.originalTime);
         }
     });
 
     return getDefined(result);
-}
-
-export function saveOriginalTime<TSeriesType extends SeriesType, THorzScaleItem>(
-    data: SeriesDataItemWithOriginalTime<TSeriesType, THorzScaleItem>,
-): void {
-    if (data.originalTime === undefined) {
-        data.originalTime = data.time;
-    }
 }
 
 export function assignIndexToPointData(pointData: TimePointData, index: TimePointIndex): void {

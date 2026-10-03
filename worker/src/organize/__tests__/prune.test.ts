@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { INTRADAY_COLLECTIONS } from '@ereuna/shared';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { at } from '@/__tests__/support/values.js';
 
 vi.mock('@/lib/logger.js', () => ({
     logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
@@ -28,8 +29,9 @@ describe('pruneIntraday', () => {
         const now = Date.UTC(2026, 8, 5, 12, 0, 0);
         await pruneIntraday(now);
         const [collection] = INTRADAY_COLLECTIONS;
-        const filter = db.current.of(collection ?? '').writes[0]?.args[0] as { timestamp: { $lt: Date } };
-        expect(filter.timestamp.$lt).toEqual(new Date(now - config.organize.intradayRetentionDays * 86_400_000));
+        expect(at(db.current.of(collection ?? '').writes[0]?.args, 0, 'timestamp', '$lt')).toEqual(
+            new Date(now - config.organize.intradayRetentionDays * 86_400_000),
+        );
     });
 
     it('sums the deletions across the collections', async () => {

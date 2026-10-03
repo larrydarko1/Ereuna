@@ -17,7 +17,7 @@ export type BarCandlestickItemBase = TimedValue & BarPrices & BarCoordinates;
 
 export type BarItem = {} & BarCandlestickItemBase & BarColorerStyle;
 
-export type PaneRendererBarsData = {
+type PaneRendererBarsData = {
     bars: readonly BarItem[];
     barSpacing: number;
     openVisible: boolean;

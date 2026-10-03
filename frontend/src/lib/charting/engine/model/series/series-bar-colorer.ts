@@ -20,7 +20,16 @@ import {
 } from '@/lib/charting/engine/model/series/series-style-options';
 import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 
-export type PrecomputedBars = {
+export type LineStrokeColorerStyle = {
+    lineColor: string;
+};
+
+export type AreaFillColorerStyle = {
+    topColor: string;
+    bottomColor: string;
+};
+
+type PrecomputedBars = {
     value: SeriesPlotRow;
     previousValue?: SeriesPlotRow;
 };
@@ -29,18 +38,9 @@ type CommonBarColorerStyle = {
     barColor: string;
 };
 
-export type LineStrokeColorerStyle = {
-    lineColor: string;
-};
-
 type LineBarColorerStyle = {} & CommonBarColorerStyle & LineStrokeColorerStyle;
 
 type HistogramBarColorerStyle = {} & CommonBarColorerStyle;
-
-export type AreaFillColorerStyle = {
-    topColor: string;
-    bottomColor: string;
-};
 
 type AreaBarColorerStyle = {} & CommonBarColorerStyle & AreaFillColorerStyle & LineStrokeColorerStyle;
 
@@ -67,7 +67,7 @@ export type CandlesticksColorerStyle = {
 
 type CustomBarColorerStyle = {} & CommonBarColorerStyle;
 
-export type BarStylesMap = {
+type BarStylesMap = {
     Bar: BarColorerStyle;
     Candlestick: CandlesticksColorerStyle;
     Area: AreaBarColorerStyle;
@@ -124,7 +124,7 @@ export class SeriesBarColorer<T extends SeriesType> implements ISeriesBarColorer
  * `BarStylesFnMap`, which requires exactly those names. Renaming them to
  * camelCase would stop the map from satisfying its own type.
  */
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention -- the keys are the PascalCase `SeriesType` union (see above) */
 const barStyleFnMap: BarStylesFnMap = {
     Bar: (
         findBar: FindBarFn,
@@ -245,3 +245,4 @@ const barStyleFnMap: BarStylesFnMap = {
         };
     },
 };
+/* eslint-enable @typescript-eslint/naming-convention -- the map ends here */

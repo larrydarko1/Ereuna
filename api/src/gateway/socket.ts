@@ -22,8 +22,7 @@
  */
 import { type Server as HttpServer } from 'http';
 
-import jwt from 'jsonwebtoken';
-import { Server, type Socket } from 'socket.io';
+import { type DefaultEventsMap, Server, type Socket } from 'socket.io';
 import { z } from 'zod';
 
 import {
@@ -43,12 +42,16 @@ import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 import { symbolSchema } from '@/lib/schemas.js';
 import { consumeTokenBucket, type TokenBucketOptions } from '@/lib/token-bucket.js';
+import { verifyAccessToken } from '@/middleware/auth.js';
 
-type FeedSocket = Socket & {
-    userId: string;
+/** What this gateway keeps on each socket; `userId` is set once the handshake token checks out. */
+type FeedData = {
+    userId?: string;
     candleRoom?: string; // The one candle room this socket is in, so switching charts can leave it
-    quoteRooms: string[]; // The quote rooms this socket is in, so a new watchlist can leave them all
+    quoteRooms?: string[]; // The quote rooms this socket is in, so a new watchlist can leave them all
 };
+
+type FeedSocket = Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, FeedData>;
 
 const candleWatchSchema = z.object({
     symbol: symbolSchema,
@@ -77,7 +80,7 @@ const WATCH_BUCKET: TokenBucketOptions = { capacity: 30, refillPerMs: 1 / 1_000 
 /** The last price emitted per symbol, so an unchanged bucket is not re-sent. */
 const lastPrices = new Map<string, number>();
 
-let io: Server | undefined;
+let io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, FeedData> | undefined;
 
 export async function initSocket(httpServer: HttpServer): Promise<void> {
     io = new Server(httpServer, {
@@ -92,7 +95,7 @@ export async function initSocket(httpServer: HttpServer): Promise<void> {
         },
     });
 
-    io.use((socket: Socket, next) => {
+    io.use((socket: FeedSocket, next) => {
         void (async () => {
             const { allowed } = await consumeTokenBucket(`rl:ws:conn:${clientIp(socket)}`, CONN_BUCKET);
             if (!allowed) return next(new Error('Too many connection attempts — slow down'));
@@ -100,25 +103,23 @@ export async function initSocket(httpServer: HttpServer): Promise<void> {
         })();
     });
 
-    io.use((socket: Socket, next) => {
-        const token = socket.handshake.auth?.['token'] as string | undefined;
-        if (token === undefined || token === '') return next(new Error('Missing token'));
+    io.use((socket: FeedSocket, next) => {
+        const token: unknown = socket.handshake.auth['token'];
+        if (typeof token !== 'string' || token === '') return next(new Error('Missing token'));
 
-        try {
-            const payload = jwt.verify(token, config.jwt.secret, { algorithms: ['HS256'] }) as { sub: string };
-            const feed = socket as FeedSocket;
-            feed.userId = payload.sub;
-            feed.quoteRooms = [];
-            next();
-        } catch {
-            next(new Error('Invalid token'));
-        }
+        // The same check as REST, which also refuses the 2FA challenge token
+        const userId = verifyAccessToken(token);
+        if (userId === null) return next(new Error('Invalid token'));
+        socket.data.userId = userId;
+        next();
     });
 
-    io.on('connection', (socket: Socket) => {
-        const feed = socket as FeedSocket;
-        socket.on('candle:watch', (payload: unknown) => void watchCandle(feed, payload));
-        socket.on('quote:watch', (payload: unknown) => void watchQuotes(feed, payload));
+    io.on('connection', (socket: FeedSocket) => {
+        const { userId } = socket.data;
+        // The auth middleware above refuses every socket without one; this only keeps the type honest
+        if (userId === undefined) return void socket.disconnect(true);
+        socket.on('candle:watch', (payload: unknown) => void watchCandle(socket, userId, payload));
+        socket.on('quote:watch', (payload: unknown) => void watchQuotes(socket, userId, payload));
     });
 
     await startMarketFeed(dispatch);
@@ -154,37 +155,38 @@ function dispatch(message: AggregateMessage): void {
     io.to(quoteRoom(message.tickerID)).emit('quote:update', { quotes: { [message.tickerID]: message.close } });
 }
 
-async function watchCandle(socket: FeedSocket, payload: unknown): Promise<void> {
+async function watchCandle(socket: FeedSocket, userId: string, payload: unknown): Promise<void> {
     const parsed = candleWatchSchema.safeParse(payload);
-    if (!parsed.success || !(await allowWatch(socket))) return;
+    if (!parsed.success || !(await allowWatch(userId))) return;
 
     const { symbol, timeframe } = parsed.data;
     const bucket = CHART_TO_AGGREGATOR[timeframe];
     const room = candleRoom(symbol, bucket);
 
-    if (socket.candleRoom === room) return;
-    if (socket.candleRoom !== undefined) await socket.leave(socket.candleRoom);
+    if (socket.data.candleRoom === room) return;
+    if (socket.data.candleRoom !== undefined) await socket.leave(socket.data.candleRoom);
     await socket.join(room);
-    socket.candleRoom = room;
+    socket.data.candleRoom = room;
 
     // A chart opened mid-bucket should not stare at an empty last bar until the
     // next trade, so the bucket as it stands right now is sent immediately.
     const opening = await readLastCandle(symbol, bucket);
-    if (opening !== null && socket.candleRoom === room) {
+    if (opening !== null && socket.data.candleRoom === room) {
         socket.emit('candle:update', { symbol, timeframe, candle: formatCandle(opening, timeframe) });
     }
 }
 
-async function watchQuotes(socket: FeedSocket, payload: unknown): Promise<void> {
+async function watchQuotes(socket: FeedSocket, userId: string, payload: unknown): Promise<void> {
     const parsed = quoteWatchSchema.safeParse(payload);
-    if (!parsed.success || !(await allowWatch(socket))) return;
+    if (!parsed.success || !(await allowWatch(userId))) return;
 
     const symbols = [...new Set(parsed.data.symbols)];
     // join/leave are synchronous on the in-memory adapter, which is the only one
     // this gateway uses — see the note on why there is no Redis adapter.
-    for (const room of socket.quoteRooms) void socket.leave(room);
-    socket.quoteRooms = symbols.map(quoteRoom);
-    for (const room of socket.quoteRooms) void socket.join(room);
+    for (const room of socket.data.quoteRooms ?? []) void socket.leave(room);
+    const rooms = symbols.map(quoteRoom);
+    socket.data.quoteRooms = rooms;
+    for (const room of rooms) void socket.join(room);
 
     const quotes: Record<string, number> = {};
     for (const symbol of symbols) {
@@ -210,10 +212,10 @@ function formatCandle(message: AggregateMessage, timeframe: ChartTimeframe): Liv
     };
 }
 
-/** Spend one subscription-change token for this socket's user. */
-async function allowWatch(socket: FeedSocket): Promise<boolean> {
-    const { allowed } = await consumeTokenBucket(`rl:ws:watch:${socket.userId}`, WATCH_BUCKET);
-    if (!allowed) logger.warn({ userId: socket.userId }, 'Socket subscription rate limit hit');
+/** Spend one subscription-change token for this user. */
+async function allowWatch(userId: string): Promise<boolean> {
+    const { allowed } = await consumeTokenBucket(`rl:ws:watch:${userId}`, WATCH_BUCKET);
+    if (!allowed) logger.warn({ userId }, 'Socket subscription rate limit hit');
     return allowed;
 }
 
@@ -230,7 +232,7 @@ function quoteRoom(symbol: string): string {
  * Socket.IO does not honour it, so without this every connection keys off the
  * proxy address and the per-IP limit collapses to one shared bucket.
  */
-function clientIp(socket: Socket): string {
+function clientIp(socket: FeedSocket): string {
     const forwarded = socket.handshake.headers['x-forwarded-for'];
     const raw = Array.isArray(forwarded) ? forwarded[0] : forwarded;
     const parts = (raw ?? '')

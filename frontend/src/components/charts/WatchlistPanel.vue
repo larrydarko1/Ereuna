@@ -7,6 +7,7 @@ import AppDialog from '@/components/ui/AppDialog.vue';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import PromptDialog from '@/components/ui/PromptDialog.vue';
 import { useWatchlists } from '@/composables/charts/useWatchlists';
+import { targetOf } from '@/utils/dom';
 import { formatNumber, formatPercent } from '@/utils/formatters';
 
 type Prompt = 'create' | 'rename' | null;
@@ -92,8 +93,13 @@ function moveRow(index: number, delta: number): void {
     void run(() => reorderTickers(next));
 }
 
+function pickList(event: Event): void {
+    const name = targetOf(event, HTMLSelectElement).value;
+    void run(() => open(name));
+}
+
 async function importFile(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
+    const input = targetOf(event, HTMLInputElement);
     const file = input.files?.[0];
     input.value = ''; // So picking the same file twice fires again.
     if (file === undefined) return;
@@ -173,7 +179,7 @@ onMounted(() => {
                 class="watchlist__picker"
                 :value="activeName ?? ''"
                 :disabled="lists.length === 0"
-                @change="run(() => open(($event.target as HTMLSelectElement).value))">
+                @change="pickList">
                 <option
                     v-for="list in lists"
                     :key="list.id"

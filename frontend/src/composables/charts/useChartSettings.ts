@@ -9,17 +9,17 @@
  * reader coerced `timeframe` from a string on every load because the writer
  * had been sending it as one.
  */
-import { computed, type ComputedRef } from 'vue';
+import { computed, type ComputedRef, type DeepReadonly } from 'vue';
 
 import type { ChartIndicator, ChartSettings, ChartTimeframe } from '@ereuna/shared';
 import { DEFAULT_INDICATORS } from '@ereuna/shared';
 
 import { patchPreferences, usePreferences } from '@/composables/data/usePreferences';
 
-export type UseChartSettingsReturn = {
-    settings: ComputedRef<ChartSettings>;
+type UseChartSettingsReturn = {
+    settings: ComputedRef<DeepReadonly<ChartSettings>>;
     indicatorsFor: (timeframe: ChartTimeframe) => ChartIndicator[];
-    save: (next: ChartSettings) => Promise<void>;
+    save: (next: DeepReadonly<ChartSettings>) => Promise<void>;
     saveIndicators: (timeframe: ChartTimeframe, indicators: ChartIndicator[]) => Promise<void>;
 };
 
@@ -43,10 +43,9 @@ export function useChartSettings(): UseChartSettingsReturn {
     const { preferences } = usePreferences();
 
     // The preferences cache hands out a deep-readonly view so nothing can edit
-    // the shared copy in place. The dialog needs a mutable draft, so what comes
-    // out here is widened once, here, rather than cast at every call site.
-    const settings = computed<ChartSettings>(
-        () => (preferences.value?.chartSettings as ChartSettings | null | undefined) ?? DEFAULT_CHART_SETTINGS,
+    // the shared copy in place; a caller that wants a draft copies one
+    const settings = computed<DeepReadonly<ChartSettings>>(
+        () => preferences.value?.chartSettings ?? DEFAULT_CHART_SETTINGS,
     );
 
     /** The averages drawn on one timeframe, defaulted rather than empty. */
@@ -55,7 +54,7 @@ export function useChartSettings(): UseChartSettingsReturn {
         return (configured ?? DEFAULT_INDICATORS).map((indicator) => ({ ...indicator }));
     }
 
-    async function save(next: ChartSettings): Promise<void> {
+    async function save(next: DeepReadonly<ChartSettings>): Promise<void> {
         await patchPreferences({ chartSettings: normalise(next) });
     }
 
@@ -77,14 +76,14 @@ export function useChartSettings(): UseChartSettingsReturn {
  * between keystrokes and whatever the user typed after them; sending that
  * would come back 400 and lose the rest of the form with it.
  */
-function normalise(settings: ChartSettings): ChartSettings {
+function normalise(settings: DeepReadonly<ChartSettings>): ChartSettings {
     const entries = Object.entries(settings.indicators).flatMap(([timeframe, list]) =>
         list === undefined ? [] : [[timeframe, list.slice(0, MAX_INDICATORS).map(normaliseIndicator)] as const],
     );
     return { ...settings, indicators: Object.fromEntries(entries) };
 }
 
-function normaliseIndicator(indicator: ChartIndicator): ChartIndicator {
+function normaliseIndicator(indicator: DeepReadonly<ChartIndicator>): ChartIndicator {
     const period = Math.round(indicator.period);
     return {
         ...indicator,

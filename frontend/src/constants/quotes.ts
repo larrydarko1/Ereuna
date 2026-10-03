@@ -1,5 +1,5 @@
 /** Decoration for the sign-in aside. */
-export type InvestingQuote = {
+type InvestingQuote = {
     text: string;
     author: string;
 };

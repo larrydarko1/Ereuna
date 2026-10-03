@@ -91,22 +91,26 @@ export function recordCanvas(): CanvasRecording {
     const calls: { method: string; args: unknown[] }[] = [];
     const original = HTMLCanvasElement.prototype.getContext;
 
-    HTMLCanvasElement.prototype.getContext = function getContext(this: HTMLCanvasElement, ...args: never[]): unknown {
-        const context = (original as (...a: never[]) => unknown).apply(this, args);
-        if (context === null || typeof context !== 'object') return context;
+    Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+        configurable: true,
+        writable: true,
+        value: function getContext(this: HTMLCanvasElement, ...args: unknown[]): unknown {
+            const context: unknown = Reflect.apply(original, this, args);
+            if (context === null || typeof context !== 'object') return context;
 
-        return new Proxy(context as Record<string, unknown>, {
-            get(target: Record<string, unknown>, property: string | symbol): unknown {
-                const value = target[property as string];
-                if (typeof value !== 'function') return value;
+            return new Proxy(context, {
+                get(target: object, property: string | symbol): unknown {
+                    const value: unknown = Reflect.get(target, property);
+                    if (typeof value !== 'function') return value;
 
-                return (...callArgs: unknown[]): unknown => {
-                    calls.push({ method: String(property), args: callArgs });
-                    return (value as (...a: unknown[]) => unknown).apply(target, callArgs);
-                };
-            },
-        });
-    } as typeof HTMLCanvasElement.prototype.getContext;
+                    return (...callArgs: unknown[]): unknown => {
+                        calls.push({ method: String(property), args: callArgs });
+                        return Reflect.apply(value, target, callArgs);
+                    };
+                },
+            });
+        },
+    });
 
     return {
         calls,

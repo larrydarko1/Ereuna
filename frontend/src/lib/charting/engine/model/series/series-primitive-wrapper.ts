@@ -7,6 +7,7 @@
  */
 import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type PriceScale } from '@/lib/charting/engine/model/price/price-scale';
 import {
@@ -258,8 +259,7 @@ export class SeriesPrimitiveWrapper<TSeriesAttachedParameters = unknown> {
 
     public autoscaleInfo(startTimePoint: TimePointIndex, endTimePoint: TimePointIndex): AutoscaleInfo | null {
         return (
-            this._primitive.autoscaleInfo?.(startTimePoint as unknown as Logical, endTimePoint as unknown as Logical) ??
-            null
+            this._primitive.autoscaleInfo?.(nominal<Logical>(startTimePoint), nominal<Logical>(endTimePoint)) ?? null
         );
     }
 

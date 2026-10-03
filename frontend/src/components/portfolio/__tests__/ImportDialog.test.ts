@@ -1,6 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { query } from '@/__tests__/support/dom';
 import ImportDialog from '@/components/portfolio/ImportDialog.vue';
 import { i18n } from '@/i18n';
 
@@ -16,7 +17,7 @@ const $ = (selector: string): HTMLElement => {
 
 /** A file input cannot be assigned, so the change carries the file itself. */
 const choose = async (contents: string): Promise<void> => {
-    const input = $('input[type="file"]') as HTMLInputElement;
+    const input = query('input[type="file"]', HTMLInputElement);
     const file = new File([contents], 'portfolio.json', { type: 'application/json' });
     Object.defineProperty(input, 'files', { configurable: true, value: [file] });
     input.dispatchEvent(new Event('change', { bubbles: true }));

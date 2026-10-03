@@ -3,7 +3,8 @@
  * contract. Pure: the document in, the response shape out.
  */
 import {
-    BREADTH_UNIVERSES,
+    isOneOf,
+    isRecord,
     OUTLOOK_TERMS,
     type BreadthSplit,
     type BreadthUniverse,
@@ -51,9 +52,7 @@ export function toMarketOverview(doc: StatsDoc): MarketOverview {
 }
 
 function record(value: unknown): Record<string, unknown> {
-    return typeof value === 'object' && value !== null && !Array.isArray(value)
-        ? (value as Record<string, unknown>)
-        : {};
+    return isRecord(value) ? value : {};
 }
 
 function num(value: unknown): number | null {
@@ -96,12 +95,11 @@ function readOutlook(source: Record<string, unknown>): OutlookReading[] {
         const row = record(source[TERM_KEYS[term]]);
         const verdict = text(row['outlook']);
         const percentUp = num(row['percentageUp']);
-        if (verdict === null || percentUp === null) continue;
-        if (!VERDICTS.includes(verdict as OutlookVerdict)) continue;
+        if (!isOneOf(VERDICTS, verdict) || percentUp === null) continue;
 
         readings.push({
             term,
-            verdict: verdict as OutlookVerdict,
+            verdict,
             percentUp,
             // The ingestor names the periods "SMA5", "SMA10" — the dashboard
             // shows them as a list of numbers, so they are parsed once here.
@@ -126,9 +124,7 @@ function readBreadth(advanceDecline: Record<string, unknown>, newHighsLows: Reco
 }
 
 function readMovingAverages(doc: StatsDoc): Record<BreadthUniverse, MovingAverageBreadth[]> {
-    const out = {} as Record<BreadthUniverse, MovingAverageBreadth[]>;
-
-    for (const universe of BREADTH_UNIVERSES) {
+    const rowsFor = (universe: BreadthUniverse): MovingAverageBreadth[] => {
         const rows: MovingAverageBreadth[] = [];
 
         for (const period of MA_PERIODS) {
@@ -139,10 +135,18 @@ function readMovingAverages(doc: StatsDoc): Record<BreadthUniverse, MovingAverag
             rows.push({ period, above, below });
         }
 
-        out[universe] = rows;
-    }
+        return rows;
+    };
 
-    return out;
+    return {
+        all: rowsFor('all'),
+        stock: rowsFor('stock'),
+        etf: rowsFor('etf'),
+        fund: rowsFor('fund'),
+        otc: rowsFor('otc'),
+        pink: rowsFor('pink'),
+        crypto: rowsFor('crypto'),
+    };
 }
 
 function readTier(value: unknown, nameField: string): TierRow[] {

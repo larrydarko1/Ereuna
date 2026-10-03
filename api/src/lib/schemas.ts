@@ -5,7 +5,7 @@ import { CHART_STYLES, CHART_TIMEFRAMES, PANEL_SECTIONS, SUMMARY_FIELDS } from '
 
 import { config } from '@/lib/config.js';
 
-export type PaginationQuerySchema = z.ZodObject<{
+type PaginationQuerySchema = z.ZodObject<{
     page: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
     limit: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
 }>;

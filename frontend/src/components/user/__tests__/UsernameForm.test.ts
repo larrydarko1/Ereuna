@@ -1,6 +1,7 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { elementOf } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import UsernameForm from '@/components/user/UsernameForm.vue';
 import { i18n } from '@/i18n';
@@ -90,8 +91,8 @@ describe('UsernameForm', () => {
         await fill(wrapper, 'newname', 'secret');
         await submit(wrapper);
 
-        expect((wrapper.findAll('input')[0]?.element as HTMLInputElement).value).toBe('');
-        expect((wrapper.findAll('input')[1]?.element as HTMLInputElement).value).toBe('');
+        expect(elementOf(wrapper.findAll('input')[0]?.element, HTMLInputElement).value).toBe('');
+        expect(elementOf(wrapper.findAll('input')[1]?.element, HTMLInputElement).value).toBe('');
     });
 
     it('shows what the API refused', async () => {

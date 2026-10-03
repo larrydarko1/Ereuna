@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { elementOf } from '@/__tests__/support/dom';
 import { downloadFile } from '@/utils/download';
 
 const created: string[] = [];
@@ -29,7 +30,7 @@ describe('downloadFile', () => {
         downloadFile('trades.csv', 'a,b', 'text/csv');
 
         expect(click).toHaveBeenCalledTimes(1);
-        const link = click.mock.instances[0] as HTMLAnchorElement;
+        const link = elementOf(click.mock.instances[0], HTMLAnchorElement);
         expect(link.download).toBe('trades.csv');
         expect(link.href).toContain('blob:');
     });

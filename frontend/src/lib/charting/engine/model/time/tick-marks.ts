@@ -4,6 +4,7 @@
  */
 import { lowerBound } from '@/lib/charting/engine/helpers/algorithms';
 import { getDefined } from '@/lib/charting/engine/helpers/assertions';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type InternalHorzScaleItem } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
 import {
     type TickMarkWeightValue,
@@ -56,7 +57,7 @@ export class TickMarks {
             }
 
             marksForWeight.push({
-                index: index as TimePointIndex,
+                index: nominal<TimePointIndex>(index),
                 time: point.time,
                 weight: point.timeWeight,
                 originalTime: point.originalTime,

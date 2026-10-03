@@ -2,6 +2,8 @@ import { ObjectId } from 'mongodb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { asUser, json, quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
+import { anything } from '@/__tests__/support/matchers.js';
+import { failedFieldsOf } from '@/__tests__/support/values.js';
 
 const service = {
     getTradePage: vi.fn(),
@@ -107,8 +109,7 @@ describe('POST a trade', () => {
         );
 
         expect(response.status).toBe(422);
-        const body = response.body as { errors: { field: string }[] };
-        expect(body.errors.map((issue) => issue.field)).toEqual(['symbol', 'shares', 'price']);
+        expect(failedFieldsOf(response.body)).toEqual(['symbol', 'shares', 'price']);
     });
 
     it('refuses an equity trade missing its symbol, shares and price', async () => {
@@ -118,8 +119,7 @@ describe('POST a trade', () => {
         );
 
         expect(response.status).toBe(422);
-        const body = response.body as { errors: { field: string }[] };
-        expect(body.errors.map((issue) => issue.field)).toEqual(['symbol', 'shares', 'price']);
+        expect(failedFieldsOf(response.body)).toEqual(['symbol', 'shares', 'price']);
     });
 
     it('refuses an action that is not one of the six', async () => {
@@ -168,10 +168,7 @@ describe('PATCH a trade', () => {
         const response = await harness.call(`/api/portfolios/1/trades/${ID}`, json(buy, 'PATCH'));
 
         expect(response.status).toBe(200);
-        const [userId, slot, tradeId] = service.updateTrade.mock.calls[0] as [ObjectId, number, ObjectId];
-        expect(userId).toEqual(USER_ID);
-        expect(slot).toBe(1);
-        expect(tradeId.toHexString()).toBe(ID);
+        expect(service.updateTrade).toHaveBeenCalledWith(USER_ID, 1, new ObjectId(ID), anything());
     });
 
     it('refuses an id that is not an ObjectId', async () => {

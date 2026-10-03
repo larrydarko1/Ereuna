@@ -463,10 +463,7 @@ function togglePatterns(): void {
         })),
     );
 
-    patternOverlay ??= new PatternOverlayManager(
-        chart,
-        mainSeries as ConstructorParameters<typeof PatternOverlayManager>[1],
-    );
+    patternOverlay ??= new PatternOverlayManager(chart, mainSeries);
     patternOverlay.displayPatterns(detectedPatterns.value);
     patternOverlay.finalize();
     patternsShown.value = true;

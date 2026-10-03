@@ -3,13 +3,13 @@ import { describe, expect, it } from 'vitest';
 
 import { BREADTH_UNIVERSES, type BreadthUniverse, type MovingAverageBreadth } from '@ereuna/shared';
 
+import { byUniverse } from '@/__tests__/support/overview';
 import MaBreadth from '@/components/dashboard/MaBreadth.vue';
 import { i18n } from '@/i18n';
 
 type Series = Record<BreadthUniverse, MovingAverageBreadth[]>;
 
-const empty = (): Series =>
-    Object.fromEntries(BREADTH_UNIVERSES.map((universe) => [universe, []])) as unknown as Series;
+const empty = (): Series => byUniverse(() => []);
 
 const seeded = (over: Partial<Series>): Series => ({ ...empty(), ...over });
 

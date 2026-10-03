@@ -11,7 +11,7 @@ import { setOn, writeAssetInfo } from '@/organize/write.js';
 import { round } from '@/utils/indicators.js';
 
 /** One period's figures: the three headline numbers plus every code the vendor sent. */
-export type Statement = {
+type Statement = {
     fiscalDateEnding: Date;
     reportedEPS: number;
     totalRevenue: number;

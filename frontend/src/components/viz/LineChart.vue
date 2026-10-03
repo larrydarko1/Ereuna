@@ -69,7 +69,9 @@ const active = computed(() => {
 
 function onPointerMove(event: PointerEvent): void {
     if (points.length === 0) return;
-    const bounds = (event.currentTarget as SVGSVGElement).getBoundingClientRect();
+    // The listener sits on the <svg>, so the element it is on is always there
+    if (!(event.currentTarget instanceof Element)) throw new Error('pointermove reached the chart without its element');
+    const bounds = event.currentTarget.getBoundingClientRect();
     if (bounds.width === 0) return;
     // The pointer is in CSS pixels and the series is in chart units, so the
     // ratio is what maps one to the other — never the pixel offset itself.

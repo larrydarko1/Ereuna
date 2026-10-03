@@ -22,7 +22,7 @@ function inScope(
     revision: () => number = () => 0,
 ): { results: UseScreenerResultsReturn; stop: () => void } {
     const scope = effectScope();
-    const results = scope.run(() => useScreenerResults(source, revision)) as UseScreenerResultsReturn;
+    const results = scope.run(() => useScreenerResults(source, revision))!;
     return { results, stop: () => scope.stop() };
 }
 

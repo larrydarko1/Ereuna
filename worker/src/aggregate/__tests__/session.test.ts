@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { dateAt } from '@/__tests__/support/values.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
@@ -86,8 +87,7 @@ describe('startSession', () => {
     it('reads the weekly bars for the Monday the week started on', async () => {
         clock.open = true;
         await session.startSession();
-        const filter = db.current.of('OHCLVData2').filters[0] as { timestamp: Date };
-        expect(filter.timestamp.getUTCDay()).toBe(1);
+        expect(dateAt(db.current.of('OHCLVData2').filters, 0, 'timestamp').getUTCDay()).toBe(1);
     });
 
     it('survives a failed restore — the organizer rebuilds the week overnight', async () => {

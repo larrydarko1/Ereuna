@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { isList } from '@ereuna/shared';
+
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { at, dateAt, listAt } from '@/__tests__/support/values.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
@@ -25,14 +28,17 @@ function grouped(tickerID: string, week: Date): Record<string, unknown> {
     return { _id: { tickerID, week }, open: 100, high: 110, low: 90, close: 105, volume: 5_000 };
 }
 
-const pipelineOf = (): Record<string, unknown>[] =>
-    (db.current.of('OHCLVData').filters[0] as Record<string, unknown>[]) ?? [];
+const pipelineOf = (): unknown[] => {
+    const stages = db.current.of('OHCLVData').filters[0];
+    return isList(stages) ? stages : [];
+};
 
-const opsOn = (collection: string): Record<string, unknown>[] =>
+/** Every bulk operation written to `collection`, across all its bulk writes. */
+const opsOn = (collection: string): unknown[] =>
     db.current
         .of(collection)
         .writes.filter((write) => write.method === 'bulkWrite')
-        .flatMap((write) => write.args[0] as Record<string, unknown>[]);
+        .flatMap((write) => listAt(write.args, 0));
 
 beforeEach(() => {
     db.current = fakeDb();
@@ -44,23 +50,24 @@ describe('updateCurrentWeek', () => {
         db.current = fakeDb({ OHCLVData: [] });
         // A Thursday
         await updateCurrentWeek(Date.UTC(2026, 8, 3, 15, 0, 0));
-        const [match] = pipelineOf() as { $match: { timestamp: { $gte: Date } } }[];
-        expect(match?.$match.timestamp.$gte.getUTCDay()).toBe(1);
-        expect(match?.$match.timestamp.$gte).toEqual(new Date(Date.UTC(2026, 7, 31)));
+        const from = dateAt(pipelineOf(), 0, '$match', 'timestamp', '$gte');
+        expect(from.getUTCDay()).toBe(1);
+        expect(from).toEqual(new Date(Date.UTC(2026, 7, 31)));
     });
 
     it('groups on a Monday-start week, the same rule the aggregator buckets by', async () => {
         db.current = fakeDb({ OHCLVData: [] });
         await updateCurrentWeek(Date.UTC(2026, 8, 3));
-        const group = pipelineOf()[2] as { $group: { _id: { week: { $dateTrunc: Record<string, unknown> } } } };
-        expect(group.$group._id.week.$dateTrunc).toMatchObject({ unit: 'week', startOfWeek: 'monday' });
+        expect(at(pipelineOf(), 2, '$group', '_id', 'week', '$dateTrunc')).toMatchObject({
+            unit: 'week',
+            startOfWeek: 'monday',
+        });
     });
 
     it('opens on the first bar and closes on the last, taking the extremes between', async () => {
         db.current = fakeDb({ OHCLVData: [] });
         await updateCurrentWeek();
-        const group = pipelineOf()[2] as { $group: Record<string, unknown> };
-        expect(group.$group).toMatchObject({
+        expect(at(pipelineOf(), 2, '$group')).toMatchObject({
             open: { $first: '$open' },
             high: { $max: '$high' },
             low: { $min: '$low' },
@@ -74,12 +81,10 @@ describe('updateCurrentWeek', () => {
         db.current = fakeDb({ OHCLVData: [grouped('AAPL', week)] });
         await expect(updateCurrentWeek()).resolves.toBe(1);
 
-        const [operation] = opsOn('OHCLVData2') as {
-            updateOne: { filter: unknown; update: { $set: unknown }; upsert: boolean };
-        }[];
-        expect(operation?.updateOne.upsert).toBe(true);
-        expect(operation?.updateOne.filter).toEqual({ tickerID: 'AAPL', timestamp: week });
-        expect(operation?.updateOne.update.$set).toEqual({
+        const [operation] = opsOn('OHCLVData2');
+        expect(at(operation, 'updateOne', 'upsert')).toBe(true);
+        expect(at(operation, 'updateOne', 'filter')).toEqual({ tickerID: 'AAPL', timestamp: week });
+        expect(at(operation, 'updateOne', 'update', '$set')).toEqual({
             tickerID: 'AAPL',
             timestamp: week,
             open: 100,
@@ -115,8 +120,7 @@ describe('rebuildWeekly', () => {
     it("matches one symbol's whole history", async () => {
         db.current = fakeDb({ OHCLVData: [] });
         await rebuildWeekly('AAPL');
-        const [match] = pipelineOf() as { $match: unknown }[];
-        expect(match?.$match).toEqual({ tickerID: 'AAPL' });
+        expect(at(pipelineOf(), 0, '$match')).toEqual({ tickerID: 'AAPL' });
     });
 
     it("clears the symbol's weekly bars before writing the replacements", async () => {

@@ -41,6 +41,7 @@ import { clearRect, clearRectWithGradient } from '@/lib/charting/engine/helpers/
 import { Delegate } from '@/lib/charting/engine/helpers/delegate';
 import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
 import { type ISubscription } from '@/lib/charting/engine/helpers/isubscription';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
 import { TrackingModeExitMode } from '@/lib/charting/engine/model/chart/chart-options';
 import { type IDataSource } from '@/lib/charting/engine/model/chart/idata-source';
@@ -353,7 +354,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
         const zoomScale = (scale - this._prevPinchScale) * 5;
         this._prevPinchScale = scale;
 
-        this._model().zoomTime(middlePoint.x as Coordinate, zoomScale);
+        this._model().zoomTime(nominal<Coordinate>(middlePoint.x), zoomScale);
     }
 
     public touchStartEvent(event: MouseEventHandlerTouchEvent): void {
@@ -379,8 +380,8 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
             // tracking mode: move crosshair
             this._exitTrackingModeOnNextTry = false;
             const origPoint = getNotNull(this._initCrosshairPosition);
-            const newX = (origPoint.x + (localX - this._startTrackPoint.x)) as Coordinate;
-            const newY = (origPoint.y + (localY - this._startTrackPoint.y)) as Coordinate;
+            const newX = nominal<Coordinate>(origPoint.x + (localX - this._startTrackPoint.x));
+            const newY = nominal<Coordinate>(origPoint.y + (localY - this._startTrackPoint.y));
             this._setCrosshairPosition(newX, newY, event);
             return;
         }
@@ -631,11 +632,11 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     private _correctXCoord(x: Coordinate): Coordinate {
-        return Math.max(0, Math.min(x, this._size.width - 1)) as Coordinate;
+        return nominal<Coordinate>(Math.max(0, Math.min(x, this._size.width - 1)));
     }
 
     private _correctYCoord(y: Coordinate): Coordinate {
-        return Math.max(0, Math.min(y, this._size.height - 1)) as Coordinate;
+        return nominal<Coordinate>(Math.max(0, Math.min(y, this._size.height - 1)));
     }
 
     private _setCrosshairPosition(x: Coordinate, y: Coordinate, event: MouseEventHandlerEventBase): void {
@@ -692,7 +693,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
             const startAnimationTime = performance.now();
             const timeScale = model.timeScale();
 
-            this._scrollXAnimation.start(timeScale.rightOffset() as Coordinate, startAnimationTime);
+            this._scrollXAnimation.start(nominal<Coordinate>(timeScale.rightOffset()), startAnimationTime);
 
             if (!this._scrollXAnimation.finished(startAnimationTime)) {
                 model.setTimeScaleAnimation(this._scrollXAnimation);
@@ -711,15 +712,13 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
 
         this._model().stopTimeScaleAnimation();
 
-        if (document.activeElement !== document.body && document.activeElement !== document.documentElement) {
+        const focused = document.activeElement;
+        if (focused !== document.body && focused !== document.documentElement) {
             // If any focusable element except the page itself is focused, remove the focus
-            (getNotNull(document.activeElement) as HTMLElement).blur();
+            if (focused instanceof HTMLElement || focused instanceof SVGElement) focused.blur();
         } else {
             // Clear selection
-            const selection = document.getSelection();
-            if (selection !== null) {
-                selection.removeAllRanges();
-            }
+            document.getSelection()?.removeAllRanges();
         }
 
         const priceScale = this._state.defaultPriceScale();
@@ -779,7 +778,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
                     KineticScrollConstants.ScrollMinMove / barSpacing,
                 );
                 this._scrollXAnimation.addPosition(
-                    timeScale.rightOffset() as Coordinate,
+                    nominal<Coordinate>(timeScale.rightOffset()),
                     this._startScrollingPos.timestamp,
                 );
             } else {
@@ -802,7 +801,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
 
             model.scrollTimeTo(event.localX);
             if (this._scrollXAnimation !== null) {
-                this._scrollXAnimation.addPosition(timeScale.rightOffset() as Coordinate, now);
+                this._scrollXAnimation.addPosition(nominal<Coordinate>(timeScale.rightOffset()), now);
             }
         }
     }

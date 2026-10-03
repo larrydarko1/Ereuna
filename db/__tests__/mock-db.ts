@@ -16,10 +16,12 @@
 import { vi } from 'vitest';
 
 type Doc = Record<string, unknown>;
+type CreatedIndex = { spec: unknown; options?: unknown };
+type Update = { $rename?: Record<string, string>; $unset?: Record<string, unknown> };
 
 const documents = new Map<string, Doc[]>();
 const indexes = new Map<string, string[]>();
-const createdIndexes = new Map<string, any[]>();
+const createdIndexes = new Map<string, CreatedIndex[]>();
 const dropped: string[] = [];
 const droppedIndexes: string[] = [];
 
@@ -33,7 +35,7 @@ function indexesOf(name: string): string[] {
     return indexes.get(name)!;
 }
 
-function createdOf(name: string): any[] {
+function createdOf(name: string): CreatedIndex[] {
     if (!createdIndexes.has(name)) createdIndexes.set(name, []);
     return createdIndexes.get(name)!;
 }
@@ -45,7 +47,7 @@ function mongoError(codeName: string, code: number): Error & { codeName: string;
 
 export const mockDb = {
     collection: vi.fn((name: string) => ({
-        createIndex: vi.fn(async (spec: any, options?: any) => {
+        createIndex: vi.fn(async (spec: unknown, options?: unknown) => {
             createdOf(name).push({ spec, options });
             return 'ok';
         }),
@@ -62,7 +64,7 @@ export const mockDb = {
             droppedIndexes.push(`${name}.${index}`);
             return { ok: 1 };
         }),
-        deleteMany: vi.fn(async (filter: any) => {
+        deleteMany: vi.fn(async (filter: Doc) => {
             const remaining: Doc[] = [];
             let deletedCount = 0;
 
@@ -74,7 +76,7 @@ export const mockDb = {
             documents.set(name, remaining);
             return { deletedCount };
         }),
-        updateMany: vi.fn(async (filter: any, update: any) => {
+        updateMany: vi.fn(async (filter: Doc, update: Update) => {
             let modifiedCount = 0;
 
             for (const doc of docsOf(name)) {
@@ -83,7 +85,7 @@ export const mockDb = {
 
                 for (const [from, to] of Object.entries(update.$rename ?? {})) {
                     if (!(from in doc)) continue;
-                    doc[to as string] = doc[from];
+                    doc[to] = doc[from];
                     delete doc[from];
                     changed = true;
                 }
@@ -99,10 +101,10 @@ export const mockDb = {
 
             return { modifiedCount };
         }),
-        find: vi.fn((filter: any) => ({
+        find: vi.fn((filter: Doc) => ({
             toArray: async () => docsOf(name).filter((doc) => matches(doc, filter)),
         })),
-        aggregate: vi.fn((pipeline: any[]) => ({
+        aggregate: vi.fn((pipeline: unknown[]) => ({
             toArray: async () => groupDuplicates(docsOf(name), pipeline),
         })),
     })),
@@ -143,7 +145,7 @@ export function getIndexNames(name: string): string[] {
     return indexesOf(name);
 }
 
-export function getCreatedIndexes(name: string): any[] {
+export function getCreatedIndexes(name: string): CreatedIndex[] {
     return createdOf(name);
 }
 
@@ -157,22 +159,28 @@ export function getDroppedIndexCalls(): string[] {
 }
 
 /** The filter shapes these migrations use: `$exists`, `$in`, `$or`, and equality. */
-function matches(doc: Doc, filter: Record<string, any>): boolean {
+function matches(doc: Doc, filter: Doc): boolean {
     return Object.entries(filter).every(([field, condition]) => {
-        if (field === '$or') return (condition as Record<string, any>[]).some((clause) => matches(doc, clause));
-        if (condition === null || typeof condition !== 'object') return doc[field] === condition;
-        if ('$exists' in condition) return (field in doc) === condition.$exists;
-        if ('$in' in condition) return (condition.$in as unknown[]).includes(doc[field]);
+        if (field === '$or') return Array.isArray(condition) && condition.filter(isRecord).some((clause) => matches(doc, clause));
+        if (!isRecord(condition)) return doc[field] === condition;
+        if ('$exists' in condition) return field in doc === condition['$exists'];
+        if (Array.isArray(condition['$in'])) return condition['$in'].includes(doc[field]);
         return doc[field] === condition;
     });
+}
+
+function isRecord(value: unknown): value is Doc {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /**
  * The one aggregation the dedupe issues: group by a field, collect the `_id`s,
  * keep the groups holding more than one.
  */
-function groupDuplicates(docs: Doc[], pipeline: any[]): { _id: unknown; ids: unknown[] }[] {
-    const path = pipeline[0]?.$group?._id;
+function groupDuplicates(docs: Doc[], pipeline: unknown[]): { _id: unknown; ids: unknown[] }[] {
+    const [first] = pipeline;
+    const group = isRecord(first) ? first['$group'] : undefined;
+    const path = isRecord(group) ? group['_id'] : undefined;
     if (typeof path !== 'string' || !path.startsWith('$')) {
         throw new Error(`mock-db: unsupported aggregation ${JSON.stringify(pipeline)}`);
     }

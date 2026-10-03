@@ -15,8 +15,10 @@ import {
 } from '@/lib/charting/engine/api/itime-scale-api';
 import { type TimeAxisWidget } from '@/lib/charting/engine/gui/time-axis-widget';
 import { assert } from '@/lib/charting/engine/helpers/assertions';
+import { callerType } from '@/lib/charting/engine/helpers/caller-type';
 import { Delegate } from '@/lib/charting/engine/helpers/delegate';
 import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { clone, type DeepPartial } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { type ChartModel } from '@/lib/charting/engine/model/chart/chart-model';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
@@ -97,8 +99,8 @@ export class TimeScaleApi<THorzScaleItem> implements ITimeScaleApi<THorzScaleIte
         }
 
         return {
-            from: timeRange.from.originalTime as THorzScaleItem,
-            to: timeRange.to.originalTime as THorzScaleItem,
+            from: callerType<THorzScaleItem>(timeRange.from.originalTime),
+            to: callerType<THorzScaleItem>(timeRange.to.originalTime),
         };
     }
 
@@ -126,7 +128,7 @@ export class TimeScaleApi<THorzScaleItem> implements ITimeScaleApi<THorzScaleIte
 
     public setVisibleLogicalRange(range: Range<number>): void {
         assert(range.from <= range.to, 'The from index cannot be after the to index.');
-        this._model.setTargetLogicalRange(range as LogicalRange);
+        this._model.setTargetLogicalRange({ from: nominal<Logical>(range.from), to: nominal<Logical>(range.to) });
     }
 
     public resetTimeScale(): void {
@@ -143,14 +145,14 @@ export class TimeScaleApi<THorzScaleItem> implements ITimeScaleApi<THorzScaleIte
         if (timeScale.isEmpty()) {
             return null;
         }
-        return timeScale.indexToCoordinate(logical as unknown as TimePointIndex);
+        return timeScale.indexToCoordinate(nominal<TimePointIndex>(logical));
     }
 
     public coordinateToLogical(x: number): Logical | null {
         if (this._timeScale.isEmpty()) {
             return null;
         }
-        return this._timeScale.coordinateToIndex(x as Coordinate) as unknown as Logical;
+        return nominal<Logical>(this._timeScale.coordinateToIndex(nominal<Coordinate>(x)));
     }
 
     public timeToCoordinate(time: THorzScaleItem): Coordinate | null {
@@ -165,13 +167,13 @@ export class TimeScaleApi<THorzScaleItem> implements ITimeScaleApi<THorzScaleIte
 
     public coordinateToTime(x: number): THorzScaleItem | null {
         const timeScale = this._model.timeScale();
-        const timePointIndex = timeScale.coordinateToIndex(x as Coordinate);
+        const timePointIndex = timeScale.coordinateToIndex(nominal<Coordinate>(x));
         const timePoint = timeScale.indexToTimeScalePoint(timePointIndex);
         if (timePoint === null) {
             return null;
         }
 
-        return timePoint.originalTime as THorzScaleItem;
+        return callerType<THorzScaleItem>(timePoint.originalTime);
     }
 
     public width(): number {

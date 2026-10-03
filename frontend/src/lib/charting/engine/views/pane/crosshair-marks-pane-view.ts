@@ -5,6 +5,7 @@
  * because this rebuilds on every pointer move.
  */
 import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
 import { type Crosshair } from '@/lib/charting/engine/model/chart/crosshair';
 import { CrosshairMode } from '@/lib/charting/engine/model/chart/crosshair-options';
@@ -103,10 +104,10 @@ function createEmptyMarkerData(): MarksRendererData {
     return {
         items: [
             {
-                x: 0 as Coordinate,
-                y: 0 as Coordinate,
-                time: 0 as TimePointIndex,
-                price: 0 as BarPrice,
+                x: nominal<Coordinate>(0),
+                y: nominal<Coordinate>(0),
+                time: nominal<TimePointIndex>(0),
+                price: nominal<BarPrice>(0),
             },
         ],
         lineColor: '',

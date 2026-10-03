@@ -14,7 +14,7 @@ import { PANEL_SECTIONS, SUMMARY_FIELDS, type PanelSection, type SummaryField } 
 
 import { patchPreferences, usePreferences } from '@/composables/data/usePreferences';
 
-export type UsePanelLayoutReturn = {
+type UsePanelLayoutReturn = {
     sections: ComputedRef<readonly PanelSection[]>;
     summaryFields: ComputedRef<readonly SummaryField[]>;
     save: (layout: { sections: readonly PanelSection[]; summaryFields: readonly SummaryField[] }) => Promise<void>;

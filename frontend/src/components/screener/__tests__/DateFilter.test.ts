@@ -1,6 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 
+import { elementOf } from '@/__tests__/support/dom';
 import DateFilter from '@/components/screener/DateFilter.vue';
 import { i18n } from '@/i18n';
 
@@ -52,8 +53,8 @@ describe('DateFilter', () => {
             'input',
         );
 
-        expect((inputs[0]?.element as HTMLInputElement).value).toBe('2026-01-01');
-        expect((inputs[1]?.element as HTMLInputElement).value).toBe('2026-06-30');
+        expect(elementOf(inputs[0]?.element, HTMLInputElement).value).toBe('2026-01-01');
+        expect(elementOf(inputs[1]?.element, HTMLInputElement).value).toBe('2026-06-30');
     });
 
     it('empties the fields when the filter is cleared', async () => {
@@ -61,7 +62,7 @@ describe('DateFilter', () => {
 
         await wrapper.setProps({ value: null });
 
-        expect((wrapper.findAll('input')[0]?.element as HTMLInputElement).value).toBe('');
+        expect(elementOf(wrapper.findAll('input')[0]?.element, HTMLInputElement).value).toBe('');
     });
 
     it('holds the picker to the dataset range, dropping the time part', () => {

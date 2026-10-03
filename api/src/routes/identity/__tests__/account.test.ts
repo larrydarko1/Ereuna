@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { asUser, json, quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
+import { failedFieldsOf } from '@/__tests__/support/values.js';
 
 const authService = {
     beginTotpEnrolment: vi.fn(),
@@ -76,8 +77,7 @@ describe('PATCH /api/account/password', () => {
         );
 
         expect(response.status).toBe(422);
-        const body = response.body as { errors: { field: string; message: string }[] };
-        expect(body.errors.length).toBeGreaterThan(1);
+        expect(failedFieldsOf(response.body).length).toBeGreaterThan(1);
         expect(userService.changePassword).not.toHaveBeenCalled();
     });
 

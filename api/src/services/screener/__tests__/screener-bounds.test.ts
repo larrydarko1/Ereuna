@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ZodType } from 'zod';
 
-import type { DateFilterSpec, EnumFilterSpec, RangeFilterSpec } from '@ereuna/shared';
+import { isList, type DateFilterSpec, type EnumFilterSpec, type RangeFilterSpec } from '@ereuna/shared';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { at } from '@/__tests__/support/values.js';
 import { AppError } from '@/lib/app-error.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
@@ -12,10 +14,11 @@ const cache: { keys: string[]; options: unknown[] } = { keys: [], options: [] };
 vi.mock('@/lib/cache.js', () => ({
     marketKey: (...parts: string[]) => `m:${parts.join(':')}`,
     // Pass-through, so the fetcher runs and its result is what the test reads.
-    withCache: (key: string, fetcher: () => Promise<unknown>, options: unknown) => {
+    withCache: async (key: string, schema: ZodType, fetcher: () => Promise<unknown>, options: unknown) => {
         cache.keys.push(key);
         cache.options.push(options);
-        return fetcher();
+        // Answered the way a hit is: through JSON and the call site's schema
+        return schema.parse(JSON.parse(JSON.stringify(await fetcher())));
     },
 }));
 
@@ -30,8 +33,10 @@ const derived: RangeFilterSpec = {
     bounds: { kind: 'derived' },
 };
 
-const pipelineOf = (): Record<string, unknown>[] =>
-    (db.current.of('AssetInfo').filters[0] as Record<string, unknown>[]) ?? [];
+const pipelineOf = (): unknown[] => {
+    const stages = db.current.of('AssetInfo').filters[0];
+    return isList(stages) ? stages : [];
+};
 
 beforeEach(() => {
     db.current = fakeDb({ AssetInfo: [] });
@@ -67,8 +72,7 @@ describe('getRangeBounds', () => {
         db.current = fakeDb({ AssetInfo: [{ min: 1, max: 2 }] });
         await getRangeBounds(roe);
 
-        const group = pipelineOf()[1] as { $group: { min: { $min: unknown } } };
-        expect(group.$group.min.$min).toEqual({ $arrayElemAt: ['$quarterlyFinancials.roe', 0] });
+        expect(at(pipelineOf(), 1, '$group', 'min', '$min')).toEqual({ $arrayElemAt: ['$quarterlyFinancials.roe', 0] });
     });
 
     it('bounds price from the OHLCV series, with a floor of zero', async () => {

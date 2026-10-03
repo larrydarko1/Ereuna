@@ -6,22 +6,21 @@
  * only discrete positions — which is why its canvas stops being transparent to
  * input for as long as the tool is up.
  */
+import { isList, isRecord } from '@ereuna/shared';
+
+import { type AnchoredPoint, isAnchoredPoint } from '@/lib/charting/drawings/drawing-layer';
 import { type IChartApi } from '@/lib/charting/engine/api/create-chart';
 import { type MouseEventParams } from '@/lib/charting/engine/api/ichart-api';
 import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
 import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
 import { type Time } from '@/lib/charting/engine/model/time/types';
 import { type CanvasPoint, distanceToSegment } from '@/lib/charting/shared/geometry';
+import { isTypingTarget } from '@/lib/charting/shared/key-target';
 import { getThemeColor } from '@/lib/charting/shared/theme-color';
 
-export type FreehandPoint = {
-    time: Time;
-    price: number;
-    x: number;
-    y: number;
-};
+type FreehandPoint = AnchoredPoint;
 
-export type FreehandPath = {
+type FreehandPath = {
     id: string;
     points: FreehandPoint[];
     color: string;
@@ -140,8 +139,9 @@ export class FreehandManager {
         return [...this.paths];
     }
 
-    public loadPaths(paths: FreehandPath[]): void {
-        this.paths = paths;
+    /** Restores saved strokes; an entry that is not one (an older build's shape) is dropped. */
+    public loadPaths(paths: readonly unknown[]): void {
+        this.paths = paths.filter(isFreehandPath);
         this.draw();
     }
 
@@ -204,10 +204,7 @@ export class FreehandManager {
     private handleKeyDown = (event: KeyboardEvent): void => {
         if (event.key !== 'Backspace' && event.key !== 'Delete') return;
 
-        // Not while the caret is in a field — there the key means "erase a
-        // character"
-        const target = event.target as HTMLElement;
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        if (isTypingTarget(event.target)) {
             return;
         }
 
@@ -443,4 +440,16 @@ export class FreehandManager {
 
 function generatePathId(): string {
     return `freehand_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+}
+
+function isFreehandPath(value: unknown): value is FreehandPath {
+    return (
+        isRecord(value) &&
+        typeof value['id'] === 'string' &&
+        isList(value['points']) &&
+        value['points'].every(isAnchoredPoint) &&
+        typeof value['color'] === 'string' &&
+        typeof value['lineWidth'] === 'number' &&
+        typeof value['locked'] === 'boolean'
+    );
 }

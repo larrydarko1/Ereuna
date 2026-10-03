@@ -1,3 +1,4 @@
+import { AxiosError, AxiosHeaders } from 'axios';
 import { describe, expect, it, vi } from 'vitest';
 import { effectScope, nextTick, ref } from 'vue';
 
@@ -18,7 +19,7 @@ function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void; reje
 /** Run a resource inside its own scope, the way a component would. */
 function inScope<T>(build: () => UseResourceReturn<T>): { resource: UseResourceReturn<T>; stop: () => void } {
     const scope = effectScope();
-    const resource = scope.run(build) as UseResourceReturn<T>;
+    const resource = scope.run(build)!;
     return { resource, stop: () => scope.stop() };
 }
 
@@ -78,7 +79,13 @@ describe('useResource', () => {
                 () => 'AAPL',
                 () =>
                     Promise.reject(
-                        Object.assign(new Error('rejected'), { response: { data: { error: 'Not found' } } }),
+                        new AxiosError('rejected', 'ERR_BAD_REQUEST', undefined, undefined, {
+                            data: { error: 'Not found' },
+                            status: 404,
+                            statusText: 'Not Found',
+                            headers: {},
+                            config: { headers: new AxiosHeaders() },
+                        }),
                     ),
             ),
         );

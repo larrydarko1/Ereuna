@@ -103,7 +103,12 @@ beforeEach(() => {
     logged.fatal = [];
     state.connectError = null;
     state.probeOptions = null;
-    vi.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
+    vi.spyOn(process, 'exit').mockImplementation(() => {
+        // process.exit is typed `never` because it ends the process; a stub that records the call and
+        // returns cannot satisfy that without a cast, and throwing instead would reject the shutdown under test
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the stub must return so shutdown() can finish
+        return undefined as never;
+    });
 });
 
 afterEach(() => {

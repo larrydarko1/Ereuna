@@ -5,6 +5,9 @@
  * The input is a real DOM element rather than something drawn on the canvas, so
  * that it gets the platform's own caret, selection and IME.
  */
+import { isRecord } from '@ereuna/shared';
+
+import { type AnchoredPoint, isAnchoredPoint } from '@/lib/charting/drawings/drawing-layer';
 import { type IChartApi } from '@/lib/charting/engine/api/create-chart';
 import { type MouseEventParams } from '@/lib/charting/engine/api/ichart-api';
 import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
@@ -12,18 +15,12 @@ import { type SeriesType } from '@/lib/charting/engine/model/series/series-optio
 import { type Time } from '@/lib/charting/engine/model/time/types';
 import { traceRoundedRect } from '@/lib/charting/shared/canvas-path';
 import { type CanvasPoint } from '@/lib/charting/shared/geometry';
+import { isTypingTarget } from '@/lib/charting/shared/key-target';
 import { getThemeColor, hexToRgba } from '@/lib/charting/shared/theme-color';
-
-export type TextAnnotationPoint = {
-    time: Time;
-    price: number;
-    x: number;
-    y: number;
-};
 
 export type TextAnnotation = {
     id: string;
-    point: TextAnnotationPoint;
+    point: AnchoredPoint;
     text: string;
     fontSize: number;
     textColor: string;
@@ -132,8 +129,9 @@ export class TextAnnotationManager {
         return [...this.annotations];
     }
 
-    public loadAnnotations(annotations: TextAnnotation[]): void {
-        this.annotations = annotations;
+    /** Restores saved notes; an entry that is not one (an older build's shape) is dropped. */
+    public loadAnnotations(annotations: readonly unknown[]): void {
+        this.annotations = annotations.filter(isTextAnnotation);
         this.draw();
     }
 
@@ -192,10 +190,7 @@ export class TextAnnotationManager {
     private handleKeyDown = (event: KeyboardEvent): void => {
         if (event.key !== 'Backspace' && event.key !== 'Delete') return;
 
-        // Not while the caret is in a field — there the key means "erase a
-        // character", including inside this tool's own text input
-        const target = event.target as HTMLElement;
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        if (isTypingTarget(event.target)) {
             return;
         }
 
@@ -284,7 +279,7 @@ export class TextAnnotationManager {
      * Anchors a canvas position to the bar and price under it, which is what an
      * annotation is stored as — pixels mean nothing once the chart pans.
      */
-    private readAt(pointer: CanvasPoint): TextAnnotationPoint | null {
+    private readAt(pointer: CanvasPoint): AnchoredPoint | null {
         const time = this.chart.timeScale().coordinateToTime(pointer.x);
         const price = this.mainSeries.coordinateToPrice(pointer.y);
         if (time === null || price === null) return null;
@@ -305,7 +300,7 @@ export class TextAnnotationManager {
         this.draw();
     }
 
-    private addAnnotation(anchor: TextAnnotationPoint, text: string): void {
+    private addAnnotation(anchor: AnchoredPoint, text: string): void {
         this.annotations.push({
             id: generateAnnotationId(),
             point: anchor,
@@ -484,4 +479,12 @@ function measureAnnotation(ctx: CanvasRenderingContext2D, annotation: TextAnnota
 
 function generateAnnotationId(): string {
     return `txt_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+}
+
+function isTextAnnotation(value: unknown): value is TextAnnotation {
+    if (!isRecord(value) || !isAnchoredPoint(value['point'])) return false;
+    const { id, text, fontSize, textColor, backgroundColor, backgroundOpacity, locked } = value;
+    const strings = [id, text, textColor, backgroundColor].every((field) => typeof field === 'string');
+    const numbers = typeof fontSize === 'number' && typeof backgroundOpacity === 'number';
+    return strings && numbers && typeof locked === 'boolean';
 }

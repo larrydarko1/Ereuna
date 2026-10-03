@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { TradeRow } from '@ereuna/shared';
 
+import { query } from '@/__tests__/support/dom';
 import TradeDialog from '@/components/portfolio/TradeDialog.vue';
 import { i18n } from '@/i18n';
 import { formatCurrency, formatNumber, toDateInput } from '@/utils/formatters';
@@ -71,7 +72,7 @@ describe('TradeDialog', () => {
     it('opens blank on a buy dated today', () => {
         open();
 
-        expect(($('input[value="buy"]') as HTMLInputElement).checked).toBe(true);
+        expect(query('input[value="buy"]', HTMLInputElement).checked).toBe(true);
         expect(field(i18n.global.t('portfolio.date')).value).toBe(toDateInput(new Date()));
         expect($('.dialog__title').textContent).toBe(i18n.global.t('portfolio.newTrade'));
     });
@@ -80,7 +81,7 @@ describe('TradeDialog', () => {
         open({ editing: TRADE });
 
         expect($('.dialog__title').textContent).toBe(i18n.global.t('portfolio.editTrade'));
-        expect(($('input[value="sell"]') as HTMLInputElement).checked).toBe(true);
+        expect(query('input[value="sell"]', HTMLInputElement).checked).toBe(true);
         expect(field(i18n.global.t('portfolio.symbol')).value).toBe('AAPL');
         expect(field(i18n.global.t('portfolio.shares')).value).toBe('10');
         expect(field(i18n.global.t('portfolio.date')).value).toBe('2026-02-01');

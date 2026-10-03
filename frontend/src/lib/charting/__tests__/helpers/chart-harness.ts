@@ -15,16 +15,16 @@ import { afterEach } from 'vitest';
 import { type ChartOptions, type IChartApi, createChart } from '@/lib/charting/engine/api/create-chart';
 import { type DeepPartial } from '@/lib/charting/engine/helpers/strict-type-checks';
 
-export type MountedChart = {
-    chart: IChartApi;
-    container: HTMLDivElement;
-};
-
 /** The parts of the widget tree a pointer can land on. */
 export type ChartSurfaces = {
     pane: HTMLElement;
     priceAxis: HTMLElement;
     timeAxis: HTMLElement;
+};
+
+type MountedChart = {
+    chart: IChartApi;
+    container: HTMLDivElement;
 };
 
 export const DEFAULT_WIDTH = 600;

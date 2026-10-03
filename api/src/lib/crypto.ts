@@ -31,9 +31,11 @@ export function encryptSecret(plaintext: string): string {
  */
 export function decryptSecret(payload: string): string {
     const parts = payload.split(':');
-    if (parts.length !== 3) throw new Error('Malformed encrypted payload');
+    const [ivPart, tagPart, dataPart] = parts;
+    if (parts.length !== 3 || ivPart === undefined || tagPart === undefined || dataPart === undefined) {
+        throw new Error('Malformed encrypted payload');
+    }
 
-    const [ivPart, tagPart, dataPart] = parts as [string, string, string];
     const decipher = crypto.createDecipheriv(ALGORITHM, KEY, Buffer.from(ivPart, 'base64'));
     decipher.setAuthTag(Buffer.from(tagPart, 'base64'));
     return Buffer.concat([decipher.update(Buffer.from(dataPart, 'base64')), decipher.final()]).toString('utf8');

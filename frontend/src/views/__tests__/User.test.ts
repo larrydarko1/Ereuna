@@ -1,6 +1,8 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import type { SessionUser } from '@ereuna/shared';
+
 import { mockApi } from '@/__tests__/support/msw';
 import { testRouter } from '@/__tests__/support/router';
 import { clearAuth, findSessionUser } from '@/api/client';
@@ -9,7 +11,13 @@ import User from '@/views/User.vue';
 
 const api = mockApi();
 
-const ACCOUNT = { id: 'u1', username: 'larry', twoFactorEnabled: false };
+const ACCOUNT: SessionUser = {
+    id: 'u1',
+    username: 'larry',
+    language: 'en',
+    twoFactorEnabled: false,
+    passwordResetRequired: false,
+};
 
 const view = async (): Promise<VueWrapper> => {
     const router = testRouter();

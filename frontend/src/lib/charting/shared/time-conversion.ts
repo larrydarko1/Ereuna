@@ -1,9 +1,10 @@
 /**
  * Turns the chart's `Time` — which may be a timestamp, a business day object or
- * a date string — into a plain epoch second.
+ * a date string — into a plain epoch second, and an epoch second back into one.
  */
-import { convertTime } from '@/lib/charting/engine/model/time/time-utils';
-import { type Time, type TimePoint, type UTCTimestamp } from '@/lib/charting/engine/model/time/types';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
+import { convertTime, timePointOf } from '@/lib/charting/engine/model/time/time-utils';
+import { type Time, type UTCTimestamp } from '@/lib/charting/engine/model/time/types';
 
 /**
  * Collapses any of the three `Time` shapes — epoch seconds, a `BusinessDay`
@@ -15,7 +16,10 @@ import { type Time, type TimePoint, type UTCTimestamp } from '@/lib/charting/eng
  * the library's own converter and is the only one that gets this right.
  */
 export function timeToTimestamp(time: Time): UTCTimestamp {
-    // InternalHorzScaleItem is nominal and opaque; upstream reads it back as a
-    // TimePoint the same way wherever it needs the underlying seconds
-    return (convertTime(time) as unknown as TimePoint).timestamp;
+    return timePointOf(convertTime(time)).timestamp;
+}
+
+/** An epoch second as the chart's `Time`: the form an intraday bar is given in. */
+export function secondsToTime(seconds: number): Time {
+    return nominal<UTCTimestamp>(seconds);
 }

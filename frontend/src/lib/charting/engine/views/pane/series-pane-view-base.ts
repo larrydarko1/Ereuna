@@ -15,7 +15,7 @@ import { type ITimeScale } from '@/lib/charting/engine/model/time/time-scale';
 import { type IPaneRenderer } from '@/lib/charting/engine/renderers/ipane-renderer';
 import { type IUpdatablePaneView, type UpdateType } from '@/lib/charting/engine/views/pane/iupdatable-pane-view';
 
-export type SeriesPaneViewOptions = {
+type SeriesPaneViewOptions = {
     // Whether the visible range is widened by one item at each end, so that a
     // line drawn to an off-screen neighbour still enters from the right place
     extendedVisibleRange: boolean;

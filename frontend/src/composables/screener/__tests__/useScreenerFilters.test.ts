@@ -17,7 +17,7 @@ const detail = (filters: Record<string, unknown>): Record<string, unknown> => ({
 
 function inScope(name: Ref<string>): { filters: UseScreenerFiltersReturn; stop: () => void } {
     const scope = effectScope();
-    const filters = scope.run(() => useScreenerFilters(name)) as UseScreenerFiltersReturn;
+    const filters = scope.run(() => useScreenerFilters(name))!;
     return { filters, stop: () => scope.stop() };
 }
 

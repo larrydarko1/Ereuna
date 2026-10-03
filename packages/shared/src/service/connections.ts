@@ -10,19 +10,19 @@ import type { Redis } from 'ioredis';
 import type { Db, MongoClient } from 'mongodb';
 import type { Logger } from 'pino';
 
-export type MongoConnection = {
+type MongoConnection = {
     connect: () => Promise<Db>;
     get: () => Db;
     close: () => Promise<void>;
 };
 
-export type RedisConnection = {
+type RedisConnection = {
     get: () => Redis;
     close: () => Promise<void>;
 };
 
 /** The options Ereuna sets. `maxRetriesPerRequest` has no default here: fail-fast or never-give-up is each caller's decision. */
-export type RedisSettings = {
+type RedisSettings = {
     host: string;
     port: number;
     maxRetriesPerRequest: number | null;

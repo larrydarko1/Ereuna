@@ -12,7 +12,7 @@ import { ref, readonly, type DeepReadonly, type Ref } from 'vue';
 
 import { findAccessToken, isAuthenticated, onSessionCleared } from '@/api/client';
 
-export type UseSocketReturn = {
+type UseSocketReturn = {
     socket: Socket;
     connected: DeepReadonly<Ref<boolean>>;
 };

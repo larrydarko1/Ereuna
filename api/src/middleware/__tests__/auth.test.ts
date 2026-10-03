@@ -20,8 +20,8 @@ const bearer = (token: string): RequestInit => ({ headers: { authorization: `Bea
 async function guarded(middleware: typeof requireAuth): Promise<Harness> {
     harness = await serve((app) => {
         app.use(quietLogger);
-        app.get('/who', middleware, (req, res) => {
-            res.json({ userId: (req as { userId?: string }).userId ?? null });
+        app.get('/who', middleware, (req: AuthRequest, res) => {
+            res.json({ userId: req.userId ?? null });
         });
     });
     return harness;
@@ -126,9 +126,8 @@ describe('authedUserId', () => {
         try {
             authedUserId(request);
         } catch (err) {
-            expect((err as AppError).code).toBe('MISSING_TOKEN');
-            expect((err as AppError).status).toBe(401);
-            expect((err as AppError).securityEvent).toBe(true);
+            expect(err).toBeInstanceOf(AppError);
+            expect(err).toMatchObject({ code: 'MISSING_TOKEN', status: 401, securityEvent: true });
         }
     });
 });

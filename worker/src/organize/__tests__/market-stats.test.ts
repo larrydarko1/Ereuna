@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fakeDb, setPayload, type DbStub } from '@/__tests__/support/mongo.js';
+import { at, listAt, recordAt } from '@/__tests__/support/values.js';
 
 type Doc = Record<string, unknown>;
 
@@ -47,7 +48,7 @@ function asset(overrides: Doc = {}): Doc {
 async function run(assets: Doc[]): Promise<Doc> {
     db.current = fakeDb({ AssetInfo: assets });
     await updateMarketStats();
-    return setPayload<Doc>(db.current.of('Stats'));
+    return setPayload(db.current.of('Stats'));
 }
 
 beforeEach(() => {
@@ -102,22 +103,22 @@ describe('moving-average breadth', () => {
             asset({ Symbol: 'UP', TimeSeries: { close: 100 }, MA50: 90 }),
             asset({ Symbol: 'DOWN', TimeSeries: { close: 80 }, MA50: 90 }),
         ]);
-        expect((document['SMA50'] as Doc)['ALL']).toEqual({ up: 0.5, down: 0.5 });
+        expect(at(document, 'SMA50', 'ALL')).toEqual({ up: 0.5, down: 0.5 });
     });
 
     it('reads a close exactly on the average as below it', async () => {
         const document = await run([asset({ TimeSeries: { close: 90 }, MA50: 90 })]);
-        expect((document['SMA50'] as Doc)['ALL']).toEqual({ up: 0, down: 1 });
+        expect(at(document, 'SMA50', 'ALL')).toEqual({ up: 0, down: 1 });
     });
 
     it('reports zeroes rather than dividing by nothing when a period has no data', async () => {
         const document = await run([asset({ MA200: null })]);
-        expect((document['SMA200'] as Doc)['ALL']).toEqual({ up: 0, down: 0 });
+        expect(at(document, 'SMA200', 'ALL')).toEqual({ up: 0, down: 0 });
     });
 
     it('sorts a NASDAQ common stock into Stock, not OTC or PINK', async () => {
         const document = await run([asset({ Exchange: 'NASDAQ' })]);
-        const sma = document['SMA50'] as Record<string, { up: number; down: number }>;
+        const sma = recordAt(document, 'SMA50');
         expect(sma['Stock']).toEqual({ up: 1, down: 0 });
         expect(sma['OTC']).toEqual({ up: 0, down: 0 });
         expect(sma['PINK']).toEqual({ up: 0, down: 0 });
@@ -128,7 +129,7 @@ describe('moving-average breadth', () => {
             asset({ Symbol: 'OTCCO', Exchange: 'OTCQB' }),
             asset({ Symbol: 'PINKCO', Exchange: 'PINK' }),
         ]);
-        const sma = document['SMA50'] as Record<string, { up: number; down: number }>;
+        const sma = recordAt(document, 'SMA50');
         expect(sma['OTC']).toEqual({ up: 1, down: 0 });
         expect(sma['PINK']).toEqual({ up: 1, down: 0 });
         expect(sma['Stock']).toEqual({ up: 0, down: 0 });
@@ -136,32 +137,26 @@ describe('moving-average breadth', () => {
 
     it('sorts a non-stock by its asset type', async () => {
         const document = await run([asset({ AssetType: 'ETF', Exchange: 'ARCA' })]);
-        const sma = document['SMA50'] as Record<string, { up: number; down: number }>;
+        const sma = recordAt(document, 'SMA50');
         expect(sma['ETF']).toEqual({ up: 1, down: 0 });
         expect(sma['Stock']).toEqual({ up: 0, down: 0 });
     });
 });
 
 describe('the outlook', () => {
-    const outlookOf = (document: Doc, term: string): { outlook: string; percentageUp: number; smas: string[] } =>
-        (document['marketOutlook'] as Record<string, { outlook: string; percentageUp: number; smas: string[] }>)[
-            term
-        ] as {
-            outlook: string;
-            percentageUp: number;
-            smas: string[];
-        };
+    const outlookOf = (document: Doc, term: string): Record<string, unknown> =>
+        recordAt(document, 'marketOutlook', term);
 
     it('reads a market entirely above its averages as bullish', async () => {
         const document = await run([asset()]);
-        expect(outlookOf(document, 'shortTerm').outlook).toBe('bullish');
-        expect(outlookOf(document, 'shortTerm').percentageUp).toBe(100);
+        expect(outlookOf(document, 'shortTerm')['outlook']).toBe('bullish');
+        expect(outlookOf(document, 'shortTerm')['percentageUp']).toBe(100);
     });
 
     it('reads a market entirely below its averages as bearish', async () => {
         const document = await run([asset({ TimeSeries: { close: 10 } })]);
-        expect(outlookOf(document, 'longTerm').outlook).toBe('bearish');
-        expect(outlookOf(document, 'longTerm').percentageUp).toBe(0);
+        expect(outlookOf(document, 'longTerm')['outlook']).toBe('bearish');
+        expect(outlookOf(document, 'longTerm')['percentageUp']).toBe(0);
     });
 
     it('reads an evenly split market as neutral', async () => {
@@ -169,21 +164,21 @@ describe('the outlook', () => {
             asset({ Symbol: 'UP', TimeSeries: { close: 100 } }),
             asset({ Symbol: 'DOWN', TimeSeries: { close: 10 } }),
         ]);
-        expect(outlookOf(document, 'midTerm').outlook).toBe('neutral');
-        expect(outlookOf(document, 'midTerm').percentageUp).toBe(50);
+        expect(outlookOf(document, 'midTerm')['outlook']).toBe('neutral');
+        expect(outlookOf(document, 'midTerm')['percentageUp']).toBe(50);
     });
 
     it('names the averages each term was read from', async () => {
         const document = await run([asset()]);
-        expect(outlookOf(document, 'shortTerm').smas).toEqual(['SMA5', 'SMA10', 'SMA20']);
-        expect(outlookOf(document, 'midTerm').smas).toEqual(['SMA50', 'SMA100']);
-        expect(outlookOf(document, 'longTerm').smas).toEqual(['SMA150', 'SMA200']);
+        expect(outlookOf(document, 'shortTerm')['smas']).toEqual(['SMA5', 'SMA10', 'SMA20']);
+        expect(outlookOf(document, 'midTerm')['smas']).toEqual(['SMA50', 'SMA100']);
+        expect(outlookOf(document, 'longTerm')['smas']).toEqual(['SMA150', 'SMA200']);
     });
 
     it("uses the vocabulary the dashboard renders, not the Python's positive/negative", async () => {
         const document = await run([asset()]);
         for (const term of ['shortTerm', 'midTerm', 'longTerm']) {
-            expect(['bullish', 'neutral', 'bearish']).toContain(outlookOf(document, term).outlook);
+            expect(['bullish', 'neutral', 'bearish']).toContain(outlookOf(document, term)['outlook']);
         }
     });
 });
@@ -229,10 +224,10 @@ describe('the tier lists', () => {
             asset({ Symbol: 'BIG', MarketCapitalization: 900, quarterchange: 0.1 }),
             asset({ Symbol: 'SMALL', MarketCapitalization: 100, quarterchange: 0 }),
         ]);
-        const [tier] = document['sectorTierList'] as { sector: string; average_return: number; count: number }[];
-        expect(tier?.sector).toBe('Technology');
-        expect(tier?.average_return).toBeCloseTo(0.09, 10);
-        expect(tier?.count).toBe(2);
+        const [tier] = listAt(document, 'sectorTierList');
+        expect(at(tier, 'sector')).toBe('Technology');
+        expect(at(tier, 'average_return')).toBeCloseTo(0.09, 10);
+        expect(at(tier, 'count')).toBe(2);
     });
 
     it('takes the median for an industry, so one outlier does not set the tier', async () => {
@@ -241,8 +236,8 @@ describe('the tier lists', () => {
             asset({ Symbol: 'B', Industry: 'Hardware', quarterchange: 0.2 }),
             asset({ Symbol: 'C', Industry: 'Hardware', quarterchange: 10 }),
         ]);
-        const [tier] = document['industryTierList'] as { average_return: number }[];
-        expect(tier?.average_return).toBe(0.2);
+        const [tier] = listAt(document, 'industryTierList');
+        expect(at(tier, 'average_return')).toBe(0.2);
     });
 
     it('averages the middle two for an even-sized industry', async () => {
@@ -250,8 +245,8 @@ describe('the tier lists', () => {
             asset({ Symbol: 'A', Industry: 'Hardware', quarterchange: 0.1 }),
             asset({ Symbol: 'B', Industry: 'Hardware', quarterchange: 0.3 }),
         ]);
-        const [tier] = document['industryTierList'] as { average_return: number }[];
-        expect(tier?.average_return).toBeCloseTo(0.2, 10);
+        const [tier] = listAt(document, 'industryTierList');
+        expect(at(tier, 'average_return')).toBeCloseTo(0.2, 10);
     });
 
     it("drops a tier with only one member — that is one company's news, not a sector move", async () => {
@@ -266,10 +261,7 @@ describe('the tier lists', () => {
             asset({ Symbol: 'C', Sector: 'Strong', quarterchange: 0.5 }),
             asset({ Symbol: 'D', Sector: 'Strong', quarterchange: 0.5 }),
         ]);
-        expect((document['sectorTierList'] as { sector: string }[]).map((tier) => tier.sector)).toEqual([
-            'Strong',
-            'Weak',
-        ]);
+        expect(listAt(document, 'sectorTierList').map((tier) => at(tier, 'sector'))).toEqual(['Strong', 'Weak']);
     });
 
     it('ignores an unlabelled sector and anything off a primary exchange', async () => {
@@ -294,12 +286,12 @@ describe('the tier lists', () => {
 describe('index performance', () => {
     it('reports the benchmarks and nothing else', async () => {
         const document = await run([asset({ Symbol: 'SPY' }), asset({ Symbol: 'AAPL' })]);
-        expect(Object.keys(document['indexPerformance'] as Doc)).toEqual(['SPY']);
+        expect(Object.keys(recordAt(document, 'indexPerformance'))).toEqual(['SPY']);
     });
 
     it('carries the last price and every horizon', async () => {
         const document = await run([asset({ Symbol: 'QQQ' })]);
-        expect((document['indexPerformance'] as Doc)['QQQ']).toEqual({
+        expect(at(document, 'indexPerformance', 'QQQ')).toEqual({
             'lastPrice': 100,
             '1D': 0.01,
             '1M': 0.02,
@@ -322,7 +314,7 @@ describe("the day's movers", () => {
             { symbol: 'MID', daily_return: 10 },
             { symbol: 'WORST', daily_return: -40 },
         ]);
-        expect((document['top10DailyLosers'] as { symbol: string }[])[0]?.symbol).toBe('WORST');
+        expect(at(document, 'top10DailyLosers', 0, 'symbol')).toBe('WORST');
     });
 
     it('discards a move beyond 200%, which is a data error rather than a market event', async () => {
@@ -330,7 +322,7 @@ describe("the day's movers", () => {
             asset({ Symbol: 'BROKEN', todaychange: 5 }),
             asset({ Symbol: 'REAL', todaychange: 0.1 }),
         ]);
-        expect((document['top10DailyGainers'] as { symbol: string }[]).map((row) => row.symbol)).toEqual(['REAL']);
+        expect(listAt(document, 'top10DailyGainers').map((row) => at(row, 'symbol'))).toEqual(['REAL']);
     });
 
     it('caps each list at ten', async () => {

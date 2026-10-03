@@ -5,7 +5,7 @@
 import { DateFormatter } from '@/lib/charting/engine/formatters/date-formatter';
 import { TimeFormatter } from '@/lib/charting/engine/formatters/time-formatter';
 
-export type DateTimeFormatterParams = {
+type DateTimeFormatterParams = {
     dateFormat: string;
     timeFormat: string;
     dateTimeSeparator: string;

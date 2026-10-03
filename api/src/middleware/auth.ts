@@ -10,6 +10,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
+import { z } from 'zod';
 
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
@@ -18,9 +19,15 @@ export type AuthRequest = Request & {
     userId?: string;
 };
 
-type AccessTokenPayload = {
-    sub: string;
-};
+/**
+ * The claims an access token carries. Any `type` claim marks some other kind of
+ * token — the 2FA challenge token is signed with the same secret and carries the
+ * same `sub`, and must not open a session the second factor has not.
+ */
+const accessClaimsSchema = z.object({
+    sub: z.string().refine((sub) => ObjectId.isValid(sub)),
+    type: z.string().optional(),
+});
 
 export function authedUserId(req: Pick<AuthRequest, 'userId'>): ObjectId {
     if (req.userId === undefined || req.userId === '') {
@@ -62,23 +69,25 @@ export function optionalAuth(req: AuthRequest, _res: Response, next: NextFunctio
     next();
 }
 
+/**
+ * Verify and decode an access token, returning the user id or null. REST and the
+ * socket handshake both come through here, so the two cannot disagree on what a
+ * session is.
+ * The algorithm is pinned: without `algorithms` the token's own header chooses,
+ * which is what makes the `alg: none` and RS256-to-HS256 confusion attacks work.
+ */
+export function verifyAccessToken(token: string): string | null {
+    try {
+        const claims = accessClaimsSchema.safeParse(jwt.verify(token, config.jwt.secret, { algorithms: ['HS256'] }));
+        return claims.success && claims.data.type === undefined ? claims.data.sub : null;
+    } catch {
+        return null;
+    }
+}
+
 function bearerToken(req: Request): string | null {
     const header = req.headers.authorization;
     if (header === undefined || !header.startsWith('Bearer ')) return null;
     const token = header.slice(7).trim();
     return token === '' ? null : token;
-}
-
-/**
- * Verify and decode an access token, returning the user id or null.
- * The algorithm is pinned: without `algorithms` the token's own header chooses,
- * which is what makes the `alg: none` and RS256-to-HS256 confusion attacks work.
- */
-function verifyAccessToken(token: string): string | null {
-    try {
-        const payload = jwt.verify(token, config.jwt.secret, { algorithms: ['HS256'] }) as AccessTokenPayload;
-        return ObjectId.isValid(payload.sub) ? payload.sub : null;
-    } catch {
-        return null;
-    }
 }

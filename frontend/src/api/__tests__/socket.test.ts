@@ -52,6 +52,18 @@ const user = {
     passwordResetRequired: false,
 };
 
+/** The fake behind a socket `useSocket` handed out, found by identity rather than cast to. */
+function fakeOf(socket: unknown): FakeSocket {
+    const fake = FakeSocket.instances.find((instance) => instance === socket);
+    if (fake === undefined) throw new Error('the socket did not come from the mocked client');
+    return fake;
+}
+
+/** The `auth` option: a callback Socket.IO calls with the function that takes the handshake payload. */
+function isAuthOption(value: unknown): value is (callback: (data: unknown) => void) => void {
+    return typeof value === 'function';
+}
+
 beforeEach(() => {
     // The connection is module state and there is deliberately one per tab, so
     // each test starts by ending the session that would otherwise share it.
@@ -69,20 +81,21 @@ describe('useSocket', () => {
         const second = useSocket();
 
         expect(first.socket).toBe(second.socket);
-        expect((first.socket as unknown as FakeSocket).connects).toBe(1);
+        expect(fakeOf(first.socket).connects).toBe(1);
     });
 
     it('connects only once a session exists', () => {
         const { socket } = useSocket();
 
-        expect((socket as unknown as FakeSocket).connects).toBe(0);
+        expect(fakeOf(socket).connects).toBe(0);
     });
 
     it('reads the token at connect time, so a reconnect presents the current one', () => {
         setSessionUser(user);
         setAccessToken('first');
         const { socket } = useSocket();
-        const auth = (socket as unknown as FakeSocket).options['auth'] as (cb: (data: unknown) => void) => void;
+        const auth = fakeOf(socket).options['auth'];
+        if (!isAuthOption(auth)) throw new Error('the socket was opened without an auth callback');
 
         let handed: unknown;
         auth((data) => {
@@ -100,7 +113,7 @@ describe('useSocket', () => {
     it('does not connect on its own — the app decides when', () => {
         const { socket } = useSocket();
 
-        expect((socket as unknown as FakeSocket).options['autoConnect']).toBe(false);
+        expect(fakeOf(socket).options['autoConnect']).toBe(false);
     });
 
     it('tracks whether the connection is up', () => {
@@ -109,13 +122,13 @@ describe('useSocket', () => {
 
         expect(connected.value).toBe(true);
 
-        (socket as unknown as FakeSocket).disconnect();
+        fakeOf(socket).disconnect();
         expect(connected.value).toBe(false);
     });
 
     it('drops the socket when the session ends, so it cannot outlive the user who opened it', () => {
         setSessionUser(user);
-        const first = useSocket().socket as unknown as FakeSocket;
+        const first = fakeOf(useSocket().socket);
 
         clearAuth();
 

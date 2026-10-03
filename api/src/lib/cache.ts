@@ -5,6 +5,8 @@
  * It caches rendered output, not raw rows, and writes always go to Mongo and
  * invalidate by key rather than updating a second copy.
  */
+import type { z } from 'zod';
+
 import { isMarketHours } from '@ereuna/shared';
 
 import { config } from '@/lib/config.js';
@@ -15,15 +17,19 @@ import { getRedis } from '@/lib/redis.js';
  * `price` follows the market session; `static` is reference data that changes
  * on an ingest cycle; `user` is per-account state invalidated on write.
  */
-export type CachedDataType = 'price' | 'static' | 'user';
+type CachedDataType = 'price' | 'static' | 'user';
 
 /**
  * Read `key` from the cache, or run `fetcher` and store the result.
  * A Redis failure is logged and swallowed: the fetcher still runs, so the
  * request succeeds against the database at full cost rather than failing.
+ * What comes back out of Redis is JSON, not the value that went in — a `Date`
+ * returns as a string — so a hit is parsed by `schema`, and one that does not
+ * match (an entry written before its shape changed) is a miss.
  */
 export async function withCache<T>(
     key: string,
+    schema: z.ZodType<T>,
     fetcher: () => Promise<T>,
     options: { ttl?: number; dataType?: CachedDataType } = {},
 ): Promise<T> {
@@ -31,7 +37,8 @@ export async function withCache<T>(
 
     try {
         const cached = await getRedis().get(key);
-        if (cached !== null) return JSON.parse(cached) as T;
+        const hit = cached === null ? null : schema.safeParse(JSON.parse(cached));
+        if (hit?.success === true) return hit.data;
     } catch (err) {
         logger.warn({ err, key }, 'Cache read failed — falling through to source');
         return fetcher();

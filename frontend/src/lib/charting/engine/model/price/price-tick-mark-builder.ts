@@ -2,12 +2,13 @@
  * Chooses where the marks on a price scale go, and what each one reads.
  */
 import { min } from '@/lib/charting/engine/helpers/mathex';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type PriceMark, type PriceScale } from '@/lib/charting/engine/model/price/price-scale';
 import { PriceTickSpanCalculator } from '@/lib/charting/engine/model/price/price-tick-span-calculator';
 
-export type CoordinateToLogicalConverter = (x: number, firstValue: number) => number;
-export type LogicalToCoordinateConverter = (x: number, firstValue: number, keepItFloat: boolean) => number;
+type CoordinateToLogicalConverter = (x: number, firstValue: number) => number;
+type LogicalToCoordinateConverter = (x: number, firstValue: number, keepItFloat: boolean) => number;
 
 const TICK_DENSITY = 2.5;
 
@@ -106,11 +107,11 @@ export class PriceTickMarkBuilder {
 
             const existingMark = this._marks[targetIndex];
             if (existingMark !== undefined) {
-                existingMark.coord = coord as Coordinate;
+                existingMark.coord = nominal<Coordinate>(coord);
                 existingMark.label = priceScale.formatLogical(logical);
             } else {
                 this._marks.push({
-                    coord: coord as Coordinate,
+                    coord: nominal<Coordinate>(coord),
                     label: priceScale.formatLogical(logical),
                 });
             }

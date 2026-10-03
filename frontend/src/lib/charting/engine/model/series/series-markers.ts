@@ -65,13 +65,5 @@ export function convertSeriesMarker<TInTimeType, TOutTimeType>(
     // Both times are dropped: the caller supplies the replacements
     const { time: _time, originalTime: _originalTime, ...values } = sm;
 
-    const res = {
-        time: newTime,
-        ...values,
-    } as SeriesMarker<TOutTimeType>;
-
-    if (originalTime !== undefined) {
-        res.originalTime = originalTime;
-    }
-    return res;
+    return { time: newTime, ...values, originalTime };
 }

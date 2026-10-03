@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 import { type ObjectId, type WithId } from 'mongodb';
+import { z } from 'zod';
 
 import type { RefreshTokenDoc, SessionUser, UserDoc } from '@ereuna/shared';
 
@@ -26,7 +27,10 @@ export type AuthResult = {
     user: SessionUser;
 };
 
-export type LoginOutcome = ({ requires2FA: false } & AuthResult) | { requires2FA: true; tempToken: string };
+type LoginOutcome = ({ requires2FA: false } & AuthResult) | { requires2FA: true; tempToken: string };
+
+/** The claims a 2FA challenge token carries; `type` is checked below, so a missing one is a wrong token, not a bad one. */
+const challengeClaimsSchema = z.object({ sub: z.string(), type: z.string().optional() });
 
 /**
  * A real Argon2id hash, generated with the exact parameters in `config.argon2`.
@@ -49,9 +53,9 @@ export function toSessionUser(user: WithId<UserDoc>): SessionUser {
 }
 
 export function verify2FATempToken(token: string): string {
-    let payload: { sub: string; type?: string };
+    let payload: z.infer<typeof challengeClaimsSchema>;
     try {
-        payload = jwt.verify(token, config.jwt.secret, { algorithms: ['HS256'] }) as { sub: string; type?: string };
+        payload = challengeClaimsSchema.parse(jwt.verify(token, config.jwt.secret, { algorithms: ['HS256'] }));
     } catch {
         throw new AppError(401, 'TWO_FA_TOKEN_INVALID', 'Invalid or expired 2FA token', {
             logContext: { op: 'auth.2fa' },

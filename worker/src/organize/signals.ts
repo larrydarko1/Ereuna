@@ -4,7 +4,7 @@ import { numeric } from '@ereuna/shared';
 import type { Series } from '@/organize/bars.js';
 import { macd, rsi, sma } from '@/utils/indicators.js';
 
-export type Signal = {
+type Signal = {
     date: string; // ISO date of the bar that triggered it, not of the run
     type: SignalDirection;
     strategy: string;

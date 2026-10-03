@@ -8,7 +8,7 @@
 
 export type ThemeId = (typeof THEMES)[number]['id'];
 
-export type ThemeMeta = {
+type ThemeMeta = {
     id: string;
     label: string;
     mode: 'dark' | 'light';

@@ -15,20 +15,20 @@
 import { type LineStyle } from '@/lib/charting/engine/renderers/draw-line';
 
 /** The fields the dialog can change. Everything else about a level is fixed. */
-export type PriceLevelEdit = {
+type PriceLevelEdit = {
     price: number;
     text: string;
     color: string;
     lineStyle: LineStyle;
 };
 
-export type PriceLevelDialogHandlers = {
+type PriceLevelDialogHandlers = {
     onSave: (edited: PriceLevelEdit) => void;
     /** `null` for a level that does not exist yet — there is nothing to delete. */
     onDelete: (() => void) | null;
 };
 
-export type ContextMenuHandlers = {
+type ContextMenuHandlers = {
     onEdit: () => void;
     onDelete: () => void;
 };

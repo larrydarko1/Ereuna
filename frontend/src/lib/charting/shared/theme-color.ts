@@ -2,7 +2,7 @@
  * The theme tokens the drawing tools paint with. Every one of the 50 themes
  * defines all of them, so a read never comes back empty.
  */
-export type ChartColorToken =
+type ChartColorToken =
     | '--color-bg'
     | '--color-surface'
     | '--color-elevated'

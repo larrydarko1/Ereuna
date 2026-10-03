@@ -7,7 +7,7 @@ import { isIntraday } from '@ereuna/shared';
 import { getSeries } from '@/api/chart';
 import { apiErrorMessage } from '@/api/client';
 import { i18n } from '@/i18n';
-import type { Time } from '@/lib/charting';
+import { secondsToTime, type Time } from '@/lib/charting';
 import { timeKey, timeValue } from '@/utils/chartTime';
 
 export type ChartBar = {
@@ -26,20 +26,7 @@ export type ChartPoint = {
 export type OverlaySeries = {
     type: ChartOverlay['type'];
     period: number;
-    points: ChartPoint[];
-};
-
-export type ChartSeriesKey = {
-    symbol: string;
-    timeframe: ChartTimeframe;
-    /**
-     * The overlays the API is being asked to compute, as a stable signature.
-     * The averages are a stored preference the server reads for itself, so
-     * nothing is sent with the request — but editing them has to re-ask for the
-     * series, and without them in the key a new moving average only appeared
-     * after a symbol or timeframe change.
-     */
-    overlays: string;
+    points: readonly ChartPoint[];
 };
 
 export type UseChartSeriesReturn = {
@@ -62,6 +49,19 @@ type LiveBar = {
     low: number;
     close: number;
     volume: number;
+};
+
+type ChartSeriesKey = {
+    symbol: string;
+    timeframe: ChartTimeframe;
+    /**
+     * The overlays the API is being asked to compute, as a stable signature.
+     * The averages are a stored preference the server reads for itself, so
+     * nothing is sent with the request — but editing them has to re-ask for the
+     * series, and without them in the key a new moving average only appeared
+     * after a symbol or timeframe change.
+     */
+    overlays: string;
 };
 
 export function useChartSeries(key: () => ChartSeriesKey): UseChartSeriesReturn {
@@ -208,7 +208,7 @@ export function useChartSeries(key: () => ChartSeriesKey): UseChartSeriesReturn 
     return {
         bars: readonly(bars),
         volume: readonly(volume),
-        overlays: readonly(overlays) as Readonly<Ref<readonly OverlaySeries[]>>,
+        overlays: readonly(overlays),
         pending: readonly(pending),
         error: readonly(error),
         exhausted: readonly(exhausted),
@@ -266,5 +266,5 @@ function mergeOverlays(
 function toTime(raw: string, timeframe: ChartTimeframe): Time {
     if (!isIntraday(timeframe)) return raw;
     const parsed = Date.parse(raw.endsWith('Z') ? raw : `${raw}Z`);
-    return (Number.isNaN(parsed) ? 0 : Math.floor(parsed / 1000)) as Time;
+    return secondsToTime(Number.isNaN(parsed) ? 0 : Math.floor(parsed / 1000));
 }

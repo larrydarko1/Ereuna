@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ZodType } from 'zod';
+
+import { isList } from '@ereuna/shared';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { at } from '@/__tests__/support/values.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
@@ -8,16 +12,19 @@ vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 const cache: { keys: string[] } = { keys: [] };
 vi.mock('@/lib/cache.js', () => ({
     marketKey: (...parts: string[]) => `m:${parts.join(':')}`,
-    withCache: (key: string, fetcher: () => Promise<unknown>) => {
+    withCache: async (key: string, schema: ZodType, fetcher: () => Promise<unknown>) => {
         cache.keys.push(key);
-        return fetcher();
+        // Answered the way a hit is: through JSON and the call site's schema
+        return schema.parse(JSON.parse(JSON.stringify(await fetcher())));
     },
 }));
 
 const { closeOnOrAfter, latestCloses, quotes } = await import('@/services/market/market-quotes.js');
 
-const pipelineOf = (index = 0): Record<string, unknown>[] =>
-    (db.current.of('OHCLVData').filters[index] as Record<string, unknown>[]) ?? [];
+const pipelineOf = (index = 0): unknown[] => {
+    const stages = db.current.of('OHCLVData').filters[index];
+    return isList(stages) ? stages : [];
+};
 
 beforeEach(() => {
     db.current = fakeDb({ OHCLVData: [] });
@@ -45,8 +52,7 @@ describe('latestCloses', () => {
         await latestCloses(Array.from({ length: 501 }, (_u, i) => `S${i}`));
         expect(db.current.of('OHCLVData').aggregate).toHaveBeenCalledTimes(2);
 
-        const [firstMatch] = pipelineOf() as { $match: { tickerID: { $in: string[] } } }[];
-        expect(firstMatch?.$match.tickerID.$in).toHaveLength(500);
+        expect(at(pipelineOf(), 0, '$match', 'tickerID', '$in')).toHaveLength(500);
     });
 
     it('leaves a symbol with no bars out of the map rather than reporting a zero', async () => {
@@ -154,9 +160,10 @@ describe('closeOnOrAfter', () => {
         const from = new Date('2026-01-02T00:00:00.000Z');
 
         await expect(closeOnOrAfter('SPY', from)).resolves.toBe(150);
-        const [filter, options] = db.current.of('OHCLVData').findOne.mock.calls[0] ?? [];
-        expect(filter).toEqual({ tickerID: 'SPY', timestamp: { $gte: from } });
-        expect(options).toEqual({ sort: { timestamp: 1 }, projection: { close: 1 } });
+        expect(db.current.of('OHCLVData').findOne).toHaveBeenCalledWith(
+            { tickerID: 'SPY', timestamp: { $gte: from } },
+            { sort: { timestamp: 1 }, projection: { close: 1 } },
+        );
     });
 
     it('reports nothing when the instrument has no bar in range', async () => {

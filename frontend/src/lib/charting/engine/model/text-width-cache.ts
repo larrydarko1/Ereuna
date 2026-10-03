@@ -6,7 +6,7 @@
  */
 import { getDefined } from '@/lib/charting/engine/helpers/assertions';
 
-export type CanvasCtxLike = Pick<CanvasRenderingContext2D, 'measureText' | 'save' | 'restore' | 'textBaseline'>;
+type CanvasCtxLike = Pick<CanvasRenderingContext2D, 'measureText' | 'save' | 'restore' | 'textBaseline'>;
 
 const defaultReplacementRe = /[2-9]/g;
 

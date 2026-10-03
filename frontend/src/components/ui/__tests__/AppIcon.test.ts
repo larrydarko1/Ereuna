@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import { ICON_PATHS, type IconName } from '@/constants/icons';
 
+const isIconName = (name: string): name is IconName => name in ICON_PATHS;
+
 const icon = (props: Record<string, unknown>): ReturnType<typeof mount> =>
     mount(AppIcon, { props: { name: 'close' as IconName, ...props } });
 
@@ -52,7 +54,7 @@ describe('AppIcon', () => {
     });
 
     it('has a path for every name it offers', () => {
-        for (const name of Object.keys(ICON_PATHS) as IconName[]) {
+        for (const name of Object.keys(ICON_PATHS).filter(isIconName)) {
             expect(icon({ name }).get('path').attributes('d')).not.toBe('');
         }
     });

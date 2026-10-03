@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { NoteRow } from '@ereuna/shared';
 
+import { elementOf } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import NotesPanel from '@/components/charts/NotesPanel.vue';
 import { i18n } from '@/i18n';
@@ -91,7 +92,7 @@ describe('NotesPanel', () => {
         await compose(wrapper, 'Fresh');
         await submit(wrapper);
 
-        expect((wrapper.get('.notes__composer textarea').element as HTMLTextAreaElement).value).toBe('');
+        expect(elementOf(wrapper.get('.notes__composer textarea').element, HTMLTextAreaElement).value).toBe('');
     });
 
     it('keeps the draft and explains a refused save', async () => {
@@ -102,7 +103,7 @@ describe('NotesPanel', () => {
         await submit(wrapper);
 
         expect(wrapper.get('[role="alert"]').text()).toBe(i18n.global.t('errors.INTERNAL'));
-        expect((wrapper.get('.notes__composer textarea').element as HTMLTextAreaElement).value).toBe('Fresh');
+        expect(elementOf(wrapper.get('.notes__composer textarea').element, HTMLTextAreaElement).value).toBe('Fresh');
     });
 
     it('counts the draft against the ceiling the API enforces', async () => {
@@ -119,7 +120,9 @@ describe('NotesPanel', () => {
         await wrapper.get('.notes__control').trigger('click');
 
         expect(wrapper.findAll('.notes__composer')).toHaveLength(2);
-        expect((wrapper.findAll('textarea')[1]?.element as HTMLTextAreaElement).value).toBe('Watching the 200 day');
+        expect(elementOf(wrapper.findAll('textarea')[1]?.element, HTMLTextAreaElement).value).toBe(
+            'Watching the 200 day',
+        );
     });
 
     it('saves the edit and shows the note as the API returned it', async () => {

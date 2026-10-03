@@ -6,7 +6,7 @@ import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 import { type Point } from '@/lib/charting/engine/model/point';
 import { BitmapCoordinatesPaneRenderer } from '@/lib/charting/engine/renderers/bitmap-coordinates-pane-renderer';
 
-export type LastPriceCircleRendererData = {
+type LastPriceCircleRendererData = {
     radius: number;
     fillColor: string;
     strokeColor: string;

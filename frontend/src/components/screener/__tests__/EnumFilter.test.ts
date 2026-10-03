@@ -1,6 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 
+import { elementOf } from '@/__tests__/support/dom';
 import EnumFilter from '@/components/screener/EnumFilter.vue';
 import { i18n } from '@/i18n';
 
@@ -19,8 +20,8 @@ describe('EnumFilter', () => {
         const wrapper = filter({ value: { values: ['Tech'] } });
         const boxes = wrapper.findAll('input[type="checkbox"]');
 
-        expect((boxes[0]?.element as HTMLInputElement).checked).toBe(true);
-        expect((boxes[1]?.element as HTMLInputElement).checked).toBe(false);
+        expect(elementOf(boxes[0]?.element, HTMLInputElement).checked).toBe(true);
+        expect(elementOf(boxes[1]?.element, HTMLInputElement).checked).toBe(false);
     });
 
     // The list scrolls inside a fixed box, so an applied value far down the
@@ -84,7 +85,7 @@ describe('EnumFilter', () => {
 
         await wrapper.setProps({ value: null });
 
-        expect((wrapper.findAll('input[type="checkbox"]')[2]?.element as HTMLInputElement).checked).toBe(false);
+        expect(elementOf(wrapper.findAll('input[type="checkbox"]')[2]?.element, HTMLInputElement).checked).toBe(false);
     });
 
     it('locks the apply button while a write is in flight', () => {

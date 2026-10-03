@@ -13,12 +13,15 @@
  * identity, so the handlers have to be the same arrow properties that were
  * registered, and a tool that rebuilt one would leak it instead.
  */
+import { isRecord } from '@ereuna/shared';
+
 import { type IChartApi } from '@/lib/charting/engine/api/create-chart';
 import { type MouseEventParams } from '@/lib/charting/engine/api/ichart-api';
 import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
 import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
-import { type Time } from '@/lib/charting/engine/model/time/types';
+import { isTime, type Time } from '@/lib/charting/engine/model/time/types';
 import { type CanvasPoint } from '@/lib/charting/shared/geometry';
+import { isTypingTarget } from '@/lib/charting/shared/key-target';
 
 /**
  * A point every tool stores the same way: in time and price, which survive a
@@ -218,10 +221,7 @@ export abstract class DrawingLayer {
     private handleKeyDown = (event: KeyboardEvent): void => {
         if (event.key !== 'Backspace' && event.key !== 'Delete') return;
 
-        // Not while the caret is in a field — there the key means "erase a
-        // character"
-        const target = event.target as HTMLElement;
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        if (isTypingTarget(event.target)) {
             return;
         }
 
@@ -230,4 +230,15 @@ export abstract class DrawingLayer {
         event.preventDefault(); // Backspace would otherwise navigate back
         this.removeSelected();
     };
+}
+
+/** A saved point, checked: the server stores each tool's drawings without knowing their shape. */
+export function isAnchoredPoint(value: unknown): value is AnchoredPoint {
+    return (
+        isRecord(value) &&
+        isTime(value['time']) &&
+        typeof value['price'] === 'number' &&
+        typeof value['x'] === 'number' &&
+        typeof value['y'] === 'number'
+    );
 }

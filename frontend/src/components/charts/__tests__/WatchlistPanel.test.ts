@@ -1,6 +1,7 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { elementOf, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
 import WatchlistPanel from '@/components/charts/WatchlistPanel.vue';
@@ -52,7 +53,7 @@ const icon = (wrapper: VueWrapper, index: number, label: string): ReturnType<Vue
 
 /** A file input cannot be assigned, so the change event carries the file itself. */
 async function chooseFile(wrapper: VueWrapper, contents: string): Promise<void> {
-    const input = wrapper.get('.watchlist__file').element as HTMLInputElement;
+    const input = elementOf(wrapper.get('.watchlist__file').element, HTMLInputElement);
     const file = new File([contents], 'list.txt', { type: 'text/plain' });
     Object.defineProperty(input, 'files', { configurable: true, value: [file] });
     input.dispatchEvent(new Event('change', { bubbles: true }));
@@ -164,7 +165,7 @@ describe('WatchlistPanel', () => {
 
         const added = api.calls.find((call) => call.method === 'POST');
         expect(added?.body).toEqual({ symbol: 'NVDA' });
-        expect((wrapper.get('.watchlist__add-input').element as HTMLInputElement).value).toBe('');
+        expect(elementOf(wrapper.get('.watchlist__add-input').element, HTMLInputElement).value).toBe('');
     });
 
     it('keeps the draft and explains a refused add', async () => {
@@ -177,7 +178,7 @@ describe('WatchlistPanel', () => {
         await flushPromises();
 
         expect(wrapper.get('[role="alert"]').text()).toBe(i18n.global.t('errors.WATCHLIST_TICKER_EXISTS'));
-        expect((wrapper.get('.watchlist__add-input').element as HTMLInputElement).value).toBe('NOPE');
+        expect(elementOf(wrapper.get('.watchlist__add-input').element, HTMLInputElement).value).toBe('NOPE');
     });
 
     it('removes a symbol from the list', async () => {
@@ -221,7 +222,7 @@ describe('WatchlistPanel', () => {
         const wrapper = await panel();
 
         await wrapper.findAll('.watchlist__tools button')[0]?.trigger('click');
-        const input = $('.dialog input') as HTMLInputElement;
+        const input = query('.dialog input', HTMLInputElement);
         input.value = 'Growth';
         input.dispatchEvent(new Event('input', { bubbles: true }));
         $('.prompt__submit').dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -238,7 +239,7 @@ describe('WatchlistPanel', () => {
         const wrapper = await panel();
 
         await wrapper.findAll('.watchlist__tools button')[0]?.trigger('click');
-        const input = $('.dialog input') as HTMLInputElement;
+        const input = query('.dialog input', HTMLInputElement);
         input.value = 'Tech';
         input.dispatchEvent(new Event('input', { bubbles: true }));
         $('.prompt__submit').dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -255,9 +256,9 @@ describe('WatchlistPanel', () => {
         const wrapper = await panel();
 
         await wrapper.findAll('.watchlist__tools button')[1]?.trigger('click');
-        expect(($('.dialog input') as HTMLInputElement).value).toBe('Tech');
+        expect(query('.dialog input', HTMLInputElement).value).toBe('Tech');
 
-        const input = $('.dialog input') as HTMLInputElement;
+        const input = query('.dialog input', HTMLInputElement);
         input.value = 'Renamed';
         input.dispatchEvent(new Event('input', { bubbles: true }));
         $('.prompt__submit').dispatchEvent(new MouseEvent('click', { bubbles: true }));

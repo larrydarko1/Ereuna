@@ -1,15 +1,15 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="TKey extends string">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import AppIcon from '@/components/ui/AppIcon.vue';
 
-type ReorderableItem = { key: string; label: string };
+type ReorderableItem = { key: TKey; label: string };
 
 const { items } = defineProps<{ items: readonly ReorderableItem[] }>();
 
 /** The selected keys, in display order. */
-const selected = defineModel<string[]>({ required: true });
+const selected = defineModel<TKey[]>({ required: true });
 
 const { t } = useI18n();
 
@@ -27,12 +27,12 @@ function move(index: number, delta: number): void {
     selected.value = next;
 }
 
-function add(key: string): void {
+function add(key: TKey): void {
     if (selected.value.includes(key)) return;
     selected.value = [...selected.value, key];
 }
 
-function remove(key: string): void {
+function remove(key: TKey): void {
     selected.value = selected.value.filter((item) => item !== key);
 }
 </script>

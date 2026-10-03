@@ -25,7 +25,7 @@ function inScope(
     enabled: () => boolean = () => true,
 ): { live: UseLiveCandleReturn; stop: () => void } {
     const scope = effectScope();
-    const live = scope.run(() => useLiveCandle(key, enabled)) as UseLiveCandleReturn;
+    const live = scope.run(() => useLiveCandle(key, enabled))!;
     return { live, stop: () => scope.stop() };
 }
 

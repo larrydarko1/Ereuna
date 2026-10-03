@@ -1,6 +1,6 @@
 import { MongoClient, ObjectId } from 'mongodb';
 
-export type SeededAsset = {
+type SeededAsset = {
     symbol: string;
     name: string;
 };

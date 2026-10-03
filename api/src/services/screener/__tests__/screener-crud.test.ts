@@ -107,16 +107,12 @@ describe('createScreener', () => {
 
     it('stores the display name and the lower-cased one it is matched by', async () => {
         await createScreener(USER_ID, 'GrOwTh');
-        const document = db.current.of('Screeners').writes[0]?.args[0] as ScreenerDoc;
-        expect(document.name).toBe('GrOwTh');
-        expect(document.nameLower).toBe('growth');
+        expect(db.current.of('Screeners').writes[0]?.args[0]).toMatchObject({ name: 'GrOwTh', nameLower: 'growth' });
     });
 
     it('starts included, with no filters', async () => {
         await createScreener(USER_ID, 'Growth');
-        const document = db.current.of('Screeners').writes[0]?.args[0] as ScreenerDoc;
-        expect(document.include).toBe(true);
-        expect(document.filters).toEqual({});
+        expect(db.current.of('Screeners').writes[0]?.args[0]).toMatchObject({ include: true, filters: {} });
     });
 
     it('refuses once the user is at the screener limit', async () => {
@@ -152,9 +148,9 @@ describe('renameScreener', () => {
 
     it('writes both the display and the match name, and drops the cached results', async () => {
         await renameScreener(USER_ID, 'Growth', 'Value');
-        const update = db.current.of('Screeners').writes[0]?.args[1] as { $set: Record<string, unknown> };
-
-        expect(update.$set).toMatchObject({ name: 'Value', nameLower: 'value' });
+        expect(db.current.of('Screeners').writes[0]?.args[1]).toMatchObject({
+            $set: { name: 'Value', nameLower: 'value' },
+        });
         expect(cache.invalidated).toEqual([`u:${USER_ID.toHexString()}:screener:`]);
     });
 
@@ -210,8 +206,7 @@ describe('setScreenerIncluded', () => {
         db.current.of('Screeners').results.findOneAndUpdate = screener({ include });
         await expect(setScreenerIncluded(USER_ID, 'Growth', { include })).resolves.toMatchObject({ include });
 
-        const update = db.current.of('Screeners').writes[0]?.args[1] as { $set: { include: boolean } };
-        expect(update.$set.include).toBe(include);
+        expect(db.current.of('Screeners').writes[0]?.args[1]).toMatchObject({ $set: { include } });
     });
 
     it('drops the cached results — membership changes the combined set', async () => {

@@ -60,8 +60,8 @@ describe('generateSignals', () => {
     it('fires a golden cross on the bar the averages cross, and not on the next one', () => {
         // Flat for long enough that both averages settle together, then a jump
         // that pulls the 50-day above the 200-day
-        const flat = new Array(220).fill(100);
-        const jump = [...flat, ...new Array(30).fill(160)];
+        const flat = Array.from({ length: 220 }, () => 100);
+        const jump = [...flat, ...Array.from({ length: 30 }, () => 160)];
 
         const crossing = firstCrossIndex(jump);
         expect(crossing).toBeGreaterThan(0);

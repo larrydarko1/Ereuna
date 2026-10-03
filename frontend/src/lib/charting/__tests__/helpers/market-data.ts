@@ -5,6 +5,7 @@
  * a sine, so a test can assert on an exact coordinate and two runs agree. Random
  * data would make a coordinate assertion either impossible or meaningless.
  */
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import {
     type AreaData,
     type BarData,
@@ -17,13 +18,13 @@ import {
 import { type Time, type UTCTimestamp } from '@/lib/charting/engine/model/time/types';
 
 /** 2023-11-14T22:13:20Z, a Tuesday — no weekend edge on the first bar. */
-const FIRST_TIME = 1700000000 as UTCTimestamp;
+const FIRST_TIME = nominal<UTCTimestamp>(1700000000);
 
 const DAY = 86400;
 
 /** The `n`th bar's timestamp, so a test can name a time without arithmetic. */
 export function timeAt(index: number): UTCTimestamp {
-    return (FIRST_TIME + index * DAY) as UTCTimestamp;
+    return nominal<UTCTimestamp>(FIRST_TIME + index * DAY);
 }
 
 export function lineData(count = 50): LineData<Time>[] {

@@ -16,7 +16,7 @@ export type OHLCData = {
     close: number;
 };
 
-export type ReplayState = {
+type ReplayState = {
     isActive: boolean;
     isPlaying: boolean;
     currentIndex: number;
@@ -25,7 +25,7 @@ export type ReplayState = {
     endIndex: number;
 };
 
-export type ReplayCallback = (index: number, date: string) => void;
+type ReplayCallback = (index: number, date: string) => void;
 
 export class ReplayManager {
     private state: ReplayState;

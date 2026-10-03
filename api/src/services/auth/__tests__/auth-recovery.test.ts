@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { UserDoc } from '@ereuna/shared';
 
 import { fakeArgon2, hashOf } from '@/__tests__/support/argon2.js';
+import { userDoc } from '@/__tests__/support/fixtures.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 import { AppError } from '@/lib/app-error.js';
 
@@ -46,17 +47,13 @@ const { config } = await import('@/lib/config.js');
 const USER_ID = new ObjectId('507f1f77bcf86cd799439011');
 
 function user(overrides: Partial<UserDoc> = {}): WithId<UserDoc> {
-    return {
+    return userDoc({
         _id: USER_ID,
-        username: 'Larry',
-        usernameLower: 'larry',
         passwordHash: hashOf('Str0ng!pass'),
         recoveryCodeHashes: [hashOf('AAAA-BBBB-CCCC')],
         totpEnabled: true,
-        passwordResetRequired: false,
-        language: 'en',
         ...overrides,
-    } as WithId<UserDoc>;
+    });
 }
 
 beforeEach(() => {
@@ -109,8 +106,7 @@ describe('loginWithRecoveryCode', () => {
         db.current = fakeDb({ Users: [user()] });
         await loginWithRecoveryCode('larry', 'AAAA-BBBB-CCCC', { rememberMe: false });
 
-        const update = db.current.of('Users').writes[0]?.args[1] as { $set: { passwordResetRequired: boolean } };
-        expect(update.$set.passwordResetRequired).toBe(true);
+        expect(db.current.of('Users').writes[0]?.args[1]).toMatchObject({ $set: { passwordResetRequired: true } });
     });
 
     it('issues the session from the state the client has to act on, not the one that was read', async () => {

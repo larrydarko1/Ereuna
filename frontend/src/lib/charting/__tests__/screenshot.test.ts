@@ -19,16 +19,16 @@ let createdUrls = 0;
 let revokedUrls = 0;
 let logoLoads: 'ok' | 'fail' = 'ok';
 
-const RECT = { x: 0, y: 0, top: 0, left: 0, right: 600, bottom: 400, width: 600, height: 400 } as DOMRect;
+const RECT = new DOMRect(0, 0, 600, 400);
 
 /**
  * The same quote with some of its optional fields absent. `exactOptionalPropertyTypes`
  * is on, so an absent field has to be missing rather than set to undefined.
  */
-function without(...fields: (keyof ChartInfo)[]): ChartInfo {
-    const info: Record<string, unknown> = { ...INFO };
+function without(...fields: ('price' | 'change' | 'changePercent')[]): ChartInfo {
+    const info: ChartInfo = { ...INFO };
     for (const field of fields) delete info[field];
-    return info as unknown as ChartInfo;
+    return info;
 }
 
 /** A container holding stacked canvases, which is the shape the compositor expects. */
@@ -64,27 +64,30 @@ async function exported(
     const painted: Painted = { text: [], images: [], fills: [] };
     const original = HTMLCanvasElement.prototype.getContext;
 
-    HTMLCanvasElement.prototype.getContext = function getContext(this: HTMLCanvasElement, ...args: never[]): unknown {
-        const context = (original as (...a: never[]) => unknown).apply(this, args) as Record<string, unknown>;
-        const recorder = {
-            ...context,
-            fillText: (text: string): void => {
-                painted.text.push(text);
-            },
-            drawImage: (...called: unknown[]): void => {
-                painted.images.push(called);
-            },
-            measureText: (text: string) => ({ width: text.length * glyphWidth }),
-        };
+    Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+        configurable: true,
+        writable: true,
+        value: function getContext(this: HTMLCanvasElement, ...args: unknown[]): unknown {
+            const context: unknown = Reflect.apply(original, this, args);
+            const recorder = {
+                ...(typeof context === 'object' ? context : null),
+                fillText: (text: string): void => {
+                    painted.text.push(text);
+                },
+                drawImage: (...called: unknown[]): void => {
+                    painted.images.push(called);
+                },
+                measureText: (text: string) => ({ width: text.length * glyphWidth }),
+            };
 
-        return new Proxy(recorder, {
-            set(target: Record<string, unknown>, property: string, value: unknown): boolean {
-                if (property === 'fillStyle') painted.fills.push(String(value));
-                target[property] = value;
-                return true;
-            },
-        });
-    } as typeof HTMLCanvasElement.prototype.getContext;
+            return new Proxy(recorder, {
+                set(target: object, property: string | symbol, value: unknown): boolean {
+                    if (property === 'fillStyle') painted.fills.push(String(value));
+                    return Reflect.set(target, property, value);
+                },
+            });
+        },
+    });
 
     try {
         await new ChartScreenshot(container(canvasCount)).takeScreenshot(info, config);

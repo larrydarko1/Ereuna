@@ -2,10 +2,12 @@ import jwt from 'jsonwebtoken';
 import { ObjectId, type WithId } from 'mongodb';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { UserDoc } from '@ereuna/shared';
+import { isRecord, type UserDoc } from '@ereuna/shared';
 
 import { fakeArgon2, hashOf } from '@/__tests__/support/argon2.js';
+import { anyOf } from '@/__tests__/support/matchers.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { recordAt } from '@/__tests__/support/values.js';
 import { AppError } from '@/lib/app-error.js';
 
 vi.mock('argon2', () => ({ default: fakeArgon2 }));
@@ -77,15 +79,22 @@ function user(overrides: Partial<UserDoc> = {}): WithId<UserDoc> {
     } as WithId<UserDoc>;
 }
 
-const decode = (token: string): Record<string, unknown> =>
-    jwt.verify(token, config.jwt.secret, { algorithms: ['HS256'] }) as Record<string, unknown>;
+const decode = (token: string): Record<string, unknown> => {
+    const claims = jwt.verify(token, config.jwt.secret, { algorithms: ['HS256'] });
+    if (!isRecord(claims)) throw new Error('the token carried no claims object');
+    return claims;
+};
 
 /** The document the refresh-token insert wrote. */
 const inserted = (index = 0): Record<string, unknown> =>
-    db.current.of('RefreshTokens').writes.filter((w) => w.method === 'insertOne')[index]?.args[0] as Record<
-        string,
-        unknown
-    >;
+    recordAt(db.current.of('RefreshTokens').writes.filter((w) => w.method === 'insertOne')[index]?.args, 0);
+
+/** When the refresh token the insert wrote runs out. */
+const expiryOf = (index = 0): number => {
+    const expiresAt = inserted(index)['expiresAt'];
+    if (!(expiresAt instanceof Date)) throw new Error('the refresh token was written without an expiry');
+    return expiresAt.getTime();
+};
 
 beforeEach(() => {
     db.current = fakeDb();
@@ -126,22 +135,19 @@ describe('registerUser', () => {
 
     it('stores the hash and never the password', async () => {
         await registerUser('Larry', 'Str0ng!pass');
-        const document = db.current.of('Users').writes[0]?.args[0] as Record<string, unknown>;
-        expect(document['passwordHash']).toBe(hashOf('Str0ng!pass'));
+        const document = db.current.of('Users').writes[0]?.args[0];
+        expect(document).toMatchObject({ passwordHash: hashOf('Str0ng!pass') });
         expect(JSON.stringify(document)).not.toContain('"Str0ng!pass"');
     });
 
     it('keeps the display case while indexing the lower-cased name', async () => {
         await registerUser('LaRrY', 'Str0ng!pass');
-        const document = db.current.of('Users').writes[0]?.args[0] as Record<string, unknown>;
-        expect(document['username']).toBe('LaRrY');
-        expect(document['usernameLower']).toBe('larry');
+        expect(db.current.of('Users').writes[0]?.args[0]).toMatchObject({ username: 'LaRrY', usernameLower: 'larry' });
     });
 
     it('starts the account with two-factor off and no codes', async () => {
         await registerUser('Larry', 'Str0ng!pass');
-        const document = db.current.of('Users').writes[0]?.args[0] as Record<string, unknown>;
-        expect(document).toMatchObject({
+        expect(db.current.of('Users').writes[0]?.args[0]).toMatchObject({
             totpEnabled: false,
             totpSecretEncrypted: null,
             pendingTotpSecretEncrypted: null,
@@ -238,8 +244,7 @@ describe('loginUser', () => {
     it('records the sign-in time', async () => {
         db.current = fakeDb({ Users: [user()] });
         await loginUser('larry', 'Str0ng!pass', { rememberMe: false });
-        const update = db.current.of('Users').writes[0]?.args[1] as { $set: { lastLoginAt: Date } };
-        expect(update.$set.lastLoginAt).toBeInstanceOf(Date);
+        expect(db.current.of('Users').writes[0]?.args[1]).toMatchObject({ $set: { lastLoginAt: anyOf(Date) } });
     });
 });
 
@@ -262,12 +267,11 @@ describe('issueSession', () => {
 
     it('expires a session-only token sooner than a remembered one', async () => {
         await issueSession(user(), { rememberMe: false });
-        const shortLived = inserted()['expiresAt'] as Date;
+        const shortLived = expiryOf();
         db.current = fakeDb({ Users: [user()] });
         await issueSession(user(), { rememberMe: true });
-        const longLived = inserted()['expiresAt'] as Date;
 
-        expect(shortLived.getTime()).toBeLessThan(longLived.getTime());
+        expect(shortLived).toBeLessThan(expiryOf());
     });
 
     it('opens a new token family per login', async () => {
@@ -302,7 +306,7 @@ describe('rotateRefreshToken', () => {
 
         const [filter, update] = db.current.of('RefreshTokens').writes[0]?.args ?? [];
         expect(filter).toEqual({ tokenHash: sha256('raw-token'), usedAt: { $exists: false } });
-        expect(update).toMatchObject({ $set: { usedAt: expect.any(Date) } });
+        expect(update).toMatchObject({ $set: { usedAt: anyOf(Date) } });
     });
 
     it('carries the family and the original expiry forward, so a session cannot become immortal', async () => {
@@ -399,7 +403,7 @@ describe('verify2FATempToken', () => {
         try {
             verify2FATempToken(token);
         } catch (err) {
-            expect((err as AppError).code).toBe('INVALID_TOKEN_TYPE');
+            expect(err).toMatchObject({ code: 'INVALID_TOKEN_TYPE' });
         }
     });
 
@@ -414,7 +418,7 @@ describe('verify2FATempToken', () => {
             verify2FATempToken(token);
             throw new Error('should have thrown');
         } catch (err) {
-            expect((err as AppError).code).toBe('TWO_FA_TOKEN_INVALID');
+            expect(err).toMatchObject({ code: 'TWO_FA_TOKEN_INVALID' });
         }
     });
 

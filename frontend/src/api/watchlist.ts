@@ -10,7 +10,7 @@ import type { WatchlistEntry, WatchlistRow, WatchlistSummary } from '@ereuna/sha
 
 import { api, type ApiResult } from '@/api/client';
 
-export type WatchlistDetail = {
+type WatchlistDetail = {
     name: string;
     rows: WatchlistRow[];
 };

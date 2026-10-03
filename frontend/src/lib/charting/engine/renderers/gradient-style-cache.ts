@@ -9,7 +9,7 @@ import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 import { clamp } from '@/lib/charting/engine/helpers/mathex';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 
-export type GradientCacheParams = {
+type GradientCacheParams = {
     topColor1: string;
     topColor2: string;
     bottomColor1: string;

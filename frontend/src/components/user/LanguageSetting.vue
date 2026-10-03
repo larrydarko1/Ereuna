@@ -3,11 +3,12 @@ import { useI18n } from 'vue-i18n';
 
 import SettingCard from '@/components/user/SettingCard.vue';
 import { changeLocale, isSupportedLocale, SUPPORTED_LOCALES } from '@/i18n';
+import { targetOf } from '@/utils/dom';
 
 const { t, locale } = useI18n();
 
 async function select(event: Event): Promise<void> {
-    const value = (event.target as HTMLSelectElement).value;
+    const value = targetOf(event, HTMLSelectElement).value;
     if (!isSupportedLocale(value)) return;
     await changeLocale(value);
 }

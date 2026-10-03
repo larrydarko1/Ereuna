@@ -5,7 +5,7 @@ import { REDACT_PATHS } from '#config/redact.js';
 
 type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
-export type LoggerOptions = {
+type LoggerOptions = {
     level: LogLevel;
     isDev: boolean;
 };

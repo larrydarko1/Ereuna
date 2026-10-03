@@ -12,6 +12,7 @@ import { PriceFormatter } from '@/lib/charting/engine/formatters/price-formatter
 import { getDefined, getNotNull } from '@/lib/charting/engine/helpers/assertions';
 import { Delegate } from '@/lib/charting/engine/helpers/delegate';
 import { type ISubscription } from '@/lib/charting/engine/helpers/isubscription';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type DeepPartial, merge } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { type LayoutOptions } from '@/lib/charting/engine/model/chart/layout-options';
 import { type LocalizationOptionsBase } from '@/lib/charting/engine/model/chart/localization-options';
@@ -495,12 +496,12 @@ export class PriceScale {
 
             let logical = price;
             if (transformFn !== null) {
-                logical = transformFn(point.price, baseValue) as BarPrice;
+                logical = nominal<BarPrice>(transformFn(point.price, baseValue));
             }
 
             const invCoordinate = bh + hmm * (logical - min);
             const coordinate = isInverted ? invCoordinate : this._height - 1 - invCoordinate;
-            point.y = coordinate as Coordinate;
+            point.y = nominal<Coordinate>(coordinate);
         }
     }
 
@@ -533,27 +534,27 @@ export class PriceScale {
             let closeLogical = bar.close;
 
             if (transformFn !== null) {
-                openLogical = transformFn(bar.open, baseValue) as BarPrice;
-                highLogical = transformFn(bar.high, baseValue) as BarPrice;
-                lowLogical = transformFn(bar.low, baseValue) as BarPrice;
-                closeLogical = transformFn(bar.close, baseValue) as BarPrice;
+                openLogical = nominal<BarPrice>(transformFn(bar.open, baseValue));
+                highLogical = nominal<BarPrice>(transformFn(bar.high, baseValue));
+                lowLogical = nominal<BarPrice>(transformFn(bar.low, baseValue));
+                closeLogical = nominal<BarPrice>(transformFn(bar.close, baseValue));
             }
 
             let invCoordinate = bh + hmm * (openLogical - min);
             let coordinate = isInverted ? invCoordinate : this._height - 1 - invCoordinate;
-            bar.openY = coordinate as Coordinate;
+            bar.openY = nominal<Coordinate>(coordinate);
 
             invCoordinate = bh + hmm * (highLogical - min);
             coordinate = isInverted ? invCoordinate : this._height - 1 - invCoordinate;
-            bar.highY = coordinate as Coordinate;
+            bar.highY = nominal<Coordinate>(coordinate);
 
             invCoordinate = bh + hmm * (lowLogical - min);
             coordinate = isInverted ? invCoordinate : this._height - 1 - invCoordinate;
-            bar.lowY = coordinate as Coordinate;
+            bar.lowY = nominal<Coordinate>(coordinate);
 
             invCoordinate = bh + hmm * (closeLogical - min);
             coordinate = isInverted ? invCoordinate : this._height - 1 - invCoordinate;
-            bar.closeY = coordinate as Coordinate;
+            bar.closeY = nominal<Coordinate>(coordinate);
         }
     }
 
@@ -569,7 +570,7 @@ export class PriceScale {
         } else if (this.isIndexedTo100()) {
             value = fromIndexedTo100(value, baseValue);
         }
-        return value as BarPrice;
+        return nominal<BarPrice>(value);
     }
 
     public dataSources(): readonly IPriceDataSource[] {
@@ -794,7 +795,7 @@ export class PriceScale {
             case PriceScaleMode.IndexedTo100:
                 return this.formatter().format(toIndexedTo100(price, firstValue));
             default:
-                return this._formatPrice(price as BarPrice);
+                return this._formatPrice(nominal<BarPrice>(price));
         }
     }
 
@@ -805,12 +806,12 @@ export class PriceScale {
             case PriceScaleMode.IndexedTo100:
                 return this.formatter().format(logical);
             default:
-                return this._formatPrice(logical as BarPrice);
+                return this._formatPrice(nominal<BarPrice>(logical));
         }
     }
 
     public formatPriceAbsolute(price: number): string {
-        return this._formatPrice(price as BarPrice, getNotNull(this._formatterSource()).formatter());
+        return this._formatPrice(nominal<BarPrice>(price), getNotNull(this._formatterSource()).formatter());
     }
 
     public formatPricePercentage(price: number, baseValue: number): string {
@@ -902,15 +903,14 @@ export class PriceScale {
     private _logicalToCoordinate(logical: number, _baseValue: number): Coordinate {
         this._makeSureItIsValid();
         if (this.isEmpty()) {
-            return 0 as Coordinate;
+            return nominal<Coordinate>(0);
         }
 
         logical = this.isLog() && logical !== 0 ? toLog(logical, this._logFormula) : logical;
         const range = getNotNull(this.priceRange());
         const invCoordinate =
             this._bottomMarginPx() + ((this.internalHeight() - 1) * (logical - range.minValue())) / range.length();
-        const coordinate = this.invertedCoordinate(invCoordinate);
-        return coordinate as Coordinate;
+        return nominal<Coordinate>(this.invertedCoordinate(invCoordinate));
     }
 
     private _coordinateToLogical(coordinate: number, _baseValue: number): number {
@@ -1088,7 +1088,7 @@ export class PriceScale {
             return fallbackFormatter.format(value);
         }
 
-        return formatter(value as BarPrice);
+        return formatter(nominal<BarPrice>(value));
     }
 
     private _formatPrice(price: BarPrice, fallbackFormatter?: IPriceFormatter): string {

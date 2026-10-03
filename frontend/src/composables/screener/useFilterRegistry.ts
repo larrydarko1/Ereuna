@@ -16,7 +16,7 @@ export type FilterGrouping = {
     filters: FilterDescriptor[];
 };
 
-export type UseFilterRegistryReturn = {
+type UseFilterRegistryReturn = {
     descriptors: DeepReadonly<Ref<FilterDescriptor[]>>;
     grouped: ComputedRef<FilterGrouping[]>;
     byKey: ComputedRef<Map<string, FilterDescriptor>>;

@@ -8,15 +8,16 @@ import type { ActiveFilter, FilterKind } from '@/composables/screener/useScreene
 import { i18n } from '@/i18n';
 import { formatDate, formatNumber } from '@/utils/formatters';
 
-const descriptor = (over: Partial<FilterDescriptor> = {}): FilterDescriptor =>
-    ({
-        key: 'market-cap',
-        label: 'Market cap',
-        kind: 'range',
-        available: true,
-        bounds: null,
-        ...over,
-    }) as FilterDescriptor;
+/** Every descriptor here shares a label and is available; each kind adds its own fields. */
+const BASE = { label: 'Market cap', available: true };
+
+const descriptor = (over: Partial<Extract<FilterDescriptor, { kind: 'range' }>> = {}): FilterDescriptor => ({
+    ...BASE,
+    key: 'market-cap',
+    kind: 'range',
+    bounds: null,
+    ...over,
+});
 
 const grouping = (filters: FilterDescriptor[]): FilterGrouping[] => [{ group: 'priceSize', filters }];
 
@@ -44,10 +45,10 @@ describe('FilterPanel', () => {
     it('picks the control that matches the filter kind', () => {
         const wrapper = panel([
             descriptor({ key: 'market-cap', kind: 'range' }),
-            descriptor({ key: 'ipo-date', kind: 'date' }) as FilterDescriptor,
-            descriptor({ key: 'sector', kind: 'enum', options: ['Tech'] }) as FilterDescriptor,
-            descriptor({ key: 'sma', kind: 'ma', directions: ['abv'], targets: ['price'] }) as FilterDescriptor,
-            descriptor({ key: 'optionable', kind: 'flag' }) as FilterDescriptor,
+            { ...BASE, key: 'ipo-date', kind: 'date', bounds: null },
+            { ...BASE, key: 'sector', kind: 'enum', options: ['Tech'] },
+            { ...BASE, key: 'sma', kind: 'ma', directions: ['abv'], targets: ['price'] },
+            { ...BASE, key: 'optionable', kind: 'flag' },
         ]);
 
         expect(wrapper.findAll('.range-filter')).toHaveLength(1);
@@ -64,7 +65,7 @@ describe('FilterPanel', () => {
     });
 
     it('summarises a date span in the reader locale', () => {
-        const wrapper = panel([descriptor({ key: 'ipo-date', kind: 'date' }) as FilterDescriptor], {
+        const wrapper = panel([{ ...BASE, key: 'ipo-date', kind: 'date', bounds: null }], {
             'ipo-date': { kind: 'date', from: '2020-01-01', to: '2026-01-01' },
         });
 
@@ -74,10 +75,10 @@ describe('FilterPanel', () => {
     });
 
     it('names a short enum selection and counts a long one', () => {
-        const short = panel([descriptor({ key: 'sector', kind: 'enum', options: [] }) as FilterDescriptor], {
+        const short = panel([{ ...BASE, key: 'sector', kind: 'enum', options: [] }], {
             sector: { kind: 'enum', values: ['Tech', 'Energy'] },
         });
-        const long = panel([descriptor({ key: 'sector', kind: 'enum', options: [] }) as FilterDescriptor], {
+        const long = panel([{ ...BASE, key: 'sector', kind: 'enum', options: [] }], {
             sector: { kind: 'enum', values: ['Tech', 'Energy', 'Health'] },
         });
 
@@ -86,10 +87,9 @@ describe('FilterPanel', () => {
     });
 
     it('summarises a moving average as its relation and its target', () => {
-        const wrapper = panel(
-            [descriptor({ key: 'sma', kind: 'ma', directions: ['abv'], targets: ['50'] }) as FilterDescriptor],
-            { sma: { kind: 'ma', direction: 'abv', target: '50' } },
-        );
+        const wrapper = panel([{ ...BASE, key: 'sma', kind: 'ma', directions: ['abv'], targets: ['50'] }], {
+            sma: { kind: 'ma', direction: 'abv', target: '50' },
+        });
 
         expect(wrapper.get('.filter-card__summary').text()).toBe(
             `${i18n.global.t('screener.direction.abv')} ${i18n.global.t('screener.maDays', { days: '50' })}`,
@@ -97,7 +97,7 @@ describe('FilterPanel', () => {
     });
 
     it('summarises a flag as a plain yes', () => {
-        const wrapper = panel([descriptor({ key: 'optionable', kind: 'flag' }) as FilterDescriptor], {
+        const wrapper = panel([{ ...BASE, key: 'optionable', kind: 'flag' }], {
             optionable: { kind: 'flag', enabled: true },
         });
 
@@ -128,7 +128,7 @@ describe('FilterPanel', () => {
     });
 
     it('reads a flag being turned off as a clear, since the API stores flags as presence', async () => {
-        const wrapper = panel([descriptor({ key: 'optionable', kind: 'flag' }) as FilterDescriptor], {
+        const wrapper = panel([{ ...BASE, key: 'optionable', kind: 'flag' }], {
             optionable: { kind: 'flag', enabled: true },
         });
 
@@ -139,7 +139,7 @@ describe('FilterPanel', () => {
     });
 
     it('reads a flag being turned on as an apply', async () => {
-        const wrapper = panel([descriptor({ key: 'optionable', kind: 'flag' }) as FilterDescriptor]);
+        const wrapper = panel([{ ...BASE, key: 'optionable', kind: 'flag' }]);
 
         await wrapper.get('.flag-filter input').setValue(true);
 

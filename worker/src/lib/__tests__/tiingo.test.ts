@@ -1,4 +1,4 @@
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse, type JsonBodyType } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -15,7 +15,26 @@ const BASE = config.tiingo.baseUrl;
 const seen: Request[] = [];
 const server = setupServer();
 
-const lastUrl = (): URL => new URL((seen[seen.length - 1] as Request).url);
+/** One row of the market-wide endpoint, with every field the client keeps. */
+const ROW = {
+    ticker: 'AAPL',
+    date: '2026-09-04T00:00:00.000Z',
+    adjOpen: 101,
+    adjHigh: 106,
+    adjLow: 100,
+    adjClose: 105,
+    adjVolume: 1_000,
+    divCash: 0,
+    splitFactor: 1,
+};
+
+const lastRequest = (): Request => {
+    const request = seen[seen.length - 1];
+    if (request === undefined) throw new Error('no request reached the vendor');
+    return request;
+};
+
+const lastUrl = (): URL => new URL(lastRequest().url);
 
 beforeAll(() => {
     server.listen({ onUnhandledRequest: 'error' });
@@ -36,8 +55,8 @@ afterAll(() => {
 
 describe('the endpoints', () => {
     it("asks for every listed symbol's latest bar in one call", async () => {
-        server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json([{ ticker: 'AAPL' }])));
-        await expect(marketPrices()).resolves.toEqual([{ ticker: 'AAPL' }]);
+        server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json([ROW])));
+        await expect(marketPrices()).resolves.toEqual([ROW]);
     });
 
     it("asks for a symbol's whole history, ending today", async () => {
@@ -69,12 +88,49 @@ describe('the endpoints', () => {
     });
 });
 
+// A bar is only usable whole: a raw close among adjusted ones is a discontinuity
+// every derived figure would read as a move, so a row short of one is dropped
+describe('the rows', () => {
+    const answer = (rows: JsonBodyType): void => {
+        server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json(rows)));
+    };
+
+    it.each([
+        ['no ticker', { ticker: undefined }],
+        ['an empty ticker', { ticker: '' }],
+        ['a missing adjusted close', { adjClose: undefined }],
+        ['a non-numeric adjusted volume', { adjVolume: 'lots' }],
+        ['no date', { date: null }],
+    ])('drops a row with %s and keeps the rest', async (_label, overrides) => {
+        answer([
+            { ...ROW, ...overrides },
+            { ...ROW, ticker: 'MSFT' },
+        ]);
+        await expect(marketPrices()).resolves.toEqual([{ ...ROW, ticker: 'MSFT' }]);
+    });
+
+    it('keeps only the adjusted prices, which is the whole series a bar joins', async () => {
+        answer([{ ...ROW, open: 1, close: 1, volume: 1 }]);
+        await expect(marketPrices()).resolves.toEqual([ROW]);
+    });
+
+    it('reads a missing split factor as no split, and a missing dividend as none', async () => {
+        answer([{ ...ROW, splitFactor: null, divCash: undefined }]);
+        await expect(marketPrices()).resolves.toEqual([{ ...ROW, splitFactor: 1, divCash: 0 }]);
+    });
+
+    it('throws when the vendor answers something other than a list', async () => {
+        answer({ detail: 'Error: upstream is down' });
+        await expect(marketPrices()).rejects.toThrow();
+    });
+});
+
 describe('authentication', () => {
     it('sends the key as a Token header and asks for JSON', async () => {
         server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json([])));
         await marketPrices();
 
-        const request = seen[seen.length - 1] as Request;
+        const request = lastRequest();
         expect(request.headers.get('authorization')).toBe(`Token ${config.tiingo.key}`);
         expect(request.headers.get('accept')).toBe('application/json');
     });
@@ -94,12 +150,10 @@ describe('the retry ladder', () => {
         server.use(
             http.get(`${BASE}/tiingo/daily/prices`, () => {
                 attempts += 1;
-                return attempts === 1
-                    ? new HttpResponse(null, { status: 503 })
-                    : HttpResponse.json([{ ticker: 'AAPL' }]);
+                return attempts === 1 ? new HttpResponse(null, { status: 503 }) : HttpResponse.json([ROW]);
             }),
         );
-        await expect(marketPrices()).resolves.toEqual([{ ticker: 'AAPL' }]);
+        await expect(marketPrices()).resolves.toEqual([ROW]);
         expect(attempts).toBe(2);
     });
 

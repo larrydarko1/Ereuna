@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fakeDb, setPayload, type DbStub } from '@/__tests__/support/mongo.js';
+import { at, listAt } from '@/__tests__/support/values.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
@@ -38,16 +39,16 @@ describe('updateHolidays', () => {
     it('covers this year and the next, and says how many it wrote', async () => {
         db.current = fakeDb({ Stats: [] });
         const count = await updateHolidays(NOW);
-        const { Holidays } = setPayload<{ Holidays: { date: string }[]; updatedAt: Date }>(db.current.of('Stats'));
-        expect(Holidays).toHaveLength(count);
-        const years = new Set(Holidays.map((day) => day.date.slice(0, 4)));
+        const holidays = listAt(setPayload(db.current.of('Stats')), 'Holidays');
+        expect(holidays).toHaveLength(count);
+        const years = new Set(holidays.map((day) => String(at(day, 'date')).slice(0, 4)));
         expect([...years].sort()).toEqual(['2026', '2027']);
     });
 
     it('stamps the document with the instant it was given', async () => {
         db.current = fakeDb({ Stats: [] });
         await updateHolidays(NOW);
-        expect(setPayload<{ updatedAt: Date }>(db.current.of('Stats')).updatedAt).toEqual(NOW);
+        expect(setPayload(db.current.of('Stats'))['updatedAt']).toEqual(NOW);
     });
 
     it('defaults to the current clock', async () => {

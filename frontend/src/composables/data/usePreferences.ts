@@ -21,7 +21,7 @@ import type { Preferences } from '@ereuna/shared';
 import { onSessionCleared } from '@/api/client';
 import { getPreferences, updatePreferences } from '@/api/preferences';
 
-export type UsePreferencesReturn = {
+type UsePreferencesReturn = {
     preferences: DeepReadonly<Ref<Preferences | null>>;
     load: typeof loadPreferences;
     patch: typeof patchPreferences;

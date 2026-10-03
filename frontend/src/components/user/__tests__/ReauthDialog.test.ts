@@ -1,6 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { query } from '@/__tests__/support/dom';
 import ReauthDialog from '@/components/user/ReauthDialog.vue';
 import { i18n } from '@/i18n';
 
@@ -18,7 +19,7 @@ const $ = (selector: string): HTMLElement => {
 };
 
 const type = async (selector: string, value: string): Promise<void> => {
-    const field = $(selector) as HTMLInputElement;
+    const field = query(selector, HTMLInputElement);
     field.value = value;
     field.dispatchEvent(new Event('input', { bubbles: true }));
     await Promise.resolve();

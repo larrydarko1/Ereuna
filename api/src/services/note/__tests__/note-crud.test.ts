@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { NoteDoc } from '@ereuna/shared';
 
+import { anyOf } from '@/__tests__/support/matchers.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 import { AppError } from '@/lib/app-error.js';
 
@@ -75,8 +76,11 @@ describe('createNote', () => {
 
     it('stores the note against the user and the symbol', async () => {
         await createNote(USER_ID, 'AAPL', 'Watching the gap fill');
-        const document = db.current.of('Notes').writes[0]?.args[0] as NoteDoc;
-        expect(document).toMatchObject({ userId: USER_ID, symbol: 'AAPL', message: 'Watching the gap fill' });
+        expect(db.current.of('Notes').writes[0]?.args[0]).toMatchObject({
+            userId: USER_ID,
+            symbol: 'AAPL',
+            message: 'Watching the gap fill',
+        });
     });
 
     it('counts per symbol, not per account', async () => {
@@ -107,9 +111,9 @@ describe('updateNote', () => {
     it('writes the new message and touches the timestamp', async () => {
         db.current = fakeDb({ Notes: [note()] });
         await updateNote(USER_ID, NOTE_ID, 'edited');
-        const update = db.current.of('Notes').writes[0]?.args[1] as { $set: Record<string, unknown> };
-        expect(update.$set['message']).toBe('edited');
-        expect(update.$set['updatedAt']).toBeInstanceOf(Date);
+        expect(db.current.of('Notes').writes[0]?.args[1]).toMatchObject({
+            $set: { message: 'edited', updatedAt: anyOf(Date) },
+        });
     });
 
     it("refuses a note that is not the caller's", async () => {

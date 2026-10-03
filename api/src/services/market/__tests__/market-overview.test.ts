@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ZodType } from 'zod';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
@@ -8,10 +9,11 @@ const cache: { keys: string[]; options: unknown[] } = { keys: [], options: [] };
 
 vi.mock('@/lib/cache.js', () => ({
     marketKey: (...parts: string[]) => `m:${parts.join(':')}`,
-    withCache: (key: string, fetcher: () => Promise<unknown>, options: unknown) => {
+    withCache: async (key: string, schema: ZodType, fetcher: () => Promise<unknown>, options: unknown) => {
         cache.keys.push(key);
         cache.options.push(options);
-        return fetcher();
+        // Answered the way a hit is: through JSON and the call site's schema
+        return schema.parse(JSON.parse(JSON.stringify(await fetcher())));
     },
 }));
 const state: { asset: Record<string, unknown> } = { asset: { Symbol: 'AAPL' } };
@@ -54,7 +56,7 @@ describe('holidays', () => {
     it('passes the document through — one array of dates has nothing to model', async () => {
         const doc = { _id: 'Holidays', Holidays: [{ date: '2026-01-01', name: 'New Year' }] };
         db.current = fakeDb({ Stats: [doc] });
-        await expect(holidays()).resolves.toBe(doc);
+        await expect(holidays()).resolves.toEqual(doc);
     });
 
     it("holds it for a day, because it changes on the ingestor's schedule", async () => {

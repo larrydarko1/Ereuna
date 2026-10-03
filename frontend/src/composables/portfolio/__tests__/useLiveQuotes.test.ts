@@ -13,7 +13,7 @@ function inScope(
     enabled: () => boolean = () => true,
 ): { quotes: UseLiveQuotesReturn; stop: () => void } {
     const scope = effectScope();
-    const quotes = scope.run(() => useLiveQuotes(symbols, enabled)) as UseLiveQuotesReturn;
+    const quotes = scope.run(() => useLiveQuotes(symbols, enabled))!;
     return { quotes, stop: () => scope.stop() };
 }
 

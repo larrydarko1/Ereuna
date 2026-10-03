@@ -5,9 +5,12 @@
  * diagonal pair — so nothing may assume `point1` is the top-left, and
  * everything that needs edges goes through `boundsOf`.
  */
-import { type Box, type BoxCorner, type BoxPoint } from '@/lib/charting/drawings/box-types';
+import { isRecord } from '@ereuna/shared';
 
-export type Bounds = { left: number; top: number; right: number; bottom: number };
+import { type Box, type BoxCorner, type BoxPoint } from '@/lib/charting/drawings/box-types';
+import { isAnchoredPoint } from '@/lib/charting/drawings/drawing-layer';
+
+type Bounds = { left: number; top: number; right: number; bottom: number };
 
 export function boundsOf(box: Box): Bounds {
     return {
@@ -55,4 +58,19 @@ export function resizeBox(box: Box, corner: BoxCorner, pointer: BoxPoint): void 
 
 export function generateBoxId(): string {
     return `box_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+}
+
+/** A saved box, checked: the server stores each tool's drawings without knowing their shape. */
+export function isBox(value: unknown): value is Box {
+    return (
+        isRecord(value) &&
+        typeof value['id'] === 'string' &&
+        isAnchoredPoint(value['point1']) &&
+        isAnchoredPoint(value['point2']) &&
+        typeof value['fillColor'] === 'string' &&
+        typeof value['borderColor'] === 'string' &&
+        typeof value['fillOpacity'] === 'number' &&
+        typeof value['borderWidth'] === 'number' &&
+        typeof value['locked'] === 'boolean'
+    );
 }

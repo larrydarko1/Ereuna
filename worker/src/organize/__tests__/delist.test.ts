@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AssetInfoDoc } from '@ereuna/shared';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { dateAt } from '@/__tests__/support/values.js';
 import type { Asset } from '@/organize/universe.js';
 
 vi.mock('@/lib/logger.js', () => ({
@@ -76,8 +77,7 @@ describe('markDelisted', () => {
         db.current = fakeDb({ OHCLVData: [] });
         const before = Date.now();
         await markDelisted([]);
-        const pipeline = db.current.of('OHCLVData').filters[0] as { $match?: { latest: { $gte: Date } } }[];
-        const cutoff = pipeline[1]?.$match?.latest.$gte as Date;
+        const cutoff = dateAt(db.current.of('OHCLVData').filters, 0, 1, '$match', 'latest', '$gte');
         const expected = before - config.organize.delistAfterDays * 86_400_000;
         expect(Math.abs(cutoff.getTime() - expected)).toBeLessThan(5_000);
     });

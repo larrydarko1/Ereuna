@@ -1,9 +1,10 @@
 import { register } from 'prom-client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { OHLCV_COLLECTIONS, type AggregatorTimeframe } from '@ereuna/shared';
+import { OHLCV_COLLECTIONS } from '@ereuna/shared';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { at, listAt } from '@/__tests__/support/values.js';
 import type { CandleDoc } from '@/aggregate/writer.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
@@ -43,15 +44,9 @@ function candle(overrides: Partial<CandleDoc> = {}): CandleDoc {
     };
 }
 
-const opsOn = (
-    collection: string,
-): { updateOne: { filter: unknown; update: { $set: CandleDoc }; upsert: boolean } }[] =>
-    db.current
-        .of(collection)
-        .writes.flatMap(
-            (write) =>
-                write.args[0] as { updateOne: { filter: unknown; update: { $set: CandleDoc }; upsert: boolean } }[],
-        );
+/** Every bulk operation written to `collection`, across all its writes. */
+const opsOn = (collection: string): unknown[] =>
+    db.current.of(collection).writes.flatMap((write) => listAt(write.args, 0));
 
 beforeEach(async () => {
     db.current = fakeDb();
@@ -79,18 +74,16 @@ describe('enqueue', () => {
         expect(writer.pendingWrites()).toBe(3);
     });
 
-    it.each(
-        Object.entries({
-            '1m': OHLCV_COLLECTIONS.intraday1m,
-            '5m': OHLCV_COLLECTIONS.intraday5m,
-            '15m': OHLCV_COLLECTIONS.intraday15m,
-            '30m': OHLCV_COLLECTIONS.intraday30m,
-            '1hr': OHLCV_COLLECTIONS.intraday1hr,
-            '1d': OHLCV_COLLECTIONS.daily,
-            '1w': OHLCV_COLLECTIONS.weekly,
-        }),
-    )('routes a %s candle to %s', async (timeframe, collection) => {
-        writer.enqueue(timeframe as AggregatorTimeframe, candle());
+    it.each([
+        ['1m', OHLCV_COLLECTIONS.intraday1m],
+        ['5m', OHLCV_COLLECTIONS.intraday5m],
+        ['15m', OHLCV_COLLECTIONS.intraday15m],
+        ['30m', OHLCV_COLLECTIONS.intraday30m],
+        ['1hr', OHLCV_COLLECTIONS.intraday1hr],
+        ['1d', OHLCV_COLLECTIONS.daily],
+        ['1w', OHLCV_COLLECTIONS.weekly],
+    ] as const)('routes a %s candle to %s', async (timeframe, collection) => {
+        writer.enqueue(timeframe, candle());
         await writer.flush();
         expect(db.current.of(collection).writes).toHaveLength(1);
     });
@@ -107,8 +100,8 @@ describe('flush', () => {
         await writer.flush();
 
         const [operation] = opsOn(OHLCV_COLLECTIONS.intraday1m);
-        expect(operation?.updateOne.upsert).toBe(true);
-        expect(operation?.updateOne.filter).toEqual({
+        expect(at(operation, 'updateOne', 'upsert')).toBe(true);
+        expect(at(operation, 'updateOne', 'filter')).toEqual({
             tickerID: 'AAPL',
             timestamp: new Date('2026-09-04T15:30:00.000Z'),
         });

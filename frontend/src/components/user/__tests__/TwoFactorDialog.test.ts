@@ -1,6 +1,7 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import TwoFactorDialog from '@/components/user/TwoFactorDialog.vue';
 import { i18n } from '@/i18n';
@@ -23,7 +24,7 @@ const $ = (selector: string): HTMLElement => {
 };
 
 const type = async (value: string): Promise<void> => {
-    const field = $('.enrol__code') as HTMLInputElement;
+    const field = query('.enrol__code', HTMLInputElement);
     field.value = value;
     field.dispatchEvent(new Event('input', { bubbles: true }));
     await Promise.resolve();

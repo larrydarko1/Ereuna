@@ -2,8 +2,9 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { PANEL_SECTIONS } from '@ereuna/shared';
-import type { AssetProfile } from '@ereuna/shared';
+import type { CorporateAction } from '@ereuna/shared';
 
+import { assetProfile } from '@/__tests__/support/assets';
 import { mockApi } from '@/__tests__/support/msw';
 import type { ChartEvents } from '@/api/chart';
 import { clearAuth } from '@/api/client';
@@ -13,7 +14,7 @@ import { i18n } from '@/i18n';
 
 const api = mockApi();
 
-const profile = { symbol: 'AAPL', name: 'Apple Inc' } as AssetProfile;
+const profile = assetProfile();
 
 const preferences = (panels: Record<string, unknown> | null): Record<string, unknown> => ({
     language: 'en',
@@ -25,13 +26,13 @@ const preferences = (panels: Record<string, unknown> | null): Record<string, unk
     screenerColumns: [],
 });
 
-const action = (date: string, amount: number): Record<string, unknown> => ({ date, amount, ratio: amount });
+const action = (date: string, amount: number): CorporateAction => ({ date, amount, ratio: amount });
 
-const events = (count: number): ChartEvents =>
-    ({
-        dividends: Array.from({ length: count }, (_, index) => action(`2026-0${(index % 9) + 1}-01`, index + 1)),
-        splits: Array.from({ length: count }, (_, index) => action(`2025-0${(index % 9) + 1}-01`, index + 2)),
-    }) as unknown as ChartEvents;
+const events = (count: number): ChartEvents => ({
+    earnings: [],
+    dividends: Array.from({ length: count }, (_, index) => action(`2026-0${(index % 9) + 1}-01`, index + 1)),
+    splits: Array.from({ length: count }, (_, index) => action(`2025-0${(index % 9) + 1}-01`, index + 2)),
+});
 
 const sidebar = async (props: Record<string, unknown> = {}): Promise<VueWrapper> => {
     const wrapper = mount(ChartSidebar, { props: { symbol: 'AAPL', ...props }, attachTo: document.body });

@@ -15,10 +15,6 @@ import { api, type ApiResult } from '@/api/client';
 /** The filters written on a screener, keyed by filter slug. */
 export type ScreenerFilters = Record<string, ScreenerFilterValue>;
 
-export type ScreenerDetail = ScreenerSummary & {
-    filters: ScreenerFilters;
-};
-
 export type FilterDescriptor =
     | { key: string; label: string; kind: 'range'; available: boolean; bounds: { min: number; max: number } | null }
     | { key: string; label: string; kind: 'date'; available: boolean; bounds: { min: string; max: string } | null }
@@ -45,6 +41,10 @@ export type FilterValue =
 export type ResultsQuery = {
     page?: number;
     limit?: number;
+};
+
+type ScreenerDetail = ScreenerSummary & {
+    filters: ScreenerFilters;
 };
 
 export function getScreeners(): ApiResult<{ items: ScreenerSummary[] }> {

@@ -21,6 +21,7 @@ export type { MouseEventParams } from '@/lib/charting/engine/api/ichart-api';
 export type { SeriesType } from '@/lib/charting/engine/model/series/series-options';
 export type { Time } from '@/lib/charting/engine/model/time/types';
 export type { LogicalRange } from '@/lib/charting/engine/model/time/time-data';
+export { secondsToTime } from '@/lib/charting/shared/time-conversion';
 
 // Drawing tools
 export { BoxManager } from '@/lib/charting/drawings/box';

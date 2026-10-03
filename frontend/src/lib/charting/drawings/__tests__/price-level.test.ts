@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { elementOf } from '@/__tests__/support/dom';
 import { type DrawingStage, clickAt, pressKey, stage } from '@/lib/charting/__tests__/helpers/drawing-harness';
-import { type PriceLevelData, PriceLevelManager } from '@/lib/charting/drawings/price-level';
+import { PriceLevelManager } from '@/lib/charting/drawings/price-level';
 import { LineStyle } from '@/lib/charting/engine/renderers/draw-line';
 
 type Levelled = { stage: DrawingStage; tool: PriceLevelManager };
@@ -82,7 +83,7 @@ describe('placing a level', () => {
         const priced = Number(fieldsOf(dialog()).price.value);
         buttonNamed(dialog(), 'Save').click();
 
-        const saved = levelled.tool.serialize()[0] as PriceLevelData;
+        const saved = levelled.tool.serialize()[0]!;
         expect(priced).toBeGreaterThan(0);
         expect(saved.price).toBeCloseTo(priced, 5);
     });
@@ -109,7 +110,7 @@ describe('placing a level', () => {
         const levelled = tool();
 
         clickAt(levelled.stage, 260, 180);
-        (document.querySelector('.price-level-overlay') as HTMLElement).click();
+        elementOf(document.querySelector('.price-level-overlay'), HTMLElement).click();
 
         expect(levelled.tool.serialize()).toHaveLength(0);
     });
@@ -161,7 +162,7 @@ describe('editing a level that exists', () => {
     it('reopens the dialog on a double click of its label, offering a delete this time', () => {
         const levelled = tool();
         addLevel(levelled);
-        const label = levelled.stage.chart.chartElement().querySelector('.price-level-label') as HTMLElement;
+        const label = elementOf(levelled.stage.chart.chartElement().querySelector('.price-level-label'), HTMLElement);
 
         label.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
 
@@ -172,7 +173,7 @@ describe('editing a level that exists', () => {
     it('carries the new colour, label and style onto the level', () => {
         const levelled = tool();
         addLevel(levelled);
-        const label = levelled.stage.chart.chartElement().querySelector('.price-level-label') as HTMLElement;
+        const label = elementOf(levelled.stage.chart.chartElement().querySelector('.price-level-label'), HTMLElement);
 
         label.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
         const fields = fieldsOf(dialog());
@@ -181,7 +182,7 @@ describe('editing a level that exists', () => {
         fields.style.selectedIndex = 2;
         buttonNamed(dialog(), 'Save').click();
 
-        const saved = levelled.tool.serialize()[0] as PriceLevelData;
+        const saved = levelled.tool.serialize()[0]!;
         expect(saved.text).toBe('support');
         expect(saved.color).toBe('#ff0000');
         expect(saved.lineStyle).toBe(LineStyle.Dashed);
@@ -191,7 +192,7 @@ describe('editing a level that exists', () => {
     it('deletes the level from the dialog', () => {
         const levelled = tool();
         addLevel(levelled);
-        const label = levelled.stage.chart.chartElement().querySelector('.price-level-label') as HTMLElement;
+        const label = elementOf(levelled.stage.chart.chartElement().querySelector('.price-level-label'), HTMLElement);
 
         label.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
         buttonNamed(dialog(), 'Delete').click();
@@ -205,10 +206,10 @@ describe('the right-click menu on a level', () => {
     it('opens at the pointer and edits from there', () => {
         const levelled = tool();
         addLevel(levelled);
-        const label = levelled.stage.chart.chartElement().querySelector('.price-level-label') as HTMLElement;
+        const label = elementOf(levelled.stage.chart.chartElement().querySelector('.price-level-label'), HTMLElement);
 
         label.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: 120, clientY: 90 }));
-        const menu = document.querySelector('.price-level-context-menu') as HTMLElement;
+        const menu = elementOf(document.querySelector('.price-level-context-menu'), HTMLElement);
         menuItemNamed(menu, 'Edit').click();
 
         expect(menu.style.left).toBe('120px');
@@ -219,10 +220,10 @@ describe('the right-click menu on a level', () => {
     it('deletes from there too', () => {
         const levelled = tool();
         addLevel(levelled);
-        const label = levelled.stage.chart.chartElement().querySelector('.price-level-label') as HTMLElement;
+        const label = elementOf(levelled.stage.chart.chartElement().querySelector('.price-level-label'), HTMLElement);
 
         label.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: 120, clientY: 90 }));
-        menuItemNamed(document.querySelector('.price-level-context-menu') as HTMLElement, 'Delete').click();
+        menuItemNamed(elementOf(document.querySelector('.price-level-context-menu'), HTMLElement), 'Delete').click();
 
         expect(levelled.tool.serialize()).toHaveLength(0);
     });
@@ -230,7 +231,7 @@ describe('the right-click menu on a level', () => {
     it('dismisses on a click anywhere else', () => {
         const levelled = tool();
         addLevel(levelled);
-        const label = levelled.stage.chart.chartElement().querySelector('.price-level-label') as HTMLElement;
+        const label = elementOf(levelled.stage.chart.chartElement().querySelector('.price-level-label'), HTMLElement);
         label.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: 120, clientY: 90 }));
 
         document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -243,7 +244,7 @@ describe('selecting and deleting a level', () => {
     it('deletes the selected level on Delete', () => {
         const levelled = tool();
         addLevel(levelled);
-        const label = levelled.stage.chart.chartElement().querySelector('.price-level-label') as HTMLElement;
+        const label = elementOf(levelled.stage.chart.chartElement().querySelector('.price-level-label'), HTMLElement);
 
         label.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         pressKey('Delete');
@@ -254,7 +255,7 @@ describe('selecting and deleting a level', () => {
     it('leaves it alone when Delete arrives from inside a field', () => {
         const levelled = tool();
         addLevel(levelled);
-        const label = levelled.stage.chart.chartElement().querySelector('.price-level-label') as HTMLElement;
+        const label = elementOf(levelled.stage.chart.chartElement().querySelector('.price-level-label'), HTMLElement);
         label.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         const input = document.createElement('input');
         document.body.appendChild(input);
@@ -271,11 +272,11 @@ describe('selecting and deleting a level', () => {
         addLevel(levelled, 'second');
         const labels = levelled.stage.chart.chartElement().querySelectorAll('.price-level-label');
 
-        (labels[0] as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        (labels[1] as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        elementOf(labels[0], HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        elementOf(labels[1], HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
-        expect((labels[0] as HTMLElement).style.boxShadow).toBe('none');
-        expect((labels[1] as HTMLElement).style.boxShadow).not.toBe('none');
+        expect(elementOf(labels[0], HTMLElement).style.boxShadow).toBe('none');
+        expect(elementOf(labels[1], HTMLElement).style.boxShadow).not.toBe('none');
     });
 
     it('deletes nothing while nothing is selected', () => {
@@ -317,12 +318,15 @@ describe('saving and restoring a set of levels', () => {
     it('hides the label of a level whose price has scrolled off the scale', () => {
         const levelled = tool();
         addLevel(levelled);
-        const label = levelled.stage.chart.chartElement().querySelector('.price-level-label') as HTMLElement;
+        const label = elementOf(levelled.stage.chart.chartElement().querySelector('.price-level-label'), HTMLElement);
 
-        levelled.tool.deserialize([{ ...(levelled.tool.serialize()[0] as PriceLevelData), price: 1e9 }]);
+        levelled.tool.deserialize([{ ...levelled.tool.serialize()[0]!, price: 1e9 }]);
         levelled.tool.updatePositions();
 
-        const restored = levelled.stage.chart.chartElement().querySelector('.price-level-label') as HTMLElement;
+        const restored = elementOf(
+            levelled.stage.chart.chartElement().querySelector('.price-level-label'),
+            HTMLElement,
+        );
         expect(label.isConnected).toBe(false);
         expect(restored.style.display).toBe('none');
     });

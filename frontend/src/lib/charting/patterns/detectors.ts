@@ -81,8 +81,7 @@ export function detectDoubleBottoms(lows: PivotPoint[], tolerance = 0.02): Patte
     return patterns;
 }
 
-// "Head and shoulders" is one pattern's proper name, not two jobs joined
-// eslint-disable-next-line contracts/name-contract
+// eslint-disable-next-line contracts/name-contract -- "head and shoulders" is one pattern's proper name, not two jobs joined
 export function detectHeadAndShoulders(highs: PivotPoint[], tolerance = 0.03): PatternMatch[] {
     const patterns: PatternMatch[] = [];
 
@@ -116,8 +115,7 @@ export function detectHeadAndShoulders(highs: PivotPoint[], tolerance = 0.03): P
     return patterns;
 }
 
-// "Head and shoulders" is one pattern's proper name, not two jobs joined
-// eslint-disable-next-line contracts/name-contract
+// eslint-disable-next-line contracts/name-contract -- "head and shoulders" is one pattern's proper name, not two jobs joined
 export function detectInverseHeadAndShoulders(lows: PivotPoint[], tolerance = 0.03): PatternMatch[] {
     const patterns: PatternMatch[] = [];
 

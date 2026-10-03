@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ZodType } from 'zod';
 
-import { OHLCV_COLLECTIONS, type ChartTimeframe } from '@ereuna/shared';
+import { CHART_TIMEFRAMES, OHLCV_COLLECTIONS } from '@ereuna/shared';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
@@ -10,10 +11,11 @@ vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 const cache: { keys: string[]; options: unknown[] } = { keys: [], options: [] };
 vi.mock('@/lib/cache.js', () => ({
     marketKey: (...parts: string[]) => `m:${parts.join(':')}`,
-    withCache: (key: string, fetcher: () => Promise<unknown>, options: unknown) => {
+    withCache: async (key: string, schema: ZodType, fetcher: () => Promise<unknown>, options: unknown) => {
         cache.keys.push(key);
         cache.options.push(options);
-        return fetcher();
+        // Answered the way a hit is: through JSON and the call site's schema
+        return schema.parse(JSON.parse(JSON.stringify(await fetcher())));
     },
 }));
 
@@ -63,11 +65,14 @@ describe('barSeries', () => {
         );
     });
 
-    it.each(Object.entries(OHLCV_COLLECTIONS))('reads %s from %s', async (timeframe, collection) => {
-        db.current = fakeDb({ [collection]: [] });
-        await barSeries('AAPL', timeframe as ChartTimeframe);
-        expect(db.current.collection).toHaveBeenCalledWith(collection);
-    });
+    it.each(CHART_TIMEFRAMES.map((timeframe) => [timeframe, OHLCV_COLLECTIONS[timeframe]] as const))(
+        'reads %s from %s',
+        async (timeframe, collection) => {
+            db.current = fakeDb({ [collection]: [] });
+            await barSeries('AAPL', timeframe);
+            expect(db.current.collection).toHaveBeenCalledWith(collection);
+        },
+    );
 
     it('takes the newest page when no cursor is given', async () => {
         db.current = fakeDb({ [OHLCV_COLLECTIONS.daily]: [] });

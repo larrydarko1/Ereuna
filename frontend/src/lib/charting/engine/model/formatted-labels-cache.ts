@@ -14,7 +14,7 @@ type CachedTick = {
     tick: number;
 };
 
-export type FormatFunction = (tickMark: TickMark) => string;
+type FormatFunction = (tickMark: TickMark) => string;
 
 export class FormattedLabelsCache<THorzScaleItem> {
     private readonly _format: FormatFunction;

@@ -2,18 +2,22 @@
  * Converts between the three forms a caller may give a time in — a UTC
  * timestamp, a business day object, or a date string — and the internal one.
  */
+import { assert } from '@/lib/charting/engine/helpers/assertions';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { isString } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { type TimedData } from '@/lib/charting/engine/model/data/data-layer';
-import { type InternalHorzScaleItem } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
+import { type InternalHorzScaleItem, internalItem } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
 import {
     type BusinessDay,
     isBusinessDay,
+    isTimePoint,
     isUTCTimestamp,
     type Time,
+    type TimePoint,
     type UTCTimestamp,
 } from '@/lib/charting/engine/model/time/types';
 
-export type TimeConverter = (time: Time) => InternalHorzScaleItem;
+type TimeConverter = (time: Time) => InternalHorzScaleItem;
 
 const validDateRegex = /^\d\d\d\d-\d\d-\d\d$/;
 
@@ -40,6 +44,12 @@ export function convertTime(time: Time): InternalHorzScaleItem {
     return businessDayConverter(time);
 }
 
+/** The time behaviour's internal item, read back as the `TimePoint` it was built from. */
+export function timePointOf(item: InternalHorzScaleItem): TimePoint {
+    assert(isTimePoint(item), 'the internal item is not a time point');
+    return item;
+}
+
 export function convertStringToBusinessDay(value: TimedData<Time>): void {
     if (isString(value.time)) {
         value.time = stringToBusinessDay(value.time);
@@ -61,19 +71,17 @@ function businessDayConverter(time: Time): InternalHorzScaleItem {
 
     const date = new Date(Date.UTC(businessDay.year, businessDay.month - 1, businessDay.day, 0, 0, 0, 0));
 
-    return {
-        timestamp: Math.round(date.getTime() / 1000) as UTCTimestamp,
+    return internalItem({
+        timestamp: nominal<UTCTimestamp>(Math.round(date.getTime() / 1000)),
         businessDay,
-    } as unknown as InternalHorzScaleItem;
+    });
 }
 
 function timestampConverter(time: Time): InternalHorzScaleItem {
     if (!isUTCTimestamp(time)) {
         throw new Error('time must be of type isUTCTimestamp');
     }
-    return {
-        timestamp: time,
-    } as unknown as InternalHorzScaleItem;
+    return internalItem({ timestamp: time });
 }
 
 function stringToBusinessDay(value: string): BusinessDay {

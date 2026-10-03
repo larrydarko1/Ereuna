@@ -19,7 +19,7 @@ import { isAuthenticated } from '@/api/client';
 import { loadPreferences, patchPreferences } from '@/composables/data/usePreferences';
 import { DEFAULT_THEME, isThemeId, THEMES, type ThemeId } from '@/composables/ui/themes';
 
-export type UseThemeReturn = {
+type UseThemeReturn = {
     currentTheme: Readonly<Ref<ThemeId>>;
     themes: typeof THEMES;
     applyTheme: (id: ThemeId) => void;

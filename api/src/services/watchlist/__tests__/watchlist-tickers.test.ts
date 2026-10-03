@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { WatchlistDoc } from '@ereuna/shared';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { at } from '@/__tests__/support/values.js';
 import { AppError } from '@/lib/app-error.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
@@ -81,8 +82,10 @@ describe('addTicker', () => {
         state.exchange = 'NYSE';
         await addTicker(USER_ID, 'Tech', 'IBM');
 
-        const update = db.current.of('Watchlists').writes[0]?.args[1] as { $push: { list: unknown } };
-        expect(update.$push.list).toEqual({ ticker: 'IBM', exchange: 'NYSE' });
+        expect(at(db.current.of('Watchlists').writes[0]?.args, 1, '$push', 'list')).toEqual({
+            ticker: 'IBM',
+            exchange: 'NYSE',
+        });
     });
 
     it('scopes the write to the owner as well as the list id', async () => {
@@ -127,8 +130,7 @@ describe('addTicker', () => {
 describe('removeTicker', () => {
     it('pulls the entry by symbol', async () => {
         await removeTicker(USER_ID, 'Tech', 'AAPL');
-        const update = db.current.of('Watchlists').writes[0]?.args[1] as { $pull: { list: unknown } };
-        expect(update.$pull.list).toEqual({ ticker: 'AAPL' });
+        expect(at(db.current.of('Watchlists').writes[0]?.args, 1, '$pull', 'list')).toEqual({ ticker: 'AAPL' });
     });
 
     it('refuses a symbol that is not in the list', async () => {

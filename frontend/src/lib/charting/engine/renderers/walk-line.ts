@@ -8,12 +8,13 @@
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
 import { getDefined } from '@/lib/charting/engine/helpers/assertions';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type SeriesItemsIndexesRange } from '@/lib/charting/engine/model/time/time-data';
 import { type LinePoint, LineType } from '@/lib/charting/engine/renderers/draw-line';
 
 /** The stroke to walk: which points, in what shape, over which range. */
-export type LinePath<TItem extends LinePoint> = {
+type LinePath<TItem extends LinePoint> = {
     items: readonly TItem[];
     lineType: LineType;
     visibleRange: SeriesItemsIndexesRange;
@@ -56,8 +57,8 @@ export function walkLine<TItem extends LinePoint, TStyle extends CanvasRendering
 
         ctx.beginPath();
 
-        const item1: LinePoint = { x: (firstItem.x - halfBarWidth) as Coordinate, y: firstItem.y };
-        const item2: LinePoint = { x: (firstItem.x + halfBarWidth) as Coordinate, y: firstItem.y };
+        const item1: LinePoint = { x: nominal<Coordinate>(firstItem.x - halfBarWidth), y: firstItem.y };
+        const item2: LinePoint = { x: nominal<Coordinate>(firstItem.x + halfBarWidth), y: firstItem.y };
 
         ctx.moveTo(item1.x * horizontalPixelRatio, item1.y * verticalPixelRatio);
         ctx.lineTo(item2.x * horizontalPixelRatio, item2.y * verticalPixelRatio);
@@ -138,15 +139,15 @@ export function walkLine<TItem extends LinePoint, TStyle extends CanvasRendering
 }
 
 function subtract(p1: LinePoint, p2: LinePoint): LinePoint {
-    return { x: (p1.x - p2.x) as Coordinate, y: (p1.y - p2.y) as Coordinate };
+    return { x: nominal<Coordinate>(p1.x - p2.x), y: nominal<Coordinate>(p1.y - p2.y) };
 }
 
 function add(p1: LinePoint, p2: LinePoint): LinePoint {
-    return { x: (p1.x + p2.x) as Coordinate, y: (p1.y + p2.y) as Coordinate };
+    return { x: nominal<Coordinate>(p1.x + p2.x), y: nominal<Coordinate>(p1.y + p2.y) };
 }
 
 function divide(p1: LinePoint, n: number): LinePoint {
-    return { x: (p1.x / n) as Coordinate, y: (p1.y / n) as Coordinate };
+    return { x: nominal<Coordinate>(p1.x / n), y: nominal<Coordinate>(p1.y / n) };
 }
 
 /**

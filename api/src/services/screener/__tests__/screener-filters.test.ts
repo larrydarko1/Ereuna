@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ALL_FILTER_FIELDS } from '@ereuna/shared';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { recordAt } from '@/__tests__/support/values.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
@@ -31,8 +32,7 @@ const { clearFilter, resetFilters, setDateFilter, setEnumFilter, setFlagFilter, 
 
 const USER_ID = new ObjectId('507f1f77bcf86cd799439011');
 
-const updateOf = (): { $set?: Record<string, unknown>; $unset?: Record<string, string> } =>
-    db.current.of('Screeners').writes[0]?.args[1] as { $set?: Record<string, unknown> };
+const updateOf = (): Record<string, unknown> => recordAt(db.current.of('Screeners').writes[0]?.args, 1);
 
 beforeEach(() => {
     db.current = fakeDb({ Screeners: [{ _id: new ObjectId(), filters: {} }] });
@@ -45,16 +45,16 @@ beforeEach(() => {
 describe('setRangeFilter', () => {
     it("writes the pair under the filter's storage field, not its url key", async () => {
         await setRangeFilter(USER_ID, 'Growth', 'pe', { min: 5, max: 20 });
-        expect(updateOf().$set).toMatchObject({ 'filters.PE': [5, 20] });
+        expect(updateOf()['$set']).toMatchObject({ 'filters.PE': [5, 20] });
     });
 
     it('fills the omitted side from the data, so a one-sided range needs no prior knowledge', async () => {
         await setRangeFilter(USER_ID, 'Growth', 'pe', { max: 15 });
-        expect(updateOf().$set).toMatchObject({ 'filters.PE': [0, 15] });
+        expect(updateOf()['$set']).toMatchObject({ 'filters.PE': [0, 15] });
 
         db.current = fakeDb({ Screeners: [{ _id: new ObjectId() }] });
         await setRangeFilter(USER_ID, 'Growth', 'pe', { min: 15 });
-        expect(updateOf().$set).toMatchObject({ 'filters.PE': [15, 100] });
+        expect(updateOf()['$set']).toMatchObject({ 'filters.PE': [15, 100] });
     });
 
     it('refuses a range with neither side', async () => {
@@ -96,12 +96,12 @@ describe('setRangeFilter', () => {
 describe('setEnumFilter', () => {
     it('writes the selected values under the storage field', async () => {
         await setEnumFilter(USER_ID, 'Growth', 'sectors', ['Technology']);
-        expect(updateOf().$set).toMatchObject({ 'filters.Sectors': ['Technology'] });
+        expect(updateOf()['$set']).toMatchObject({ 'filters.Sectors': ['Technology'] });
     });
 
     it('de-duplicates the selection', async () => {
         await setEnumFilter(USER_ID, 'Growth', 'sectors', ['Technology', 'Technology']);
-        expect(updateOf().$set).toMatchObject({ 'filters.Sectors': ['Technology'] });
+        expect(updateOf()['$set']).toMatchObject({ 'filters.Sectors': ['Technology'] });
     });
 
     it('refuses a value outside the option set, so it cannot silently match nothing', async () => {
@@ -113,7 +113,7 @@ describe('setEnumFilter', () => {
 
     it('accepts an empty selection', async () => {
         await setEnumFilter(USER_ID, 'Growth', 'sectors', []);
-        expect(updateOf().$set).toMatchObject({ 'filters.Sectors': [] });
+        expect(updateOf()['$set']).toMatchObject({ 'filters.Sectors': [] });
     });
 
     it('refuses a key from another family', async () => {
@@ -126,12 +126,12 @@ describe('setEnumFilter', () => {
 describe('setDateFilter', () => {
     it('writes the span as a pair of strings', async () => {
         await setDateFilter(USER_ID, 'Growth', 'ipo-date', { from: '2000-01-01', to: '2010-01-01' });
-        expect(updateOf().$set).toMatchObject({ 'filters.IPO': ['2000-01-01', '2010-01-01'] });
+        expect(updateOf()['$set']).toMatchObject({ 'filters.IPO': ['2000-01-01', '2010-01-01'] });
     });
 
     it('fills the omitted side from the data', async () => {
         await setDateFilter(USER_ID, 'Growth', 'ipo-date', { to: '2010-01-01' });
-        expect(updateOf().$set).toMatchObject({ 'filters.IPO': [bounds.date.min, '2010-01-01'] });
+        expect(updateOf()['$set']).toMatchObject({ 'filters.IPO': [bounds.date.min, '2010-01-01'] });
     });
 
     it('refuses a span with neither side', async () => {
@@ -159,12 +159,12 @@ describe('setDateFilter', () => {
 describe('setMaFilter', () => {
     it('writes the relation as one token', async () => {
         await setMaFilter(USER_ID, 'Growth', 'ma-50', 'abv', '200');
-        expect(updateOf().$set).toMatchObject({ 'filters.MA50': 'abv200' });
+        expect(updateOf()['$set']).toMatchObject({ 'filters.MA50': 'abv200' });
     });
 
     it('compares against the price as well as another average', async () => {
         await setMaFilter(USER_ID, 'Growth', 'ma-50', 'blw', 'price');
-        expect(updateOf().$set).toMatchObject({ 'filters.MA50': 'blwprice' });
+        expect(updateOf()['$set']).toMatchObject({ 'filters.MA50': 'blwprice' });
     });
 
     it.each([
@@ -193,7 +193,7 @@ describe('setMaFilter', () => {
 describe('setFlagFilter', () => {
     it.each([true, false])('writes the flag as %s', async (enabled) => {
         await setFlagFilter(USER_ID, 'Growth', 'new-high', { enabled });
-        expect(updateOf().$set).toMatchObject({ 'filters.NewHigh': enabled });
+        expect(updateOf()['$set']).toMatchObject({ 'filters.NewHigh': enabled });
     });
 
     it('refuses a key from another family', async () => {
@@ -212,7 +212,7 @@ describe('clearFilter', () => {
         ['a flag filter', 'new-high', 'filters.NewHigh'],
     ])('unsets %s by resolving its field across every family', async (_label, key, field) => {
         await clearFilter(USER_ID, 'Growth', key);
-        expect(updateOf().$unset).toEqual({ [field]: '' });
+        expect(updateOf()['$unset']).toEqual({ [field]: '' });
     });
 
     it('refuses an unknown key', async () => {
@@ -235,7 +235,7 @@ describe('clearFilter', () => {
 describe('resetFilters', () => {
     it('unsets every filter field and nothing else', async () => {
         await resetFilters(USER_ID, 'Growth');
-        const unset = Object.keys(updateOf().$unset ?? {});
+        const unset = Object.keys(recordAt(updateOf(), '$unset'));
 
         expect(unset).toHaveLength(ALL_FILTER_FIELDS.length);
         for (const field of ALL_FILTER_FIELDS) expect(unset).toContain(`filters.${field}`);
@@ -243,7 +243,7 @@ describe('resetFilters', () => {
 
     it('cannot touch a document field outside `filters`', async () => {
         await resetFilters(USER_ID, 'Growth');
-        for (const key of Object.keys(updateOf().$unset ?? {})) expect(key.startsWith('filters.')).toBe(true);
+        for (const key of Object.keys(recordAt(updateOf(), '$unset'))) expect(key.startsWith('filters.')).toBe(true);
     });
 
     it('refuses a screener that does not exist', async () => {

@@ -1,6 +1,7 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { elementOf, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
 import { DEFAULT_COLUMNS } from '@/constants/screener';
@@ -80,11 +81,11 @@ const click = async (element: HTMLElement | undefined): Promise<void> => {
 const action = (wrapper: VueWrapper, label: string): HTMLElement => {
     const node = wrapper.findAll('.toolbar__action').find((button) => button.text() === label);
     if (node === undefined) throw new Error(`no action labelled ${label}`);
-    return node.element as HTMLElement;
+    return elementOf(node.element, HTMLElement);
 };
 
 const mode = (wrapper: VueWrapper, index: number): HTMLElement =>
-    wrapper.findAll('.toolbar__mode')[index]?.element as HTMLElement;
+    elementOf(wrapper.findAll('.toolbar__mode')[index]?.element, HTMLElement);
 
 beforeEach(() => {
     clearAuth();
@@ -214,7 +215,7 @@ describe('Screener', () => {
         api.on('POST /api/preferences/hidden/AAPL', { hiddenSymbols: ['AAPL'] });
         const wrapper = await view();
 
-        await click(wrapper.get('.results-table__action').element as HTMLElement);
+        await click(elementOf(wrapper.get('.results-table__action').element, HTMLElement));
 
         expect(api.calls.some((call) => call.path === '/api/preferences/hidden/AAPL')).toBe(true);
     });
@@ -223,7 +224,7 @@ describe('Screener', () => {
         api.on('POST /api/preferences/hidden/AAPL', { error: 'INTERNAL' }, { status: 500 });
         const wrapper = await view();
 
-        await click(wrapper.get('.results-table__action').element as HTMLElement);
+        await click(elementOf(wrapper.get('.results-table__action').element, HTMLElement));
 
         expect(wrapper.get('.screener__error[role="alert"]').text()).toBe(i18n.global.t('screener.hideFailed'));
     });
@@ -244,8 +245,8 @@ describe('Screener', () => {
         api.on('GET /api/screeners/New/results', page([]));
         const wrapper = await view();
 
-        await click(wrapper.findAll('.picker__button')[0]?.element as HTMLElement);
-        const input = $('.prompt input') as HTMLInputElement;
+        await click(elementOf(wrapper.findAll('.picker__button')[0]?.element, HTMLElement));
+        const input = query('.prompt input', HTMLInputElement);
         input.value = 'New';
         input.dispatchEvent(new Event('input', { bubbles: true }));
         await click($('.prompt__submit'));
@@ -258,8 +259,8 @@ describe('Screener', () => {
         api.on('POST /api/screeners', { error: 'SCREENER_NAME_TAKEN' }, { status: 409 });
         const wrapper = await view();
 
-        await click(wrapper.findAll('.picker__button')[0]?.element as HTMLElement);
-        const input = $('.prompt input') as HTMLInputElement;
+        await click(elementOf(wrapper.findAll('.picker__button')[0]?.element, HTMLElement));
+        const input = query('.prompt input', HTMLInputElement);
         input.value = 'Growth';
         input.dispatchEvent(new Event('input', { bubbles: true }));
         await click($('.prompt__submit'));
@@ -272,7 +273,7 @@ describe('Screener', () => {
         api.on('DELETE /api/screeners/Growth', null, { status: 204 });
         const wrapper = await view();
 
-        await click(wrapper.findAll('.picker__button')[3]?.element as HTMLElement);
+        await click(elementOf(wrapper.findAll('.picker__button')[3]?.element, HTMLElement));
         await click($('.dialog__footer .btn--danger'));
 
         expect(api.calls.some((call) => call.method === 'DELETE')).toBe(true);
@@ -401,7 +402,7 @@ describe('Screener', () => {
         api.on('POST /api/watchlists/Longs/tickers', { list: [{ ticker: 'AAPL', exchange: 'NASDAQ' }] });
         const wrapper = await view();
 
-        await click(wrapper.findAll('.results-table__action')[1]?.element as HTMLElement);
+        await click(elementOf(wrapper.findAll('.results-table__action')[1]?.element, HTMLElement));
         await click($('.watchlist-dialog__item'));
 
         expect(api.calls.some((call) => call.path === '/api/watchlists/Longs/tickers')).toBe(true);
@@ -438,6 +439,6 @@ describe('Screener', () => {
         const wrapper = await view();
 
         const charts = wrapper.findAllComponents(PriceChartStub);
-        expect(charts.map((chart) => chart.props('initialTimeframe'))).toEqual(['daily', 'weekly']);
+        expect(charts.map((chart): unknown => chart.props('initialTimeframe'))).toEqual(['daily', 'weekly']);
     });
 });

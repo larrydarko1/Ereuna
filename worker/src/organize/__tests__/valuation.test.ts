@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AssetInfoDoc } from '@ereuna/shared';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { recordAt } from '@/__tests__/support/values.js';
 
 vi.mock('@/lib/logger.js', () => ({
     logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
@@ -55,8 +56,8 @@ function doc(overrides: Record<string, unknown> = {}): Record<string, unknown> {
 async function fieldsFor(overrides: Record<string, unknown> = {}): Promise<Record<string, unknown>> {
     db.current = fakeDb({ AssetInfo: [doc(overrides)] });
     await updateValuations(NOW);
-    const [operation] = state.written as { updateOne: { update: { $set: Record<string, unknown> } } }[];
-    return operation?.updateOne.update.$set ?? {};
+    const [operation] = state.written;
+    return operation === undefined ? {} : recordAt(operation, 'updateOne', 'update', '$set');
 }
 
 beforeEach(() => {

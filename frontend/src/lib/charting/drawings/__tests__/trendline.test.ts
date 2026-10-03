@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { type DrawingStage, clickAt, moveTo, pressKey, stage } from '@/lib/charting/__tests__/helpers/drawing-harness';
-import { type TrendLine, TrendLineManager } from '@/lib/charting/drawings/trendline';
+import { TrendLineManager } from '@/lib/charting/drawings/trendline';
 
 type Drawn = { stage: DrawingStage; tool: TrendLineManager };
 
@@ -34,7 +34,7 @@ describe('drawing a trendline', () => {
 
         drawLine(drawn, { x: 150, y: 150 }, { x: 350, y: 250 });
 
-        const line = drawn.tool.getTrendLines()[0] as TrendLine;
+        const line = drawn.tool.getTrendLines()[0]!;
         expect(line.point1.time).toBeDefined();
         expect(line.point1.price).toBeGreaterThan(0);
         expect(line.point2.price).not.toBe(line.point1.price);
@@ -166,7 +166,7 @@ describe('dragging an endpoint', () => {
     it('moves the end that was grabbed and leaves the other one where it was', () => {
         const drawn = tool();
         drawLine(drawn, { x: 150, y: 150 }, { x: 350, y: 250 });
-        const before = drawn.tool.getTrendLines()[0] as TrendLine;
+        const before = drawn.tool.getTrendLines()[0]!;
         // Read out as numbers: the array is copied but the lines in it are not, so
         // `before` is the very line the drag is about to move
         const grabbed = before.point1.price;
@@ -176,7 +176,7 @@ describe('dragging an endpoint', () => {
         moveTo(drawn.stage, 200, 300);
         clickAt(drawn.stage, 200, 300);
 
-        const after = drawn.tool.getTrendLines()[0] as TrendLine;
+        const after = drawn.tool.getTrendLines()[0]!;
         expect(after.point1.price).not.toBe(grabbed);
         expect(after.point2.price).toBe(farEnd);
     });
@@ -184,13 +184,13 @@ describe('dragging an endpoint', () => {
     it('refuses to move an endpoint of a locked line', () => {
         const drawn = tool();
         drawLine(drawn, { x: 150, y: 150 }, { x: 350, y: 250 });
-        const line = drawn.tool.getTrendLines()[0] as TrendLine;
+        const line = drawn.tool.getTrendLines()[0]!;
         drawn.tool.loadTrendLines([{ ...line, locked: true }]);
 
         clickAt(drawn.stage, line.point1.x, line.point1.y);
         moveTo(drawn.stage, 200, 300);
 
-        expect((drawn.tool.getTrendLines()[0] as TrendLine).point1.price).toBe(line.point1.price);
+        expect(drawn.tool.getTrendLines()[0]!.point1.price).toBe(line.point1.price);
     });
 });
 
@@ -198,7 +198,7 @@ describe('lines loaded from somewhere else', () => {
     it('takes a whole set at once and hands back a copy rather than its own array', () => {
         const drawn = tool();
         drawLine(drawn, { x: 150, y: 150 }, { x: 350, y: 250 });
-        const line = drawn.tool.getTrendLines()[0] as TrendLine;
+        const line = drawn.tool.getTrendLines()[0]!;
 
         drawn.tool.loadTrendLines([line, { ...line, id: 'tl_second' }]);
         const handed = drawn.tool.getTrendLines();
@@ -210,7 +210,7 @@ describe('lines loaded from somewhere else', () => {
     it('draws a dashed line, a dotted one and an extended one without complaint', () => {
         const drawn = tool();
         drawLine(drawn, { x: 150, y: 150 }, { x: 350, y: 250 });
-        const line = drawn.tool.getTrendLines()[0] as TrendLine;
+        const line = drawn.tool.getTrendLines()[0]!;
 
         drawn.tool.loadTrendLines([
             { ...line, id: 'tl_dashed', lineStyle: 'dashed' },
@@ -224,7 +224,7 @@ describe('lines loaded from somewhere else', () => {
     it('extends a line of zero length to nowhere rather than dividing by it', () => {
         const drawn = tool();
         drawLine(drawn, { x: 150, y: 150 }, { x: 350, y: 250 });
-        const line = drawn.tool.getTrendLines()[0] as TrendLine;
+        const line = drawn.tool.getTrendLines()[0]!;
 
         drawn.tool.loadTrendLines([{ ...line, extended: true, point2: { ...line.point1 } }]);
 

@@ -25,7 +25,7 @@ const files = fs
     .filter((file) => file.endsWith('.js'))
     .sort();
 
-const existing: Record<string, string> = fs.existsSync(CHECKSUMS) ? (JSON.parse(fs.readFileSync(CHECKSUMS, 'utf8')) as Record<string, string>) : {};
+const existing = fs.existsSync(CHECKSUMS) ? readChecksums(fs.readFileSync(CHECKSUMS, 'utf8')) : {};
 
 const hash = (file: string): string => crypto.createHash('sha256').update(fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8')).digest('hex');
 
@@ -66,3 +66,18 @@ for (const file of Object.keys(existing).filter((f) => !files.includes(f))) {
 }
 
 console.log(`✔ recorded ${files.length} migration checksum(s)${added.length > 0 ? ` (${added.length} new)` : ''}`);
+
+/** The recorded checksums, refusing a file that is not a map of name to hash rather than trusting it. */
+function readChecksums(raw: string): Record<string, string> {
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+        throw new Error(`${CHECKSUMS} is not a map of migration to checksum`);
+    }
+
+    const checksums: Record<string, string> = {};
+    for (const [file, sum] of Object.entries(parsed)) {
+        if (typeof sum !== 'string') throw new Error(`${CHECKSUMS} has no checksum for ${file}`);
+        checksums[file] = sum;
+    }
+    return checksums;
+}

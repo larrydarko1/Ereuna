@@ -3,7 +3,7 @@
  * performance and the day's extremes.
  */
 import type { AssetInfoDoc, StatsDoc } from '@ereuna/shared';
-import { numeric } from '@ereuna/shared';
+import { isRecord, numeric } from '@ereuna/shared';
 
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
@@ -121,7 +121,7 @@ function toRow(doc: AssetInfoDoc): Row {
         exchange: typeof doc.Exchange === 'string' ? doc.Exchange : '',
         sector: typeof doc.Sector === 'string' ? doc.Sector : '',
         industry: typeof doc.Industry === 'string' ? doc.Industry : '',
-        close: numeric((doc['TimeSeries'] as { close?: unknown } | undefined)?.close),
+        close: numeric(isRecord(doc['TimeSeries']) ? doc['TimeSeries']['close'] : undefined),
         marketCap: numeric(doc.MarketCapitalization),
         todayChange: numeric(doc['todaychange']),
         quarterChange: numeric(doc['quarterchange']),

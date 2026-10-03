@@ -11,6 +11,9 @@ describe('the package barrel', () => {
     it.each([
         'ERROR_CODES',
         'isErrorCode',
+        'isRecord',
+        'isList',
+        'isOneOf',
         'ALL_COLLECTIONS',
         'COLLECTIONS',
         'INDEXES',

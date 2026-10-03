@@ -1,6 +1,8 @@
 /** NoSQL injection sanitizer middleware. */
 import type { NextFunction, Request, Response } from 'express';
 
+import { isRecord } from '@ereuna/shared';
+
 const POLLUTION_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 
 export function sanitizeRequest(req: Request, _res: Response, next: NextFunction): void {
@@ -24,9 +26,9 @@ export function sanitizeRequest(req: Request, _res: Response, next: NextFunction
 
 function stripUnsafeKeys(value: unknown): unknown {
     if (Array.isArray(value)) return value.map(stripUnsafeKeys);
-    if (value !== null && typeof value === 'object') {
+    if (isRecord(value)) {
         return Object.fromEntries(
-            Object.entries(value as Record<string, unknown>)
+            Object.entries(value)
                 .filter(([key]) => !isUnsafeKey(key))
                 .map(([key, val]) => [key, stripUnsafeKeys(val)]),
         );

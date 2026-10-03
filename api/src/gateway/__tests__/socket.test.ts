@@ -1,11 +1,12 @@
 import { createServer, type Server as HttpServer } from 'node:http';
-import type { AddressInfo } from 'node:net';
 
 import jwt from 'jsonwebtoken';
 import { io as connect, type Socket as ClientSocket } from 'socket.io-client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { QUOTE_TIMEFRAME, type AggregateMessage } from '@ereuna/shared';
+
+import { portOf } from '@/__tests__/support/port.js';
 
 type Sink = (message: AggregateMessage) => void;
 
@@ -100,7 +101,7 @@ beforeEach(async () => {
 
     server = createServer();
     await new Promise<void>((resolve) => server.listen(0, () => resolve()));
-    url = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+    url = `http://127.0.0.1:${portOf(server)}`;
     await initSocket(server);
 });
 

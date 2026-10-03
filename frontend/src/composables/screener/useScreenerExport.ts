@@ -15,7 +15,7 @@ import { i18n } from '@/i18n';
 import { CSV_TYPE, toCsv } from '@/utils/csv';
 import { downloadFile } from '@/utils/download';
 
-export type UseScreenerExportReturn = {
+type UseScreenerExportReturn = {
     exporting: Ref<boolean>;
     error: Ref<string | null>;
     run: () => Promise<void>;

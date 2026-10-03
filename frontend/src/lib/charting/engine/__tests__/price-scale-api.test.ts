@@ -119,7 +119,7 @@ describe('the four ways a price scale can map a price to a coordinate', () => {
 
         const y = series.priceToCoordinate(price);
         expect(y).not.toBeNull();
-        expect(series.coordinateToPrice(y as number)).toBeCloseTo(price, 4);
+        expect(series.coordinateToPrice(y!)).toBeCloseTo(price, 4);
         expect(chart.priceScale('right').options().mode).toBe(PriceScaleMode.Normal);
     });
 
@@ -131,7 +131,7 @@ describe('the four ways a price scale can map a price to a coordinate', () => {
 
         const y = series.priceToCoordinate(price);
         expect(y).not.toBeNull();
-        expect(series.coordinateToPrice(y as number)).toBeCloseTo(price, 2);
+        expect(series.coordinateToPrice(y!)).toBeCloseTo(price, 2);
     });
 
     it('still draws in percentage mode', () => {
@@ -156,12 +156,12 @@ describe('the four ways a price scale can map a price to a coordinate', () => {
         const { chart, series } = chartWithLine();
         const low = lineData()[0]?.value ?? 0;
         const high = Math.max(...lineData().map((point) => point.value));
-        const uprightLowY = series.priceToCoordinate(low) as number;
+        const uprightLowY = series.priceToCoordinate(low)!;
 
         chart.priceScale('right').applyOptions({ invertScale: true });
         paint(chart);
 
-        const invertedLowY = series.priceToCoordinate(low) as number;
+        const invertedLowY = series.priceToCoordinate(low)!;
         expect(invertedLowY).not.toBeCloseTo(uprightLowY, 1);
         expect(series.priceToCoordinate(high)).toBeGreaterThan(invertedLowY - 1);
     });
@@ -191,7 +191,7 @@ describe('auto scaling', () => {
     it('leaves room above and below for the margins it is given', () => {
         const { chart, series } = chartWithLine();
         const high = Math.max(...lineData().map((point) => point.value));
-        const tight = series.priceToCoordinate(high) as number;
+        const tight = series.priceToCoordinate(high)!;
 
         chart.priceScale('right').applyOptions({ scaleMargins: { top: 0.4, bottom: 0.1 } });
         paint(chart);
@@ -204,7 +204,7 @@ describe('auto scaling', () => {
         const first = chart.addLineSeries();
         first.setData(lineData(20));
         paint(chart);
-        const before = first.coordinateToPrice(0) as number;
+        const before = first.coordinateToPrice(0)!;
 
         const second = chart.addLineSeries();
         second.setData(lineData(20).map((point) => ({ ...point, value: point.value + 500 })));

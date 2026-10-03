@@ -3,13 +3,14 @@ import fs from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import { createChart } from '@/lib/charting/engine/api/create-chart';
+import { secondsToTime } from '@/lib/charting/shared/time-conversion';
 
 describe('probe', () => {
     it('dumps the chart DOM', () => {
         const el = document.createElement('div');
         document.body.appendChild(el);
         const chart = createChart(el, { width: 600, height: 400 });
-        chart.addLineSeries().setData([{ time: 1700000000 as never, value: 1 }]);
+        chart.addLineSeries().setData([{ time: secondsToTime(1700000000), value: 1 }]);
 
         const lines: string[] = [];
         const dump = (node: Element, depth: number): void => {

@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import SettingCard from '@/components/user/SettingCard.vue';
 import { isThemeId } from '@/composables/ui/themes';
 import { useTheme } from '@/composables/ui/useTheme';
+import { targetOf } from '@/utils/dom';
 
 const { t } = useI18n();
 const { currentTheme, themes, applyTheme } = useTheme();
@@ -20,7 +21,7 @@ const groups = computed(() =>
 const active = computed(() => themes.find((theme) => theme.id === currentTheme.value) ?? themes[0]);
 
 function select(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+    const value = targetOf(event, HTMLSelectElement).value;
     if (isThemeId(value)) applyTheme(value);
 }
 </script>

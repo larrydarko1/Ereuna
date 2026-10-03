@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { AssetProfile, SummaryField } from '@ereuna/shared';
 
+import { assetProfile } from '@/__tests__/support/assets';
 import SummaryPanel from '@/components/charts/SummaryPanel.vue';
 import { SUMMARY_FIELD_SPECS } from '@/constants/summaryFields';
 import { i18n } from '@/i18n';
@@ -12,8 +13,7 @@ const FIELDS: SummaryField[] = ['symbol', 'name', 'exchange'];
 const panel = (profile: AssetProfile | null, fields: SummaryField[] = FIELDS): VueWrapper =>
     mount(SummaryPanel, { props: { profile, fields } });
 
-const profile = (over: Partial<AssetProfile> = {}): AssetProfile =>
-    ({ symbol: 'AAPL', name: 'Apple Inc', exchange: 'NASDAQ', ...over }) as AssetProfile;
+const profile = (over: Partial<AssetProfile> = {}): AssetProfile => assetProfile(over);
 
 describe('SummaryPanel', () => {
     it('shows one row per field it was told to show, in that order', () => {

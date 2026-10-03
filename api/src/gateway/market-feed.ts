@@ -15,6 +15,8 @@ import {
     AGGREGATE_CHANNEL_PATTERN,
     AGGREGATOR_TIMEFRAMES,
     BUCKET_MS,
+    isOneOf,
+    isRecord,
     lastCandleKey,
     type AggregateMessage,
     type AggregatorTimeframe,
@@ -25,8 +27,6 @@ import { logger } from '@/lib/logger.js';
 import { getRedis } from '@/lib/redis.js';
 
 export type BucketSink = (message: AggregateMessage) => void;
-
-const TIMEFRAMES = new Set<string>(AGGREGATOR_TIMEFRAMES);
 
 let subscriber: Redis | null = null;
 
@@ -96,33 +96,35 @@ function parseBucket(payload: string): AggregateMessage | null {
         return null;
     }
 
-    if (typeof parsed !== 'object' || parsed === null) return null;
-    const value = parsed as Record<string, unknown>;
+    if (!isRecord(parsed)) return null;
 
-    const symbol = value['tickerID'];
-    const timeframe = value['timeframe'];
-    const timestamp = value['timestamp'] ?? value['start'];
+    const symbol = parsed['tickerID'];
+    const timeframe = parsed['timeframe'];
+    const timestamp = parsed['timestamp'] ?? parsed['start'];
 
     if (typeof symbol !== 'string' || symbol === '') return null;
-    if (typeof timeframe !== 'string' || !TIMEFRAMES.has(timeframe)) return null;
+    if (!isOneOf(AGGREGATOR_TIMEFRAMES, timeframe)) return null;
     if (typeof timestamp !== 'string') return null;
 
     const instant = toUtcIso(timestamp);
     if (instant === null) return null;
 
-    const prices = ['open', 'high', 'low', 'close'] as const;
-    if (prices.some((field) => typeof value[field] !== 'number' || !Number.isFinite(value[field]))) return null;
+    const open = finite(parsed['open']);
+    const high = finite(parsed['high']);
+    const low = finite(parsed['low']);
+    const close = finite(parsed['close']);
+    if (open === null || high === null || low === null || close === null) return null;
 
     return {
         tickerID: symbol.toUpperCase(),
-        timeframe: timeframe as AggregatorTimeframe,
+        timeframe,
         timestamp: instant,
-        open: value['open'] as number,
-        high: value['high'] as number,
-        low: value['low'] as number,
-        close: value['close'] as number,
-        volume: typeof value['volume'] === 'number' && Number.isFinite(value['volume']) ? value['volume'] : 0,
-        final: value['final'] === true,
+        open,
+        high,
+        low,
+        close,
+        volume: finite(parsed['volume']) ?? 0,
+        final: parsed['final'] === true,
     };
 }
 
@@ -136,4 +138,8 @@ function toUtcIso(timestamp: string): string | null {
     const zoned = /(?:Z|[+-]\d{2}:?\d{2})$/.test(timestamp) ? timestamp : `${timestamp}Z`;
     const parsed = new Date(zoned);
     return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+}
+
+function finite(value: unknown): number | null {
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }

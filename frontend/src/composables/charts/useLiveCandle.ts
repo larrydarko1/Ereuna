@@ -14,14 +14,14 @@ import type { ChartTimeframe, LiveCandle } from '@ereuna/shared';
 
 import { useSocket } from '@/api/socket';
 
-export type LiveCandleKey = {
-    symbol: string;
-    timeframe: ChartTimeframe;
-};
-
 export type UseLiveCandleReturn = {
     candle: DeepReadonly<Ref<LiveCandle | null>>;
     connected: DeepReadonly<Ref<boolean>>;
+};
+
+type LiveCandleKey = {
+    symbol: string;
+    timeframe: ChartTimeframe;
 };
 
 type CandleUpdate = {

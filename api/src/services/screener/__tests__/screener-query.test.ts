@@ -8,14 +8,18 @@
  */
 import { ObjectId } from 'mongodb';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ZodType } from 'zod';
 
-import type { ScreenerDoc } from '@ereuna/shared';
+import { isRecord } from '@ereuna/shared';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { at, listAt, recordAt } from '@/__tests__/support/values.js';
 
 vi.mock('@/lib/cache.js', () => ({
     userKey: (...parts: string[]) => parts.join(':'),
-    withCache: <T>(_key: string, fetcher: () => Promise<T>) => fetcher(),
+    // Answered the way a hit is: through JSON and the call site's schema
+    withCache: async (_key: string, schema: ZodType, fetcher: () => Promise<unknown>) =>
+        schema.parse(JSON.parse(JSON.stringify(await fetcher()))),
 }));
 
 const db: { current: DbStub } = { current: fakeDb() };
@@ -25,17 +29,27 @@ const { runHiddenSymbols, runIncludedScreeners } = await import('@/services/scre
 
 const USER_ID = new ObjectId('507f1f77bcf86cd799439011');
 
-const screener = (name: string, filters: ScreenerDoc['filters'] = {}): ScreenerDoc =>
-    ({ userId: USER_ID, name, nameLower: name.toLowerCase(), include: true, filters }) as ScreenerDoc;
+/** A stored screener as the collection holds it; seeded raw, so a test can store what a typed one could not. */
+const screener = (name: string, filters: Record<string, unknown> = {}): Record<string, unknown> => ({
+    userId: USER_ID,
+    name,
+    nameLower: name.toLowerCase(),
+    include: true,
+    filters,
+});
 
 /** The pipeline the last aggregate was handed, as recorded by the stub. */
-const pipeline = (): Record<string, unknown>[] =>
-    db.current.of('AssetInfo').aggregate.mock.calls[0]?.[0] as Record<string, unknown>[];
+const pipeline = (): unknown[] => listAt(db.current.of('AssetInfo').aggregate.mock.calls, 0, 0);
 
-const stage = <T>(name: string): T => (pipeline().find((entry) => name in entry) as Record<string, T>)[name] as T;
+/** The body of the first `name` stage in that pipeline — its `$match`, its `$project`. */
+const stage = (name: string): Record<string, unknown> =>
+    recordAt(
+        pipeline().find((entry) => isRecord(entry) && name in entry),
+        name,
+    );
 
-const matchStage = (): Record<string, unknown> => stage<Record<string, unknown>>('$match');
-const projectStage = (): Record<string, unknown> => stage<Record<string, unknown>>('$project');
+const matchStage = (): Record<string, unknown> => stage('$match');
+const projectStage = (): Record<string, unknown> => stage('$project');
 
 beforeEach(() => {
     db.current = fakeDb();
@@ -44,7 +58,7 @@ beforeEach(() => {
 describe('the query one screener’s filters build', () => {
     /** Run one screener with `filters` and hand back the `$match` it produced. */
     const queryFor = async (
-        filters: ScreenerDoc['filters'],
+        filters: Record<string, unknown>,
         hiddenSymbols: string[] = [],
     ): Promise<Record<string, unknown>> => {
         db.current = fakeDb({ Screeners: [screener('One', filters)], AssetInfo: [{ items: [], total: [] }] });
@@ -79,11 +93,9 @@ describe('the query one screener’s filters build', () => {
     });
 
     it('converts a stored date range into BSON dates', async () => {
-        const query = (await queryFor({ IPO: ['2000-01-01', '2020-01-01'] })) as {
-            IPO: { $gte: Date; $lte: Date };
-        };
-        expect(query.IPO.$gte).toBeInstanceOf(Date);
-        expect(query.IPO.$gte.toISOString()).toBe('2000-01-01T00:00:00.000Z');
+        const from = at(await queryFor({ IPO: ['2000-01-01', '2020-01-01'] }), 'IPO', '$gte');
+        expect(from).toBeInstanceOf(Date);
+        expect(from).toEqual(new Date('2000-01-01T00:00:00.000Z'));
     });
 
     /**
@@ -92,13 +104,13 @@ describe('the query one screener’s filters build', () => {
      * in turn, so combining them silently kept only the last.
      */
     it('composes multiple $expr clauses into $and instead of overwriting', async () => {
-        const query = (await queryFor({ Price: [10, 500], MA50: 'abv200', MA20: 'abv50' })) as { $and: unknown[] };
-        expect(query.$and).toHaveLength(3);
+        const query = await queryFor({ Price: [10, 500], MA50: 'abv200', MA20: 'abv50' });
+        expect(at(query, '$and')).toHaveLength(3);
     });
 
     it('compares a moving average against the close when the target is price', async () => {
-        const query = (await queryFor({ MA200: 'blwprice' })) as { $and: { $expr: unknown }[] };
-        expect(query.$and[0]?.$expr).toEqual({ $lt: ['$MA200', '$TimeSeries.close'] });
+        const query = await queryFor({ MA200: 'blwprice' });
+        expect(at(query, '$and', 0, '$expr')).toEqual({ $lt: ['$MA200', '$TimeSeries.close'] });
     });
 
     it('excludes hidden symbols', async () => {
@@ -106,9 +118,7 @@ describe('the query one screener’s filters build', () => {
     });
 
     it('ignores malformed stored values rather than emitting a broken query', async () => {
-        await expect(
-            queryFor({ PE: 'not-a-range', Sectors: [], MA50: 'nonsense' } as unknown as ScreenerDoc['filters']),
-        ).resolves.toEqual({});
+        await expect(queryFor({ PE: 'not-a-range', Sectors: [], MA50: 'nonsense' })).resolves.toEqual({});
     });
 });
 
@@ -143,15 +153,14 @@ describe('runIncludedScreeners', () => {
         const tags = JSON.stringify(stages);
         expect(tags).toContain('Growth');
         expect(tags).toContain('Value');
-        expect(stages.filter((stage) => '$unionWith' in stage)).toHaveLength(1);
-        expect(stages.some((stage) => '$group' in stage)).toBe(true);
+        expect(stages.filter((entry) => isRecord(entry) && '$unionWith' in entry)).toHaveLength(1);
+        expect(stages.some((entry) => isRecord(entry) && '$group' in entry)).toBe(true);
     });
 
     it('leads with the symbols the most screeners agreed on', async () => {
         await runIncludedScreeners(USER_ID, { page: 1, limit: 10 });
 
-        const sort = pipeline().find((stage) => '$sort' in stage) as { $sort: Record<string, number> };
-        expect(sort.$sort).toEqual({ matches: -1, Symbol: 1 });
+        expect(stage('$sort')).toEqual({ matches: -1, Symbol: 1 });
     });
 
     // Every branch carries the exclusion: a screener with no filters at all
@@ -164,8 +173,7 @@ describe('runIncludedScreeners', () => {
 
         await runIncludedScreeners(USER_ID, { page: 1, limit: 10, hiddenSymbols: ['AAPL'] });
 
-        const match = pipeline().find((stage) => '$match' in stage) as { $match: Record<string, unknown> };
-        expect(match.$match).toEqual({ Symbol: { $nin: ['AAPL'] } });
+        expect(matchStage()).toEqual({ Symbol: { $nin: ['AAPL'] } });
     });
 });
 
@@ -228,14 +236,16 @@ describe('runHiddenSymbols', () => {
             columns: ['quarterlyFinancials.0.roe', 'quarterlyFinancials.0.assetsCurrent'],
         });
 
-        const element = (projectStage()['quarterlyFinancials'] as { $let: { in: Record<string, string> } }[])[0];
-        expect(element?.$let.in).toEqual({ roe: '$$element.roe', assetsCurrent: '$$element.assetsCurrent' });
+        expect(at(projectStage(), 'quarterlyFinancials', 0, '$let', 'in')).toEqual({
+            roe: '$$element.roe',
+            assetsCurrent: '$$element.assetsCurrent',
+        });
     });
 
     it('cuts the page before reshaping it, so only the returned rows are projected', async () => {
         await runHiddenSymbols(USER_ID, { page: 1, limit: 10, hiddenSymbols: ['AAPL'] });
 
-        const stages = pipeline().map((stage) => Object.keys(stage)[0]);
+        const stages = pipeline().map((entry) => Object.keys(isRecord(entry) ? entry : {})[0]);
         expect(stages.indexOf('$limit')).toBeLessThan(stages.indexOf('$project'));
     });
 });

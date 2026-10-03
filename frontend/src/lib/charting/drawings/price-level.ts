@@ -4,6 +4,8 @@
  * A level is stored as a price alone rather than a point, so it spans the whole
  * plot and survives a horizontal pan without being re-derived.
  */
+import { isRecord } from '@ereuna/shared';
+
 import { openPriceLevelDialog, openPriceLevelMenu } from '@/lib/charting/drawings/price-level-dialog';
 import { type IChartApi } from '@/lib/charting/engine/api/create-chart';
 import { type MouseEventParams } from '@/lib/charting/engine/api/ichart-api';
@@ -12,8 +14,9 @@ import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
 import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
 import { LineStyle } from '@/lib/charting/engine/renderers/draw-line';
 import { type LineWidth } from '@/lib/charting/engine/renderers/draw-line';
+import { isTypingTarget } from '@/lib/charting/shared/key-target';
 
-export type PriceLevelData = {
+type PriceLevelData = {
     id: string;
     price: number;
     color: string;
@@ -27,6 +30,8 @@ type PriceLevelLine = {
     priceLine: IPriceLine;
     labelDiv: HTMLDivElement;
 };
+
+const LINE_WIDTHS: readonly LineWidth[] = [1, 2, 3, 4];
 
 // The only three styles the dialog offers — the library knows two more, but a
 // level is a single reference price and does not need them
@@ -124,7 +129,10 @@ export class PriceLevelManager {
 
     private handleDocumentClick = (event: MouseEvent): void => {
         // A click anywhere but inside the menu dismisses it
-        if (this.contextMenuDiv !== null && !this.contextMenuDiv.contains(event.target as Node)) {
+        if (
+            this.contextMenuDiv !== null &&
+            !(event.target instanceof Node && this.contextMenuDiv.contains(event.target))
+        ) {
             this.closeContextMenu();
         }
     };
@@ -132,10 +140,7 @@ export class PriceLevelManager {
     private handleKeyDown = (event: KeyboardEvent): void => {
         if (event.key !== 'Backspace' && event.key !== 'Delete') return;
 
-        // Not while the caret is in a field — there the key means "erase a
-        // character", including inside this tool's own dialog
-        const target = event.target as HTMLElement;
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        if (isTypingTarget(event.target)) {
             return;
         }
 
@@ -383,11 +388,12 @@ export class PriceLevelManager {
         return Array.from(this.levels.values(), (level) => ({ ...level.data }));
     }
 
-    public deserialize(data: PriceLevelData[]): void {
+    /** Restores saved levels; an entry that is not one (an older build's shape) is dropped. */
+    public deserialize(data: readonly unknown[]): void {
         // Loading what the server already holds is not a change to save back
         this.isDeserializing = true;
         this.clear();
-        data.forEach((levelData) => {
+        data.filter(isPriceLevelData).forEach((levelData) => {
             this.addPriceLevelToChart(levelData);
         });
         this.isDeserializing = false;
@@ -399,4 +405,16 @@ export class PriceLevelManager {
             this.updateLabelPosition(id);
         });
     }
+}
+
+function isPriceLevelData(value: unknown): value is PriceLevelData {
+    return (
+        isRecord(value) &&
+        typeof value['id'] === 'string' &&
+        typeof value['price'] === 'number' &&
+        typeof value['color'] === 'string' &&
+        typeof value['text'] === 'string' &&
+        LINE_WIDTHS.some((width) => width === value['lineWidth']) &&
+        Object.values(LineStyle).some((style) => style === value['lineStyle'])
+    );
 }

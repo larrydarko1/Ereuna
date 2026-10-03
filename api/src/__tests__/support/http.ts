@@ -7,10 +7,12 @@
  * with a broken middleware as readily as with a working one.
  */
 import type { Server } from 'node:http';
-import type { AddressInfo } from 'node:net';
 
 import express, { type Express, type RequestHandler } from 'express';
+import pino from 'pino';
 
+import { portOf } from '@/__tests__/support/port.js';
+import type { AuthRequest } from '@/middleware/auth.js';
 import { errorHandler } from '@/middleware/error-handler.js';
 
 export type Harness = {
@@ -42,8 +44,7 @@ export async function serve(mount: (app: Express) => void, options: { parseJson?
         const started = app.listen(0, () => resolve(started));
     });
 
-    const { port } = server.address() as AddressInfo;
-    const base = `http://127.0.0.1:${port}`;
+    const base = `http://127.0.0.1:${portOf(server)}`;
 
     return {
         app,
@@ -65,18 +66,17 @@ export async function serve(mount: (app: Express) => void, options: { parseJson?
     };
 }
 
-/** A stand-in for the request-scoped logger `requestId` normally binds. */
+/** The request-scoped logger `requestId` normally binds: a real one, switched off. */
 export const quietLogger: RequestHandler = (req, _res, next) => {
-    const noop = (): void => {};
-    req.log = { info: noop, warn: noop, error: noop, debug: noop, child: () => req.log } as unknown as typeof req.log;
+    req.log = pino({ enabled: false });
     next();
 };
 
 /** Pretend the request carried a valid access token for `userId`. */
 export const asUser =
     (userId: string): RequestHandler =>
-    (req, _res, next) => {
-        (req as { userId?: string }).userId = userId;
+    (req: AuthRequest, _res, next) => {
+        req.userId = userId;
         next();
     };
 

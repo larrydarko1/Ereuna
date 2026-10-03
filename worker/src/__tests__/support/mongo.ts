@@ -8,6 +8,8 @@
  */
 import { vi, type Mock } from 'vitest';
 
+import { recordAt } from '@/__tests__/support/values.js';
+
 /** The driver methods this double records a write for. */
 type WriteMethod = 'updateOne' | 'updateMany' | 'insertMany' | 'deleteMany' | 'bulkWrite' | 'createIndex';
 
@@ -16,7 +18,7 @@ type WriteRecord = {
     args: unknown[];
 };
 
-export type CollectionStub = {
+type CollectionStub = {
     name: string;
     seed: unknown[];
     /**
@@ -44,7 +46,7 @@ export type CollectionStub = {
 };
 
 export type DbStub = {
-    collection: Mock;
+    collection: Mock<(name: string) => CollectionStub>;
     /** The stub for `name`, created on first use so a test can assert on an untouched one. */
     of: (name: string) => CollectionStub;
     /** Every write across every collection, in the order the job made them. */
@@ -136,7 +138,6 @@ export function fakeDb(seed: Record<string, unknown[]> = {}): DbStub {
 }
 
 /** The `$set` payload of the nth updateOne on a collection. */
-export function setPayload<T = Record<string, unknown>>(collection: CollectionStub, index = 0): T {
-    const write = collection.writes.filter((w) => w.method === 'updateOne')[index];
-    return (write?.args[1] as { $set: T }).$set;
+export function setPayload(collection: CollectionStub, index = 0): Record<string, unknown> {
+    return recordAt(collection.writes.filter((w) => w.method === 'updateOne')[index]?.args, 1, '$set');
 }

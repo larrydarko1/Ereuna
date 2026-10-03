@@ -2,6 +2,7 @@
  * The base for the views that draw one horizontal line at a price the series
  * supplies.
  */
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type ISeries } from '@/lib/charting/engine/model/series/series';
@@ -16,7 +17,7 @@ import { type IPaneView } from '@/lib/charting/engine/views/pane/ipane-view';
 
 export abstract class SeriesHorizontalLinePaneView implements IPaneView {
     protected readonly _lineRendererData: HorizontalLineRendererData = {
-        y: 0 as Coordinate,
+        y: nominal<Coordinate>(0),
         color: 'rgba(0, 0, 0, 0)',
         lineWidth: 1,
         lineStyle: LineStyle.Solid,

@@ -20,7 +20,9 @@ test.describe('Price chart', () => {
 
         const paneHeights = await host
             .locator('canvas')
-            .evaluateAll((canvases) => canvases.map((canvas) => (canvas as HTMLCanvasElement).height));
+            .evaluateAll((canvases) =>
+                canvases.map((canvas) => (canvas instanceof HTMLCanvasElement ? canvas.height : 0)),
+            );
         expect(Math.max(...paneHeights)).toBeGreaterThan(200);
     });
 

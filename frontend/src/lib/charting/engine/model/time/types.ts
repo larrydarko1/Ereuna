@@ -139,3 +139,27 @@ export function isBusinessDay(time: Time): time is BusinessDay {
 export function isUTCTimestamp(time: Time): time is UTCTimestamp {
     return isNumber(time);
 }
+
+/** A value the caller could have given as a `Time`: a number, a date string, or a business day object. */
+export function isTime(value: unknown): value is Time {
+    if (isNumber(value) || isString(value)) return true;
+    return (
+        typeof value === 'object' &&
+        value !== null &&
+        'year' in value &&
+        'month' in value &&
+        'day' in value &&
+        isNumber(value.year) &&
+        isNumber(value.month) &&
+        isNumber(value.day)
+    );
+}
+
+/**
+ * The time behaviour's internal item: an object carrying its epoch second. The
+ * second may be NaN — a business day past what a Date can hold converts to one —
+ * so this asks for a number, not a finite one.
+ */
+export function isTimePoint(value: unknown): value is TimePoint {
+    return typeof value === 'object' && value !== null && 'timestamp' in value && typeof value.timestamp === 'number';
+}

@@ -6,7 +6,7 @@ import { useRowLimit, type UseRowLimitReturn } from '@/composables/ui/useRowLimi
 /** The composable registers a watcher, so it needs a scope to be collected with. */
 function inScope<T>(source: () => readonly T[], limit: number): UseRowLimitReturn<T> {
     const scope = effectScope();
-    return scope.run(() => useRowLimit(source, limit)) as UseRowLimitReturn<T>;
+    return scope.run(() => useRowLimit(source, limit))!;
 }
 
 const rows = (count: number): number[] => Array.from({ length: count }, (_, index) => index);

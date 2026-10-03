@@ -1,6 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { query } from '@/__tests__/support/dom';
 import BenchmarksDialog from '@/components/portfolio/BenchmarksDialog.vue';
 import { i18n } from '@/i18n';
 
@@ -15,7 +16,7 @@ const $ = (selector: string): HTMLElement => {
 };
 
 const type = async (value: string): Promise<void> => {
-    const field = $('.benchmarks-dialog__add input') as HTMLInputElement;
+    const field = query('.benchmarks-dialog__add input', HTMLInputElement);
     field.value = value;
     field.dispatchEvent(new Event('input', { bubbles: true }));
     await Promise.resolve();
@@ -61,7 +62,7 @@ describe('BenchmarksDialog', () => {
         await type('qqq');
         await add();
 
-        expect(($('.benchmarks-dialog__add input') as HTMLInputElement).value).toBe('');
+        expect(query('.benchmarks-dialog__add input', HTMLInputElement).value).toBe('');
     });
 
     it('refuses a symbol already on the list', async () => {
@@ -86,7 +87,7 @@ describe('BenchmarksDialog', () => {
     it('stops at the cap the API enforces', async () => {
         open({ current: ['SPY', 'QQQ', 'DIA', 'IWM', 'EFA'] });
 
-        expect(($('.benchmarks-dialog__add input') as HTMLInputElement).disabled).toBe(true);
+        expect(query('.benchmarks-dialog__add input', HTMLInputElement).disabled).toBe(true);
 
         await type('EEM');
         await add();

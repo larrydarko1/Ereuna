@@ -9,8 +9,8 @@ import { refetchHistory } from '@/organize/prices.js';
 import { rebuildWeekly } from '@/organize/weekly.js';
 import { assetInfoUpdates } from '@/organize/write.js';
 
-export type Split = { symbol: string; at: Date; factor: number };
-export type Dividend = { symbol: string; at: Date; amount: number };
+type Split = { symbol: string; at: Date; factor: number };
+type Dividend = { symbol: string; at: Date; amount: number };
 
 /**
  * Apply every split seen in tonight's bars.

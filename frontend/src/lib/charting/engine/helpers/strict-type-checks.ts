@@ -16,26 +16,12 @@ type PlainObject = Record<string, unknown>;
  *
  * This is what lays a `DeepPartial<Options>` over the chart's defaults, so an
  * option the caller did not name has to survive untouched — which is why a
- * nested object is recursed into rather than replaced wholesale.
+ * nested object is recursed into rather than replaced wholesale. `dst` is
+ * returned as itself, so it keeps the type it came in with.
  */
-export function merge(dst: PlainObject, ...sources: PlainObject[]): PlainObject {
+export function merge<T extends object>(dst: T, ...sources: object[]): T {
     for (const src of sources) {
-        for (const key in src) {
-            const value = src[key];
-            if (value === undefined) {
-                continue;
-            }
-
-            const existing = dst[key];
-
-            // An array or a primitive replaces what was there outright; only a
-            // nested object that the target already has is merged into
-            if (isMergeable(value) && existing !== undefined) {
-                merge(existing as PlainObject, value);
-            } else {
-                dst[key] = value;
-            }
-        }
+        mergeInto(dst, src);
     }
 
     return dst;
@@ -63,20 +49,8 @@ export function isBoolean(value: unknown): value is boolean {
  * into the chart's own state by mutating it later.
  */
 export function clone<T>(object: T): T {
-    if (typeof object !== 'object' || object === null) {
-        return object;
-    }
-
-    if (Array.isArray(object)) {
-        return object.map((item: unknown) => clone(item)) as T;
-    }
-
-    const copy: PlainObject = {};
-    for (const key of Object.keys(object)) {
-        copy[key] = clone((object as PlainObject)[key]);
-    }
-
-    return copy as T;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- a structural copy has the shape of what it copied, and a type parameter has no runtime form to check that against
+    return copyOf(object) as T;
 }
 
 export function notNull<T>(t: T | null): t is T {
@@ -96,4 +70,40 @@ export function undefinedIfNull<T>(t: T | null): T | undefined {
  */
 function isMergeable(value: unknown): value is PlainObject {
     return typeof value === 'object' && !Array.isArray(value);
+}
+
+function mergeInto(dst: object, src: object): void {
+    for (const key of Object.keys(src)) {
+        const value: unknown = Reflect.get(src, key);
+        if (value === undefined) {
+            continue;
+        }
+
+        const existing: unknown = Reflect.get(dst, key);
+
+        // An array or a primitive replaces what was there outright; only a
+        // nested object that the target already has is merged into
+        if (isMergeable(value) && isMergeable(existing) && existing !== null) {
+            mergeInto(existing, value);
+        } else {
+            Reflect.set(dst, key, value);
+        }
+    }
+}
+
+function copyOf(value: unknown): unknown {
+    if (typeof value !== 'object' || value === null) {
+        return value;
+    }
+
+    if (Array.isArray(value)) {
+        return value.map(copyOf);
+    }
+
+    const copy: PlainObject = {};
+    for (const [key, item] of Object.entries(value)) {
+        copy[key] = copyOf(item);
+    }
+
+    return copy;
 }

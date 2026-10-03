@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AGGREGATE_CHANNEL_PATTERN, BUCKET_MS, lastCandleKey, type AggregateMessage } from '@ereuna/shared';
+import { AGGREGATE_CHANNEL_PATTERN, BUCKET_MS, lastCandleKey } from '@ereuna/shared';
 
 import { fakeRedis, type RedisStub } from '@/__tests__/support/redis.js';
+import type { BucketSink } from '@/gateway/market-feed.js';
 
 type Handler = (...args: unknown[]) => void;
 
@@ -122,7 +123,7 @@ describe('startMarketFeed', () => {
     });
 
     it('hands each published bucket to the sink', async () => {
-        const sink = vi.fn();
+        const sink = vi.fn<BucketSink>();
         await startMarketFeed(sink);
         subscriber().emit('pmessage', 'aggr:*', 'aggr:1m', JSON.stringify(bucket()));
 
@@ -131,15 +132,15 @@ describe('startMarketFeed', () => {
     });
 
     it('states the zone on a naive timestamp, rather than shifting the bar by the server offset', async () => {
-        const sink = vi.fn();
+        const sink = vi.fn<BucketSink>();
         await startMarketFeed(sink);
         subscriber().emit('pmessage', 'aggr:*', 'aggr:1m', JSON.stringify(bucket()));
 
-        expect((sink.mock.calls[0]?.[0] as AggregateMessage).timestamp).toBe('2026-03-02T14:30:00.000Z');
+        expect(sink.mock.calls[0]?.[0].timestamp).toBe('2026-03-02T14:30:00.000Z');
     });
 
     it('accepts a timestamp that already carries a zone', async () => {
-        const sink = vi.fn();
+        const sink = vi.fn<BucketSink>();
         await startMarketFeed(sink);
         subscriber().emit(
             'pmessage',
@@ -148,11 +149,11 @@ describe('startMarketFeed', () => {
             JSON.stringify(bucket({ timestamp: '2026-03-02T09:30:00-05:00' })),
         );
 
-        expect((sink.mock.calls[0]?.[0] as AggregateMessage).timestamp).toBe('2026-03-02T14:30:00.000Z');
+        expect(sink.mock.calls[0]?.[0].timestamp).toBe('2026-03-02T14:30:00.000Z');
     });
 
     it('reads `start` when the producer did not write `timestamp`', async () => {
-        const sink = vi.fn();
+        const sink = vi.fn<BucketSink>();
         await startMarketFeed(sink);
         const { timestamp, ...rest } = bucket();
         void timestamp;
@@ -162,7 +163,7 @@ describe('startMarketFeed', () => {
     });
 
     it('defaults a missing or non-finite volume to zero, and final to false', async () => {
-        const sink = vi.fn();
+        const sink = vi.fn<BucketSink>();
         await startMarketFeed(sink);
         subscriber().emit('pmessage', 'aggr:*', 'aggr:1m', JSON.stringify(bucket({ volume: undefined })));
 
@@ -180,7 +181,7 @@ describe('startMarketFeed', () => {
         ['a non-numeric price', JSON.stringify(bucket({ close: 'n/a' }))],
         ['an infinite price', JSON.stringify(bucket({ high: null }))],
     ])('drops a payload with %s', async (_case, payload) => {
-        const sink = vi.fn();
+        const sink = vi.fn<BucketSink>();
         await startMarketFeed(sink);
         subscriber().emit('pmessage', 'aggr:*', 'aggr:1m', payload);
 

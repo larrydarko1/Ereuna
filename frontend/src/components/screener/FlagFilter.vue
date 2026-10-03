@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 
+import { targetOf } from '@/utils/dom';
+
 const { value = null, busy = false } = defineProps<{
     value?: { enabled: boolean } | null;
     busy?: boolean;
@@ -9,6 +11,10 @@ const { value = null, busy = false } = defineProps<{
 const emit = defineEmits<{ apply: [{ enabled: boolean }] }>();
 
 const { t } = useI18n();
+
+function onChange(event: Event): void {
+    emit('apply', { enabled: targetOf(event, HTMLInputElement).checked });
+}
 </script>
 
 <template>
@@ -17,7 +23,7 @@ const { t } = useI18n();
             type="checkbox"
             :checked="value?.enabled === true"
             :disabled="busy"
-            @change="emit('apply', { enabled: ($event.target as HTMLInputElement).checked })" />
+            @change="onChange" />
         <span>{{ t('screener.flagOn') }}</span>
     </label>
 </template>

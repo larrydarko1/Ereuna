@@ -8,7 +8,7 @@
  * and `valueHistory`. Ereuna simulates: a user bringing in a track record their
  * log cannot reproduce is stating it, and stating it is their prerogative.
  */
-import type { PortfolioExport, PortfolioSummary, TradeInput } from '@ereuna/shared';
+import type { PortfolioExport, PortfolioSummary } from '@ereuna/shared';
 
 import { api, type ApiResult } from '@/api/client';
 
@@ -23,9 +23,13 @@ export type PortfolioRow = {
     updatedAt: string;
 };
 
+/**
+ * A portfolio file as the user chose it. The client checks only that it holds a
+ * list of trades; what each trade and the settings say is the server's to judge.
+ */
 export type PortfolioImport = {
-    trades: TradeInput[];
-    portfolio?: Partial<PortfolioExport['portfolio']>;
+    trades: unknown[];
+    portfolio?: unknown;
 };
 
 export function getPortfolios(): ApiResult<{ items: PortfolioRow[] }> {

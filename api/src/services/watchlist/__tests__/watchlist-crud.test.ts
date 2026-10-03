@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { WatchlistDoc } from '@ereuna/shared';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { at, listAt } from '@/__tests__/support/values.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
 
@@ -31,12 +32,12 @@ function watchlist(overrides: Partial<WatchlistDoc> = {}): WithId<WatchlistDoc> 
 
 const duplicateKey = (): Error => Object.assign(new Error('E11000 duplicate key'), { code: 11000 });
 
-const bulkOrder = (): { id: ObjectId; position: number }[] =>
-    (
-        (db.current.of('Watchlists').writes.find((w) => w.method === 'bulkWrite')?.args[0] ?? []) as {
-            updateOne: { filter: { _id: ObjectId }; update: { $set: { position: number } } };
-        }[]
-    ).map((op) => ({ id: op.updateOne.filter._id, position: op.updateOne.update.$set.position }));
+/** The order the reorder's bulk write set: each list's id beside the position it was given. */
+const bulkOrder = (): { id: unknown; position: unknown }[] =>
+    listAt(db.current.of('Watchlists').writes.find((w) => w.method === 'bulkWrite')?.args, 0).map((op) => ({
+        id: at(op, 'updateOne', 'filter', '_id'),
+        position: at(op, 'updateOne', 'update', '$set', 'position'),
+    }));
 
 beforeEach(() => {
     db.current = fakeDb();
@@ -85,14 +86,16 @@ describe('createWatchlist', () => {
     it('appends at the end of the existing order', async () => {
         db.current.of('Watchlists').results.countDocuments = 3;
         await createWatchlist(USER_ID, 'Tech');
-        const document = db.current.of('Watchlists').writes[0]?.args[0] as WatchlistDoc;
-        expect(document.position).toBe(3);
+        expect(db.current.of('Watchlists').writes[0]?.args[0]).toMatchObject({ position: 3 });
     });
 
     it('starts empty, with both name forms stored', async () => {
         await createWatchlist(USER_ID, 'TeCh');
-        const document = db.current.of('Watchlists').writes[0]?.args[0] as WatchlistDoc;
-        expect(document).toMatchObject({ name: 'TeCh', nameLower: 'tech', list: [] });
+        expect(db.current.of('Watchlists').writes[0]?.args[0]).toMatchObject({
+            name: 'TeCh',
+            nameLower: 'tech',
+            list: [],
+        });
     });
 
     it('refuses once the user is at the limit', async () => {
@@ -125,8 +128,9 @@ describe('renameWatchlist', () => {
 
     it('writes both name forms', async () => {
         await expect(renameWatchlist(USER_ID, 'Tech', 'Energy')).resolves.toMatchObject({ name: 'Energy' });
-        const update = db.current.of('Watchlists').writes[0]?.args[1] as { $set: Record<string, unknown> };
-        expect(update.$set).toMatchObject({ name: 'Energy', nameLower: 'energy' });
+        expect(db.current.of('Watchlists').writes[0]?.args[1]).toMatchObject({
+            $set: { name: 'Energy', nameLower: 'energy' },
+        });
     });
 
     it('refuses one that does not exist', async () => {
@@ -212,9 +216,6 @@ describe('reorderWatchlists', () => {
     it('scopes every position write to the owner as well as the id', async () => {
         db.current = fakeDb({ Watchlists: [tech] });
         await reorderWatchlists(USER_ID, ['Tech']);
-        const operations = db.current.of('Watchlists').writes[0]?.args[0] as {
-            updateOne: { filter: { userId: ObjectId } };
-        }[];
-        expect(operations[0]?.updateOne.filter.userId).toBe(USER_ID);
+        expect(at(db.current.of('Watchlists').writes[0]?.args, 0, 0, 'updateOne', 'filter', 'userId')).toBe(USER_ID);
     });
 });

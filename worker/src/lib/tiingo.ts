@@ -1,39 +1,54 @@
 /** The market-data vendor's REST API. */
+import { z } from 'zod';
+
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 
-/** A daily bar as the vendor sends it. Adjusted and raw fields both arrive. */
-export type VendorDailyBar = {
-    date: string;
-    close: number;
-    high: number;
-    low: number;
-    open: number;
-    volume: number;
-    adjClose: number;
-    adjHigh: number;
-    adjLow: number;
-    adjOpen: number;
-    adjVolume: number;
-    divCash: number;
-    splitFactor: number;
-};
+/**
+ * A daily bar as the vendor sends it. Only the adjusted prices are kept, so
+ * only they are required; a row missing one is dropped rather than half-filled,
+ * because a bar with a raw close among adjusted ones is a discontinuity every
+ * derived figure would read as a move. A missing split factor or dividend is
+ * read as none.
+ */
+const dailyBarSchema = z.object({
+    date: z.string(),
+    adjOpen: z.number(),
+    adjHigh: z.number(),
+    adjLow: z.number(),
+    adjClose: z.number(),
+    adjVolume: z.number(),
+    divCash: z.number().catch(0),
+    splitFactor: z.number().catch(1),
+});
 
-/** One row of the whole-market end-of-day endpoint. */
-export type VendorMarketBar = VendorDailyBar & { ticker: string };
+const marketBarSchema = dailyBarSchema.extend({ ticker: z.string().min(1) });
 
-export type VendorStatementItem = { dataCode?: string; value?: number | null };
+const statementItemSchema = z.object({
+    dataCode: z.string().optional(),
+    value: z.number().nullable().optional(),
+});
 
-export type VendorStatement = {
-    date?: string;
-    quarter?: number;
-    statementData?: {
-        incomeStatement?: VendorStatementItem[];
-        balanceSheet?: VendorStatementItem[];
-        cashFlow?: VendorStatementItem[];
-        overview?: VendorStatementItem[];
-    };
-};
+const statementSchema = z.object({
+    date: z.string().optional(),
+    quarter: z.number().optional(),
+    statementData: z
+        .object({
+            incomeStatement: z.array(statementItemSchema).optional(),
+            balanceSheet: z.array(statementItemSchema).optional(),
+            cashFlow: z.array(statementItemSchema).optional(),
+            overview: z.array(statementItemSchema).optional(),
+        })
+        .optional(),
+});
+
+export type VendorDailyBar = z.infer<typeof dailyBarSchema>;
+
+export type VendorMarketBar = z.infer<typeof marketBarSchema>;
+
+export type VendorStatementItem = z.infer<typeof statementItemSchema>;
+
+export type VendorStatement = z.infer<typeof statementSchema>;
 
 const waiting: (() => void)[] = [];
 
@@ -53,12 +68,12 @@ let inFlight = 0;
 
 /** Every listed symbol's end-of-day bar for the latest session, in one call. */
 export function marketPrices(): Promise<VendorMarketBar[]> {
-    return request<VendorMarketBar[]>('/tiingo/daily/prices');
+    return request('/tiingo/daily/prices', marketBarSchema);
 }
 
 /** The full daily history for one symbol. */
 export function dailyHistory(symbol: string, startDate = '1960-01-01'): Promise<VendorDailyBar[]> {
-    return request<VendorDailyBar[]>(`/tiingo/daily/${encodeURIComponent(symbol)}/prices`, {
+    return request(`/tiingo/daily/${encodeURIComponent(symbol)}/prices`, dailyBarSchema, {
         startDate,
         endDate: new Date().toISOString().slice(0, 10),
     });
@@ -66,7 +81,7 @@ export function dailyHistory(symbol: string, startDate = '1960-01-01'): Promise<
 
 /** Quarterly and annual financial statements for one symbol. */
 export function statements(symbol: string): Promise<VendorStatement[]> {
-    return request<VendorStatement[]>(`/tiingo/fundamentals/${encodeURIComponent(symbol)}/statements`);
+    return request(`/tiingo/fundamentals/${encodeURIComponent(symbol)}/statements`, statementSchema);
 }
 
 /**
@@ -100,23 +115,40 @@ function release(): void {
  * having a moment. A 4xx is not retried: asking again for a ticker the vendor
  * does not know wastes the rate limit that the rest of the run needs.
  */
-async function request<T>(path: string, query: Record<string, string> = {}): Promise<T> {
+async function request<T>(path: string, row: z.ZodType<T>, query: Record<string, string> = {}): Promise<T[]> {
     const url = new URL(path, config.tiingo.baseUrl);
     for (const [key, value] of Object.entries(query)) url.searchParams.set(key, value);
 
     await acquire();
     try {
-        return await retrying<T>(url, path);
+        return rowsOf(await retrying(url, path), row, path);
     } finally {
         release();
     }
 }
 
+/**
+ * The rows of a list response that match `row`. Each is checked on its own, so
+ * one malformed row costs that row rather than the whole response; a body that
+ * is not a list at all is the vendor answering something else, and throws.
+ */
+function rowsOf<T>(body: unknown, row: z.ZodType<T>, path: string): T[] {
+    const rows: T[] = [];
+    let dropped = 0;
+    for (const item of z.array(z.unknown()).parse(body)) {
+        const parsed = row.safeParse(item);
+        if (parsed.success) rows.push(parsed.data);
+        else dropped += 1;
+    }
+    if (dropped > 0) logger.warn({ path, dropped }, 'Vendor rows that did not match their schema were dropped');
+    return rows;
+}
+
 /** The retry ladder, with the rate-limit slot already held by the caller. */
-async function retrying<T>(url: URL, path: string): Promise<T> {
+async function retrying(url: URL, path: string): Promise<unknown> {
     for (let attempt = 1; attempt <= config.tiingo.retries; attempt += 1) {
         try {
-            return await attemptOnce<T>(url, path);
+            return await attemptOnce(url, path);
         } catch (err) {
             if (err instanceof TiingoError && err.status < 500 && err.status !== 429) throw err;
             if (attempt === config.tiingo.retries) throw err;
@@ -136,12 +168,12 @@ async function retrying<T>(url: URL, path: string): Promise<T> {
  * Which statuses are worth another try is the ladder's decision, not this one's,
  * so the 4xx rule lives in exactly one place.
  */
-async function attemptOnce<T>(url: URL, path: string): Promise<T> {
+async function attemptOnce(url: URL, path: string): Promise<unknown> {
     const response = await fetch(url, {
         headers: { Authorization: `Token ${config.tiingo.key}`, Accept: 'application/json' },
         signal: AbortSignal.timeout(config.tiingo.timeoutMs),
     });
 
-    if (response.ok) return (await response.json()) as T;
+    if (response.ok) return response.json();
     throw new TiingoError(response.status, path);
 }

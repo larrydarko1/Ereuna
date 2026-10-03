@@ -36,8 +36,10 @@ import {
     type MouseEventParamsImplSupplier,
 } from '@/lib/charting/engine/gui/chart-widget';
 import { assert, getPresent, getDefined } from '@/lib/charting/engine/helpers/assertions';
+import { callerType } from '@/lib/charting/engine/helpers/caller-type';
 import { Delegate } from '@/lib/charting/engine/helpers/delegate';
 import { rejectOptions } from '@/lib/charting/engine/helpers/logger';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { clone, type DeepPartial, isBoolean, merge } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { type ChartOptionsImpl, type ChartOptionsInternal } from '@/lib/charting/engine/model/chart/chart-options';
 import {
@@ -74,12 +76,15 @@ import { type Logical } from '@/lib/charting/engine/model/time/time-data';
 
 export type IPriceScaleApiProvider<THorzScaleItem> = Pick<IChartApiBase<THorzScaleItem>, 'priceScale'>;
 
+/** The shape of both per-axis switches under `handleScale`. */
+type AxisSwitches = { time: boolean; price: boolean };
+
 export class ChartApi<THorzScaleItem>
     implements IChartApiBase<THorzScaleItem>, DataUpdatesConsumer<SeriesType, THorzScaleItem>
 {
     private _chartWidget: ChartWidget<THorzScaleItem>;
     private _dataLayer: DataLayer<THorzScaleItem>;
-    private readonly _seriesMap = new Map<SeriesApi<SeriesType, THorzScaleItem>, Series<SeriesType>>();
+    private readonly _seriesMap = new Map<ISeriesApi<SeriesType, THorzScaleItem>, Series<SeriesType>>();
     private readonly _seriesMapReversed = new Map<Series<SeriesType>, SeriesApi<SeriesType, THorzScaleItem>>();
 
     private readonly _clickedDelegate = new Delegate<MouseEventParams<THorzScaleItem>>();
@@ -99,10 +104,7 @@ export class ChartApi<THorzScaleItem>
         const internalOptions =
             options === undefined
                 ? clone(chartOptionsDefaults<THorzScaleItem>())
-                : (merge(
-                      clone(chartOptionsDefaults()),
-                      toInternalOptions(options),
-                  ) as ChartOptionsInternal<THorzScaleItem>);
+                : merge(clone(chartOptionsDefaults<THorzScaleItem>()), toInternalOptions(options));
 
         this._horzScaleBehavior = horzScaleBehavior;
         this._chartWidget = new ChartWidget(container, internalOptions, horzScaleBehavior);
@@ -303,7 +305,7 @@ export class ChartApi<THorzScaleItem>
         horizontalPosition: THorzScaleItem,
         seriesApi: ISeriesApi<SeriesType, THorzScaleItem>,
     ): void {
-        const series = this._seriesMap.get(seriesApi as SeriesApi<SeriesType, THorzScaleItem>);
+        const series = this._seriesMap.get(seriesApi);
 
         if (series === undefined) {
             return;
@@ -338,9 +340,11 @@ export class ChartApi<THorzScaleItem>
 
         patchPriceFormat(options.priceFormat);
 
+        // The common and per-type defaults share no key. Over a generic key TS reads an assignment to
+        // `SeriesOptionsMap[TSeries]` as the intersection of every series' options, which none can be
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the common options plus TSeries' own style options are SeriesOptionsMap[TSeries] by that map's definition
         const strictOptions = merge(
-            clone(seriesOptionsDefaults),
-            clone(styleDefaults),
+            { ...clone(seriesOptionsDefaults), ...clone(styleDefaults) },
             options,
         ) as SeriesOptionsMap[TSeries];
         const series = this._chartWidget.model().createSeries(type, strictOptions, customPaneView);
@@ -393,8 +397,8 @@ export class ChartApi<THorzScaleItem>
                 : this._mapSeriesToApi(param.hoveredSeries);
 
         return {
-            time: param.originalTime as THorzScaleItem,
-            logical: param.index as Logical | undefined,
+            time: param.originalTime === undefined ? undefined : callerType<THorzScaleItem>(param.originalTime),
+            logical: param.index === undefined ? undefined : nominal<Logical>(param.index),
             point: param.point,
             hoveredSeries,
             hoveredObjectId: param.hoveredObject,
@@ -405,61 +409,58 @@ export class ChartApi<THorzScaleItem>
 }
 
 function patchPriceFormat(priceFormat?: DeepPartial<PriceFormat>): void {
-    if (priceFormat === undefined || priceFormat.type === 'custom') {
+    if (priceFormat === undefined || !isBuiltInFormat(priceFormat)) {
         return;
     }
-    const priceFormatBuiltIn = priceFormat as DeepPartial<PriceFormatBuiltIn>;
-    if (priceFormatBuiltIn.minMove !== undefined && priceFormatBuiltIn.precision === undefined) {
-        priceFormatBuiltIn.precision = precisionByMinMove(priceFormatBuiltIn.minMove);
+    if (priceFormat.minMove !== undefined && priceFormat.precision === undefined) {
+        priceFormat.precision = precisionByMinMove(priceFormat.minMove);
     }
 }
 
-function migrateHandleScaleScrollOptions<THorzScaleItem>(options: DeepPartial<ChartOptionsImpl<THorzScaleItem>>): void {
-    if (isBoolean(options.handleScale)) {
-        const handleScale = options.handleScale;
-        options.handleScale = {
-            axisDoubleClickReset: {
-                time: handleScale,
-                price: handleScale,
-            },
-            axisPressedMouseMove: {
-                time: handleScale,
-                price: handleScale,
-            },
-            mouseWheel: handleScale,
-            pinch: handleScale,
-        };
-    } else if (options.handleScale !== undefined) {
-        const { axisPressedMouseMove, axisDoubleClickReset } = options.handleScale;
-        if (isBoolean(axisPressedMouseMove)) {
-            options.handleScale.axisPressedMouseMove = {
-                time: axisPressedMouseMove,
-                price: axisPressedMouseMove,
-            };
-        }
-        if (isBoolean(axisDoubleClickReset)) {
-            options.handleScale.axisDoubleClickReset = {
-                time: axisDoubleClickReset,
-                price: axisDoubleClickReset,
-            };
-        }
-    }
-
-    const handleScroll = options.handleScroll;
-    if (isBoolean(handleScroll)) {
-        options.handleScroll = {
-            horzTouchDrag: handleScroll,
-            vertTouchDrag: handleScroll,
-            mouseWheel: handleScroll,
-            pressedMouseMove: handleScroll,
-        };
-    }
-}
-
+// The public options take one boolean for `handleScale` and `handleScroll` as shorthand for every switch
+// either holds; the chart works only in the spelled-out form, built here without touching the caller's object
 function toInternalOptions<THorzScaleItem>(
     options: DeepPartial<ChartOptionsImpl<THorzScaleItem>>,
 ): DeepPartial<ChartOptionsInternal<THorzScaleItem>> {
-    migrateHandleScaleScrollOptions(options);
+    const { handleScale, handleScroll, ...rest } = options;
+    const internal: DeepPartial<ChartOptionsInternal<THorzScaleItem>> = rest;
+    if (handleScale !== undefined) internal.handleScale = internalHandleScale(handleScale);
+    if (handleScroll !== undefined) {
+        internal.handleScroll = isBoolean(handleScroll)
+            ? {
+                  horzTouchDrag: handleScroll,
+                  vertTouchDrag: handleScroll,
+                  mouseWheel: handleScroll,
+                  pressedMouseMove: handleScroll,
+              }
+            : handleScroll;
+    }
+    return internal;
+}
 
-    return options as DeepPartial<ChartOptionsInternal<THorzScaleItem>>;
+function internalHandleScale(
+    handleScale: NonNullable<DeepPartial<ChartOptionsImpl<unknown>>['handleScale']>,
+): DeepPartial<ChartOptionsInternal<unknown>['handleScale']> {
+    if (isBoolean(handleScale)) {
+        return {
+            axisDoubleClickReset: bothAxes(handleScale),
+            axisPressedMouseMove: bothAxes(handleScale),
+            mouseWheel: handleScale,
+            pinch: handleScale,
+        };
+    }
+
+    const { axisPressedMouseMove, axisDoubleClickReset, ...rest } = handleScale;
+    const internal: DeepPartial<ChartOptionsInternal<unknown>['handleScale']> = rest;
+    if (axisPressedMouseMove !== undefined) internal.axisPressedMouseMove = bothAxes(axisPressedMouseMove);
+    if (axisDoubleClickReset !== undefined) internal.axisDoubleClickReset = bothAxes(axisDoubleClickReset);
+    return internal;
+}
+
+function bothAxes(axes: boolean | DeepPartial<AxisSwitches>): DeepPartial<AxisSwitches> {
+    return isBoolean(axes) ? { time: axes, price: axes } : axes;
+}
+
+function isBuiltInFormat(format: DeepPartial<PriceFormat>): format is DeepPartial<PriceFormatBuiltIn> {
+    return format.type !== 'custom';
 }

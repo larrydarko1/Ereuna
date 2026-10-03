@@ -137,3 +137,13 @@ export type IHorzScaleBehavior<THorzScaleItem> = {
      */
     shouldResetTickmarkLabels?(tickMarks: readonly TickMark[]): boolean;
 };
+
+/**
+ * Label a behaviour's own representation of an item as internal. The label is
+ * opaque on purpose — only the behaviour that built the item reads it back —
+ * and has no runtime form, so this is the one place it is applied.
+ */
+export function internalItem(item: object): InternalHorzScaleItem {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the brand has no runtime form to check; every internal item is labelled here
+    return item as InternalHorzScaleItem;
+}

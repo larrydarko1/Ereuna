@@ -3,6 +3,7 @@
  */
 import { type CanvasRenderingTarget2D } from 'fancy-canvas';
 
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { undefinedIfNull } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
@@ -27,7 +28,7 @@ type CustomBarItemBase = TimedValue;
 
 type CustomBarItem = {
     barColor: string;
-    originalData?: Record<string, unknown>;
+    originalData: CustomData<unknown>;
 } & CustomBarItemBase;
 
 class CustomSeriesPaneRendererWrapper implements IPaneRenderer {
@@ -83,9 +84,9 @@ export class SeriesCustomPaneView extends SeriesPaneViewBase<'Custom', CustomBar
             .map((row: SeriesPlotRow<'Custom'>) => {
                 return {
                     time: row.index,
-                    x: NaN as Coordinate,
+                    x: nominal<Coordinate>(NaN),
                     ...colorer.barStyle(row.index),
-                    originalData: row.data,
+                    originalData: originalItem(row),
                 };
             });
     }
@@ -97,7 +98,7 @@ export class SeriesCustomPaneView extends SeriesPaneViewBase<'Custom', CustomBar
     protected _prepareRendererData(): void {
         this._paneView.update(
             {
-                bars: this._items.map(unwrapItemData) as CustomBarItemData<unknown>[],
+                bars: this._items.map(unwrapItemData),
                 barSpacing: this._model.timeScale().barSpacing(),
                 visibleRange: this._itemsVisibleRange,
             },
@@ -106,11 +107,20 @@ export class SeriesCustomPaneView extends SeriesPaneViewBase<'Custom', CustomBar
     }
 }
 
-function unwrapItemData(item: CustomBarItem): Record<keyof CustomBarItem, unknown> {
+function unwrapItemData(item: CustomBarItem): CustomBarItemData<unknown> {
     return {
         x: item.x,
         time: item.time,
         originalData: item.originalData,
         barColor: item.barColor,
     };
+}
+
+/** The caller's item as it was given: the row keeps it without its time or colour, and the renderer is owed both */
+function originalItem(row: SeriesPlotRow<'Custom'>): CustomData<unknown> {
+    const item: CustomData<unknown> = { ...row.data, time: row.originalTime };
+    if (row.color !== undefined) {
+        item.color = row.color;
+    }
+    return item;
 }

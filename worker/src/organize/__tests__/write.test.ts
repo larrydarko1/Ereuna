@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { listAt } from '@/__tests__/support/values.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
@@ -57,8 +58,8 @@ describe('writeAssetInfo', () => {
 
         const writes = db.current.of('AssetInfo').writes;
         expect(writes).toHaveLength(2);
-        expect((writes[0]?.args[0] as unknown[]).length).toBe(size);
-        expect((writes[1]?.args[0] as unknown[]).length).toBe(1);
+        expect(listAt(writes[0]?.args, 0)).toHaveLength(size);
+        expect(listAt(writes[1]?.args, 0)).toHaveLength(1);
     });
 
     it('logs a failed batch and keeps going — a night of prices is worth more than one batch', async () => {

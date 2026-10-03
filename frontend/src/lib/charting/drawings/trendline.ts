@@ -6,7 +6,9 @@
  * pan or a scale change; `updateLineCoordinates` is what re-derives the pixels
  * before anything reads them.
  */
-import { type AnchoredPoint, DrawingLayer } from '@/lib/charting/drawings/drawing-layer';
+import { isOneOf, isRecord } from '@ereuna/shared';
+
+import { type AnchoredPoint, DrawingLayer, isAnchoredPoint } from '@/lib/charting/drawings/drawing-layer';
 import { type IChartApi } from '@/lib/charting/engine/api/create-chart';
 import { type MouseEventParams } from '@/lib/charting/engine/api/ichart-api';
 import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
@@ -16,9 +18,9 @@ import { drawHandle } from '@/lib/charting/shared/canvas-path';
 import { type CanvasPoint, distanceToSegment } from '@/lib/charting/shared/geometry';
 import { getThemeColor } from '@/lib/charting/shared/theme-color';
 
-export type TrendLinePoint = AnchoredPoint;
+type TrendLinePoint = AnchoredPoint;
 
-export type TrendLine = {
+type TrendLine = {
     id: string;
     point1: TrendLinePoint;
     point2: TrendLinePoint;
@@ -30,6 +32,8 @@ export type TrendLine = {
 };
 
 type DragTarget = { lineId: string; pointIndex: 1 | 2 };
+
+const LINE_STYLES = ['solid', 'dashed', 'dotted'] as const;
 
 const DEFAULT_LINE_WIDTH = 1;
 
@@ -80,8 +84,9 @@ export class TrendLineManager extends DrawingLayer {
         return [...this.trendLines];
     }
 
-    public loadTrendLines(lines: TrendLine[]): void {
-        this.trendLines = lines;
+    /** Restores saved lines; an entry that is not one (an older build's shape) is dropped. */
+    public loadTrendLines(lines: readonly unknown[]): void {
+        this.trendLines = lines.filter(isTrendLine);
         this.draw();
     }
 
@@ -343,4 +348,18 @@ export class TrendLineManager extends DrawingLayer {
 
 function generateLineId(): string {
     return `tl_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+}
+
+function isTrendLine(value: unknown): value is TrendLine {
+    return (
+        isRecord(value) &&
+        typeof value['id'] === 'string' &&
+        isAnchoredPoint(value['point1']) &&
+        isAnchoredPoint(value['point2']) &&
+        typeof value['color'] === 'string' &&
+        typeof value['lineWidth'] === 'number' &&
+        isOneOf(LINE_STYLES, value['lineStyle']) &&
+        typeof value['locked'] === 'boolean' &&
+        typeof value['extended'] === 'boolean'
+    );
 }

@@ -1,4 +1,6 @@
 /** market-bars — OHLCV series reads, one collection per timeframe. */
+import { z } from 'zod';
+
 import type { ChartSeries, ChartTimeframe, OhlcvDoc } from '@ereuna/shared';
 import { OHLCV_COLLECTIONS, isIntraday } from '@ereuna/shared';
 
@@ -6,6 +8,13 @@ import { marketKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
 
 type BarSeries = Pick<ChartSeries, 'candles' | 'volume'>;
+
+const barSeriesSchema: z.ZodType<BarSeries> = z.object({
+    candles: z.array(
+        z.object({ time: z.string(), open: z.number(), high: z.number(), low: z.number(), close: z.number() }),
+    ),
+    volume: z.array(z.object({ time: z.string(), value: z.number() })),
+});
 
 const PAGE_SIZE: Record<ChartTimeframe, number> = {
     daily: 1250,
@@ -30,8 +39,9 @@ export async function barSeries(
 ): Promise<BarSeries> {
     const { before } = options;
 
-    const bars = await withCache(
+    return withCache(
         marketKey('bars', symbol, timeframe, before?.toISOString() ?? 'latest'),
+        barSeriesSchema,
         async () => {
             const filter = {
                 tickerID: symbol,
@@ -47,13 +57,16 @@ export async function barSeries(
                 .limit(PAGE_SIZE[timeframe])
                 .toArray();
 
-            return docs.reverse();
+            return render(docs.reverse(), timeframe);
         },
         { dataType: 'price' },
     );
+}
 
-    const formatTime = (timestamp: Date | string): string => {
-        const iso = new Date(timestamp).toISOString();
+/** Bars as the chart reads them; this, not the documents, is what the cache holds. */
+function render(bars: OhlcvDoc[], timeframe: ChartTimeframe): BarSeries {
+    const formatTime = (timestamp: Date): string => {
+        const iso = timestamp.toISOString();
         return isIntraday(timeframe) ? iso.slice(0, 19) : iso.slice(0, 10);
     };
 

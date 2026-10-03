@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Time } from '@/lib/charting';
+import { secondsToTime, type Time } from '@/lib/charting';
 import { timeKey, timeToDate, timeToIsoDate, timeValue } from '@/utils/chartTime';
 
-const businessDay = { year: 2026, month: 3, day: 2 } as unknown as Time;
+const businessDay: Time = { year: 2026, month: 3, day: 2 };
 
 describe('timeValue', () => {
     it('passes an intraday timestamp through — it is already seconds', () => {
-        expect(timeValue(1772461800 as Time)).toBe(1772461800);
+        expect(timeValue(secondsToTime(1772461800))).toBe(1772461800);
     });
 
     it('reads a business-day string as UTC midnight, not as local midnight', () => {
@@ -25,13 +25,13 @@ describe('timeKey', () => {
     });
 
     it('gives every BusinessDay its own key, rather than one shared [object Object]', () => {
-        const other = { year: 2026, month: 3, day: 3 } as unknown as Time;
+        const other: Time = { year: 2026, month: 3, day: 3 };
 
         expect(timeKey(businessDay)).not.toBe(timeKey(other));
     });
 
     it('keys an intraday bar by its seconds', () => {
-        expect(timeKey(1772461800 as Time)).toBe('1772461800');
+        expect(timeKey(secondsToTime(1772461800))).toBe('1772461800');
     });
 });
 
@@ -51,10 +51,10 @@ describe('timeToIsoDate', () => {
     });
 
     it('takes the UTC day of an intraday timestamp', () => {
-        expect(timeToIsoDate((Date.UTC(2026, 2, 2, 14, 30) / 1000) as Time)).toBe('2026-03-02');
+        expect(timeToIsoDate(secondsToTime(Date.UTC(2026, 2, 2, 14, 30) / 1000))).toBe('2026-03-02');
     });
 
     it('answers an empty string when there is no date to write', () => {
-        expect(timeToIsoDate(Number.NaN as Time)).toBe('');
+        expect(timeToIsoDate(secondsToTime(Number.NaN))).toBe('');
     });
 });

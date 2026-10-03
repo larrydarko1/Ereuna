@@ -21,6 +21,7 @@ import { Delegate } from '@/lib/charting/engine/helpers/delegate';
 import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
 import { type ISubscription } from '@/lib/charting/engine/helpers/isubscription';
 import { rejectOptions } from '@/lib/charting/engine/helpers/logger';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type DeepPartial } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { ChartModel, type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
 import {
@@ -605,11 +606,11 @@ export class ChartWidget<THorzScaleItem> implements IDestroyable, IChartWidgetBa
         if (deltaY !== 0 && this._options.handleScale.mouseWheel) {
             const zoomScale = Math.sign(deltaY) * Math.min(1, Math.abs(deltaY));
             const scrollPosition = event.clientX - this._element.getBoundingClientRect().left;
-            this.model().zoomTime(scrollPosition as Coordinate, zoomScale);
+            this.model().zoomTime(nominal<Coordinate>(scrollPosition), zoomScale);
         }
 
         if (deltaX !== 0 && this._options.handleScroll.mouseWheel) {
-            this.model().scrollChart((deltaX * -80) as Coordinate); // 80 is a made up coefficient, and minus is for the "natural" scroll
+            this.model().scrollChart(nominal<Coordinate>(deltaX * -80)); // 80 is a made up coefficient, and minus is for the "natural" scroll
         }
     }
 

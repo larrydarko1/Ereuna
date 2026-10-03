@@ -3,6 +3,7 @@
  */
 import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type AreaFillColorerStyle } from '@/lib/charting/engine/model/series/series-bar-colorer';
 import {
@@ -13,7 +14,7 @@ import {
 import { GradientStyleCache } from '@/lib/charting/engine/renderers/gradient-style-cache';
 
 export type AreaFillItem = AreaFillItemBase & AreaFillColorerStyle;
-export type PaneRendererAreaData = {} & PaneRendererAreaDataBase<AreaFillItem>;
+type PaneRendererAreaData = {} & PaneRendererAreaDataBase<AreaFillItem>;
 
 export class PaneRendererArea extends PaneRendererAreaBase<PaneRendererAreaData> {
     private readonly _fillCache: GradientStyleCache = new GradientStyleCache();
@@ -27,7 +28,7 @@ export class PaneRendererArea extends PaneRendererAreaBase<PaneRendererAreaData>
             topColor2: '',
             bottomColor1: '',
             bottomColor2: item.bottomColor,
-            bottom: renderingScope.bitmapSize.height as Coordinate,
+            bottom: nominal<Coordinate>(renderingScope.bitmapSize.height),
         });
     }
 }

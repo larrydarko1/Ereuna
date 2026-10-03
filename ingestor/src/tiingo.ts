@@ -11,17 +11,18 @@
  * it here would put the same knowledge in two processes.
  */
 import { Counter } from 'prom-client';
+import { z } from 'zod';
 
-import { TIINGO_STREAM, TIINGO_STREAM_MAXLEN } from '@ereuna/shared';
+import { isList, isRecord, TIINGO_STREAM, TIINGO_STREAM_MAXLEN } from '@ereuna/shared';
 
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 import { getRedis } from '@/lib/redis.js';
 
-type SubscribeAck = {
-    data?: { subscriptionId?: number };
-    response?: { code?: number; message?: string };
-};
+const subscribeAckSchema = z.object({
+    data: z.object({ subscriptionId: z.number().optional() }).optional(),
+    response: z.object({ code: z.number().optional(), message: z.string().optional() }).optional(),
+});
 
 const relayed = new Counter({
     name: 'ingestor_messages_relayed_total',
@@ -151,17 +152,18 @@ function isTrade(raw: string): boolean {
         return false;
     }
 
-    const message = parsed as { messageType?: unknown; service?: unknown; data?: unknown };
-    if (message.messageType === 'H' || message.messageType === 'I') return false;
+    const message = isRecord(parsed) ? parsed : {};
+    if (message['messageType'] === 'H' || message['messageType'] === 'I') return false;
 
-    if (message.messageType !== 'A' || message.service !== 'iex' || !Array.isArray(message.data)) {
+    const data = message['data'];
+    if (message['messageType'] !== 'A' || message['service'] !== 'iex' || !isList(data)) {
         dropped.inc({ reason: 'unrecognised' });
         return false;
     }
 
     // The aggregator reads three fixed positions out of this array; anything
     // shorter would reach it as an undefined price.
-    if (message.data.length <= 2) {
+    if (data.length <= 2) {
         dropped.inc({ reason: 'truncated' });
         return false;
     }
@@ -172,7 +174,9 @@ function isTrade(raw: string): boolean {
 /** The subscription id from a subscribe acknowledgement, or null if it is not one. */
 function readSubscriptionId(raw: string): number | null {
     try {
-        const ack = JSON.parse(raw) as SubscribeAck;
+        const parsed = subscribeAckSchema.safeParse(JSON.parse(raw));
+        if (!parsed.success) return null;
+        const ack = parsed.data;
         const id = ack.data?.subscriptionId;
         if (typeof id === 'number') return id;
         logger.warn({ code: ack.response?.code, message: ack.response?.message }, 'Vendor rejected the subscription');

@@ -8,11 +8,10 @@
 import type { AnyBulkWriteOperation } from 'mongodb';
 
 import type { AssetInfoDoc } from '@ereuna/shared';
-import { numeric } from '@ereuna/shared';
+import { isRecord, numeric } from '@ereuna/shared';
 
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
-import type { Statement } from '@/organize/fundamentals.js';
 import { setOn, writeAssetInfo } from '@/organize/write.js';
 import { round } from '@/utils/indicators.js';
 
@@ -51,16 +50,17 @@ export async function updateValuations(now = new Date()): Promise<number> {
 }
 
 function valuationFor(doc: AssetInfoDoc, now: Date): Record<string, unknown> {
-    const price = numeric((doc['TimeSeries'] as { close?: unknown } | undefined)?.close);
+    const series = doc['TimeSeries'];
+    const price = numeric(isRecord(series) ? series['close'] : undefined);
     const shares = numeric(doc['SharesOutstanding']);
-    const quarterly = Array.isArray(doc.quarterlyFinancials) ? (doc.quarterlyFinancials as Statement[]) : [];
+    const quarterly = doc.quarterlyFinancials ?? [];
     const latest = quarterly[0];
     const marketCap = price === null || shares === null ? null : price * shares;
 
     return {
-        PERatio: ratio(price, numeric(latest?.reportedEPS)),
+        PERatio: ratio(price, numeric(latest?.['reportedEPS'])),
         PriceToBookRatio: ratio(price, perShare(numeric(latest?.['bookVal']), shares)),
-        PriceToSalesRatioTTM: ratio(price, perShare(numeric(latest?.totalRevenue), shares)),
+        PriceToSalesRatioTTM: ratio(price, perShare(numeric(latest?.['totalRevenue']), shares)),
         PEGRatio: pegRatio(price, quarterly),
         EV: enterpriseValue(marketCap, latest),
         DividendYield: dividendYield(doc, price, now),
@@ -73,10 +73,10 @@ function valuationFor(doc: AssetInfoDoc, now: Date): Record<string, unknown> {
  * negative PEG, which sorts as the cheapest thing on the screen and means the
  * opposite of that.
  */
-function pegRatio(price: number | null, quarterly: readonly Statement[]): number | null {
-    const pe = ratio(price, numeric(quarterly[0]?.reportedEPS));
-    const current = numeric(quarterly[0]?.reportedEPS);
-    const previous = numeric(quarterly[1]?.reportedEPS);
+function pegRatio(price: number | null, quarterly: readonly Record<string, unknown>[]): number | null {
+    const pe = ratio(price, numeric(quarterly[0]?.['reportedEPS']));
+    const current = numeric(quarterly[0]?.['reportedEPS']);
+    const previous = numeric(quarterly[1]?.['reportedEPS']);
     if (pe === null || current === null || previous === null || previous <= 0) return null;
 
     const growth = (current - previous) / previous;
@@ -84,7 +84,7 @@ function pegRatio(price: number | null, quarterly: readonly Statement[]): number
 }
 
 /** What it would cost to buy the business outright: market cap plus debt, less cash. */
-function enterpriseValue(marketCap: number | null, latest: Statement | undefined): number | null {
+function enterpriseValue(marketCap: number | null, latest: Record<string, unknown> | undefined): number | null {
     if (marketCap === null || latest === undefined) return null;
     const debt = numeric(latest['debt']);
     const cash = numeric(latest['cashAndEq']);

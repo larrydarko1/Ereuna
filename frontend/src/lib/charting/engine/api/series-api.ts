@@ -20,9 +20,11 @@ import { type ISeriesPrimitive } from '@/lib/charting/engine/api/iseries-primiti
 import { priceLineOptionsDefaults } from '@/lib/charting/engine/api/options/price-line-options-defaults';
 import { PriceLine } from '@/lib/charting/engine/api/price-line-api';
 import { type IPriceFormatter } from '@/lib/charting/engine/formatters/iprice-formatter';
-import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
+import { assert, getNotNull } from '@/lib/charting/engine/helpers/assertions';
+import { callerType } from '@/lib/charting/engine/helpers/caller-type';
 import { Delegate } from '@/lib/charting/engine/helpers/delegate';
 import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { clone, merge } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
 import { type BarPrice } from '@/lib/charting/engine/model/data/bar';
@@ -38,10 +40,7 @@ import {
 } from '@/lib/charting/engine/model/data/data-validators';
 import { MismatchDirection } from '@/lib/charting/engine/model/data/plot-list';
 import { type SeriesPlotRow } from '@/lib/charting/engine/model/data/series-data';
-import {
-    type CreatePriceLineOptions,
-    type PriceLineOptions,
-} from '@/lib/charting/engine/model/price/price-line-options';
+import { type CreatePriceLineOptions } from '@/lib/charting/engine/model/price/price-line-options';
 import { RangeImpl } from '@/lib/charting/engine/model/range-impl';
 import { type Series } from '@/lib/charting/engine/model/series/series';
 import { convertSeriesMarker, type SeriesMarker } from '@/lib/charting/engine/model/series/series-markers';
@@ -110,7 +109,7 @@ export class SeriesApi<
         if (firstValue === null) {
             return null;
         }
-        return this._series.priceScale().coordinateToPrice(coordinate as Coordinate, firstValue.value);
+        return this._series.priceScale().coordinateToPrice(nominal<Coordinate>(coordinate), firstValue.value);
     }
 
     public barsInLogicalRange(range: Range<number> | null): BarsInfo<THorzScaleItem> | null {
@@ -119,9 +118,11 @@ export class SeriesApi<
         }
 
         // we use TimeScaleVisibleRange here to convert LogicalRange to strict range properly
-        const correctedRange = new TimeScaleVisibleRange(
-            new RangeImpl(range.from as Logical, range.to as Logical),
-        ).strictRange() as RangeImpl<TimePointIndex>;
+        const correctedRange = getNotNull(
+            new TimeScaleVisibleRange(
+                new RangeImpl(nominal<Logical>(range.from), nominal<Logical>(range.to)),
+            ).strictRange(),
+        );
 
         const bars = this._series.bars();
         if (bars.isEmpty()) {
@@ -163,8 +164,8 @@ export class SeriesApi<
 
         // actually they can't exist separately
         if (dataFirstBarInRange !== null && dataLastBarInRange !== null) {
-            result.from = dataFirstBarInRange.originalTime as THorzScaleItem;
-            result.to = dataLastBarInRange.originalTime as THorzScaleItem;
+            result.from = callerType<THorzScaleItem>(dataFirstBarInRange.originalTime);
+            result.to = callerType<THorzScaleItem>(dataLastBarInRange.originalTime);
         }
 
         return result;
@@ -186,20 +187,20 @@ export class SeriesApi<
     }
 
     public dataByIndex(logicalIndex: number, mismatchDirection?: MismatchDirection): TData | null {
-        const data = this._series.bars().search(logicalIndex as unknown as TimePointIndex, mismatchDirection);
+        const data = this._series.bars().search(nominal<TimePointIndex>(logicalIndex), mismatchDirection);
         if (data === null) {
             // actually it can be a whitespace
             return null;
         }
 
         const creator = getSeriesDataCreator<TSeriesType, THorzScaleItem>(this.seriesType());
-        return creator(data) as TData | null;
+        return callerType<TData | null>(creator(data));
     }
 
     public data(): readonly TData[] {
         const seriesCreator = getSeriesDataCreator(this.seriesType());
         const rows = this._series.bars().rows();
-        return rows.map((row: SeriesPlotRow<TSeriesType>) => seriesCreator(row) as TData);
+        return rows.map((row: SeriesPlotRow<TSeriesType>) => callerType<TData>(seriesCreator(row)));
     }
 
     public subscribeDataChanged(handler: DataChangedHandler): void {
@@ -229,7 +230,7 @@ export class SeriesApi<
             .map<SeriesMarker<THorzScaleItem>>((internalItem: SeriesMarker<InternalHorzScaleItem>) => {
                 return convertSeriesMarker<InternalHorzScaleItem, THorzScaleItem>(
                     internalItem,
-                    internalItem.originalTime as THorzScaleItem,
+                    callerType<THorzScaleItem>(internalItem.originalTime),
                     undefined,
                 );
             });
@@ -240,7 +241,7 @@ export class SeriesApi<
     }
 
     public options(): Readonly<TOptions> {
-        return clone(this._series.options() as TOptions);
+        return clone(callerType<TOptions>(this._series.options()));
     }
 
     public priceScale(): IPriceScaleApi {
@@ -250,13 +251,14 @@ export class SeriesApi<
     public createPriceLine(options: CreatePriceLineOptions): IPriceLine {
         checkPriceLineOptions(options);
 
-        const strictOptions = merge(clone(priceLineOptionsDefaults), options) as PriceLineOptions;
+        const strictOptions = merge(clone(priceLineOptionsDefaults), options);
         const priceLine = this._series.createPriceLine(strictOptions);
         return new PriceLine(priceLine);
     }
 
     public removePriceLine(line: IPriceLine): void {
-        this._series.removePriceLine((line as PriceLine).priceLine());
+        assert(line instanceof PriceLine, 'the price line was not created by this series');
+        this._series.removePriceLine(line.priceLine());
     }
 
     public seriesType(): TSeriesType {

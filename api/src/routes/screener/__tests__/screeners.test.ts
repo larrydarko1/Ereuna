@@ -1,9 +1,23 @@
 import { ObjectId } from 'mongodb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { z } from 'zod';
 
 import { DATE_FILTERS, ENUM_FILTERS, FLAG_FILTERS, MA_FILTERS, RANGE_FILTERS } from '@ereuna/shared';
 
 import { asUser, json, quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
+
+/** The filter catalogue as the route answers it: one entry per registered filter. */
+const catalogue = z.object({
+    items: z.array(
+        z.object({
+            key: z.string(),
+            kind: z.string(),
+            available: z.boolean(),
+            directions: z.array(z.string()).optional(),
+            targets: z.array(z.string()).optional(),
+        }),
+    ),
+});
 
 const screenerService = {
     listScreeners: vi.fn(),
@@ -94,7 +108,7 @@ describe('collection routes', () => {
 describe('GET /api/screeners/filters', () => {
     it('answers with one entry per registered filter, not a name the frontend has to know', async () => {
         const response = await harness.call('/api/screeners/filters');
-        const body = response.body as { items: { key: string; kind: string; available: boolean }[] };
+        const body = catalogue.parse(response.body);
 
         expect(body.items).toHaveLength(
             RANGE_FILTERS.length + ENUM_FILTERS.length + DATE_FILTERS.length + MA_FILTERS.length + FLAG_FILTERS.length,
@@ -105,7 +119,7 @@ describe('GET /api/screeners/filters', () => {
     it('marks a range the ingestor never populated unavailable rather than failing the request', async () => {
         screenerService.tryGetBounds.mockResolvedValue(null);
         const response = await harness.call('/api/screeners/filters');
-        const body = response.body as { items: { kind: string; available: boolean }[] };
+        const body = catalogue.parse(response.body);
 
         expect(response.status).toBe(200);
         expect(body.items.filter((item) => item.kind === 'range').every((item) => !item.available)).toBe(true);
@@ -115,14 +129,14 @@ describe('GET /api/screeners/filters', () => {
     it('marks an enum with no options unavailable', async () => {
         screenerService.getEnumOptions.mockResolvedValue([]);
         const response = await harness.call('/api/screeners/filters');
-        const body = response.body as { items: { kind: string; available: boolean }[] };
+        const body = catalogue.parse(response.body);
 
         expect(body.items.filter((item) => item.kind === 'enum').every((item) => !item.available)).toBe(true);
     });
 
     it('carries the directions and targets an MA filter accepts', async () => {
         const response = await harness.call('/api/screeners/filters');
-        const body = response.body as { items: { kind: string; directions?: string[]; targets?: string[] }[] };
+        const body = catalogue.parse(response.body);
         const ma = body.items.find((item) => item.kind === 'ma');
 
         expect(ma?.directions).toEqual(['abv', 'blw']);

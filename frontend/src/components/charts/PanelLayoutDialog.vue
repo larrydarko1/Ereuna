@@ -12,12 +12,14 @@ import { SUMMARY_FIELD_SPECS } from '@/constants/summaryFields';
 
 const emit = defineEmits<{ close: [] }>();
 
+const TABS = ['sections', 'fields'] as const;
+
 const { t } = useI18n();
 const { sections, summaryFields, save, reset } = usePanelLayout();
 
-const tab = ref<'sections' | 'fields'>('sections');
-const draftSections = ref<string[]>([...sections.value]);
-const draftFields = ref<string[]>([...summaryFields.value]);
+const tab = ref<(typeof TABS)[number]>('sections');
+const draftSections = ref<PanelSection[]>([...sections.value]);
+const draftFields = ref<SummaryField[]>([...summaryFields.value]);
 const saving = ref(false);
 const error = ref<string | null>(null);
 
@@ -36,8 +38,8 @@ async function submit(): Promise<void> {
     error.value = null;
     try {
         await save({
-            sections: draftSections.value as PanelSection[],
-            summaryFields: draftFields.value as SummaryField[],
+            sections: draftSections.value,
+            summaryFields: draftFields.value,
         });
         emit('close');
     } catch (err) {
@@ -77,7 +79,7 @@ async function clearStored(): Promise<void> {
             role="group"
             :aria-label="t('panels.title')">
             <button
-                v-for="option in ['sections', 'fields'] as const"
+                v-for="option in TABS"
                 :key="option"
                 type="button"
                 class="panel-layout__tab"

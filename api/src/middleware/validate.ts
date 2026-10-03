@@ -36,6 +36,9 @@ type ValidatedHandler<TSchemas extends Schemas> = (
     next: NextFunction,
 ) => void | Promise<void>;
 
+/** Which schema set each request passed: what lets the handler step trust the shapes `validate` wrote. */
+const passedSchemas = new WeakMap<Request, Schemas>();
+
 export function validated<const TSchemas extends Schemas>(
     schemas: TSchemas,
     handler: ValidatedHandler<TSchemas>,
@@ -43,9 +46,21 @@ export function validated<const TSchemas extends Schemas>(
     return [
         validate(schemas),
         (req, res, next): void => {
-            void Promise.resolve(handler(req as unknown as ValidatedRequest<TSchemas>, res, next)).catch(next);
+            if (!passed(req, schemas)) {
+                next(new Error('validated(): handler reached without its validator passing'));
+                return;
+            }
+            void Promise.resolve(handler(req, res, next)).catch(next);
         },
     ];
+}
+
+/** True once `validate(schemas)` has parsed this request and written the parsed values back onto it. */
+function passed<TSchemas extends Schemas>(
+    req: Request,
+    schemas: TSchemas,
+): req is ValidatedRequest<TSchemas> & Request {
+    return passedSchemas.get(req) === schemas;
 }
 
 function validate(schemas: Schemas): RequestHandler {
@@ -88,6 +103,7 @@ function validate(schemas: Schemas): RequestHandler {
             return;
         }
 
+        passedSchemas.set(req, schemas);
         next();
     };
 }

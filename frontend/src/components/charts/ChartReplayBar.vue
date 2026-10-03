@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 
+import { targetOf } from '@/utils/dom';
+
 const { playing, progress, label } = defineProps<{
     playing: boolean;
     progress: number;
@@ -20,7 +22,7 @@ const SPEEDS = [0.5, 1, 2, 5, 10] as const;
 const { t } = useI18n();
 
 function onSeek(event: Event): void {
-    emit('seek', Number((event.target as HTMLInputElement).value));
+    emit('seek', Number(targetOf(event, HTMLInputElement).value));
 }
 </script>
 

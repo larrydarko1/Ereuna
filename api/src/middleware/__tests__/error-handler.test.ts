@@ -1,27 +1,37 @@
 import type { RequestHandler } from 'express';
+import pino from 'pino';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ZodError, z } from 'zod';
 
+import { isRecord } from '@ereuna/shared';
+
 import { serve, type Harness } from '@/__tests__/support/http.js';
+import { failedFieldsOf } from '@/__tests__/support/values.js';
 import { AppError } from '@/lib/app-error.js';
 
 let harness: Harness | null = null;
 
 const logs: { level: string; payload: Record<string, unknown>; message: string }[] = [];
 
-/** Binds a `req.log` that records, since the handler logs through the request. */
+/**
+ * Binds a `req.log` that records, since the handler logs through the request. It is a real
+ * logger: the hook sees each call's arguments before they are serialised, so a test can still
+ * ask whether `err` is the error that was thrown, and nothing is written anywhere.
+ */
 const recordingLogger: RequestHandler = (req, _res, next) => {
-    const at =
-        (level: string) =>
-        (payload: Record<string, unknown>, message: string): void => {
-            logs.push({ level, payload, message });
-        };
-    req.log = {
-        info: at('info'),
-        warn: at('warn'),
-        error: at('error'),
-        debug: at('debug'),
-    } as unknown as typeof req.log;
+    req.log = pino({
+        level: 'debug',
+        hooks: {
+            logMethod(args: unknown[], _method, level) {
+                const [payload, message] = args;
+                logs.push({
+                    level: pino.levels.labels[level] ?? String(level),
+                    payload: isRecord(payload) ? payload : {},
+                    message: typeof message === 'string' ? message : '',
+                });
+            },
+        },
+    });
     next();
 };
 
@@ -130,8 +140,7 @@ describe('a stray ZodError', () => {
     it('names a root-level failure `(root)` rather than leaving the field empty', async () => {
         const error = new ZodError(z.string().safeParse(42).error?.issues ?? []);
         const { call } = await throwing(error);
-        const body = (await call('/boom')).body as { errors: { field: string }[] };
-        expect(body.errors[0]?.field).toBe('(root)');
+        expect(failedFieldsOf((await call('/boom')).body)).toEqual(['(root)']);
     });
 });
 

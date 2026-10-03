@@ -9,12 +9,12 @@ import { vi, type Mock } from 'vitest';
 export type RedisStub = {
     store: Map<string, string>;
     get: Mock;
-    set: Mock;
+    set: Mock<(key: string, value: string, ...options: unknown[]) => Promise<string>>;
     setex: Mock;
     del: Mock;
     exists: Mock;
     scan: Mock;
-    eval: Mock;
+    eval: Mock<(...args: unknown[]) => Promise<unknown>>;
     incr: Mock;
     expire: Mock;
     ttl: Mock;
@@ -29,7 +29,7 @@ export function fakeRedis(): RedisStub {
     const stub: RedisStub = {
         store,
         get: vi.fn((key: string) => Promise.resolve(store.get(key) ?? null)),
-        set: vi.fn((key: string, value: string) => {
+        set: vi.fn((key: string, value: string, ..._options: unknown[]) => {
             store.set(key, value);
             return Promise.resolve('OK');
         }),
@@ -47,7 +47,7 @@ export function fakeRedis(): RedisStub {
             const prefix = pattern.replace(/\*$/, '');
             return Promise.resolve(['0', [...store.keys()].filter((key) => key.startsWith(prefix))]);
         }),
-        eval: vi.fn(() => Promise.resolve([1, 99, 0])),
+        eval: vi.fn((..._args: unknown[]): Promise<unknown> => Promise.resolve([1, 99, 0])),
         incr: vi.fn(() => Promise.resolve(1)),
         expire: vi.fn(() => Promise.resolve(1)),
         ttl: vi.fn(() => Promise.resolve(-1)),

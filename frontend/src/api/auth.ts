@@ -12,7 +12,7 @@ import type { SessionUser } from '@ereuna/shared';
 import { api, clearAuth, setAccessToken, setSessionUser } from '@/api/client';
 import { adoptLocale } from '@/i18n';
 
-export type LoginResult = { requires2FA: true; tempToken: string } | { requires2FA: false; user: SessionUser };
+type LoginResult = { requires2FA: true; tempToken: string } | { requires2FA: false; user: SessionUser };
 
 type AuthSuccess = { accessToken: string; user: SessionUser };
 type LoginResponse = AuthSuccess | { requires2FA: true; tempToken: string };

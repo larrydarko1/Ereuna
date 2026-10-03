@@ -3,7 +3,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { CHART_STYLES, DEFAULT_INDICATORS, type ChartTimeframe } from '@ereuna/shared';
 
+import { elementOf, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
+import { at, recordAt } from '@/__tests__/support/values';
 import { clearAuth } from '@/api/client';
 import ChartSettingsDialog from '@/components/charts/ChartSettingsDialog.vue';
 import { MAX_INDICATOR_PERIOD } from '@/composables/charts/useChartSettings';
@@ -40,13 +42,15 @@ const click = async (element: HTMLElement | undefined): Promise<void> => {
 
 const set = async (element: HTMLElement | undefined, value: string): Promise<void> => {
     if (element === undefined) throw new Error('no field to set');
-    (element as HTMLInputElement).value = value;
+    // The dialog's fields are number inputs and the style picker, which is a select
+    const field = element instanceof HTMLSelectElement ? element : elementOf(element, HTMLInputElement);
+    field.value = value;
     element.dispatchEvent(new Event('input', { bubbles: true }));
     element.dispatchEvent(new Event('change', { bubbles: true }));
     await flushPromises();
 };
 
-const periods = (): string[] => all('.chart-settings__number').map((node) => (node as HTMLInputElement).value);
+const periods = (): string[] => all('.chart-settings__number').map((node) => elementOf(node, HTMLInputElement).value);
 
 beforeEach(async () => {
     clearAuth();
@@ -70,7 +74,7 @@ describe('ChartSettingsDialog', () => {
     it('opens on the settings in use', () => {
         open();
 
-        expect(($('.chart-settings__select') as HTMLSelectElement).value).toBe('candlestick');
+        expect(query('.chart-settings__select', HTMLSelectElement).value).toBe('candlestick');
         expect(periods()).toEqual(DEFAULT_INDICATORS.map((one) => String(one.period)));
     });
 
@@ -80,7 +84,7 @@ describe('ChartSettingsDialog', () => {
 
         open();
 
-        expect(($('.chart-settings__select') as HTMLSelectElement).value).toBe('line');
+        expect(query('.chart-settings__select', HTMLSelectElement).value).toBe('line');
     });
 
     it('writes nothing until Save, so closing is a real cancel', async () => {
@@ -133,9 +137,8 @@ describe('ChartSettingsDialog', () => {
         await set(all('.chart-settings__number')[0], '30');
         await click($('.chart-settings__save'));
 
-        const { indicators } = (api.last().body as { chartSettings: { indicators: Record<string, unknown[]> } })
-            .chartSettings;
-        expect(indicators['weekly']?.[0]).toMatchObject({ period: 30 });
+        const indicators = recordAt(api.last().body, 'chartSettings', 'indicators');
+        expect(at(indicators, 'weekly', 0)).toMatchObject({ period: 30 });
         expect(indicators['daily']).toEqual([{ type: 'SMA', period: 10, visible: true }]);
     });
 
@@ -146,7 +149,7 @@ describe('ChartSettingsDialog', () => {
 
         await click($('.chart-settings__link'));
 
-        expect(($('.chart-settings__select') as HTMLSelectElement).value).toBe('candlestick');
+        expect(query('.chart-settings__select', HTMLSelectElement).value).toBe('candlestick');
         expect(api.calls.some((call) => call.method === 'PATCH')).toBe(false);
     });
 

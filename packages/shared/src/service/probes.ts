@@ -16,7 +16,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import type { Logger } from 'pino';
 import { collectDefaultMetrics, register } from 'prom-client';
 
-export type ProbeOptions = {
+type ProbeOptions = {
     port: number;
     token?: string | undefined;
     logger?: Pick<Logger, 'error'> | undefined;

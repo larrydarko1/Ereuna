@@ -24,7 +24,7 @@ import { getDb } from '@/lib/db.js';
 import { getDateBounds, getEnumOptions, getRangeBounds } from '@/services/screener/screener-bounds.js';
 import { invalidateResults } from '@/services/screener/screener-crud.js';
 
-export type RangeInput = { min?: number; max?: number };
+type RangeInput = { min?: number; max?: number };
 
 export async function setRangeFilter(
     userId: ObjectId,

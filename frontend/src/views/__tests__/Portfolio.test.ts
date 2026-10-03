@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { PortfolioSummary, TradeRow } from '@ereuna/shared';
 
+import { elementOf, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { summary as makeSummary } from '@/__tests__/support/portfolio';
 import { clearAuth } from '@/api/client';
@@ -65,7 +66,7 @@ const click = async (element: HTMLElement | undefined): Promise<void> => {
 };
 
 const toolbar = (wrapper: VueWrapper, index: number): HTMLElement =>
-    wrapper.findAll('.portfolio-tabs__actions .btn')[index]?.element as HTMLElement;
+    elementOf(wrapper.findAll('.portfolio-tabs__actions .btn')[index]?.element, HTMLElement);
 
 /** The monthly breakdown is behind a button named for what it loads. */
 const monthlyButton = (wrapper: VueWrapper): HTMLElement => {
@@ -73,11 +74,11 @@ const monthlyButton = (wrapper: VueWrapper): HTMLElement => {
         .findAll('.portfolio__panel .btn')
         .find((button) => button.text() === i18n.global.t('portfolio.monthlyPerformanceAnalysis'));
     if (node === undefined) throw new Error('no monthly breakdown button on the page');
-    return node.element as HTMLElement;
+    return elementOf(node.element, HTMLElement);
 };
 
 const set = async (selector: string, value: string): Promise<void> => {
-    const field = $(selector) as HTMLInputElement;
+    const field = query(selector, HTMLInputElement);
     field.value = value;
     field.dispatchEvent(new Event('input', { bubbles: true }));
     await flushPromises();
@@ -190,7 +191,7 @@ describe('Portfolio', () => {
         seed();
         const wrapper = await view();
 
-        await click(wrapper.findAll('.trade-history__row-actions .btn')[0]?.element as HTMLElement);
+        await click(elementOf(wrapper.findAll('.trade-history__row-actions .btn')[0]?.element, HTMLElement));
 
         expect(field(i18n.global.t('portfolio.symbol')).value).toBe('AAPL');
         expect($('.dialog__title').textContent).toBe(i18n.global.t('portfolio.editTrade'));
@@ -202,7 +203,7 @@ describe('Portfolio', () => {
         api.on('DELETE /api/portfolios/0/trades/t1', null, { status: 204 });
         const wrapper = await view();
 
-        await click(wrapper.findAll('.trade-history__row-actions .btn')[1]?.element as HTMLElement);
+        await click(elementOf(wrapper.findAll('.trade-history__row-actions .btn')[1]?.element, HTMLElement));
         expect(document.body.querySelector('[role="dialog"]')).not.toBeNull();
 
         await click($('.dialog__footer .btn--danger, .dialog__footer .btn--primary'));
@@ -215,10 +216,10 @@ describe('Portfolio', () => {
         seed({ positions: [position('AAPL')] });
         const wrapper = await view();
 
-        await click(wrapper.get('.positions-table .btn').element as HTMLElement);
+        await click(elementOf(wrapper.get('.positions-table .btn').element, HTMLElement));
 
         expect(field(i18n.global.t('portfolio.symbol')).value).toBe('AAPL');
-        expect(($('input[value="sell"]') as HTMLInputElement).checked).toBe(true);
+        expect(query('input[value="sell"]', HTMLInputElement).checked).toBe(true);
         wrapper.unmount();
     });
 
@@ -257,7 +258,7 @@ describe('Portfolio', () => {
         api.on('PUT /api/portfolios/0/benchmarks', { benchmarks: ['SPY'] });
         const wrapper = await view();
 
-        await click(wrapper.get('.benchmark-strip .btn--small').element as HTMLElement);
+        await click(elementOf(wrapper.get('.benchmark-strip .btn--small').element, HTMLElement));
         await click($('.dialog__footer .btn--primary'));
 
         expect(api.calls.find((call) => call.method === 'PUT')?.path).toBe('/api/portfolios/0/benchmarks');

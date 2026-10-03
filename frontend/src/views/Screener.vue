@@ -32,6 +32,8 @@ type Pane = 'filters' | 'results' | 'chart';
  */
 const AUTOPLAY_MS = 4000;
 
+const PANES: readonly Pane[] = ['filters', 'results', 'chart'];
+
 const { t } = useI18n();
 const { preferences } = usePreferences();
 
@@ -218,7 +220,7 @@ onUnmounted(() => {
             class="screener__tabs"
             :aria-label="t('screener.title')">
             <button
-                v-for="option in ['filters', 'results', 'chart'] as const"
+                v-for="option in PANES"
                 :key="option"
                 type="button"
                 class="screener__tab"

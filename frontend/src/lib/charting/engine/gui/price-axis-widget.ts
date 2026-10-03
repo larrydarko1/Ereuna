@@ -29,6 +29,7 @@ import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
 import { clearRect, clearRectWithGradient } from '@/lib/charting/engine/helpers/canvas-helpers';
 import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
 import { makeFont } from '@/lib/charting/engine/helpers/make-font';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type ChartOptionsInternalBase } from '@/lib/charting/engine/model/chart/chart-options';
 import { type IDataSource } from '@/lib/charting/engine/model/chart/idata-source';
 import { InvalidationLevel } from '@/lib/charting/engine/model/chart/invalidate-mask';
@@ -211,16 +212,14 @@ export class PriceAxisWidget implements IDestroyable {
         }
 
         for (const view of this._backLabels()) {
-            const width = this._widthCache.measureText(ctx, view.text());
-            if (width > tickMarkMaxWidth) {
-                tickMarkMaxWidth = width;
-            }
+            tickMarkMaxWidth = Math.max(tickMarkMaxWidth, this._widthCache.measureText(ctx, view.text()));
         }
 
         const firstValue = this._priceScale.firstValue();
         if (firstValue !== null && this._size !== null) {
-            const topValue = this._priceScale.coordinateToPrice(1 as Coordinate, firstValue);
-            const bottomValue = this._priceScale.coordinateToPrice((this._size.height - 2) as Coordinate, firstValue);
+            const topValue = this._priceScale.coordinateToPrice(nominal<Coordinate>(1), firstValue);
+            const bottom = nominal<Coordinate>(this._size.height - 2);
+            const bottomValue = this._priceScale.coordinateToPrice(bottom, firstValue);
 
             tickMarkMaxWidth = Math.max(
                 tickMarkMaxWidth,

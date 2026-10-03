@@ -7,8 +7,9 @@
  */
 import { DateFormatter } from '@/lib/charting/engine/formatters/date-formatter';
 import { DateTimeFormatter } from '@/lib/charting/engine/formatters/date-time-formatter';
-import { getNotNull } from '@/lib/charting/engine/helpers/assertions';
+import { assert, getNotNull } from '@/lib/charting/engine/helpers/assertions';
 import { type Mutable } from '@/lib/charting/engine/helpers/mutable';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type DeepPartial, merge } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { type LocalizationOptions } from '@/lib/charting/engine/model/chart/localization-options';
 import { type SeriesDataItemTypeMap } from '@/lib/charting/engine/model/data/data-consumer';
@@ -31,8 +32,9 @@ import {
     convertStringToBusinessDay,
     convertTime,
     selectTimeConverter,
+    timePointOf,
 } from '@/lib/charting/engine/model/time/time-utils';
-import { TickMarkType, TickMarkWeight, type Time, type TimePoint } from '@/lib/charting/engine/model/time/types';
+import { isTime, isTimePoint, TickMarkType, TickMarkWeight, type Time } from '@/lib/charting/engine/model/time/types';
 
 /**
  * Represents options for formatting dates, times, and prices according to a locale.
@@ -95,14 +97,15 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
     }
 
     public key(item: InternalHorzScaleItem | Time): InternalHorzScaleItemKey {
-        if (typeof item === 'object' && 'timestamp' in item) {
-            return (item as unknown as TimePoint).timestamp as unknown as InternalHorzScaleItemKey;
+        if (isTimePoint(item)) {
+            return nominal<InternalHorzScaleItemKey>(item.timestamp);
         }
-        return this.key(this.convertHorzItemToInternal(item as Time));
+        assert(isTime(item), 'a horizontal item is either a time point or a time');
+        return this.key(this.convertHorzItemToInternal(item));
     }
 
     public cacheKey(item: InternalHorzScaleItem): number {
-        const time = item as unknown as TimePoint;
+        const time = timePointOf(item);
         return time.businessDay === undefined
             ? new Date(time.timestamp * 1000).getTime()
             : new Date(Date.UTC(time.businessDay.year, time.businessDay.month - 1, time.businessDay.day)).getTime();
@@ -131,7 +134,7 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
     }
 
     public formatHorzItem(item: InternalHorzScaleItem): string {
-        const tp = item as unknown as TimePoint;
+        const tp = timePointOf(item);
         return this._dateTimeFormatter.format(new Date(tp.timestamp * 1000));
     }
 
@@ -144,8 +147,9 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
         const options = this._options.timeScale;
 
         if (options.tickMarkFormatter !== undefined) {
+            assert(isTime(tickMark.originalTime), 'a time scale tick mark carries the time it was given');
             const tickMarkString = options.tickMarkFormatter(
-                tickMark.originalTime as Time,
+                tickMark.originalTime,
                 tickMarkType,
                 localizationOptions.locale,
             );
@@ -154,17 +158,13 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
             }
         }
 
-        return defaultTickMarkFormatter(
-            tickMark.time as unknown as TimePoint,
-            tickMarkType,
-            localizationOptions.locale,
-        );
+        return defaultTickMarkFormatter(timePointOf(tickMark.time), tickMarkType, localizationOptions.locale);
     }
 
     public maxTickMarkWeight(tickMarks: TimeMark[]): TickMarkWeightValue {
         const firstMark = tickMarks[0];
         if (firstMark === undefined) {
-            return TickMarkWeight.LessThanSecond as TickMarkWeightValue;
+            return nominal<TickMarkWeightValue>(TickMarkWeight.LessThanSecond);
         }
 
         let maxWeight = tickMarks.reduce(markWithGreaterWeight, firstMark).weight;
@@ -172,7 +172,7 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
         // special case: it looks strange if 15:00 is bold but 14:00 is not
         // so if maxWeight > TickMarkWeight.Hour1 and < TickMarkWeight.Day reduce it to TickMarkWeight.Hour1
         if (maxWeight > TickMarkWeight.Hour1 && maxWeight < TickMarkWeight.Day) {
-            maxWeight = TickMarkWeight.Hour1 as TickMarkWeightValue;
+            maxWeight = nominal<TickMarkWeightValue>(TickMarkWeight.Hour1);
         }
         return maxWeight;
     }
@@ -182,7 +182,8 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
     }
 
     public static applyDefaults(options?: DeepPartial<TimeChartOptions>): DeepPartial<TimeChartOptions> {
-        return merge({ localization: { dateFormat: "dd MMM 'yy" } }, options ?? {});
+        const defaults: DeepPartial<TimeChartOptions> = { localization: { dateFormat: "dd MMM 'yy" } };
+        return merge(defaults, options ?? {});
     }
 }
 

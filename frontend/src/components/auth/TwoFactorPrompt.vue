@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 
 import AppSpinner from '@/components/ui/AppSpinner.vue';
 import { useEscapeToClose } from '@/composables/ui/useEscapeToClose';
+import { targetOf } from '@/utils/dom';
 
 const { pending = false } = defineProps<{ pending?: boolean }>();
 
@@ -30,7 +31,7 @@ function focusAt(index: number): void {
  * and an autofilled one-time code, neither of which produces key events.
  */
 function onInput(index: number, event: Event): void {
-    const raw = (event.target as HTMLInputElement).value.replace(/\D/g, '');
+    const raw = targetOf(event, HTMLInputElement).value.replace(/\D/g, '');
     if (raw === '') {
         digits.value[index] = '';
         return;

@@ -1,6 +1,6 @@
 {
     "name": "ereuna",
-    "version": "2026.8.0",
+    "version": "2026.10.1",
     "description": "Web app for screening and researching financial markets",
     "keywords": [
         "stock-market",
@@ -75,7 +75,7 @@
     },
     "devDependencies": {
         "@axe-core/playwright": "^4.13.0",
-        "@larrydarko/lint-config": "^0.1.0-beta.1",
+        "@larrydarko/lint-config": "^0.1.0-beta.4",
         "@playwright/test": "^1.63.0",
         "@vitest/coverage-v8": "^5.0.0",
         "@vue/test-utils": "^2.4.11",

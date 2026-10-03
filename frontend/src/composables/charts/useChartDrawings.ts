@@ -9,13 +9,6 @@ import { onScopeDispose, ref, type Ref } from 'vue';
 import type { ChartDrawings, ChartTimeframe } from '@ereuna/shared';
 
 import { clearDrawings, getDrawings, saveDrawings } from '@/api/chart';
-import type {
-    BoxManager,
-    FreehandManager,
-    PriceLevelManager,
-    TextAnnotationManager,
-    TrendLineManager,
-} from '@/lib/charting';
 
 export type UseChartDrawingsReturn = {
     hasDrawings: Ref<boolean>; //  True while the chart holds at least one annotation, so "clear all" can hide itself
@@ -29,12 +22,19 @@ export type UseChartDrawingsReturn = {
     reset: () => void; // Wipe the canvas without touching what is stored — used when switching charts.
 };
 
+/**
+ * What this needs of each drawing tool: what it holds, and a way to put saved drawings
+ * back. The lists stay opaque here — each tool checks what it is handed on the way in.
+ */
+type DrawingTool<TGet extends string, TLoad extends string> = Record<TGet, () => unknown[]> &
+    Record<TLoad, (saved: readonly unknown[]) => void>;
+
 type DrawingManagers = {
-    trendLines: TrendLineManager;
-    boxes: BoxManager;
-    textAnnotations: TextAnnotationManager;
-    freehandPaths: FreehandManager;
-    priceLevels: PriceLevelManager;
+    trendLines: DrawingTool<'getTrendLines', 'loadTrendLines'>;
+    boxes: DrawingTool<'getBoxes', 'loadBoxes'>;
+    textAnnotations: DrawingTool<'getAnnotations', 'loadAnnotations'>;
+    freehandPaths: DrawingTool<'getPaths', 'loadPaths'>;
+    priceLevels: DrawingTool<'serialize', 'deserialize'>;
 };
 
 type ChartKey = {
@@ -119,13 +119,11 @@ export function useChartDrawings(): UseChartDrawingsReturn {
 
     function apply(drawings: ChartDrawings): void {
         if (managers === null) return;
-        managers.trendLines.loadTrendLines(drawings.trendLines as Parameters<TrendLineManager['loadTrendLines']>[0]);
-        managers.boxes.loadBoxes(drawings.boxes as Parameters<BoxManager['loadBoxes']>[0]);
-        managers.textAnnotations.loadAnnotations(
-            drawings.textAnnotations as Parameters<TextAnnotationManager['loadAnnotations']>[0],
-        );
-        managers.freehandPaths.loadPaths(drawings.freehandPaths as Parameters<FreehandManager['loadPaths']>[0]);
-        managers.priceLevels.deserialize(drawings.priceLevels as Parameters<PriceLevelManager['deserialize']>[0]);
+        managers.trendLines.loadTrendLines(drawings.trendLines);
+        managers.boxes.loadBoxes(drawings.boxes);
+        managers.textAnnotations.loadAnnotations(drawings.textAnnotations);
+        managers.freehandPaths.loadPaths(drawings.freehandPaths);
+        managers.priceLevels.deserialize(drawings.priceLevels);
     }
 
     async function save(key: ChartKey): Promise<void> {

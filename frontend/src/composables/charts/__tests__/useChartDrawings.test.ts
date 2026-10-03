@@ -18,7 +18,7 @@ const EMPTY: ChartDrawings = {
 
 const key = { symbol: 'AAPL', timeframe: 'daily' as const };
 
-const withLine: ChartDrawings = { ...EMPTY, trendLines: [{ id: '1' } as never] };
+const withLine: ChartDrawings = { ...EMPTY, trendLines: [{ id: '1' }] };
 /** The five renderer managers, each of which owns one kind of annotation. */
 function fakeManagers(): {
     managers: Parameters<UseChartDrawingsReturn['attach']>[0];
@@ -28,8 +28,8 @@ function fakeManagers(): {
     let held: ChartDrawings = { ...EMPTY };
     const kind = <TKey extends keyof ChartDrawings>(key: TKey) => ({
         get: () => held[key],
-        load: (items: ChartDrawings[TKey]) => {
-            held = { ...held, [key]: items };
+        load: (items: readonly unknown[]) => {
+            held = { ...held, [key]: [...items] };
         },
     });
 
@@ -46,7 +46,7 @@ function fakeManagers(): {
             textAnnotations: { getAnnotations: text.get, loadAnnotations: text.load },
             freehandPaths: { getPaths: free.get, loadPaths: free.load },
             priceLevels: { serialize: level.get, deserialize: level.load },
-        } as unknown as Parameters<UseChartDrawingsReturn['attach']>[0],
+        },
         held: () => held,
         set: (drawings) => {
             held = { ...held, ...drawings };
@@ -56,7 +56,7 @@ function fakeManagers(): {
 
 function inScope(): { drawings: UseChartDrawingsReturn; stop: () => void } {
     const scope = effectScope();
-    const drawings = scope.run(() => useChartDrawings()) as UseChartDrawingsReturn;
+    const drawings = scope.run(() => useChartDrawings())!;
     return { drawings, stop: () => scope.stop() };
 }
 
@@ -80,7 +80,7 @@ describe('attach', () => {
     it('reports a canvas that already holds one', () => {
         const { drawings } = inScope();
         const managers = fakeManagers();
-        managers.set({ boxes: [{ id: 'b' } as never] });
+        managers.set({ boxes: [{ id: 'b' }] });
 
         drawings.attach(managers.managers);
 
@@ -105,7 +105,7 @@ describe('load', () => {
         mock.on('GET /api/charts/AAPL/drawings', { error: 'INTERNAL' }, { status: 500 });
         const { drawings } = inScope();
         const managers = fakeManagers();
-        managers.set({ trendLines: [{ id: 'stale' } as never] });
+        managers.set({ trendLines: [{ id: 'stale' }] });
         drawings.attach(managers.managers);
 
         await drawings.load(key);
@@ -143,7 +143,7 @@ describe('save', () => {
         mock.on('PUT /api/charts/AAPL/drawings', withLine);
         const { drawings } = inScope();
         const managers = fakeManagers();
-        managers.set({ trendLines: [{ id: '1' } as never] });
+        managers.set({ trendLines: [{ id: '1' }] });
         drawings.attach(managers.managers);
 
         await drawings.save(key);
@@ -215,14 +215,14 @@ describe('snapshot and restore', () => {
     it('carries the canvas across a series rebuild without a read or a write', () => {
         const { drawings } = inScope();
         const managers = fakeManagers();
-        managers.set({ boxes: [{ id: 'b' } as never] });
+        managers.set({ boxes: [{ id: 'b' }] });
         drawings.attach(managers.managers);
 
         const taken = drawings.snapshot();
         drawings.reset();
         expect(drawings.hasDrawings.value).toBe(false);
 
-        drawings.restore(taken as ChartDrawings);
+        drawings.restore(taken!);
 
         expect(managers.held().boxes).toHaveLength(1);
         expect(drawings.hasDrawings.value).toBe(true);
@@ -251,7 +251,7 @@ describe('clear', () => {
         mock.on('DELETE /api/charts/AAPL/drawings', null, { status: 204 });
         const { drawings } = inScope();
         const managers = fakeManagers();
-        managers.set({ trendLines: [{ id: '1' } as never] });
+        managers.set({ trendLines: [{ id: '1' }] });
         drawings.attach(managers.managers);
 
         await drawings.clear(key);

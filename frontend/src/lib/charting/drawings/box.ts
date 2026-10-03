@@ -6,7 +6,7 @@
  * pan or a scale change; `updateBoxCoordinates` is what re-derives the pixels
  * before anything reads them.
  */
-import { boundsOf, cornersOf, generateBoxId, resizeBox } from '@/lib/charting/drawings/box-shape';
+import { boundsOf, cornersOf, generateBoxId, isBox, resizeBox } from '@/lib/charting/drawings/box-shape';
 import { type Box, type BoxCorner, type BoxPoint } from '@/lib/charting/drawings/box-types';
 import { DrawingLayer } from '@/lib/charting/drawings/drawing-layer';
 import { type IChartApi } from '@/lib/charting/engine/api/create-chart';
@@ -66,8 +66,9 @@ export class BoxManager extends DrawingLayer {
         return [...this.boxes];
     }
 
-    public loadBoxes(boxes: Box[]): void {
-        this.boxes = boxes;
+    /** Restores saved boxes; an entry that is not one (an older build's shape) is dropped. */
+    public loadBoxes(boxes: readonly unknown[]): void {
+        this.boxes = boxes.filter(isBox);
         this.draw();
     }
 

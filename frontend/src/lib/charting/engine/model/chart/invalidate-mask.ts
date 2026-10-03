@@ -9,12 +9,12 @@ import { type LogicalRange } from '@/lib/charting/engine/model/time/time-data';
 
 export type InvalidationLevel = (typeof InvalidationLevel)[keyof typeof InvalidationLevel];
 
-export type PaneInvalidation = {
+export type TimeScaleInvalidationType = (typeof TimeScaleInvalidationType)[keyof typeof TimeScaleInvalidationType];
+
+type PaneInvalidation = {
     level: InvalidationLevel;
     autoScale?: boolean | undefined;
 };
-
-export type TimeScaleInvalidationType = (typeof TimeScaleInvalidationType)[keyof typeof TimeScaleInvalidationType];
 
 type TimeScaleApplyRangeInvalidation = {
     type: typeof TimeScaleInvalidationType.ApplyRange;

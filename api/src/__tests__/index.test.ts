@@ -7,10 +7,11 @@
  * throwaway listener so the middleware stack answers real requests.
  */
 import type { Server } from 'node:http';
-import type { AddressInfo } from 'node:net';
 
 import type { Express } from 'express';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { portOf } from '@/__tests__/support/port.js';
 
 type Listener = () => void;
 
@@ -96,7 +97,12 @@ vi.mock('@/lib/logger.js', () => {
     };
     return { logger };
 });
-const exit = vi.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
+const exit = vi.spyOn(process, 'exit').mockImplementation(() => {
+    // process.exit is typed `never` because it ends the process; a stub that records the call and
+    // returns cannot satisfy that without a cast, and throwing instead would reject the shutdown under test
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the stub must return so shutdown() can finish
+    return undefined as never;
+});
 
 let harness: { url: string; server: Server } | null = null;
 
@@ -119,7 +125,7 @@ async function listen(app: Express): Promise<string> {
     const { createServer } = await vi.importActual<typeof import('node:http')>('node:http');
     const server = createServer(app);
     await new Promise<void>((resolve) => server.listen(0, () => resolve()));
-    harness = { url: `http://127.0.0.1:${(server.address() as AddressInfo).port}`, server };
+    harness = { url: `http://127.0.0.1:${portOf(server)}`, server };
     return harness.url;
 }
 

@@ -7,7 +7,7 @@
  * otherwise silence the feed for the whole session, which is a far worse
  * failure than ingesting a few hours of nothing on a closed holiday.
  */
-import type { StatsDoc } from '@ereuna/shared';
+import { isRecord, type StatsDoc } from '@ereuna/shared';
 
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
@@ -36,7 +36,7 @@ export async function getHolidays(): Promise<readonly string[]> {
             return [];
         }
         return holidays
-            .map((entry) => (entry as { date?: unknown } | null)?.date)
+            .map((entry: unknown) => (isRecord(entry) ? entry['date'] : undefined))
             .filter((date): date is string => typeof date === 'string');
     } catch (err) {
         logger.error({ err }, 'Holiday lookup failed — treating today as a trading day');

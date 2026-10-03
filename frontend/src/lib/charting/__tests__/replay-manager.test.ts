@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type UTCTimestamp } from '@/lib/charting/engine/model/time/types';
 import { type OHLCData, ReplayManager } from '@/lib/charting/replay-manager';
 
@@ -9,7 +10,7 @@ const DAY = 86400;
 
 function bars(count = 10): OHLCData[] {
     return Array.from({ length: count }, (_, i) => ({
-        time: (FIRST + i * DAY) as UTCTimestamp,
+        time: nominal<UTCTimestamp>(FIRST + i * DAY),
         open: 100 + i,
         high: 105 + i,
         low: 95 + i,
@@ -309,7 +310,7 @@ describe('the date a bar carries', () => {
     it('says so when a bar carries a business day no calendar has', () => {
         // Out past the range a Date can hold, which is where the conversion
         // stops answering with a timestamp at all
-        const replay = new ReplayManager([{ ...(bars(1)[0] as OHLCData), time: { year: 1e10, month: 1, day: 1 } }]);
+        const replay = new ReplayManager([{ ...bars(1)[0]!, time: { year: 1e10, month: 1, day: 1 } }]);
         replay.startReplay(0);
 
         expect(replay.getCurrentDateString()).toBe('Invalid Date');

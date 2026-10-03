@@ -8,7 +8,7 @@
  * A filter added to the shared registry without a group here lands in the
  * catch-all group rather than disappearing, and the audit test names it.
  */
-import { ENUM_FILTERS, MA_FILTERS, RANGE_FILTERS } from '@ereuna/shared';
+import { ENUM_FILTERS, isList, isRecord, MA_FILTERS, RANGE_FILTERS } from '@ereuna/shared';
 
 export type FilterGroup = (typeof FILTER_GROUPS)[number];
 
@@ -25,7 +25,7 @@ export type ListMode = (typeof LIST_MODES)[number];
  */
 export type ScreenerDialog = 'create' | 'rename' | 'delete' | 'reset' | 'columns' | null;
 
-export type ColumnSpec = {
+type ColumnSpec = {
     path: string; // The AssetInfo path the API projects and keys the row by
     filterKey: string; // The filter this column came from — and so its label
     format: ColumnFormat;
@@ -236,8 +236,9 @@ export function filterGroup(key: string): FilterGroup {
 export function readColumn(row: Record<string, unknown>, path: string): unknown {
     let cursor: unknown = row;
     for (const segment of path.split('.')) {
-        if (cursor === null || typeof cursor !== 'object') return null;
-        cursor = (cursor as Record<string, unknown>)[segment];
+        if (isList(cursor)) cursor = cursor[Number(segment)];
+        else if (isRecord(cursor)) cursor = cursor[segment];
+        else return null;
     }
     return cursor ?? null;
 }

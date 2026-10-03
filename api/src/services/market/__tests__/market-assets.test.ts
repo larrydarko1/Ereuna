@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ZodType } from 'zod';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { at, listAt } from '@/__tests__/support/values.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
@@ -8,10 +10,11 @@ vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 const cache: { keys: string[]; options: unknown[] } = { keys: [], options: [] };
 vi.mock('@/lib/cache.js', () => ({
     marketKey: (...parts: string[]) => `m:${parts.join(':')}`,
-    withCache: (key: string, fetcher: () => Promise<unknown>, options: unknown) => {
+    withCache: async (key: string, schema: ZodType, fetcher: () => Promise<unknown>, options: unknown) => {
         cache.keys.push(key);
         cache.options.push(options);
-        return fetcher();
+        // Answered the way a hit is: through JSON and the call site's schema
+        return schema.parse(JSON.parse(JSON.stringify(await fetcher())));
     },
 }));
 
@@ -54,21 +57,16 @@ describe('assetExchange', () => {
 });
 
 describe('searchAssets', () => {
-    const pipeline = (): Record<string, unknown>[] =>
-        db.current.of('AssetInfo').filters[0] as Record<string, unknown>[];
+    const pipeline = (): unknown[] => listAt(db.current.of('AssetInfo').filters, 0);
 
     it('escapes the term before it reaches Mongo', async () => {
         await searchAssets('a.*a', 10);
-        const match = pipeline()[0] as { $match: { $or: { Symbol?: { $regex: string } }[] } };
-
-        expect(match.$match.$or[0]?.Symbol?.$regex).toBe('a\\.\\*a');
+        expect(at(pipeline(), 0, '$match', '$or', 0, 'Symbol', '$regex')).toBe('a\\.\\*a');
     });
 
     it('excludes delisted rows', async () => {
         await searchAssets('aa', 10);
-        const match = pipeline()[0] as { $match: { Delisted: unknown } };
-
-        expect(match.$match.Delisted).toEqual({ $ne: true });
+        expect(at(pipeline(), 0, '$match', 'Delisted')).toEqual({ $ne: true });
     });
 
     it('caps the limit at fifty however many the caller asks for', async () => {
@@ -92,7 +90,7 @@ describe('searchAssets', () => {
 
     it('scores a prefix above a substring, and nudges common stocks on the major venues', async () => {
         await searchAssets('aa', 10);
-        const terms = (pipeline()[1] as { $addFields: { score: { $sum: unknown[] } } }).$addFields.score.$sum;
+        const terms = listAt(pipeline(), 1, '$addFields', 'score', '$sum');
 
         expect(terms).toHaveLength(9);
         expect(JSON.stringify(terms[0])).toContain('"^aa"');
@@ -392,9 +390,7 @@ describe('corporateActions', () => {
         db.current = fakeDb({ AssetInfo: [asset({ splits: [...splits] })] });
 
         await corporateActions('AAPL', 'splits', 10);
-        const stored = db.current.of('AssetInfo').seed[0] as { splits: { date: string }[] };
-
-        expect(stored.splits[0]?.date).toBe('2014-06-09');
+        expect(at(db.current.of('AssetInfo').seed, 0, 'splits', 0, 'date')).toBe('2014-06-09');
     });
 
     it('answers with nothing when the asset has no actions of that kind', async () => {

@@ -11,7 +11,7 @@ import {
 } from '@/lib/charting/engine/renderers/iprice-axis-view-renderer';
 import { PriceAxisView } from '@/lib/charting/engine/views/price-axis/price-axis-view';
 
-export type CrosshairPriceAxisViewValueProvider = (priceScale: PriceScale) => CrosshairPriceAndCoordinate;
+type CrosshairPriceAxisViewValueProvider = (priceScale: PriceScale) => CrosshairPriceAndCoordinate;
 
 export class CrosshairPriceAxisView extends PriceAxisView {
     private _source: Crosshair;

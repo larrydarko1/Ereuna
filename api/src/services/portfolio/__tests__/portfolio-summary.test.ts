@@ -1,8 +1,9 @@
-import { ObjectId } from 'mongodb';
+import { ObjectId, type WithId } from 'mongodb';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { PositionDoc } from '@ereuna/shared';
+import type { PositionDoc, TradeDoc } from '@ereuna/shared';
 
+import { statsSnapshot } from '@/__tests__/support/fixtures.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
@@ -10,7 +11,7 @@ vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 
 const state: {
     portfolio: Record<string, unknown>;
-    trades: { tradeDate: Date }[];
+    trades: Partial<WithId<TradeDoc>>[];
     closes: Map<string, number>;
     inception: Map<string, number | null>;
 } = {
@@ -195,7 +196,7 @@ describe('getSummary', () => {
     });
 
     it('carries the stored stats and value history through unchanged', async () => {
-        const stats = { totalReturn: 1 } as never;
+        const stats = statsSnapshot({ realizedPL: 1 });
         state.portfolio = portfolio({ stats, valueHistory: [{ date: '2026-01-01', value: 1 }] });
         db.current = fakeDb({ Positions: [] });
 
@@ -258,6 +259,8 @@ describe('exportPortfolio', () => {
         state.trades = [
             {
                 _id: new ObjectId(),
+                userId: USER_ID,
+                portfolioNumber: 0,
                 symbol: 'AAPL',
                 action: 'buy',
                 shares: 1,
@@ -266,7 +269,7 @@ describe('exportPortfolio', () => {
                 commission: 0,
                 tradeDate: new Date('2026-01-02T00:00:00.000Z'),
                 createdAt: new Date('2026-01-02T00:00:00.000Z'),
-            } as never,
+            },
         ];
 
         const exported = await exportPortfolio(USER_ID, 0);

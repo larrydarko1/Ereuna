@@ -6,7 +6,7 @@
  * series colour, and the caller never chose the text colour to go on it.
  */
 import { getDefined } from '@/lib/charting/engine/helpers/assertions';
-import { type Nominal } from '@/lib/charting/engine/helpers/nominal';
+import { type Nominal, nominal } from '@/lib/charting/engine/helpers/nominal';
 
 /**
  * Red component of the RGB color value
@@ -34,7 +34,7 @@ type AlphaComponent = Nominal<number, 'AlphaComponent'>;
 
 type Rgba = [RedComponent, GreenComponent, BlueComponent, AlphaComponent];
 
-export type ContrastColors = {
+type ContrastColors = {
     foreground: string;
     background: string;
 };
@@ -251,10 +251,10 @@ export function gradientColorAtPercent(topColor: string, bottomColor: string, pe
     const [bottomR, bottomG, bottomB, bottomA] = colorStringToRgba(bottomColor);
 
     const resultRgba: Rgba = [
-        normalizeRgbComponent((topR + percent * (bottomR - topR)) as RedComponent),
-        normalizeRgbComponent((topG + percent * (bottomG - topG)) as GreenComponent),
-        normalizeRgbComponent((topB + percent * (bottomB - topB)) as BlueComponent),
-        normalizeAlphaComponent((topA + percent * (bottomA - topA)) as AlphaComponent),
+        normalizeRgbComponent(nominal<RedComponent>(topR + percent * (bottomR - topR))),
+        normalizeRgbComponent(nominal<GreenComponent>(topG + percent * (bottomG - topG))),
+        normalizeRgbComponent(nominal<BlueComponent>(topB + percent * (bottomB - topB))),
+        normalizeAlphaComponent(nominal<AlphaComponent>(topA + percent * (bottomA - topA))),
     ];
 
     return `rgba(${resultRgba[0]}, ${resultRgba[1]}, ${resultRgba[2]}, ${resultRgba[3]})`;
@@ -262,22 +262,22 @@ export function gradientColorAtPercent(topColor: string, bottomColor: string, pe
 
 function normalizeRgbComponent<T extends RedComponent | GreenComponent | BlueComponent>(component: number): T {
     if (component < 0) {
-        return 0 as T;
+        return nominal<T>(0);
     }
     if (component > 255) {
-        return 255 as T;
+        return nominal<T>(255);
     }
     // NaN values are treated as 0
     const rounded = Math.round(component);
-    return (Number.isNaN(rounded) ? 0 : rounded) as T;
+    return nominal<T>(Number.isNaN(rounded) ? 0 : rounded);
 }
 
 function normalizeAlphaComponent(component: AlphaComponent): AlphaComponent {
     if (component <= 0 || component > 1) {
-        return Math.min(Math.max(component, 0), 1) as AlphaComponent;
+        return nominal<AlphaComponent>(Math.min(Math.max(component, 0), 1));
     }
     // limit the precision of all numbers to at most 4 digits in fractional part
-    return (Math.round(component * 10000) / 10000) as AlphaComponent;
+    return nominal<AlphaComponent>(Math.round(component * 10000) / 10000);
 }
 
 function colorStringToRgba(colorString: string): Rgba {
@@ -298,7 +298,7 @@ function colorStringToRgba(colorString: string): Rgba {
                 normalizeRgbComponent<RedComponent>(parseInt(getDefined(red), 10)),
                 normalizeRgbComponent<GreenComponent>(parseInt(getDefined(green), 10)),
                 normalizeRgbComponent<BlueComponent>(parseInt(getDefined(blue), 10)),
-                normalizeAlphaComponent((alpha === undefined ? 1 : parseFloat(alpha)) as AlphaComponent),
+                normalizeAlphaComponent(nominal<AlphaComponent>(alpha === undefined ? 1 : parseFloat(alpha))),
             ];
         }
     }
@@ -311,7 +311,7 @@ function colorStringToRgba(colorString: string): Rgba {
                 normalizeRgbComponent<RedComponent>(parseInt(getDefined(red), 16)),
                 normalizeRgbComponent<GreenComponent>(parseInt(getDefined(green), 16)),
                 normalizeRgbComponent<BlueComponent>(parseInt(getDefined(blue), 16)),
-                1 as AlphaComponent,
+                nominal<AlphaComponent>(1),
             ];
         }
     }
@@ -324,7 +324,7 @@ function colorStringToRgba(colorString: string): Rgba {
                 normalizeRgbComponent<RedComponent>(parseInt(getDefined(red), 16) * 0x11),
                 normalizeRgbComponent<GreenComponent>(parseInt(getDefined(green), 16) * 0x11),
                 normalizeRgbComponent<BlueComponent>(parseInt(getDefined(blue), 16) * 0x11),
-                1 as AlphaComponent,
+                nominal<AlphaComponent>(1),
             ];
         }
     }

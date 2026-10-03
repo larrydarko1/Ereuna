@@ -88,8 +88,7 @@ describe('PATCH /api/notes/:id', () => {
         const response = await harness.call(`/api/notes/${ID}`, json({ message: 'revised' }, 'PATCH'));
 
         expect(response.status).toBe(200);
-        const [, id] = service.updateNote.mock.calls[0] as [ObjectId, ObjectId, string];
-        expect(id.toHexString()).toBe(ID);
+        expect(service.updateNote).toHaveBeenCalledWith(USER_ID, new ObjectId(ID), 'revised');
     });
 
     it('refuses an id that is not an ObjectId', async () => {

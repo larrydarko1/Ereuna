@@ -3,6 +3,7 @@
  * far off so that two markers on the same bar do not overlap.
  */
 import { ensureNever } from '@/lib/charting/engine/helpers/assertions';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { isNumber } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
@@ -156,8 +157,8 @@ export class SeriesMarkersPaneView implements IUpdatablePaneView {
             this._data.items = seriesMarkers.map<SeriesMarkerRendererDataItem>(
                 (marker: InternalSeriesMarker<TimePointIndex>) => ({
                     time: marker.time,
-                    x: 0 as Coordinate,
-                    y: 0 as Coordinate,
+                    x: nominal<Coordinate>(0),
+                    y: nominal<Coordinate>(0),
                     size: 0,
                     shape: marker.shape,
                     color: marker.color,
@@ -207,8 +208,8 @@ export class SeriesMarkersPaneView implements IUpdatablePaneView {
             if (marker.text !== undefined && marker.text.length > 0) {
                 rendererItem.text = {
                     content: marker.text,
-                    x: 0 as Coordinate,
-                    y: 0 as Coordinate,
+                    x: nominal<Coordinate>(0),
+                    y: nominal<Coordinate>(0),
                     width: 0,
                     height: 0,
                 };
@@ -254,35 +255,33 @@ function placeMarker(
         case 'inBar': {
             rendererItem.y = priceScale.priceToCoordinate(inBarPrice, firstValue);
             if (rendererItem.text !== undefined) {
-                rendererItem.text.y = (rendererItem.y +
-                    halfSize +
-                    shapeMargin +
-                    textHeight * (0.5 + Constants.TextMargin)) as Coordinate;
+                rendererItem.text.y = nominal<Coordinate>(
+                    rendererItem.y + halfSize + shapeMargin + textHeight * (0.5 + Constants.TextMargin),
+                );
             }
             return;
         }
         case 'aboveBar': {
-            rendererItem.y = (priceScale.priceToCoordinate(highPrice, firstValue) -
-                halfSize -
-                offsets.aboveBar) as Coordinate;
+            rendererItem.y = nominal<Coordinate>(
+                priceScale.priceToCoordinate(highPrice, firstValue) - halfSize - offsets.aboveBar,
+            );
             if (rendererItem.text !== undefined) {
-                rendererItem.text.y = (rendererItem.y -
-                    halfSize -
-                    textHeight * (0.5 + Constants.TextMargin)) as Coordinate;
+                rendererItem.text.y = nominal<Coordinate>(
+                    rendererItem.y - halfSize - textHeight * (0.5 + Constants.TextMargin),
+                );
                 offsets.aboveBar += textHeight * (1 + 2 * Constants.TextMargin);
             }
             offsets.aboveBar += shapeSize + shapeMargin;
             return;
         }
         case 'belowBar': {
-            rendererItem.y = (priceScale.priceToCoordinate(lowPrice, firstValue) +
-                halfSize +
-                offsets.belowBar) as Coordinate;
+            rendererItem.y = nominal<Coordinate>(
+                priceScale.priceToCoordinate(lowPrice, firstValue) + halfSize + offsets.belowBar,
+            );
             if (rendererItem.text !== undefined) {
-                rendererItem.text.y = (rendererItem.y +
-                    halfSize +
-                    shapeMargin +
-                    textHeight * (0.5 + Constants.TextMargin)) as Coordinate;
+                rendererItem.text.y = nominal<Coordinate>(
+                    rendererItem.y + halfSize + shapeMargin + textHeight * (0.5 + Constants.TextMargin),
+                );
                 offsets.belowBar += textHeight * (1 + 2 * Constants.TextMargin);
             }
             offsets.belowBar += shapeSize + shapeMargin;

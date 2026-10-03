@@ -4,7 +4,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { UserDoc } from '@ereuna/shared';
 
 import { fakeArgon2, hashOf } from '@/__tests__/support/argon2.js';
+import { userDoc } from '@/__tests__/support/fixtures.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { recordAt } from '@/__tests__/support/values.js';
 
 vi.mock('argon2', () => ({ default: fakeArgon2 }));
 const db: { current: DbStub } = { current: fakeDb() };
@@ -31,20 +33,10 @@ const { changePassword, changeUsername, deleteAccount, getAccount, setPasswordAf
 const USER_ID = new ObjectId('507f1f77bcf86cd799439011');
 
 function user(overrides: Partial<UserDoc> = {}): WithId<UserDoc> {
-    return {
-        _id: USER_ID,
-        username: 'Larry',
-        usernameLower: 'larry',
-        passwordHash: hashOf('Str0ng!pass'),
-        passwordResetRequired: false,
-        language: 'en',
-        totpEnabled: false,
-        ...overrides,
-    } as WithId<UserDoc>;
+    return userDoc({ _id: USER_ID, passwordHash: hashOf('Str0ng!pass'), ...overrides });
 }
 
-const setOf = (): Record<string, unknown> =>
-    (db.current.of('Users').writes[0]?.args[1] as { $set: Record<string, unknown> }).$set;
+const setOf = (): Record<string, unknown> => recordAt(db.current.of('Users').writes[0]?.args, 1, '$set');
 
 beforeEach(() => {
     db.current = fakeDb({ Users: [user()] });
@@ -137,8 +129,7 @@ describe('changeUsername', () => {
 
     it('writes both name forms', async () => {
         await changeUsername(USER_ID, 'Str0ng!pass', 'LoReNzO');
-        const update = db.current.of('Users').writes[0]?.args[1] as { $set: Record<string, unknown> };
-        expect(update.$set).toMatchObject({ username: 'LoReNzO', usernameLower: 'lorenzo' });
+        expect(setOf()).toMatchObject({ username: 'LoReNzO', usernameLower: 'lorenzo' });
     });
 
     it('refuses a name another account already holds', async () => {

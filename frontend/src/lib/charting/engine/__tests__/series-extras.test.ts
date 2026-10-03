@@ -10,15 +10,15 @@ import { LineStyle } from '@/lib/charting/engine/renderers/draw-line';
 
 type Charted = { chart: IChartApi; series: ISeriesApi<'Candlestick'> };
 
-/** A marker carries `originalTime` internally, which the public shape does not set. */
 function marker(index: number, extra: Partial<SeriesMarker<Time>> = {}): SeriesMarker<Time> {
     return {
         time: timeAt(index),
         position: 'aboveBar',
         shape: 'arrowDown',
         color: '#ef5350',
+        originalTime: timeAt(index),
         ...extra,
-    } as SeriesMarker<Time>;
+    };
 }
 
 function charted(): Charted {

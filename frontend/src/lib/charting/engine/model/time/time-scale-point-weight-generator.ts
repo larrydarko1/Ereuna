@@ -6,9 +6,10 @@
  * evenly as the chart is zoomed out instead of dropping in arbitrary order.
  */
 import { type Mutable } from '@/lib/charting/engine/helpers/mutable';
-import { type InternalHorzScaleItem } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type TickMarkWeightValue, type TimeScalePoint } from '@/lib/charting/engine/model/time/time-data';
-import { TickMarkWeight, type TimePoint } from '@/lib/charting/engine/model/time/types';
+import { timePointOf } from '@/lib/charting/engine/model/time/time-utils';
+import { TickMarkWeight } from '@/lib/charting/engine/model/time/types';
 
 type WeightDivisor = {
     divisor: number;
@@ -32,7 +33,7 @@ export function fillWeightsForPoints(sortedTimePoints: readonly Mutable<TimeScal
     }
 
     const pointBefore = sortedTimePoints[startIndex - 1];
-    let prevTime = startIndex === 0 || pointBefore === undefined ? null : cast(pointBefore.time).timestamp;
+    let prevTime = startIndex === 0 || pointBefore === undefined ? null : timePointOf(pointBefore.time).timestamp;
     let prevDate = prevTime !== null ? new Date(prevTime * 1000) : null;
 
     let totalTimeDiff = 0;
@@ -41,15 +42,16 @@ export function fillWeightsForPoints(sortedTimePoints: readonly Mutable<TimeScal
         const currentPoint = sortedTimePoints[index];
         if (currentPoint === undefined) continue;
 
-        const currentDate = new Date(cast(currentPoint.time).timestamp * 1000);
+        const currentDate = new Date(timePointOf(currentPoint.time).timestamp * 1000);
 
         if (prevDate !== null) {
-            currentPoint.timeWeight = weightByTime(currentDate, prevDate) as TickMarkWeightValue;
+            currentPoint.timeWeight = nominal<TickMarkWeightValue>(weightByTime(currentDate, prevDate));
         }
 
-        totalTimeDiff += cast(currentPoint.time).timestamp - (prevTime ?? cast(currentPoint.time).timestamp);
+        totalTimeDiff +=
+            timePointOf(currentPoint.time).timestamp - (prevTime ?? timePointOf(currentPoint.time).timestamp);
 
-        prevTime = cast(currentPoint.time).timestamp;
+        prevTime = timePointOf(currentPoint.time).timestamp;
         prevDate = currentDate;
     }
 
@@ -58,11 +60,10 @@ export function fillWeightsForPoints(sortedTimePoints: readonly Mutable<TimeScal
         // let's guess a weight for the first point
         // let's say the previous point was average time back in the history
         const averageTimeDiff = Math.ceil(totalTimeDiff / (sortedTimePoints.length - 1));
-        const approxPrevDate = new Date((cast(firstPoint.time).timestamp - averageTimeDiff) * 1000);
-        firstPoint.timeWeight = weightByTime(
-            new Date(cast(firstPoint.time).timestamp * 1000),
-            approxPrevDate,
-        ) as TickMarkWeightValue;
+        const approxPrevDate = new Date((timePointOf(firstPoint.time).timestamp - averageTimeDiff) * 1000);
+        firstPoint.timeWeight = nominal<TickMarkWeightValue>(
+            weightByTime(new Date(timePointOf(firstPoint.time).timestamp * 1000), approxPrevDate),
+        );
     }
 }
 
@@ -96,8 +97,4 @@ function weightByTime(currentDate: Date, prevDate: Date): TickMarkWeight {
     }
 
     return TickMarkWeight.LessThanSecond;
-}
-
-function cast(t: InternalHorzScaleItem): TimePoint {
-    return t as unknown as TimePoint;
 }

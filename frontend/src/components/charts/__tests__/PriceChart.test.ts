@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CHART_TIMEFRAMES } from '@ereuna/shared';
 import type { AssetProfile } from '@ereuna/shared';
 
+import { assetProfile } from '@/__tests__/support/assets';
+import { elementOf } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
 import PriceChart from '@/components/charts/PriceChart.vue';
@@ -35,15 +37,7 @@ const series = (closesIn: number[] = RUN): Record<string, unknown> => ({
     overlays: [],
 });
 
-const profile = (over: Partial<AssetProfile> = {}): AssetProfile =>
-    ({
-        symbol: 'AAPL',
-        name: 'Apple Inc',
-        exchange: 'NASDAQ',
-        delisted: false,
-        signals: [],
-        ...over,
-    }) as unknown as AssetProfile;
+const profile = (over: Partial<AssetProfile> = {}): AssetProfile => assetProfile(over);
 
 const chart = async (props: Record<string, unknown> = {}): Promise<VueWrapper> => {
     const wrapper = mount(PriceChart, { props: { symbol: 'AAPL', ...props }, attachTo: document.body });
@@ -67,7 +61,7 @@ const click = async (element: HTMLElement | undefined): Promise<void> => {
 const toolbarButton = (wrapper: VueWrapper, label: string): HTMLElement => {
     const node = wrapper.findAll('.toolbar__button').find((button) => button.attributes('aria-label') === label);
     if (node === undefined) throw new Error(`no toolbar button labelled ${label}`);
-    return node.element as HTMLElement;
+    return elementOf(node.element, HTMLElement);
 };
 
 const timeframes = (wrapper: VueWrapper): string[] =>

@@ -10,6 +10,7 @@ export * from '#config/redact.js';
 export * from '#db/collections.js';
 export * from '#db/indexes.js';
 export * from '#errors.js';
+export * from '#guards.js';
 export * from '#market/assets.js';
 export * from '#market/hours.js';
 export * from '#market/numeric.js';

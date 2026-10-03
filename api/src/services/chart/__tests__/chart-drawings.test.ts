@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DRAWING_KINDS, type ChartDrawings } from '@ereuna/shared';
 
+import { anyOf } from '@/__tests__/support/matchers.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
@@ -21,7 +22,7 @@ const empty = (): ChartDrawings => ({
     priceLevels: [],
 });
 
-const withOne = (): ChartDrawings => ({ ...empty(), priceLevels: [{ price: 100 }] as never });
+const withOne = (): ChartDrawings => ({ ...empty(), priceLevels: [{ price: 100 }] });
 
 beforeEach(() => {
     db.current = fakeDb({ ChartDrawings: [] });
@@ -66,11 +67,9 @@ describe('saveDrawings', () => {
 
     it('stamps the creation time only on insert', async () => {
         await saveDrawings(USER_ID, 'AAPL', 'daily', withOne());
-        const update = db.current.of('ChartDrawings').writes[0]?.args[1] as {
-            $setOnInsert: Record<string, unknown>;
-        };
-        expect(update.$setOnInsert).toMatchObject({ userId: USER_ID, symbol: 'AAPL', timeframe: 'daily' });
-        expect(update.$setOnInsert['createdAt']).toBeInstanceOf(Date);
+        expect(db.current.of('ChartDrawings').writes[0]?.args[1]).toMatchObject({
+            $setOnInsert: { userId: USER_ID, symbol: 'AAPL', timeframe: 'daily', createdAt: anyOf(Date) },
+        });
     });
 
     it('deletes the document rather than storing an empty set', async () => {

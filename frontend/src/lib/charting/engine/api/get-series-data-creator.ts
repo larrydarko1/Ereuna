@@ -5,6 +5,7 @@
  * API hands data back out — `ISeriesApi.data()` and the crosshair's `seriesData`
  * both have to return the caller's own shape, not the packed internal row.
  */
+import { callerType } from '@/lib/charting/engine/helpers/caller-type';
 import {
     type AreaData,
     type BarData,
@@ -50,7 +51,7 @@ export function getSeriesDataCreator<TSeriesType extends SeriesType, THorzScaleI
 function singleValueData<THorzScaleItem>(plotRow: PlotRow): SingleValueData<THorzScaleItem> {
     const data: SingleValueData<THorzScaleItem> = {
         value: plotRow.value[PlotRowValueIndex.Close],
-        time: plotRow.originalTime as THorzScaleItem,
+        time: callerType<THorzScaleItem>(plotRow.originalTime),
     };
     if (plotRow.customValues !== undefined) {
         data.customValues = plotRow.customValues;
@@ -122,7 +123,7 @@ function ohlcData<THorzScaleItem>(plotRow: PlotRow): OhlcData<THorzScaleItem> {
         high: plotRow.value[PlotRowValueIndex.High],
         low: plotRow.value[PlotRowValueIndex.Low],
         close: plotRow.value[PlotRowValueIndex.Close],
-        time: plotRow.originalTime as THorzScaleItem,
+        time: callerType<THorzScaleItem>(plotRow.originalTime),
     };
     if (plotRow.customValues !== undefined) {
         data.customValues = plotRow.customValues;
@@ -160,7 +161,7 @@ function candlestickData<THorzScaleItem>(plotRow: CandlestickPlotRow): Candlesti
 }
 
 function customData<THorzScaleItem>(plotRow: CustomPlotRow): CustomData<THorzScaleItem> {
-    const time = plotRow.originalTime as THorzScaleItem;
+    const time = callerType<THorzScaleItem>(plotRow.originalTime);
     return {
         ...plotRow.data,
         time,

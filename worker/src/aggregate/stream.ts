@@ -9,16 +9,19 @@
  * nowhere else: everything downstream sees a symbol, a price and an instant.
  */
 import { Counter } from 'prom-client';
+import { z } from 'zod';
 
-import { TIINGO_GROUP, TIINGO_STREAM } from '@ereuna/shared';
+import { isList, isRecord, TIINGO_GROUP, TIINGO_STREAM } from '@ereuna/shared';
 
 import { applyTrade } from '@/aggregate/builder.js';
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 import { getConsumer } from '@/lib/redis.js';
 
-type StreamEntry = [id: string, fields: string[]];
-type StreamRead = [stream: string, entries: StreamEntry[]][] | null;
+/** An XREADGROUP reply: per stream, its entries as `[id, [field, value, …]]`; null when the block timed out. */
+const streamReadSchema = z.array(z.tuple([z.string(), z.array(z.tuple([z.string(), z.array(z.string())]))])).nullable();
+
+type StreamRead = z.infer<typeof streamReadSchema>;
 
 const consumed = new Counter({
     name: 'aggregator_trades_consumed_total',
@@ -52,18 +55,20 @@ export async function consumeTrades(shouldStop: () => boolean): Promise<void> {
 
     while (!shouldStop()) {
         try {
-            const response = (await redis.xreadgroup(
-                'GROUP',
-                TIINGO_GROUP,
-                name,
-                'COUNT',
-                config.stream.batchSize,
-                'BLOCK',
-                config.stream.blockMs,
-                'STREAMS',
-                TIINGO_STREAM,
-                '>',
-            )) as StreamRead;
+            const response = streamReadSchema.parse(
+                await redis.xreadgroup(
+                    'GROUP',
+                    TIINGO_GROUP,
+                    name,
+                    'COUNT',
+                    config.stream.batchSize,
+                    'BLOCK',
+                    config.stream.blockMs,
+                    'STREAMS',
+                    TIINGO_STREAM,
+                    '>',
+                ),
+            );
 
             if (response === null) continue;
 
@@ -111,13 +116,13 @@ function parseTrade(payload: string): { symbol: string; price: number; at: numbe
         return null;
     }
 
-    const message = parsed as { service?: unknown; data?: unknown };
-    if (message.service !== 'iex' || !Array.isArray(message.data) || message.data.length <= 2) {
+    const data = isRecord(parsed) && parsed['service'] === 'iex' ? parsed['data'] : undefined;
+    if (!isList(data) || data.length <= 2) {
         rejected.inc({ reason: 'unrecognised' });
         return null;
     }
 
-    const [instant, ticker, price] = message.data as unknown[];
+    const [instant, ticker, price] = data;
     if (typeof ticker !== 'string' || ticker === '') {
         rejected.inc({ reason: 'no-symbol' });
         return null;

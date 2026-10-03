@@ -2,8 +2,11 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { isList, isRecord } from '@ereuna/shared';
+
 import type { PortfolioImport } from '@/api/portfolio';
 import AppDialog from '@/components/ui/AppDialog.vue';
+import { targetOf } from '@/utils/dom';
 
 const { error = null, saving = false } = defineProps<{
     error?: string | null;
@@ -23,22 +26,23 @@ async function onFile(event: Event): Promise<void> {
     parsed.value = null;
     problem.value = null;
 
-    const file = (event.target as HTMLInputElement).files?.[0];
+    const file = targetOf(event, HTMLInputElement).files?.[0];
     if (file === undefined) return;
 
     try {
         const payload: unknown = JSON.parse(await file.text());
-        if (typeof payload !== 'object' || payload === null || !Array.isArray((payload as PortfolioImport).trades)) {
+        const trades = isRecord(payload) ? payload['trades'] : undefined;
+        if (!isRecord(payload) || !isList(trades)) {
             problem.value = t('portfolio.importInvalid');
             return;
         }
 
-        const envelope = payload as PortfolioImport;
+        const settings = payload['portfolio'];
         parsed.value = {
-            trades: envelope.trades,
+            trades,
             // Settings are sent alongside so the incoming trades are judged by
             // the leverage they were traded at, not by this slot's default.
-            ...(envelope.portfolio === undefined ? {} : { portfolio: envelope.portfolio }),
+            ...(settings === undefined ? {} : { portfolio: settings }),
         };
     } catch {
         problem.value = t('portfolio.importInvalid');

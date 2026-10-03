@@ -215,7 +215,7 @@ function getCandlestickSeriesPlotRow<THorzScaleItem>(
 function getCustomSeriesPlotRow<THorzScaleItem>(
     time: InternalHorzScaleItem,
     index: TimePointIndex,
-    item: CustomData<THorzScaleItem> | WhitespaceData,
+    item: CustomData<THorzScaleItem> | WhitespaceData<THorzScaleItem>,
     originalTime: THorzScaleItem,
     dataToPlotRow?: CustomDataToPlotRowValueConverter<THorzScaleItem>,
 ): Mutable<SeriesPlotRow<'Custom'>> {
@@ -225,7 +225,8 @@ function getCustomSeriesPlotRow<THorzScaleItem>(
     const last = getDefined(values[values.length - 1]);
     const value: PlotRowValue = [last, max, min, last];
     // `time` is dropped: the row carries the internal time, not the caller's
-    const { time: _time, color, ...data } = item as CustomData<THorzScaleItem>;
+    const custom: CustomData<THorzScaleItem> = item;
+    const { time: _time, color, ...data } = custom;
     return { index, time, value, originalTime, data, color };
 }
 

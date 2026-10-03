@@ -21,7 +21,7 @@ import { dividendCashFlows } from '@/utils/dividends.js';
 import { replayTrades, type LogViolation, type ReplayResult, type ReplayTrade } from '@/utils/portfolio-replay.js';
 import { computeStats } from '@/utils/portfolio-stats.js';
 
-export type PortfolioState = ReplayResult & {
+type PortfolioState = ReplayResult & {
     trades: WithId<TradeDoc>[];
 };
 

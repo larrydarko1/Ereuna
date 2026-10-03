@@ -1,6 +1,7 @@
 import pino, { type Logger } from 'pino';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { isRecord } from '#guards.js';
 import { createLogger } from '#logger.js';
 
 /**
@@ -14,11 +15,10 @@ import { createLogger } from '#logger.js';
  */
 function collect(logger: Logger): string[] {
     const lines: string[] = [];
-    // pino publishes the symbol but does not declare it on `Logger`, so the
-    // lookup is typed here rather than left to an implicit any.
-    const streams = logger as unknown as Record<symbol, { write: (s: string) => void }>;
-    const stream = streams[pino.symbols.streamSym];
-    if (stream === undefined) throw new Error('the logger has no destination stream');
+    // pino publishes the symbol but does not declare it on `Logger`, so what it
+    // finds is checked to be a stream rather than assumed to be one
+    const stream: unknown = Reflect.get(logger, pino.symbols.streamSym);
+    if (!isStream(stream)) throw new Error('the logger has no destination stream');
 
     vi.spyOn(stream, 'write').mockImplementation((s: string) => {
         lines.push(s);
@@ -26,8 +26,15 @@ function collect(logger: Logger): string[] {
     return lines;
 }
 
-const parse = (line: string | undefined): Record<string, unknown> =>
-    JSON.parse(line ?? '{}') as Record<string, unknown>;
+const parse = (line: string | undefined): Record<string, unknown> => {
+    const parsed: unknown = JSON.parse(line ?? '{}');
+    if (!isRecord(parsed)) throw new Error(`not a log line: ${line ?? ''}`);
+    return parsed;
+};
+
+function isStream(value: unknown): value is { write: (line: string) => void } {
+    return isRecord(value) && typeof value['write'] === 'function';
+}
 
 afterEach(() => {
     vi.restoreAllMocks();

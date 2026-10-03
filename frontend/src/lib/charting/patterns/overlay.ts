@@ -5,8 +5,10 @@
 
 import type { IChartApi } from '@/lib/charting/engine/api/create-chart';
 import type { ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import type { SeriesMarker } from '@/lib/charting/engine/model/series/series-markers';
-import type { Time } from '@/lib/charting/engine/model/time/types';
+import type { SeriesType } from '@/lib/charting/engine/model/series/series-options';
+import type { Time, UTCTimestamp } from '@/lib/charting/engine/model/time/types';
 import { LineStyle } from '@/lib/charting/engine/renderers/draw-line';
 import { type PatternMatch } from '@/lib/charting/patterns/types';
 import { timeToTimestamp } from '@/lib/charting/shared/time-conversion';
@@ -17,12 +19,12 @@ type PatternVisual = {
 
 export class PatternOverlayManager {
     private chart: IChartApi;
-    private mainSeries: ISeriesApi<'Candlestick'> | ISeriesApi<'Line'>;
+    private mainSeries: ISeriesApi<SeriesType>;
     private patterns: PatternVisual[] = [];
     private patternSeries: ISeriesApi<'Line'>[] = [];
     private markers: SeriesMarker<Time>[] = [];
 
-    constructor(chart: IChartApi, mainSeries: ISeriesApi<'Candlestick'> | ISeriesApi<'Line'>) {
+    constructor(chart: IChartApi, mainSeries: ISeriesApi<SeriesType>) {
         this.chart = chart;
         this.mainSeries = mainSeries;
     }
@@ -96,8 +98,8 @@ export class PatternOverlayManager {
 
         // Draw horizontal line connecting the two points
         const lineData = [
-            { time: first.time as Time, value: first.price },
-            { time: second.time as Time, value: second.price },
+            { time: nominal<UTCTimestamp>(first.time), value: first.price },
+            { time: nominal<UTCTimestamp>(second.time), value: second.price },
         ];
 
         lineSeries.setData(lineData);
@@ -107,8 +109,7 @@ export class PatternOverlayManager {
     /**
      * Draw head and shoulders pattern
      */
-    // "Head and shoulders" is one pattern's proper name, not two jobs joined
-    // eslint-disable-next-line contracts/name-contract
+    // eslint-disable-next-line contracts/name-contract -- "head and shoulders" is one pattern's proper name, not two jobs joined
     private drawHeadAndShoulders(pattern: PatternMatch): void {
         const [leftShoulder, head, rightShoulder] = pattern.points;
         if (leftShoulder === undefined || head === undefined || rightShoulder === undefined) return;
@@ -126,8 +127,8 @@ export class PatternOverlayManager {
         });
 
         const necklineData = [
-            { time: leftShoulder.time as Time, value: (leftShoulder.price + rightShoulder.price) / 2 },
-            { time: rightShoulder.time as Time, value: (leftShoulder.price + rightShoulder.price) / 2 },
+            { time: nominal<UTCTimestamp>(leftShoulder.time), value: (leftShoulder.price + rightShoulder.price) / 2 },
+            { time: nominal<UTCTimestamp>(rightShoulder.time), value: (leftShoulder.price + rightShoulder.price) / 2 },
         ];
 
         necklineSeries.setData(necklineData);
@@ -144,9 +145,9 @@ export class PatternOverlayManager {
         });
 
         const connectingData = [
-            { time: leftShoulder.time as Time, value: leftShoulder.price },
-            { time: head.time as Time, value: head.price },
-            { time: rightShoulder.time as Time, value: rightShoulder.price },
+            { time: nominal<UTCTimestamp>(leftShoulder.time), value: leftShoulder.price },
+            { time: nominal<UTCTimestamp>(head.time), value: head.price },
+            { time: nominal<UTCTimestamp>(rightShoulder.time), value: rightShoulder.price },
         ];
 
         connectingSeries.setData(connectingData);
@@ -176,7 +177,7 @@ export class PatternOverlayManager {
             });
 
             const upperData = highs.map((p) => ({
-                time: p.time as Time,
+                time: nominal<UTCTimestamp>(p.time),
                 value: p.price,
             }));
 
@@ -196,7 +197,7 @@ export class PatternOverlayManager {
             });
 
             const lowerData = lows.map((p) => ({
-                time: p.time as Time,
+                time: nominal<UTCTimestamp>(p.time),
                 value: p.price,
             }));
 
@@ -225,7 +226,7 @@ export class PatternOverlayManager {
             });
 
             const flagData = sortedPoints.map((p) => ({
-                time: p.time as Time,
+                time: nominal<UTCTimestamp>(p.time),
                 value: p.price,
             }));
 
@@ -242,7 +243,7 @@ export class PatternOverlayManager {
         if (lastPoint === undefined) return;
 
         const marker: SeriesMarker<Time> = {
-            time: lastPoint.time as Time,
+            time: nominal<UTCTimestamp>(lastPoint.time),
             position:
                 pattern.type.includes('Top') || pattern.type.includes('headAndShoulders') ? 'aboveBar' : 'belowBar',
             color: this.getMarkerColor(pattern.type),

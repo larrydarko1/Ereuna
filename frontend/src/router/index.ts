@@ -112,10 +112,8 @@ router.beforeEach((to) => {
 });
 
 declare module 'vue-router' {
-    /* Declaration merging is the whole mechanism here: this adds `meta.public` to
-       vue-router's own RouteMeta, and only an interface merges with an interface.
-       The rule's autofix rewrites it as a type alias, which compiles to TS2300. */
-    // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+    // The rule's autofix rewrites this as a type alias, which compiles to TS2300
+    // eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- declaration merging adds `meta.public` to vue-router's own RouteMeta, and only an interface merges with an interface
     interface RouteMeta {
         public?: boolean; // Reachable signed out
         guestOnly?: boolean; // Redirects to the dashboard when a session already exists

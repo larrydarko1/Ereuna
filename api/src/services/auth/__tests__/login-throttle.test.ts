@@ -30,8 +30,8 @@ async function failTimes(n: number): Promise<number | undefined> {
         // The throttle is stateful; the sequence is the point
         await recordLoginFailure(KEY);
     }
-    const last = redis.current.set.mock.calls.at(-1);
-    return last?.[3] as number | undefined;
+    const ttl = redis.current.set.mock.calls.at(-1)?.[3];
+    return typeof ttl === 'number' ? ttl : undefined;
 }
 
 beforeEach(() => {
@@ -70,9 +70,8 @@ describe('assertLoginAllowed', () => {
         try {
             await assertLoginAllowed(KEY);
         } catch (err) {
-            expect((err as AppError).status).toBe(429);
-            expect((err as AppError).code).toBe('RATE_LIMITED');
-            expect((err as AppError).securityEvent).toBe(true);
+            expect(err).toBeInstanceOf(AppError);
+            expect(err).toMatchObject({ status: 429, code: 'RATE_LIMITED', securityEvent: true });
         }
     });
 

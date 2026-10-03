@@ -1,6 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 
+import { elementOf } from '@/__tests__/support/dom';
 import RangeFilter from '@/components/screener/RangeFilter.vue';
 import { i18n } from '@/i18n';
 import { formatNumber } from '@/utils/formatters';
@@ -69,8 +70,8 @@ describe('RangeFilter', () => {
     it('shows the stored range when there is one', () => {
         const inputs = filter({ value: { min: 3, max: 9 } }).findAll('input');
 
-        expect((inputs[0]?.element as HTMLInputElement).value).toBe('3');
-        expect((inputs[1]?.element as HTMLInputElement).value).toBe('9');
+        expect(elementOf(inputs[0]?.element, HTMLInputElement).value).toBe('3');
+        expect(elementOf(inputs[1]?.element, HTMLInputElement).value).toBe('9');
     });
 
     it('empties the fields when the filter is cleared', async () => {
@@ -78,7 +79,7 @@ describe('RangeFilter', () => {
 
         await wrapper.setProps({ value: null });
 
-        expect((wrapper.findAll('input')[0]?.element as HTMLInputElement).value).toBe('');
+        expect(elementOf(wrapper.findAll('input')[0]?.element, HTMLInputElement).value).toBe('');
     });
 
     it('hints at the dataset range when it knows one', () => {

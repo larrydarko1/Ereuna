@@ -9,12 +9,11 @@
 import { lowerBound } from '@/lib/charting/engine/helpers/algorithms';
 import { getDefined } from '@/lib/charting/engine/helpers/assertions';
 import { type Mutable } from '@/lib/charting/engine/helpers/mutable';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type SeriesDataItemTypeMap } from '@/lib/charting/engine/model/data/data-consumer';
 import {
     assignIndexToPointData,
     createEmptyTimePointData,
-    saveOriginalTime,
-    type SeriesDataItemWithOriginalTime,
     seriesUpdateInfo,
     type TimePointData,
     timeScalePointTime,
@@ -80,7 +79,7 @@ export type DataUpdateResponse = {
     timeScale: TimeScaleChanges;
 };
 
-export type InternalTimeScalePoint = {
+type InternalTimeScalePoint = {
     pointData: TimePointData;
 } & Mutable<TimeScalePoint>;
 
@@ -92,7 +91,7 @@ export class DataLayer<THorzScaleItem> {
     private _seriesLastTimePoint = new Map<Series<SeriesType>, InternalHorzScaleItem>();
 
     // this is kind of "dest" values (in opposite to "source" ones) - we don't need to modify it manually, the only by calling _updateTimeScalePoints or updateSeriesData methods
-    private _sortedTimePoints: readonly InternalTimeScalePoint[] = [];
+    private _sortedTimePoints: InternalTimeScalePoint[] = [];
 
     private readonly _horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>;
 
@@ -181,7 +180,7 @@ export class DataLayer<THorzScaleItem> {
             const newTimeScalePoints: InternalTimeScalePoint[] = [];
             this._pointDataByTimePoint.forEach((pointData: TimePointData) => {
                 newTimeScalePoints.push({
-                    timeWeight: 0 as TickMarkWeightValue,
+                    timeWeight: nominal<TickMarkWeightValue>(0),
                     time: pointData.timePoint,
                     pointData,
                     originalTime: timeScalePointTime(pointData.mapping),
@@ -211,8 +210,8 @@ export class DataLayer<THorzScaleItem> {
         series: Series<TSeriesType>,
         data: SeriesDataItemTypeMap<THorzScaleItem>[TSeriesType],
     ): DataUpdateResponse {
-        const extendedData = data as SeriesDataItemWithOriginalTime<TSeriesType, THorzScaleItem>;
-        saveOriginalTime(extendedData);
+        // Taken before preprocessData, which may rewrite a date string in place
+        const originalTime = data.time;
         // convertStringToBusinessDay(data);
         this._horzScaleBehavior.preprocessData(data);
         const timeConverter = this._horzScaleBehavior.createConverterToInternalObj([data]);
@@ -245,7 +244,7 @@ export class DataLayer<THorzScaleItem> {
         const createPlotRow = getSeriesPlotRowCreator<SeriesType, THorzScaleItem>(series.seriesType());
         const dataToPlotRow = series.customSeriesPlotValuesBuilder();
         const customWhitespaceChecker = series.customSeriesWhitespaceCheck<THorzScaleItem>();
-        const plotRow = createPlotRow(time, pointDataAtTime.index, data, extendedData.originalTime, {
+        const plotRow = createPlotRow(time, pointDataAtTime.index, data, originalTime, {
             dataToPlotRow,
             customIsWhitespace: customWhitespaceChecker,
         });
@@ -262,7 +261,7 @@ export class DataLayer<THorzScaleItem> {
         }
 
         const newPoint: InternalTimeScalePoint = {
-            timeWeight: 0 as TickMarkWeightValue,
+            timeWeight: nominal<TickMarkWeightValue>(0),
             time: pointDataAtTime.timePoint,
             pointData: pointDataAtTime,
             originalTime: timeScalePointTime(pointDataAtTime.mapping),
@@ -274,13 +273,11 @@ export class DataLayer<THorzScaleItem> {
             (a: InternalTimeScalePoint, b: number) => this._horzScaleBehavior.key(a.time) < b,
         );
 
-        // yes, I know that this array is readonly and this change is intended to make it performative
-        // we marked _sortedTimePoints array as readonly to avoid modifying this array anywhere else
-        // but this place is exceptional case due performance reasons, sorry
-        (this._sortedTimePoints as InternalTimeScalePoint[]).splice(insertIndex, 0, newPoint);
+        // Spliced in place rather than rebuilt, for the cost of a live update on a long series
+        this._sortedTimePoints.splice(insertIndex, 0, newPoint);
 
         for (const [offset, point] of this._sortedTimePoints.slice(insertIndex).entries()) {
-            assignIndexToPointData(point.pointData, (insertIndex + offset) as TimePointIndex);
+            assignIndexToPointData(point.pointData, nominal<TimePointIndex>(insertIndex + offset));
         }
 
         this._horzScaleBehavior.fillWeightsForPoints(this._sortedTimePoints, insertIndex);
@@ -366,7 +363,7 @@ export class DataLayer<THorzScaleItem> {
             // re-assign point's time weight for points if time is the same (and all prior times was the same)
             newPoint.timeWeight = oldPoint.timeWeight;
 
-            assignIndexToPointData(newPoint.pointData, index as TimePointIndex);
+            assignIndexToPointData(newPoint.pointData, nominal<TimePointIndex>(index));
         }
 
         if (firstChangedPointIndex === -1 && this._sortedTimePoints.length !== newTimePoints.length) {
@@ -383,7 +380,7 @@ export class DataLayer<THorzScaleItem> {
         // if time scale points are changed that means that we need to make full update to all series (with clearing points)
         // but first we need to synchronize indexes and re-fill time weights
         for (const [offset, point] of newTimePoints.slice(firstChangedPointIndex).entries()) {
-            assignIndexToPointData(point.pointData, (firstChangedPointIndex + offset) as TimePointIndex);
+            assignIndexToPointData(point.pointData, nominal<TimePointIndex>(firstChangedPointIndex + offset));
         }
 
         // re-fill time weights for point after the first changed one
@@ -400,12 +397,12 @@ export class DataLayer<THorzScaleItem> {
             return null;
         }
 
-        let baseIndex = 0 as TimePointIndex;
+        let baseIndex = nominal<TimePointIndex>(0);
 
         this._seriesRowsBySeries.forEach((data: SeriesPlotRow<SeriesType>[]) => {
             const lastRow = data[data.length - 1];
             if (lastRow !== undefined) {
-                baseIndex = Math.max(baseIndex, lastRow.index) as TimePointIndex;
+                baseIndex = nominal<TimePointIndex>(Math.max(baseIndex, lastRow.index));
             }
         });
 
@@ -442,7 +439,7 @@ export class DataLayer<THorzScaleItem> {
             }
 
             dataUpdateResponse.timeScale.points = this._sortedTimePoints;
-            dataUpdateResponse.timeScale.firstChangedPointIndex = firstChangedPointIndex as TimePointIndex;
+            dataUpdateResponse.timeScale.firstChangedPointIndex = nominal<TimePointIndex>(firstChangedPointIndex);
         } else {
             const seriesData = this._seriesRowsBySeries.get(updatedSeries);
             // if no seriesData found that means that we just removed the series

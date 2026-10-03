@@ -23,7 +23,7 @@ export type SummaryFormat =
     | 'percent' // Already a percentage: 3.2 → 3.20%
     | 'ratio'; // A ratio that reads as a percentage: 0.032 → 3.20%
 
-export type SummaryFieldSpec = {
+type SummaryFieldSpec = {
     /** Key under `summary.` in the locale files. */
     labelKey: string;
     format: SummaryFormat;

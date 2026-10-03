@@ -1,4 +1,6 @@
 /** market-assets — reads of the AssetInfo reference collection. */
+import { z } from 'zod';
+
 import type {
     AssetInfoDoc,
     AssetProfile,
@@ -7,13 +9,26 @@ import type {
     SummaryField,
     TradeSignal,
 } from '@ereuna/shared';
-import { numeric } from '@ereuna/shared';
+import { isRecord, numeric } from '@ereuna/shared';
 
 import { AppError } from '@/lib/app-error.js';
 import { marketKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
 import type { DividendPayment } from '@/utils/dividends.js';
 import { escapeRegex } from '@/utils/regex.js';
+
+const assetSummariesSchema: z.ZodType<AssetSummary[]> = z.array(
+    z.object({
+        symbol: z.string(),
+        name: z.string().nullable(),
+        isin: z.string().nullable(),
+        exchange: z.string().nullable(),
+        assetType: z.string().nullable(),
+        currency: z.string().nullable(),
+        sector: z.string().nullable(),
+        marketCap: z.number().nullable(),
+    }),
+);
 
 const MAX_SEARCH_RESULTS = 50;
 
@@ -62,6 +77,7 @@ export async function searchAssets(term: string, limit: number): Promise<AssetSu
 
     return withCache(
         marketKey('search', term.toLowerCase(), String(capped)),
+        assetSummariesSchema,
         async () => {
             const docs = await getDb()
                 .collection<AssetInfoDoc>('AssetInfo')
@@ -231,8 +247,8 @@ function tradeSignals(value: unknown): TradeSignal[] {
     if (!Array.isArray(value)) return [];
 
     return value.flatMap((entry): TradeSignal[] => {
-        if (typeof entry !== 'object' || entry === null) return [];
-        const row = entry as Record<string, unknown>;
+        if (!isRecord(entry)) return [];
+        const row = entry;
         const direction = row['type'];
         if (direction !== 'BUY' && direction !== 'SELL') return [];
 

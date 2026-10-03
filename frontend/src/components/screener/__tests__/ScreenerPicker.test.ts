@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { ScreenerSummary } from '@ereuna/shared';
 
+import { elementOf } from '@/__tests__/support/dom';
 import ScreenerPicker from '@/components/screener/ScreenerPicker.vue';
 import { i18n } from '@/i18n';
 
@@ -82,7 +83,7 @@ describe('ScreenerPicker', () => {
     it('reflects whether the screener contributes to the results', () => {
         const wrapper = picker({ items: [summary('Growth', { include: false })] });
 
-        expect((wrapper.get('.picker__include input').element as HTMLInputElement).checked).toBe(false);
+        expect(elementOf(wrapper.get('.picker__include input').element, HTMLInputElement).checked).toBe(false);
     });
 
     it('reports the inclusion box being turned off', async () => {

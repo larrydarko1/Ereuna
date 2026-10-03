@@ -99,7 +99,12 @@ vi.mock('@/tiingo.js', () => ({
  * shutdown chain settles a tick after the signal, and restoring the spy between
  * tests would leave a late `.then(exit)` landing on the real one.
  */
-const exit = vi.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
+const exit = vi.spyOn(process, 'exit').mockImplementation(() => {
+    // process.exit is typed `never` because it ends the process; a stub that records the call and
+    // returns cannot satisfy that without a cast, and throwing instead would reject the shutdown under test
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the stub must return so shutdown() can finish
+    return undefined as never;
+});
 
 /** Import the entry point and let it reach its first loop iteration. */
 async function boot(): Promise<void> {

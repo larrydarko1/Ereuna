@@ -52,7 +52,7 @@ export type ReplayResult = {
     violation: LogViolation | null;
 };
 
-export type ReplayOptions = {
+type ReplayOptions = {
     cashFlows?: readonly CashFlow[];
     leverage?: number;
 };

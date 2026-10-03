@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { type DrawingStage, clickAt, pressKey, stage } from '@/lib/charting/__tests__/helpers/drawing-harness';
 import { mouse } from '@/lib/charting/__tests__/helpers/pointer';
-import { type FreehandPath, FreehandManager } from '@/lib/charting/drawings/freehand';
+import { FreehandManager } from '@/lib/charting/drawings/freehand';
 
 type Drawn = { stage: DrawingStage; tool: FreehandManager; overlay: HTMLElement };
 
@@ -42,7 +42,7 @@ describe('drawing a stroke', () => {
 
         stroke(drawn, LINE);
 
-        const path = drawn.tool.getPaths()[0] as FreehandPath;
+        const path = drawn.tool.getPaths()[0]!;
         expect(drawn.tool.getPaths()).toHaveLength(1);
         expect(path.points.length).toBe(LINE.length);
         expect(path.id).toMatch(/^freehand_\d+_[a-z0-9]+$/);
@@ -53,7 +53,7 @@ describe('drawing a stroke', () => {
 
         stroke(drawn, LINE);
 
-        const path = drawn.tool.getPaths()[0] as FreehandPath;
+        const path = drawn.tool.getPaths()[0]!;
         expect(path.points[0]?.time).toBeDefined();
         expect(path.points[0]?.price).toBeGreaterThan(0);
     });
@@ -143,7 +143,7 @@ describe('selecting, moving and deleting a stroke', () => {
     it('moves the whole stroke on a second press and drag', () => {
         const drawn = tool();
         stroke(drawn, LINE);
-        const before = (drawn.tool.getPaths()[0] as FreehandPath).points[0]?.price ?? 0;
+        const before = drawn.tool.getPaths()[0]!.points[0]?.price ?? 0;
 
         // The first press selects, the second one picks it up
         mouse(drawn.overlay, 'mousedown', { x: 240, y: 170 });
@@ -152,13 +152,13 @@ describe('selecting, moving and deleting a stroke', () => {
         mouse(drawn.overlay, 'mousemove', { x: 240, y: 230 });
         mouse(drawn.overlay, 'mouseup', { x: 240, y: 230 });
 
-        expect((drawn.tool.getPaths()[0] as FreehandPath).points[0]?.price).not.toBe(before);
+        expect(drawn.tool.getPaths()[0]!.points[0]?.price).not.toBe(before);
     });
 
     it('refuses to move a locked stroke', () => {
         const drawn = tool();
         stroke(drawn, LINE);
-        const path = drawn.tool.getPaths()[0] as FreehandPath;
+        const path = drawn.tool.getPaths()[0]!;
         drawn.tool.loadPaths([{ ...path, locked: true }]);
         const before = path.points[0]?.price;
 
@@ -167,7 +167,7 @@ describe('selecting, moving and deleting a stroke', () => {
         mouse(drawn.overlay, 'mousedown', { x: 240, y: 170 });
         mouse(drawn.overlay, 'mousemove', { x: 240, y: 230 });
 
-        expect((drawn.tool.getPaths()[0] as FreehandPath).points[0]?.price).toBe(before);
+        expect(drawn.tool.getPaths()[0]!.points[0]?.price).toBe(before);
     });
 
     it('deletes nothing while nothing is selected', () => {
@@ -239,7 +239,7 @@ describe('the overlay itself', () => {
     it('takes a whole set of strokes at once', () => {
         const drawn = tool();
         stroke(drawn, LINE);
-        const path = drawn.tool.getPaths()[0] as FreehandPath;
+        const path = drawn.tool.getPaths()[0]!;
 
         drawn.tool.loadPaths([path, { ...path, id: 'fh_second', lineWidth: 4 }]);
 

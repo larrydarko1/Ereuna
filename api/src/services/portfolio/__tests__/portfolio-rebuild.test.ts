@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { TradeDoc } from '@ereuna/shared';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import { recordAt } from '@/__tests__/support/values.js';
 import { AppError } from '@/lib/app-error.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
@@ -84,10 +85,12 @@ describe('validateLog', () => {
         try {
             await validateLog([trade()], 1);
         } catch (err) {
-            const failure = err as AppError;
-            expect(failure.code).toBe('INSUFFICIENT_BUYING_POWER');
-            expect(failure.status).toBe(422);
-            expect(failure.params).toMatchObject({ action: 'buy', symbol: 'AAPL', date: '2026-01-05' });
+            expect(err).toBeInstanceOf(AppError);
+            expect(err).toMatchObject({
+                code: 'INSUFFICIENT_BUYING_POWER',
+                status: 422,
+                params: { action: 'buy', symbol: 'AAPL', date: '2026-01-05' },
+            });
         }
     });
 
@@ -145,12 +148,12 @@ describe('rebuild', () => {
 
     it('writes cash, the value history and the statistics back onto the portfolio', async () => {
         await rebuild(USER_ID, 0);
-        const update = db.current.of('Portfolios').writes[0]?.args[1] as { $set: Record<string, unknown> };
+        const set = recordAt(db.current.of('Portfolios').writes[0]?.args, 1, '$set');
 
-        expect(update.$set).toHaveProperty('cash');
-        expect(update.$set).toHaveProperty('valueHistory');
-        expect(update.$set).toHaveProperty('stats');
-        expect(update.$set['updatedAt']).toBeInstanceOf(Date);
+        expect(set).toHaveProperty('cash');
+        expect(set).toHaveProperty('valueHistory');
+        expect(set).toHaveProperty('stats');
+        expect(set['updatedAt']).toBeInstanceOf(Date);
     });
 
     it('replaces the whole position set rather than diffing it', async () => {

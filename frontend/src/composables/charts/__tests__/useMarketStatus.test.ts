@@ -14,7 +14,7 @@ const HOLIDAY = new Date('2026-12-25T15:00:00Z');
 
 function inScope(alwaysOpen = false): { status: UseMarketStatusReturn; stop: () => void } {
     const scope = effectScope();
-    const status = scope.run(() => useMarketStatus(() => alwaysOpen)) as UseMarketStatusReturn;
+    const status = scope.run(() => useMarketStatus(() => alwaysOpen))!;
     return { status, stop: () => scope.stop() };
 }
 

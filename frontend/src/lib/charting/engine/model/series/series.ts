@@ -9,8 +9,9 @@ import { type IPriceFormatter } from '@/lib/charting/engine/formatters/iprice-fo
 import { PercentageFormatter } from '@/lib/charting/engine/formatters/percentage-formatter';
 import { PriceFormatter } from '@/lib/charting/engine/formatters/price-formatter';
 import { VolumeFormatter } from '@/lib/charting/engine/formatters/volume-formatter';
-import { getDefined, getNotNull } from '@/lib/charting/engine/helpers/assertions';
+import { assert, getDefined, getNotNull } from '@/lib/charting/engine/helpers/assertions';
 import { type IDestroyable } from '@/lib/charting/engine/helpers/idestroyable';
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { isInteger, merge } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
 import { type Pane } from '@/lib/charting/engine/model/chart/pane';
@@ -56,7 +57,6 @@ import {
 import {
     type AreaStyleOptions,
     type BaselineStyleOptions,
-    type HistogramStyleOptions,
     type LineStyleOptions,
 } from '@/lib/charting/engine/model/series/series-style-options';
 import { type InternalHorzScaleItem } from '@/lib/charting/engine/model/time/ihorz-scale-behavior';
@@ -101,9 +101,9 @@ export type LastValueDataResultWithData = {
     index: TimePointIndex;
 };
 
-export type LastValueDataResult = LastValueDataResultWithoutData | LastValueDataResultWithData;
+type LastValueDataResult = LastValueDataResultWithoutData | LastValueDataResultWithData;
 
-export type MarkerData = {
+type MarkerData = {
     price: BarPrice;
     radius: number;
     borderColor: string | null;
@@ -111,7 +111,7 @@ export type MarkerData = {
     backgroundColor: string;
 };
 
-export type SeriesDataAtTypeMap = {
+type SeriesDataAtTypeMap = {
     Bar: BarPrices;
     Candlestick: BarPrices;
     Area: BarPrice;
@@ -128,7 +128,7 @@ export type SeriesUpdateInfo = {
 // note that if would like to use `Omit` here - you can't due https://github.com/microsoft/TypeScript/issues/36981
 export type SeriesOptionsInternal<T extends SeriesType = SeriesType> = SeriesOptionsMap[T];
 
-export type SeriesPartialOptionsInternal<T extends SeriesType = SeriesType> = SeriesPartialOptionsMap[T];
+type SeriesPartialOptionsInternal<T extends SeriesType = SeriesType> = SeriesPartialOptionsMap[T];
 
 export type ISeries<T extends SeriesType> = {
     bars(): SeriesPlotList<T>;
@@ -179,11 +179,7 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
 
         this._panePriceAxisView = new PanePriceAxisView(priceAxisView, this, model);
 
-        if (seriesType === 'Area' || seriesType === 'Line' || seriesType === 'Baseline') {
-            this._lastPriceAnimationPaneView = new SeriesLastPriceAnimationPaneView(
-                this as Series<'Area'> | Series<'Line'> | Series<'Baseline'>,
-            );
-        }
+        this._lastPriceAnimationPaneView = lastPriceAnimationPaneView(this);
 
         this._recreateFormatter();
 
@@ -390,13 +386,13 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
         }
         if (this._seriesType === 'Bar' || this._seriesType === 'Candlestick' || this._seriesType === 'Custom') {
             return {
-                open: prices.value[PlotRowValueIndex.Open] as BarPrice,
-                high: prices.value[PlotRowValueIndex.High] as BarPrice,
-                low: prices.value[PlotRowValueIndex.Low] as BarPrice,
-                close: prices.value[PlotRowValueIndex.Close] as BarPrice,
+                open: nominal<BarPrice>(prices.value[PlotRowValueIndex.Open]),
+                high: nominal<BarPrice>(prices.value[PlotRowValueIndex.High]),
+                low: nominal<BarPrice>(prices.value[PlotRowValueIndex.Low]),
+                close: nominal<BarPrice>(prices.value[PlotRowValueIndex.Close]),
             };
         }
-        return prices.value[PlotRowValueIndex.Close] as BarPrice;
+        return nominal<BarPrice>(prices.value[PlotRowValueIndex.Close]);
     }
 
     public topPaneViews(_pane: Pane): readonly IPaneView[] {
@@ -526,18 +522,14 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
     }
 
     public markerDataAtIndex(index: TimePointIndex): MarkerData | null {
-        const getValue =
-            (this._seriesType === 'Line' || this._seriesType === 'Area' || this._seriesType === 'Baseline') &&
-            (this._options as LineStyleOptions | AreaStyleOptions | BaselineStyleOptions).crosshairMarkerVisible;
-
-        if (!getValue) {
+        if (markerOptions(this)?.crosshairMarkerVisible !== true) {
             return null;
         }
         const bar = this._data.valueAt(index);
         if (bar === null) {
             return null;
         }
-        const price = bar.value[PlotRowValueIndex.Close] as BarPrice;
+        const price = nominal<BarPrice>(bar.value[PlotRowValueIndex.Close]);
         const radius = this._markerRadius();
         const borderColor = this._markerBorderColor();
         const borderWidth = this._markerBorderWidth();
@@ -566,7 +558,8 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
             return undefined;
         }
         return (data: CustomData<unknown> | CustomSeriesWhitespaceData<unknown>): number[] => {
-            return (this._paneView as SeriesCustomPaneView).priceValueBuilder(data);
+            assert(this._paneView instanceof SeriesCustomPaneView, 'a custom series keeps its custom pane view');
+            return this._paneView.priceValueBuilder(data);
         };
     }
 
@@ -577,7 +570,8 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
         return (
             data: CustomData<THorzScaleItem> | CustomSeriesWhitespaceData<THorzScaleItem>,
         ): data is CustomSeriesWhitespaceData<THorzScaleItem> => {
-            return (this._paneView as SeriesCustomPaneView).isWhitespace(data);
+            assert(this._paneView instanceof SeriesCustomPaneView, 'a custom series keeps its custom pane view');
+            return this._paneView.isWhitespace(data);
         };
     }
 
@@ -604,8 +598,8 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
 
         let range = barsMinMax !== null ? new PriceRangeImpl(barsMinMax.min, barsMinMax.max) : null;
 
-        if (this.seriesType() === 'Histogram') {
-            const base = (this._options as HistogramStyleOptions).base;
+        const base = histogramBase(this);
+        if (base !== null) {
             const rangeWithBase = new PriceRangeImpl(base, base);
             range = range !== null ? range.merge(rangeWithBase) : rangeWithBase;
         }
@@ -631,61 +625,21 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
     }
 
     private _markerRadius(): number {
-        switch (this._seriesType) {
-            case 'Line':
-            case 'Area':
-            case 'Baseline':
-                return (this._options as LineStyleOptions | AreaStyleOptions | BaselineStyleOptions)
-                    .crosshairMarkerRadius;
-        }
-
-        return 0;
+        return markerOptions(this)?.crosshairMarkerRadius ?? 0;
     }
 
     private _markerBorderColor(): string | null {
-        switch (this._seriesType) {
-            case 'Line':
-            case 'Area':
-            case 'Baseline': {
-                const crosshairMarkerBorderColor = (
-                    this._options as LineStyleOptions | AreaStyleOptions | BaselineStyleOptions
-                ).crosshairMarkerBorderColor;
-                if (crosshairMarkerBorderColor.length !== 0) {
-                    return crosshairMarkerBorderColor;
-                }
-            }
-        }
-
-        return null;
+        const color = markerOptions(this)?.crosshairMarkerBorderColor ?? '';
+        return color.length !== 0 ? color : null;
     }
 
     private _markerBorderWidth(): number {
-        switch (this._seriesType) {
-            case 'Line':
-            case 'Area':
-            case 'Baseline':
-                return (this._options as LineStyleOptions | AreaStyleOptions | BaselineStyleOptions)
-                    .crosshairMarkerBorderWidth;
-        }
-
-        return 0;
+        return markerOptions(this)?.crosshairMarkerBorderWidth ?? 0;
     }
 
     private _markerBackgroundColor(index: TimePointIndex): string {
-        switch (this._seriesType) {
-            case 'Line':
-            case 'Area':
-            case 'Baseline': {
-                const crosshairMarkerBackgroundColor = (
-                    this._options as LineStyleOptions | AreaStyleOptions | BaselineStyleOptions
-                ).crosshairMarkerBackgroundColor;
-                if (crosshairMarkerBackgroundColor.length !== 0) {
-                    return crosshairMarkerBackgroundColor;
-                }
-            }
-        }
-
-        return this.barColorer().barStyle(index).barColor;
+        const color = markerOptions(this)?.crosshairMarkerBackgroundColor ?? '';
+        return color.length !== 0 ? color : this.barColorer().barStyle(index).barColor;
     }
 
     private _recreateFormatter(): void {
@@ -748,50 +702,7 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
 
     private _recreatePaneViews(customPaneView?: ICustomSeriesPaneView<unknown>): void {
         this._markersPaneView = new SeriesMarkersPaneView(this, this.model());
-
-        switch (this._seriesType) {
-            case 'Bar': {
-                this._paneView = new SeriesBarsPaneView(this as Series<'Bar'>, this.model());
-                break;
-            }
-
-            case 'Candlestick': {
-                this._paneView = new SeriesCandlesticksPaneView(this as Series<'Candlestick'>, this.model());
-                break;
-            }
-
-            case 'Line': {
-                this._paneView = new SeriesLinePaneView(this as Series<'Line'>, this.model());
-                break;
-            }
-
-            case 'Custom': {
-                this._paneView = new SeriesCustomPaneView(
-                    this as Series<'Custom'>,
-                    this.model(),
-                    getDefined(customPaneView),
-                );
-                break;
-            }
-
-            case 'Area': {
-                this._paneView = new SeriesAreaPaneView(this as Series<'Area'>, this.model());
-                break;
-            }
-
-            case 'Baseline': {
-                this._paneView = new SeriesBaselinePaneView(this as Series<'Baseline'>, this.model());
-                break;
-            }
-
-            case 'Histogram': {
-                this._paneView = new SeriesHistogramPaneView(this as Series<'Histogram'>, this.model());
-                break;
-            }
-
-            default:
-                throw Error('Unknown chart style assigned: ' + this._seriesType);
-        }
+        this._paneView = paneViewFor(this, this.model(), customPaneView);
     }
 
     private _extractPaneViews(
@@ -837,4 +748,43 @@ function mergeMargins(source: AutoScaleMargins | null, additionalMargin: AutoSca
         above: Math.max(source?.above ?? 0, additionalMargin.above),
         below: Math.max(source?.below ?? 0, additionalMargin.below),
     };
+}
+
+/** Whether `series` is of `type`: the check that narrows its options and its pane views to that type's */
+function isSeriesOf<TType extends SeriesType>(series: Series<SeriesType>, type: TType): series is Series<TType> {
+    return series.seriesType() === type;
+}
+
+/** The crosshair-marker options, which only the line-shaped series have */
+function markerOptions(
+    series: Series<SeriesType>,
+): Readonly<LineStyleOptions | AreaStyleOptions | BaselineStyleOptions> | null {
+    return isSeriesOf(series, 'Line') || isSeriesOf(series, 'Area') || isSeriesOf(series, 'Baseline')
+        ? series.options()
+        : null;
+}
+
+function histogramBase(series: Series<SeriesType>): number | null {
+    return isSeriesOf(series, 'Histogram') ? series.options().base : null;
+}
+
+function lastPriceAnimationPaneView(series: Series<SeriesType>): SeriesLastPriceAnimationPaneView | null {
+    return isSeriesOf(series, 'Area') || isSeriesOf(series, 'Line') || isSeriesOf(series, 'Baseline')
+        ? new SeriesLastPriceAnimationPaneView(series)
+        : null;
+}
+
+function paneViewFor(
+    series: Series<SeriesType>,
+    model: IChartModelBase,
+    customPaneView: ICustomSeriesPaneView<unknown> | undefined,
+): IUpdatablePaneView | SeriesCustomPaneView {
+    if (isSeriesOf(series, 'Bar')) return new SeriesBarsPaneView(series, model);
+    if (isSeriesOf(series, 'Candlestick')) return new SeriesCandlesticksPaneView(series, model);
+    if (isSeriesOf(series, 'Line')) return new SeriesLinePaneView(series, model);
+    if (isSeriesOf(series, 'Custom')) return new SeriesCustomPaneView(series, model, getDefined(customPaneView));
+    if (isSeriesOf(series, 'Area')) return new SeriesAreaPaneView(series, model);
+    if (isSeriesOf(series, 'Baseline')) return new SeriesBaselinePaneView(series, model);
+    if (isSeriesOf(series, 'Histogram')) return new SeriesHistogramPaneView(series, model);
+    throw new Error(`Unknown chart style assigned: ${series.seriesType()}`);
 }

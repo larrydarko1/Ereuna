@@ -7,7 +7,7 @@
  */
 import { getDefined } from '@/lib/charting/engine/helpers/assertions';
 
-export type BoundComparatorType<TArrayElementType, TValueType> = (a: TArrayElementType, b: TValueType) => boolean;
+type BoundComparatorType<TArrayElementType, TValueType> = (a: TArrayElementType, b: TValueType) => boolean;
 
 /** The first index whose element does not compare before `value`. */
 export function lowerBound<TArrayElementType, TValueType>(

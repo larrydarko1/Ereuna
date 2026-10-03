@@ -4,6 +4,8 @@ import { useI18n } from 'vue-i18n';
 
 import type { ScreenerSummary } from '@ereuna/shared';
 
+import { targetOf } from '@/utils/dom';
+
 const {
     items,
     includedCount = 0,
@@ -27,6 +29,10 @@ const selected = defineModel<string>({ required: true });
 const { t } = useI18n();
 
 const current = computed(() => items.find((item) => item.name === selected.value) ?? null);
+
+function toggleInclude(event: Event): void {
+    emit('toggleInclude', targetOf(event, HTMLInputElement).checked);
+}
 </script>
 
 <template>
@@ -86,7 +92,7 @@ const current = computed(() => items.find((item) => item.name === selected.value
                 type="checkbox"
                 :checked="current.include"
                 :disabled="busy"
-                @change="emit('toggleInclude', ($event.target as HTMLInputElement).checked)" />
+                @change="toggleInclude" />
             <span>{{ t('screener.include') }}</span>
         </label>
 

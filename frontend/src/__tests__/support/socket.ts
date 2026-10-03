@@ -10,7 +10,7 @@ import { ref, type Ref } from 'vue';
 
 type Handler = (...args: unknown[]) => void;
 
-export type SocketStub = {
+type SocketStub = {
     emitted: { event: string; payload: unknown }[];
     on: (event: string, handler: Handler) => void;
     off: (event: string, handler: Handler) => void;

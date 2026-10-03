@@ -15,6 +15,8 @@ import { useResource } from '@/composables/data/useResource';
 
 type Pane = 'info' | 'chart' | 'watchlist';
 
+const PANES: readonly Pane[] = ['info', 'chart', 'watchlist'];
+
 const { t } = useI18n();
 const { symbol, select, canonicalize } = useChartSymbol();
 
@@ -55,7 +57,7 @@ onMounted(async () => {
             class="charts__tabs"
             :aria-label="t('charts.title')">
             <button
-                v-for="option in ['info', 'chart', 'watchlist'] as const"
+                v-for="option in PANES"
                 :key="option"
                 type="button"
                 class="charts__tab"

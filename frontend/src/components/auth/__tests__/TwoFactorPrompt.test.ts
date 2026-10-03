@@ -1,8 +1,20 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
+import { defineComponent, h, ref, type VNode } from 'vue';
 
+import { elementOf } from '@/__tests__/support/dom';
 import TwoFactorPrompt from '@/components/auth/TwoFactorPrompt.vue';
 import { i18n } from '@/i18n';
+
+/** A parent that holds the prompt by template ref and resets it, the way the login view does on a rejected code. */
+const RejectingParent = defineComponent({
+    setup(): () => VNode {
+        const twoFactor = ref<{ reset: () => void } | null>(null);
+        const reject = (): void => twoFactor.value?.reset();
+        return () =>
+            h('div', [h(TwoFactorPrompt, { ref: twoFactor }), h('button', { class: 'reject', onClick: reject })]);
+    },
+});
 
 const prompt = (props: Record<string, unknown> = {}): VueWrapper =>
     mount(TwoFactorPrompt, { props, attachTo: document.body });
@@ -78,7 +90,7 @@ describe('TwoFactorPrompt', () => {
         await typeInto(wrapper, 4, '123456');
 
         expect(wrapper.emitted('submit')).toBeUndefined();
-        expect((boxes(wrapper)[5]?.element as HTMLInputElement).value).toBe('2');
+        expect(elementOf(boxes(wrapper)[5]?.element, HTMLInputElement).value).toBe('2');
     });
 
     it('clears a box when its content is erased', async () => {
@@ -87,7 +99,7 @@ describe('TwoFactorPrompt', () => {
 
         await typeInto(wrapper, 0, '');
 
-        expect((boxes(wrapper)[0]?.element as HTMLInputElement).value).toBe('');
+        expect(elementOf(boxes(wrapper)[0]?.element, HTMLInputElement).value).toBe('');
     });
 
     it('clears the digit under the cursor on the first Backspace', async () => {
@@ -96,7 +108,7 @@ describe('TwoFactorPrompt', () => {
 
         await boxes(wrapper)[1]?.trigger('keydown', { key: 'Backspace' });
 
-        expect((boxes(wrapper)[0]?.element as HTMLInputElement).value).toBe('1');
+        expect(elementOf(boxes(wrapper)[0]?.element, HTMLInputElement).value).toBe('1');
     });
 
     it('steps back once the box is already empty', async () => {
@@ -106,7 +118,7 @@ describe('TwoFactorPrompt', () => {
 
         await boxes(wrapper)[1]?.trigger('keydown', { key: 'Backspace' });
 
-        expect((boxes(wrapper)[0]?.element as HTMLInputElement).value).toBe('');
+        expect(elementOf(boxes(wrapper)[0]?.element, HTMLInputElement).value).toBe('');
         expect(document.activeElement).toBe(boxes(wrapper)[0]?.element);
     });
 
@@ -159,17 +171,16 @@ describe('TwoFactorPrompt', () => {
     it('locks the boxes and shows a spinner while the code is being checked', () => {
         const wrapper = prompt({ pending: true });
 
-        expect((boxes(wrapper)[0]?.element as HTMLInputElement).disabled).toBe(true);
+        expect(elementOf(boxes(wrapper)[0]?.element, HTMLInputElement).disabled).toBe(true);
         expect(wrapper.find('.spinner').exists()).toBe(true);
     });
 
-    it('clears itself for the next attempt after a rejected code', async () => {
-        const wrapper = prompt();
+    it('clears itself for the next attempt when its parent resets it after a rejected code', async () => {
+        const wrapper = mount(RejectingParent, { attachTo: document.body });
         await typeInto(wrapper, 0, '123456');
 
-        (wrapper.vm as unknown as { reset: () => void }).reset();
-        await wrapper.vm.$nextTick();
+        await wrapper.get('.reject').trigger('click');
 
-        for (const box of boxes(wrapper)) expect((box.element as HTMLInputElement).value).toBe('');
+        for (const box of boxes(wrapper)) expect(elementOf(box.element, HTMLInputElement).value).toBe('');
     });
 });

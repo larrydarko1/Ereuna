@@ -5,14 +5,19 @@
  * Does NOT own: applying a filter (screener-filters.ts) or querying results
  * (screener-query.ts).
  */
+import { z } from 'zod';
+
 import type { AssetInfoDoc, DateFilterSpec, EnumFilterSpec, RangeFilterSpec } from '@ereuna/shared';
 
 import { AppError } from '@/lib/app-error.js';
 import { marketKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
 
-export type FilterBounds = { min: number; max: number };
-export type DateBounds = { min: string; max: string };
+type FilterBounds = { min: number; max: number };
+type DateBounds = { min: string; max: string };
+
+const filterBoundsSchema: z.ZodType<FilterBounds> = z.object({ min: z.number(), max: z.number() });
+const dateBoundsSchema: z.ZodType<DateBounds> = z.object({ min: z.string(), max: z.string() });
 
 /**
  * The full selectable range for a filter.
@@ -26,10 +31,12 @@ export async function getRangeBounds(spec: RangeFilterSpec): Promise<FilterBound
     }
 
     if (spec.bounds.kind === 'latestClose') {
-        return withCache(marketKey('bounds', spec.key), fetchPriceBounds, { dataType: 'static' });
+        return withCache(marketKey('bounds', spec.key), filterBoundsSchema, fetchPriceBounds, { dataType: 'static' });
     }
 
-    return withCache(marketKey('bounds', spec.key), () => fetchFieldBounds(spec.queryPath), { dataType: 'static' });
+    return withCache(marketKey('bounds', spec.key), filterBoundsSchema, () => fetchFieldBounds(spec.queryPath), {
+        dataType: 'static',
+    });
 }
 
 /** The option set for a categorical filter, sorted for stable display. */
@@ -37,6 +44,7 @@ export async function getEnumOptions(spec: EnumFilterSpec): Promise<string[]> {
     const path = spec.options.path;
     return withCache(
         marketKey('options', spec.key),
+        z.array(z.string()),
         async () => {
             const values = await getDb()
                 .collection<AssetInfoDoc>('AssetInfo')
@@ -51,6 +59,7 @@ export async function getEnumOptions(spec: EnumFilterSpec): Promise<string[]> {
 export async function getDateBounds(spec: DateFilterSpec): Promise<DateBounds> {
     return withCache(
         marketKey('bounds', spec.key),
+        dateBoundsSchema,
         async () => {
             const [result] = await getDb()
                 .collection<AssetInfoDoc>('AssetInfo')

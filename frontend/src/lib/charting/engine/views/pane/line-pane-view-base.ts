@@ -1,6 +1,7 @@
 /**
  * The base for the views that draw a single value per bar.
  */
+import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { undefinedIfNull } from '@/lib/charting/engine/helpers/strict-type-checks';
 import { type IChartModelBase } from '@/lib/charting/engine/model/chart/chart-model';
 import { type Coordinate } from '@/lib/charting/engine/model/coordinate';
@@ -39,8 +40,8 @@ export abstract class LinePaneViewBase<
         return {
             time: time,
             price: price,
-            x: NaN as Coordinate,
-            y: NaN as Coordinate,
+            x: nominal<Coordinate>(NaN),
+            y: nominal<Coordinate>(NaN),
         };
     }
 
@@ -50,7 +51,7 @@ export abstract class LinePaneViewBase<
             .bars()
             .rows()
             .map((row: SeriesPlotRow<TSeriesType>) => {
-                const value = row.value[PlotRowValueIndex.Close] as BarPrice;
+                const value = nominal<BarPrice>(row.value[PlotRowValueIndex.Close]);
                 return this._createRawItem(row.index, value, colorer);
             });
     }
