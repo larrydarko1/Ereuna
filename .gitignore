@@ -12,6 +12,7 @@ dist-ssr
 *.local
 frontend/src/assets
 mongodb-init
+backups
 .vscode/*
 !.vscode/extensions.json
 .idea

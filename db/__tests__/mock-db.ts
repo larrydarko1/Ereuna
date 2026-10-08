@@ -9,6 +9,8 @@
  * migration claim work it never did, and pass.
  * `updateMany` applies the two operators the migrations here use, `$rename` and
  * `$unset`, and counts a document as modified only when one of them changed it.
+ * `bulkWrite` applies `updateOne` by `_id` with `$set`, and `find` can be
+ * iterated as well as collected, the way a driver cursor can.
  * `aggregate` recognises one pipeline — the group-and-count the dedupe issues.
  * Anything else throws rather than returning an empty result, so a migration
  * that grows a second pipeline fails here instead of passing on a silent [].
@@ -18,6 +20,7 @@ import { vi } from 'vitest';
 type Doc = Record<string, unknown>;
 type CreatedIndex = { spec: unknown; options?: unknown };
 type Update = { $rename?: Record<string, string>; $unset?: Record<string, unknown> };
+type BulkWrite = { updateOne: { filter: { _id: unknown }; update: { $set: Doc } } };
 
 const documents = new Map<string, Doc[]>();
 const indexes = new Map<string, string[]>();
@@ -101,9 +104,27 @@ export const mockDb = {
 
             return { modifiedCount };
         }),
-        find: vi.fn((filter: Doc) => ({
-            toArray: async () => docsOf(name).filter((doc) => matches(doc, filter)),
-        })),
+        bulkWrite: vi.fn(async (writes: BulkWrite[]) => {
+            let modifiedCount = 0;
+
+            for (const { updateOne } of writes) {
+                const doc = docsOf(name).find((candidate) => candidate._id === updateOne.filter._id);
+                if (doc === undefined) continue;
+                Object.assign(doc, structuredClone(updateOne.update.$set));
+                modifiedCount++;
+            }
+
+            return { modifiedCount };
+        }),
+        find: vi.fn((filter: Doc) => {
+            const found = (): Doc[] => docsOf(name).filter((doc) => matches(doc, filter));
+            return {
+                toArray: async () => found(),
+                async *[Symbol.asyncIterator]() {
+                    yield* found();
+                },
+            };
+        }),
         aggregate: vi.fn((pipeline: unknown[]) => ({
             toArray: async () => groupDuplicates(docsOf(name), pipeline),
         })),
@@ -158,15 +179,30 @@ export function getDroppedIndexCalls(): string[] {
     return [...droppedIndexes];
 }
 
-/** The filter shapes these migrations use: `$exists`, `$in`, `$or`, and equality. */
+/**
+ * The filter shapes these migrations use: `$exists`, `$in`, `$or`, and equality.
+ * A dotted `$exists` reaches into an array the way the server does: it holds
+ * when any element carries the field.
+ */
 function matches(doc: Doc, filter: Doc): boolean {
     return Object.entries(filter).every(([field, condition]) => {
         if (field === '$or') return Array.isArray(condition) && condition.filter(isRecord).some((clause) => matches(doc, clause));
         if (!isRecord(condition)) return doc[field] === condition;
-        if ('$exists' in condition) return field in doc === condition['$exists'];
+        if ('$exists' in condition) return hasPath(doc, field) === condition['$exists'];
         if (Array.isArray(condition['$in'])) return condition['$in'].includes(doc[field]);
         return doc[field] === condition;
     });
+}
+
+function hasPath(doc: Doc, path: string): boolean {
+    const [head = '', ...rest] = path.split('.');
+    if (!(head in doc)) return false;
+    if (rest.length === 0) return true;
+
+    const value = doc[head];
+    const tail = rest.join('.');
+    if (Array.isArray(value)) return value.filter(isRecord).some((element) => hasPath(element, tail));
+    return isRecord(value) && hasPath(value, tail);
 }
 
 function isRecord(value: unknown): value is Doc {

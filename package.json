@@ -1,6 +1,6 @@
 {
     "name": "ereuna",
-    "version": "2026.10.1",
+    "version": "2026.10.2",
     "description": "Web app for screening and researching financial markets",
     "keywords": [
         "stock-market",
@@ -69,6 +69,8 @@
         "db:migrate:status": "npm -w db run migrate:status",
         "db:migrate:create": "npm -w db run migrate:create --",
         "db:checksums": "node scripts/write-migration-checksums.ts",
+        "backup": "node scripts/backup.ts",
+        "restore": "node scripts/restore.ts",
         "redisstart": "brew services start redis",
         "redisstop": "brew services stop redis",
         "redis": "redis-server",

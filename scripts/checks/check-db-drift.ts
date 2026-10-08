@@ -14,11 +14,16 @@
  * collections the API owns, and the OHLCV and reference-data lists the worker
  * applies at its own boot — the reference ones only in the role that organizes.
  *
+ * `ops` covers the backup script and the env loader, and not the restore. The
+ * package's restore rule demands a `flushdb()`, written for a Redis that holds
+ * nothing but caches and queues. Here it also holds the trade stream and its
+ * consumer group, and on a development machine other projects' keys, so the
+ * restore clears the API's two cache prefixes instead. When the rule learns to
+ * take a scoped clear, `restore` goes back in.
+ *
  * NOT CONFIGURED, deliberately, so that their absence is a recorded decision rather
  * than an oversight:
- *   - `ops`. The repo has no wipe, backup or restore script.
- *   - `backups`. There is no backup pipeline and no host to restore onto; when one
- *     lands, the drill log and the manifest come back with it.
+ *   - `ops.wipe` and `productionRefusals`. The repo has no wipe or seed script.
  *   - `drainOrder`. The worker reads a Redis stream, not BullMQ queues, so there are
  *     no queue stages to drain in order; every service closes its Mongo client on
  *     SIGTERM, which `services` checks.
@@ -73,4 +78,10 @@ await checkDbDrift({
         { file: 'worker/src/index.ts', applies: ['OHLCV_INDEXES', 'REFERENCE_INDEXES'] },
     ],
     packageManifests: ['package.json', 'db/package.json'],
+    ops: {
+        backup: { file: 'scripts/backup.ts' },
+        envLoaderConsumers: ['scripts/backup.ts', 'scripts/restore.ts', 'db/migrate-mongo-config.js'],
+        envLoader: 'lib/env',
+    },
+    backups: { drills: 'db/docs/restore-drills.md', latest: 'backups/latest.json', dir: 'backups/' },
 });

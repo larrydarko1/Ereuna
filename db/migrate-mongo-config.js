@@ -1,32 +1,18 @@
 /**
  * Configuration for the migrate-mongo CLI.
  * Docs: https://github.com/seppevs/migrate-mongo
- * The connection is read from db/.env rather than shared with the API's config
- * module: this file runs under the CLI, outside any workspace's build, and the
- * one thing a migration must never do is quietly target a different database
- * from the one the operator meant.
+ * The connection comes from the loader every operational script shares —
+ * `scripts/lib/env.ts`, which reads db/.env and nothing else — so a backup and
+ * the migration it was taken before cannot target two different databases.
  */
-const ENV_FILE = new URL('.env', import.meta.url);
+import { getRequiredEnv, loadEnv } from '../scripts/lib/env.ts';
 
-try {
-    process.loadEnvFile(ENV_FILE);
-} catch {
-    // No db/.env — the values are expected to come from the environment
-    // instead, which is how a container runs this.
-}
-
-function requireEnv(name) {
-    const value = process.env[name];
-    if (value === undefined || value === '') {
-        throw new Error(`${name} is not set. Copy db/.env.example to db/.env, or export it.`);
-    }
-    return value;
-}
+loadEnv();
 
 const config = {
     mongodb: {
-        url: requireEnv('MONGO_URI'),
-        databaseName: requireEnv('MONGO_DB'),
+        url: getRequiredEnv('MONGO_URI'),
+        databaseName: getRequiredEnv('MONGO_DB'),
         options: {},
     },
     migrationsDir: 'migrations',

@@ -22,6 +22,7 @@ export default knip({
         },
     },
     tags: ['-public'],
-    // System tools the db and redis scripts call, installed by Homebrew rather than npm.
-    ignoreBinaries: ['brew', 'redis-server'],
+    // System tools the db, redis, backup and restore scripts call, installed by
+    // Homebrew rather than npm — the last two ship in mongodb-database-tools.
+    ignoreBinaries: ['brew', 'redis-server', 'mongodump', 'mongorestore'],
 });
