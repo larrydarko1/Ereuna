@@ -13,6 +13,8 @@ export default defineConfig({
         // Registers the i18n instance and the DOM APIs jsdom does not implement,
         // before the first component mounts.
         setupFiles: ['./vitest.setup.ts'],
+        // Fails a full coverage run on a route no frontend test got a success from
+        globalSetup: ['./src/__tests__/contract-coverage.ts'],
     },
     // No `css` block on purpose: Vitest leaves <style> untransformed, so the
     // SCSS that vite.config.ts injects for the dev build is never needed here.

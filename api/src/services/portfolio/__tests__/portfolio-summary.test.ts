@@ -63,6 +63,21 @@ function position(overrides: Partial<PositionDoc> = {}): PositionDoc {
     } as PositionDoc;
 }
 
+const storedTrade = (over: Partial<WithId<TradeDoc>> = {}): WithId<TradeDoc> => ({
+    _id: new ObjectId(),
+    userId: USER_ID,
+    portfolioNumber: 0,
+    symbol: 'AAPL',
+    action: 'buy',
+    shares: 1,
+    price: 1,
+    total: 1,
+    commission: 0,
+    tradeDate: new Date('2026-01-02T00:00:00.000Z'),
+    createdAt: new Date('2026-01-02T00:00:00.000Z'),
+    ...over,
+});
+
 beforeEach(() => {
     db.current = fakeDb({ Positions: [] });
     state.portfolio = portfolio();
@@ -256,21 +271,7 @@ describe('the benchmarks', () => {
 describe('exportPortfolio', () => {
     it("carries the settings and the whole log, and nothing derived from today's market", async () => {
         state.portfolio = portfolio({ benchmarks: ['SPY'] });
-        state.trades = [
-            {
-                _id: new ObjectId(),
-                userId: USER_ID,
-                portfolioNumber: 0,
-                symbol: 'AAPL',
-                action: 'buy',
-                shares: 1,
-                price: 1,
-                total: 1,
-                commission: 0,
-                tradeDate: new Date('2026-01-02T00:00:00.000Z'),
-                createdAt: new Date('2026-01-02T00:00:00.000Z'),
-            },
-        ];
+        state.trades = [storedTrade()];
 
         const exported = await exportPortfolio(USER_ID, 0);
         expect(exported.portfolio).toEqual({
@@ -283,6 +284,23 @@ describe('exportPortfolio', () => {
         });
         expect(exported.trades).toHaveLength(1);
         expect(exported.trades[0]).not.toHaveProperty('userId');
+    });
+
+    it('exports a cash movement without the instrument fields the import refuses on one', async () => {
+        state.portfolio = portfolio();
+        state.trades = [storedTrade({ action: 'deposit', symbol: null, shares: 0, price: 0, total: 5000 })];
+
+        const exported = await exportPortfolio(USER_ID, 0);
+        expect(exported.trades).toEqual([
+            { action: 'deposit', total: 5000, commission: 0, tradeDate: '2026-01-02T00:00:00.000Z' },
+        ]);
+    });
+
+    it('fails rather than export a trade stored without its instrument, which no import could take back', async () => {
+        state.portfolio = portfolio();
+        state.trades = [storedTrade({ symbol: null })];
+
+        await expect(exportPortfolio(USER_ID, 0)).rejects.toThrow('A stored trade names no symbol');
     });
 
     it('exports an empty log as an empty list', async () => {

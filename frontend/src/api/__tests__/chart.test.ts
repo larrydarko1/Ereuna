@@ -50,11 +50,11 @@ describe('getSeries', () => {
     });
 
     it('encodes the symbol', async () => {
-        mock.on('GET /api/charts/:symbol', chartSeries('BRK/B'));
+        mock.on('GET /api/charts/:symbol', chartSeries('^GSPC'));
 
-        await getSeries('BRK/B');
+        await getSeries('^GSPC');
 
-        expect(mock.last().path).toBe('/api/charts/BRK%2FB');
+        expect(mock.last().path).toBe('/api/charts/%5EGSPC');
     });
 });
 

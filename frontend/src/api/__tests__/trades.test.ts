@@ -4,9 +4,12 @@ import type { TradeInput } from '@ereuna/shared';
 
 import { tradeRow } from '@/__tests__/support/answers';
 import { mockApi } from '@/__tests__/support/msw';
+import { objectId } from '@/__tests__/support/values';
 import { addTrade, deleteTrade, getTrades, updateTrade } from '@/api/trades';
 
 const mock = mockApi();
+
+const ID = objectId(7);
 
 const buy: TradeInput = {
     action: 'buy',
@@ -54,17 +57,17 @@ describe('writes', () => {
     });
 
     it('addresses a correction by slot and trade id', async () => {
-        mock.on('PATCH /api/portfolios/2/trades/abc', tradeRow({ id: 'abc' }));
+        mock.on(`PATCH /api/portfolios/2/trades/${ID}`, tradeRow({ id: ID }));
 
-        await updateTrade(2, 'abc', buy);
+        await updateTrade(2, ID, buy);
 
-        expect(mock.last().path).toBe('/api/portfolios/2/trades/abc');
+        expect(mock.last().path).toBe(`/api/portfolios/2/trades/${ID}`);
     });
 
     it('deletes by slot and trade id', async () => {
-        mock.on('DELETE /api/portfolios/2/trades/abc', null, { status: 204 });
+        mock.on(`DELETE /api/portfolios/2/trades/${ID}`, null, { status: 204 });
 
-        await deleteTrade(2, 'abc');
+        await deleteTrade(2, ID);
 
         expect(mock.last().method).toBe('DELETE');
     });

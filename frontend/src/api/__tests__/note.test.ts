@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import { noteRow } from '@/__tests__/support/answers';
 import { mockApi } from '@/__tests__/support/msw';
+import { objectId } from '@/__tests__/support/values';
 import { createNote, deleteNote, getNotes, updateNote } from '@/api/note';
 
 const mock = mockApi();
+
+const ID = objectId(7);
 const page = { items: [], total: 0, page: 1, limit: 50 };
 
 describe('getNotes', () => {
@@ -35,18 +38,18 @@ describe('writes', () => {
     });
 
     it('addresses a revision by the note id alone', async () => {
-        mock.on('PATCH /api/notes/abc', noteRow({ id: 'abc' }));
+        mock.on(`PATCH /api/notes/${ID}`, noteRow({ id: ID }));
 
-        await updateNote('abc', 'revised');
+        await updateNote(ID, 'revised');
 
-        expect(mock.last().path).toBe('/api/notes/abc');
+        expect(mock.last().path).toBe(`/api/notes/${ID}`);
         expect(mock.last().body).toEqual({ message: 'revised' });
     });
 
     it('deletes by id', async () => {
-        mock.on('DELETE /api/notes/abc', null, { status: 204 });
+        mock.on(`DELETE /api/notes/${ID}`, null, { status: 204 });
 
-        await deleteNote('abc');
+        await deleteNote(ID);
 
         expect(mock.last().method).toBe('DELETE');
     });

@@ -4,11 +4,14 @@
  *  1. Load environment variables — must precede any module that reads config.
  *  2. Register middleware, in this order (order is load-bearing):
  *       helmet       — secure response headers
+ *       requestId    — correlation id + request-scoped logger; before anything
+ *                      that can fail, so every error, a body that would not
+ *                      parse included, reaches the error handler with an id
+ *                      and somewhere to log
  *       cors         — the single allowed frontend origin
  *       json         — body parsing, with an explicit size cap
  *       cookieParser — the httpOnly refresh cookie
- *       requestId    — correlation id + request-scoped logger
- *       sanitizer    — strips $-prefixed and dotted keys from body and query
+ *       sanitizer    — refuses $-prefixed, dotted and prototype keys in body and query
  *       optionalAuth — resolves the token BEFORE the limiters, so they key by user
  *       rate limits  — applied per route group below
  *  3. Connect to MongoDB and apply the index manifest.
@@ -98,10 +101,10 @@ app.use((_req: express.Request, res: express.Response, next: express.NextFunctio
     next();
 });
 
+app.use(requestId);
 app.use(cors({ origin: config.corsOrigin, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
-app.use(requestId);
 app.use(sanitizeRequest);
 app.use(optionalAuth);
 

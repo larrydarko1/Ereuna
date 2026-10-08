@@ -25,3 +25,8 @@ export function recordAt(value: unknown, ...path: (string | number)[]): Record<s
     if (!isRecord(found)) throw new Error(`expected an object at ${path.join('.')}`);
     return found;
 }
+
+/** An id the API's request schemas accept: 24 hex characters, as a MongoDB ObjectId prints. */
+export function objectId(n = 1): string {
+    return n.toString(16).padStart(24, '0');
+}

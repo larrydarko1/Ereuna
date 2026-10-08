@@ -9,39 +9,24 @@
  */
 import { Router, type CookieOptions, type Request, type Response } from 'express';
 import { ObjectId } from 'mongodb';
-import { z } from 'zod';
 
-import { accessTokenSchema, authSessionSchema, twoFactorChallengeSchema } from '@ereuna/shared';
+import {
+    accessTokenSchema,
+    authSessionSchema,
+    type AuthSession,
+    loginBody,
+    recoverBody,
+    registerBody,
+    twoFactorBody,
+    twoFactorChallengeSchema,
+} from '@ereuna/shared';
 
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
-import { passwordSchema, requiredString, usernameSchema } from '@/lib/schemas.js';
 import { send } from '@/lib/send.js';
 import { validated } from '@/middleware/validate.js';
 import * as authService from '@/services/auth/index.js';
-
-const registerBody = z.object({
-    username: usernameSchema,
-    password: passwordSchema,
-});
-
-const loginBody = z.object({
-    username: requiredString('Username is required'),
-    password: requiredString('Password is required'),
-    rememberMe: z.boolean().optional(),
-});
-
-const twoFactorBody = z.object({
-    tempToken: requiredString('Temp token is required'),
-    code: requiredString('Two-factor code is required'),
-    rememberMe: z.boolean().optional(),
-});
-
-const recoverBody = z.object({
-    username: requiredString('Username is required'),
-    recoveryCode: requiredString('Recovery code is required'),
-    rememberMe: z.boolean().optional(),
-});
+import type { AuthResult } from '@/services/auth/index.js';
 
 const REFRESH_COOKIE = 'refreshToken';
 const REFRESH_COOKIE_PATH = '/api/auth';
@@ -70,6 +55,11 @@ function setRefreshCookie(res: Response, token: string, maxAge?: number): void {
     res.cookie(REFRESH_COOKIE, token, options);
 }
 
+/** What a session answer carries: the refresh token went into its cookie and stays out of the body. */
+function sessionBody(result: AuthResult): AuthSession {
+    return { accessToken: result.accessToken, user: result.user };
+}
+
 function clearRefreshCookie(res: Response): void {
     res.clearCookie(REFRESH_COOKIE, {
         httpOnly: true,
@@ -84,7 +74,7 @@ router.post(
     ...validated({ body: registerBody }, async (req, res): Promise<void> => {
         const result = await authService.registerUser(req.body.username, req.body.password);
         setRefreshCookie(res, result.refreshToken, result.refreshMaxAge);
-        send(res.status(201), authSessionSchema, result);
+        send(res.status(201), authSessionSchema, sessionBody(result));
     }),
 );
 
@@ -95,12 +85,12 @@ router.post(
         const result = await authService.loginUser(username, password, { rememberMe: rememberMe === true });
 
         if (result.requires2FA) {
-            send(res, twoFactorChallengeSchema, result);
+            send(res, twoFactorChallengeSchema, { requires2FA: true, tempToken: result.tempToken });
             return;
         }
 
         setRefreshCookie(res, result.refreshToken, result.refreshMaxAge);
-        send(res, authSessionSchema, result);
+        send(res, authSessionSchema, sessionBody(result));
     }),
 );
 
@@ -113,7 +103,7 @@ router.post(
             rememberMe: rememberMe === true,
         });
         setRefreshCookie(res, result.refreshToken, result.refreshMaxAge);
-        send(res, authSessionSchema, result);
+        send(res, authSessionSchema, sessionBody(result));
     }),
 );
 
@@ -125,7 +115,7 @@ router.post(
             rememberMe: rememberMe === true,
         });
         setRefreshCookie(res, result.refreshToken, result.refreshMaxAge);
-        send(res, authSessionSchema, result);
+        send(res, authSessionSchema, sessionBody(result));
     }),
 );
 
@@ -137,7 +127,7 @@ router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
 
     const result = await authService.rotateRefreshToken(rawToken);
     setRefreshCookie(res, result.refreshToken, result.refreshMaxAge);
-    send(res, accessTokenSchema, result);
+    send(res, accessTokenSchema, { accessToken: result.accessToken });
 });
 
 /**

@@ -122,6 +122,16 @@ describe('confirmTotpEnrolment', () => {
         expect(db.current.of('Users').writes).toEqual([]);
     });
 
+    // otpauth compares bytes, so a code of another byte length threw instead of failing to match
+    it.each([
+        ['six accented letters, twelve bytes', 'éééééé'],
+        ['too few digits', '12345'],
+        ['digits with padding', ' 123456'],
+    ])('refuses a code that is %s as wrong, never as a crash', async (_label, code) => {
+        db.current = fakeDb({ Users: [pending()] });
+        await expect(confirmTotpEnrolment(USER_ID, code)).rejects.toMatchObject({ code: 'INVALID_TWO_FA_CODE' });
+    });
+
     it('refuses when there is no pending enrolment', async () => {
         db.current = fakeDb({ Users: [user()] });
         await expect(confirmTotpEnrolment(USER_ID, '000000')).rejects.toMatchObject({ code: 'TWO_FA_NOT_PENDING' });

@@ -1,10 +1,10 @@
-import { http } from 'msw';
+import { http, HttpResponse } from 'msw';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { PortfolioExport, PortfolioRow, PortfolioSummary, ValuedPosition } from '@ereuna/shared';
 
 import { portfolioRow } from '@/__tests__/support/answers';
-import { answer, mockApi, ORIGIN } from '@/__tests__/support/msw';
+import { mockApi, ORIGIN } from '@/__tests__/support/msw';
 import { usePortfolios, type UsePortfoliosReturn } from '@/composables/portfolio/usePortfolios';
 
 const mock = mockApi();
@@ -121,10 +121,10 @@ describe('reload', () => {
         void portfolios.select(7);
         await vi.waitFor(() => expect(Object.keys(release)).toHaveLength(2));
 
-        release['7']?.(answer('GET /api/portfolios/7', summary({ number: 7, cash: 77 })));
+        release['7']?.(HttpResponse.json(summary({ number: 7, cash: 77 })));
         await vi.waitFor(() => expect(portfolios.summary.value).toMatchObject({ number: 7 }));
 
-        release['0']?.(answer('GET /api/portfolios/0', summary({ number: 0, cash: 1 })));
+        release['0']?.(HttpResponse.json(summary({ number: 0, cash: 1 })));
         await first;
 
         expect(portfolios.summary.value).toMatchObject({ number: 7 });
@@ -226,7 +226,7 @@ describe('the writes', () => {
 
     it('reports a refused write and does not count it as a revision', async () => {
         arm();
-        mock.on('PUT /api/portfolios/0/leverage', { error: 'LEVERAGE_TOO_LOW' }, { status: 422 });
+        mock.on('PUT /api/portfolios/0/leverage', { error: 'INSUFFICIENT_BUYING_POWER' }, { status: 422 });
         const portfolios = build();
 
         await expect(portfolios.saveLeverage(1)).rejects.toBeDefined();
@@ -260,7 +260,7 @@ describe('export and import', () => {
         mock.on('POST /api/portfolios/0/import', { imported: 12 });
         const portfolios = build();
 
-        await expect(portfolios.importInto({ trades: [] })).resolves.toBe(12);
+        await expect(portfolios.importInto('{"trades":[]}')).resolves.toBe(12);
         expect(portfolios.revision.value).toBe(1);
     });
 });

@@ -9,9 +9,17 @@
  * is a `number` at compile time rather than an `any` that has to be parsed
  * again. Parsed query lands on `req.validatedQuery` because Express 5's
  * `req.query` is a read-only getter.
+ * A key the schema does not declare is refused with the rest of the 422, never
+ * dropped: the client meant something by it — a renamed field, a stale form, a
+ * probe for a field it should not write — and a quiet 2xx would tell it the
+ * change was saved. Zod's object strips such keys; `droppedKeys` names what it
+ * stripped. The schemas themselves are `@ereuna/shared`'s, the ones the
+ * contract names for the route.
  */
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import type { ZodError, ZodType } from 'zod';
+
+import { droppedKeys } from '@ereuna/shared';
 
 import type { AuthRequest } from '@/middleware/auth.js';
 
@@ -80,7 +88,10 @@ function validate(schemas: Schemas): RequestHandler {
         if (schemas.body !== undefined) {
             const result = schemas.body.safeParse(req.body);
             collect(result);
-            if (result.success) req.body = result.data;
+            if (result.success) {
+                errors.push(...unrecognized(req.body, result.data));
+                req.body = result.data;
+            }
         }
 
         if (schemas.params !== undefined) {
@@ -92,7 +103,10 @@ function validate(schemas: Schemas): RequestHandler {
         if (schemas.query !== undefined) {
             const result = schemas.query.safeParse(req.query);
             collect(result);
-            if (result.success) req.validatedQuery = result.data;
+            if (result.success) {
+                errors.push(...unrecognized(req.query, result.data));
+                req.validatedQuery = result.data;
+            }
         }
 
         if (errors.length > 0) {
@@ -106,6 +120,11 @@ function validate(schemas: Schemas): RequestHandler {
         passedSchemas.set(req, schemas);
         next();
     };
+}
+
+/** One 422 entry per key the client sent that the schema does not declare. */
+function unrecognized(sent: unknown, kept: unknown): { field: string; message: string }[] {
+    return droppedKeys(sent, kept).map((field) => ({ field, message: 'Unrecognized key' }));
 }
 
 declare global {

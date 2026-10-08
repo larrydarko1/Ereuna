@@ -78,6 +78,5 @@ export const hiddenSymbolsSchema = preferencesSchema.pick({ hiddenSymbols: true 
 
 export type SessionUser = z.infer<typeof sessionUserSchema>;
 export type AuthSession = z.infer<typeof authSessionSchema>;
-export type TwoFactorChallenge = z.infer<typeof twoFactorChallengeSchema>;
 export type TotpEnrolment = z.infer<typeof totpEnrolmentSchema>;
 export type Preferences = z.infer<typeof preferencesSchema>;

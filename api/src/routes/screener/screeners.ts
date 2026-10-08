@@ -14,9 +14,9 @@
  * DELETE /api/screeners/:name/filters            — clear every filter
  */
 import { Router } from 'express';
-import { z } from 'zod';
 
 import {
+    createScreenerBody,
     DATE_FILTERS,
     ENUM_FILTERS,
     FLAG_FILTERS,
@@ -24,55 +24,30 @@ import {
     MA_FILTERS,
     MA_TARGETS,
     RANGE_FILTERS,
+    filterBody,
     filterCatalogueSchema,
+    filterParams,
     findDateFilter,
     findEnumFilter,
     findFlagFilter,
     findMaFilter,
     findRangeFilter,
+    nameParam,
     screenerDetailSchema,
     screenerFilterSetSchema,
     screenerListSchema,
     screenerResultPageSchema,
+    screenerResultsQuery,
     screenerSummarySchema,
+    updateScreenerBody,
 } from '@ereuna/shared';
 
 import { AppError } from '@/lib/app-error.js';
-import { makePaginationQuery, resourceNameSchema } from '@/lib/schemas.js';
 import { send } from '@/lib/send.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';
 import * as screenerService from '@/services/screener/index.js';
 import { getPreferences } from '@/services/user/index.js';
-
-const nameParam = z.object({ name: resourceNameSchema });
-const filterParams = z.object({ name: resourceNameSchema, filter: z.string().trim().min(1) });
-
-const createBody = z.object({ name: resourceNameSchema });
-
-const updateBody = z
-    .object({ name: resourceNameSchema, include: z.boolean() })
-    .partial()
-    .refine((body) => Object.keys(body).length > 0, { message: 'name or include is required' });
-
-/**
- * One body schema covering every filter kind, discriminated by which keys are
- * present. The service resolves the kind from the registry and reads only the
- * keys that kind uses, so a body carrying the wrong shape for its filter is
- * rejected there with the filter named.
- */
-const filterBody = z.object({
-    min: z.number().optional(),
-    max: z.number().optional(),
-    values: z.array(z.string().trim().min(1).max(120)).max(500).optional(),
-    from: z.iso.datetime({ offset: true }).or(z.iso.date()).optional(),
-    to: z.iso.datetime({ offset: true }).or(z.iso.date()).optional(),
-    direction: z.enum(MA_DIRECTIONS).optional(),
-    target: z.enum(MA_TARGETS).optional(),
-    enabled: z.boolean().optional(),
-});
-
-const resultsQuery = makePaginationQuery({ defaultLimit: 50, maxLimit: 200 });
 
 export const router = Router();
 
@@ -89,7 +64,7 @@ router.get(
 
 router.post(
     '/',
-    ...validated({ body: createBody }, async (req, res): Promise<void> => {
+    ...validated({ body: createScreenerBody }, async (req, res): Promise<void> => {
         send(
             res.status(201),
             screenerSummarySchema,
@@ -174,7 +149,7 @@ router.get(
 
 router.get(
     '/results',
-    ...validated({ query: resultsQuery }, async (req, res): Promise<void> => {
+    ...validated({ query: screenerResultsQuery }, async (req, res): Promise<void> => {
         const userId = authedUserId(req);
         const { page, limit } = req.validatedQuery;
         const prefs = await getPreferences(userId);
@@ -192,7 +167,7 @@ router.get(
 /** Registered before `/:name` so `hidden` is not read as a screener name. */
 router.get(
     '/hidden/results',
-    ...validated({ query: resultsQuery }, async (req, res): Promise<void> => {
+    ...validated({ query: screenerResultsQuery }, async (req, res): Promise<void> => {
         const userId = authedUserId(req);
         const { page, limit } = req.validatedQuery;
         const prefs = await getPreferences(userId);
@@ -217,7 +192,7 @@ router.get(
 
 router.patch(
     '/:name',
-    ...validated({ params: nameParam, body: updateBody }, async (req, res): Promise<void> => {
+    ...validated({ params: nameParam, body: updateScreenerBody }, async (req, res): Promise<void> => {
         const userId = authedUserId(req);
         const { name } = req.params;
 
@@ -244,7 +219,7 @@ router.delete(
 
 router.get(
     '/:name/results',
-    ...validated({ params: nameParam, query: resultsQuery }, async (req, res): Promise<void> => {
+    ...validated({ params: nameParam, query: screenerResultsQuery }, async (req, res): Promise<void> => {
         const userId = authedUserId(req);
         const { page, limit } = req.validatedQuery;
         const prefs = await getPreferences(userId);
@@ -276,14 +251,14 @@ router.put(
                 ...(body.min !== undefined ? { min: body.min } : {}),
                 ...(body.max !== undefined ? { max: body.max } : {}),
             });
-            send(res, screenerFilterSetSchema, screener);
+            send(res, screenerFilterSetSchema, { filters: screener.filters });
             return;
         }
 
         if (findEnumFilter(filter) !== null) {
             if (body.values === undefined) throw missingField(filter, 'values');
             const screener = await screenerService.setEnumFilter(userId, name, filter, body.values);
-            send(res, screenerFilterSetSchema, screener);
+            send(res, screenerFilterSetSchema, { filters: screener.filters });
             return;
         }
 
@@ -292,7 +267,7 @@ router.put(
                 ...(body.from !== undefined ? { from: body.from } : {}),
                 ...(body.to !== undefined ? { to: body.to } : {}),
             });
-            send(res, screenerFilterSetSchema, screener);
+            send(res, screenerFilterSetSchema, { filters: screener.filters });
             return;
         }
 
@@ -301,14 +276,14 @@ router.put(
                 throw missingField(filter, 'direction and target');
             }
             const screener = await screenerService.setMaFilter(userId, name, filter, body.direction, body.target);
-            send(res, screenerFilterSetSchema, screener);
+            send(res, screenerFilterSetSchema, { filters: screener.filters });
             return;
         }
 
         if (findFlagFilter(filter) !== null) {
             if (body.enabled === undefined) throw missingField(filter, 'enabled');
             const screener = await screenerService.setFlagFilter(userId, name, filter, { enabled: body.enabled });
-            send(res, screenerFilterSetSchema, screener);
+            send(res, screenerFilterSetSchema, { filters: screener.filters });
             return;
         }
 
@@ -322,7 +297,7 @@ router.delete(
     '/:name/filters/:filter',
     ...validated({ params: filterParams }, async (req, res): Promise<void> => {
         const screener = await screenerService.clearFilter(authedUserId(req), req.params.name, req.params.filter);
-        send(res, screenerFilterSetSchema, screener);
+        send(res, screenerFilterSetSchema, { filters: screener.filters });
     }),
 );
 
@@ -330,6 +305,6 @@ router.delete(
     '/:name/filters',
     ...validated({ params: nameParam }, async (req, res): Promise<void> => {
         const screener = await screenerService.resetFilters(authedUserId(req), req.params.name);
-        send(res, screenerFilterSetSchema, screener);
+        send(res, screenerFilterSetSchema, { filters: screener.filters });
     }),
 );

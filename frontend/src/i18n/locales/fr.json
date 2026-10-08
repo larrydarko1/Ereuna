@@ -1020,6 +1020,8 @@
         "INTERNAL": "Une erreur est survenue de notre côté. Veuillez réessayer.",
         "NOT_FOUND": "Cela n'existe pas.",
         "FORBIDDEN": "Vous n'avez pas accès à cela.",
+        "MALFORMED_REQUEST": "La requête n'a pas pu être lue. Veuillez réessayer.",
+        "REQUEST_TOO_LARGE": "C'est trop pour être envoyé en une seule fois.",
         "MISSING_TOKEN": "Connectez-vous pour effectuer cette action.",
         "INVALID_TOKEN": "Votre session n'est pas valide. Veuillez vous reconnecter.",
         "INVALID_TOKEN_TYPE": "Votre session n'est pas valide. Veuillez vous reconnecter.",

@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n';
 
 import type { FilterDescriptor } from '@ereuna/shared';
 
-import type { FilterValue } from '@/api/screener';
+import type { FilterValue, MaChoice } from '@/api/screener';
 import DateFilter from '@/components/screener/DateFilter.vue';
 import EnumFilter from '@/components/screener/EnumFilter.vue';
 import FilterCard from '@/components/screener/FilterCard.vue';
@@ -82,7 +82,7 @@ function enumValue(filter: FilterDescriptor): { values: string[] } | null {
     return value?.kind === 'enum' ? { values: value.values } : null;
 }
 
-function maValue(filter: FilterDescriptor): { direction: string; target: string } | null {
+function maValue(filter: FilterDescriptor): MaChoice | null {
     const value = valueFor(filter.key, filter.kind);
     return value?.kind === 'ma' ? { direction: value.direction, target: value.target } : null;
 }

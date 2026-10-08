@@ -48,8 +48,8 @@ describe('hidden symbols', () => {
     it('encodes a symbol carrying a character a path segment cannot hold', async () => {
         mock.on('POST /api/preferences/hidden/:symbol', { hiddenSymbols: [] });
 
-        await hideSymbol('BRK/B');
+        await hideSymbol('^GSPC');
 
-        expect(mock.last().path).toBe('/api/preferences/hidden/BRK%2FB');
+        expect(mock.last().path).toBe('/api/preferences/hidden/%5EGSPC');
     });
 });

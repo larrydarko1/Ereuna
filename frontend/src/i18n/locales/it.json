@@ -1020,6 +1020,8 @@
         "INTERNAL": "Qualcosa è andato storto da parte nostra. Riprova.",
         "NOT_FOUND": "Non esiste.",
         "FORBIDDEN": "Non hai accesso a questa risorsa.",
+        "MALFORMED_REQUEST": "Non è stato possibile leggere la richiesta. Riprova.",
+        "REQUEST_TOO_LARGE": "È troppo da inviare in una volta sola.",
         "MISSING_TOKEN": "Accedi per procedere.",
         "INVALID_TOKEN": "La tua sessione non è valida. Accedi di nuovo.",
         "INVALID_TOKEN_TYPE": "La tua sessione non è valida. Accedi di nuovo.",

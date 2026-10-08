@@ -1,14 +1,37 @@
-import { Router } from 'express';
-import { afterEach, describe, expect, it } from 'vitest';
+import { Router, type RequestHandler } from 'express';
+import pino from 'pino';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 
-import { quietLogger, serve, type Harness } from '@/__tests__/support/http.js';
+import { serve, type Harness } from '@/__tests__/support/http.js';
 import { AppError } from '@/lib/app-error.js';
 import { send } from '@/lib/send.js';
+
+const mode = vi.hoisted(() => ({ isDev: true }));
+
+vi.mock('@/lib/config.js', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/lib/config.js')>();
+    return {
+        config: {
+            ...actual.config,
+            get isDev(): boolean {
+                return mode.isDev;
+            },
+        },
+    };
+});
 
 const userSchema = z.object({ id: z.string(), name: z.string() });
 
 let harness: Harness | null = null;
+
+/** Every line the request logger wrote, as JSON. */
+const logged: string[] = [];
+
+const capturingLogger: RequestHandler = (req, _res, next) => {
+    req.log = pino({ level: 'error' }, { write: (line: string) => logged.push(line) });
+    next();
+};
 
 /** send() inside a real route: what the client received, and what send() threw on the way. */
 async function sendThrough<TSchema extends z.ZodType>(
@@ -25,7 +48,7 @@ async function sendThrough<TSchema extends z.ZodType>(
             throw err;
         }
     });
-    harness = await serve((app) => app.use('/', quietLogger, router));
+    harness = await serve((app) => app.use('/', capturingLogger, router));
     const { status, body } = await harness.call('/');
     return { status, body, thrown };
 }
@@ -33,21 +56,40 @@ async function sendThrough<TSchema extends z.ZodType>(
 afterEach(async () => {
     await harness?.close();
     harness = null;
+    mode.isDev = true;
+    logged.length = 0;
 });
 
 describe('send', () => {
-    it('sends only the fields the schema lists', async () => {
-        const doc = { id: 'u1', name: 'alice', passwordHash: 'hash', totpSecretEncrypted: 'cipher' };
-        const { status, body } = await sendThrough(userSchema, doc);
+    it('sends data that fits its schema exactly', async () => {
+        const { status, body } = await sendThrough(userSchema, { id: 'u1', name: 'alice' });
         expect(status).toBe(200);
         expect(body).toEqual({ id: 'u1', name: 'alice' });
     });
 
-    it('drops unknown fields at any depth', async () => {
+    it('fails outside production on a field the schema does not declare, naming it', async () => {
+        const doc = { id: 'u1', name: 'alice', passwordHash: 'hash' };
+        const { status, body, thrown } = await sendThrough(userSchema, doc);
+        expect(status).toBe(500);
+        expect(body).toEqual({ error: 'INTERNAL' });
+        expect(thrown).toMatchObject({ status: 500, logContext: { dropped: 'passwordHash' } });
+    });
+
+    it('names an undeclared field at any depth by its path', async () => {
         const pageSchema = z.object({ items: z.array(userSchema) });
         const page = { items: [{ id: 'u1', name: 'alice', recoveryCodeHashes: ['hash'] }] };
-        const { body } = await sendThrough(pageSchema, page);
-        expect(body).toEqual({ items: [{ id: 'u1', name: 'alice' }] });
+        const { thrown } = await sendThrough(pageSchema, page);
+        expect(thrown).toMatchObject({ logContext: { dropped: 'items.0.recoveryCodeHashes' } });
+    });
+
+    it('in production, keeps the page working without the field and logs it by name', async () => {
+        mode.isDev = false;
+        const doc = { id: 'u1', name: 'alice', passwordHash: 'sk_live_secret_value' };
+        const { status, body } = await sendThrough(userSchema, doc);
+        expect(status).toBe(200);
+        expect(body).toEqual({ id: 'u1', name: 'alice' });
+        expect(logged.join('')).toContain('passwordHash');
+        expect(logged.join('')).not.toContain('sk_live_secret_value');
     });
 
     it('turns data that does not fit its schema into a 500, not a 422', async () => {

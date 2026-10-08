@@ -43,9 +43,7 @@ async function download(): Promise<void> {
                       data.trades.map((trade) => [
                           trade.tradeDate,
                           trade.action,
-                          trade.symbol ?? '',
-                          trade.shares ?? '',
-                          trade.price ?? '',
+                          ...('symbol' in trade ? [trade.symbol, trade.shares, trade.price] : ['', '', '']),
                           trade.commission ?? '',
                           trade.total,
                       ]),

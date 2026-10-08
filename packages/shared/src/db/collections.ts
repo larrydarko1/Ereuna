@@ -80,7 +80,9 @@ export type WatchlistDoc = {
     updatedAt: Date;
 };
 
-export type TradeAction = 'buy' | 'sell' | 'short' | 'cover' | 'deposit' | 'withdrawal';
+export type PositionAction = (typeof POSITION_ACTIONS)[number];
+export type CashAction = (typeof CASH_ACTIONS)[number];
+export type TradeAction = PositionAction | CashAction;
 
 export type PositionSide = 'long' | 'short';
 
@@ -251,6 +253,12 @@ type ReturnBin = {
 type ChartOverlaySets = Partial<Record<ChartTimeframe, ChartIndicator[]>>;
 
 type ChartStyle = (typeof CHART_STYLES)[number];
+
+/** The actions that move an instrument: each names a symbol, a share count and a price. */
+export const POSITION_ACTIONS = ['buy', 'sell', 'short', 'cover'] as const;
+
+/** The actions that move cash and name no instrument. */
+export const CASH_ACTIONS = ['deposit', 'withdrawal'] as const;
 
 /**
  * How the price series is drawn.

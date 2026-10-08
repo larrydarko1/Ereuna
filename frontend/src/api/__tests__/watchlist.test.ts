@@ -94,8 +94,8 @@ describe('the tickers in a list', () => {
     it('removes one, encoding both segments', async () => {
         mock.on('DELETE /api/watchlists/:name/tickers/:symbol', { list: [] });
 
-        await removeTicker('My list', 'BRK/B');
+        await removeTicker('My list', '^GSPC');
 
-        expect(mock.last().path).toBe('/api/watchlists/My%20list/tickers/BRK%2FB');
+        expect(mock.last().path).toBe('/api/watchlists/My%20list/tickers/%5EGSPC');
     });
 });

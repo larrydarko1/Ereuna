@@ -1,10 +1,24 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import type { TradeRow } from '@ereuna/shared';
+
 import { query } from '@/__tests__/support/dom';
 import CashDialog from '@/components/portfolio/CashDialog.vue';
 import { i18n } from '@/i18n';
 import { toDateInput } from '@/utils/formatters';
+
+const cashRow: TradeRow = {
+    id: '507f191e810c19729de860ea',
+    symbol: null,
+    action: 'deposit',
+    shares: 0,
+    price: 0,
+    total: 2500,
+    commission: 0,
+    tradeDate: '2026-03-04',
+    createdAt: '2026-03-04T00:00:00.000Z',
+};
 
 const open = (props: Record<string, unknown> = {}): VueWrapper => mount(CashDialog, { props, attachTo: document.body });
 
@@ -43,6 +57,18 @@ describe('CashDialog', () => {
         expect(query('input[type="date"]', HTMLInputElement).value).toBe(toDateInput(new Date()));
     });
 
+    it('opens on the movement being corrected', () => {
+        open({ editing: { ...cashRow, action: 'withdrawal' } });
+
+        expect(query('input[value="withdrawal"]', HTMLInputElement).checked).toBe(true);
+        expect(query('input[type="number"]', HTMLInputElement).value).toBe('2500');
+        expect(query('input[type="date"]', HTMLInputElement).value).toBe('2026-03-04');
+    });
+
+    it('refuses to open on a trade, which it cannot write', () => {
+        expect(() => open({ editing: { ...cashRow, action: 'buy', symbol: 'AAPL' } })).toThrow(/trade dialog/);
+    });
+
     it('will not save until there is an amount to move', async () => {
         const wrapper = open();
 
@@ -68,9 +94,7 @@ describe('CashDialog', () => {
         await type('input[type="date"]', '2026-03-04');
         await save();
 
-        expect(wrapper.emitted('submit')?.[0]).toEqual([
-            { action: 'deposit', symbol: null, total: 2500, tradeDate: '2026-03-04' },
-        ]);
+        expect(wrapper.emitted('submit')?.[0]).toEqual([{ action: 'deposit', total: 2500, tradeDate: '2026-03-04' }]);
     });
 
     it('submits a withdrawal when that is what was picked', async () => {

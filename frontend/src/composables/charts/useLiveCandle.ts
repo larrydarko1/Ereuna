@@ -10,7 +10,7 @@
  */
 import { onScopeDispose, readonly, ref, watch, type DeepReadonly, type Ref } from 'vue';
 
-import type { ChartTimeframe, LiveCandle } from '@ereuna/shared';
+import type { ChartTimeframe, EventPayload, LiveCandle } from '@ereuna/shared';
 
 import { useSocket } from '@/api/socket';
 
@@ -24,17 +24,11 @@ type LiveCandleKey = {
     timeframe: ChartTimeframe;
 };
 
-type CandleUpdate = {
-    symbol: string;
-    timeframe: ChartTimeframe;
-    candle: LiveCandle;
-};
-
 export function useLiveCandle(key: () => LiveCandleKey, enabled: () => boolean): UseLiveCandleReturn {
     const candle = ref<LiveCandle | null>(null);
     const { socket, connected } = useSocket();
 
-    function receive(update: CandleUpdate): void {
+    function receive(update: EventPayload<'candle:update'>): void {
         const { symbol, timeframe } = key();
         // A message for a pair we have since left must not land on the chart
         // that replaced it — the switch and the update race each other.

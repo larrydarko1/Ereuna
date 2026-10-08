@@ -37,22 +37,23 @@ describe('the body', () => {
         ['__proto__', Object.defineProperty({}, '__proto__', { value: { admin: true }, enumerable: true })],
         ['constructor', { constructor: 'x' }],
         ['prototype', { prototype: 'x' }],
-    ])('strips %s', async (_label, payload) => {
+    ])('refuses %s, rather than answering a probe with a 2xx', async (_label, payload) => {
         const { call } = await echoing();
         const response = await call('/echo', json({ ...payload, keep: 1 }));
-        expect(at(response.body, 'body')).toEqual({ keep: 1 });
+        expect(response.status).toBe(422);
+        expect(response.body).toEqual({ error: 'VALIDATION_FAILED' });
     });
 
-    it('strips a nested operator, not just a top-level one', async () => {
+    it('refuses a nested operator, not just a top-level one', async () => {
         const { call } = await echoing();
         const response = await call('/echo', json({ filter: { name: 'x', $where: 'sleep(1)' } }));
-        expect(at(response.body, 'body')).toEqual({ filter: { name: 'x' } });
+        expect(response.status).toBe(422);
     });
 
-    it('strips inside an array element', async () => {
+    it('refuses an operator inside an array element', async () => {
         const { call } = await echoing();
         const response = await call('/echo', json({ rows: [{ $gt: 1, symbol: 'AAPL' }] }));
-        expect(at(response.body, 'body')).toEqual({ rows: [{ symbol: 'AAPL' }] });
+        expect(response.status).toBe(422);
     });
 
     it('passes a request with no body through untouched', async () => {
@@ -61,10 +62,10 @@ describe('the body', () => {
         expect(response.body).not.toHaveProperty('body');
     });
 
-    it('strips inside a top-level array body', async () => {
+    it('refuses an operator inside a top-level array body', async () => {
         const { call } = await echoing();
         const response = await call('/echo', json([{ $ne: 1, symbol: 'AAPL' }]));
-        expect(at(response.body, 'body')).toEqual([{ symbol: 'AAPL' }]);
+        expect(response.status).toBe(422);
     });
 
     it('leaves a value that merely looks like an operator alone — only keys are stripped', async () => {
@@ -81,10 +82,10 @@ describe('the query string', () => {
         expect(at(response.body, 'query')).toEqual({ symbol: 'AAPL', limit: '10' });
     });
 
-    it('strips an operator key — Express 5 re-parses the query on every read, so it has to be shadowed', async () => {
+    it('refuses an operator key', async () => {
         const { call } = await echoing();
         const response = await call('/echo?%24ne=1&symbol=AAPL');
-        expect(at(response.body, 'query')).toEqual({ symbol: 'AAPL' });
+        expect(response.status).toBe(422);
     });
 
     it('leaves a bracketed key flat — the simple parser never builds it into an operator object', async () => {
@@ -93,12 +94,14 @@ describe('the query string', () => {
         expect(at(response.body, 'query')).toEqual({ 'filter[$gt]': '1', 'filter[name]': 'x' });
     });
 
-    it('strips a dotted key', async () => {
+    it('refuses a dotted key', async () => {
         const { call } = await echoing();
         const response = await call('/echo?user.role=admin&symbol=AAPL');
-        expect(at(response.body, 'query')).toEqual({ symbol: 'AAPL' });
+        expect(response.status).toBe(422);
     });
 
+    // Express 5 re-parses the query on every read, so the handler sees the
+    // checked copy only because the getter is shadowed
     it('is still readable by the handler after being shadowed', async () => {
         const { call } = await echoing();
         const response = await call('/echo?a=1&b=2');

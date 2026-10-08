@@ -23,11 +23,13 @@ export const screenerListSchema = z.object({ items: z.array(screenerSummarySchem
  * The filters written on a screener, keyed by the field each is stored under:
  * a range is `[min, max]`, a date range or an enum selection a list of strings,
  * a moving-average relation one string, a flag `true`. Which one applies is the
- * catalogue's `kind`, never a guess from the value.
+ * catalogue's `kind`, never a guess from the value. The range is two numbers
+ * rather than a tuple: both positions are numbers either way, and the fuzzer
+ * rewrites a 3.1 tuple into a form it then refuses as an invalid schema.
  */
 const screenerFiltersSchema = z.record(
     z.string(),
-    z.union([z.tuple([z.number(), z.number()]), z.array(z.string()), z.string(), z.boolean()]),
+    z.union([z.array(z.number()).length(2), z.array(z.string()), z.string(), z.boolean()]),
 );
 
 /** GET /screeners/:name */

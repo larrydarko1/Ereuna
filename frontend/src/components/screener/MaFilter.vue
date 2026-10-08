@@ -2,26 +2,28 @@
 import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import type { MaChoice } from '@/api/screener';
+
 const {
     directions,
     targets,
     value = null,
     busy = false,
 } = defineProps<{
-    directions: readonly string[];
-    targets: readonly string[];
-    value?: { direction: string; target: string } | null;
+    directions: readonly MaChoice['direction'][];
+    targets: readonly MaChoice['target'][];
+    value?: MaChoice | null;
     busy?: boolean;
 }>();
 
-const emit = defineEmits<{ apply: [{ direction: string; target: string }] }>();
+const emit = defineEmits<{ apply: [MaChoice] }>();
 
 const { t } = useI18n();
 
-const direction = ref(directions[0] ?? 'abv');
-const target = ref(targets[0] ?? 'price');
+const direction = ref<MaChoice['direction']>(directions[0] ?? 'abv');
+const target = ref<MaChoice['target']>(targets[0] ?? 'price');
 
-function targetLabel(option: string): string {
+function targetLabel(option: MaChoice['target']): string {
     return option === 'price' ? t('screener.maPrice') : t('screener.maDays', { days: option });
 }
 

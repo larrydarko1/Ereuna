@@ -1,0 +1,83 @@
+# How the API fuzz run (npm run test:fuzz, e2e/fuzz/run.ts) judges what it sees.
+# Every check Schemathesis has is on unless this file turns it off, with the reason.
+
+workers = 4
+
+[phases]
+# Stateful testing follows OpenAPI links from one answer to the next request
+# (create a watchlist, then read it). The document declares none yet.
+stateful.enabled = false
+
+[checks]
+# Express answers a method no route takes with 404, not 405 with an Allow
+# header. Nothing in the API standard asks for 405, and a client gets a refusal
+# either way.
+unsupported_method.enabled = false
+# Which routes need a token is the mounts' business (requireAuth), not the
+# contract's, so the document declares no security schemes for this to test.
+ignored_auth.enabled = false
+
+# ── Where a valid request may still be refused ───────────────────────────────
+# `positive_data_acceptance` sends requests the document calls valid and expects
+# them accepted (or 401/403/404/409/429). Each group below may also answer 422,
+# for a reason the document cannot carry. A 5xx still fails everywhere.
+
+# A password needs 8–128 characters with an uppercase letter, a lowercase one, a
+# digit and a symbol. The rule is one Zod refinement, which the document can only
+# describe as "a string".
+[[operations]]
+include-operation-id = [
+    "POST /api/auth/register",
+    "PATCH /api/account/password",
+    "POST /api/account/recovery-password",
+]
+checks.positive_data_acceptance.expected-statuses = ["2XX", 401, 403, 404, 409, 422, 429]
+
+# A trade dated after today is refused, a rule about the day it is sent. Past
+# that, every write replays the whole log, which refuses a trade the book cannot
+# carry (buying power, shares held, a cover with no short) — the state of a log
+# the fuzz user is building as it goes, not anything in the request.
+[[operations]]
+include-operation-id = [
+    "POST /api/portfolios/:number/trades",
+    "PATCH /api/portfolios/:number/trades/:id",
+    "POST /api/portfolios/:number/import",
+    "PUT /api/portfolios/:number/leverage",
+]
+checks.positive_data_acceptance.expected-statuses = ["2XX", 401, 403, 404, 409, 422, 429]
+
+# One body for every filter kind: which of its keys a filter reads (`min`/`max`,
+# `values`, `from`/`to`, `direction` with `target`, `enabled`) is decided by the
+# kind the path's key names, and a body the kind cannot read is refused with that
+# filter named. The document can only say that every key is optional.
+[[operations]]
+include-operation-id = ["PUT /api/screeners/:name/filters/:filter"]
+checks.positive_data_acceptance.expected-statuses = ["2XX", 401, 403, 404, 409, 422, 429]
+
+# A patch that changes nothing is refused: every field is optional, but not all
+# of them at once. A refinement the document describes as every field optional;
+# its `minProperties` spelling makes the fuzzer invent a property named "(root)"
+# to satisfy it, against `additionalProperties: false`. Without that spelling the
+# negative generator still reads the refinement as a required "(root)", and sends
+# a complete patch as the request missing it: the API rightly takes it.
+[[operations]]
+include-operation-id = ["PATCH /api/preferences", "PATCH /api/screeners/:name"]
+checks.positive_data_acceptance.expected-statuses = ["2XX", 401, 403, 404, 409, 422, 429]
+checks.negative_data_rejection.enabled = false
+
+# Each user holds at most 20 screeners and 30 watchlists, which the one fuzz user
+# fills within seconds; after that every create is refused for what the account
+# already holds, not for what the request says.
+[[operations]]
+include-operation-id = ["POST /api/screeners", "POST /api/watchlists"]
+checks.positive_data_acceptance.expected-statuses = ["2XX", 401, 403, 404, 409, 422, 429]
+
+# ── Where an invalid request may still be accepted ───────────────────────────
+
+# `before` is optional, a date or an instant. An invalid one a query string cannot
+# carry (null, an object) goes out as no `before` at all, which is the request
+# for the newest bars and is answered with them. The fuzzer still counts it as
+# the invalid request it meant to send.
+[[operations]]
+include-operation-id = ["GET /api/charts/:symbol"]
+checks.negative_data_rejection.enabled = false

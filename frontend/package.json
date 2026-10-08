@@ -30,8 +30,7 @@
         "sass-embedded": "^1.103.1",
         "typescript": "~6.0.2",
         "vite": "^8.3.0",
-        "vue-tsc": "^3.3.11",
-        "zod": "^4.5.4"
+        "vue-tsc": "^3.3.11"
     },
     "private": true,
     "browserslist": [

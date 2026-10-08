@@ -10,37 +10,47 @@
  * emit raised on one pod to a socket held by another. Here every pod subscribes
  * to `aggr:*` itself and therefore already holds every bucket its own sockets
  * need; adding the adapter would republish each one across pods to be discarded.
- * Event contract:
+ * Event contract (the payload schemas are SERVER_EVENTS and CLIENT_EVENTS in @ereuna/shared):
  * Server → Client:
  *     candle:update — { symbol, timeframe, candle } for the pair this socket watches.
  *     quote:update  — { quotes } a partial symbol→price map, only what moved.
  * Client → Server:
  *     candle:watch — { symbol, timeframe }. Replaces this socket's candle subscription.
  *     quote:watch  — { symbols }. Replaces this socket's quote subscriptions.
+ * Every push goes through `checkedPayload()`, which holds the payload to its
+ * event's schema the way `send()` holds a REST answer to its route's: a payload
+ * that does not fit is not sent, a field the schema does not declare is dropped,
+ * and both are logged as errors. Every inbound payload is parsed with its
+ * event's schema before anything reads it.
  * Both inbound events are client-controlled work, so they are rate limited per
  * user on top of the per-IP limit on the handshake itself.
  */
 import { type Server as HttpServer } from 'http';
 
 import { type DefaultEventsMap, Server, type Socket } from 'socket.io';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import {
     AGGREGATOR_TO_CHART,
-    CHART_TIMEFRAMES,
     CHART_TO_AGGREGATOR,
+    CLIENT_EVENTS,
     QUOTE_TIMEFRAME,
+    SERVER_EVENTS,
+    droppedKeys,
     isIntraday,
     type AggregateMessage,
     type AggregatorTimeframe,
     type ChartTimeframe,
+    type ClientToServerEvents,
+    type EventPayload,
     type LiveCandle,
+    type ServerEvent,
+    type ServerToClientEvents,
 } from '@ereuna/shared';
 
 import { readLastCandle, startMarketFeed, stopMarketFeed } from '@/gateway/market-feed.js';
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
-import { symbolSchema } from '@/lib/schemas.js';
 import { consumeTokenBucket, type TokenBucketOptions } from '@/lib/token-bucket.js';
 import { verifyAccessToken } from '@/middleware/auth.js';
 
@@ -51,18 +61,10 @@ type FeedData = {
     quoteRooms?: string[]; // The quote rooms this socket is in, so a new watchlist can leave them all
 };
 
-type FeedSocket = Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, FeedData>;
+type FeedSocket = Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, FeedData>;
 
-const candleWatchSchema = z.object({
-    symbol: symbolSchema,
-    timeframe: z.enum(CHART_TIMEFRAMES),
-});
-
-const quoteWatchSchema = z.object({
-    // Capped at what one portfolio can hold: the caller is a positions table,
-    // and silently truncating its list would leave rows that never tick.
-    symbols: z.array(symbolSchema).max(config.limits.positionsPerPortfolio),
-});
+const candleWatchSchema = CLIENT_EVENTS['candle:watch'];
+const quoteWatchSchema = CLIENT_EVENTS['quote:watch'];
 
 /**
  * Connection-time rate limit per client IP — 10 attempts burst, then one every
@@ -77,10 +79,13 @@ const CONN_BUCKET: TokenBucketOptions = { capacity: 10, refillPerMs: 1 / 6_000 }
  */
 const WATCH_BUCKET: TokenBucketOptions = { capacity: 30, refillPerMs: 1 / 1_000 };
 
+/** Each push's schema, typed per event so a parse hands back that event's payload and no other. */
+const PUSHES: { [TEvent in ServerEvent]: z.ZodType<EventPayload<TEvent>> } = SERVER_EVENTS;
+
 /** The last price emitted per symbol, so an unchanged bucket is not re-sent. */
 const lastPrices = new Map<string, number>();
 
-let io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, FeedData> | undefined;
+let io: Server<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, FeedData> | undefined;
 
 export async function initSocket(httpServer: HttpServer): Promise<void> {
     io = new Server(httpServer, {
@@ -139,11 +144,12 @@ function dispatch(message: AggregateMessage): void {
     if (io === undefined) return;
 
     const timeframe = AGGREGATOR_TO_CHART[message.timeframe];
-    io.to(candleRoom(message.tickerID, message.timeframe)).emit('candle:update', {
+    const update = checkedPayload('candle:update', {
         symbol: message.tickerID,
         timeframe,
         candle: formatCandle(message, timeframe),
     });
+    if (update !== undefined) io.to(candleRoom(message.tickerID, message.timeframe)).emit('candle:update', update);
 
     if (message.timeframe !== QUOTE_TIMEFRAME) return;
 
@@ -152,7 +158,8 @@ function dispatch(message: AggregateMessage): void {
     // connected client would otherwise be woken for a value it already has.
     if (lastPrices.get(message.tickerID) === message.close) return;
     lastPrices.set(message.tickerID, message.close);
-    io.to(quoteRoom(message.tickerID)).emit('quote:update', { quotes: { [message.tickerID]: message.close } });
+    const quotes = checkedPayload('quote:update', { quotes: { [message.tickerID]: message.close } });
+    if (quotes !== undefined) io.to(quoteRoom(message.tickerID)).emit('quote:update', quotes);
 }
 
 async function watchCandle(socket: FeedSocket, userId: string, payload: unknown): Promise<void> {
@@ -171,9 +178,9 @@ async function watchCandle(socket: FeedSocket, userId: string, payload: unknown)
     // A chart opened mid-bucket should not stare at an empty last bar until the
     // next trade, so the bucket as it stands right now is sent immediately.
     const opening = await readLastCandle(symbol, bucket);
-    if (opening !== null && socket.data.candleRoom === room) {
-        socket.emit('candle:update', { symbol, timeframe, candle: formatCandle(opening, timeframe) });
-    }
+    if (opening === null || socket.data.candleRoom !== room) return;
+    const update = checkedPayload('candle:update', { symbol, timeframe, candle: formatCandle(opening, timeframe) });
+    if (update !== undefined) socket.emit('candle:update', update);
 }
 
 async function watchQuotes(socket: FeedSocket, userId: string, payload: unknown): Promise<void> {
@@ -193,7 +200,31 @@ async function watchQuotes(socket: FeedSocket, userId: string, payload: unknown)
         const opening = await readLastCandle(symbol, QUOTE_TIMEFRAME);
         if (opening !== null) quotes[symbol] = opening.close;
     }
-    if (Object.keys(quotes).length > 0) socket.emit('quote:update', { quotes });
+    if (Object.keys(quotes).length === 0) return;
+    const update = checkedPayload('quote:update', { quotes });
+    if (update !== undefined) socket.emit('quote:update', update);
+}
+
+/**
+ * A payload held to its event's schema, parsed so only declared fields reach a
+ * socket; `undefined` when the parse refused it. Anything refused or dropped is
+ * logged by path, never by value. Neither throws: a push runs off a Redis
+ * message, with no request to fail and no one to answer.
+ */
+function checkedPayload<TEvent extends ServerEvent>(
+    event: TEvent,
+    payload: EventPayload<TEvent>,
+): EventPayload<TEvent> | undefined {
+    const parsed = PUSHES[event].safeParse(payload);
+    if (!parsed.success) {
+        const issues = parsed.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`).join('; ');
+        logger.error({ event, issues }, 'Socket payload did not match its schema; not sent');
+        return undefined;
+    }
+    const dropped = droppedKeys(payload, parsed.data);
+    if (dropped.length > 0)
+        logger.error({ event, dropped }, 'Socket payload carried fields its schema does not declare');
+    return parsed.data;
 }
 
 /**

@@ -5,7 +5,7 @@ import type { WatchlistDetail, WatchlistSummary } from '@ereuna/shared';
 import { isRecord } from '@ereuna/shared';
 
 import { watchlistRow, watchlistSummary } from '@/__tests__/support/answers';
-import { answer, mockApi, ORIGIN } from '@/__tests__/support/msw';
+import { mockApi, ORIGIN } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
 import { useWatchlists } from '@/composables/charts/useWatchlists';
 
@@ -76,7 +76,7 @@ describe('load', () => {
         mock.server.use(
             http.get(`${ORIGIN}/api/watchlists`, () => {
                 reads += 1;
-                return answer('GET /api/watchlists', { items: [] });
+                return HttpResponse.json({ items: [] });
             }),
         );
 
@@ -235,7 +235,7 @@ describe('managing the tickers', () => {
         mock.server.use(
             http.delete(`${ORIGIN}/api/watchlists/Tech/tickers/AAPL`, () => {
                 expect(watchlists.rows.value).toEqual([]);
-                return answer('DELETE /api/watchlists/Tech/tickers/AAPL', { list: [] });
+                return HttpResponse.json({ list: [] });
             }),
         );
 
@@ -297,7 +297,7 @@ describe('addTickers', () => {
                 const body: unknown = await request.json();
                 return isRecord(body) && body['symbol'] === 'NOPE'
                     ? HttpResponse.json({ error: 'ASSET_NOT_FOUND' }, { status: 404 })
-                    : answer('POST /api/watchlists/Tech/tickers', { list: [] });
+                    : HttpResponse.json({ list: [] });
             }),
         );
         mock.on('GET /api/watchlists/Tech', detail('Tech', ['AAPL', 'MSFT']));

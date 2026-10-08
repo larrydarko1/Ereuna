@@ -25,21 +25,6 @@ export type AggregateMessage = {
     final?: boolean;
 };
 
-/**
- * One bucket as it reaches the browser. `time` matches the REST series exactly
- * or the client cannot address the same bar: an intraday bar is the UTC instant
- * to the second, a daily or weekly bar is the calendar date alone.
- */
-export type LiveCandle = {
-    time: string;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-    volume: number;
-    final: boolean; // True once the bucket has closed and will not change again
-};
-
 export const AGGREGATOR_TIMEFRAMES = ['1m', '5m', '15m', '30m', '1hr', '1d', '1w'] as const;
 
 /** The chart timeframe a client asks for, mapped to the bucket that feeds it. */

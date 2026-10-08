@@ -1,56 +1,52 @@
 /** account — API wrappers for /api/account. */
-import type {
-    recoveryCodeCountSchema,
-    recoveryCodesSchema,
-    ResponseBody,
-    SessionUser,
-    TotpEnrolment,
-} from '@ereuna/shared';
+import type { AnswerOf, SessionUser, TotpEnrolment } from '@ereuna/shared';
 
-import { api, type ApiResult } from '@/api/client';
+import { call, type ApiResult } from '@/api/client';
+
+type RecoveryCodes = AnswerOf<'POST /api/account/recovery-codes'>;
 
 export function getAccount(): ApiResult<SessionUser> {
-    return api.get<SessionUser>('/account');
+    return call('GET /api/account');
 }
 
 export function changePassword(currentPassword: string, newPassword: string): ApiResult<void> {
-    return api.patch<void>('/account/password', { currentPassword, newPassword });
+    return call('PATCH /api/account/password', { body: { currentPassword, newPassword } });
 }
 
 export function changeUsername(password: string, username: string): ApiResult<SessionUser> {
-    return api.patch<SessionUser>('/account/username', { password, username });
+    return call('PATCH /api/account/username', { body: { password, username } });
 }
 
 export function deleteAccount(password: string): ApiResult<void> {
-    return api.delete<void>('/account', { data: { password } });
+    return call('DELETE /api/account', { body: { password } });
 }
 
 export function beginTwoFactor(): ApiResult<TotpEnrolment> {
-    return api.post<TotpEnrolment>('/account/2fa');
+    return call('POST /api/account/2fa');
 }
 
-export function confirmTwoFactor(code: string): ApiResult<ResponseBody<typeof recoveryCodesSchema>> {
-    return api.post<ResponseBody<typeof recoveryCodesSchema>>('/account/2fa/confirm', { code });
+export function confirmTwoFactor(code: string): ApiResult<RecoveryCodes> {
+    return call('POST /api/account/2fa/confirm', { body: { code } });
 }
 
 /** Both factors, not just the second: dropping 2FA must not be possible for
  *  someone holding only the authenticator, or only a live session. */
 export function disableTwoFactor(password: string, code: string): ApiResult<void> {
-    return api.delete<void>('/account/2fa', { data: { password, code } });
+    return call('DELETE /api/account/2fa', { body: { password, code } });
 }
 
 /** Re-authenticated: a fresh set voids the old one, and each code it issues
  *  signs in on its own. */
-export function regenerateRecoveryCodes(password: string): ApiResult<ResponseBody<typeof recoveryCodesSchema>> {
-    return api.post<ResponseBody<typeof recoveryCodesSchema>>('/account/recovery-codes', { password });
+export function regenerateRecoveryCodes(password: string): ApiResult<RecoveryCodes> {
+    return call('POST /api/account/recovery-codes', { body: { password } });
 }
 
 /** Only accepted on a session opened with a recovery code — there is no
  *  current password to re-authenticate with, which is why it was used. */
 export function setPasswordAfterRecovery(newPassword: string): ApiResult<void> {
-    return api.post<void>('/account/recovery-password', { newPassword });
+    return call('POST /api/account/recovery-password', { body: { newPassword } });
 }
 
-export function countRecoveryCodes(): ApiResult<ResponseBody<typeof recoveryCodeCountSchema>> {
-    return api.get<ResponseBody<typeof recoveryCodeCountSchema>>('/account/recovery-codes');
+export function countRecoveryCodes(): ApiResult<AnswerOf<'GET /api/account/recovery-codes'>> {
+    return call('GET /api/account/recovery-codes');
 }

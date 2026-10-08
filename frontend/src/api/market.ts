@@ -5,18 +5,18 @@
  * to the document it describes, and formatting it for display is this layer's
  * job rather than a route's.
  */
-import type { Financials, holidayCalendarSchema, MarketOverview, ResponseBody } from '@ereuna/shared';
+import type { AnswerOf, Financials, MarketOverview } from '@ereuna/shared';
 
-import { api, type ApiResult } from '@/api/client';
+import { call, type ApiResult } from '@/api/client';
 
 export function getMarketStats(): ApiResult<MarketOverview> {
-    return api.get<MarketOverview>('/market/stats');
+    return call('GET /api/market/stats');
 }
 
-export function getHolidays(): ApiResult<ResponseBody<typeof holidayCalendarSchema>> {
-    return api.get<ResponseBody<typeof holidayCalendarSchema>>('/market/holidays');
+export function getHolidays(): ApiResult<AnswerOf<'GET /api/market/holidays'>> {
+    return call('GET /api/market/holidays');
 }
 
 export function getFinancials(symbol: string): ApiResult<Financials> {
-    return api.get<Financials>(`/market/${encodeURIComponent(symbol)}/financials`);
+    return call('GET /api/market/:symbol/financials', { params: { symbol } });
 }

@@ -6,57 +6,46 @@
  * than being dropped — a symbol the ingestor has not reached should still be
  * visible in the list the user built.
  */
-import type {
-    ResponseBody,
-    WatchlistDetail,
-    watchlistEntriesSchema,
-    watchlistListSchema,
-    WatchlistSummary,
-} from '@ereuna/shared';
+import type { AnswerOf, WatchlistDetail, WatchlistSummary } from '@ereuna/shared';
 
-import { api, type ApiResult } from '@/api/client';
+import { call, type ApiResult } from '@/api/client';
 
-export function getWatchlists(): ApiResult<ResponseBody<typeof watchlistListSchema>> {
-    return api.get<ResponseBody<typeof watchlistListSchema>>('/watchlists');
+type WatchlistList = AnswerOf<'GET /api/watchlists'>;
+
+type WatchlistEntries = AnswerOf<'POST /api/watchlists/:name/tickers'>;
+
+export function getWatchlists(): ApiResult<WatchlistList> {
+    return call('GET /api/watchlists');
 }
 
 export function createWatchlist(name: string): ApiResult<WatchlistSummary> {
-    return api.post<WatchlistSummary>('/watchlists', { name });
+    return call('POST /api/watchlists', { body: { name } });
 }
 
-export function reorderWatchlists(names: readonly string[]): ApiResult<ResponseBody<typeof watchlistListSchema>> {
-    return api.put<ResponseBody<typeof watchlistListSchema>>('/watchlists/order', { names });
+export function reorderWatchlists(names: readonly string[]): ApiResult<WatchlistList> {
+    return call('PUT /api/watchlists/order', { body: { names: [...names] } });
 }
 
 export function getWatchlist(name: string): ApiResult<WatchlistDetail> {
-    return api.get<WatchlistDetail>(`/watchlists/${encodeURIComponent(name)}`);
+    return call('GET /api/watchlists/:name', { params: { name } });
 }
 
 export function renameWatchlist(name: string, newName: string): ApiResult<WatchlistSummary> {
-    return api.patch<WatchlistSummary>(`/watchlists/${encodeURIComponent(name)}`, { name: newName });
+    return call('PATCH /api/watchlists/:name', { params: { name }, body: { name: newName } });
 }
 
 export function deleteWatchlist(name: string): ApiResult<void> {
-    return api.delete<void>(`/watchlists/${encodeURIComponent(name)}`);
+    return call('DELETE /api/watchlists/:name', { params: { name } });
 }
 
-export function reorderTickers(
-    name: string,
-    symbols: readonly string[],
-): ApiResult<ResponseBody<typeof watchlistEntriesSchema>> {
-    return api.put<ResponseBody<typeof watchlistEntriesSchema>>(`/watchlists/${encodeURIComponent(name)}/tickers`, {
-        symbols,
-    });
+export function reorderTickers(name: string, symbols: readonly string[]): ApiResult<WatchlistEntries> {
+    return call('PUT /api/watchlists/:name/tickers', { params: { name }, body: { symbols: [...symbols] } });
 }
 
-export function addTicker(name: string, symbol: string): ApiResult<ResponseBody<typeof watchlistEntriesSchema>> {
-    return api.post<ResponseBody<typeof watchlistEntriesSchema>>(`/watchlists/${encodeURIComponent(name)}/tickers`, {
-        symbol,
-    });
+export function addTicker(name: string, symbol: string): ApiResult<WatchlistEntries> {
+    return call('POST /api/watchlists/:name/tickers', { params: { name }, body: { symbol } });
 }
 
-export function removeTicker(name: string, symbol: string): ApiResult<ResponseBody<typeof watchlistEntriesSchema>> {
-    return api.delete<ResponseBody<typeof watchlistEntriesSchema>>(
-        `/watchlists/${encodeURIComponent(name)}/tickers/${encodeURIComponent(symbol)}`,
-    );
+export function removeTicker(name: string, symbol: string): ApiResult<WatchlistEntries> {
+    return call('DELETE /api/watchlists/:name/tickers/:symbol', { params: { name, symbol } });
 }

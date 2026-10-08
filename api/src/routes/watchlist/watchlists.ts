@@ -11,31 +11,24 @@
  * DELETE /api/watchlists/:name/tickers/:symbol    — remove a ticker
  */
 import { Router } from 'express';
-import { z } from 'zod';
 
 import {
+    addTickerBody,
+    nameParam,
+    tickerOrderBody,
+    tickerParams,
     watchlistDetailSchema,
     watchlistEntriesSchema,
     watchlistListSchema,
+    watchlistNameBody,
+    watchlistOrderBody,
     watchlistSummarySchema,
 } from '@ereuna/shared';
 
-import { config } from '@/lib/config.js';
-import { resourceNameSchema, symbolSchema } from '@/lib/schemas.js';
 import { send } from '@/lib/send.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';
 import * as watchlistService from '@/services/watchlist/index.js';
-
-const nameParam = z.object({ name: resourceNameSchema });
-const tickerParams = z.object({ name: resourceNameSchema, symbol: symbolSchema });
-
-const createBody = z.object({ name: resourceNameSchema });
-const renameBody = z.object({ name: resourceNameSchema });
-const addTickerBody = z.object({ symbol: symbolSchema });
-
-const orderBody = z.object({ names: z.array(resourceNameSchema).max(config.limits.watchlistsPerUser) });
-const tickerOrderBody = z.object({ symbols: z.array(symbolSchema).max(config.limits.tickersPerWatchlist) });
 
 export const router = Router();
 
@@ -48,7 +41,7 @@ router.get(
 
 router.post(
     '/',
-    ...validated({ body: createBody }, async (req, res): Promise<void> => {
+    ...validated({ body: watchlistNameBody }, async (req, res): Promise<void> => {
         send(
             res.status(201),
             watchlistSummarySchema,
@@ -60,7 +53,7 @@ router.post(
 /** Registered before `/:name` so `order` is not read as a watchlist name. */
 router.put(
     '/order',
-    ...validated({ body: orderBody }, async (req, res): Promise<void> => {
+    ...validated({ body: watchlistOrderBody }, async (req, res): Promise<void> => {
         const items = await watchlistService.reorderWatchlists(authedUserId(req), req.body.names);
         send(res, watchlistListSchema, { items });
     }),
@@ -75,7 +68,7 @@ router.get(
 
 router.patch(
     '/:name',
-    ...validated({ params: nameParam, body: renameBody }, async (req, res): Promise<void> => {
+    ...validated({ params: nameParam, body: watchlistNameBody }, async (req, res): Promise<void> => {
         const summary = await watchlistService.renameWatchlist(authedUserId(req), req.params.name, req.body.name);
         send(res, watchlistSummarySchema, summary);
     }),

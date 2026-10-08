@@ -51,6 +51,58 @@ describe('the body', () => {
     });
 });
 
+describe('a key no schema declares', () => {
+    it('is refused with the rest of the 422 rather than stripped into a 2xx', async () => {
+        let reached = false;
+        harness = await serve((app) => {
+            app.use(quietLogger);
+            app.post(
+                '/t',
+                ...validated(
+                    { body: z.object({ name: z.string(), tags: z.array(z.object({ id: z.string() })) }) },
+                    (_req, res) => {
+                        reached = true;
+                        res.json({ ok: true });
+                    },
+                ),
+            );
+        });
+
+        const response = await harness.call(
+            '/t',
+            json({ name: 'a', role: 'admin', tags: [{ id: 't', colour: 'red' }] }),
+        );
+        expect(response.status).toBe(422);
+        expect(response.body).toEqual({
+            error: 'VALIDATION_FAILED',
+            errors: [
+                { field: 'role', message: 'Unrecognized key' },
+                { field: 'tags.0.colour', message: 'Unrecognized key' },
+            ],
+        });
+        expect(reached).toBe(false);
+    });
+
+    it('is refused in the query string too', async () => {
+        harness = await serve((app) => {
+            app.use(quietLogger);
+            app.get(
+                '/t',
+                ...validated({ query: z.object({ page: z.coerce.number().default(1) }) }, (_req, res) => {
+                    res.json({ ok: true });
+                }),
+            );
+        });
+
+        const response = await harness.call('/t?page=2&sort=name');
+        expect(response.status).toBe(422);
+        expect(response.body).toEqual({
+            error: 'VALIDATION_FAILED',
+            errors: [{ field: 'sort', message: 'Unrecognized key' }],
+        });
+    });
+});
+
 describe('params and query', () => {
     it('coerces a path parameter in place', async () => {
         harness = await serve((app) => {

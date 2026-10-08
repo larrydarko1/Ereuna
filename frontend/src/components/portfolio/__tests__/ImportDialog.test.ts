@@ -53,23 +53,17 @@ describe('ImportDialog', () => {
         );
     });
 
-    it('imports the trades with the settings they were traded at', async () => {
+    it('hands over the file as written, settings and all, for the API to judge', async () => {
         const wrapper = open();
-        const portfolio = { baseValue: 50_000, leverage: 1, defaultCommission: 0, benchmarks: [] };
+        const file = JSON.stringify({
+            portfolio: { baseValue: 50_000, leverage: 1, defaultCommission: 0, benchmarks: [] },
+            trades: [{ action: 'buy' }],
+        });
 
-        await choose(JSON.stringify({ portfolio, trades: [{ action: 'buy' }] }));
+        await choose(file);
         await submit();
 
-        expect(wrapper.emitted('submit')?.[0]).toEqual([{ trades: [{ action: 'buy' }], portfolio }]);
-    });
-
-    it('imports a bare trade log, leaving this slot to keep its own settings', async () => {
-        const wrapper = open();
-
-        await choose(JSON.stringify({ trades: [] }));
-        await submit();
-
-        expect(wrapper.emitted('submit')?.[0]).toEqual([{ trades: [] }]);
+        expect(wrapper.emitted('submit')?.[0]).toEqual([file]);
     });
 
     it('refuses a file that is not JSON', async () => {

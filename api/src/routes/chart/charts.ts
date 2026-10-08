@@ -11,52 +11,30 @@
  * written through /api/preferences.
  */
 import { Router } from 'express';
-import { z } from 'zod';
 
 import {
     assetProfileSchema,
     assetSearchSchema,
-    CHART_TIMEFRAMES,
     chartDrawingsSchema,
     chartEventsSchema,
     chartSeriesSchema,
-    DRAWING_KINDS,
+    drawingsBody,
+    eventsQuery,
+    searchQuery,
+    seriesQuery,
+    symbolParam,
+    timeframeQuery,
 } from '@ereuna/shared';
 
-import { config } from '@/lib/config.js';
-import { symbolSchema } from '@/lib/schemas.js';
 import { send } from '@/lib/send.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';
 import * as chartService from '@/services/chart/index.js';
 import * as marketService from '@/services/market/index.js';
 
-const symbolParam = z.object({ symbol: symbolSchema });
-
-const timeframeQuery = z.object({
-    timeframe: z.enum(CHART_TIMEFRAMES).default('daily'),
-});
-
-const eventsQuery = z.object({ all: z.stringbool().default(false) });
-
-const searchQuery = z.object({
-    q: z.string().trim().min(1, 'A search term is required').max(60),
-    limit: z.coerce.number().int().min(1).max(50).default(20),
-});
-
 /** Corporate-action markers returned by default; `all=true` returns the full history. */
 const DEFAULT_EVENT_LIMIT = 4;
 const MAX_EVENT_LIMIT = 500;
-
-const seriesQuery = timeframeQuery.extend({
-    before: z.iso.datetime({ offset: true }).or(z.iso.date()).optional(),
-});
-
-/** The same shapes a load answers with, so a drawing saved is one a tool can load back. */
-const drawingsBody = chartDrawingsSchema.refine(
-    (drawings) => DRAWING_KINDS.every((kind) => drawings[kind].length <= config.limits.drawingsPerKind),
-    { message: `At most ${config.limits.drawingsPerKind} drawings of each kind` },
-);
 
 export const router = Router();
 

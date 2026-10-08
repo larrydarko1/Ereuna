@@ -1,0 +1,3 @@
+# Every line pinned with ==: a new release changes how requests are generated,
+# and the seed a failed run printed only replays on the versions that printed it.
+schemathesis==4.29.1

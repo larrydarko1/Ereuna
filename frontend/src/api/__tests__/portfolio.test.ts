@@ -17,6 +17,11 @@ import {
 
 const mock = mockApi();
 
+/** A JSON file's text, as the import dialog hands it over. */
+function fileOf(contents: unknown): string {
+    return JSON.stringify(contents);
+}
+
 describe('reads', () => {
     it('lists the slots the user has opened', async () => {
         mock.on('GET /api/portfolios', { items: [portfolioRow()] });
@@ -92,23 +97,23 @@ describe('settings', () => {
 });
 
 describe('importPortfolio', () => {
-    it('sends the log alone when nothing else is declared', async () => {
+    it('sends the file the user chose as it is, for the API to judge', async () => {
         mock.on('POST /api/portfolios/0/import', { imported: 1 });
+        const trades = [{ action: 'buy', symbol: 'AAPL', shares: 1, price: 1, total: 1, tradeDate: '2026-03-02' }];
 
-        await importPortfolio(0, {
-            trades: [{ action: 'buy', symbol: 'AAPL', shares: 1, price: 1, total: 1, tradeDate: '2026-03-02' }],
-        });
+        await importPortfolio(0, fileOf({ trades }));
 
-        expect(mock.last().body).toMatchObject({ trades: [{ symbol: 'AAPL' }] });
+        expect(mock.last().body).toEqual({ trades });
+        expect(mock.last().headers.get('content-type')).toContain('application/json');
     });
 
     it('carries a declared track record the log cannot reproduce', async () => {
         mock.on('POST /api/portfolios/0/import', { imported: 0 });
 
-        await importPortfolio(0, {
-            trades: [],
-            portfolio: { baseValue: 5000, valueHistory: [{ date: '2026-03-02', value: 5000 }] },
-        });
+        await importPortfolio(
+            0,
+            fileOf({ trades: [], portfolio: { baseValue: 5000, valueHistory: [{ date: '2026-03-02', value: 5000 }] } }),
+        );
 
         expect(mock.last().body).toMatchObject({
             portfolio: { baseValue: 5000, valueHistory: [{ date: '2026-03-02', value: 5000 }] },

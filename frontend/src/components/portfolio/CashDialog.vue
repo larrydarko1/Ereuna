@@ -2,12 +2,19 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import type { TradeInput } from '@ereuna/shared';
+import { CASH_ACTIONS, isOneOf } from '@ereuna/shared';
+import type { CashAction, TradeInput, TradeRow } from '@ereuna/shared';
 
 import AppDialog from '@/components/ui/AppDialog.vue';
 import { toDateInput } from '@/utils/formatters';
 
-const { error = null, saving = false } = defineProps<{
+const {
+    editing = null,
+    error = null,
+    saving = false,
+} = defineProps<{
+    /** The cash movement being corrected, or null when recording a new one. */
+    editing?: TradeRow | null;
     error?: string | null;
     saving?: boolean;
 }>();
@@ -16,9 +23,9 @@ const emit = defineEmits<{ close: []; submit: [trade: TradeInput] }>();
 
 const { t } = useI18n();
 
-const action = ref<'deposit' | 'withdrawal'>('deposit');
-const amount = ref('');
-const tradeDate = ref(toDateInput(new Date()));
+const action = ref<CashAction>(startingAction());
+const amount = ref(editing === null ? '' : String(editing.total));
+const tradeDate = ref(toDateInput(editing?.tradeDate ?? new Date()));
 
 const valid = computed(() => Number(amount.value) > 0 && tradeDate.value !== '');
 
@@ -27,12 +34,15 @@ function submit(): void {
 
     emit('submit', {
         action: action.value,
-        // Explicitly null rather than omitted: the schema rejects a cash
-        // movement that names an instrument, and null is what "none" means here.
-        symbol: null,
         total: Number(amount.value),
         tradeDate: tradeDate.value,
     });
+}
+
+function startingAction(): CashAction {
+    const wanted = editing?.action ?? 'deposit';
+    if (!isOneOf(CASH_ACTIONS, wanted)) throw new Error('A trade is corrected in the trade dialog');
+    return wanted;
 }
 </script>
 

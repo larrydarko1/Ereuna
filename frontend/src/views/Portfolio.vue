@@ -2,9 +2,9 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import type { TradeAction, TradeInput, TradeRow, ValuedPosition } from '@ereuna/shared';
+import { CASH_ACTIONS, isOneOf } from '@ereuna/shared';
+import type { PositionAction, TradeInput, TradeRow, ValuedPosition } from '@ereuna/shared';
 
-import type { PortfolioImport } from '@/api/portfolio';
 import BenchmarksDialog from '@/components/portfolio/BenchmarksDialog.vue';
 import BenchmarkStrip from '@/components/portfolio/BenchmarkStrip.vue';
 import CashDialog from '@/components/portfolio/CashDialog.vue';
@@ -72,7 +72,7 @@ const dialog = ref<Dialog | null>(null);
 const saving = ref(false);
 const tradeToEdit = ref<TradeRow | null>(null);
 const tradeToDelete = ref<TradeRow | null>(null);
-const tradePreset = ref<{ action: TradeAction; symbol: string; shares: number } | null>(null);
+const tradePreset = ref<{ action: PositionAction; symbol: string; shares: number } | null>(null);
 
 /** The whole trade log, loaded on demand for the monthly breakdown. */
 const fullLog = ref<TradeInput[] | null>(null);
@@ -118,10 +118,17 @@ async function run(action: () => Promise<void>): Promise<void> {
     }
 }
 
+/** A row is corrected in the dialog that records its kind: a cash movement in the cash dialog. */
 function openTrade(trade: TradeRow | null): void {
     tradeToEdit.value = trade;
     tradePreset.value = null;
-    dialog.value = 'trade';
+    dialog.value = trade !== null && isOneOf(CASH_ACTIONS, trade.action) ? 'cash' : 'trade';
+}
+
+/** A row left from a cancelled edit would turn this deposit into a correction of that row */
+function openCash(): void {
+    tradeToEdit.value = null;
+    dialog.value = 'cash';
 }
 
 /** Closing a position is an ordinary trade with the opposite action filled in. */
@@ -160,9 +167,9 @@ async function confirmDeleteTrade(): Promise<void> {
     });
 }
 
-async function submitImport(payload: PortfolioImport): Promise<void> {
+async function submitImport(json: string): Promise<void> {
     await run(async () => {
-        await importInto(payload);
+        await importInto(json);
         await trades.load();
         fullLog.value = null;
         dialog.value = null;
@@ -209,7 +216,7 @@ onMounted(async () => {
             :blank="isBlank"
             @select="selectSlot"
             @trade="openTrade(null)"
-            @cash="dialog = 'cash'"
+            @cash="openCash"
             @settings="dialog = 'settings'"
             @import="dialog = 'import'"
             @export="dialog = 'export'"
@@ -231,7 +238,7 @@ onMounted(async () => {
             <button
                 type="button"
                 class="btn btn--primary"
-                @click="dialog = 'cash'">
+                @click="openCash">
                 {{ t('portfolio.actions.deposit') }}
             </button>
             <button
@@ -348,6 +355,7 @@ onMounted(async () => {
 
         <CashDialog
             v-if="dialog === 'cash'"
+            :editing="tradeToEdit"
             :error="trades.error.value"
             :saving="saving"
             @close="dialog = null"

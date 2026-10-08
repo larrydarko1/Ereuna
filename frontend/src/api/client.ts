@@ -13,20 +13,44 @@
  *     server-side regardless of what it says.
  * Errors: the API sends a stable `code` and never English. Every response is
  * localised here, once, so no call site has to know the error contract.
+ * Requests: every domain module goes through `call()`, which types the path,
+ * the body, the query and the answer from the API contract in `@ereuna/shared`.
  */
-import axios, { isAxiosError, type AxiosResponse } from 'axios';
+import axios, { isAxiosError, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 
-import type { SessionUser } from '@ereuna/shared';
+import type { AnswerOf, ApiRoute, BodyOf, ParamsOf, QueryOf, SessionUser } from '@ereuna/shared';
 import { isErrorCode, isRecord } from '@ereuna/shared';
 
 import { i18n } from '@/i18n';
 
 export type ApiResult<T> = Promise<AxiosResponse<T>>;
 
+/**
+ * What `call(route, …)` needs for that route, read off the API contract: its path
+ * parameters, its body and its query when it takes them, and nothing it does not.
+ * A route with a body may instead take `json`, the text of a JSON document the
+ * user chose, sent as written: the API judges it as it would any body, and the
+ * client has no second copy of the schema to judge it with.
+ */
+type CallOptions<TRoute extends ApiRoute> = (keyof ParamsOf<TRoute> extends never
+    ? { params?: never }
+    : { params: ParamsOf<TRoute> }) &
+    (BodyOf<TRoute> extends undefined
+        ? { body?: never; json?: never }
+        : { body: BodyOf<TRoute>; json?: never } | { json: string; body?: never }) &
+    (QueryOf<TRoute> extends undefined ? { query?: never } : { query?: QueryOf<TRoute> }) & {
+        config?: AxiosRequestConfig;
+    };
+
 const USER_KEY = 'ereuna-user';
 
 const sessionListeners = new Set<() => void>();
 
+/**
+ * @public The axios instance itself. App code calls the API through `call()`;
+ * the mock server points this instance's adapter at MSW, and the interceptor
+ * tests drive it directly.
+ */
 export const api = axios.create({
     baseURL: '/api',
     withCredentials: true, // carries the httpOnly refresh cookie
@@ -34,6 +58,34 @@ export const api = axios.create({
 
 let accessToken: string | null = null;
 let refreshPromise: Promise<string | null> | null = null;
+
+/**
+ * Call one API route by its contract key: `call('PATCH /api/notes/:id', { params: { id }, body })`.
+ * The body, the query and the answer are typed from the schemas the API itself
+ * validates and answers with (`API_ROUTES` in `@ereuna/shared`), so a wrapper
+ * cannot send a field the API refuses or expect one it never sends. This is the
+ * only place that names a response type for axios.
+ */
+export function call<TRoute extends ApiRoute>(
+    route: TRoute,
+    ...[options]: object extends CallOptions<TRoute> ? [CallOptions<TRoute>?] : [CallOptions<TRoute>]
+): ApiResult<AnswerOf<TRoute>> {
+    const [method = 'GET', path = ''] = route.split(' ');
+    const params: Record<string, string | number> = options?.params ?? {};
+    const url = path
+        .replace(/^\/api/, '')
+        .replace(/:(\w+)/g, (_, name: string) => encodeURIComponent(String(params[name] ?? '')));
+    const json = options?.json;
+    return api.request<AnswerOf<TRoute>>({
+        ...options?.config,
+        method,
+        url,
+        params: options?.query,
+        // axios sends a string that parses as JSON as it is, under this content type
+        data: json ?? options?.body,
+        ...(json !== undefined && { headers: { 'Content-Type': 'application/json' } }),
+    });
+}
 
 export function findAccessToken(): string | null {
     return accessToken;
@@ -152,7 +204,7 @@ function localizeApiError(err: unknown): void {
  */
 async function silentRefresh(): Promise<string | null> {
     refreshPromise ??= axios
-        .post<{ accessToken: string }>('/api/auth/refresh', null, { withCredentials: true })
+        .post<AnswerOf<'POST /api/auth/refresh'>>('/api/auth/refresh', null, { withCredentials: true })
         .then((res) => {
             accessToken = res.data.accessToken;
             return accessToken;

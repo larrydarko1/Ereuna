@@ -22,13 +22,17 @@ checkFullstackErrorHandling({
     appErrorBanDirs: ['packages/shared/src'],
 
     /**
-     * Codes that legitimately answer 400 — a request that never parsed. Empty: this
-     * API takes no multipart uploads and no free-form JSON blobs, so every
-     * malformed request is caught by Zod and answered 422 by the error handler.
+     * Codes that legitimately answer 400 — a request that never parsed. Empty of
+     * AppError throws: this API takes no multipart uploads and no free-form JSON
+     * blobs, so every request that parses is Zod's to refuse with a 422. A body
+     * that does not parse at all is the JSON parser's, and the error handler
+     * answers it with the parser's own status as MALFORMED_REQUEST or
+     * REQUEST_TOO_LARGE. Before that branch it fell through to a bare 500, which
+     * blamed the server for the client's bytes.
      */
     parseLevel400: [],
 
-    /** No Multer branch: this API takes no uploads, so a deliberate throw and a Zod parse are the two typed failures. */
+    /** No Multer branch: this API takes no uploads, so a deliberate throw and a Zod parse are the two typed failures. A refused body is matched by shape, not by class, so it is not a branch the gate can name. */
     handlerBranches: ['AppError', 'ZodError'],
 
     /**

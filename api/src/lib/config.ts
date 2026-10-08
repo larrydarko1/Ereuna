@@ -3,7 +3,8 @@
  * Env vars are validated ONCE here with Zod — this module is the runtime type
  * boundary — then assembled into a typed `config` object. Import `config`
  * wherever a value is needed; never read `process.env` outside this file, and
- * never hardcode a limit in business logic.
+ * never hardcode a limit in business logic — the limits themselves are
+ * `LIMITS` in `@ereuna/shared`, because the request schemas cap on them too.
  * Secrets (`JWT_SECRET`, `TOTP_ENCRYPTION_KEY`) have no default at all, so a
  * missing one kills the process at startup in every environment rather than
  * silently falling back. Infra endpoints keep a working localhost default for
@@ -14,7 +15,7 @@ import path from 'node:path';
 import argon2 from 'argon2';
 import { z } from 'zod';
 
-import { hexSecret, loggerEnv, mongoEnv, nodeEnv, redisEnv, requiredSecret } from '@ereuna/shared';
+import { hexSecret, LIMITS, loggerEnv, mongoEnv, nodeEnv, redisEnv, requiredSecret } from '@ereuna/shared';
 
 const Env = z.object({
     ...nodeEnv,
@@ -79,23 +80,8 @@ export const config = {
         recoveryCodeCount: 10,
     },
 
-    limits: {
-        screenersPerUser: 20,
-        watchlistsPerUser: 30,
-        tickersPerWatchlist: 500,
-        notesPerSymbol: 200,
-        portfolioSlots: 10,
-        benchmarksPerPortfolio: 5,
-        maxLeverage: 10,
-        maxCommission: 100_000,
-        tradesPerPortfolio: 1000,
-        positionsPerPortfolio: 500,
-        drawingsPerKind: 1000,
-        indicatorsPerChart: 12,
-        maxIndicatorPeriod: 400,
-        importRows: 5000,
-        symbolsPerRequest: 50,
-    },
+    /** Shared, so the request schemas in `@ereuna/shared` cap on the same numbers the services refuse on. */
+    limits: LIMITS,
 
     /** Cache TTLs in seconds. Price data is re-fetched far more often while the
      *  US market is open; everything else is stable enough to hold longer. */
@@ -126,6 +112,7 @@ export const config = {
 
     logger: {
         level: parsed.LOG_LEVEL,
+        file: parsed.LOG_FILE,
     },
 
     metricsToken: parsed.METRICS_TOKEN,

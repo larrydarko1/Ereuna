@@ -9,6 +9,8 @@
  */
 import { onScopeDispose, readonly, ref, watch, type DeepReadonly, type Ref } from 'vue';
 
+import type { EventPayload } from '@ereuna/shared';
+
 import { useSocket } from '@/api/socket';
 
 export type UseLiveQuotesReturn = {
@@ -16,15 +18,11 @@ export type UseLiveQuotesReturn = {
     connected: DeepReadonly<Ref<boolean>>;
 };
 
-type QuoteUpdate = {
-    quotes: Record<string, number>;
-};
-
 export function useLiveQuotes(symbols: () => readonly string[], enabled: () => boolean): UseLiveQuotesReturn {
     const quotes = ref<Record<string, number>>({});
     const { socket, connected } = useSocket();
 
-    function receive(update: QuoteUpdate): void {
+    function receive(update: EventPayload<'quote:update'>): void {
         const watched = new Set(symbols());
         const merged = { ...quotes.value };
         // Filtered rather than merged wholesale: a message for the portfolio we

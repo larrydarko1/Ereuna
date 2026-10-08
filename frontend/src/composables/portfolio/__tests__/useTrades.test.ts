@@ -1,11 +1,15 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { mockApi } from '@/__tests__/support/msw';
+import { objectId } from '@/__tests__/support/values';
 import { useTrades, type UseTradesReturn } from '@/composables/portfolio/useTrades';
 
 const mock = mockApi();
 
 const trade = { action: 'buy' as const, symbol: 'AAPL', shares: 1, price: 1, total: 1, tradeDate: '2026-03-02' };
+
+const A = objectId(10);
+const B = objectId(11);
 
 const row = (id: string): Record<string, unknown> => ({
     id,
@@ -33,7 +37,7 @@ function build(slot = 0): { trades: UseTradesReturn; onWrite: ReturnType<typeof 
 
 describe('load', () => {
     it('reads the blotter for the open slot', async () => {
-        mock.on('GET /api/portfolios/0/trades', page(['a', 'b']));
+        mock.on('GET /api/portfolios/0/trades', page([A, B]));
         const { trades } = build();
 
         await trades.load();
@@ -65,7 +69,7 @@ describe('load', () => {
     });
 
     it('counts a page per fifty trades', async () => {
-        mock.on('GET /api/portfolios/0/trades', page(['a'], 101));
+        mock.on('GET /api/portfolios/0/trades', page([A], 101));
         const { trades } = build();
 
         await trades.load();
@@ -76,7 +80,7 @@ describe('load', () => {
 
 describe('goToPage', () => {
     it('reads the page asked for', async () => {
-        mock.on('GET /api/portfolios/0/trades', page(['a'], 200));
+        mock.on('GET /api/portfolios/0/trades', page([A], 200));
         const { trades } = build();
         await trades.load();
 
@@ -87,7 +91,7 @@ describe('goToPage', () => {
     });
 
     it('clamps to the pages that exist', async () => {
-        mock.on('GET /api/portfolios/0/trades', page(['a'], 60));
+        mock.on('GET /api/portfolios/0/trades', page([A], 60));
         const { trades } = build();
         await trades.load();
 
@@ -99,7 +103,7 @@ describe('goToPage', () => {
     });
 
     it('does nothing when it is already on that page', async () => {
-        mock.on('GET /api/portfolios/0/trades', page(['a'], 200));
+        mock.on('GET /api/portfolios/0/trades', page([A], 200));
         const { trades } = build();
         await trades.load();
         const before = mock.calls.length;
@@ -112,8 +116,8 @@ describe('goToPage', () => {
 
 describe('the writes', () => {
     it('records a trade, re-reads, and tells the portfolio to re-read too', async () => {
-        mock.on('GET /api/portfolios/0/trades', page(['a']));
-        mock.on('POST /api/portfolios/0/trades', row('a'));
+        mock.on('GET /api/portfolios/0/trades', page([A]));
+        mock.on('POST /api/portfolios/0/trades', row(A));
         const { trades, onWrite } = build();
 
         await trades.create(trade);
@@ -123,8 +127,8 @@ describe('the writes', () => {
     });
 
     it('goes back to the first page for a new trade, where the newest one lands', async () => {
-        mock.on('GET /api/portfolios/0/trades', page(['a'], 200));
-        mock.on('POST /api/portfolios/0/trades', row('a'));
+        mock.on('GET /api/portfolios/0/trades', page([A], 200));
+        mock.on('POST /api/portfolios/0/trades', row(A));
         const { trades } = build();
         await trades.load();
         await trades.goToPage(3);
@@ -135,11 +139,11 @@ describe('the writes', () => {
     });
 
     it('corrects a trade', async () => {
-        mock.on('GET /api/portfolios/0/trades', page(['a']));
-        mock.on('PATCH /api/portfolios/0/trades/a', row('a'));
+        mock.on('GET /api/portfolios/0/trades', page([A]));
+        mock.on(`PATCH /api/portfolios/0/trades/${A}`, row(A));
         const { trades, onWrite } = build();
 
-        await trades.update('a', trade);
+        await trades.update(A, trade);
 
         expect(onWrite).toHaveBeenCalledTimes(1);
     });
@@ -155,24 +159,24 @@ describe('the writes', () => {
     });
 
     it('steps back a page when the last row on it is removed', async () => {
-        mock.on('GET /api/portfolios/0/trades', page(['a'], 51));
-        mock.on('DELETE /api/portfolios/0/trades/a', null, { status: 204 });
+        mock.on('GET /api/portfolios/0/trades', page([A], 51));
+        mock.on(`DELETE /api/portfolios/0/trades/${A}`, null, { status: 204 });
         const { trades } = build();
         await trades.load();
         await trades.goToPage(2);
 
-        await trades.remove('a');
+        await trades.remove(A);
 
         expect(trades.page.value).toBe(1);
     });
 
     it('stays on the first page when the last row there is removed', async () => {
-        mock.on('GET /api/portfolios/0/trades', page(['a'], 1));
-        mock.on('DELETE /api/portfolios/0/trades/a', null, { status: 204 });
+        mock.on('GET /api/portfolios/0/trades', page([A], 1));
+        mock.on(`DELETE /api/portfolios/0/trades/${A}`, null, { status: 204 });
         const { trades } = build();
         await trades.load();
 
-        await trades.remove('a');
+        await trades.remove(A);
 
         expect(trades.page.value).toBe(1);
     });

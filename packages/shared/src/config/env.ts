@@ -20,6 +20,14 @@ export const nodeEnv = {
 
 export const loggerEnv = {
     LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
+    // Also write every line, as JSON, to this file: a record that outlives the
+    // terminal, for finding a 5xx by its x-request-id. Unset in a deployment,
+    // where the platform collects stdout. Blank counts as unset, because an
+    // .env copied from the example carries the key with an empty value.
+    LOG_FILE: z
+        .string()
+        .default('')
+        .transform((value) => (value === '' ? undefined : value)),
 };
 
 export const mongoEnv = {

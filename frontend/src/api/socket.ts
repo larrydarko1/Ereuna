@@ -6,18 +6,24 @@
  * reconnect after a silent refresh presents the token that is current then.
  * The connection dies with the session: `onSessionCleared` drops it, because a
  * socket authenticated as the previous user must not survive a sign-out.
+ * Typed from the shared event tables, so a listener cannot expect a field the
+ * server never pushes and an emit cannot send one the gateway refuses.
  */
 import { io, type Socket } from 'socket.io-client';
 import { ref, readonly, type DeepReadonly, type Ref } from 'vue';
 
+import type { ClientToServerEvents, ServerToClientEvents } from '@ereuna/shared';
+
 import { findAccessToken, isAuthenticated, onSessionCleared } from '@/api/client';
 
+type FeedSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
+
 type UseSocketReturn = {
-    socket: Socket;
+    socket: FeedSocket;
     connected: DeepReadonly<Ref<boolean>>;
 };
 
-let socket: Socket | null = null;
+let socket: FeedSocket | null = null;
 const connected = ref(false);
 
 export function useSocket(): UseSocketReturn {
@@ -33,7 +39,7 @@ function disconnectSocket(): void {
     connected.value = false;
 }
 
-function createSocket(): Socket {
+function createSocket(): FeedSocket {
     if (socket !== null) return socket;
 
     socket = io(window.location.origin, {

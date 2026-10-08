@@ -7,44 +7,31 @@
  * The one exception is `importPortfolio`, which may carry a declared `stats`
  * and `valueHistory`. Ereuna simulates: a user bringing in a track record their
  * log cannot reproduce is stating it, and stating it is their prerogative.
+ * The import is sent as the text of the file the user chose: what each trade
+ * and the settings say is the server's to judge, against the same schema the
+ * export answers with.
  */
-import type {
-    baseValueSchema,
-    benchmarksSchema,
-    defaultCommissionSchema,
-    importResultSchema,
-    leverageSchema,
-    PortfolioExport,
-    portfolioListSchema,
-    PortfolioSummary,
-    ResponseBody,
-} from '@ereuna/shared';
+import type { AnswerOf, PortfolioExport, PortfolioSummary } from '@ereuna/shared';
 
-import { api, type ApiResult } from '@/api/client';
+import { call, type ApiResult } from '@/api/client';
 
-/**
- * A portfolio file as the user chose it. The client checks only that it holds a
- * list of trades; what each trade and the settings say is the server's to judge.
- */
-export type PortfolioImport = {
-    trades: unknown[];
-    portfolio?: unknown;
-};
-
-export function getPortfolios(): ApiResult<ResponseBody<typeof portfolioListSchema>> {
-    return api.get<ResponseBody<typeof portfolioListSchema>>('/portfolios');
+export function getPortfolios(): ApiResult<AnswerOf<'GET /api/portfolios'>> {
+    return call('GET /api/portfolios');
 }
 
 export function getPortfolio(number: number): ApiResult<PortfolioSummary> {
-    return api.get<PortfolioSummary>(`/portfolios/${number}`);
+    return call('GET /api/portfolios/:number', { params: { number } });
 }
 
 export function deletePortfolio(number: number): ApiResult<void> {
-    return api.delete<void>(`/portfolios/${number}`);
+    return call('DELETE /api/portfolios/:number', { params: { number } });
 }
 
-export function setBaseValue(number: number, baseValue: number): ApiResult<ResponseBody<typeof baseValueSchema>> {
-    return api.put<ResponseBody<typeof baseValueSchema>>(`/portfolios/${number}/base-value`, { baseValue });
+export function setBaseValue(
+    number: number,
+    baseValue: number,
+): ApiResult<AnswerOf<'PUT /api/portfolios/:number/base-value'>> {
+    return call('PUT /api/portfolios/:number/base-value', { params: { number }, body: { baseValue } });
 }
 
 /**
@@ -52,8 +39,11 @@ export function setBaseValue(number: number, baseValue: number): ApiResult<Respo
  * new ceiling and is refused when the book already held no longer fits, so this
  * can fail on a portfolio that has not been touched in months.
  */
-export function setLeverage(number: number, leverage: number): ApiResult<ResponseBody<typeof leverageSchema>> {
-    return api.put<ResponseBody<typeof leverageSchema>>(`/portfolios/${number}/leverage`, { leverage });
+export function setLeverage(
+    number: number,
+    leverage: number,
+): ApiResult<AnswerOf<'PUT /api/portfolios/:number/leverage'>> {
+    return call('PUT /api/portfolios/:number/leverage', { params: { number }, body: { leverage } });
 }
 
 /** The commission written onto a trade that does not carry its own. Changing it
@@ -61,29 +51,30 @@ export function setLeverage(number: number, leverage: number): ApiResult<Respons
 export function setDefaultCommission(
     number: number,
     commission: number,
-): ApiResult<ResponseBody<typeof defaultCommissionSchema>> {
-    return api.put<ResponseBody<typeof defaultCommissionSchema>>(`/portfolios/${number}/commission`, { commission });
+): ApiResult<AnswerOf<'PUT /api/portfolios/:number/commission'>> {
+    return call('PUT /api/portfolios/:number/commission', { params: { number }, body: { commission } });
 }
 
 export function setBenchmarks(
     number: number,
     symbols: readonly string[],
-): ApiResult<ResponseBody<typeof benchmarksSchema>> {
-    return api.put<ResponseBody<typeof benchmarksSchema>>(`/portfolios/${number}/benchmarks`, { symbols });
+): ApiResult<AnswerOf<'PUT /api/portfolios/:number/benchmarks'>> {
+    return call('PUT /api/portfolios/:number/benchmarks', { params: { number }, body: { symbols: [...symbols] } });
 }
 
 export function exportPortfolio(number: number): ApiResult<PortfolioExport> {
-    return api.get<PortfolioExport>(`/portfolios/${number}/export`);
+    return call('GET /api/portfolios/:number/export', { params: { number } });
 }
 
 /**
- * Replace the trade log wholesale. Everything already in the slot is discarded.
- * Answers with the number of trades accepted, not a summary: the replay has
- * already run, so the caller re-reads `getPortfolio` for the settled state.
+ * Replace the trade log wholesale with the one in `json`, a file's text.
+ * Everything already in the slot is discarded. Answers with the number of trades accepted, not a
+ * summary: the replay has already run, so the caller re-reads `getPortfolio`
+ * for the settled state.
  */
 export function importPortfolio(
     number: number,
-    payload: PortfolioImport,
-): ApiResult<ResponseBody<typeof importResultSchema>> {
-    return api.post<ResponseBody<typeof importResultSchema>>(`/portfolios/${number}/import`, payload);
+    json: string,
+): ApiResult<AnswerOf<'POST /api/portfolios/:number/import'>> {
+    return call('POST /api/portfolios/:number/import', { params: { number }, json });
 }

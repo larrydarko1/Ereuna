@@ -1020,6 +1020,8 @@
         "INTERNAL": "Bizim tarafımızda bir şeyler ters gitti. Lütfen tekrar deneyin.",
         "NOT_FOUND": "Böyle bir şey yok.",
         "FORBIDDEN": "Buna erişiminiz yok.",
+        "MALFORMED_REQUEST": "İstek okunamadı. Lütfen tekrar deneyin.",
+        "REQUEST_TOO_LARGE": "Bu, tek seferde göndermek için fazla büyük.",
         "MISSING_TOKEN": "Bunu yapmak için oturum açın.",
         "INVALID_TOKEN": "Oturumunuz geçerli değil. Lütfen tekrar oturum açın.",
         "INVALID_TOKEN_TYPE": "Oturumunuz geçerli değil. Lütfen tekrar oturum açın.",

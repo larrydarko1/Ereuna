@@ -1,7 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 
-import type { PortfolioValuePoint, TradeRow } from '@ereuna/shared';
+import type { CashAction, PortfolioValuePoint, TradeInput } from '@ereuna/shared';
 
 import MonthlyPanel from '@/components/portfolio/MonthlyPanel.vue';
 import { i18n } from '@/i18n';
@@ -9,8 +9,7 @@ import { formatCurrency, formatPercent } from '@/utils/formatters';
 
 const point = (date: string, value: number): PortfolioValuePoint => ({ date, value });
 
-const trade = (over: Partial<TradeRow> = {}): TradeRow => ({
-    id: 't1',
+const trade = (over: Partial<Extract<TradeInput, { symbol: string }>> = {}): TradeInput => ({
     symbol: 'AAPL',
     action: 'buy',
     shares: 10,
@@ -18,11 +17,16 @@ const trade = (over: Partial<TradeRow> = {}): TradeRow => ({
     total: 1900,
     commission: 1,
     tradeDate: '2026-01-15',
-    createdAt: '2026-01-15T00:00:00.000Z',
     ...over,
 });
 
-const panel = (valueHistory: PortfolioValuePoint[], trades: TradeRow[] = []): VueWrapper =>
+const cash = (action: CashAction, total: number, tradeDate = '2026-01-15'): TradeInput => ({
+    action,
+    total,
+    tradeDate,
+});
+
+const panel = (valueHistory: PortfolioValuePoint[], trades: TradeInput[] = []): VueWrapper =>
     mount(MonthlyPanel, { props: { valueHistory, trades } });
 
 const rows = (wrapper: VueWrapper): string[][] =>
@@ -60,10 +64,7 @@ describe('MonthlyPanel', () => {
     });
 
     it('opens the first month at its close less what was paid in', () => {
-        const wrapper = panel(
-            [point('2026-01-31', 100_000)],
-            [trade({ action: 'deposit', symbol: null, total: 100_000 })],
-        );
+        const wrapper = panel([point('2026-01-31', 100_000)], [cash('deposit', 100_000)]);
 
         expect(rows(wrapper)[0]?.[1]).toBe(formatCurrency(0));
         expect(rows(wrapper)[0]?.[4]).toBe(formatCurrency(0));
@@ -72,10 +73,7 @@ describe('MonthlyPanel', () => {
     it('nets deposits against withdrawals inside one month', () => {
         const wrapper = panel(
             [point('2026-01-31', 100_000), point('2026-02-28', 105_000)],
-            [
-                trade({ id: 'd', action: 'deposit', symbol: null, total: 10_000, tradeDate: '2026-02-10' }),
-                trade({ id: 'w', action: 'withdrawal', symbol: null, total: 4_000, tradeDate: '2026-02-20' }),
-            ],
+            [cash('deposit', 10_000, '2026-02-10'), cash('withdrawal', 4_000, '2026-02-20')],
         );
 
         expect(rows(wrapper)[0]?.[3]).toBe(formatCurrency(6_000));
@@ -84,7 +82,7 @@ describe('MonthlyPanel', () => {
     it('takes cash flow out of the profit, so a deposit is not a gain', () => {
         const wrapper = panel(
             [point('2026-01-31', 100_000), point('2026-02-28', 110_000)],
-            [trade({ action: 'deposit', symbol: null, total: 10_000, tradeDate: '2026-02-10' })],
+            [cash('deposit', 10_000, '2026-02-10')],
         );
 
         expect(rows(wrapper)[0]?.[4]).toBe(formatCurrency(0));
@@ -98,10 +96,7 @@ describe('MonthlyPanel', () => {
     });
 
     it('reports no return rather than an infinite one for a month that opened at nothing', () => {
-        const wrapper = panel(
-            [point('2026-01-31', 100_000)],
-            [trade({ action: 'deposit', symbol: null, total: 100_000, tradeDate: '2026-01-02' })],
-        );
+        const wrapper = panel([point('2026-01-31', 100_000)], [cash('deposit', 100_000, '2026-01-02')]);
 
         expect(rows(wrapper)[0]?.[5]).toBe('—');
     });
@@ -110,9 +105,9 @@ describe('MonthlyPanel', () => {
         const wrapper = panel(
             [point('2026-01-31', 100_000)],
             [
-                trade({ id: 'a', tradeDate: '2026-01-10' }),
-                trade({ id: 'b', action: 'sell', tradeDate: '2026-01-20' }),
-                trade({ id: 'c', action: 'deposit', symbol: null, tradeDate: '2026-01-05' }),
+                trade({ tradeDate: '2026-01-10' }),
+                trade({ action: 'sell', tradeDate: '2026-01-20' }),
+                cash('deposit', 1900, '2026-01-05'),
             ],
         );
 

@@ -1020,6 +1020,8 @@
         "INTERNAL": "Aliquid apud nos erravit. Quaeso itera.",
         "NOT_FOUND": "Illud non exstat.",
         "FORBIDDEN": "Ad illud aditum non habes.",
+        "MALFORMED_REQUEST": "Petitio legi non potuit. Quaeso itera.",
+        "REQUEST_TOO_LARGE": "Nimium est ut semel mittatur.",
         "MISSING_TOKEN": "Ingredere ut hoc facias.",
         "INVALID_TOKEN": "Sessio tua non valet. Quaeso iterum ingredere.",
         "INVALID_TOKEN_TYPE": "Sessio tua non valet. Quaeso iterum ingredere.",

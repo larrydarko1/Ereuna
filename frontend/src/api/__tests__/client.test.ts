@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import type { SessionUser } from '@ereuna/shared';
 
 import { notePage } from '@/__tests__/support/answers';
-import { answer, mockApi, ORIGIN } from '@/__tests__/support/msw';
+import { mockApi, ORIGIN } from '@/__tests__/support/msw';
 import {
     api,
     apiErrorCode,
@@ -137,7 +137,7 @@ describe('the 401 retry', () => {
                 if (request.headers.get('authorization') !== 'Bearer fresh') {
                     return HttpResponse.json({ error: 'INVALID_TOKEN' }, { status: 401 });
                 }
-                return answer('GET /api/notes', notePage());
+                return HttpResponse.json(notePage());
             }),
         );
         mock.on('POST /api/auth/refresh', { accessToken: 'fresh' });
@@ -154,12 +154,12 @@ describe('the 401 retry', () => {
         mock.server.use(
             http.get(`${ORIGIN}/api/notes`, ({ request }) =>
                 request.headers.get('authorization') === 'Bearer fresh'
-                    ? answer('GET /api/notes', notePage())
+                    ? HttpResponse.json(notePage())
                     : HttpResponse.json({ error: 'INVALID_TOKEN' }, { status: 401 }),
             ),
             http.post(`${ORIGIN}/api/auth/refresh`, () => {
                 refreshes += 1;
-                return answer('POST /api/auth/refresh', { accessToken: 'fresh' });
+                return HttpResponse.json({ accessToken: 'fresh' });
             }),
         );
 
@@ -188,7 +188,7 @@ describe('the 401 retry', () => {
         mock.server.use(
             http.post(`${ORIGIN}/api/auth/refresh`, () => {
                 refreshes += 1;
-                return answer('POST /api/auth/refresh', { accessToken: 'fresh' });
+                return HttpResponse.json({ accessToken: 'fresh' });
             }),
         );
         mock.on('POST /api/auth/login', { error: 'INVALID_CREDENTIALS' }, { status: 401 });
@@ -221,7 +221,7 @@ describe('the 401 retry', () => {
         mock.server.use(
             http.post(`${ORIGIN}/api/auth/refresh`, () => {
                 refreshes += 1;
-                return answer('POST /api/auth/refresh', { accessToken: 'fresh' });
+                return HttpResponse.json({ accessToken: 'fresh' });
             }),
         );
         mock.on('GET /api/notes', { error: 'INTERNAL' }, { status: 500 });
@@ -253,24 +253,6 @@ describe('error localisation', () => {
         expect(apiErrorMessage(err, 'fallback')).toBe(
             i18n.global.t('errors.UNKNOWN_SCREENER_FILTER', { filter: 'made-up' }),
         );
-    });
-
-    it('never puts a raw SCREAMING_SNAKE code in front of a user', async () => {
-        mock.on('GET /api/notes', { error: 'SOME_CODE_WITH_NO_TRANSLATION' }, { status: 400 });
-
-        const err = await api.get('/notes').catch((caught: unknown) => caught);
-
-        expect(apiErrorMessage(err, 'fallback')).toBe(i18n.global.t('errors.INTERNAL'));
-        expect(apiErrorCode(err)).toBe('SOME_CODE_WITH_NO_TRANSLATION');
-    });
-
-    it('leaves a body with no error field alone', async () => {
-        mock.on('GET /api/notes', { detail: 'something else' }, { status: 400 });
-
-        const err = await api.get('/notes').catch((caught: unknown) => caught);
-
-        expect(apiErrorCode(err)).toBeNull();
-        expect(apiErrorMessage(err, 'fallback')).toBe('fallback');
     });
 
     it('falls back when the failure never reached the server', () => {

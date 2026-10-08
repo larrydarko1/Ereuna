@@ -38,9 +38,9 @@ describe('credential changes', () => {
     it('sends both passwords on a password change', async () => {
         mock.on('PATCH /api/account/password', null, { status: 204 });
 
-        await changePassword('old', 'new');
+        await changePassword('old', 'N3w-pass!');
 
-        expect(mock.last().body).toEqual({ currentPassword: 'old', newPassword: 'new' });
+        expect(mock.last().body).toEqual({ currentPassword: 'old', newPassword: 'N3w-pass!' });
     });
 
     it('re-authenticates a username change', async () => {
@@ -63,9 +63,9 @@ describe('credential changes', () => {
     it('sets a password after a recovery login with no current password', async () => {
         mock.on('POST /api/account/recovery-password', null, { status: 204 });
 
-        await setPasswordAfterRecovery('new');
+        await setPasswordAfterRecovery('N3w-pass!');
 
-        expect(mock.last().body).toEqual({ newPassword: 'new' });
+        expect(mock.last().body).toEqual({ newPassword: 'N3w-pass!' });
     });
 });
 

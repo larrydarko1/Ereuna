@@ -4,28 +4,22 @@
  * identifies it, and carrying the symbol as well only creates a second way for
  * the two to disagree.
  */
-import type { NotePage, NoteRow } from '@ereuna/shared';
+import type { NotePage, NoteRow, QueryOf } from '@ereuna/shared';
 
-import { api, type ApiResult } from '@/api/client';
+import { call, type ApiResult } from '@/api/client';
 
-type NoteQuery = {
-    page?: number;
-    limit?: number;
-    symbol?: string;
-};
-
-export function getNotes(query: NoteQuery = {}): ApiResult<NotePage> {
-    return api.get<NotePage>('/notes', { params: query });
+export function getNotes(query: QueryOf<'GET /api/notes'> = {}): ApiResult<NotePage> {
+    return call('GET /api/notes', { query });
 }
 
 export function createNote(symbol: string, message: string): ApiResult<NoteRow> {
-    return api.post<NoteRow>('/notes', { symbol, message });
+    return call('POST /api/notes', { body: { symbol, message } });
 }
 
 export function updateNote(id: string, message: string): ApiResult<NoteRow> {
-    return api.patch<NoteRow>(`/notes/${id}`, { message });
+    return call('PATCH /api/notes/:id', { params: { id }, body: { message } });
 }
 
 export function deleteNote(id: string): ApiResult<void> {
-    return api.delete<void>(`/notes/${id}`);
+    return call('DELETE /api/notes/:id', { params: { id } });
 }

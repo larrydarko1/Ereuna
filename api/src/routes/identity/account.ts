@@ -12,34 +12,25 @@
  * POST   /api/account/recovery-password — set a password after a recovery-code login
  */
 import { Router } from 'express';
-import { z } from 'zod';
 
-import { recoveryCodeCountSchema, recoveryCodesSchema, sessionUserSchema, totpEnrolmentSchema } from '@ereuna/shared';
+import {
+    changePasswordBody,
+    changeUsernameBody,
+    confirmPasswordBody,
+    disableTotpBody,
+    newPasswordBody,
+    recoveryCodeCountSchema,
+    recoveryCodesSchema,
+    sessionUserSchema,
+    totpCodeBody,
+    totpEnrolmentSchema,
+} from '@ereuna/shared';
 
-import { passwordSchema, requiredString, usernameSchema } from '@/lib/schemas.js';
 import { send } from '@/lib/send.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';
 import * as authService from '@/services/auth/index.js';
 import * as userService from '@/services/user/index.js';
-
-const changePasswordBody = z.object({
-    currentPassword: requiredString('Current password is required'),
-    newPassword: passwordSchema,
-});
-
-const changeUsernameBody = z.object({
-    password: requiredString('Password is required'),
-    username: usernameSchema,
-});
-
-const confirmPasswordBody = z.object({ password: requiredString('Password is required') });
-const totpCodeBody = z.object({ code: requiredString('Two-factor code is required') });
-const disableTotpBody = z.object({
-    password: requiredString('Password is required'),
-    code: requiredString('Two-factor code is required'),
-});
-const newPasswordBody = z.object({ newPassword: passwordSchema });
 
 export const router = Router();
 

@@ -19,7 +19,7 @@ import { readonly, ref, type DeepReadonly, type Ref } from 'vue';
 import type { Preferences } from '@ereuna/shared';
 
 import { onSessionCleared } from '@/api/client';
-import { getPreferences, updatePreferences } from '@/api/preferences';
+import { getPreferences, updatePreferences, type PreferencesPatch } from '@/api/preferences';
 
 type UsePreferencesReturn = {
     preferences: DeepReadonly<Ref<Preferences | null>>;
@@ -58,7 +58,7 @@ export function loadPreferences(force = false): Promise<Preferences> {
 }
 
 /** Apply a change locally, then persist it. A rejection restores what was there. */
-export async function patchPreferences(patch: Partial<Preferences>): Promise<void> {
+export async function patchPreferences(patch: PreferencesPatch): Promise<void> {
     const previous = preferences.value;
     if (previous !== null) preferences.value = { ...previous, ...patch };
 

@@ -10,7 +10,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import { config as loadEnv } from 'dotenv';
 import { resolve } from 'node:path';
-import { FRONTEND_URL, API_URL } from './support/constants';
+import { FRONTEND_URL, API_URL, API_LOG } from './support/constants';
 
 const e2eDir = import.meta.dirname;
 // `quiet` because anything that loads this config inherits its stdout, and
@@ -20,6 +20,7 @@ const e2eEnv = loadEnv({ path: resolve(e2eDir, '.env.e2e'), quiet: true }).parse
 export default defineConfig({
     testDir: './tests',
     globalSetup: './support/global-setup.ts',
+    globalTeardown: './support/global-teardown.ts',
     forbidOnly: !!process.env['CI'],
     retries: process.env['CI'] ? 1 : 0,
     workers: process.env['CI'] ? 2 : 1,
@@ -40,7 +41,8 @@ export default defineConfig({
             timeout: 120_000,
             stdout: 'pipe',
             stderr: 'pipe',
-            env: e2eEnv,
+            // A server already running (reuseExistingServer) keeps its own LOG_FILE, if it has one
+            env: { ...e2eEnv, LOG_FILE: API_LOG },
         },
         {
             name: 'frontend',

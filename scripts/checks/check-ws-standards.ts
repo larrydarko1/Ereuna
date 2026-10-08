@@ -29,6 +29,13 @@
  * `sessionTeardown` — the client registers `disconnectSocket` with
  * `onSessionCleared`, so the connection dies with the session rather than outliving
  * the sign-out.
+ *
+ * `events` is the shared table of what the gateway pushes, each event with the
+ * schema its payload is held to (packages/shared/src/events.ts). The gateway pushes
+ * only through `checkedPayload()`, which parses with it, and the frontend's socket is
+ * typed from it. The same file carries `CLIENT_EVENTS`, the two inbound watches,
+ * which the gateway parses with and the client's emits are typed by; the gate reads
+ * only the outbound table.
  */
 import { checkWsStandards } from '@larrydarko/lint-config/gates/ws-standards';
 
@@ -46,4 +53,5 @@ checkWsStandards({
     authModule: { file: 'api/src/middleware/auth.ts', fn: 'verifyAccessToken' },
     rooms: { join: 'helpers' },
     sessionTeardown: 'onSessionCleared',
+    events: { file: 'packages/shared/src/events.ts', table: 'SERVER_EVENTS' },
 });

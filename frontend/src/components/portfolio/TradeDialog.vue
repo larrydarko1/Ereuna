@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import type { TradeAction, TradeInput, TradeRow } from '@ereuna/shared';
+import { type PositionAction, type TradeInput, type TradeRow, isOneOf, POSITION_ACTIONS } from '@ereuna/shared';
 
 import AppDialog from '@/components/ui/AppDialog.vue';
 import AppField from '@/components/ui/AppField.vue';
@@ -18,7 +18,7 @@ const {
     /** The trade being corrected, or null when recording a new one. */
     editing?: TradeRow | null;
     /** Opening state, used when closing a position from the holdings table. */
-    preset?: { action: TradeAction; symbol: string; shares: number } | null;
+    preset?: { action: PositionAction; symbol: string; shares: number } | null;
     defaultCommission?: number;
     error?: string | null;
     saving?: boolean;
@@ -26,13 +26,9 @@ const {
 
 const emit = defineEmits<{ close: []; submit: [trade: TradeInput] }>();
 
-/** Cash movements are recorded in their own dialog, so only the four equity
- *  actions are offered here. */
-const ACTIONS: readonly TradeAction[] = ['buy', 'sell', 'short', 'cover'];
-
 const { t } = useI18n();
 
-const action = ref<TradeAction>(editing?.action ?? preset?.action ?? 'buy');
+const action = ref<PositionAction>(startingAction());
 const symbol = ref(editing?.symbol ?? preset?.symbol ?? '');
 const shares = ref(String(editing?.shares ?? preset?.shares ?? ''));
 const price = ref(String(editing?.price ?? ''));
@@ -60,6 +56,13 @@ function submit(): void {
         tradeDate: tradeDate.value,
     });
 }
+/** Cash movements are recorded and corrected in their own dialog. */
+function startingAction(): PositionAction {
+    const wanted = editing?.action ?? preset?.action ?? 'buy';
+    if (!isOneOf(POSITION_ACTIONS, wanted)) throw new Error('A cash movement is corrected in the cash dialog');
+    return wanted;
+}
+
 /** A field's value as a number, with a half-typed or empty field reading as zero. */
 function amount(input: string): number {
     const parsed = Number(input);
@@ -77,7 +80,7 @@ function amount(input: string): number {
             <fieldset class="form-options">
                 <legend class="form-legend">{{ t('portfolio.action') }}</legend>
                 <label
-                    v-for="option in ACTIONS"
+                    v-for="option in POSITION_ACTIONS"
                     :key="option"
                     class="form-option">
                     <input

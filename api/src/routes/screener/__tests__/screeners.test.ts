@@ -324,11 +324,12 @@ describe('PUT one filter', () => {
         expect(response.body).toEqual({ error: 'FILTER_RANGE_INVALID', params: { filter: 'new-high' } });
     });
 
-    it('names the filter when the registry has never heard of it', async () => {
+    it('refuses a key the registry does not hold before any setter runs', async () => {
         const response = await put('made-up', { min: 1 });
 
         expect(response.status).toBe(422);
-        expect(response.body).toEqual({ error: 'UNKNOWN_SCREENER_FILTER', params: { filter: 'made-up' } });
+        expect(response.body).toMatchObject({ error: 'VALIDATION_FAILED', errors: [{ field: 'filter' }] });
+        expect(screenerService.setRangeFilter).not.toHaveBeenCalled();
     });
 
     it('refuses more enum values than a filter may carry', async () => {

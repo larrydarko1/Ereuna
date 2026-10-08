@@ -21,6 +21,7 @@ import type {
     WatchlistSummary,
 } from '@ereuna/shared';
 
+import { objectId } from '@/__tests__/support/values';
 const EPOCH = '2026-01-01T00:00:00.000Z';
 
 const POINT = { time: '2026-05-04', price: 88, x: 10, y: 20 };
@@ -51,7 +52,7 @@ export function preferences(over: Partial<Preferences> = {}): Preferences {
 
 export function noteRow(over: Partial<NoteRow> = {}): NoteRow {
     return {
-        id: 'n1',
+        id: objectId(1),
         symbol: 'AAPL',
         message: 'watch the 50-day',
         createdAt: EPOCH,
@@ -75,7 +76,7 @@ export function notePage(
 
 export function tradeRow(over: Partial<TradeRow> = {}): TradeRow {
     return {
-        id: 't1',
+        id: objectId(1),
         symbol: 'AAPL',
         action: 'buy',
         shares: 10,

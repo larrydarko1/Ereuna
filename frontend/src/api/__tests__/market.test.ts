@@ -31,11 +31,11 @@ describe('market reads', () => {
         expect(mock.last().path).toBe('/api/market/AAPL/financials');
     });
 
-    it('encodes a symbol carrying a slash', async () => {
-        mock.on('GET /api/market/:symbol/financials', { symbol: 'BRK/B', annual: [], quarterly: [] });
+    it('encodes a symbol carrying a character a path segment cannot hold', async () => {
+        mock.on('GET /api/market/:symbol/financials', { symbol: '^GSPC', annual: [], quarterly: [] });
 
-        await getFinancials('BRK/B');
+        await getFinancials('^GSPC');
 
-        expect(mock.last().path).toBe('/api/market/BRK%2FB/financials');
+        expect(mock.last().path).toBe('/api/market/%5EGSPC/financials');
     });
 });

@@ -1020,6 +1020,8 @@
         "INTERNAL": "Xi ħaġa marret ħażin min-naħa tagħna. Jekk jogħġbok erġa’ pprova.",
         "NOT_FOUND": "Dan ma jeżistix.",
         "FORBIDDEN": "M’għandekx aċċess għal dan.",
+        "MALFORMED_REQUEST": "It-talba ma setgħetx tinqara. Jekk jogħġbok erġa’ pprova.",
+        "REQUEST_TOO_LARGE": "Dan huwa wisq biex jintbagħat f’daqqa.",
         "MISSING_TOKEN": "Idħol biex tagħmel dan.",
         "INVALID_TOKEN": "Is-sessjoni tiegħek mhijiex valida. Jekk jogħġbok erġa’ idħol.",
         "INVALID_TOKEN_TYPE": "Is-sessjoni tiegħek mhijiex valida. Jekk jogħġbok erġa’ idħol.",

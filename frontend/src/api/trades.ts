@@ -8,28 +8,28 @@
  * zero — the log records what the user meant, so covering more than is short is
  * a rejectable mistake instead of a silent flip into a long.
  */
-import type { TradeInput, TradePage, TradeRow } from '@ereuna/shared';
+import type { BodyOf, QueryOf, TradePage, TradeRow } from '@ereuna/shared';
 
-import { api, type ApiResult } from '@/api/client';
+import { call, type ApiResult } from '@/api/client';
 
-type TradeQuery = {
-    page?: number;
-    limit?: number;
-    symbol?: string;
-};
+/** One trade or cash movement, as the API takes it. */
+type TradeBody = BodyOf<'POST /api/portfolios/:number/trades'>;
 
-export function getTrades(number: number, query: TradeQuery = {}): ApiResult<TradePage> {
-    return api.get<TradePage>(`/portfolios/${number}/trades`, { params: query });
+export function getTrades(
+    number: number,
+    query: QueryOf<'GET /api/portfolios/:number/trades'> = {},
+): ApiResult<TradePage> {
+    return call('GET /api/portfolios/:number/trades', { params: { number }, query });
 }
 
-export function addTrade(number: number, trade: TradeInput): ApiResult<TradeRow> {
-    return api.post<TradeRow>(`/portfolios/${number}/trades`, trade);
+export function addTrade(number: number, trade: TradeBody): ApiResult<TradeRow> {
+    return call('POST /api/portfolios/:number/trades', { params: { number }, body: trade });
 }
 
-export function updateTrade(number: number, id: string, trade: TradeInput): ApiResult<TradeRow> {
-    return api.patch<TradeRow>(`/portfolios/${number}/trades/${id}`, trade);
+export function updateTrade(number: number, id: string, trade: TradeBody): ApiResult<TradeRow> {
+    return call('PATCH /api/portfolios/:number/trades/:id', { params: { number, id }, body: trade });
 }
 
 export function deleteTrade(number: number, id: string): ApiResult<void> {
-    return api.delete<void>(`/portfolios/${number}/trades/${id}`);
+    return call('DELETE /api/portfolios/:number/trades/:id', { params: { number, id } });
 }

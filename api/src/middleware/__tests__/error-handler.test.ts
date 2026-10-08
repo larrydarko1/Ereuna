@@ -1,4 +1,4 @@
-import type { RequestHandler } from 'express';
+import express, { type RequestHandler } from 'express';
 import pino from 'pino';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ZodError, z } from 'zod';
@@ -165,5 +165,48 @@ describe('anything else', () => {
     it('handles a thrown non-Error without itself throwing', async () => {
         const { call } = await throwing('just a string');
         await expect(call('/boom').then((r) => r.status)).resolves.toBe(500);
+    });
+});
+
+describe('a body the parser refused', () => {
+    // The logger before the parser, as index.ts orders requestId: a refused body
+    // that reaches the handler with nowhere to log is the 500 this branch replaced
+    async function parsing(): Promise<Harness> {
+        logs.length = 0;
+        harness = await serve(
+            (app) => {
+                app.use(recordingLogger, express.json({ limit: '1mb' }));
+                app.post('/t', (_req, res) => {
+                    res.json({ ok: true });
+                });
+            },
+            { parseJson: false },
+        );
+        return harness;
+    }
+
+    it('answers malformed JSON with a 400 the client can read, not a 500', async () => {
+        const { call } = await parsing();
+        const response = await call('/t', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: '{"shares": 1',
+        });
+
+        expect(response.status).toBe(400);
+        expect(response.body).toEqual({ error: 'MALFORMED_REQUEST' });
+        expect(logs.map((entry) => entry.level)).toEqual(['warn']);
+    });
+
+    it('answers a body over the size cap with a 413', async () => {
+        const { call } = await parsing();
+        const response = await call('/t', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ blob: 'x'.repeat(1024 * 1024 + 1) }),
+        });
+
+        expect(response.status).toBe(413);
+        expect(response.body).toEqual({ error: 'REQUEST_TOO_LARGE' });
     });
 });

@@ -1020,6 +1020,8 @@
         "INTERNAL": "Io misfunkciis ĉe ni. Bonvolu reprovi.",
         "NOT_FOUND": "Tio ne ekzistas.",
         "FORBIDDEN": "Vi ne havas aliron al tio.",
+        "MALFORMED_REQUEST": "La peto ne estis legebla. Bonvolu reprovi.",
+        "REQUEST_TOO_LARGE": "Tio estas tro multe por sendi samtempe.",
         "MISSING_TOKEN": "Ensalutu por fari tion.",
         "INVALID_TOKEN": "Via seanco ne validas. Bonvolu reensaluti.",
         "INVALID_TOKEN_TYPE": "Via seanco ne validas. Bonvolu reensaluti.",

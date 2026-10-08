@@ -14,7 +14,6 @@ import {
     setBenchmarks,
     setDefaultCommission,
     setLeverage,
-    type PortfolioImport,
 } from '@/api/portfolio';
 import { i18n } from '@/i18n';
 
@@ -37,7 +36,7 @@ export type UsePortfoliosReturn = {
     saveBenchmarks: (symbols: readonly string[]) => Promise<void>;
     reset: () => Promise<void>;
     exportCurrent: () => Promise<PortfolioExport>;
-    importInto: (payload: PortfolioImport) => Promise<number>;
+    importInto: (json: string) => Promise<number>;
 };
 
 /** Slots are 0-based and the count is fixed by the API. */
@@ -152,10 +151,10 @@ export function usePortfolios(): UsePortfoliosReturn {
         return data;
     }
 
-    async function importInto(payload: PortfolioImport): Promise<number> {
+    async function importInto(json: string): Promise<number> {
         let imported = 0;
         await mutate(async () => {
-            const { data } = await importPortfolio(selected.value, payload);
+            const { data } = await importPortfolio(selected.value, json);
             imported = data.imported;
         });
         return imported;

@@ -5,8 +5,8 @@ import { elementOf } from '@/__tests__/support/dom';
 import MaFilter from '@/components/screener/MaFilter.vue';
 import { i18n } from '@/i18n';
 
-const DIRECTIONS = ['abv', 'blw'];
-const TARGETS = ['price', '50', '200'];
+const DIRECTIONS = ['abv', 'blw'] as const;
+const TARGETS = ['price', '50', '200'] as const;
 
 const filter = (props: Record<string, unknown> = {}): VueWrapper =>
     mount(MaFilter, { props: { directions: DIRECTIONS, targets: TARGETS, ...props } });

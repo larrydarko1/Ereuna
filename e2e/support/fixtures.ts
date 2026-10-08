@@ -1,9 +1,10 @@
 import { createLeakRecorder, type LeakRecorder } from '@larrydarko/lint-config/response-leaks';
+import { createServerErrorRecorder, type ServerErrorRecorder } from '@larrydarko/lint-config/server-errors';
 import { test as base, expect, type BrowserContext, type Page } from '@playwright/test';
 import type { Redis } from 'ioredis';
 import { MongoClient } from 'mongodb';
 
-import { FRONTEND_URL } from './constants';
+import { API_LOG, FRONTEND_URL } from './constants';
 import { registerViaUi, uniqueUser, type TestUser } from './helpers';
 import { createRedis, clearRateLimitBuckets } from './rate-limit';
 import { SENSITIVE_FIELDS } from './sensitive-fields';
@@ -12,6 +13,7 @@ type TestFixtures = {
     authedPage: Page;
     freshRateLimits: void;
     noResponseLeaks: void;
+    noServerErrors: void;
 };
 
 type WorkerFixtures = {
@@ -19,6 +21,7 @@ type WorkerFixtures = {
     authedUser: TestUser;
     redis: Redis;
     leaks: LeakRecorder;
+    serverErrors: ServerErrorRecorder;
 };
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
@@ -62,8 +65,24 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
         },
         { auto: true },
     ],
-    context: async ({ context, leaks }, use) => {
+    serverErrors: [
+        // eslint-disable-next-line no-empty-pattern -- Playwright reads a fixture's dependencies from its destructured first argument, so a fixture with none must still destructure
+        async ({}, use) => {
+            await use(createServerErrorRecorder({ logFile: API_LOG }));
+        },
+        { scope: 'worker' },
+    ],
+    // A 5xx fails the test that received it, with what the API logged for that request
+    noServerErrors: [
+        async ({ serverErrors }, use) => {
+            await use();
+            expect(await serverErrors.drain(), 'API requests failed with a server error').toEqual([]);
+        },
+        { auto: true },
+    ],
+    context: async ({ context, leaks, serverErrors }, use) => {
         leaks.watch(context);
+        serverErrors.watch(context);
         await use(context);
     },
     authedUser: [
@@ -75,9 +94,10 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     ],
 
     authedContext: [
-        async ({ browser, authedUser, leaks }, use) => {
+        async ({ browser, authedUser, leaks, serverErrors }, use) => {
             const context = await browser.newContext({ baseURL: FRONTEND_URL });
             leaks.watch(context);
+            serverErrors.watch(context);
 
             const page = await context.newPage();
             await registerViaUi(page, authedUser);

@@ -17,6 +17,7 @@ import type {
     ValuedPosition,
 } from '@ereuna/shared';
 
+import { AppError } from '@/lib/app-error.js';
 import { getDb } from '@/lib/db.js';
 import { closeOnOrAfter, latestCloses } from '@/services/market/index.js';
 import { getPortfolio } from '@/services/portfolio/portfolio-crud.js';
@@ -90,16 +91,11 @@ export async function exportPortfolio(userId: ObjectId, number: number): Promise
 
 /** Cash movements name no instrument, no share count and no price. */
 function toExportedTrade(doc: TradeDoc): TradeInput {
-    const cash = doc.action === 'deposit' || doc.action === 'withdrawal';
-
-    return {
-        action: doc.action,
-        ...(cash || doc.symbol === null ? {} : { symbol: doc.symbol }),
-        ...(cash ? {} : { shares: doc.shares, price: doc.price }),
-        total: doc.total,
-        commission: doc.commission,
-        tradeDate: doc.tradeDate.toISOString(),
-    };
+    const movement = { total: doc.total, commission: doc.commission, tradeDate: doc.tradeDate.toISOString() };
+    if (doc.action === 'deposit' || doc.action === 'withdrawal') return { action: doc.action, ...movement };
+    // Only a write that skipped the trade schema leaves a trade without its instrument
+    if (doc.symbol === null) throw new AppError(500, 'INTERNAL', 'A stored trade names no symbol');
+    return { action: doc.action, symbol: doc.symbol, shares: doc.shares, price: doc.price, ...movement };
 }
 
 /**

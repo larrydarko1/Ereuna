@@ -168,10 +168,14 @@ function buildTotp(secret: string, username: string): TOTP {
 /**
  * `validate` returns the time-step delta when the code matches and null when it
  * does not — `0` is a valid match, so this must compare against null and never
- * be used as a truthy check.
+ * be used as a truthy check. Only six ASCII digits are compared: otpauth
+ * compares bytes and throws on a code of any other byte length, and six
+ * accented letters are twelve bytes — the API fuzz run's one 5xx.
  */
 function assertValidCode(secret: string, username: string, code: string): void {
-    const delta = buildTotp(secret, username).validate({ token: code, window: config.totp.window });
+    const delta = /^[0-9]{6}$/.test(code)
+        ? buildTotp(secret, username).validate({ token: code, window: config.totp.window })
+        : null;
     if (delta === null) {
         throw new AppError(401, 'INVALID_TWO_FA_CODE', 'Invalid two-factor code', {
             logContext: { op: 'auth.2fa' },

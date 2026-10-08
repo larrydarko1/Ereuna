@@ -124,7 +124,7 @@ export function portfolioExport(): PortfolioExport {
             stats: null,
             valueHistory: [],
         },
-        trades: [{ action: 'deposit', symbol: null, total: 10_000, tradeDate: '2026-01-02' }],
+        trades: [{ action: 'deposit', total: 10_000, tradeDate: '2026-01-02' }],
     };
 }
 

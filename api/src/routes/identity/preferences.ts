@@ -6,29 +6,13 @@
  * DELETE /api/preferences/hidden/:symbol   — un-hide a symbol
  */
 import { Router } from 'express';
-import { z } from 'zod';
 
-import { hiddenSymbolsSchema, preferencesSchema } from '@ereuna/shared';
+import { hiddenSymbolsSchema, preferencesSchema, symbolParam, updatePreferencesBody } from '@ereuna/shared';
 
-import { chartSettingsSchema, panelLayoutSchema, symbolSchema } from '@/lib/schemas.js';
 import { send } from '@/lib/send.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';
 import * as userService from '@/services/user/index.js';
-
-const updatePreferencesBody = z
-    .object({
-        language: z.string().trim().min(2).max(10),
-        theme: z.string().trim().max(40).nullable(),
-        defaultSymbol: symbolSchema,
-        chartSettings: chartSettingsSchema.nullable(),
-        panels: panelLayoutSchema.nullable(),
-        screenerColumns: z.array(z.string().trim().min(1).max(60)).max(100),
-    })
-    .partial()
-    .refine((body) => Object.keys(body).length > 0, { message: 'At least one preference is required' });
-
-const symbolParam = z.object({ symbol: symbolSchema });
 
 export const router = Router();
 

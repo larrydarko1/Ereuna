@@ -15,7 +15,9 @@
  * stand in for authentication there: both path segments allow-listed by a pattern
  * that cannot express a separator or a dot segment, `sendFile` confined to its root
  * with dotfiles denied, and the request origin checked. SVG responses are
- * sandboxed by CSP, because an SVG served from this origin is a document.
+ * sandboxed by CSP, because an SVG served from this origin is a document. The
+ * patterns are `logoParams` in shared's `requests/params.ts` (`params`), because
+ * the contract keeps every request schema out of the route files.
  *
  * NOT CONFIGURED, deliberately, so that their absence is a recorded decision rather
  * than an oversight:
@@ -45,7 +47,7 @@ checkSecurityDrift({
         cookieFile: 'api/src/routes/identity/auth.ts',
         tokensFile: 'api/src/services/auth/auth-tokens.ts',
         throttleFile: 'api/src/services/auth/login-throttle.ts',
-        schemasFile: 'api/src/lib/schemas.ts',
+        schemasFile: 'packages/shared/src/requests/fields.ts',
         sanitizer: { file: 'api/src/middleware/sanitizer.ts', fn: 'sanitizeRequest', strip: 'stripUnsafeKeys' },
     },
     unauthenticatedMounts: ['/api/auth', '/api/logos'],
@@ -54,6 +56,8 @@ checkSecurityDrift({
             file: 'api/src/routes/asset/logos.ts',
             why: 'Ticker logos are loaded by <img>, which carries no token.',
             originCheck: /isSameOrigin\(req\)/,
+            // The contract keeps every request schema in shared, so the segment patterns live there
+            params: { file: 'packages/shared/src/requests/params.ts', schema: 'logoParams' },
         },
     ],
 });

@@ -10,16 +10,12 @@
  * it is what `/api/charts/search` replaced.
  */
 import { Router } from 'express';
-import { z } from 'zod';
 
-import { financialsSchema, holidayCalendarSchema, marketOverviewSchema } from '@ereuna/shared';
+import { financialsSchema, holidayCalendarSchema, marketOverviewSchema, symbolParam } from '@ereuna/shared';
 
-import { symbolSchema } from '@/lib/schemas.js';
 import { send } from '@/lib/send.js';
 import { validated } from '@/middleware/validate.js';
 import * as marketService from '@/services/market/index.js';
-
-const symbolParam = z.object({ symbol: symbolSchema });
 
 export const router = Router();
 

@@ -11,41 +11,37 @@
  * answers a load with, so what comes back is something a tool can load.
  */
 import type {
+    AnswerOf,
     AssetProfile,
-    assetSearchSchema,
     ChartDrawings,
     ChartEvents,
     ChartSeries,
     ChartTimeframe,
-    ResponseBody,
+    QueryOf,
 } from '@ereuna/shared';
 
-import { api, type ApiResult } from '@/api/client';
+import { call, type ApiResult } from '@/api/client';
 
-type SeriesOptions = {
-    timeframe?: ChartTimeframe;
-    before?: string; // Cursor for paging backwards: the newest bars strictly older than this
-};
-
-export function searchAssets(q: string, limit?: number): ApiResult<ResponseBody<typeof assetSearchSchema>> {
-    return api.get<ResponseBody<typeof assetSearchSchema>>('/charts/search', { params: { q, limit } });
+export function searchAssets(q: string, limit?: number): ApiResult<AnswerOf<'GET /api/charts/search'>> {
+    return call('GET /api/charts/search', { query: { q, ...(limit !== undefined && { limit }) } });
 }
 
-export function getSeries(symbol: string, options: SeriesOptions = {}): ApiResult<ChartSeries> {
-    return api.get<ChartSeries>(`/charts/${encodeURIComponent(symbol)}`, { params: options });
+/** `before` is the cursor for paging backwards: the newest bars strictly older than it. */
+export function getSeries(symbol: string, query: QueryOf<'GET /api/charts/:symbol'> = {}): ApiResult<ChartSeries> {
+    return call('GET /api/charts/:symbol', { params: { symbol }, query });
 }
 
 export function getProfile(symbol: string): ApiResult<AssetProfile> {
-    return api.get<AssetProfile>(`/charts/${encodeURIComponent(symbol)}/profile`);
+    return call('GET /api/charts/:symbol/profile', { params: { symbol } });
 }
 
 /** Corporate-action markers. Four of each by default; `all` returns the history. */
 export function getEvents(symbol: string, all = false): ApiResult<ChartEvents> {
-    return api.get<ChartEvents>(`/charts/${encodeURIComponent(symbol)}/events`, { params: { all } });
+    return call('GET /api/charts/:symbol/events', { params: { symbol }, query: { all } });
 }
 
 export function getDrawings(symbol: string, timeframe: ChartTimeframe): ApiResult<ChartDrawings> {
-    return api.get<ChartDrawings>(`/charts/${encodeURIComponent(symbol)}/drawings`, { params: { timeframe } });
+    return call('GET /api/charts/:symbol/drawings', { params: { symbol }, query: { timeframe } });
 }
 
 export function saveDrawings(
@@ -53,11 +49,9 @@ export function saveDrawings(
     timeframe: ChartTimeframe,
     drawings: ChartDrawings,
 ): ApiResult<ChartDrawings> {
-    return api.put<ChartDrawings>(`/charts/${encodeURIComponent(symbol)}/drawings`, drawings, {
-        params: { timeframe },
-    });
+    return call('PUT /api/charts/:symbol/drawings', { params: { symbol }, query: { timeframe }, body: drawings });
 }
 
 export function clearDrawings(symbol: string, timeframe: ChartTimeframe): ApiResult<void> {
-    return api.delete<void>(`/charts/${encodeURIComponent(symbol)}/drawings`, { params: { timeframe } });
+    return call('DELETE /api/charts/:symbol/drawings', { params: { symbol }, query: { timeframe } });
 }

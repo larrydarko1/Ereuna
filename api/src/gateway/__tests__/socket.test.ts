@@ -238,6 +238,18 @@ describe('candle:watch', () => {
         expect(await next(socket, 'candle:update')).toBeNull();
     });
 
+    it('holds back a push its schema refuses, and logs why', async () => {
+        const socket = await client();
+        socket.emit('candle:watch', { symbol: 'AAPL', timeframe: 'daily' });
+        await next(socket, 'candle:update');
+
+        // A price that is no number at all: the bucket the aggregator wrote is broken, not the socket
+        feed.sink?.(message({ timeframe: '1d', timestamp: '2026-03-02T00:00:00.000Z', close: Number.NaN }));
+
+        expect(await next(socket, 'candle:update')).toBeNull();
+        expect(logs).toContain('Socket payload did not match its schema; not sent');
+    });
+
     it('rate limits subscription changes per user', async () => {
         feed.last.set('AAPL:1d', message({ timeframe: '1d', timestamp: '2026-03-02T00:00:00.000Z' }));
         const socket = await client();

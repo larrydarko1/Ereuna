@@ -6,23 +6,32 @@
  */
 import { z } from 'zod';
 
-const tradeActionSchema = z.enum(['buy', 'sell', 'short', 'cover', 'deposit', 'withdrawal']);
+import { CASH_ACTIONS, POSITION_ACTIONS } from '#db/collections.js';
 
-/**
- * One trade as the client writes it, and as an export hands it back.
- * `shares` and `price` are omitted on a cash movement rather than zeroed: a
- * deposit that names a share count is a malformed deposit, and an export has to
- * round-trip through the import that rejects one.
- */
-const tradeInputSchema = z.object({
-    action: tradeActionSchema,
-    symbol: z.string().nullable().exactOptional(), // Null for `deposit` and `withdrawal`, which move cash and name no instrument
-    shares: z.number().exactOptional(),
-    price: z.number().exactOptional(),
+const tradeActionSchema = z.enum([...POSITION_ACTIONS, ...CASH_ACTIONS]);
+
+/** What a trade and a cash movement both carry, as the client writes them. */
+const movementSchema = z.object({
     total: z.number(),
     commission: z.number().exactOptional(), // Omitted to take the portfolio's default
     tradeDate: z.string(),
 });
+
+/**
+ * One trade as the client writes it, and as an export hands it back. A cash
+ * movement omits the instrument, the share count and the price rather than
+ * zeroing them: the import refuses a deposit that names one, and an export has
+ * to round-trip through the import.
+ */
+const tradeInputSchema = z.discriminatedUnion('action', [
+    movementSchema.extend({
+        action: z.enum(POSITION_ACTIONS),
+        symbol: z.string(),
+        shares: z.number(),
+        price: z.number(),
+    }),
+    movementSchema.extend({ action: z.enum(CASH_ACTIONS) }),
+]);
 
 /** POST /portfolios/:number/trades (201) and PATCH …/trades/:id, and one row of the list. */
 export const tradeRowSchema = z.object({

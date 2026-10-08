@@ -98,6 +98,7 @@ export const config = {
 
     logger: {
         level: parsed.LOG_LEVEL,
+        file: parsed.LOG_FILE,
     },
 
     probe: {

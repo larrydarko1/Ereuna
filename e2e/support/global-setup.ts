@@ -1,4 +1,9 @@
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
+
 import { MongoClient } from 'mongodb';
+
+import { API_LOG } from './constants';
 import { createRedis, clearRateLimitBuckets } from './rate-limit';
 
 export default async function globalSetup(): Promise<void> {
@@ -27,6 +32,13 @@ export default async function globalSetup(): Promise<void> {
     }
 
     await resetRateLimits();
+    resetApiLog();
+}
+
+/** Start the run with an empty API log, so the teardown reads this run's errors only. */
+function resetApiLog(): void {
+    mkdirSync(dirname(API_LOG), { recursive: true });
+    writeFileSync(API_LOG, '');
 }
 
 async function resetRateLimits(): Promise<void> {

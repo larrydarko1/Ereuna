@@ -8,69 +8,34 @@
  */
 import { Router } from 'express';
 import { ObjectId } from 'mongodb';
-import { z } from 'zod';
+import type { z } from 'zod';
 
-import { tradePageSchema, tradeRowSchema } from '@ereuna/shared';
+import { portfolioParam, tradeBody, tradePageSchema, tradeParams, tradeRowSchema, tradesQuery } from '@ereuna/shared';
 
-import { config } from '@/lib/config.js';
-import { idParam, makePaginationQuery, portfolioNumberSchema, symbolSchema } from '@/lib/schemas.js';
 import { send } from '@/lib/send.js';
 import { authedUserId } from '@/middleware/auth.js';
 import { validated } from '@/middleware/validate.js';
 import * as portfolioService from '@/services/portfolio/index.js';
 import type { TradeFields } from '@/services/portfolio/index.js';
 
-export const tradeInputSchema = z
-    .object({
-        action: z.enum(['buy', 'sell', 'short', 'cover', 'deposit', 'withdrawal']),
-        symbol: symbolSchema.nullish(),
-        shares: z.number().positive().max(1e9).optional(),
-        price: z.number().positive().max(1e9).optional(),
-        total: z.number().positive().max(1e12),
-        commission: z.number().nonnegative().max(config.limits.maxCommission).optional(),
-        tradeDate: z.iso.datetime({ offset: true }).or(z.iso.date()),
-    })
-    .superRefine((body, ctx) => {
-        const isCash = body.action === 'deposit' || body.action === 'withdrawal';
-        const add = (path: string, message: string): void => ctx.addIssue({ code: 'custom', path: [path], message });
-
-        if (isCash) {
-            if (body.symbol !== undefined && body.symbol !== null) add('symbol', 'Cash movements have no symbol');
-            if (body.shares !== undefined) add('shares', 'Cash movements have no share count');
-            if (body.price !== undefined) add('price', 'Cash movements have no price');
-            return;
-        }
-
-        if (body.symbol === undefined || body.symbol === null) add('symbol', 'Symbol is required');
-        if (body.shares === undefined) add('shares', 'Shares is required');
-        if (body.price === undefined) add('price', 'Price is required');
-    });
-
-const tradeParams = z.object({ number: portfolioNumberSchema, id: idParam.shape.id });
-const numberParam = z.object({ number: portfolioNumberSchema });
-
-const listQuery = makePaginationQuery({ defaultLimit: 50, maxLimit: 200 }).extend({
-    symbol: symbolSchema.optional(),
-});
-
 export const router = Router({ mergeParams: true });
 
-/** Normalise a validated body into the service's input shape. */
-export function toTradeFields(body: z.output<typeof tradeInputSchema>): TradeFields {
-    return {
-        action: body.action,
-        symbol: body.symbol ?? null,
-        shares: body.shares ?? 0,
-        price: body.price ?? 0,
-        total: body.total,
-        commission: body.commission ?? null,
-        tradeDate: new Date(body.tradeDate),
+/** Normalise a validated trade into the service's input shape: the log stores a cash movement with no instrument and zero shares. */
+export function toTradeFields(trade: z.output<typeof tradeBody>): TradeFields {
+    const movement = {
+        total: trade.total,
+        commission: trade.commission ?? null,
+        tradeDate: new Date(trade.tradeDate),
     };
+    if ('symbol' in trade) {
+        return { action: trade.action, symbol: trade.symbol, shares: trade.shares, price: trade.price, ...movement };
+    }
+    return { action: trade.action, symbol: null, shares: 0, price: 0, ...movement };
 }
 
 router.get(
     '/',
-    ...validated({ params: numberParam, query: listQuery }, async (req, res): Promise<void> => {
+    ...validated({ params: portfolioParam, query: tradesQuery }, async (req, res): Promise<void> => {
         const { page, limit, symbol } = req.validatedQuery;
         const trades = await portfolioService.getTradePage(authedUserId(req), req.params.number, {
             page,
@@ -83,7 +48,7 @@ router.get(
 
 router.post(
     '/',
-    ...validated({ params: numberParam, body: tradeInputSchema }, async (req, res): Promise<void> => {
+    ...validated({ params: portfolioParam, body: tradeBody }, async (req, res): Promise<void> => {
         const trade = await portfolioService.addTrade(authedUserId(req), req.params.number, toTradeFields(req.body));
         send(res.status(201), tradeRowSchema, trade);
     }),
@@ -91,7 +56,7 @@ router.post(
 
 router.patch(
     '/:id',
-    ...validated({ params: tradeParams, body: tradeInputSchema }, async (req, res): Promise<void> => {
+    ...validated({ params: tradeParams, body: tradeBody }, async (req, res): Promise<void> => {
         const trade = await portfolioService.updateTrade(
             authedUserId(req),
             req.params.number,

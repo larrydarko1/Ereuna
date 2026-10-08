@@ -10,10 +10,10 @@
 import { computed, ref, watch, type ComputedRef, type Ref } from 'vue';
 
 import type { FilterDescriptor, ScreenerFilters } from '@ereuna/shared';
-import { filterField } from '@ereuna/shared';
+import { filterField, isOneOf, MA_DIRECTIONS, MA_TARGETS } from '@ereuna/shared';
 
 import { apiErrorMessage } from '@/api/client';
-import { clearAllFilters, clearFilter, getScreener, setFilter, type FilterValue } from '@/api/screener';
+import { clearAllFilters, clearFilter, getScreener, setFilter, type FilterValue, type MaChoice } from '@/api/screener';
 import { i18n } from '@/i18n';
 
 export type FilterKind = FilterDescriptor['kind'];
@@ -22,7 +22,7 @@ export type ActiveFilter =
     | { kind: 'range'; min: number; max: number }
     | { kind: 'date'; from: string; to: string }
     | { kind: 'enum'; values: string[] }
-    | { kind: 'ma'; direction: string; target: string }
+    | ({ kind: 'ma' } & MaChoice)
     | { kind: 'flag'; enabled: boolean };
 
 export type UseScreenerFiltersReturn = {
@@ -137,8 +137,10 @@ export function useScreenerFilters(name: Ref<string>): UseScreenerFiltersReturn 
 /** The stored `abv200` / `blwPrice` shorthand, split back into its two parts. */
 function parseMa(value: string): ActiveFilter | null {
     const match = /^(abv|blw)(10|20|50|200|[Pp]rice)$/.exec(value);
-    if (match === null || match[1] === undefined || match[2] === undefined) return null;
-    return { kind: 'ma', direction: match[1], target: match[2].toLowerCase() === 'price' ? 'price' : match[2] };
+    const direction = match?.[1];
+    const target = match?.[2]?.toLowerCase();
+    if (!isOneOf(MA_DIRECTIONS, direction) || !isOneOf(MA_TARGETS, target)) return null;
+    return { kind: 'ma', direction, target };
 }
 
 function isNumberPair(value: unknown): value is [number, number] {

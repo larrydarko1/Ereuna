@@ -1020,6 +1020,8 @@
         "INTERNAL": "서버 쪽에서 문제가 발생했습니다. 다시 시도해 주세요.",
         "NOT_FOUND": "존재하지 않습니다.",
         "FORBIDDEN": "접근 권한이 없습니다.",
+        "MALFORMED_REQUEST": "요청을 읽을 수 없습니다. 다시 시도해 주세요.",
+        "REQUEST_TOO_LARGE": "한 번에 보내기에는 너무 큽니다.",
         "MISSING_TOKEN": "이 작업을 하려면 로그인하세요.",
         "INVALID_TOKEN": "세션이 유효하지 않습니다. 다시 로그인해 주세요.",
         "INVALID_TOKEN_TYPE": "세션이 유효하지 않습니다. 다시 로그인해 주세요.",

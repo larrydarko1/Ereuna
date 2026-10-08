@@ -1020,6 +1020,8 @@
         "INTERNAL": "Auf unserer Seite ist etwas schiefgelaufen. Bitte versuche es erneut.",
         "NOT_FOUND": "Das gibt es nicht.",
         "FORBIDDEN": "Du hast darauf keinen Zugriff.",
+        "MALFORMED_REQUEST": "Die Anfrage konnte nicht gelesen werden. Bitte versuche es erneut.",
+        "REQUEST_TOO_LARGE": "Das ist zu viel, um es auf einmal zu senden.",
         "MISSING_TOKEN": "Melde dich an, um das zu tun.",
         "INVALID_TOKEN": "Deine Sitzung ist ungültig. Bitte melde dich erneut an.",
         "INVALID_TOKEN_TYPE": "Deine Sitzung ist ungültig. Bitte melde dich erneut an.",

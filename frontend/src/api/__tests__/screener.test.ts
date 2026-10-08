@@ -14,6 +14,7 @@ import {
     getScreeners,
     setFilter,
     updateScreener,
+    type FilterValue,
 } from '@/api/screener';
 
 const mock = mockApi();
@@ -100,7 +101,7 @@ describe('one screener', () => {
 });
 
 describe('filters', () => {
-    it.each([
+    it.each<[string, string, FilterValue]>([
         ['a range', 'price', { min: 1, max: 10 }],
         ['a date range', 'ipo-date', { from: '2020-01-01', to: '2026-01-01' }],
         ['an option list', 'sectors', { values: ['Technology'] }],
@@ -114,12 +115,12 @@ describe('filters', () => {
         expect(mock.last().body).toEqual(value);
     });
 
-    it('encodes both the screener name and the filter key', async () => {
+    it('encodes the screener name and addresses the filter by its registry key', async () => {
         mock.on('PUT /api/screeners/:name/filters/:filter', filters);
 
-        await setFilter('My screener', 'a/b', { enabled: true });
+        await setFilter('My screener', 'market-cap', { min: 1 });
 
-        expect(mock.last().path).toBe('/api/screeners/My%20screener/filters/a%2Fb');
+        expect(mock.last().path).toBe('/api/screeners/My%20screener/filters/market-cap');
     });
 
     it('clears one', async () => {

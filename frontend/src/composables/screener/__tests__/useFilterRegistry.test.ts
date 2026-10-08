@@ -1,9 +1,9 @@
-import { http } from 'msw';
+import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import type { FilterDescriptor } from '@ereuna/shared';
 
-import { answer, mockApi, ORIGIN } from '@/__tests__/support/msw';
+import { mockApi, ORIGIN } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
 import { useFilterRegistry } from '@/composables/screener/useFilterRegistry';
 
@@ -30,7 +30,7 @@ describe('load', () => {
         mock.server.use(
             http.get(`${ORIGIN}/api/screeners/filters`, () => {
                 reads += 1;
-                return answer('GET /api/screeners/filters', { items: [range('pe')] });
+                return HttpResponse.json({ items: [range('pe')] });
             }),
         );
 
@@ -47,7 +47,7 @@ describe('load', () => {
         mock.server.use(
             http.get(`${ORIGIN}/api/screeners/filters`, () => {
                 reads += 1;
-                return answer('GET /api/screeners/filters', { items: [range('pe')] });
+                return HttpResponse.json({ items: [range('pe')] });
             }),
         );
 

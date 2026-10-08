@@ -9,4 +9,5 @@ import { config } from '@/lib/config.js';
 export const logger = createLogger('api', {
     level: config.logger.level,
     isDev: config.isDev,
+    file: config.logger.file,
 });

@@ -5,11 +5,15 @@
  * frontend maps each code to a localised string via its `errors.*` i18n
  * namespace, so adding a code here requires a translation in every locale.
  * Codes are thrown from the API via `AppError` (api/src/lib/app-error.ts),
- * except `VALIDATION_FAILED` (validate middleware) and `RATE_LIMITED` (rate
- * limiter), which are emitted directly but are still part of this contract.
+ * except `VALIDATION_FAILED` (validate middleware), `RATE_LIMITED` (rate
+ * limiter), and `MALFORMED_REQUEST` / `REQUEST_TOO_LARGE` (the error handler,
+ * for a body the JSON parser refused), which are emitted directly but are still
+ * part of this contract.
  * One code means one HTTP status. The first throw of a code fixes its status;
  * a case that deserves a different status deserves a different code.
  */
+import { z } from 'zod';
+
 export type ErrorCode = (typeof ERROR_CODES)[number];
 
 /**
@@ -26,6 +30,8 @@ export const ERROR_CODES = [
     'INTERNAL',
     'NOT_FOUND',
     'FORBIDDEN',
+    'MALFORMED_REQUEST',
+    'REQUEST_TOO_LARGE',
 
     // Authentication
     'MISSING_TOKEN',
@@ -83,6 +89,18 @@ export const ERROR_CODES = [
     // Market data
     'ASSET_NOT_FOUND',
 ] as const;
+
+/**
+ * The body of every answer the API refuses with, whoever sends it: the error
+ * handler, the validator, the limiter or a route. Both test suites hold error
+ * answers to it, so a code missing from the list fails a test, whether an API
+ * route sends it or a frontend mock invents it.
+ */
+export const errorBodySchema = z.object({
+    error: z.enum(ERROR_CODES, { error: (issue): string => `${JSON.stringify(issue.input)} is not in ERROR_CODES` }),
+    params: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+    errors: z.array(z.object({ field: z.string(), message: z.string() })).optional(),
+});
 
 /** Runtime guard — true when `value` is a known error code. */
 export function isErrorCode(value: unknown): value is ErrorCode {

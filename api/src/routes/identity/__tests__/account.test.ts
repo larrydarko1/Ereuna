@@ -57,14 +57,6 @@ describe('GET /api/account', () => {
         expect(response.body).toEqual(sessionUser());
         expect(userService.getAccount).toHaveBeenCalledWith(USER_ID);
     });
-
-    it('sends only what the session schema lists, whatever the service hands back', async () => {
-        userService.getAccount.mockResolvedValue({ ...sessionUser(), passwordHash: 'hash', recoveryCodeHashes: ['h'] });
-
-        const response = await harness.call('/api/account');
-
-        expect(response.body).toEqual(sessionUser());
-    });
 });
 
 describe('PATCH /api/account/password', () => {

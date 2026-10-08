@@ -7,8 +7,10 @@ import { portfolioRow } from '@/__tests__/support/answers';
 import { elementOf, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { summary as makeSummary } from '@/__tests__/support/portfolio';
+import { objectId } from '@/__tests__/support/values';
 import { clearAuth } from '@/api/client';
 import { i18n } from '@/i18n';
+import { toDateInput } from '@/utils/formatters';
 import Portfolio from '@/views/Portfolio.vue';
 
 vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());
@@ -16,7 +18,7 @@ vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket'))
 const api = mockApi();
 
 const trade = (over: Partial<TradeRow> = {}): TradeRow => ({
-    id: 't1',
+    id: objectId(1),
     symbol: 'AAPL',
     action: 'buy',
     shares: 10,
@@ -175,7 +177,7 @@ describe('Portfolio', () => {
 
     it('records a trade and reloads the portfolio it changed', async () => {
         seed();
-        api.on('POST /api/portfolios/0/trades', trade({ id: 't2' }));
+        api.on('POST /api/portfolios/0/trades', trade({ id: objectId(2) }));
         const wrapper = await view();
 
         await click(toolbar(wrapper, 0));
@@ -198,9 +200,44 @@ describe('Portfolio', () => {
         wrapper.unmount();
     });
 
+    it('corrects a cash movement in the cash dialog, which is the one that can write it', async () => {
+        const deposit = trade({ action: 'deposit', symbol: null, shares: 0, price: 0, total: 2500 });
+        seed({}, [deposit]);
+        api.on(`PATCH /api/portfolios/0/trades/${objectId(1)}`, { ...deposit, total: 3000 });
+        const wrapper = await view();
+
+        await click(elementOf(wrapper.findAll('.trade-history__row-actions .btn')[0]?.element, HTMLElement));
+        expect(query('.cash-dialog input[type="number"]', HTMLInputElement).value).toBe('2500');
+        await set('.cash-dialog input[type="number"]', '3000');
+        await click($('.dialog__footer .btn--primary'));
+
+        expect(api.calls.find((call) => call.method === 'PATCH')?.body).toEqual({
+            action: 'deposit',
+            total: 3000,
+            tradeDate: '2026-02-01',
+        });
+        wrapper.unmount();
+    });
+
+    it('records a deposit as new after an edit was cancelled', async () => {
+        seed();
+        api.on('POST /api/portfolios/0/trades', trade({ id: objectId(3), action: 'deposit', symbol: null }));
+        const wrapper = await view();
+
+        await click(elementOf(wrapper.findAll('.trade-history__row-actions .btn')[0]?.element, HTMLElement));
+        await click($('.dialog__footer .btn:not(.btn--primary)'));
+        await click(toolbar(wrapper, 1));
+        await set('.cash-dialog input[type="number"]', '2500');
+        await click($('.dialog__footer .btn--primary'));
+
+        expect(api.calls.map((call) => call.method)).not.toContain('PATCH');
+        expect(api.calls.find((call) => call.method === 'POST')?.body).toMatchObject({ action: 'deposit' });
+        wrapper.unmount();
+    });
+
     it('asks before deleting a trade, and deletes it on confirmation', async () => {
         seed();
-        api.on('DELETE /api/portfolios/0/trades/t1', null, { status: 204 });
+        api.on(`DELETE /api/portfolios/0/trades/${objectId(1)}`, null, { status: 204 });
         const wrapper = await view();
 
         await click(elementOf(wrapper.findAll('.trade-history__row-actions .btn')[1]?.element, HTMLElement));
@@ -225,17 +262,17 @@ describe('Portfolio', () => {
 
     it('records a cash movement from its own dialog', async () => {
         seed();
-        api.on('POST /api/portfolios/0/trades', trade({ id: 'cash', action: 'deposit', symbol: null }));
+        api.on('POST /api/portfolios/0/trades', trade({ id: objectId(3), action: 'deposit', symbol: null }));
         const wrapper = await view();
 
         await click(toolbar(wrapper, 1));
         await set('.cash-dialog input[type="number"]', '2500');
         await click($('.dialog__footer .btn--primary'));
 
-        expect(api.calls.find((call) => call.method === 'POST')?.body).toMatchObject({
+        expect(api.calls.find((call) => call.method === 'POST')?.body).toEqual({
             action: 'deposit',
-            symbol: null,
             total: 2500,
+            tradeDate: toDateInput(new Date()),
         });
         wrapper.unmount();
     });

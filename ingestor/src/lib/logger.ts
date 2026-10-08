@@ -10,4 +10,5 @@ import { config } from '@/lib/config.js';
 export const logger = createLogger('ingestor', {
     level: config.logger.level,
     isDev: config.isDev,
+    file: config.logger.file,
 });

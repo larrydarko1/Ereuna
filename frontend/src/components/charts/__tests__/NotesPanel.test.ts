@@ -5,6 +5,7 @@ import type { NoteRow } from '@ereuna/shared';
 
 import { elementOf } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
+import { objectId } from '@/__tests__/support/values';
 import NotesPanel from '@/components/charts/NotesPanel.vue';
 import { i18n } from '@/i18n';
 import { formatDate } from '@/utils/formatters';
@@ -12,7 +13,7 @@ import { formatDate } from '@/utils/formatters';
 const api = mockApi();
 
 const note = (over: Partial<NoteRow> = {}): NoteRow => ({
-    id: 'n1',
+    id: objectId(1),
     symbol: 'AAPL',
     message: 'Watching the 200 day',
     createdAt: '2026-02-01T00:00:00.000Z',
@@ -55,11 +56,11 @@ describe('NotesPanel', () => {
     });
 
     it('lists one item per note', async () => {
-        expect((await panel([note(), note({ id: 'n2' })])).findAll('.notes__item')).toHaveLength(2);
+        expect((await panel([note(), note({ id: objectId(2) })])).findAll('.notes__item')).toHaveLength(2);
     });
 
     it('says when a note was written, and when it was last changed', async () => {
-        const wrapper = await panel([note(), note({ id: 'n2', updatedAt: '2026-03-01T00:00:00.000Z' })]);
+        const wrapper = await panel([note(), note({ id: objectId(2), updatedAt: '2026-03-01T00:00:00.000Z' })]);
         const times = wrapper.findAll('time').map((node) => node.text());
 
         expect(times[0]).toBe(`${i18n.global.t('sidebar.created')} ${formatDate('2026-02-01T00:00:00.000Z')}`);
@@ -75,8 +76,8 @@ describe('NotesPanel', () => {
     });
 
     it('saves a note and puts it at the top of the list', async () => {
-        const wrapper = await panel([note({ id: 'old' })]);
-        api.on('POST /api/notes', note({ id: 'new', message: 'Fresh' }));
+        const wrapper = await panel([note({ id: objectId(3) })]);
+        api.on('POST /api/notes', note({ id: objectId(4), message: 'Fresh' }));
 
         await compose(wrapper, '  Fresh  ');
         await submit(wrapper);
@@ -127,7 +128,7 @@ describe('NotesPanel', () => {
 
     it('saves the edit and shows the note as the API returned it', async () => {
         const wrapper = await panel([note()]);
-        api.on('PATCH /api/notes/n1', note({ message: 'Changed', updatedAt: '2026-03-01T00:00:00.000Z' }));
+        api.on(`PATCH /api/notes/${objectId(1)}`, note({ message: 'Changed', updatedAt: '2026-03-01T00:00:00.000Z' }));
 
         await wrapper.get('.notes__control').trigger('click');
         await wrapper.findAll('textarea')[1]?.setValue('  Changed  ');
@@ -161,7 +162,7 @@ describe('NotesPanel', () => {
 
     it('explains a refused edit and keeps the row open', async () => {
         const wrapper = await panel([note()]);
-        api.on('PATCH /api/notes/n1', { error: 'INTERNAL' }, { status: 500 });
+        api.on(`PATCH /api/notes/${objectId(1)}`, { error: 'INTERNAL' }, { status: 500 });
 
         await wrapper.get('.notes__control').trigger('click');
         await wrapper.findAll('textarea')[1]?.setValue('Changed');
@@ -174,7 +175,7 @@ describe('NotesPanel', () => {
 
     it('takes a deleted note off the list without waiting for the round trip', async () => {
         const wrapper = await panel([note()]);
-        api.on('DELETE /api/notes/n1', null, { status: 204 });
+        api.on(`DELETE /api/notes/${objectId(1)}`, null, { status: 204 });
 
         await wrapper.get('.notes__control--delete').trigger('click');
 
@@ -185,7 +186,7 @@ describe('NotesPanel', () => {
 
     it('puts the note back when the delete is refused', async () => {
         const wrapper = await panel([note()]);
-        api.on('DELETE /api/notes/n1', { error: 'INTERNAL' }, { status: 500 });
+        api.on(`DELETE /api/notes/${objectId(1)}`, { error: 'INTERNAL' }, { status: 500 });
 
         await wrapper.get('.notes__control--delete').trigger('click');
         await flushPromises();

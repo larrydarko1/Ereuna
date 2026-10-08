@@ -2,10 +2,6 @@
  * Ticker logo route — mounted at /api/logos (the one route with no authentication)
  * GET /api/logos/:exchange/:file — one ticker's mark, as SVG
  *
- * These ~28,000 icons used to sit in the frontend's `public/`, which copied
- * 151 MB into every build. Serving them off the API's disk keeps one origin and
- * one deploy unit with no CDN and no bucket, and the frontend asks for them
- * with a relative path, so nothing has to know where the API lives.
  * Unauthenticated by design: the browser fetches these through `<img src>`,
  * which cannot carry a bearer token, and a company's mark is no more private
  * than its last traded price. What guards them instead is a same-origin check,
@@ -15,19 +11,12 @@
  * drown the log.
  */
 import { Router, type Request } from 'express';
-import { z } from 'zod';
+
+import { logoParams } from '@ereuna/shared';
 
 import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { validated } from '@/middleware/validate.js';
-
-/** Both segments are allow-listed rather than escaped: neither pattern can
- *  express a separator or a dot segment, so no path can leave the root. The
- *  colon is in the symbol set because the crypto pairs use it (`XAUT:USD`). */
-const logoParams = z.object({
-    exchange: z.string().regex(/^[A-Z]{2,10}$/),
-    file: z.string().regex(/^[A-Z0-9][A-Z0-9.:-]{0,14}\.svg$/),
-});
 
 /** An SVG is a document, not just a picture: served from the API's own origin
  *  it would otherwise run whatever it contains. Nothing here needs to load, so
