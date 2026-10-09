@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 /**
- * Restore a backup taken by `npm run backup` into the database `db/.env` names,
- * check it against the backup's manifest, then clear the API's caches.
+ * Restore a backup taken by `npm run backup` into the database `db/.env` names
+ * and clear the API's caches. The manifest is the check on both ends: the dump
+ * is counted against it before anything is dropped, and the restored database
+ * after, so a dump that cannot be read back never replaces anything and a
+ * restore that lost documents never exits 0.
  * The target may differ from the database the backup was taken of — that is
  * how a restore drill lands on a scratch database rather than the real one.
  * Every collection the backup holds is DROPPED and replaced, so the script asks
@@ -21,6 +24,7 @@ import { createInterface } from 'node:readline/promises';
 import { Redis } from 'ioredis';
 
 import { type Counts, collectionCounts } from './lib/collection-counts.ts';
+import { dumpCounts } from './lib/dump-counts.ts';
 import { ROOT, dbConfig, optionalEnv } from './lib/env.ts';
 
 type Manifest = Counts & { database: string; completedAt: string };
@@ -41,10 +45,16 @@ async function main(): Promise<void> {
     const manifest = parseManifest(fs.readFileSync(manifestFile, 'utf8'));
 
     console.log(`Restoring '${manifest.database}' from ${manifest.completedAt} into '${cfg.mongoDb}'.\n`);
+
+    // ── Backup ────────────────────────────────────────────────────────────────
+    // Before the prompt, so nothing is dropped on the strength of a damaged dump
+    console.log('[1/3] Checking the dump against its manifest...');
+    verify(compare(manifest, await dumpCounts(path.join(backupDir, 'mongo', manifest.database)), 'the dump holds'));
+    console.log('      Every collection is intact.\n');
     await confirm(cfg.mongoDb);
 
     // ── MongoDB ───────────────────────────────────────────────────────────────
-    console.log('\n[1/3] Restoring MongoDB...');
+    console.log('\n[2/3] Restoring MongoDB...');
     execFileSync(
         'mongorestore',
         [
@@ -58,16 +68,11 @@ async function main(): Promise<void> {
         ],
         { stdio: 'inherit' },
     );
+    // Counted now, before anything else can write, and reported once the caches are
+    // cleared: the collections are replaced either way, and stopping here would
+    // leave answers about the old database in front of them
+    const mismatches = compare(manifest, await collectionCounts(cfg.mongoUri, cfg.mongoDb), 'restored');
     console.log('      Done.\n');
-
-    // ── Verify ────────────────────────────────────────────────────────────────
-    console.log('[2/3] Comparing against the manifest...');
-    const mismatches = compare(manifest, await collectionCounts(cfg.mongoUri, cfg.mongoDb));
-    if (mismatches.length > 0) {
-        console.error(mismatches.map((line) => `      ${line}`).join('\n'));
-        throw new Error('the restored database does not match the backup');
-    }
-    console.log('      Every collection matches.\n');
 
     // ── Caches ────────────────────────────────────────────────────────────────
     console.log('[3/3] Clearing the API caches...');
@@ -82,7 +87,8 @@ async function main(): Promise<void> {
         redis.disconnect();
     }
 
-    console.log('Restore complete.');
+    verify(mismatches);
+    console.log('Restore complete — every collection matches the manifest.');
     console.log('Run the migrations the backup predates with: npm run db:migrate');
 }
 
@@ -96,7 +102,7 @@ async function confirm(database: string): Promise<void> {
     if (answer.trim() !== database) throw new Error('confirmation did not match — nothing was changed');
 }
 
-function compare(expected: Counts, actual: Counts): string[] {
+function compare(expected: Counts, actual: Counts, found: string): string[] {
     const rows = [
         ...Object.entries(expected.collections).map(([name, n]) => [name, n, actual.collections[name], 'documents'] as const),
         ...Object.entries(expected.timeSeriesBuckets).map(
@@ -105,7 +111,13 @@ function compare(expected: Counts, actual: Counts): string[] {
     ];
     return rows
         .filter(([, want, got]) => want !== got)
-        .map(([name, want, got, unit]) => `${name}: backed up ${want} ${unit}, restored ${got ?? 'none'}`);
+        .map(([name, want, got, unit]) => `${name}: backed up ${want} ${unit}, ${found} ${got ?? 'none'}`);
+}
+
+function verify(mismatches: string[]): void {
+    if (mismatches.length === 0) return;
+    console.error(mismatches.map((line) => `      ${line}`).join('\n'));
+    throw new Error('the counts do not match the backup');
 }
 
 async function clearPrefixes(redis: Redis): Promise<number> {

@@ -8,7 +8,8 @@
  *                  most of the size, but they are not derived data — intraday
  *                  history older than the vendor's window cannot be fetched
  *                  again, so a backup without them is not one.
- *  manifest.json - when, which database, how big, and what each collection held.
+ *  manifest.json - when, which database, how big, and what each collection held,
+ *                  counted in the dump's own files rather than in the database.
  *                  `npm run db:check` reads `backups/latest.json` to say how
  *                  stale the last backup is and to fail one that held nothing.
  * Redis is not backed up. Everything in it is a cache, a counter or a live feed,
@@ -27,7 +28,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { collectionCounts } from './lib/collection-counts.ts';
+import { dumpCounts } from './lib/dump-counts.ts';
 import { ROOT, dbConfig } from './lib/env.ts';
 
 const cfg = dbConfig();
@@ -52,7 +53,7 @@ async function main(): Promise<void> {
 
     // ── Manifest ──────────────────────────────────────────────────────────────
     console.log('[2/2] Writing manifest...');
-    const counts = await collectionCounts(cfg.mongoUri, cfg.mongoDb);
+    const counts = await dumpCounts(path.join(BACKUP_DIR, 'mongo', cfg.mongoDb));
     const totalDocs = Object.values(counts.collections).reduce((sum, n) => sum + n, 0);
 
     const manifest = {

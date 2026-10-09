@@ -23,11 +23,12 @@ runs one.
 
 1. Take a backup: `npm run backup`. It writes `backups/<timestamp>/manifest.json`
    with the document count of every collection and the bucket count of every
-   candle collection.
+   candle collection, counted in the dump's own files.
 2. Point `db/.env`'s `MONGO_DB` at a scratch database — `EreunaDrill`, say.
    The restore maps the backup's database onto whichever one `db/.env` names.
-3. Restore: `npm run restore -- backups/<timestamp>`. It asks you to type the
-   target's name, and fails unless every collection's count matches the manifest.
+3. Restore: `npm run restore -- backups/<timestamp>`. It counts the dump against
+   the manifest before it asks you to type the target's name, and fails unless the
+   restored database matches the manifest too.
 4. Point the API's `.env` at the same scratch database and boot it.
    `ensureIndexes()` reapplies the manifest — check the log line reports the
    expected count.
