@@ -29,6 +29,6 @@ describe('AppSpinner', () => {
     it('hides the artwork from a screen reader — the label already says it', () => {
         const wrapper = mount(AppSpinner);
 
-        expect(wrapper.get('svg').attributes('aria-hidden')).toBe('true');
+        expect(wrapper.get('.spinner__ring').attributes('aria-hidden')).toBe('true');
     });
 });

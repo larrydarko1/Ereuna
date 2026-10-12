@@ -2,6 +2,8 @@ import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import SummaryRow from '@/components/charts/SummaryRow.vue';
+import IconCheck from '@/components/icons/IconCheck.vue';
+import IconCopy from '@/components/icons/IconCopy.vue';
 import type { SummaryFormat } from '@/constants/summaryFields';
 import { i18n } from '@/i18n';
 import { formatCompact, formatDate, formatNumber } from '@/utils/formatters';
@@ -81,7 +83,7 @@ describe('SummaryRow', () => {
         await wrapper.get('.summary-row__copy').trigger('click');
 
         expect(writeText).toHaveBeenCalledWith('1500000000');
-        expect(wrapper.get('.summary-row__copy svg').attributes('data-icon')).toBe('check');
+        expect(wrapper.get('.summary-row__copy').findComponent(IconCheck).exists()).toBe(true);
     });
 
     it('goes back to offering a copy after a moment', async () => {
@@ -95,7 +97,7 @@ describe('SummaryRow', () => {
         await wrapper.get('.summary-row__copy').trigger('click');
         await vi.advanceTimersByTimeAsync(2000);
 
-        expect(wrapper.get('.summary-row__copy svg').attributes('data-icon')).toBe('copy');
+        expect(wrapper.get('.summary-row__copy').findComponent(IconCopy).exists()).toBe(true);
         vi.useRealTimers();
     });
 
@@ -109,7 +111,7 @@ describe('SummaryRow', () => {
         await wrapper.get('.summary-row__copy').trigger('click');
         await Promise.resolve();
 
-        expect(wrapper.get('.summary-row__copy svg').attributes('data-icon')).toBe('copy');
+        expect(wrapper.get('.summary-row__copy').findComponent(IconCopy).exists()).toBe(true);
     });
 
     it('collapses a paragraph until it is asked for', async () => {

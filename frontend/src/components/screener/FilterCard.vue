@@ -2,7 +2,8 @@
 import { ref, useId, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import AppIcon from '@/components/ui/AppIcon.vue';
+import IconChevronDown from '@/components/icons/IconChevronDown.vue';
+import IconChevronRight from '@/components/icons/IconChevronRight.vue';
 
 const {
     label,
@@ -45,10 +46,12 @@ watch(
                 :aria-controls="bodyId"
                 :disabled="!available"
                 @click="open = !open">
-                <AppIcon
-                    class="filter-card__chevron"
-                    :name="open ? 'chevron-down' : 'chevron-right'"
-                    :size="14" />
+                <IconChevronDown
+                    v-if="open"
+                    class="filter-card__chevron" />
+                <IconChevronRight
+                    v-else
+                    class="filter-card__chevron" />
                 <span class="filter-card__label">{{ label }}</span>
                 <span
                     v-if="summary !== null"
@@ -126,6 +129,9 @@ watch(
 }
 
 .filter-card__chevron {
+    flex: none;
+    width: 14px;
+    height: 14px;
     color: $color-text-muted;
 }
 

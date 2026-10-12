@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 
+import IconPlayerPause from '@/components/icons/IconPlayerPause.vue';
+import IconPlayerPlay from '@/components/icons/IconPlayerPlay.vue';
+import IconStepBackward from '@/components/icons/IconStepBackward.vue';
+import IconStepForward from '@/components/icons/IconStepForward.vue';
 import { targetOf } from '@/utils/dom';
 
 const { playing, progress, label } = defineProps<{
@@ -38,18 +42,7 @@ function onSeek(event: Event): void {
                 :title="t('charts.replay.stepBackward')"
                 :aria-label="t('charts.replay.stepBackward')"
                 @click="emit('step', -1)">
-                <svg
-                    class="replay__icon"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    aria-hidden="true">
-                    <polygon points="19 20 9 12 19 4" />
-                    <rect
-                        x="4"
-                        y="4"
-                        width="2"
-                        height="16" />
-                </svg>
+                <IconStepBackward class="replay__icon" />
             </button>
 
             <button
@@ -58,27 +51,12 @@ function onSeek(event: Event): void {
                 :title="playing ? t('charts.replay.pause') : t('charts.replay.play')"
                 :aria-label="playing ? t('charts.replay.pause') : t('charts.replay.play')"
                 @click="emit('toggle')">
-                <svg
-                    class="replay__icon"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    aria-hidden="true">
-                    <template v-if="playing">
-                        <rect
-                            x="6"
-                            y="4"
-                            width="4"
-                            height="16" />
-                        <rect
-                            x="14"
-                            y="4"
-                            width="4"
-                            height="16" />
-                    </template>
-                    <polygon
-                        v-else
-                        points="5 3 19 12 5 21" />
-                </svg>
+                <IconPlayerPause
+                    v-if="playing"
+                    class="replay__icon" />
+                <IconPlayerPlay
+                    v-else
+                    class="replay__icon" />
             </button>
 
             <button
@@ -87,18 +65,7 @@ function onSeek(event: Event): void {
                 :title="t('charts.replay.stepForward')"
                 :aria-label="t('charts.replay.stepForward')"
                 @click="emit('step', 1)">
-                <svg
-                    class="replay__icon"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    aria-hidden="true">
-                    <polygon points="5 4 15 12 5 20" />
-                    <rect
-                        x="18"
-                        y="4"
-                        width="2"
-                        height="16" />
-                </svg>
+                <IconStepForward class="replay__icon" />
             </button>
 
             <select

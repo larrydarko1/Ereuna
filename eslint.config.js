@@ -33,6 +33,7 @@ import {
     utilsBannedImportPatterns,
     libBannedImportPatterns,
     noStoreLibraryPatterns,
+    noToastLibraryPatterns,
     aliasOnlyImportPatterns,
     wsGatewaySelectors,
     wsEventNameSelectors,
@@ -388,7 +389,7 @@ export default larry({
                     'error',
                     {
                         paths: [...bannedCryptoModules, ...wsSocketClientBannedImports],
-                        patterns: [...noStoreLibraryPatterns, ...aliasOnlyImportPatterns],
+                        patterns: [...noStoreLibraryPatterns, ...noToastLibraryPatterns, ...aliasOnlyImportPatterns],
                     },
                 ],
             },
@@ -400,7 +401,7 @@ export default larry({
                     'error',
                     {
                         paths: bannedCryptoModules,
-                        patterns: [...noStoreLibraryPatterns, ...aliasOnlyImportPatterns],
+                        patterns: [...noStoreLibraryPatterns, ...noToastLibraryPatterns, ...aliasOnlyImportPatterns],
                     },
                 ],
             },
@@ -439,6 +440,7 @@ export default larry({
                         paths: [...bannedCryptoModules, ...wsSocketClientBannedImports],
                         patterns: [
                             ...noStoreLibraryPatterns,
+                            ...noToastLibraryPatterns,
                             ...aliasOnlyImportPatterns,
                             ...runtimeOnly(utilsBannedImportPatterns),
                         ],

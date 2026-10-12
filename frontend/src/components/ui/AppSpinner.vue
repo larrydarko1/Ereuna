@@ -14,33 +14,34 @@ const { t } = useI18n();
         class="spinner"
         :class="`spinner--${size}`"
         role="status">
-        <svg
+        <span
             class="spinner__ring"
-            viewBox="0 0 50 50"
-            aria-hidden="true"
-            focusable="false">
-            <circle
-                class="spinner__path"
-                cx="25"
-                cy="25"
-                r="20"
-                fill="none"
-                stroke-width="5" />
-        </svg>
+            aria-hidden="true" />
         <span class="visually-hidden">{{ label ?? t('common.loading') }}</span>
     </div>
 </template>
 
 <style lang="scss" scoped>
+/* –––––– Layout –––––– */
 .spinner {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
+/* –––––– Ring –––––– */
+.spinner__ring {
+    border: 3px solid $color-elevated;
+    border-top-color: $color-accent-1;
+    border-radius: $radius-pill;
+    animation: spin 0.8s linear infinite;
+}
+
+/* –––––– Sizes –––––– */
 .spinner--sm .spinner__ring {
     width: 18px;
     height: 18px;
+    border-width: 2px;
 }
 
 .spinner--md .spinner__ring {
@@ -51,32 +52,6 @@ const { t } = useI18n();
 .spinner--lg .spinner__ring {
     width: 50px;
     height: 50px;
-}
-
-.spinner__ring {
-    animation: spin 2s linear infinite;
-}
-
-.spinner__path {
-    stroke: $color-accent-1;
-    stroke-linecap: round;
-    animation: spinner-dash 1.5s ease-in-out infinite;
-}
-
-@keyframes spinner-dash {
-    0% {
-        stroke-dasharray: 1, 150;
-        stroke-dashoffset: 0;
-    }
-
-    50% {
-        stroke-dasharray: 90, 150;
-        stroke-dashoffset: -35;
-    }
-
-    100% {
-        stroke-dasharray: 90, 150;
-        stroke-dashoffset: -124;
-    }
+    border-width: 5px;
 }
 </style>

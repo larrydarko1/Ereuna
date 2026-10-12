@@ -2,7 +2,9 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import AppIcon from '@/components/ui/AppIcon.vue';
+import IconArrowDown from '@/components/icons/IconArrowDown.vue';
+import IconArrowUp from '@/components/icons/IconArrowUp.vue';
+import IconClose from '@/components/icons/IconClose.vue';
 
 type ReorderableItem = { key: TKey; label: string };
 
@@ -51,7 +53,7 @@ function remove(key: TKey): void {
                     :aria-label="t('panels.moveUp', { name: item.label })"
                     :disabled="index === 0"
                     @click="move(index, -1)">
-                    <AppIcon name="arrow-up" />
+                    <IconArrowUp />
                 </button>
                 <button
                     type="button"
@@ -59,14 +61,14 @@ function remove(key: TKey): void {
                     :aria-label="t('panels.moveDown', { name: item.label })"
                     :disabled="index === chosen.length - 1"
                     @click="move(index, 1)">
-                    <AppIcon name="arrow-down" />
+                    <IconArrowDown />
                 </button>
                 <button
                     type="button"
                     class="reorderable__button"
                     :aria-label="t('panels.hide', { name: item.label })"
                     @click="remove(item.key)">
-                    <AppIcon name="close" />
+                    <IconClose />
                 </button>
             </li>
         </ol>
@@ -134,6 +136,12 @@ function remove(key: TKey): void {
     &:disabled {
         opacity: 0.4;
         cursor: not-allowed;
+    }
+
+    svg {
+        display: block;
+        width: 16px;
+        height: 16px;
     }
 }
 

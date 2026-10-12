@@ -6,7 +6,8 @@ import type { NoteRow } from '@ereuna/shared';
 
 import { apiErrorMessage } from '@/api/client';
 import { createNote, deleteNote, getNotes, updateNote } from '@/api/note';
-import AppIcon from '@/components/ui/AppIcon.vue';
+import IconClose from '@/components/icons/IconClose.vue';
+import IconPencil from '@/components/icons/IconPencil.vue';
 import { useResource } from '@/composables/data/useResource';
 import { formatDate } from '@/utils/formatters';
 
@@ -170,14 +171,14 @@ async function remove(id: string): Promise<void> {
                         class="notes__control"
                         :aria-label="t('notes.editNote')"
                         @click="startEdit(note)">
-                        <AppIcon name="pencil" />
+                        <IconPencil />
                     </button>
                     <button
                         type="button"
                         class="notes__control notes__control--delete"
                         :aria-label="t('notes.deleteNote')"
                         @click="remove(note.id)">
-                        <AppIcon name="close" />
+                        <IconClose />
                     </button>
                 </span>
             </p>
@@ -315,6 +316,12 @@ async function remove(id: string): Promise<void> {
 
     &:hover {
         color: $color-text;
+    }
+
+    svg {
+        display: block;
+        width: 16px;
+        height: 16px;
     }
 }
 

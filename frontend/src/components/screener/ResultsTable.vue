@@ -4,7 +4,9 @@ import { useI18n } from 'vue-i18n';
 
 import type { ScreenerResult } from '@ereuna/shared';
 
-import AppIcon from '@/components/ui/AppIcon.vue';
+import IconEye from '@/components/icons/IconEye.vue';
+import IconEyeOff from '@/components/icons/IconEyeOff.vue';
+import IconStar from '@/components/icons/IconStar.vue';
 import AppTooltip from '@/components/ui/AppTooltip.vue';
 import { findColumn, readColumn, type ColumnFormat } from '@/constants/screener';
 import { formatCompact, formatNumber } from '@/utils/formatters';
@@ -155,14 +157,15 @@ function onKeydown(event: KeyboardEvent): void {
                             "
                             :aria-pressed="hiddenSymbols.includes(row.symbol)"
                             @click.stop="emit('toggleHidden', row.symbol)">
-                            <AppIcon :name="hiddenSymbols.includes(row.symbol) ? 'eye' : 'eye-off'" />
+                            <IconEye v-if="hiddenSymbols.includes(row.symbol)" />
+                            <IconEyeOff v-else />
                         </button>
                         <button
                             type="button"
                             class="results-table__action"
                             :aria-label="t('screener.addToWatchlist', { symbol: row.symbol })"
                             @click.stop="emit('watchlist', row.symbol)">
-                            <AppIcon name="star" />
+                            <IconStar />
                         </button>
                     </td>
                     <td class="results-table__td results-table__td--symbol">
@@ -315,6 +318,12 @@ function onKeydown(event: KeyboardEvent): void {
 
     &:hover {
         color: $color-text;
+    }
+
+    svg {
+        display: block;
+        width: 16px;
+        height: 16px;
     }
 }
 

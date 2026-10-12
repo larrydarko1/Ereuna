@@ -2,6 +2,9 @@
 import { computed, ref, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import IconEye from '@/components/icons/IconEye.vue';
+import IconEyeOff from '@/components/icons/IconEyeOff.vue';
+
 const {
     label,
     autocomplete = 'current-password',
@@ -46,28 +49,8 @@ const errorId = computed(() => `${id}-error`);
                 :aria-label="revealed ? t('auth.hidePassword') : t('auth.showPassword')"
                 :aria-pressed="revealed"
                 @click="revealed = !revealed">
-                <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    aria-hidden="true"
-                    focusable="false">
-                    <path
-                        d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"
-                        stroke="currentColor"
-                        stroke-width="2" />
-                    <circle
-                        cx="12"
-                        cy="12"
-                        r="3"
-                        stroke="currentColor"
-                        stroke-width="2" />
-                    <path
-                        v-if="revealed"
-                        d="M4 20 20 4"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round" />
-                </svg>
+                <IconEyeOff v-if="revealed" />
+                <IconEye v-else />
             </button>
         </div>
         <p

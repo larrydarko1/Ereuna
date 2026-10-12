@@ -2,8 +2,8 @@
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import IconCheck from '@/components/icons/IconCheck.vue';
 import AppDialog from '@/components/ui/AppDialog.vue';
-import AppIcon from '@/components/ui/AppIcon.vue';
 import { useWatchlists } from '@/composables/charts/useWatchlists';
 
 const { symbol } = defineProps<{ symbol: string }>();
@@ -58,10 +58,7 @@ onMounted(async () => {
                     :aria-pressed="list.tickers.includes(symbol)"
                     @click="toggle(list.name)">
                     <span class="watchlist-dialog__check">
-                        <AppIcon
-                            v-if="list.tickers.includes(symbol)"
-                            name="check"
-                            :size="14" />
+                        <IconCheck v-if="list.tickers.includes(symbol)" />
                     </span>
                     <span class="watchlist-dialog__name">{{ list.name }}</span>
                     <span class="watchlist-dialog__count">{{ list.tickerCount }}</span>
@@ -134,6 +131,11 @@ onMounted(async () => {
     border: $border-width solid $color-text-muted;
     border-radius: $radius-sm;
     color: $color-accent-1;
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
 }
 
 .watchlist-dialog__name {

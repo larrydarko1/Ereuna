@@ -2,7 +2,8 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import AppIcon from '@/components/ui/AppIcon.vue';
+import IconCheck from '@/components/icons/IconCheck.vue';
+import IconCopy from '@/components/icons/IconCopy.vue';
 import type { SummaryFormat } from '@/constants/summaryFields';
 import { formatCompact, formatDate, formatNumber } from '@/utils/formatters';
 
@@ -116,7 +117,8 @@ async function copy(): Promise<void> {
                 class="summary-row__copy"
                 :aria-label="t('summary.copyToClipboard')"
                 @click="copy">
-                <AppIcon :name="copied ? 'check' : 'copy'" />
+                <IconCheck v-if="copied" />
+                <IconCopy v-else />
             </button>
         </span>
     </div>
@@ -165,6 +167,12 @@ async function copy(): Promise<void> {
 
     &:hover {
         color: $color-text;
+    }
+
+    svg {
+        display: block;
+        width: 16px;
+        height: 16px;
     }
 }
 

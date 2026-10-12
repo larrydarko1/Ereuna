@@ -3,8 +3,10 @@ import { computed, onMounted, ref, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { apiErrorMessage } from '@/api/client';
+import IconArrowDown from '@/components/icons/IconArrowDown.vue';
+import IconArrowUp from '@/components/icons/IconArrowUp.vue';
+import IconClose from '@/components/icons/IconClose.vue';
 import AppDialog from '@/components/ui/AppDialog.vue';
-import AppIcon from '@/components/ui/AppIcon.vue';
 import PromptDialog from '@/components/ui/PromptDialog.vue';
 import { useWatchlists } from '@/composables/charts/useWatchlists';
 import { targetOf } from '@/utils/dom';
@@ -313,7 +315,7 @@ onMounted(() => {
                     :aria-label="t('watchlist.moveUp', { symbol: row.ticker })"
                     :disabled="index === 0 || busy"
                     @click="moveRow(index, -1)">
-                    <AppIcon name="arrow-up" />
+                    <IconArrowUp />
                 </button>
                 <button
                     type="button"
@@ -321,7 +323,7 @@ onMounted(() => {
                     :aria-label="t('watchlist.moveDown', { symbol: row.ticker })"
                     :disabled="index === rows.length - 1 || busy"
                     @click="moveRow(index, 1)">
-                    <AppIcon name="arrow-down" />
+                    <IconArrowDown />
                 </button>
                 <button
                     type="button"
@@ -329,7 +331,7 @@ onMounted(() => {
                     :aria-label="t('watchlist.removeSymbol', { symbol: row.ticker })"
                     :disabled="busy"
                     @click="run(() => removeTicker(row.ticker))">
-                    <AppIcon name="close" />
+                    <IconClose />
                 </button>
             </li>
         </ul>
@@ -544,6 +546,12 @@ onMounted(() => {
     &:disabled {
         opacity: 0.3;
         cursor: not-allowed;
+    }
+
+    svg {
+        display: block;
+        width: 16px;
+        height: 16px;
     }
 }
 
