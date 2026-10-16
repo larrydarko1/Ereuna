@@ -51,17 +51,17 @@ const FRAMEWORK_NAMED = /(^|\/)(index|App)(\.test)?\.ts$/;
  * one 918-line file and splitting them is what the cap bought.
  */
 const LENGTH_BASELINE: Record<string, number> = {
-    'frontend/src/components/charts/PriceChart.vue': 694,
+    'frontend/src/components/charts/PriceChart.vue': 690,
     'packages/shared/src/screener/filters.ts': 464,
     'frontend/src/lib/charting/engine/gui/chart-widget.ts': 764,
     'frontend/src/lib/charting/engine/gui/mouse-event-handler.ts': 709,
-    'frontend/src/lib/charting/engine/gui/pane-widget.ts': 699,
+    'frontend/src/lib/charting/engine/gui/pane-widget.ts': 695,
     'frontend/src/lib/charting/engine/gui/price-axis-widget.ts': 645,
-    'frontend/src/lib/charting/engine/gui/time-axis-widget.ts': 495,
-    'frontend/src/lib/charting/engine/model/chart/chart-model.ts': 647,
-    'frontend/src/lib/charting/engine/model/price/price-scale.ts': 908,
-    'frontend/src/lib/charting/engine/model/series/series.ts': 712,
-    'frontend/src/lib/charting/engine/model/series/series-options.ts': 469,
+    'frontend/src/lib/charting/engine/gui/time-axis-widget.ts': 487,
+    'frontend/src/lib/charting/engine/model/chart/chart-model.ts': 642,
+    'frontend/src/lib/charting/engine/model/price/price-scale.ts': 904,
+    'frontend/src/lib/charting/engine/model/series/series.ts': 670,
+    'frontend/src/lib/charting/engine/model/series/series-options.ts': 466,
     'frontend/src/lib/charting/engine/model/series/series-style-options.ts': 466,
     'frontend/src/lib/charting/engine/model/time/time-scale.ts': 861,
 };
