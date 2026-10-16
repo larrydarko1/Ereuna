@@ -56,7 +56,7 @@ export function applyTrade(symbol: string, price: number, at: number, now: numbe
         const open = buckets.get(symbol);
         const start = bucketStart(timeframe, at);
 
-        if (open === undefined || open.start !== start) {
+        if (open?.start !== start) {
             if (open !== undefined) close(timeframe, symbol, open);
             buckets.set(symbol, {
                 start,

@@ -69,7 +69,7 @@ export async function getDateBounds(spec: DateFilterSpec): Promise<DateBounds> {
                 ])
                 .toArray();
 
-            if (result === undefined || result.min === null || result.max === null) {
+            if (result?.min == null || result.max === null) {
                 throw new AppError(422, 'FILTER_BOUND_UNAVAILABLE', `no dates at AssetInfo.${spec.queryPath}`);
             }
             return { min: result.min.toISOString(), max: result.max.toISOString() };
@@ -108,7 +108,7 @@ async function fetchFieldBounds(path: string): Promise<FilterBounds> {
         ])
         .toArray();
 
-    if (result === undefined || result.min === null || result.max === null) {
+    if (result?.min == null || result.max === null) {
         throw new AppError(422, 'FILTER_BOUND_UNAVAILABLE', `no numeric values at AssetInfo.${path}`);
     }
     return { min: roundDown(result.min), max: roundUp(result.max) };
@@ -139,7 +139,7 @@ async function fetchPriceBounds(): Promise<FilterBounds> {
         ])
         .toArray();
 
-    if (result === undefined || result.max === null) {
+    if (result?.max == null) {
         throw new AppError(422, 'FILTER_BOUND_UNAVAILABLE', 'no price data available to bound the price filter');
     }
     // A floor of zero rather than the cheapest listed price: sub-penny stocks

@@ -87,7 +87,7 @@ export function verifyAccessToken(token: string): string | null {
 
 function bearerToken(req: Request): string | null {
     const header = req.headers.authorization;
-    if (header === undefined || !header.startsWith('Bearer ')) return null;
+    if (header?.startsWith('Bearer ') !== true) return null;
     const token = header.slice(7).trim();
     return token === '' ? null : token;
 }

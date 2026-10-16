@@ -30,14 +30,24 @@ export function startProbeServer({ port, token, logger }: ProbeOptions): Server 
         // matching on the raw URL would miss `/livez?probe=1`.
         const path = (req.url ?? '').split('?')[0];
 
-        if (req.method !== 'GET') return send(res, 405, { ok: false });
-        if (path === '/livez') return send(res, 200, { ok: true });
-        if (path !== '/metrics') return send(res, 404, { error: 'NOT_FOUND' });
+        if (req.method !== 'GET') {
+            send(res, 405, { ok: false });
+            return;
+        }
+        if (path === '/livez') {
+            send(res, 200, { ok: true });
+            return;
+        }
+        if (path !== '/metrics') {
+            send(res, 404, { error: 'NOT_FOUND' });
+            return;
+        }
 
         // 404 rather than 401: an unauthenticated caller learns nothing about
         // whether metrics are served here at all.
         if (token !== undefined && token !== '' && req.headers.authorization !== `Bearer ${token}`) {
-            return send(res, 404, { error: 'NOT_FOUND' });
+            send(res, 404, { error: 'NOT_FOUND' });
+            return;
         }
 
         register
@@ -46,7 +56,7 @@ export function startProbeServer({ port, token, logger }: ProbeOptions): Server 
                 res.writeHead(200, { 'Content-Type': register.contentType });
                 res.end(body);
             })
-            .catch((err: Error) => {
+            .catch((err: unknown) => {
                 logger?.error({ err }, 'Failed to render metrics');
                 send(res, 500, { ok: false });
             });

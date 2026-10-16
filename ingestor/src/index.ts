@@ -21,7 +21,7 @@ import { closeRedis } from '@/lib/redis.js';
 import { runSession } from '@/tiingo.js';
 import { loadUniverse } from '@/universe.js';
 
-let stopping = false;
+const shutdown = new AbortController();
 let probes: Server | undefined;
 
 /**
@@ -30,7 +30,7 @@ let probes: Server | undefined;
  * reloading the ticker universe every ten seconds to decide it has no work.
  */
 async function run(): Promise<void> {
-    while (!stopping) {
+    while (!shutdown.signal.aborted) {
         if (isHoliday(await getHolidays())) {
             await sleep(60_000);
             continue;
@@ -42,7 +42,7 @@ async function run(): Promise<void> {
                 logger.warn('No listed symbols to subscribe to — waiting');
             } else {
                 logger.info({ symbols: symbols.length }, 'Market open — starting a session');
-                await runSession(symbols, () => stopping || !isMarketHours());
+                await runSession(symbols, () => shutdown.signal.aborted || !isMarketHours());
             }
         }
 
@@ -67,20 +67,20 @@ connectDb()
         logger.info({ port: config.probe.port }, 'Probes listening');
         return run();
     })
-    .catch((err: Error) => {
+    .catch((err: unknown) => {
         logger.fatal({ err }, 'Ingestor failed');
         process.exit(1);
     });
 
 /**
- * Graceful shutdown. The flag is what ends the session: `runSession` polls it
+ * Graceful shutdown. The abort is what ends the session: `runSession` polls it
  * and unsubscribes upstream on the way out, so the vendor is told the
  * subscription is over rather than being left to time it out.
  */
 for (const signal of ['SIGTERM', 'SIGINT'] as const) {
     process.on(signal, () => {
         logger.info({ signal }, 'Shutting down');
-        stopping = true;
+        shutdown.abort();
         probes?.close();
         Promise.allSettled([closeDb(), closeRedis()])
             .then(() => process.exit(0))

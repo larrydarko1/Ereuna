@@ -33,8 +33,8 @@ export async function updateDailyPrices(universe: readonly Asset[]): Promise<Pri
     const result: PriceUpdate = { written: 0, splits: [], dividends: [] };
 
     for (const row of rows) {
-        const symbol = row.ticker?.toUpperCase();
-        if (symbol === undefined || !wanted.has(symbol)) continue;
+        const symbol = row.ticker.toUpperCase();
+        if (!wanted.has(symbol)) continue;
 
         const bar = toBar(symbol, row);
         if (bar === null) continue;

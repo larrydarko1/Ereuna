@@ -13,7 +13,10 @@ const EXCHANGES = ['NASDAQ', 'NYSE'];
 export async function loadUniverse(): Promise<string[]> {
     const documents = await getDb()
         .collection<AssetInfoDoc>('AssetInfo')
-        .find({ Delisted: false, Exchange: { $in: EXCHANGES } }, { projection: { Symbol: 1, _id: 0 } })
+        .find<{ Symbol?: string }>(
+            { Delisted: false, Exchange: { $in: EXCHANGES } },
+            { projection: { Symbol: 1, _id: 0 } },
+        )
         .toArray();
 
     const symbols = documents
