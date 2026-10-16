@@ -56,14 +56,7 @@ describe('PatternsDialog', () => {
     it('names a pattern from the locale', () => {
         open([pattern()]);
 
-        expect($('.patterns__name').textContent?.trim()).toBe(i18n.global.t('charts.patterns.types.doubleTop'));
-    });
-
-    // The wedges are typed but not yet detected, and carry no translation or bias of their own
-    it('falls back to the detector’s own name rather than printing a key', () => {
-        open([pattern({ type: 'wedgeRising' })]);
-
-        expect($('.patterns__name').textContent?.trim()).toBe('wedgeRising');
+        expect($('.patterns__name').textContent.trim()).toBe(i18n.global.t('charts.patterns.types.doubleTop'));
     });
 
     it('colours a pattern by which way it reads', () => {
@@ -77,12 +70,6 @@ describe('PatternsDialog', () => {
         expect(names[0]?.classList.contains('patterns__name--bearish')).toBe(true);
         expect(names[1]?.classList.contains('patterns__name--bullish')).toBe(true);
         expect(names[2]?.classList.contains('patterns__name--neutral')).toBe(true);
-    });
-
-    it('treats a pattern with no bias of its own as taking no side', () => {
-        open([pattern({ type: 'wedgeRising' })]);
-
-        expect($('.patterns__name').classList.contains('patterns__name--neutral')).toBe(true);
     });
 
     it('shows the confidence as a whole percentage', () => {

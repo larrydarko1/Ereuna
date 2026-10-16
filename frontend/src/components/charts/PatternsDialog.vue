@@ -18,7 +18,7 @@ const {
 const emit = defineEmits<{ close: [] }>();
 
 /** Which way a pattern reads, for the colour it is given. */
-const BIAS: Record<string, 'bullish' | 'bearish' | 'neutral'> = {
+const BIAS: Record<PatternMatch['type'], 'bullish' | 'bearish' | 'neutral'> = {
     doubleTop: 'bearish',
     doubleBottom: 'bullish',
     headAndShoulders: 'bearish',
@@ -30,16 +30,10 @@ const BIAS: Record<string, 'bullish' | 'bearish' | 'neutral'> = {
     bearishFlag: 'bearish',
 };
 
-const i18n = useI18n();
-const { t } = i18n;
+const { t } = useI18n();
 
-function patternName(type: string): string {
-    const key = `charts.patterns.types.${type}`;
-    return i18n.te(key) ? t(key) : type;
-}
-
-function bias(type: string): 'bullish' | 'bearish' | 'neutral' {
-    return BIAS[type] ?? 'neutral';
+function patternName(type: PatternMatch['type']): string {
+    return t(`charts.patterns.types.${type}`);
 }
 
 /** The detector's times are seconds since the epoch. */
@@ -76,7 +70,7 @@ function span(pattern: PatternMatch): string {
                 <div class="patterns__head">
                     <span
                         class="patterns__name"
-                        :class="`patterns__name--${bias(pattern.type)}`">
+                        :class="`patterns__name--${BIAS[pattern.type]}`">
                         {{ patternName(pattern.type) }}
                     </span>
                     <span class="patterns__confidence">
