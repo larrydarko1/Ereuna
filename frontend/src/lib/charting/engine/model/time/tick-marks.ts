@@ -32,7 +32,7 @@ type MarksCache = {
 };
 
 export class TickMarks {
-    private _marksByWeight = new Map<TickMarkWeightValue, TickMark[]>();
+    private readonly _marksByWeight = new Map<TickMarkWeightValue, TickMark[]>();
     private _cache: MarksCache | null = null;
     private _uniformDistribution = false;
 
@@ -67,7 +67,7 @@ export class TickMarks {
 
     public build(spacing: number, maxWidth: number): readonly TickMark[] {
         const maxIndexesPerMark = Math.ceil(maxWidth / spacing);
-        if (this._cache === null || this._cache.maxIndexesPerMark !== maxIndexesPerMark) {
+        if (this._cache?.maxIndexesPerMark !== maxIndexesPerMark) {
             this._cache = {
                 marks: this._buildMarksImpl(maxIndexesPerMark),
                 maxIndexesPerMark,
@@ -166,10 +166,11 @@ export class TickMarks {
  */
 function carryMarksBefore(
     prevMarks: readonly TickMark[],
-    pointer: number,
+    start: number,
     currentIndex: TimePointIndex,
 ): { pointer: number; moved: TickMark[]; rightIndex: number } {
     const moved: TickMark[] = [];
+    let pointer = start;
 
     while (pointer < prevMarks.length) {
         const lastMark = prevMarks[pointer];

@@ -9,17 +9,19 @@ const {
     label,
     tip = null,
     summary = null,
-    available = true,
-    busy = false,
+    available,
+    busy,
 } = defineProps<{
     label: string;
     tip?: string | null; // Explanatory text, where the locale has one for this filter
     summary?: string | null; // What the filter is currently set to, shown collapsed
-    available?: boolean; // False when the dataset has nothing to range over yet
+    available: boolean; // False when the dataset has nothing to range over yet
     busy?: boolean;
 }>();
 
 const emit = defineEmits<{ clear: [] }>();
+
+defineSlots<{ default: () => unknown }>();
 
 const { t } = useI18n();
 

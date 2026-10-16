@@ -14,7 +14,7 @@ const TICK_DENSITY = 2.5;
 
 export class PriceTickMarkBuilder {
     private _marks: PriceMark[] = [];
-    private _base: number;
+    private readonly _base: number;
     private readonly _priceScale: PriceScale;
     private readonly _coordinateToLogicalFunc: CoordinateToLogicalConverter;
     private readonly _logicalToCoordinateFunc: LogicalToCoordinateConverter;

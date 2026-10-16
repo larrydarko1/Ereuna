@@ -14,7 +14,7 @@ type Column = { key: string; label: string };
 const {
     symbol,
     statements = null,
-    pending = false,
+    pending,
 } = defineProps<{
     symbol: string;
     statements?: Financials | null;

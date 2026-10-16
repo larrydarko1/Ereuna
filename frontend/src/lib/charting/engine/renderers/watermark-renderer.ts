@@ -32,7 +32,7 @@ export type WatermarkRendererData = {
 
 export class WatermarkRenderer extends MediaCoordinatesPaneRenderer {
     private readonly _data: WatermarkRendererData;
-    private _metricsCache = new Map<string, Map<string, number>>();
+    private readonly _metricsCache = new Map<string, Map<string, number>>();
 
     public constructor(data: WatermarkRendererData) {
         super();

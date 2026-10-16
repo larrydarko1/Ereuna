@@ -11,7 +11,7 @@ import { toDateInput } from '@/utils/formatters';
 const {
     editing = null,
     error = null,
-    saving = false,
+    saving,
 } = defineProps<{
     /** The cash movement being corrected, or null when recording a new one. */
     editing?: TradeRow | null;

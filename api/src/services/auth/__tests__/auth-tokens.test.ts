@@ -24,9 +24,9 @@ const throttle: { locked: boolean; recorded: string[]; cleared: string[] } = {
 };
 vi.mock('@/services/auth/login-throttle.js', () => ({
     throttleKey: (username: string) => `key:${username.toLowerCase()}`,
-    assertLoginAllowed: (key: string) => {
+    assertLoginAllowed: () => {
         if (throttle.locked) return Promise.reject(new AppError(429, 'RATE_LIMITED', 'locked'));
-        return Promise.resolve(void key);
+        return Promise.resolve();
     },
     recordLoginFailure: (key: string) => {
         throttle.recorded.push(key);
@@ -83,6 +83,12 @@ const decode = (token: string): Record<string, unknown> => {
     const claims = jwt.verify(token, config.jwt.secret, { algorithms: ['HS256'] });
     if (!isRecord(claims)) throw new Error('the token carried no claims object');
     return claims;
+};
+
+/** The challenge token a two-factor sign-in stops at. */
+const challengeOf = (result: Awaited<ReturnType<typeof loginUser>>): string => {
+    if (!result.requires2FA) throw new Error('the sign-in issued a session, not a two-factor challenge');
+    return result.tempToken;
 };
 
 /** The document the refresh-token insert wrote. */
@@ -214,14 +220,18 @@ describe('loginUser', () => {
         db.current = fakeDb({ Users: [] });
         db.current.of('Users').results.findOne = null;
 
-        await expect(loginUser('nobody', 'anything', { rememberMe: false })).rejects.toThrow();
+        await expect(loginUser('nobody', 'anything', { rememberMe: false })).rejects.toMatchObject({
+            code: 'INVALID_CREDENTIALS',
+        });
         expect(verify).toHaveBeenCalledOnce();
         verify.mockRestore();
     });
 
     it('counts a failure against the account', async () => {
         db.current = fakeDb({ Users: [user()] });
-        await expect(loginUser('larry', 'wrong', { rememberMe: false })).rejects.toThrow();
+        await expect(loginUser('larry', 'wrong', { rememberMe: false })).rejects.toMatchObject({
+            code: 'INVALID_CREDENTIALS',
+        });
         expect(throttle.recorded).toEqual(['key:larry']);
     });
 
@@ -235,9 +245,7 @@ describe('loginUser', () => {
         db.current = fakeDb({ Users: [user({ totpEnabled: true })] });
         const result = await loginUser('larry', 'Str0ng!pass', { rememberMe: true });
 
-        expect(result.requires2FA).toBe(true);
-        if (!result.requires2FA) throw new Error('unreachable');
-        expect(decode(result.tempToken)).toMatchObject({ sub: USER_ID.toHexString(), type: '2fa_pending' });
+        expect(decode(challengeOf(result))).toMatchObject({ sub: USER_ID.toHexString(), type: '2fa_pending' });
         expect(db.current.of('RefreshTokens').writes).toEqual([]);
     });
 
@@ -400,11 +408,7 @@ describe('verify2FATempToken', () => {
     it('refuses an access token presented as a challenge token', () => {
         const token = jwt.sign({ sub: USER_ID.toHexString() }, config.jwt.secret);
         expect(() => verify2FATempToken(token)).toThrow(AppError);
-        try {
-            verify2FATempToken(token);
-        } catch (err) {
-            expect(err).toMatchObject({ code: 'INVALID_TOKEN_TYPE' });
-        }
+        expect(() => verify2FATempToken(token)).toThrow(expect.objectContaining({ code: 'INVALID_TOKEN_TYPE' }));
     });
 
     it.each([
@@ -414,12 +418,7 @@ describe('verify2FATempToken', () => {
         ],
         ['a token that is not a JWT', 'not.a.token'],
     ])('refuses %s', (_label, token) => {
-        try {
-            verify2FATempToken(token);
-            throw new Error('should have thrown');
-        } catch (err) {
-            expect(err).toMatchObject({ code: 'TWO_FA_TOKEN_INVALID' });
-        }
+        expect(() => verify2FATempToken(token)).toThrow(expect.objectContaining({ code: 'TWO_FA_TOKEN_INVALID' }));
     });
 
     it('refuses an expired challenge token', () => {

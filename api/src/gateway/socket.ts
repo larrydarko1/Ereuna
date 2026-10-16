@@ -103,18 +103,27 @@ export async function initSocket(httpServer: HttpServer): Promise<void> {
     io.use((socket: FeedSocket, next) => {
         void (async () => {
             const { allowed } = await consumeTokenBucket(`rl:ws:conn:${clientIp(socket)}`, CONN_BUCKET);
-            if (!allowed) return next(new Error('Too many connection attempts — slow down'));
+            if (!allowed) {
+                next(new Error('Too many connection attempts — slow down'));
+                return;
+            }
             next();
         })();
     });
 
     io.use((socket: FeedSocket, next) => {
         const token: unknown = socket.handshake.auth['token'];
-        if (typeof token !== 'string' || token === '') return next(new Error('Missing token'));
+        if (typeof token !== 'string' || token === '') {
+            next(new Error('Missing token'));
+            return;
+        }
 
         // The same check as REST, which also refuses the 2FA challenge token
         const userId = verifyAccessToken(token);
-        if (userId === null) return next(new Error('Invalid token'));
+        if (userId === null) {
+            next(new Error('Invalid token'));
+            return;
+        }
         socket.data.userId = userId;
         next();
     });

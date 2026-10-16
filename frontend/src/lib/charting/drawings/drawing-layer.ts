@@ -157,7 +157,7 @@ export abstract class DrawingLayer {
      * Turns a crosshair event into a point on the plot, or `null` when it did
      * not land on one — off the edge there is no bar and no price.
      */
-    protected readPoint(param: MouseEventParams<Time>): AnchoredPoint | null {
+    protected readPoint(param: MouseEventParams): AnchoredPoint | null {
         if (param.point === undefined || param.time === undefined) return null;
 
         const price = this.mainSeries.coordinateToPrice(param.point.y);
@@ -197,11 +197,11 @@ export abstract class DrawingLayer {
     // The handlers below are arrow properties so that `this` survives being
     // handed to addEventListener and to the chart's own subscriptions, and so
     // that the reference passed to unsubscribe is the one that was subscribed
-    private handleVisibleRangeChange = (): void => {
+    private readonly handleVisibleRangeChange = (): void => {
         this.draw();
     };
 
-    private handleResize = (): void => {
+    private readonly handleResize = (): void => {
         this.resizeCanvas();
     };
 
@@ -210,7 +210,7 @@ export abstract class DrawingLayer {
      * the only way to reach one without first hunting for the right toolbar
      * button.
      */
-    private handleGlobalClick = (param: MouseEventParams<Time>): void => {
+    private readonly handleGlobalClick = (param: MouseEventParams): void => {
         if (this.active || param.point === undefined) return;
         if (!this.selectAt(param.point)) return;
 
@@ -218,7 +218,7 @@ export abstract class DrawingLayer {
         this.notifyActivate();
     };
 
-    private handleKeyDown = (event: KeyboardEvent): void => {
+    private readonly handleKeyDown = (event: KeyboardEvent): void => {
         if (event.key !== 'Backspace' && event.key !== 'Delete') return;
 
         if (isTypingTarget(event.target)) {

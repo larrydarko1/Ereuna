@@ -28,8 +28,7 @@ export class GradientStyleCache {
 
         if (
             this._cachedValue === undefined ||
-            cachedParams === undefined ||
-            cachedParams.topColor1 !== topColor1 ||
+            cachedParams?.topColor1 !== topColor1 ||
             cachedParams.topColor2 !== topColor2 ||
             cachedParams.bottomColor1 !== bottomColor1 ||
             cachedParams.bottomColor2 !== bottomColor2 ||

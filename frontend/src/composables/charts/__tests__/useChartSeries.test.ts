@@ -114,16 +114,14 @@ describe('loading a series', () => {
     });
 
     it('holds its bars when something the key does not name changes', async () => {
-        const unrelated = ref('dark');
+        // The view reads the key out of preferences that hold more than the key names
+        const preferences = ref({ symbol: 'AAPL', theme: 'dark' });
         mock.on('GET /api/charts/AAPL', series(['2026-03-02', '2026-03-03']));
-        const { chart } = inScope(() => {
-            void unrelated.value; // A preference read alongside the key, as the chart view does
-            return { symbol: 'AAPL', timeframe: 'daily', overlays: 'SMA10' };
-        });
+        const { chart } = inScope(() => ({ symbol: preferences.value.symbol, timeframe: 'daily', overlays: 'SMA10' }));
         await vi.waitFor(() => expect(chart.bars.value).toHaveLength(2));
 
         // Reloading clears the bars first, so a spurious re-read blanks the chart.
-        unrelated.value = 'light';
+        preferences.value = { ...preferences.value, theme: 'light' };
         await nextTick();
 
         expect(chart.bars.value).toHaveLength(2);

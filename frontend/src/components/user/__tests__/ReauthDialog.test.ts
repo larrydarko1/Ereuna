@@ -108,7 +108,7 @@ describe('ReauthDialog', () => {
         await submit();
 
         expect(wrapper.emitted('submit')).toBeUndefined();
-        expect($('.dialog__footer .btn--primary').textContent?.trim()).toBe(i18n.global.t('common.processing'));
+        expect($('.dialog__footer .btn--primary').textContent.trim()).toBe(i18n.global.t('common.processing'));
     });
 
     it('shows what the last attempt was refused for', () => {

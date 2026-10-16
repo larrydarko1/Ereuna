@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 type Handler = (...args: unknown[]) => void;
+type AuthOption = (callback: (data: unknown) => void) => void;
 
 /** A stand-in for the Socket.IO client: this suite is about the sharing and the
  *  lifecycle around the socket, not about the transport underneath it. */
@@ -60,8 +61,15 @@ function fakeOf(socket: unknown): FakeSocket {
 }
 
 /** The `auth` option: a callback Socket.IO calls with the function that takes the handshake payload. */
-function isAuthOption(value: unknown): value is (callback: (data: unknown) => void) => void {
+function isAuthOption(value: unknown): value is AuthOption {
     return typeof value === 'function';
+}
+
+/** The `auth` callback the socket was opened with, which Socket.IO calls on every connect. */
+function authOf(socket: unknown): AuthOption {
+    const auth = fakeOf(socket).options['auth'];
+    if (!isAuthOption(auth)) throw new Error('the socket was opened without an auth callback');
+    return auth;
 }
 
 beforeEach(() => {
@@ -94,8 +102,7 @@ describe('useSocket', () => {
         setSessionUser(user);
         setAccessToken('first');
         const { socket } = useSocket();
-        const auth = fakeOf(socket).options['auth'];
-        if (!isAuthOption(auth)) throw new Error('the socket was opened without an auth callback');
+        const auth = authOf(socket);
 
         let handed: unknown;
         auth((data) => {

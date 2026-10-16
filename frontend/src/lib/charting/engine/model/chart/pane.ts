@@ -38,18 +38,18 @@ export class Pane implements IDestroyable {
     private readonly _model: IChartModelBase;
     private readonly _grid: Grid;
 
-    private _dataSources: IPriceDataSource[] = [];
-    private _overlaySourcesByScaleId = new Map<string, IPriceDataSource[]>();
+    private readonly _dataSources: IPriceDataSource[] = [];
+    private readonly _overlaySourcesByScaleId = new Map<string, IPriceDataSource[]>();
 
     private _height = 0;
     private _width = 0;
     private _stretchFactor: number = DEFAULT_STRETCH_FACTOR;
     private _cachedOrderedSources: readonly IPriceDataSource[] | null = null;
 
-    private _destroyed: Delegate = new Delegate();
+    private readonly _destroyed: Delegate = new Delegate();
 
-    private _leftPriceScale: PriceScale;
-    private _rightPriceScale: PriceScale;
+    private readonly _leftPriceScale: PriceScale;
+    private readonly _rightPriceScale: PriceScale;
 
     public constructor(timeScale: ITimeScale, model: IChartModelBase) {
         this._timeScale = timeScale;
@@ -178,7 +178,7 @@ export class Pane implements IDestroyable {
     }
 
     public addDataSource(source: IPriceDataSource, targetScaleId: string, zOrder?: number): void {
-        const targetZOrder = zOrder !== undefined ? zOrder : this._getZOrderMinMax().maxZOrder + 1;
+        const targetZOrder = zOrder ?? this._getZOrderMinMax().maxZOrder + 1;
         this._insertDataSource(source, targetScaleId, targetZOrder);
     }
 
@@ -203,7 +203,7 @@ export class Pane implements IDestroyable {
         const priceScale = source.priceScale();
         // if source has owner, it returns owner's price scale
         // and it does not have source in their list
-        if (priceScale !== null && priceScale.dataSources().indexOf(source) >= 0) {
+        if (priceScale?.dataSources().includes(source) === true) {
             priceScale.removeDataSource(source);
         }
 
@@ -296,7 +296,7 @@ export class Pane implements IDestroyable {
     }
 
     public recalculatePriceScale(priceScale: PriceScale | null): void {
-        if (priceScale === null || !priceScale.isAutoScale()) {
+        if (priceScale?.isAutoScale() !== true) {
             return;
         }
 
@@ -332,9 +332,7 @@ export class Pane implements IDestroyable {
     }
 
     public orderedSources(): readonly IPriceDataSource[] {
-        if (this._cachedOrderedSources === null) {
-            this._cachedOrderedSources = sortSources<IPriceDataSource>(this._dataSources);
-        }
+        this._cachedOrderedSources ??= sortSources<IPriceDataSource>(this._dataSources);
 
         return this._cachedOrderedSources;
     }
@@ -381,15 +379,13 @@ export class Pane implements IDestroyable {
             }
         }
 
-        return { minZOrder: minZOrder, maxZOrder: maxZOrder };
+        return { minZOrder, maxZOrder };
     }
 
     private _insertDataSource(source: IPriceDataSource, priceScaleId: string, zOrder: number): void {
         let priceScale = this.priceScaleById(priceScaleId);
 
-        if (priceScale === null) {
-            priceScale = this._createPriceScale(priceScaleId, this._model.options().overlayPriceScales);
-        }
+        priceScale ??= this._createPriceScale(priceScaleId, this._model.options().overlayPriceScales);
 
         this._dataSources.push(source);
         if (!isDefaultPriceScale(priceScaleId)) {

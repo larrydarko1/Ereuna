@@ -53,8 +53,8 @@ describe('SignalsDialog', () => {
     it('reads a signal out: side, strategy, price, reason and date', () => {
         open([signal()]);
 
-        expect($('.signals__direction').textContent?.trim()).toBe(i18n.global.t('charts.signals.buy'));
-        expect($('.signals__price').textContent?.trim()).toBe(formatCurrency(190.5));
+        expect($('.signals__direction').textContent.trim()).toBe(i18n.global.t('charts.signals.buy'));
+        expect($('.signals__price').textContent.trim()).toBe(formatCurrency(190.5));
         expect($('.signals__description').textContent).toBe('RSI crossed back above 30');
         expect($('.signals__meta').textContent).toContain(formatDate('2026-03-04'));
     });
@@ -67,7 +67,7 @@ describe('SignalsDialog', () => {
 
     it('translates a strategy it knows', () => {
         open([signal({ strategy: 'RSI_Oversold' })]);
-        const shown = $('.signals__strategy').textContent?.trim();
+        const shown = $('.signals__strategy').textContent.trim();
 
         expect(shown).toBe(i18n.global.t('charts.signals.strategies.RSI_Oversold'));
     });
@@ -75,7 +75,7 @@ describe('SignalsDialog', () => {
     it('spaces out a strategy the locale has never heard of, rather than printing a key', () => {
         open([signal({ strategy: 'Brand_New_Detector' })]);
 
-        expect($('.signals__strategy').textContent?.trim()).toBe('Brand New Detector');
+        expect($('.signals__strategy').textContent.trim()).toBe('Brand New Detector');
     });
 
     it('leaves out a price the aggregator did not attach', () => {

@@ -85,8 +85,8 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     private readonly _mouseEventHandler: MouseEventHandler;
     private _startScrollingPos: StartScrollPosition | null = null;
     private _isScrolling = false;
-    private _clicked = new Delegate<TimePointIndex | null, Point, TouchMouseEventData>();
-    private _dblClicked = new Delegate<TimePointIndex | null, Point, TouchMouseEventData>();
+    private readonly _clicked = new Delegate<TimePointIndex | null, Point, TouchMouseEventData>();
+    private readonly _dblClicked = new Delegate<TimePointIndex | null, Point, TouchMouseEventData>();
     private _prevPinchScale = 0;
     private _longTap = false;
     private _startTrackPoint: Point | null = null;
@@ -420,8 +420,8 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
         this._canvasBinding.resizeCanvasElement(newSize);
         this._topCanvasBinding.resizeCanvasElement(newSize);
         this._isSettingSize = false;
-        this._paneCell.style.width = newSize.width + 'px';
-        this._paneCell.style.height = newSize.height + 'px';
+        this._paneCell.style.width = `${newSize.width}px`;
+        this._paneCell.style.height = `${newSize.height}px`;
     }
 
     public recalculatePriceScales(): void {
@@ -720,12 +720,6 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
             // Clear selection
             document.getSelection()?.removeAllRanges();
         }
-
-        const priceScale = this._state.defaultPriceScale();
-
-        if (priceScale.isEmpty() || this._model().timeScale().isEmpty()) {
-            return;
-        }
     }
 
     private _pressedMouseTouchMoveEvent(event: TouchMouseEvent): void {
@@ -828,11 +822,11 @@ function sourceBottomPaneViews(source: IDataSource, pane: Pane): readonly IPaneV
 }
 
 function sourcePaneViews(source: IDataSource, pane: Pane): readonly IPaneView[] {
-    return source.paneViews?.(pane) ?? [];
+    return source.paneViews(pane);
 }
 
 function sourceLabelPaneViews(source: IDataSource, pane: Pane): readonly IPaneView[] {
-    return source.labelPaneViews?.(pane) ?? [];
+    return source.labelPaneViews(pane);
 }
 
 function sourceTopPaneViews(source: IDataSource, pane: Pane): readonly IPaneView[] {

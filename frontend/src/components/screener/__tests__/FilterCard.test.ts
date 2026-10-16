@@ -5,7 +5,10 @@ import FilterCard from '@/components/screener/FilterCard.vue';
 import { i18n } from '@/i18n';
 
 const card = (props: Record<string, unknown> = {}): VueWrapper =>
-    mount(FilterCard, { props: { label: 'Market cap', ...props }, slots: { default: '<p class="body" />' } });
+    mount(FilterCard, {
+        props: { label: 'Market cap', available: true, ...props },
+        slots: { default: '<p class="body" />' },
+    });
 
 describe('FilterCard', () => {
     it('starts closed while the filter is unset', () => {

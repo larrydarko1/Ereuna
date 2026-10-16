@@ -44,7 +44,7 @@ export async function withCache<T>(
         return fetcher();
     }
 
-    const data = await fetcher();
+    const data: T = await fetcher();
 
     // An absent value is never cached. A fetcher answering `null` means the
     // document is not there yet, and its caller turns that into a 404 — storing

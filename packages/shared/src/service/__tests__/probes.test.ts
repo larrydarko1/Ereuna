@@ -33,7 +33,10 @@ beforeEach(() => {
 
 afterEach(async () => {
     await new Promise<void>((resolve) => {
-        if (server === null) return resolve();
+        if (server === null) {
+            resolve();
+            return;
+        }
         server.close(() => resolve());
         server = null;
     });

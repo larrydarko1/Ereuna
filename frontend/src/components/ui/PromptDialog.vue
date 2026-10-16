@@ -9,7 +9,7 @@ const {
     label,
     initial = '',
     maxLength = 60,
-    pending = false,
+    pending,
     error = null,
 } = defineProps<{
     title: string;

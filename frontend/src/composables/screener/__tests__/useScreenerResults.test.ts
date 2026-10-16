@@ -143,7 +143,7 @@ describe('paging', () => {
 
         await results.reload();
 
-        expect(mock.calls.length).toBe(before + 1);
+        expect(mock.calls).toHaveLength(before + 1);
         expect(results.page.value).toBe(1);
     });
 });

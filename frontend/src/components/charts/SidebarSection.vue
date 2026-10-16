@@ -1,5 +1,7 @@
 <script setup lang="ts">
 const { title } = defineProps<{ title: string }>();
+
+defineSlots<{ default: () => unknown }>();
 </script>
 
 <template>

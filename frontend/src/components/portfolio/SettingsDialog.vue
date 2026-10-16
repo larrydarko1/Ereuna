@@ -7,7 +7,7 @@ import AppDialog from '@/components/ui/AppDialog.vue';
 const {
     summary,
     error = null,
-    saving = false,
+    saving,
 } = defineProps<{
     summary: { baseValue: number; leverage: number; defaultCommission: number };
     error?: string | null;

@@ -40,7 +40,7 @@ describe('measuring between two points', () => {
         moveTo(measured.stage, 380, 140);
 
         const written = labels(measured);
-        expect(written.some((text) => /%$/.test(text))).toBe(true);
+        expect(written.some((text) => text.endsWith('%'))).toBe(true);
         expect(written.some((text) => /^[+-]\d/.test(text))).toBe(true);
         expect(written.some((text) => /\d+d \d+h/.test(text))).toBe(true);
     });

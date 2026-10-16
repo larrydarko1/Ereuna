@@ -31,7 +31,7 @@ function download(): void {
 <template>
     <AppDialog
         :title="t('user.security.codes.title')"
-        :dismissible="false"
+        inert-backdrop
         @close="emit('close')">
         <p class="codes__lead">{{ t('user.security.codes.description') }}</p>
 

@@ -45,7 +45,7 @@ class PanePriceAxisViewRenderer implements IPaneRenderer {
 }
 
 export class PanePriceAxisView implements IPaneView {
-    private _priceAxisView: IPriceAxisView;
+    private readonly _priceAxisView: IPriceAxisView;
     private readonly _textWidthCache: TextWidthCache;
     private readonly _dataSource: IPriceDataSource;
     private readonly _chartModel: IChartModelBase;

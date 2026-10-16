@@ -250,26 +250,36 @@ export function gradientColorAtPercent(topColor: string, bottomColor: string, pe
     const [topR, topG, topB, topA] = colorStringToRgba(topColor);
     const [bottomR, bottomG, bottomB, bottomA] = colorStringToRgba(bottomColor);
 
-    const resultRgba: Rgba = [
-        normalizeRgbComponent(nominal<RedComponent>(topR + percent * (bottomR - topR))),
-        normalizeRgbComponent(nominal<GreenComponent>(topG + percent * (bottomG - topG))),
-        normalizeRgbComponent(nominal<BlueComponent>(topB + percent * (bottomB - topB))),
-        normalizeAlphaComponent(nominal<AlphaComponent>(topA + percent * (bottomA - topA))),
-    ];
+    const resultRgba = rgba(
+        topR + percent * (bottomR - topR),
+        topG + percent * (bottomG - topG),
+        topB + percent * (bottomB - topB),
+        topA + percent * (bottomA - topA),
+    );
 
     return `rgba(${resultRgba[0]}, ${resultRgba[1]}, ${resultRgba[2]}, ${resultRgba[3]})`;
 }
 
-function normalizeRgbComponent<T extends RedComponent | GreenComponent | BlueComponent>(component: number): T {
+/** A colour from its four channels, each brought into range. */
+function rgba(red: number, green: number, blue: number, alpha: number): Rgba {
+    return [
+        nominal<RedComponent>(normalizeRgbComponent(red)),
+        nominal<GreenComponent>(normalizeRgbComponent(green)),
+        nominal<BlueComponent>(normalizeRgbComponent(blue)),
+        normalizeAlphaComponent(nominal<AlphaComponent>(alpha)),
+    ];
+}
+
+function normalizeRgbComponent(component: number): number {
     if (component < 0) {
-        return nominal<T>(0);
+        return 0;
     }
     if (component > 255) {
-        return nominal<T>(255);
+        return 255;
     }
     // NaN values are treated as 0
     const rounded = Math.round(component);
-    return nominal<T>(Number.isNaN(rounded) ? 0 : rounded);
+    return Number.isNaN(rounded) ? 0 : rounded;
 }
 
 function normalizeAlphaComponent(component: AlphaComponent): AlphaComponent {
@@ -280,13 +290,9 @@ function normalizeAlphaComponent(component: AlphaComponent): AlphaComponent {
     return nominal<AlphaComponent>(Math.round(component * 10000) / 10000);
 }
 
-function colorStringToRgba(colorString: string): Rgba {
-    colorString = colorString.toLowerCase();
-
-    const named = namedColorRgbHexStrings[colorString];
-    if (named !== undefined) {
-        colorString = named;
-    }
+function colorStringToRgba(input: string): Rgba {
+    const lowered = input.toLowerCase();
+    const colorString = namedColorRgbHexStrings[lowered] ?? lowered;
 
     // Every one of these patterns has three mandatory capture groups, so a match
     // guarantees red/green/blue. Only alpha is optional, and only in `rgbRe`.
@@ -294,12 +300,12 @@ function colorStringToRgba(colorString: string): Rgba {
         const matches = rgbaRe.exec(colorString) ?? rgbRe.exec(colorString);
         if (matches !== null) {
             const [, red, green, blue, alpha] = matches;
-            return [
-                normalizeRgbComponent<RedComponent>(parseInt(getDefined(red), 10)),
-                normalizeRgbComponent<GreenComponent>(parseInt(getDefined(green), 10)),
-                normalizeRgbComponent<BlueComponent>(parseInt(getDefined(blue), 10)),
-                normalizeAlphaComponent(nominal<AlphaComponent>(alpha === undefined ? 1 : parseFloat(alpha))),
-            ];
+            return rgba(
+                parseInt(getDefined(red), 10),
+                parseInt(getDefined(green), 10),
+                parseInt(getDefined(blue), 10),
+                alpha === undefined ? 1 : parseFloat(alpha),
+            );
         }
     }
 
@@ -307,12 +313,12 @@ function colorStringToRgba(colorString: string): Rgba {
         const matches = hexRe.exec(colorString);
         if (matches !== null) {
             const [, red, green, blue] = matches;
-            return [
-                normalizeRgbComponent<RedComponent>(parseInt(getDefined(red), 16)),
-                normalizeRgbComponent<GreenComponent>(parseInt(getDefined(green), 16)),
-                normalizeRgbComponent<BlueComponent>(parseInt(getDefined(blue), 16)),
-                nominal<AlphaComponent>(1),
-            ];
+            return rgba(
+                parseInt(getDefined(red), 16),
+                parseInt(getDefined(green), 16),
+                parseInt(getDefined(blue), 16),
+                1,
+            );
         }
     }
 
@@ -320,12 +326,12 @@ function colorStringToRgba(colorString: string): Rgba {
         const matches = shortHexRe.exec(colorString);
         if (matches !== null) {
             const [, red, green, blue] = matches;
-            return [
-                normalizeRgbComponent<RedComponent>(parseInt(getDefined(red), 16) * 0x11),
-                normalizeRgbComponent<GreenComponent>(parseInt(getDefined(green), 16) * 0x11),
-                normalizeRgbComponent<BlueComponent>(parseInt(getDefined(blue), 16) * 0x11),
-                nominal<AlphaComponent>(1),
-            ];
+            return rgba(
+                parseInt(getDefined(red), 16) * 0x11,
+                parseInt(getDefined(green), 16) * 0x11,
+                parseInt(getDefined(blue), 16) * 0x11,
+                1,
+            );
         }
     }
 

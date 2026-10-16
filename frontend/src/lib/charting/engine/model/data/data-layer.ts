@@ -60,7 +60,7 @@ export type SeriesChanges = {
     /**
      * Data to be merged into series' plot list
      */
-    data: readonly SeriesPlotRow<SeriesType>[];
+    data: readonly SeriesPlotRow[];
     /**
      * Additional info about this change
      */
@@ -86,9 +86,9 @@ type InternalTimeScalePoint = {
 export class DataLayer<THorzScaleItem> {
     // note that _pointDataByTimePoint and _seriesRowsBySeries shares THE SAME objects in their values between each other
     // it's just different kind of maps to make usages/perf better
-    private _pointDataByTimePoint = new Map<InternalHorzScaleItemKey, TimePointData>();
-    private _seriesRowsBySeries = new Map<Series<SeriesType>, SeriesPlotRow<SeriesType>[]>();
-    private _seriesLastTimePoint = new Map<Series<SeriesType>, InternalHorzScaleItem>();
+    private readonly _pointDataByTimePoint = new Map<InternalHorzScaleItemKey, TimePointData>();
+    private readonly _seriesRowsBySeries = new Map<Series<SeriesType>, SeriesPlotRow[]>();
+    private readonly _seriesLastTimePoint = new Map<Series<SeriesType>, InternalHorzScaleItem>();
 
     // this is kind of "dest" values (in opposite to "source" ones) - we don't need to modify it manually, the only by calling _updateTimeScalePoints or updateSeriesData methods
     private _sortedTimePoints: InternalTimeScalePoint[] = [];
@@ -285,10 +285,7 @@ export class DataLayer<THorzScaleItem> {
         return this._getUpdateResponse(series, insertIndex, info);
     }
 
-    private _updateLastSeriesRow(
-        series: Series<SeriesType>,
-        plotRow: SeriesPlotRow<SeriesType> | WhitespacePlotRow,
-    ): void {
+    private _updateLastSeriesRow(series: Series<SeriesType>, plotRow: SeriesPlotRow | WhitespacePlotRow): void {
         let seriesData = this._seriesRowsBySeries.get(series);
         if (seriesData === undefined) {
             seriesData = [];
@@ -315,10 +312,7 @@ export class DataLayer<THorzScaleItem> {
         this._seriesLastTimePoint.set(series, plotRow.time);
     }
 
-    private _setRowsToSeries(
-        series: Series<SeriesType>,
-        seriesRows: (SeriesPlotRow<SeriesType> | WhitespacePlotRow)[],
-    ): void {
+    private _setRowsToSeries(series: Series<SeriesType>, seriesRows: (SeriesPlotRow | WhitespacePlotRow)[]): void {
         const lastRow = seriesRows[seriesRows.length - 1];
         if (lastRow !== undefined) {
             this._seriesRowsBySeries.set(series, seriesRows.filter(isSeriesPlotRow));
@@ -399,7 +393,7 @@ export class DataLayer<THorzScaleItem> {
 
         let baseIndex = nominal<TimePointIndex>(0);
 
-        this._seriesRowsBySeries.forEach((data: SeriesPlotRow<SeriesType>[]) => {
+        this._seriesRowsBySeries.forEach((data: SeriesPlotRow[]) => {
             const lastRow = data[data.length - 1];
             if (lastRow !== undefined) {
                 baseIndex = nominal<TimePointIndex>(Math.max(baseIndex, lastRow.index));
@@ -424,7 +418,7 @@ export class DataLayer<THorzScaleItem> {
         if (firstChangedPointIndex !== -1) {
             // Upstream note: could be narrowed to the series with data after
             // firstChangedPointIndex
-            this._seriesRowsBySeries.forEach((data: SeriesPlotRow<SeriesType>[], s: Series<SeriesType>) => {
+            this._seriesRowsBySeries.forEach((data: SeriesPlotRow[], s: Series<SeriesType>) => {
                 dataUpdateResponse.series.set(s, {
                     data,
                     info: s === updatedSeries ? info : undefined,

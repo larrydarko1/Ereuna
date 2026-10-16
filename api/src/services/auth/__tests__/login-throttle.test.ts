@@ -66,13 +66,11 @@ describe('assertLoginAllowed', () => {
     it('refuses a locked account with the shared RATE_LIMITED code', async () => {
         redis.current.store.set(`login:lock:${KEY}`, '1');
         await expect(assertLoginAllowed(KEY)).rejects.toThrow(AppError);
-
-        try {
-            await assertLoginAllowed(KEY);
-        } catch (err) {
-            expect(err).toBeInstanceOf(AppError);
-            expect(err).toMatchObject({ status: 429, code: 'RATE_LIMITED', securityEvent: true });
-        }
+        await expect(assertLoginAllowed(KEY)).rejects.toMatchObject({
+            status: 429,
+            code: 'RATE_LIMITED',
+            securityEvent: true,
+        });
     });
 
     it('fails open when Redis is unreachable — an outage must not lock everyone out', async () => {

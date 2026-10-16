@@ -154,7 +154,7 @@ connectDb()
     .then(() => {
         server.listen(config.port, () => logger.info({ port: config.port }, 'API listening'));
     })
-    .catch((err: Error) => {
+    .catch((err: unknown) => {
         logger.fatal({ err }, 'API startup failed');
         process.exit(1);
     });
@@ -173,7 +173,7 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
     process.on(signal, () => {
         logger.info({ signal }, 'Shutting down');
         closeSocket()
-            .catch((err: Error) => logger.error({ err }, 'Gateway shutdown failed'))
+            .catch((err: unknown) => logger.error({ err }, 'Gateway shutdown failed'))
             .then(() => {
                 server.close(() => {
                     Promise.allSettled([closeDb(), closeRedis()])

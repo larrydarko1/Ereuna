@@ -57,7 +57,7 @@ export function convertStringToBusinessDay(value: TimedData<Time>): void {
 }
 
 export function convertStringsToBusinessDays(data: TimedData<Time>[]): void {
-    return data.forEach(convertStringToBusinessDay);
+    data.forEach(convertStringToBusinessDay);
 }
 
 function businessDayConverter(time: Time): InternalHorzScaleItem {

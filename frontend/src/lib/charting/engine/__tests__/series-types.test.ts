@@ -80,7 +80,7 @@ describe('a line series', () => {
         const series = chart.addLineSeries();
         series.setData(lineData(10));
 
-        expect(() => series.update({ time: timeAt(3), value: 1 })).toThrow();
+        expect(() => series.update({ time: timeAt(3), value: 1 })).toThrow('Cannot update oldest data');
     });
 
     it('empties when set to nothing', () => {
@@ -222,6 +222,6 @@ describe('removeSeries', () => {
 
         chart.removeSeries(series);
 
-        expect(() => chart.removeSeries(series)).toThrow();
+        expect(() => chart.removeSeries(series)).toThrow('Value is undefined');
     });
 });

@@ -10,7 +10,7 @@ import type { SeriesMarker } from '@/lib/charting/engine/model/series/series-mar
 import type { SeriesType } from '@/lib/charting/engine/model/series/series-options';
 import type { Time, UTCTimestamp } from '@/lib/charting/engine/model/time/types';
 import { LineStyle } from '@/lib/charting/engine/renderers/draw-line';
-import { type PatternMatch } from '@/lib/charting/patterns/types';
+import { type PatternMatch, type PatternType } from '@/lib/charting/patterns/types';
 import { timeToTimestamp } from '@/lib/charting/shared/time-conversion';
 
 type PatternVisual = {
@@ -18,8 +18,8 @@ type PatternVisual = {
 };
 
 export class PatternOverlayManager {
-    private chart: IChartApi;
-    private mainSeries: ISeriesApi<SeriesType>;
+    private readonly chart: IChartApi;
+    private readonly mainSeries: ISeriesApi<SeriesType>;
     private patterns: PatternVisual[] = [];
     private patternSeries: ISeriesApi<'Line'>[] = [];
     private markers: SeriesMarker<Time>[] = [];
@@ -330,8 +330,8 @@ export class PatternOverlayManager {
     /**
      * Get short label for pattern
      */
-    private getPatternLabel(type: string): string {
-        const labels: Record<string, string> = {
+    private getPatternLabel(type: PatternType): string {
+        const labels: Record<PatternType, string> = {
             doubleTop: 'DT',
             doubleBottom: 'DB',
             headAndShoulders: 'H&S',
@@ -341,11 +341,9 @@ export class PatternOverlayManager {
             symmetricTriangle: '△',
             bullishFlag: '⚑↗',
             bearishFlag: '⚑↘',
-            wedgeRising: '◇↗',
-            wedgeFalling: '◇↘',
         };
 
-        return labels[type] ?? '?';
+        return labels[type];
     }
 
     /**

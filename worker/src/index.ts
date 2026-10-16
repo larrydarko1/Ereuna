@@ -57,7 +57,7 @@ connectDb()
             runsOrganize ? startOrganizer() : Promise.resolve(),
         ]);
     })
-    .catch((err: Error) => {
+    .catch((err: unknown) => {
         logger.fatal({ err, role }, 'Worker failed');
         process.exit(1);
     });
@@ -69,7 +69,7 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
         probes?.close();
 
         stopAggregator()
-            .catch((err: Error) => logger.error({ err }, 'Final candle flush failed'))
+            .catch((err: unknown) => logger.error({ err }, 'Final candle flush failed'))
             .then(() => Promise.allSettled([closeDb(), closeRedis()]))
             .then(() => process.exit(0))
             .catch(() => process.exit(1));

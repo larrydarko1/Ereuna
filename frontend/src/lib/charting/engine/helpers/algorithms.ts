@@ -38,17 +38,18 @@ function binarySearch<TArrayElementType>(
     to: number,
     goRight: (element: TArrayElementType) => boolean,
 ): number {
+    let low = start;
     let count: number = to - start;
     while (0 < count) {
         const half: number = count >> 1;
-        const mid: number = start + half;
+        const mid: number = low + half;
         if (goRight(getDefined(arr[mid]))) {
-            start = mid + 1;
+            low = mid + 1;
             count -= half + 1;
         } else {
             count = half;
         }
     }
 
-    return start;
+    return low;
 }

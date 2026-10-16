@@ -32,8 +32,8 @@ type CustomBarItem = {
 } & CustomBarItemBase;
 
 class CustomSeriesPaneRendererWrapper implements IPaneRenderer {
-    private _sourceRenderer: ICustomSeriesPaneRenderer;
-    private _priceScale: PriceToCoordinateConverter;
+    private readonly _sourceRenderer: ICustomSeriesPaneRenderer;
+    private readonly _priceScale: PriceToCoordinateConverter;
     public constructor(sourceRenderer: ICustomSeriesPaneRenderer, priceScale: PriceToCoordinateConverter) {
         this._sourceRenderer = sourceRenderer;
         this._priceScale = priceScale;

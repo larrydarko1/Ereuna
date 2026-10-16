@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue';
+import { nextTick, onMounted, ref, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import AppSpinner from '@/components/ui/AppSpinner.vue';
 import { useEscapeToClose } from '@/composables/ui/useEscapeToClose';
 import { targetOf } from '@/utils/dom';
 
-const { pending = false } = defineProps<{ pending?: boolean }>();
+const { pending } = defineProps<{ pending?: boolean }>();
 
 const emit = defineEmits<{
     submit: [code: string];
@@ -19,10 +19,10 @@ const LENGTH = 6;
 
 const { t } = useI18n();
 const digits = ref<string[]>(Array.from({ length: LENGTH }, () => ''));
-const inputs = ref<HTMLInputElement[]>([]);
+const inputs = useTemplateRef<HTMLInputElement[]>('inputs');
 
 function focusAt(index: number): void {
-    inputs.value[Math.min(Math.max(index, 0), LENGTH - 1)]?.focus();
+    inputs.value?.[Math.min(Math.max(index, 0), LENGTH - 1)]?.focus();
 }
 
 /**
@@ -71,7 +71,7 @@ function reset(): void {
 useEscapeToClose(() => emit('cancel'));
 
 onMounted(() => {
-    void nextTick(() => inputs.value[0]?.focus());
+    void nextTick(() => inputs.value?.[0]?.focus());
 });
 </script>
 

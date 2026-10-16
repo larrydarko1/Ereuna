@@ -58,7 +58,7 @@ export function notNull<T>(t: T | null): t is T {
 }
 
 export function undefinedIfNull<T>(t: T | null): T | undefined {
-    return t === null ? undefined : t;
+    return t ?? undefined;
 }
 
 /**
@@ -69,7 +69,7 @@ export function undefinedIfNull<T>(t: T | null): T | undefined {
  * object leaves the existing value alone instead of erasing it.
  */
 function isMergeable(value: unknown): value is PlainObject {
-    return typeof value === 'object' && !Array.isArray(value);
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function mergeInto(dst: object, src: object): void {
@@ -83,7 +83,7 @@ function mergeInto(dst: object, src: object): void {
 
         // An array or a primitive replaces what was there outright; only a
         // nested object that the target already has is merged into
-        if (isMergeable(value) && isMergeable(existing) && existing !== null) {
+        if (isMergeable(value) && isMergeable(existing)) {
             mergeInto(existing, value);
         } else {
             Reflect.set(dst, key, value);

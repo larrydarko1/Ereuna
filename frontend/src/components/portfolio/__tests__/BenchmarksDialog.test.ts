@@ -28,7 +28,7 @@ const add = async (): Promise<void> => {
 };
 
 const listed = (): string[] =>
-    [...document.body.querySelectorAll('.benchmarks-dialog__item span')].map((node) => node.textContent ?? '');
+    [...document.body.querySelectorAll('.benchmarks-dialog__item span')].map((node) => node.textContent);
 
 afterEach(() => {
     document.body.innerHTML = '';

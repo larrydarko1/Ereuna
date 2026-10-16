@@ -50,7 +50,7 @@ export async function startOrganizer(): Promise<void> {
 
             timer = setTimeout(() => {
                 runNightly()
-                    .catch((err: Error) => logger.error({ err }, 'Nightly run threw'))
+                    .catch((err: unknown) => logger.error({ err }, 'Nightly run threw'))
                     .finally(schedule);
             }, wait);
         };

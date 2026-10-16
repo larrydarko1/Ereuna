@@ -12,7 +12,7 @@ export function isFF(): boolean {
     if (!isRunningOnClientSide) {
         return false;
     }
-    return window.navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+    return window.navigator.userAgent.toLowerCase().includes('firefox');
 }
 
 export function isIOS(): boolean {
@@ -38,7 +38,7 @@ export function isWindows(): boolean {
     if (navigator.userAgentData?.platform !== undefined) {
         return navigator.userAgentData.platform === 'Windows';
     }
-    return navigator.userAgent.toLowerCase().indexOf('win') >= 0;
+    return navigator.userAgent.toLowerCase().includes('win');
 }
 
 // Determine whether the browser is Chromium based.

@@ -14,13 +14,10 @@ type QueryDigits = z.ZodPipe<z.ZodString, z.ZodTransform<number, string>>;
 
 type QueryCountField = z.ZodPipe<QueryDigits, z.ZodNumber>;
 
-type PaginationQuerySchema = z.ZodObject<
-    {
-        page: z.ZodDefault<QueryCountField>;
-        limit: z.ZodDefault<QueryCountField>;
-    },
-    z.core.$strip
->;
+type PaginationQuerySchema = z.ZodObject<{
+    page: z.ZodDefault<QueryCountField>;
+    limit: z.ZodDefault<QueryCountField>;
+}>;
 
 /**
  * What a client may put in a query string for `schema`: the parsed values, each

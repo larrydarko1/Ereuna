@@ -39,7 +39,7 @@ const click = async (element: HTMLElement): Promise<void> => {
 const headers = (): string[] =>
     all('thead th')
         .slice(1)
-        .map((node) => node.textContent?.trim() ?? '');
+        .map((node) => node.textContent.trim());
 
 afterEach(() => {
     document.body.innerHTML = '';
@@ -97,12 +97,12 @@ describe('FinancialsDialog', () => {
             }),
         });
 
-        expect(all('tbody th').length).toBe(2);
+        expect(all('tbody th')).toHaveLength(2);
     });
 
     it('names each line from the locale', () => {
         open({ statements: statements({ annual: [statement('2025-12-31', { totalRevenue: 1, rps: 2 })] }) });
-        const labels = all('tbody th').map((node) => node.textContent?.trim());
+        const labels = all('tbody th').map((node) => node.textContent.trim());
 
         expect(labels).toEqual([
             i18n.global.t('financials.attributes.totalRevenue'),
@@ -112,7 +112,7 @@ describe('FinancialsDialog', () => {
 
     it('abbreviates the large figures and writes the small ones out', () => {
         open({ statements: statements() });
-        const cells = all('tbody td').map((node) => node.textContent?.trim().split(' ')[0]);
+        const cells = all('tbody td').map((node) => node.textContent.trim().split(' ')[0]);
 
         expect(cells).toContain(formatCompact(400_000_000));
         expect(cells).toContain(formatNumber(24, 2));
@@ -125,14 +125,14 @@ describe('FinancialsDialog', () => {
             }),
         });
 
-        expect(all('tbody td')[1]?.textContent?.trim()).toBe('—');
+        expect(all('tbody td')[1]?.textContent.trim()).toBe('—');
     });
 
     it('measures each period against the one before it, which is the next column along', () => {
         open({ statements: statements() });
         const first = all('tbody td')[0];
 
-        expect(first?.querySelector('.financials-dialog__change')?.textContent?.trim()).toBe(`${formatNumber(25, 1)}%`);
+        expect(first?.querySelector('.financials-dialog__change')?.textContent.trim()).toBe(`${formatNumber(25, 1)}%`);
     });
 
     it('shows no change on the oldest period, having nothing to compare it with', () => {

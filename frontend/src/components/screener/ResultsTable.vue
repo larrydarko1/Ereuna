@@ -16,7 +16,7 @@ const {
     columns,
     selected = '',
     hiddenSymbols = [],
-    pending = false,
+    pending,
 } = defineProps<{
     items: ScreenerResult[];
     columns: readonly string[];

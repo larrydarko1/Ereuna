@@ -91,10 +91,10 @@ describe('index manifest', () => {
     });
 
     it('gives every TTL index an expireAfterSeconds', () => {
-        for (const index of allIndexes) {
-            if ('expiresAt' in index.keys) {
-                expect(index.options?.expireAfterSeconds, `${index.collection}.expiresAt`).toBe(0);
-            }
-        }
+        const unexpiring = allIndexes
+            .filter((index) => 'expiresAt' in index.keys)
+            .filter((index) => index.options?.expireAfterSeconds !== 0)
+            .map((index) => `${index.collection}.expiresAt`);
+        expect(unexpiring).toEqual([]);
     });
 });

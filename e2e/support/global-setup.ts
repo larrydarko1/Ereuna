@@ -24,7 +24,7 @@ export default async function globalSetup(): Promise<void> {
         console.log(`[e2e] cleared test database "${dbName}"`);
     } catch (err) {
         throw new Error(
-            `[e2e] Could not reach MongoDB at ${uri}. Start it first ` + `(brew services start mongodb-community).`,
+            `[e2e] Could not reach MongoDB at ${uri}. Start it first (brew services start mongodb-community).`,
             { cause: err },
         );
     } finally {

@@ -26,16 +26,16 @@ const SECONDS_PER_HOUR = 3600;
 const SECONDS_PER_MINUTE = 60;
 
 export class ChartRuler {
-    private chart: IChartApi;
-    private mainSeries: ISeriesApi<SeriesType>;
+    private readonly chart: IChartApi;
+    private readonly mainSeries: ISeriesApi<SeriesType>;
     private canvas: HTMLCanvasElement | null = null;
     private ctx: CanvasRenderingContext2D | null = null;
     private isActive = false;
     private isLocked = false;
     private anchorPoint: RulerPoint | null = null;
     private currentPoint: RulerPoint | null = null;
-    private clickHandler: ((param: MouseEventParams<Time>) => void) | null = null;
-    private moveHandler: ((param: MouseEventParams<Time>) => void) | null = null;
+    private clickHandler: ((param: MouseEventParams) => void) | null = null;
+    private moveHandler: ((param: MouseEventParams) => void) | null = null;
 
     constructor(chart: IChartApi, mainSeries: ISeriesApi<SeriesType>) {
         this.chart = chart;
@@ -57,7 +57,7 @@ export class ChartRuler {
         this.anchorPoint = null;
         this.currentPoint = null;
 
-        this.clickHandler = (param: MouseEventParams<Time>): void => {
+        this.clickHandler = (param: MouseEventParams): void => {
             const point = this.readPoint(param);
             if (point === null) return;
 
@@ -78,7 +78,7 @@ export class ChartRuler {
             this.draw();
         };
 
-        this.moveHandler = (param: MouseEventParams<Time>): void => {
+        this.moveHandler = (param: MouseEventParams): void => {
             // The pointer only drags the far end while a measurement is open
             if (this.anchorPoint === null || this.isLocked) return;
 
@@ -172,7 +172,7 @@ export class ChartRuler {
      * Turns a crosshair event into a ruler point, or `null` when it did not land
      * on the plot — off the edge there is no bar and no price to measure from
      */
-    private readPoint(param: MouseEventParams<Time>): RulerPoint | null {
+    private readPoint(param: MouseEventParams): RulerPoint | null {
         if (param.point === undefined || param.time === undefined) return null;
 
         const price = this.mainSeries.coordinateToPrice(param.point.y);

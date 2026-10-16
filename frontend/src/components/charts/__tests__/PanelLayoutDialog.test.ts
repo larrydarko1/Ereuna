@@ -37,7 +37,7 @@ const click = async (element: HTMLElement | undefined): Promise<void> => {
 };
 
 const chosen = (): string[] =>
-    all('.reorderable__label:not(.reorderable__label--muted)').map((node) => node.textContent?.trim() ?? '');
+    all('.reorderable__label:not(.reorderable__label--muted)').map((node) => node.textContent.trim());
 
 beforeEach(async () => {
     clearAuth();

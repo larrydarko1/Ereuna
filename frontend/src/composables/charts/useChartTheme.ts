@@ -1,5 +1,5 @@
 /** useChartTheme — the chart's colours, in the form the renderer wants. */
-import { computed, type ComputedRef } from 'vue';
+import { shallowReadonly, shallowRef, watch, type Ref } from 'vue';
 
 import { useTheme } from '@/composables/ui/useTheme';
 
@@ -33,18 +33,17 @@ const TOKENS = {
 
 const OVERLAY_TOKENS = ['--color-ma-1', '--color-ma-2', '--color-ma-3', '--color-ma-4'] as const;
 
-export function useChartTheme(): { palette: ComputedRef<ChartPalette> } {
+export function useChartTheme(): { palette: Readonly<Ref<ChartPalette>> } {
     const { currentTheme } = useTheme();
+    const palette = shallowRef(readPalette());
 
-    // Depends on `currentTheme` for one reason: to be recomputed when it
-    // changes. The value is never read — the colours come from the computed
-    // style of <html>, which the attribute has already updated by then.
-    const palette = computed<ChartPalette>(() => {
-        void currentTheme.value;
-        return readPalette();
+    // The theme's value is never read: the colours come from the computed style
+    // of <html>, which the attribute has already updated by the time this runs
+    watch(currentTheme, () => {
+        palette.value = readPalette();
     });
 
-    return { palette };
+    return { palette: shallowReadonly(palette) };
 }
 
 /**
@@ -85,7 +84,7 @@ function readPalette(): ChartPalette {
 /** The red, green and blue of a hex colour, or null if it is written some other way. */
 function toRgb(color: string): [number, number, number] | null {
     const hex = color.trim().replace('#', '');
-    const expanded = hex.length === 3 || hex.length === 4 ? [...hex].map((c) => c + c).join('') : hex;
+    const expanded = hex.length === 3 || hex.length === 4 ? hex.replace(/./g, '$&$&') : hex;
     if (!/^[0-9a-f]{6}([0-9a-f]{2})?$/i.test(expanded)) return null;
 
     return [

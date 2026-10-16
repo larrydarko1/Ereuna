@@ -232,11 +232,11 @@ export class PriceScale {
     private _marginBelow = 0;
 
     private _markBuilder: PriceTickMarkBuilder;
-    private _onMarksChanged: Delegate = new Delegate();
+    private readonly _onMarksChanged: Delegate = new Delegate();
 
-    private _modeChanged = new Delegate<PriceScaleState, PriceScaleState>();
+    private readonly _modeChanged = new Delegate<PriceScaleState, PriceScaleState>();
 
-    private _dataSources: IPriceDataSource[] = [];
+    private readonly _dataSources: IPriceDataSource[] = [];
     private _cachedOrderedSources: IPriceDataSource[] | null = null;
 
     private _marksCache: MarksCache | null = null;
@@ -456,17 +456,18 @@ export class PriceScale {
     }
 
     public priceToCoordinate(price: number, baseValue: number): Coordinate {
+        let logical = price;
         if (this.isPercentage()) {
-            price = toPercent(price, baseValue);
+            logical = toPercent(price, baseValue);
         } else if (this.isIndexedTo100()) {
-            price = toIndexedTo100(price, baseValue);
+            logical = toIndexedTo100(price, baseValue);
         }
 
-        return this._logicalToCoordinate(price, baseValue);
+        return this._logicalToCoordinate(logical, baseValue);
     }
 
-    public pointsArrayToCoordinates<T extends PricedValue>(
-        points: T[],
+    public pointsArrayToCoordinates(
+        points: PricedValue[],
         baseValue: number,
         visibleRange?: SeriesItemsIndexesRange,
     ): void {
@@ -505,8 +506,8 @@ export class PriceScale {
         }
     }
 
-    public barPricesToCoordinates<T extends BarPrices & BarCoordinates>(
-        pricesList: T[],
+    public barPricesToCoordinates(
+        pricesList: (BarPrices & BarCoordinates)[],
         baseValue: number,
         visibleRange?: SeriesItemsIndexesRange,
     ): void {
@@ -597,7 +598,7 @@ export class PriceScale {
     }
 
     public addDataSource(source: IPriceDataSource): void {
-        if (this._dataSources.indexOf(source) !== -1) {
+        if (this._dataSources.includes(source)) {
             return;
         }
 
@@ -706,14 +707,9 @@ export class PriceScale {
             autoScale: false,
         });
 
-        // invert x
-        x = this._height - x;
+        const inverted = Math.max(0, this._height - x);
 
-        if (x < 0) {
-            x = 0;
-        }
-
-        let scaleCoeff = (this._scaleStartPoint + (this._height - 1) * 0.2) / (x + (this._height - 1) * 0.2);
+        let scaleCoeff = (this._scaleStartPoint + (this._height - 1) * 0.2) / (inverted + (this._height - 1) * 0.2);
         const newPriceRange = getNotNull(this._priceRangeSnapshot).clone();
 
         scaleCoeff = Math.max(scaleCoeff, 0.1);
@@ -815,8 +811,7 @@ export class PriceScale {
     }
 
     public formatPricePercentage(price: number, baseValue: number): string {
-        price = toPercent(price, baseValue);
-        return this._formatPercentage(price, percentageFormatter);
+        return this._formatPercentage(toPercent(price, baseValue), percentageFormatter);
     }
 
     public sourcesForAutoScale(): readonly IPriceDataSource[] {
@@ -825,7 +820,7 @@ export class PriceScale {
 
     public recalculatePriceRange(visibleBars: RangeImpl<TimePointIndex>): void {
         this._invalidatedForRange = {
-            visibleBars: visibleBars,
+            visibleBars,
             isValid: false,
         };
     }
@@ -906,10 +901,10 @@ export class PriceScale {
             return nominal<Coordinate>(0);
         }
 
-        logical = this.isLog() && logical !== 0 ? toLog(logical, this._logFormula) : logical;
+        const value = this.isLog() && logical !== 0 ? toLog(logical, this._logFormula) : logical;
         const range = getNotNull(this.priceRange());
         const invCoordinate =
-            this._bottomMarginPx() + ((this.internalHeight() - 1) * (logical - range.minValue())) / range.length();
+            this._bottomMarginPx() + ((this.internalHeight() - 1) * (value - range.minValue())) / range.length();
         return nominal<Coordinate>(this.invertedCoordinate(invCoordinate));
     }
 
@@ -959,6 +954,9 @@ export class PriceScale {
 
             if (sourceRange !== null) {
                 switch (this._options.mode) {
+                    case PriceScaleMode.Normal:
+                        // A source's range is already in prices
+                        break;
                     case PriceScaleMode.Logarithmic:
                         sourceRange = convertPriceRangeToLog(sourceRange, this._logFormula);
                         break;
@@ -1082,10 +1080,7 @@ export class PriceScale {
         fallbackFormatter?: IPriceFormatter,
     ): string {
         if (formatter === undefined) {
-            if (fallbackFormatter === undefined) {
-                fallbackFormatter = this.formatter();
-            }
-            return fallbackFormatter.format(value);
+            return (fallbackFormatter ?? this.formatter()).format(value);
         }
 
         return formatter(nominal<BarPrice>(value));

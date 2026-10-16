@@ -255,7 +255,7 @@ describe('updateTrade', () => {
 
     it('writes nothing when the edited log does not hold up', async () => {
         state.violation = new AppError(422, 'INSUFFICIENT_SHARES', 'short');
-        await expect(updateTrade(USER_ID, 0, TRADE_ID, input())).rejects.toThrow();
+        await expect(updateTrade(USER_ID, 0, TRADE_ID, input())).rejects.toBe(state.violation);
         expect(db.current.of('Trades').writes).toEqual([]);
     });
 });
@@ -275,7 +275,7 @@ describe('deleteTrade', () => {
 
     it('refuses to delete a trade that would leave the log inconsistent', async () => {
         state.violation = new AppError(422, 'INSUFFICIENT_BUYING_POWER', 'short');
-        await expect(deleteTrade(USER_ID, 0, TRADE_ID)).rejects.toThrow();
+        await expect(deleteTrade(USER_ID, 0, TRADE_ID)).rejects.toBe(state.violation);
         expect(db.current.of('Trades').writes).toEqual([]);
     });
 
@@ -294,7 +294,7 @@ describe('replaceTrades', () => {
 
     it('replays the whole file before anything is written', async () => {
         state.violation = new AppError(422, 'INSUFFICIENT_BUYING_POWER', 'short');
-        await expect(replaceTrades(USER_ID, 0, [input()])).rejects.toThrow();
+        await expect(replaceTrades(USER_ID, 0, [input()])).rejects.toBe(state.violation);
         expect(db.current.of('Trades').writes).toEqual([]);
         expect(calls.rebuilt).toBe(0);
     });

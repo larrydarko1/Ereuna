@@ -16,12 +16,7 @@ import IconTrash from '@/components/icons/IconTrash.vue';
 import IconTrendline from '@/components/icons/IconTrendline.vue';
 import { CHART_TOOLS, type ChartTool } from '@/constants/chart';
 
-const {
-    hasDrawings = false,
-    hasSignals = false,
-    patternsShown = false,
-    replaying = false,
-} = defineProps<{
+const { hasDrawings, hasSignals, patternsShown, replaying } = defineProps<{
     hasDrawings?: boolean;
     hasSignals?: boolean;
     patternsShown?: boolean;

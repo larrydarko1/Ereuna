@@ -23,9 +23,7 @@ export type PatternType =
     | 'descendingTriangle'
     | 'symmetricTriangle'
     | 'bullishFlag'
-    | 'bearishFlag'
-    | 'wedgeRising'
-    | 'wedgeFalling';
+    | 'bearishFlag';
 
 /**
  * One detected pattern. `confidence` is 0–1 and only comparable between

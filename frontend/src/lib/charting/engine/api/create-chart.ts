@@ -29,7 +29,7 @@ export type IChartApi = {
      * @param options - Any subset of options.
      */
     applyOptions(options: DeepPartial<ChartOptions>): void;
-} & IChartApiBase<Time>;
+} & IChartApiBase;
 
 /**
  * This function is the simplified main entry point of the Lightweight Charting Library with time points for the horizontal scale.

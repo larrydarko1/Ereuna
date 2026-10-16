@@ -55,7 +55,7 @@ export class Crosshair extends DataSource {
     private _index: TimePointIndex = nominal<TimePointIndex>(0);
     private _visible = true;
     private readonly _model: IChartModelBase;
-    private _priceAxisViews = new Map<PriceScale, CrosshairPriceAxisView>();
+    private readonly _priceAxisViews = new Map<PriceScale, CrosshairPriceAxisView>();
     private readonly _timeAxisView: CrosshairTimeAxisView;
     private readonly _markersPaneView: CrosshairMarksPaneView;
     private _subscribed = false;
@@ -274,7 +274,7 @@ export class Crosshair extends DataSource {
             .map((s: ISeries<SeriesType>) => s.bars().lastIndex())
             .filter(notNull);
         const lastBarIndex = lastIndexes.length === 0 ? null : nominal<TimePointIndex>(Math.max(...lastIndexes));
-        this._index = lastBarIndex !== null ? lastBarIndex : nominal<TimePointIndex>(NaN);
+        this._index = lastBarIndex ?? nominal<TimePointIndex>(NaN);
     }
 
     private _createPriceAxisViewOnDemand(

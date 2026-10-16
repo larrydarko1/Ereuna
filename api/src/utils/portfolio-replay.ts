@@ -226,7 +226,7 @@ function applyTrade(book: Map<string, ReplayPosition>, marks: Map<string, number
     const opening = trade.action === 'buy' || trade.action === 'short';
 
     if (opening) {
-        if (existing === undefined || existing.side !== side) {
+        if (existing?.side !== side) {
             book.set(trade.symbol, { symbol: trade.symbol, side, shares: trade.shares, avgPrice: trade.price });
         } else {
             const shares = existing.shares + trade.shares;
@@ -241,7 +241,7 @@ function applyTrade(book: Map<string, ReplayPosition>, marks: Map<string, number
     // An exit larger than the position can only mean a corrupt log — the service
     // rejects those before they are written. Clamp rather than throw, so one bad
     // row cannot make the whole portfolio unreadable.
-    if (existing !== undefined && existing.side === side) {
+    if (existing?.side === side) {
         existing.shares = Math.max(0, existing.shares - trade.shares);
         if (existing.shares <= SHARE_EPSILON) book.delete(trade.symbol);
     }
@@ -271,7 +271,7 @@ function onePointPerDay(points: readonly PortfolioValuePoint[]): PortfolioValueP
     const history: PortfolioValuePoint[] = [];
     for (const point of points) {
         const last = history[history.length - 1];
-        if (last !== undefined && last.date === point.date) history[history.length - 1] = point;
+        if (last?.date === point.date) history[history.length - 1] = point;
         else history.push(point);
     }
     return history;

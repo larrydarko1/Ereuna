@@ -221,7 +221,7 @@ export type ITimeScale = {
     barSpacing(): number;
     rightOffset(): number;
 
-    indexesToCoordinates<T extends TimedValue>(points: T[], visibleRange?: SeriesItemsIndexesRange): void;
+    indexesToCoordinates(points: TimedValue[], visibleRange?: SeriesItemsIndexesRange): void;
     indexToTimeScalePoint(index: TimePointIndex): TimeScalePoint | null;
     formatDateTime(timeScalePoint: TimeScalePoint): string;
     coordinateToIndex(x: Coordinate): TimePointIndex;
@@ -253,7 +253,7 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
     private _scrollStartPoint: Coordinate | null = null;
     private _scaleStartPoint: Coordinate | null = null;
     private readonly _tickMarks: TickMarks = new TickMarks();
-    private _formattedByWeight = new Map<number, FormattedLabelsCache<THorzScaleItem>>();
+    private readonly _formattedByWeight = new Map<number, FormattedLabelsCache<THorzScaleItem>>();
 
     private _visibleRange: TimeScaleVisibleRange = TimeScaleVisibleRange.invalid();
     private _visibleRangeInvalidated = true;
@@ -265,7 +265,7 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
     private _commonTransitionStartState: TransitionState | null = null;
     private _timeMarksCache: TimeMark[] | null = null;
 
-    private _labels: TimeMark[] = [];
+    private readonly _labels: TimeMark[] = [];
 
     private readonly _horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>;
 
@@ -345,7 +345,7 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
     /** The index of the bar sitting at exactly this time, or `null` if none is. */
     public timeToIndex(time: InternalHorzScaleItem): TimePointIndex | null {
         const found = this._searchIndex(time);
-        return found !== null && found.exact ? found.index : null;
+        return found?.exact === true ? found.index : null;
     }
 
     /**
@@ -500,7 +500,7 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
         return nominal<Coordinate>(this._width - (deltaFromRight + 0.5) * this._barSpacing - 1);
     }
 
-    public indexesToCoordinates<T extends TimedValue>(points: T[], visibleRange?: SeriesItemsIndexesRange): void {
+    public indexesToCoordinates(points: TimedValue[], visibleRange?: SeriesItemsIndexesRange): void {
         const baseIndex = this.baseIndex();
         const indexFrom = visibleRange === undefined ? 0 : visibleRange.from;
         const indexTo = visibleRange === undefined ? points.length : visibleRange.to;

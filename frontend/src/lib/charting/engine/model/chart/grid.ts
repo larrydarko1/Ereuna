@@ -44,7 +44,7 @@ export type GridOptions = {
 };
 
 export class Grid {
-    private _paneView: GridPaneView;
+    private readonly _paneView: GridPaneView;
 
     public constructor(pane: Pane) {
         this._paneView = new GridPaneView(pane);

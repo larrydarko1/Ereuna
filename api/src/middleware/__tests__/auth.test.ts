@@ -123,11 +123,8 @@ describe('authedUserId', () => {
         ['the empty string', { userId: '' }],
     ])('throws MISSING_TOKEN when the id is %s', (_label, request) => {
         expect(() => authedUserId(request)).toThrow(AppError);
-        try {
-            authedUserId(request);
-        } catch (err) {
-            expect(err).toBeInstanceOf(AppError);
-            expect(err).toMatchObject({ code: 'MISSING_TOKEN', status: 401, securityEvent: true });
-        }
+        expect(() => authedUserId(request)).toThrow(
+            expect.objectContaining({ code: 'MISSING_TOKEN', status: 401, securityEvent: true }),
+        );
     });
 });

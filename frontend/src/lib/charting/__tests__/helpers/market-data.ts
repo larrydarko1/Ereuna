@@ -27,19 +27,19 @@ export function timeAt(index: number): UTCTimestamp {
     return nominal<UTCTimestamp>(FIRST_TIME + index * DAY);
 }
 
-export function lineData(count = 50): LineData<Time>[] {
+export function lineData(count = 50): LineData[] {
     return Array.from({ length: count }, (_, i) => ({ time: timeAt(i), value: priceAt(i) }));
 }
 
-export function areaData(count = 50): AreaData<Time>[] {
+export function areaData(count = 50): AreaData[] {
     return lineData(count);
 }
 
-export function baselineData(count = 50): BaselineData<Time>[] {
+export function baselineData(count = 50): BaselineData[] {
     return lineData(count);
 }
 
-export function histogramData(count = 50): HistogramData<Time>[] {
+export function histogramData(count = 50): HistogramData[] {
     return Array.from({ length: count }, (_, i) => ({
         time: timeAt(i),
         value: priceAt(i),
@@ -49,11 +49,11 @@ export function histogramData(count = 50): HistogramData<Time>[] {
     }));
 }
 
-export function barData(count = 50): BarData<Time>[] {
+export function barData(count = 50): BarData[] {
     return Array.from({ length: count }, (_, i) => ohlc(i));
 }
 
-export function candlestickData(count = 50): CandlestickData<Time>[] {
+export function candlestickData(count = 50): CandlestickData[] {
     return Array.from({ length: count }, (_, i) => ohlc(i));
 }
 
@@ -61,7 +61,7 @@ export function candlestickData(count = 50): CandlestickData<Time>[] {
  * Bars with a hole in them. Whitespace is a separate plot row with no value, and
  * it is what makes a line break rather than bridge the gap.
  */
-export function withWhitespace<T extends { time: Time }>(data: T[], every = 7): (T | WhitespaceData<Time>)[] {
+export function withWhitespace<T extends { time: Time }>(data: T[], every = 7): (T | WhitespaceData)[] {
     return data.map((item, i) => (i > 0 && i % every === 0 ? { time: item.time } : item));
 }
 
@@ -69,7 +69,7 @@ function priceAt(index: number): number {
     return Number((100 + Math.sin(index / 4) * 12 + index * 0.4).toFixed(2));
 }
 
-function ohlc(index: number): CandlestickData<Time> & BarData<Time> {
+function ohlc(index: number): CandlestickData & BarData {
     const open = priceAt(index);
     const close = priceAt(index + 1);
     return {

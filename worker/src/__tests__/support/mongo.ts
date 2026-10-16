@@ -61,7 +61,7 @@ function cursor(rows: unknown[]): Record<string, unknown> {
         skip: () => self,
         project: () => self,
         map: (fn: (row: unknown) => unknown) => cursor(rows.map(fn)),
-        [Symbol.asyncIterator]: async function* () {
+        async *[Symbol.asyncIterator]() {
             for (const row of rows) yield row;
         },
     };

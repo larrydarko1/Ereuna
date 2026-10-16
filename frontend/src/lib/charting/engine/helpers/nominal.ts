@@ -24,6 +24,7 @@ export type Nominal<T, TName extends string> = T & {
  * only at compile time, so there is nothing at runtime to check, and this is
  * the one place the engine mints one.
  */
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- T is the brand being minted, so it can only appear as the result
 export function nominal<T extends number>(value: number): T {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- a brand has no runtime form to check; every nominal is minted here
     return value as T;

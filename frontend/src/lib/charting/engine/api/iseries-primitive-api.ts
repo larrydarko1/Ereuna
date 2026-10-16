@@ -29,6 +29,4 @@ type SeriesAttachedParameter<THorzScaleItem = Time, TSeriesType extends SeriesTy
 /**
  * Interface for series primitives. It must be implemented to add some external graphics to series.
  */
-export type ISeriesPrimitive<THorzScaleItem = Time> = ISeriesPrimitiveBase<
-    SeriesAttachedParameter<THorzScaleItem, SeriesType>
->;
+export type ISeriesPrimitive<THorzScaleItem = Time> = ISeriesPrimitiveBase<SeriesAttachedParameter<THorzScaleItem>>;

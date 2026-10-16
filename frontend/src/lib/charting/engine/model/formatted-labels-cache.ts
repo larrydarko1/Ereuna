@@ -22,8 +22,8 @@ export class FormattedLabelsCache<THorzScaleItem> {
     private _actualSize = 0;
     private _usageTick = 1;
     private _oldestTick = 1;
-    private _cache = new Map<number, CachedTick>();
-    private _tick2Labels = new Map<number, number>();
+    private readonly _cache = new Map<number, CachedTick>();
+    private readonly _tick2Labels = new Map<number, number>();
 
     private readonly _horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>;
 

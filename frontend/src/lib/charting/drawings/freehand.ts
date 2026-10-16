@@ -13,7 +13,6 @@ import { type IChartApi } from '@/lib/charting/engine/api/create-chart';
 import { type MouseEventParams } from '@/lib/charting/engine/api/ichart-api';
 import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
 import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
-import { type Time } from '@/lib/charting/engine/model/time/types';
 import { type CanvasPoint, distanceToSegment } from '@/lib/charting/shared/geometry';
 import { isTypingTarget } from '@/lib/charting/shared/key-target';
 import { getThemeColor } from '@/lib/charting/shared/theme-color';
@@ -38,8 +37,8 @@ const ENDPOINT_DOT_RADIUS = 3;
 const MIN_PATH_POINTS = 2;
 
 export class FreehandManager {
-    private chart: IChartApi;
-    private mainSeries: ISeriesApi<SeriesType>;
+    private readonly chart: IChartApi;
+    private readonly mainSeries: ISeriesApi<SeriesType>;
     private canvas: HTMLCanvasElement | null = null;
     private ctx: CanvasRenderingContext2D | null = null;
     private isActive = false;
@@ -177,11 +176,11 @@ export class FreehandManager {
     // The handlers are arrow properties so that `this` survives being handed to
     // addEventListener and to the chart's own subscriptions, and so that the
     // reference passed to remove is the one that was added
-    private handleVisibleRangeChange = (): void => {
+    private readonly handleVisibleRangeChange = (): void => {
         this.draw();
     };
 
-    private handleResize = (): void => {
+    private readonly handleResize = (): void => {
         this.resizeCanvas();
     };
 
@@ -190,7 +189,7 @@ export class FreehandManager {
      * is the only way to reach one without first hunting for the right toolbar
      * button.
      */
-    private handleGlobalClick = (param: MouseEventParams<Time>): void => {
+    private readonly handleGlobalClick = (param: MouseEventParams): void => {
         if (this.isActive || param.point === undefined) return;
 
         const pathId = this.hitTestPath(param.point);
@@ -201,7 +200,7 @@ export class FreehandManager {
         this.onActivateCallback?.();
     };
 
-    private handleKeyDown = (event: KeyboardEvent): void => {
+    private readonly handleKeyDown = (event: KeyboardEvent): void => {
         if (event.key !== 'Backspace' && event.key !== 'Delete') return;
 
         if (isTypingTarget(event.target)) {
@@ -214,7 +213,7 @@ export class FreehandManager {
         }
     };
 
-    private handlePointerDown = (event: MouseEvent): void => {
+    private readonly handlePointerDown = (event: MouseEvent): void => {
         const pointer = this.readCanvasPointer(event);
         if (pointer === null) return;
 
@@ -246,7 +245,7 @@ export class FreehandManager {
         };
     };
 
-    private handlePointerMove = (event: MouseEvent): void => {
+    private readonly handlePointerMove = (event: MouseEvent): void => {
         const pointer = this.readCanvasPointer(event);
         if (pointer === null) return;
 
@@ -262,7 +261,7 @@ export class FreehandManager {
         if (this.dragFrom !== null) this.movePath(pointer);
     };
 
-    private handlePointerUp = (): void => {
+    private readonly handlePointerUp = (): void => {
         this.dragFrom = null;
 
         const path = this.currentPath;

@@ -3,7 +3,6 @@
  */
 import { type SeriesPlotRow } from '@/lib/charting/engine/model/data/series-data';
 import { type SeriesBarColorer } from '@/lib/charting/engine/model/series/series-bar-colorer';
-import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
 import { type TimePointIndex } from '@/lib/charting/engine/model/time/time-data';
 import { type BarItem, PaneRendererBars } from '@/lib/charting/engine/renderers/bars-renderer';
 import { BarsPaneViewBase } from '@/lib/charting/engine/views/pane/bars-pane-view-base';
@@ -11,11 +10,7 @@ import { BarsPaneViewBase } from '@/lib/charting/engine/views/pane/bars-pane-vie
 export class SeriesBarsPaneView extends BarsPaneViewBase<'Bar', BarItem, PaneRendererBars> {
     protected readonly _renderer: PaneRendererBars = new PaneRendererBars();
 
-    protected _createRawItem(
-        time: TimePointIndex,
-        bar: SeriesPlotRow<SeriesType>,
-        colorer: SeriesBarColorer<'Bar'>,
-    ): BarItem {
+    protected _createRawItem(time: TimePointIndex, bar: SeriesPlotRow, colorer: SeriesBarColorer<'Bar'>): BarItem {
         return {
             ...this._createDefaultItem(time, bar, colorer),
             ...colorer.barStyle(time),

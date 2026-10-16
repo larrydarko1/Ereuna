@@ -103,7 +103,6 @@ export function walkLine<TItem extends LinePoint, TStyle extends CanvasRendering
                         item.x * horizontalPixelRatio,
                         item.y * verticalPixelRatio,
                     );
-                    return;
                 }
             }
         };

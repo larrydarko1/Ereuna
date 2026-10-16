@@ -7,7 +7,6 @@
  * itself.
  */
 import { getDefined } from '@/lib/charting/engine/helpers/assertions';
-import { callerType } from '@/lib/charting/engine/helpers/caller-type';
 import { type Mutable } from '@/lib/charting/engine/helpers/mutable';
 import { nominal } from '@/lib/charting/engine/helpers/nominal';
 import { type WhitespacePlotRow } from '@/lib/charting/engine/model/data/get-series-plot-row-creator';
@@ -27,7 +26,7 @@ export type TimePointData = {
 
     // actually the type of the value should be related to the series' type (generic type)
     // here, in data layer all data for us is "mutable" by default, but to the chart we provide "readonly" data, to avoid modifying it
-    mapping: Map<Series<SeriesType>, Mutable<SeriesPlotRow<SeriesType> | WhitespacePlotRow>>;
+    mapping: Map<Series<SeriesType>, Mutable<SeriesPlotRow | WhitespacePlotRow>>;
 };
 
 type SeriesRowsTimeSpan = {
@@ -57,14 +56,12 @@ export function seriesUpdateInfo<TSeriesType extends SeriesType, THorzScaleItem>
     return undefined;
 }
 
-export function timeScalePointTime<TSeriesType extends SeriesType, THorzScaleItem>(
+export function timeScalePointTime<TSeriesType extends SeriesType>(
     mergedPointData: Map<Series<TSeriesType>, SeriesPlotRow<TSeriesType> | WhitespacePlotRow>,
-): THorzScaleItem {
-    let result: THorzScaleItem | undefined;
+): unknown {
+    let result: unknown;
     mergedPointData.forEach((v: SeriesPlotRow<TSeriesType> | WhitespacePlotRow) => {
-        if (result === undefined) {
-            result = callerType<THorzScaleItem>(v.originalTime);
-        }
+        result ??= v.originalTime;
     });
 
     return getDefined(result);
@@ -75,7 +72,7 @@ export function assignIndexToPointData(pointData: TimePointData, index: TimePoin
     pointData.index = index;
 
     // and then we need to sync indexes for all series
-    pointData.mapping.forEach((seriesRow: Mutable<SeriesPlotRow<SeriesType> | WhitespacePlotRow>) => {
+    pointData.mapping.forEach((seriesRow: Mutable<SeriesPlotRow | WhitespacePlotRow>) => {
         seriesRow.index = index;
     });
 }

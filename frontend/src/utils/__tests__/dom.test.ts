@@ -21,6 +21,8 @@ describe('targetOf', () => {
     });
 
     it('throws for an event never dispatched', () => {
-        expect(() => targetOf(new Event('input'), HTMLInputElement)).toThrow();
+        expect(() => targetOf(new Event('input'), HTMLInputElement)).toThrow(
+            'expected the input event to come from a HTMLInputElement',
+        );
     });
 });

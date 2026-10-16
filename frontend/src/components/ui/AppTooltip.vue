@@ -5,6 +5,8 @@ import { nextTick, onMounted, onUnmounted, ref, useId, useTemplateRef } from 'vu
 // tooltip scroll horizontally inside a clipped column, and a bubble rendered
 // inside that column is cut off at its edge.
 
+defineSlots<{ default: () => unknown; content: () => unknown }>();
+
 /** Kept clear of the viewport edges, so a bubble beside one is never half off it. */
 const MARGIN = 8;
 

@@ -153,12 +153,12 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
     private readonly _magnet: Magnet;
     private readonly _watermark: Watermark;
 
-    private _serieses: Series<SeriesType>[] = [];
+    private readonly _serieses: Series<SeriesType>[] = [];
 
     private _width = 0;
     private _hoveredSource: HoveredSource | null = null;
     private readonly _priceScalesOptionsChanged: Delegate = new Delegate();
-    private _crosshairMoved = new Delegate<TimePointIndex | null, Point | null, TouchMouseEventData | null>();
+    private readonly _crosshairMoved = new Delegate<TimePointIndex | null, Point | null, TouchMouseEventData | null>();
 
     private _backgroundTopColor: string;
     private _backgroundBottomColor: string;
@@ -330,7 +330,7 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
             this._panes.push(pane);
         }
 
-        const actualIndex = index === undefined ? this._panes.length - 1 : index;
+        const actualIndex = index ?? this._panes.length - 1;
 
         // we always do autoscaling on the creation
         // if autoscale option is true, it is ok, just recalculate by invalidation mask
@@ -407,9 +407,9 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
         }
 
         const timeScaleWidth = timeScale.width();
-        pointX = nominal<Coordinate>(Math.max(1, Math.min(pointX, timeScaleWidth)));
+        const anchor = nominal<Coordinate>(Math.max(1, Math.min(pointX, timeScaleWidth)));
 
-        timeScale.zoom(pointX, scale);
+        timeScale.zoom(anchor, scale);
 
         this.recalculateAllPanes();
     }
@@ -567,7 +567,7 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
 
     public paneForSource(source: IPriceDataSource): Pane | null {
         const pane = this._panes.find((p: Pane) => p.orderedSources().includes(source));
-        return pane === undefined ? null : pane;
+        return pane ?? null;
     }
 
     public recalculateAllPanes(): void {
@@ -712,27 +712,23 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
         // gradient background
 
         // percent should be from 0 to 100 (we're using only integer values to make cache more efficient)
-        percent = Math.max(0, Math.min(100, Math.round(percent * 100)));
+        const step = Math.max(0, Math.min(100, Math.round(percent * 100)));
 
-        if (
-            this._gradientColorsCache === null ||
-            this._gradientColorsCache.topColor !== topColor ||
-            this._gradientColorsCache.bottomColor !== bottomColor
-        ) {
+        if (this._gradientColorsCache?.topColor !== topColor || this._gradientColorsCache.bottomColor !== bottomColor) {
             this._gradientColorsCache = {
-                topColor: topColor,
-                bottomColor: bottomColor,
+                topColor,
+                bottomColor,
                 colors: new Map(),
             };
         } else {
-            const cachedValue = this._gradientColorsCache.colors.get(percent);
+            const cachedValue = this._gradientColorsCache.colors.get(step);
             if (cachedValue !== undefined) {
                 return cachedValue;
             }
         }
 
-        const result = gradientColorAtPercent(topColor, bottomColor, percent / 100);
-        this._gradientColorsCache.colors.set(percent, result);
+        const result = gradientColorAtPercent(topColor, bottomColor, step / 100);
+        this._gradientColorsCache.colors.set(step, result);
         return result;
     }
 
@@ -747,11 +743,10 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
         return inv;
     }
 
-    private _invalidationMaskForSource(source: IPriceDataSource, invalidateType?: InvalidationLevel): InvalidateMask {
-        if (invalidateType === undefined) {
-            invalidateType = InvalidationLevel.Light;
-        }
-
+    private _invalidationMaskForSource(
+        source: IPriceDataSource,
+        invalidateType: InvalidationLevel = InvalidationLevel.Light,
+    ): InvalidateMask {
         return this._paneInvalidationMask(this.paneForSource(source), invalidateType);
     }
 
@@ -769,8 +764,7 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
     ): Series<T> {
         const series = new Series<T>(this, options, seriesType, customPaneView);
 
-        const targetScaleId =
-            options.priceScaleId !== undefined ? options.priceScaleId : this.defaultVisiblePriceScaleId();
+        const targetScaleId = options.priceScaleId ?? this.defaultVisiblePriceScaleId();
         pane.addDataSource(series, targetScaleId);
 
         if (!isDefaultPriceScale(targetScaleId)) {

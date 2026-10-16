@@ -13,7 +13,7 @@ const {
     preset = null,
     defaultCommission = 0,
     error = null,
-    saving = false,
+    saving,
 } = defineProps<{
     /** The trade being corrected, or null when recording a new one. */
     editing?: TradeRow | null;

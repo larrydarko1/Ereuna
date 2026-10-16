@@ -8,7 +8,7 @@ const {
     directions,
     targets,
     value = null,
-    busy = false,
+    busy,
 } = defineProps<{
     directions: readonly MaChoice['direction'][];
     targets: readonly MaChoice['target'][];

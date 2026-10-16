@@ -41,8 +41,8 @@ const Constants = {
 } as const;
 
 export class TimeScaleApi<THorzScaleItem> implements ITimeScaleApi<THorzScaleItem>, IDestroyable {
-    private _model: ChartModel<THorzScaleItem>;
-    private _timeScale: TimeScale<THorzScaleItem>;
+    private readonly _model: ChartModel<THorzScaleItem>;
+    private readonly _timeScale: TimeScale<THorzScaleItem>;
     private readonly _timeAxisWidget: TimeAxisWidget<THorzScaleItem>;
     private readonly _timeRangeChanged = new Delegate<Range<THorzScaleItem> | null>();
     private readonly _logicalRangeChanged = new Delegate<LogicalRange | null>();

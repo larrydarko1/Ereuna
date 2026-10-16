@@ -16,7 +16,7 @@ const buttons = (): HTMLButtonElement[] => [
 ];
 
 const clickText = async (label: string): Promise<void> => {
-    const target = buttons().find((button) => button.textContent?.trim() === label);
+    const target = buttons().find((button) => button.textContent.trim() === label);
     target?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await Promise.resolve();
 };
@@ -37,7 +37,7 @@ describe('ConfirmDialog', () => {
     it("labels its buttons in the user's language by default", () => {
         open();
 
-        expect(buttons().map((button) => button.textContent?.trim())).toEqual([
+        expect(buttons().map((button) => button.textContent.trim())).toEqual([
             i18n.global.t('common.cancel'),
             i18n.global.t('common.confirm'),
         ]);
@@ -46,7 +46,7 @@ describe('ConfirmDialog', () => {
     it('takes labels of its own', () => {
         open({ confirmLabel: 'Delete it', cancelLabel: 'Keep it' });
 
-        expect(buttons().map((button) => button.textContent?.trim())).toEqual(['Keep it', 'Delete it']);
+        expect(buttons().map((button) => button.textContent.trim())).toEqual(['Keep it', 'Delete it']);
     });
 
     it('reports a confirmation', async () => {
@@ -71,7 +71,7 @@ describe('ConfirmDialog', () => {
         open({ pending: true });
         const confirm = buttons()[1];
 
-        expect(confirm?.textContent?.trim()).toBe(i18n.global.t('common.processing'));
+        expect(confirm?.textContent.trim()).toBe(i18n.global.t('common.processing'));
         expect(confirm?.disabled).toBe(true);
     });
 

@@ -145,7 +145,7 @@ export type ISeries<T extends SeriesType> = {
 
 export class Series<T extends SeriesType> extends PriceDataSource implements IDestroyable, ISeries<SeriesType> {
     private readonly _seriesType: T;
-    private _data: SeriesPlotList<T> = createSeriesPlotList<T>();
+    private readonly _data: SeriesPlotList<T> = createSeriesPlotList<T>();
     private readonly _priceAxisViews: IPriceAxisView[];
     private readonly _panePriceAxisView: PanePriceAxisView;
     private _formatter!: IPriceFormatter;
@@ -247,7 +247,7 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
             formattedPriceAbsolute: priceScale.formatPriceAbsolute(price),
             formattedPricePercentage: priceScale.formatPricePercentage(price, firstValue.value),
             color: style.barColor,
-            coordinate: coordinate,
+            coordinate,
             index: lastIndex,
         };
     }
@@ -399,7 +399,7 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
         const res: IPaneView[] = [];
         extractPrimitivePaneViews(this._primitives, primitivePaneViewsExtractor, 'top', res);
         const animationPaneView = this._lastPriceAnimationPaneView;
-        if (animationPaneView === null || !animationPaneView.visible()) {
+        if (animationPaneView?.visible() !== true) {
             return res;
         }
 
@@ -554,7 +554,7 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
     }
 
     public customSeriesPlotValuesBuilder(): CustomDataToPlotRowValueConverter<unknown> | undefined {
-        if (this._paneView instanceof SeriesCustomPaneView === false) {
+        if (!(this._paneView instanceof SeriesCustomPaneView)) {
             return undefined;
         }
         return (data: CustomData<unknown> | CustomSeriesWhitespaceData<unknown>): number[] => {
@@ -564,7 +564,7 @@ export class Series<T extends SeriesType> extends PriceDataSource implements IDe
     }
 
     public customSeriesWhitespaceCheck<THorzScaleItem>(): WhitespaceCheck<THorzScaleItem> | undefined {
-        if (this._paneView instanceof SeriesCustomPaneView === false) {
+        if (!(this._paneView instanceof SeriesCustomPaneView)) {
             return undefined;
         }
         return (

@@ -58,7 +58,7 @@ const Constants = {
 export class SeriesMarkersPaneView implements IUpdatablePaneView {
     private readonly _series: ISeries<SeriesType>;
     private readonly _model: IChartModelBase;
-    private _data: SeriesMarkerRendererData;
+    private readonly _data: SeriesMarkerRendererData;
 
     private _invalidated = true;
     private _dataInvalidated = true;
@@ -66,7 +66,7 @@ export class SeriesMarkersPaneView implements IUpdatablePaneView {
 
     private _autoScaleMargins: AutoScaleMargins | null = null;
     private _markersPositions: MarkerPositions | null = null;
-    private _renderer: SeriesMarkersRenderer = new SeriesMarkersRenderer();
+    private readonly _renderer: SeriesMarkersRenderer = new SeriesMarkersRenderer();
 
     public constructor(series: ISeries<SeriesType>, model: IChartModelBase) {
         this._series = series;
@@ -131,21 +131,19 @@ export class SeriesMarkersPaneView implements IUpdatablePaneView {
     }
 
     protected _getMarkerPositions(): MarkerPositions {
-        if (this._markersPositions === null) {
-            this._markersPositions = this._series.indexedMarkers().reduce(
-                (acc: MarkerPositions, marker: InternalSeriesMarker<TimePointIndex>) => {
-                    if (!acc[marker.position]) {
-                        acc[marker.position] = true;
-                    }
-                    return acc;
-                },
-                {
-                    inBar: false,
-                    aboveBar: false,
-                    belowBar: false,
-                },
-            );
-        }
+        this._markersPositions ??= this._series.indexedMarkers().reduce(
+            (acc: MarkerPositions, marker: InternalSeriesMarker<TimePointIndex>) => {
+                if (!acc[marker.position]) {
+                    acc[marker.position] = true;
+                }
+                return acc;
+            },
+            {
+                inBar: false,
+                aboveBar: false,
+                belowBar: false,
+            },
+        );
         return this._markersPositions;
     }
 
@@ -291,7 +289,6 @@ function placeMarker(
             // Exhaustiveness assertion. It lives in `default` and not after the
             // switch because `allowUnreachableCode: false` rejects the latter
             ensureNever(marker.position);
-            return;
         }
     }
 }

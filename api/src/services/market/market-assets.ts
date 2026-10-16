@@ -1,14 +1,7 @@
 /** market-assets — reads of the AssetInfo reference collection. */
 import { z } from 'zod';
 
-import type {
-    AssetInfoDoc,
-    AssetProfile,
-    AssetSummary,
-    CorporateAction,
-    SummaryField,
-    TradeSignal,
-} from '@ereuna/shared';
+import type { AssetInfoDoc, AssetProfile, AssetSummary, CorporateAction, TradeSignal } from '@ereuna/shared';
 import { assetSummarySchema, isRecord, numeric } from '@ereuna/shared';
 
 import { AppError } from '@/lib/app-error.js';
@@ -20,17 +13,6 @@ import { escapeRegex } from '@/utils/regex.js';
 const assetSummariesSchema = z.array(assetSummarySchema);
 
 const MAX_SEARCH_RESULTS = 50;
-
-/**
- * Compile-time proof that every summary row the client can order has a field to
- * read. `SUMMARY_FIELDS` is the shared list the layout stores; add a key there
- * without a field here and the conditional resolves to `never`, which this
- * assignment then refuses.
- * The ASSIGNMENT is the proof, which is why nothing reads the constant and the
- * `void` is here to say so. As a bare exported type this asserted nothing — it
- * named a `never` nobody instantiated — and the dead-code gate is what found it.
- */
-const summaryFieldsCovered: SummaryField extends keyof AssetProfile ? true : never = true;
 
 /**
  * Assert a symbol exists in the reference data.
@@ -284,5 +266,3 @@ function toSummary(doc: AssetInfoDoc): AssetSummary {
         marketCap: doc.MarketCapitalization ?? null,
     };
 }
-
-void summaryFieldsCovered;

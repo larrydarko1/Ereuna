@@ -451,9 +451,10 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
         const leftTextCoordinate = Math.floor(coordinate - labelWidthHalf) + 0.5;
 
         if (leftTextCoordinate < 0) {
-            coordinate = coordinate + Math.abs(0 - leftTextCoordinate);
-        } else if (leftTextCoordinate + labelWidth > this._size.width) {
-            coordinate = coordinate - Math.abs(this._size.width - (leftTextCoordinate + labelWidth));
+            return coordinate + Math.abs(0 - leftTextCoordinate);
+        }
+        if (leftTextCoordinate + labelWidth > this._size.width) {
+            return coordinate - Math.abs(this._size.width - (leftTextCoordinate + labelWidth));
         }
 
         return coordinate;
@@ -489,20 +490,18 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
     }
 
     private _getRendererOptions(): Readonly<TimeAxisViewRendererOptions> {
-        if (this._rendererOptions === null) {
-            this._rendererOptions = {
-                borderSize: Constants.BorderSize,
-                baselineOffset: NaN,
-                paddingTop: NaN,
-                paddingBottom: NaN,
-                paddingHorizontal: NaN,
-                tickLength: Constants.TickLength,
-                fontSize: NaN,
-                font: '',
-                widthCache: new TextWidthCache(),
-                labelBottomOffset: 0,
-            };
-        }
+        this._rendererOptions ??= {
+            borderSize: Constants.BorderSize,
+            baselineOffset: NaN,
+            paddingTop: NaN,
+            paddingBottom: NaN,
+            paddingHorizontal: NaN,
+            tickLength: Constants.TickLength,
+            fontSize: NaN,
+            font: '',
+            widthCache: new TextWidthCache(),
+            labelBottomOffset: 0,
+        };
 
         const rendererOptions = this._rendererOptions;
         const newFont = this._baseFont();
@@ -541,7 +540,7 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
         }
         const rendererOptionsProvider = this._chart.model().rendererOptionsProvider();
         const params: PriceAxisStubParams = {
-            rendererOptionsProvider: rendererOptionsProvider,
+            rendererOptionsProvider,
         };
 
         const borderVisibleGetter = (): boolean => {

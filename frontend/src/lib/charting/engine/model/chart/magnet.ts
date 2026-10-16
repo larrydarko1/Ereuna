@@ -39,7 +39,7 @@ export class Magnet {
             .dataSources()
             .filter((source: IPriceDataSource): source is Series<SeriesType> => source instanceof Series);
 
-        const candidates = serieses.reduce((acc: Coordinate[], series: ISeries<SeriesType>) => {
+        const candidates = serieses.reduce<Coordinate[]>((acc: Coordinate[], series: ISeries<SeriesType>) => {
             if (pane.isOverlay(series) || !series.visible()) {
                 return acc;
             }
@@ -57,7 +57,7 @@ export class Magnet {
             // convert bar to pixels
             const firstPrice = getPresent(series.firstValue());
             return acc.concat([ps.priceToCoordinate(bar.value[PlotRowValueIndex.Close], firstPrice.value)]);
-        }, [] as Coordinate[]);
+        }, []);
 
         if (candidates.length === 0) {
             return res;

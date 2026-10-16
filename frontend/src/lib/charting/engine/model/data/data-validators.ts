@@ -113,5 +113,4 @@ function checkCustomItem<THorzScaleItem>(
     _customItem: SeriesDataItemTypeMap<THorzScaleItem>['Custom'],
 ): void {
     // Nothing to check yet...
-    return;
 }

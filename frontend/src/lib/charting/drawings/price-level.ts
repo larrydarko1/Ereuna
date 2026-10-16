@@ -50,11 +50,11 @@ const DEFAULT_LINE_WIDTH: LineWidth = 2;
 const DEFAULT_LEVEL_COLOR = '#2962FF';
 
 export class PriceLevelManager {
-    private chart: IChartApi;
-    private series: ISeriesApi<SeriesType>;
-    private container: HTMLElement;
+    private readonly chart: IChartApi;
+    private readonly series: ISeriesApi<SeriesType>;
+    private readonly container: HTMLElement;
     private isActive = false;
-    private levels = new Map<string, PriceLevelLine>();
+    private readonly levels = new Map<string, PriceLevelLine>();
     private clickHandler: ((param: MouseEventParams) => void) | null = null;
     private contextMenuDiv: HTMLDivElement | null = null;
     private closeDialog: (() => void) | null = null;
@@ -118,7 +118,7 @@ export class PriceLevelManager {
 
     // The three DOM handlers are arrow properties so that `this` survives being
     // handed to addEventListener and to the chart's own subscription
-    private handleClick = (param: MouseEventParams): void => {
+    private readonly handleClick = (param: MouseEventParams): void => {
         if (param.point === undefined || !this.isActive) return;
 
         const price = this.series.coordinateToPrice(param.point.y);
@@ -127,7 +127,7 @@ export class PriceLevelManager {
         this.createPriceLevel(price);
     };
 
-    private handleDocumentClick = (event: MouseEvent): void => {
+    private readonly handleDocumentClick = (event: MouseEvent): void => {
         // A click anywhere but inside the menu dismisses it
         if (
             this.contextMenuDiv !== null &&
@@ -137,7 +137,7 @@ export class PriceLevelManager {
         }
     };
 
-    private handleKeyDown = (event: KeyboardEvent): void => {
+    private readonly handleKeyDown = (event: KeyboardEvent): void => {
         if (event.key !== 'Backspace' && event.key !== 'Delete') return;
 
         if (isTypingTarget(event.target)) {

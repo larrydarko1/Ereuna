@@ -18,11 +18,8 @@ const defLogFormula: LogFormula = {
 };
 
 export function fromPercent(value: number, baseValue: number): number {
-    if (baseValue < 0) {
-        value = -value;
-    }
-
-    return (value / 100) * baseValue + baseValue;
+    const signed = baseValue < 0 ? -value : value;
+    return (signed / 100) * baseValue + baseValue;
 }
 
 export function toPercent(value: number, baseValue: number): number {
@@ -37,12 +34,7 @@ export function toPercentRange(priceRange: PriceRangeImpl, baseValue: number): P
 }
 
 export function fromIndexedTo100(value: number, baseValue: number): number {
-    value -= 100;
-    if (baseValue < 0) {
-        value = -value;
-    }
-
-    return (value / 100) * baseValue + baseValue;
+    return fromPercent(value - 100, baseValue);
 }
 
 export function toIndexedTo100(value: number, baseValue: number): number {

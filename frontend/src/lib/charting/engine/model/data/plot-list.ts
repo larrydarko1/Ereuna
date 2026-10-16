@@ -47,8 +47,8 @@ const CHUNK_SIZE = 30;
  */
 export class PlotList<TPlotRowType extends PlotRow = PlotRow> {
     private _items: readonly TPlotRowType[] = [];
-    private _minMaxCache = new Map<PlotRowValueIndex, Map<number, MinMax | null>>();
-    private _rowSearchCache = new Map<TimePointIndex, Map<MismatchDirection, TPlotRowType>>();
+    private readonly _minMaxCache = new Map<PlotRowValueIndex, Map<number, MinMax | null>>();
+    private readonly _rowSearchCache = new Map<TimePointIndex, Map<MismatchDirection, TPlotRowType>>();
 
     // @returns Last row
     public last(): TPlotRowType | null {
@@ -299,5 +299,5 @@ function mergeMinMax(first: MinMax | null, second: MinMax | null): MinMax | null
     // merge MinMax values
     const min = Math.min(first.min, second.min);
     const max = Math.max(first.max, second.max);
-    return { min: min, max: max };
+    return { min, max };
 }

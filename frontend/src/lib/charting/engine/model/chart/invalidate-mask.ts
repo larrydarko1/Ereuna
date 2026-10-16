@@ -80,7 +80,7 @@ export const TimeScaleInvalidationType = {
 } as const;
 
 export class InvalidateMask {
-    private _invalidatedPanes = new Map<number, PaneInvalidation>();
+    private readonly _invalidatedPanes = new Map<number, PaneInvalidation>();
     private _globalLevel: InvalidationLevel;
     private _timeScaleInvalidations: TimeScaleInvalidation[] = [];
 

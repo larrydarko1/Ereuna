@@ -41,14 +41,12 @@ describe('ThemePicker', () => {
     });
 
     it('previews the selected theme with a swatch for every colour it defines', () => {
-        const first = THEMES[0];
-
-        expect(picker().findAll('.themes__swatch')).toHaveLength(Object.keys(first?.preview ?? {}).length);
+        expect(picker().findAll('.themes__swatch')).toHaveLength(Object.keys(THEMES[0].preview).length);
     });
 
     it('applies the theme that was picked', async () => {
         const wrapper = picker();
-        const target = THEMES.filter((theme) => theme.mode === 'light')[0];
+        const target = THEMES.find((theme) => theme.mode === 'light');
 
         await wrapper.get('select').setValue(target?.id);
 

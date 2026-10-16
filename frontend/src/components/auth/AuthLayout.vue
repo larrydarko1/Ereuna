@@ -10,6 +10,8 @@ const { title, subtitle = null } = defineProps<{
     subtitle?: string | null;
 }>();
 
+defineSlots<{ default: () => unknown }>();
+
 const { t } = useI18n();
 
 // Picked once when the component is created rather than in onMounted: chosen

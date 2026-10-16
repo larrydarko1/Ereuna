@@ -77,8 +77,8 @@ export function useChartSettings(): UseChartSettingsReturn {
  * would come back 400 and lose the rest of the form with it.
  */
 function normalise(settings: DeepReadonly<ChartSettings>): ChartSettings {
-    const entries = Object.entries(settings.indicators).flatMap(([timeframe, list]) =>
-        list === undefined ? [] : [[timeframe, list.slice(0, MAX_INDICATORS).map(normaliseIndicator)] as const],
+    const entries = Object.entries(settings.indicators).map(
+        ([timeframe, list]) => [timeframe, list.slice(0, MAX_INDICATORS).map(normaliseIndicator)] as const,
     );
     return { ...settings, indicators: Object.fromEntries(entries) };
 }
