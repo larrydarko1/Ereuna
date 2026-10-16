@@ -50,7 +50,7 @@ onMounted(async () => {
 <template>
     <AppDialog
         :title="t('user.security.enrol.title')"
-        :dismissible="false"
+        inert-backdrop
         @close="emit('close')">
         <AppSpinner v-if="enrolment === null && error === null" />
 

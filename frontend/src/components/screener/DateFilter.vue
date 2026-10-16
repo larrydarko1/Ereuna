@@ -7,7 +7,7 @@ import { toDateInput } from '@/utils/formatters';
 const {
     value = null,
     bounds = null,
-    busy = false,
+    busy,
 } = defineProps<{
     value?: { from: string; to: string } | null;
     bounds?: { min: string; max: string } | null;

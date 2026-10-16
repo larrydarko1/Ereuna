@@ -7,7 +7,7 @@ import { isList, isRecord } from '@ereuna/shared';
 import AppDialog from '@/components/ui/AppDialog.vue';
 import { targetOf } from '@/utils/dom';
 
-const { error = null, saving = false } = defineProps<{
+const { error = null, saving } = defineProps<{
     error?: string | null;
     saving?: boolean;
 }>();

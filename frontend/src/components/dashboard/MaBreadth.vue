@@ -14,7 +14,7 @@ const { t } = useI18n();
 
 const universe = ref<BreadthUniverse>('all');
 
-const rows = computed(() => series[universe.value] ?? []);
+const rows = computed(() => series[universe.value]);
 </script>
 
 <template>

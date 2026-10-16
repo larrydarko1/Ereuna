@@ -4,6 +4,8 @@ const { description = null, tone = 'default' } = defineProps<{
     description?: string | null;
     tone?: 'default' | 'danger'; // `danger` colours the card for an irreversible action
 }>();
+
+defineSlots<{ default: () => unknown }>();
 </script>
 
 <template>

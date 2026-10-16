@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n';
 
 import { targetOf } from '@/utils/dom';
 
-const { value = null, busy = false } = defineProps<{
+const { value = null, busy } = defineProps<{
     value?: { enabled: boolean } | null;
     busy?: boolean;
 }>();

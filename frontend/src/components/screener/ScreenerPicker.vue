@@ -9,7 +9,7 @@ import { targetOf } from '@/utils/dom';
 const {
     items,
     includedCount = 0,
-    busy = false,
+    busy,
 } = defineProps<{
     items: readonly ScreenerSummary[];
     includedCount?: number;

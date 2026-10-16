@@ -4,10 +4,10 @@ import { computed, useId } from 'vue';
 const {
     label,
     type = 'text',
-    autocomplete = undefined,
+    autocomplete = 'on',
     error = null,
-    placeholder = undefined,
-    autofocus = false,
+    placeholder = '',
+    autofocus,
 } = defineProps<{
     label: string;
     type?: 'text' | 'email';

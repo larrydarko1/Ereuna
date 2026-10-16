@@ -3,6 +3,8 @@ const { body = null } = defineProps<{
     title: string;
     body?: string | null;
 }>();
+
+defineSlots<{ default?: () => unknown }>();
 </script>
 
 <template>

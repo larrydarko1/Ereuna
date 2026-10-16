@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 
-const { label = undefined, size = 'md' } = defineProps<{
-    label?: string;
+const { label = null, size = 'md' } = defineProps<{
+    label?: string | null;
     size?: 'sm' | 'md' | 'lg';
 }>();
 

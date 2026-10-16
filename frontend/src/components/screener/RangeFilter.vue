@@ -7,7 +7,7 @@ import { formatNumber } from '@/utils/formatters';
 const {
     value = null,
     bounds = null,
-    busy = false,
+    busy,
 } = defineProps<{
     value?: { min: number; max: number } | null;
     bounds?: { min: number; max: number } | null;

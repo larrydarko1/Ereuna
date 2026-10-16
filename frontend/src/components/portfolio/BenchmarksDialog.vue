@@ -7,7 +7,7 @@ import AppDialog from '@/components/ui/AppDialog.vue';
 const {
     current,
     error = null,
-    saving = false,
+    saving,
 } = defineProps<{
     current: readonly string[];
     error?: string | null;

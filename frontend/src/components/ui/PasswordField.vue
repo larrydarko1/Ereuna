@@ -9,7 +9,7 @@ const {
     label,
     autocomplete = 'current-password',
     error = null,
-    placeholder = undefined,
+    placeholder = '',
 } = defineProps<{
     label: string;
     autocomplete?: 'current-password' | 'new-password';

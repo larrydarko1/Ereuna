@@ -10,8 +10,8 @@ const {
     overlays = [],
     status,
     holidayName = null,
-    statusPending = false,
-    priceOnly = false,
+    statusPending,
+    priceOnly,
     badges = [],
 } = defineProps<{
     quote?: ChartQuote | null;

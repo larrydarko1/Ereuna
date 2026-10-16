@@ -7,11 +7,11 @@ import PasswordField from '@/components/ui/PasswordField.vue';
 import type { Credentials } from '@/types/user';
 
 const {
-    needsPassword = false,
-    needsCode = false,
-    pending = false,
+    needsPassword,
+    needsCode,
+    pending,
     error = null,
-    danger = false,
+    danger,
 } = defineProps<{
     title: string;
     message: string;

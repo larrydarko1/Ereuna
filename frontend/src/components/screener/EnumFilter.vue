@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n';
 const {
     options,
     value = null,
-    busy = false,
+    busy,
 } = defineProps<{
     options: string[];
     value?: { values: string[] } | null;

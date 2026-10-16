@@ -5,14 +5,16 @@ import { useI18n } from 'vue-i18n';
 const {
     title,
     size = 'md',
-    dismissible = true,
+    inertBackdrop,
 } = defineProps<{
     title: string;
     size?: 'sm' | 'md' | 'lg';
-    dismissible?: boolean; // Whether a click on the backdrop closes. Escape always does.
+    inertBackdrop?: boolean; // Whether a click on the backdrop is ignored. Escape always closes.
 }>();
 
 const emit = defineEmits<{ close: [] }>();
+
+defineSlots<{ default: () => unknown; footer?: () => unknown }>();
 
 const FOCUSABLE =
     'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -63,7 +65,7 @@ function onKeydown(event: KeyboardEvent): void {
 }
 
 function onBackdrop(event: MouseEvent): void {
-    if (dismissible && event.target === event.currentTarget) emit('close');
+    if (!inertBackdrop && event.target === event.currentTarget) emit('close');
 }
 
 onMounted(async () => {

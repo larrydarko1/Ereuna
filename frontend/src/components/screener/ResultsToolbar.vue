@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n';
 
 import { LIST_MODES, type ListMode } from '@/constants/screener';
 
-const { total, exporting = false } = defineProps<{
+const { total, exporting } = defineProps<{
     total: number;
     exportLimit: number;
     exporting?: boolean;

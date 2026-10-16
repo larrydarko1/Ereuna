@@ -53,7 +53,6 @@ import {
     type PatternMatch,
     type ScreenshotConfig,
     type SeriesType,
-    type Time,
 } from '@/lib/charting';
 import { closes, heikinAshi, relativeVolume } from '@/utils/candles';
 import { timeToIsoDate, timeValue } from '@/utils/chartTime';
@@ -62,7 +61,7 @@ const {
     symbol,
     profile = null,
     initialTimeframe = 'daily',
-    compact = false,
+    compact,
 } = defineProps<{
     symbol: string;
     profile?: AssetProfile | null;
@@ -290,7 +289,7 @@ function applyBars(): void {
             ? timeValue(last.time) === applied.last
             : bars.length === applied.length + 1 && timeValue(last.time) > applied.last);
 
-    if (tail && last !== undefined) {
+    if (tail) {
         mainSeries.update(priceOnly.value ? { time: last.time, value: last.close } : last);
     } else {
         mainSeries.setData(priceOnly.value ? [...closes(bars)] : [...bars]);
@@ -505,7 +504,7 @@ function startReplay(from: Date): void {
 
 // Chart events
 
-function onCrosshair(param: MouseEventParams<Time>): void {
+function onCrosshair(param: MouseEventParams): void {
     if (param.time === undefined) {
         crosshairIndex.value = null;
         return;

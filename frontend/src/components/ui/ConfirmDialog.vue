@@ -6,7 +6,7 @@ import AppDialog from '@/components/ui/AppDialog.vue';
 const {
     confirmLabel = null,
     cancelLabel = null,
-    pending = false,
+    pending,
     error = null,
 } = defineProps<{
     title: string;

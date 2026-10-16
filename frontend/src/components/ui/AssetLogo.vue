@@ -37,7 +37,7 @@ watch(
         class="logo"
         :class="`logo--${size}`"
         :src="source"
-        :alt="''"
+        alt=""
         loading="lazy"
         decoding="async"
         @error="failed = true" />

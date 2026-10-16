@@ -18,7 +18,7 @@ const {
     groups,
     valueFor,
     saving = null,
-    disabled = false,
+    disabled,
 } = defineProps<{
     groups: FilterGrouping[];
     valueFor: (key: string, kind: FilterKind) => ActiveFilter | null;
