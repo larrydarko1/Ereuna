@@ -32,7 +32,7 @@ function valuesOf(value: unknown, keyword: string): string[] {
 function operationIds(): string[] {
     return Object.values(paths).flatMap((item) =>
         METHODS.flatMap((method) => {
-            const id: unknown = item?.[method]?.operationId;
+            const id: unknown = item[method]?.operationId;
             return typeof id === 'string' ? [id] : [];
         }),
     );

@@ -94,8 +94,8 @@ describe('AppDialog', () => {
         expect(wrapper.emitted('close')).toBeUndefined();
     });
 
-    it('keeps the backdrop inert when it is not dismissible, but Escape still works', async () => {
-        const wrapper = open({ dismissible: false });
+    it('keeps the backdrop inert when asked to, but Escape still works', async () => {
+        const wrapper = open({ inertBackdrop: true });
 
         await mousedown('.dialog');
         expect(wrapper.emitted('close')).toBeUndefined();

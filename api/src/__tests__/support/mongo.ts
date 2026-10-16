@@ -64,7 +64,7 @@ function cursor(rows: unknown[]): Record<string, unknown> {
         limit: () => self,
         skip: () => self,
         project: () => self,
-        [Symbol.asyncIterator]: async function* () {
+        async *[Symbol.asyncIterator]() {
             for (const row of rows) yield row;
         },
     };

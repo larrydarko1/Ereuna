@@ -14,7 +14,7 @@ describe('probe', () => {
 
         const lines: string[] = [];
         const dump = (node: Element, depth: number): void => {
-            lines.push(`${'  '.repeat(depth)}${node.tagName.toLowerCase()} class="${String(node.className)}"`);
+            lines.push(`${'  '.repeat(depth)}${node.tagName.toLowerCase()} class="${node.className}"`);
             for (const child of Array.from(node.children)) dump(child, depth + 1);
         };
         dump(chart.chartElement(), 0);

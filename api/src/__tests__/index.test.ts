@@ -112,6 +112,11 @@ async function boot(): Promise<Express> {
     state.app = null;
     await import('@/index.js');
     await vi.waitFor(() => expect(state.order.length).toBeGreaterThan(0));
+    return builtApp();
+}
+
+/** Read through a call, because the import above assigns `state.app` behind the narrowing to `null`. */
+function builtApp(): Express {
     if (state.app === null) throw new Error('the entry point never built an Express app');
     return state.app;
 }

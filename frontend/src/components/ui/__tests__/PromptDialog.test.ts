@@ -1,6 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { query } from '@/__tests__/support/dom';
 import PromptDialog from '@/components/ui/PromptDialog.vue';
 
 const open = (props: Record<string, unknown> = {}): VueWrapper =>
@@ -10,20 +11,16 @@ const open = (props: Record<string, unknown> = {}): VueWrapper =>
     });
 
 /** The dialog is teleported to <body>, which the wrapper does not traverse. */
-const $ = <T extends HTMLElement>(selector: string): T => {
-    const element = document.body.querySelector<T>(selector);
-    if (element === null) throw new Error(`no ${selector} in the dialog`);
-    return element;
-};
+const $ = (selector: string): HTMLElement => query(selector, HTMLElement);
 
 const type = async (value: string): Promise<void> => {
-    const input = $<HTMLInputElement>('.prompt__input');
+    const input = query('.prompt__input', HTMLInputElement);
     input.value = value;
     input.dispatchEvent(new Event('input'));
     await Promise.resolve();
 };
 
-const submitButton = (): HTMLButtonElement => $<HTMLButtonElement>('.prompt__submit');
+const submitButton = (): HTMLButtonElement => query('.prompt__submit', HTMLButtonElement);
 
 afterEach(() => {
     document.body.innerHTML = '';
@@ -40,14 +37,14 @@ describe('PromptDialog', () => {
     it('opens empty, with the submit refused', () => {
         open();
 
-        expect($<HTMLInputElement>('.prompt__input').value).toBe('');
+        expect(query('.prompt__input', HTMLInputElement).value).toBe('');
         expect(submitButton().disabled).toBe(true);
     });
 
     it('opens on the value it was given — a rename starts from the current name', () => {
         open({ initial: 'Tech' });
 
-        expect($<HTMLInputElement>('.prompt__input').value).toBe('Tech');
+        expect(query('.prompt__input', HTMLInputElement).value).toBe('Tech');
         expect(submitButton().disabled).toBe(false);
     });
 

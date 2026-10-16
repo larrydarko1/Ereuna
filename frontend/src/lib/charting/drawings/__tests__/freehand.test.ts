@@ -44,7 +44,7 @@ describe('drawing a stroke', () => {
 
         const path = drawn.tool.getPaths()[0]!;
         expect(drawn.tool.getPaths()).toHaveLength(1);
-        expect(path.points.length).toBe(LINE.length);
+        expect(path.points).toHaveLength(LINE.length);
         expect(path.id).toMatch(/^freehand_\d+_[a-z0-9]+$/);
     });
 

@@ -51,7 +51,9 @@ describe('the visible range', () => {
     it('refuses a range that runs backwards', () => {
         const chart = chartWithBars();
 
-        expect(() => chart.timeScale().setVisibleLogicalRange({ from: 20, to: 10 })).toThrow();
+        expect(() => chart.timeScale().setVisibleLogicalRange({ from: 20, to: 10 })).toThrow(
+            'The from index cannot be after the to index',
+        );
     });
 
     it('has no range at all before any data arrives', () => {

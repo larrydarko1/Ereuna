@@ -136,7 +136,7 @@ describe('canonicalize', () => {
         await chart.canonicalize();
 
         expect(router.currentRoute.value.fullPath).toBe('/charts/MSFT');
-        expect(window.history.length).toBe(depth);
+        expect(window.history).toHaveLength(depth);
     });
 
     it('leaves a URL that already names a symbol alone', async () => {

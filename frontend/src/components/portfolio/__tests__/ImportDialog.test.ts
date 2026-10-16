@@ -48,7 +48,7 @@ describe('ImportDialog', () => {
 
         await choose(JSON.stringify({ trades: [{ action: 'buy' }, { action: 'sell' }] }));
 
-        expect($('.import-dialog__summary').textContent?.trim()).toBe(
+        expect($('.import-dialog__summary').textContent.trim()).toBe(
             i18n.global.t('portfolio.importSummary', { trades: 2 }),
         );
     });

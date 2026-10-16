@@ -166,7 +166,7 @@ describe('TradeDialog', () => {
         await save();
 
         expect(wrapper.emitted('submit')).toBeUndefined();
-        expect($('.dialog__footer .btn--primary').textContent?.trim()).toBe(i18n.global.t('common.saving'));
+        expect($('.dialog__footer .btn--primary').textContent.trim()).toBe(i18n.global.t('common.saving'));
     });
 
     it('shows what the last save was refused for', () => {

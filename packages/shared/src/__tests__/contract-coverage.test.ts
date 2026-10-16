@@ -16,7 +16,7 @@ describe('contract coverage', () => {
         expect(missing).not.toContain('GET /api/account');
         expect(missing).not.toContain('GET /api/logos/:exchange/:file');
         expect(missing).toHaveLength(Object.keys(API_ROUTES).length - 2);
-        expect(() => readdirSync(dir)).toThrow();
+        expect(() => readdirSync(dir)).toThrow('ENOENT');
     });
 
     it('records nothing when the run is not measuring coverage', () => {

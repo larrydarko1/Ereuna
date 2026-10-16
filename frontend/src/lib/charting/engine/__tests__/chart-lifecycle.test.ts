@@ -35,7 +35,7 @@ describe('createChart', () => {
     });
 
     it('refuses an id that is not in the document', () => {
-        expect(() => createChart('no-such-container')).toThrow();
+        expect(() => createChart('no-such-container')).toThrow('Cannot find element in DOM with id=no-such-container');
     });
 
     it('reports the size it was asked for', () => {
@@ -92,8 +92,8 @@ describe('remove', () => {
 
         removeChart(mount);
 
-        expect(() => mount.chart.addLineSeries()).toThrow();
-        expect(() => mount.chart.takeScreenshot()).toThrow();
+        expect(() => mount.chart.addLineSeries()).toThrow('Value is undefined');
+        expect(() => mount.chart.takeScreenshot()).toThrow('Object is disposed');
     });
 });
 

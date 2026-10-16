@@ -15,7 +15,9 @@ describe('encryptSecret / decryptSecret', () => {
     it('rejects a tampered ciphertext instead of returning wrong plaintext', () => {
         const [iv, tag, data] = encryptSecret('secret').split(':');
         const flipped = data!.startsWith('A') ? `B${data!.slice(1)}` : `A${data!.slice(1)}`;
-        expect(() => decryptSecret([iv, tag, flipped].join(':'))).toThrow();
+        expect(() => decryptSecret([iv, tag, flipped].join(':'))).toThrow(
+            'Unsupported state or unable to authenticate data',
+        );
     });
 
     it('rejects a malformed payload', () => {

@@ -64,7 +64,7 @@ describe('RecoveryCodesDialog', () => {
 
         await press(0);
 
-        expect(buttons()[0]?.textContent?.trim()).toBe(i18n.global.t('user.security.codes.copied'));
+        expect(buttons()[0]?.textContent.trim()).toBe(i18n.global.t('user.security.codes.copied'));
     });
 
     it('stays quiet when the browser refuses the clipboard', async () => {
@@ -73,7 +73,7 @@ describe('RecoveryCodesDialog', () => {
 
         await press(0);
 
-        expect(buttons()[0]?.textContent?.trim()).toBe(i18n.global.t('user.security.codes.copy'));
+        expect(buttons()[0]?.textContent.trim()).toBe(i18n.global.t('user.security.codes.copy'));
     });
 
     it('downloads the codes as a text file', async () => {

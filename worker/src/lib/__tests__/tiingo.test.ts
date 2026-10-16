@@ -121,7 +121,7 @@ describe('the rows', () => {
 
     it('throws when the vendor answers something other than a list', async () => {
         answer({ detail: 'Error: upstream is down' });
-        await expect(marketPrices()).rejects.toThrow();
+        await expect(marketPrices()).rejects.toThrow('expected array, received object');
     });
 });
 

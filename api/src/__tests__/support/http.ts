@@ -110,7 +110,10 @@ export function json(body: unknown, method = 'POST'): RequestInit {
 function holdToContract(problems: string[]): RequestHandler {
     return (req, res, next) => {
         const path = req.path;
-        if (!path.startsWith('/api/')) return next();
+        if (!path.startsWith('/api/')) {
+            next();
+            return;
+        }
         const sentBody: unknown = structuredClone(req.body);
         const sentQuery = { ...req.query };
         let answered: unknown;

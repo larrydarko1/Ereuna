@@ -13,7 +13,7 @@ async function correlating(): Promise<Harness> {
     harness = await serve((app) => {
         app.use(requestId);
         app.get('/x', (req, res) => {
-            res.json({ id: req.id, hasLogger: typeof req.log?.warn === 'function' });
+            res.json({ id: req.id, hasLogger: typeof req.log.warn === 'function' });
         });
     });
     return harness;

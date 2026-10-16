@@ -82,16 +82,11 @@ describe('validateLog', () => {
 
     it('refuses a buy the log cannot fund, naming the shortfall and the date', async () => {
         await expect(validateLog([trade()], 1)).rejects.toThrow(AppError);
-        try {
-            await validateLog([trade()], 1);
-        } catch (err) {
-            expect(err).toBeInstanceOf(AppError);
-            expect(err).toMatchObject({
-                code: 'INSUFFICIENT_BUYING_POWER',
-                status: 422,
-                params: { action: 'buy', symbol: 'AAPL', date: '2026-01-05' },
-            });
-        }
+        await expect(validateLog([trade()], 1)).rejects.toMatchObject({
+            code: 'INSUFFICIENT_BUYING_POWER',
+            status: 422,
+            params: { action: 'buy', symbol: 'AAPL', date: '2026-01-05' },
+        });
     });
 
     it('refuses a sale of shares the log never bought', async () => {
@@ -103,7 +98,7 @@ describe('validateLog', () => {
 
     it('lets leverage fund a purchase that cash alone could not', async () => {
         const log = [deposit(600), trade()];
-        await expect(validateLog(log, 1)).rejects.toThrow();
+        await expect(validateLog(log, 1)).rejects.toMatchObject({ code: 'INSUFFICIENT_BUYING_POWER' });
         await expect(validateLog(log, 2)).resolves.toBeUndefined();
     });
 

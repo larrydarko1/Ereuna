@@ -14,7 +14,7 @@ import { type CustomSeriesOptions } from '@/lib/charting/engine/model/series/ser
 import { type Time } from '@/lib/charting/engine/model/time/types';
 
 /** A band: one row carrying a high and a low, drawn as a filled strip. */
-type BandData = { high: number; low: number } & CustomData<Time>;
+type BandData = { high: number; low: number } & CustomData;
 
 type DrawSpy = ICustomSeriesPaneRenderer['draw'];
 type UpdateSpy = ICustomSeriesPaneView<Time, BandData>['update'];

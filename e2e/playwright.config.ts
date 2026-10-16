@@ -21,7 +21,7 @@ export default defineConfig({
     testDir: './tests',
     globalSetup: './support/global-setup.ts',
     globalTeardown: './support/global-teardown.ts',
-    forbidOnly: !!process.env['CI'],
+    forbidOnly: Boolean(process.env['CI']),
     retries: process.env['CI'] ? 1 : 0,
     workers: process.env['CI'] ? 2 : 1,
     reporter: process.env['CI'] ? [['github'], ['html', { open: 'never' }]] : [['list'], ['html', { open: 'never' }]],

@@ -73,14 +73,20 @@ describe('price scale options', () => {
     it('refuses margins that overlap', () => {
         const { chart } = chartWithLine();
 
-        expect(() => chart.priceScale('right').applyOptions({ scaleMargins: { top: 0.8, bottom: 0.8 } })).toThrow();
+        expect(() => chart.priceScale('right').applyOptions({ scaleMargins: { top: 0.8, bottom: 0.8 } })).toThrow(
+            'Invalid margins - sum of margins must be less than 1',
+        );
     });
 
     it('refuses a margin outside the scale', () => {
         const { chart } = chartWithLine();
 
-        expect(() => chart.priceScale('right').applyOptions({ scaleMargins: { top: -1, bottom: 0.1 } })).toThrow();
-        expect(() => chart.priceScale('right').applyOptions({ scaleMargins: { top: 0.1, bottom: 2 } })).toThrow();
+        expect(() => chart.priceScale('right').applyOptions({ scaleMargins: { top: -1, bottom: 0.1 } })).toThrow(
+            'Invalid top margin',
+        );
+        expect(() => chart.priceScale('right').applyOptions({ scaleMargins: { top: 0.1, bottom: 2 } })).toThrow(
+            'Invalid bottom margin',
+        );
     });
 
     it('draws with the border on and again with it off', () => {

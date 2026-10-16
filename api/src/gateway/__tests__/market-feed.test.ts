@@ -155,8 +155,7 @@ describe('startMarketFeed', () => {
     it('reads `start` when the producer did not write `timestamp`', async () => {
         const sink = vi.fn<BucketSink>();
         await startMarketFeed(sink);
-        const { timestamp, ...rest } = bucket();
-        void timestamp;
+        const { timestamp: _timestamp, ...rest } = bucket();
         subscriber().emit('pmessage', 'aggr:*', 'aggr:1m', JSON.stringify({ ...rest, start: '2026-03-02T14:30:00Z' }));
 
         expect(sink).toHaveBeenCalledTimes(1);

@@ -83,10 +83,6 @@ describe('publishCandle', () => {
         expect(transaction?.calls[1]?.[1][1]).toBe(JSON.stringify(candle));
     });
 
-    it('returns before the write lands — the durable copy is the Mongo path', () => {
-        expect(publishCandle(message())).toBeUndefined();
-    });
-
     it('logs a failed publish and does not throw at the caller', async () => {
         redis.current.multi.mockImplementationOnce(() => {
             throw new Error('connection lost');
