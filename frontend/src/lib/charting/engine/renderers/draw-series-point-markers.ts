@@ -7,17 +7,20 @@ import { type BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 import { type SeriesItemsIndexesRange } from '@/lib/charting/engine/model/time/time-data';
 import { type LinePoint } from '@/lib/charting/engine/renderers/draw-line';
 
-export function drawSeriesPointMarkers<TItem extends LinePoint, TStyle extends CanvasRenderingContext2D['fillStyle']>(
+export function drawSeriesPointMarkers<TItem extends LinePoint>(
     renderingScope: BitmapCoordinatesRenderingScope,
     items: readonly TItem[],
     pointMarkersRadius: number,
     visibleRange: SeriesItemsIndexesRange,
     // the values returned by styleGetter are compared using the operator !==,
     // so if styleGetter returns objects, then styleGetter should return the same object for equal styles
-    styleGetter: (renderingScope: BitmapCoordinatesRenderingScope, item: TItem) => TStyle,
+    styleGetter: (
+        renderingScope: BitmapCoordinatesRenderingScope,
+        item: TItem,
+    ) => CanvasRenderingContext2D['fillStyle'],
 ): void {
     const { horizontalPixelRatio, verticalPixelRatio, context } = renderingScope;
-    let prevStyle: TStyle | null = null;
+    let prevStyle: CanvasRenderingContext2D['fillStyle'] | null = null;
 
     const tickWidth = Math.max(1, Math.floor(horizontalPixelRatio));
     const correction = (tickWidth % 2) / 2;

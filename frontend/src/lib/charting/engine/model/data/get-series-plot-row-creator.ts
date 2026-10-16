@@ -81,11 +81,11 @@ export function getSeriesPlotRowCreator<TSeriesType extends SeriesType, THorzSca
     return seriesPlotRowFnMap[seriesType];
 }
 
-function getColoredLineBasedSeriesPlotRow<THorzScaleItem>(
+function getColoredLineBasedSeriesPlotRow(
     time: InternalHorzScaleItem,
     index: TimePointIndex,
     item: LineData | HistogramData,
-    originalTime: THorzScaleItem,
+    originalTime: unknown,
 ): Mutable<SeriesPlotRow<'Line' | 'Histogram'>> {
     const val = item.value;
 
@@ -103,11 +103,11 @@ function getColoredLineBasedSeriesPlotRow<THorzScaleItem>(
     return res;
 }
 
-function getAreaSeriesPlotRow<THorzScaleItem>(
+function getAreaSeriesPlotRow(
     time: InternalHorzScaleItem,
     index: TimePointIndex,
     item: AreaData,
-    originalTime: THorzScaleItem,
+    originalTime: unknown,
 ): Mutable<SeriesPlotRow<'Area'>> {
     const val = item.value;
 
@@ -128,11 +128,11 @@ function getAreaSeriesPlotRow<THorzScaleItem>(
     return res;
 }
 
-function getBaselineSeriesPlotRow<THorzScaleItem>(
+function getBaselineSeriesPlotRow(
     time: InternalHorzScaleItem,
     index: TimePointIndex,
     item: BaselineData,
-    originalTime: THorzScaleItem,
+    originalTime: unknown,
 ): Mutable<SeriesPlotRow<'Baseline'>> {
     const val = item.value;
 
@@ -165,11 +165,11 @@ function getBaselineSeriesPlotRow<THorzScaleItem>(
     return res;
 }
 
-function getBarSeriesPlotRow<THorzScaleItem>(
+function getBarSeriesPlotRow(
     time: InternalHorzScaleItem,
     index: TimePointIndex,
     item: BarData,
-    originalTime: THorzScaleItem,
+    originalTime: unknown,
 ): Mutable<SeriesPlotRow<'Bar'>> {
     const res: Mutable<SeriesPlotRow<'Bar'>> = {
         index,
@@ -185,11 +185,11 @@ function getBarSeriesPlotRow<THorzScaleItem>(
     return res;
 }
 
-function getCandlestickSeriesPlotRow<THorzScaleItem>(
+function getCandlestickSeriesPlotRow(
     time: InternalHorzScaleItem,
     index: TimePointIndex,
     item: CandlestickData,
-    originalTime: THorzScaleItem,
+    originalTime: unknown,
 ): Mutable<SeriesPlotRow<'Candlestick'>> {
     const res: Mutable<SeriesPlotRow<'Candlestick'>> = {
         index,
@@ -250,16 +250,16 @@ function isWhitespaceDataWithCustomCheck<THorzScaleItem>(
     return isWhitespaceData(bar);
 }
 
-function wrapWhitespaceData<TSeriesType extends SeriesType, THorzScaleItem>(
+function wrapWhitespaceData<THorzScaleItem>(
     createPlotRowFn: GetPlotRowType,
-): SeriesItemValueFnMap<THorzScaleItem>[TSeriesType] {
+): SeriesItemValueFnMap<THorzScaleItem>[SeriesType] {
     return (
         time: InternalHorzScaleItem,
         index: TimePointIndex,
         bar: SeriesDataItemTypeMap<THorzScaleItem>[SeriesType],
         originalTime: THorzScaleItem,
         custom?: CustomSeriesHooks<THorzScaleItem>,
-    ): Mutable<SeriesPlotRow<SeriesType> | WhitespacePlotRow> => {
+    ): Mutable<SeriesPlotRow | WhitespacePlotRow> => {
         const { dataToPlotRow, customIsWhitespace } = custom ?? {};
 
         if (isWhitespaceDataWithCustomCheck(bar, customIsWhitespace)) {

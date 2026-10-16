@@ -29,7 +29,7 @@ export class PaneRendererMarks extends BitmapCoordinatesPaneRenderer {
         horizontalPixelRatio,
         verticalPixelRatio,
     }: BitmapCoordinatesRenderingScope): void {
-        if (this._data === null || this._data.visibleRange === null) {
+        if (this._data?.visibleRange == null) {
             return;
         }
 

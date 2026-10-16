@@ -8,6 +8,12 @@ export function isTypingTarget(target: EventTarget | null): boolean {
     return (
         target instanceof HTMLInputElement ||
         target instanceof HTMLTextAreaElement ||
-        (target instanceof HTMLElement && target.isContentEditable === true)
+        (target instanceof HTMLElement && isContentEditable(target))
     );
+}
+
+// jsdom does not implement `isContentEditable`, so it can be missing even
+// though the DOM's own type says otherwise
+function isContentEditable(element: Partial<Pick<HTMLElement, 'isContentEditable'>>): boolean {
+    return element.isContentEditable === true;
 }

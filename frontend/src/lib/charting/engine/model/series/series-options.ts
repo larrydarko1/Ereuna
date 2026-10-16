@@ -510,14 +510,11 @@ export function precisionByMinMove(minMove: number): number {
     if (minMove >= 1) {
         return 0;
     }
-    let i = 0;
-    for (; i < 8; i++) {
-        const intPart = Math.round(minMove);
-        const fractPart = Math.abs(intPart - minMove);
-        if (fractPart < 1e-8) {
+    let scaled = minMove;
+    for (let i = 0; i < 8; i++, scaled *= 10) {
+        if (Math.abs(Math.round(scaled) - scaled) < 1e-8) {
             return i;
         }
-        minMove = minMove * 10;
     }
-    return i;
+    return 8;
 }

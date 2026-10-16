@@ -352,9 +352,9 @@ export class MouseEventHandler implements IDestroyable {
         const manhattanDistance = xOffset + yOffset;
 
         return {
-            xOffset: xOffset,
-            yOffset: yOffset,
-            manhattanDistance: manhattanDistance,
+            xOffset,
+            yOffset,
+            manhattanDistance,
         };
     }
 
@@ -363,7 +363,7 @@ export class MouseEventHandler implements IDestroyable {
      * To prevent the mouse from hanging while pressed we're subscribing on the mouseleave event of the document element.
      * We're subscribing on mouseleave, but this event is actually fired on mouseup outside of the browser's border.
      */
-    private _onFirefoxOutsideMouseUp = (mouseUpEvent: MouseEvent): void => {
+    private readonly _onFirefoxOutsideMouseUp = (mouseUpEvent: MouseEvent): void => {
         this._mouseUpHandler(mouseUpEvent);
     };
 
@@ -374,7 +374,7 @@ export class MouseEventHandler implements IDestroyable {
      * 2) Add listener on dblclick event that fires with the preceding mousedown/mouseup.
      * https://developer.apple.com/forums/thread/125073
      */
-    private _onMobileSafariDoubleClick = (dblClickEvent: MouseEvent): void => {
+    private readonly _onMobileSafariDoubleClick = (dblClickEvent: MouseEvent): void => {
         if (this._firesTouchEvents(dblClickEvent)) {
             const compatEvent = this._makeCompatEvent(dblClickEvent);
             ++this._tapCount;

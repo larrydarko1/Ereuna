@@ -13,7 +13,6 @@ import { type IChartApi } from '@/lib/charting/engine/api/create-chart';
 import { type MouseEventParams } from '@/lib/charting/engine/api/ichart-api';
 import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
 import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
-import { type Time } from '@/lib/charting/engine/model/time/types';
 import { drawHandle } from '@/lib/charting/shared/canvas-path';
 import { type CanvasPoint } from '@/lib/charting/shared/geometry';
 import { getThemeColor, hexToRgba } from '@/lib/charting/shared/theme-color';
@@ -130,7 +129,7 @@ export class BoxManager extends DrawingLayer {
         this.removeSelectedBox();
     }
 
-    private handleClick = (param: MouseEventParams<Time>): void => {
+    private readonly handleClick = (param: MouseEventParams): void => {
         const pointer = this.readPoint(param);
         if (pointer === null) return;
 
@@ -149,7 +148,7 @@ export class BoxManager extends DrawingLayer {
         this.draw();
     };
 
-    private handleCrosshairMove = (param: MouseEventParams<Time>): void => {
+    private readonly handleCrosshairMove = (param: MouseEventParams): void => {
         const pointer = this.readPoint(param);
         if (pointer === null) return;
 

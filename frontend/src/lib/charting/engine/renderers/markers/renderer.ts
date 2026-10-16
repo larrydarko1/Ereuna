@@ -47,7 +47,7 @@ export type SeriesMarkerRendererData = {
 
 export class SeriesMarkersRenderer extends BitmapCoordinatesPaneRenderer {
     private _data: SeriesMarkerRendererData | null = null;
-    private _textWidthCache: TextWidthCache = new TextWidthCache();
+    private readonly _textWidthCache: TextWidthCache = new TextWidthCache();
     private _fontSize = -1;
     private _fontFamily = '';
     private _font = '';
@@ -66,7 +66,7 @@ export class SeriesMarkersRenderer extends BitmapCoordinatesPaneRenderer {
     }
 
     public hitTest(x: Coordinate, y: Coordinate): HoveredObject | null {
-        if (this._data === null || this._data.visibleRange === null) {
+        if (this._data?.visibleRange == null) {
             return null;
         }
 
@@ -88,7 +88,7 @@ export class SeriesMarkersRenderer extends BitmapCoordinatesPaneRenderer {
         horizontalPixelRatio,
         verticalPixelRatio,
     }: BitmapCoordinatesRenderingScope): void {
-        if (this._data === null || this._data.visibleRange === null) {
+        if (this._data?.visibleRange == null) {
             return;
         }
 
@@ -178,7 +178,6 @@ function drawShape(
             // Exhaustiveness assertion. It lives in `default` and not after the
             // switch because `allowUnreachableCode: false` rejects the latter
             ensureNever(item.shape);
-            return;
     }
 }
 

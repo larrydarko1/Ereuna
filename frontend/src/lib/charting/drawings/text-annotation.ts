@@ -12,7 +12,6 @@ import { type IChartApi } from '@/lib/charting/engine/api/create-chart';
 import { type MouseEventParams } from '@/lib/charting/engine/api/ichart-api';
 import { type ISeriesApi } from '@/lib/charting/engine/api/iseries-api';
 import { type SeriesType } from '@/lib/charting/engine/model/series/series-options';
-import { type Time } from '@/lib/charting/engine/model/time/types';
 import { traceRoundedRect } from '@/lib/charting/shared/canvas-path';
 import { type CanvasPoint } from '@/lib/charting/shared/geometry';
 import { isTypingTarget } from '@/lib/charting/shared/key-target';
@@ -43,8 +42,8 @@ const BOX_RADIUS = 4;
 const TEXT_INPUT_PLACEHOLDER = 'Enter text...';
 
 export class TextAnnotationManager {
-    private chart: IChartApi;
-    private mainSeries: ISeriesApi<SeriesType>;
+    private readonly chart: IChartApi;
+    private readonly mainSeries: ISeriesApi<SeriesType>;
     private canvas: HTMLCanvasElement | null = null;
     private ctx: CanvasRenderingContext2D | null = null;
     private isActive = false;
@@ -163,11 +162,11 @@ export class TextAnnotationManager {
     // The handlers are arrow properties so that `this` survives being handed to
     // addEventListener and to the chart's own subscriptions, and so that the
     // reference passed to unsubscribe is the one that was subscribed
-    private handleVisibleRangeChange = (): void => {
+    private readonly handleVisibleRangeChange = (): void => {
         this.draw();
     };
 
-    private handleResize = (): void => {
+    private readonly handleResize = (): void => {
         this.resizeCanvas();
     };
 
@@ -176,7 +175,7 @@ export class TextAnnotationManager {
      * which is the only way to reach one without first hunting for the right
      * toolbar button.
      */
-    private handleGlobalClick = (param: MouseEventParams<Time>): void => {
+    private readonly handleGlobalClick = (param: MouseEventParams): void => {
         if (this.isActive || param.point === undefined) return;
 
         const annotationId = this.hitTestAnnotation(param.point);
@@ -187,7 +186,7 @@ export class TextAnnotationManager {
         this.onActivateCallback?.();
     };
 
-    private handleKeyDown = (event: KeyboardEvent): void => {
+    private readonly handleKeyDown = (event: KeyboardEvent): void => {
         if (event.key !== 'Backspace' && event.key !== 'Delete') return;
 
         if (isTypingTarget(event.target)) {
@@ -200,7 +199,7 @@ export class TextAnnotationManager {
         }
     };
 
-    private handleClick = (param: MouseEventParams<Time>): void => {
+    private readonly handleClick = (param: MouseEventParams): void => {
         if (param.point === undefined) return;
 
         // A click is also what ends a drag: the chart reports clicks and
@@ -225,7 +224,7 @@ export class TextAnnotationManager {
         });
     };
 
-    private handleCrosshairMove = (param: MouseEventParams<Time>): void => {
+    private readonly handleCrosshairMove = (param: MouseEventParams): void => {
         const offset = this.dragOffset;
         if (offset === null || param.point === undefined) return;
 

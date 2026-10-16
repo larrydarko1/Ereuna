@@ -4,7 +4,7 @@
 import { numberToStringWithLeadingZero } from '@/lib/charting/engine/formatters/price-formatter';
 
 export class TimeFormatter {
-    private _formatStr: string;
+    private readonly _formatStr: string;
 
     public constructor(format?: string) {
         this._formatStr = format ?? '%h:%m:%s';

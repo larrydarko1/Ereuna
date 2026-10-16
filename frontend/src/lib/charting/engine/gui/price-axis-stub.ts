@@ -35,7 +35,7 @@ export class PriceAxisStub implements IDestroyable {
 
     private readonly _rendererOptionsProvider: PriceAxisRendererOptionsProvider;
 
-    private _options: ChartOptionsBase;
+    private readonly _options: ChartOptionsBase;
 
     private _invalidated = true;
 

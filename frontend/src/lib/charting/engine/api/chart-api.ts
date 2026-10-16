@@ -82,8 +82,8 @@ type AxisSwitches = { time: boolean; price: boolean };
 export class ChartApi<THorzScaleItem>
     implements IChartApiBase<THorzScaleItem>, DataUpdatesConsumer<SeriesType, THorzScaleItem>
 {
-    private _chartWidget: ChartWidget<THorzScaleItem>;
-    private _dataLayer: DataLayer<THorzScaleItem>;
+    private readonly _chartWidget: ChartWidget<THorzScaleItem>;
+    private readonly _dataLayer: DataLayer<THorzScaleItem>;
     private readonly _seriesMap = new Map<ISeriesApi<SeriesType, THorzScaleItem>, Series<SeriesType>>();
     private readonly _seriesMapReversed = new Map<Series<SeriesType>, SeriesApi<SeriesType, THorzScaleItem>>();
 
@@ -379,14 +379,14 @@ export class ChartApi<THorzScaleItem>
 
     private _convertMouseParams(param: MouseEventParamsImpl): MouseEventParams<THorzScaleItem> {
         const seriesData: MouseEventParams<THorzScaleItem>['seriesData'] = new Map();
-        param.seriesData.forEach((plotRow: SeriesPlotRow<SeriesType>, series: Series<SeriesType>) => {
+        param.seriesData.forEach((plotRow: SeriesPlotRow, series: Series<SeriesType>) => {
             const seriesType = series.seriesType();
             const data = getSeriesDataCreator<SeriesType, THorzScaleItem>(seriesType)(plotRow);
             if (seriesType !== 'Custom') {
                 assert(isFulfilledData(data));
             } else {
                 const customWhitespaceChecker = series.customSeriesWhitespaceCheck();
-                assert(customWhitespaceChecker === undefined || customWhitespaceChecker(data) === false);
+                assert(customWhitespaceChecker?.(data) !== true);
             }
             seriesData.set(this._mapSeriesToApi(series), data);
         });

@@ -55,8 +55,8 @@ const POSITIVE_CHANGE_COLOR = '#10b981';
 const NEGATIVE_CHANGE_COLOR = '#ef4444';
 
 export class ChartScreenshot {
-    private chartContainer: HTMLElement;
-    private defaultConfig: ScreenshotConfig = {
+    private readonly chartContainer: HTMLElement;
+    private readonly defaultConfig: ScreenshotConfig = {
         includeWatermark: true,
         includeLogo: true,
         includeChartInfo: true,

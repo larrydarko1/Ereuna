@@ -54,7 +54,7 @@ export function hitTestPane(pane: Pane, x: Coordinate, y: Coordinate): HitTestRe
         const sourceResult = hitTestPaneView(source.paneViews(pane), x, y);
         if (sourceResult !== null) {
             return {
-                source: source,
+                source,
                 view: sourceResult.view,
                 object: sourceResult.object,
                 cursorStyle:
@@ -135,7 +135,7 @@ function convertPrimitiveHitResult(primitiveHit: BestPrimitiveHit): HitTestResul
 function hitTestPaneView(paneViews: readonly IPaneView[], x: Coordinate, y: Coordinate): HitTestPaneViewResult | null {
     for (const paneView of paneViews) {
         const renderer = paneView.renderer();
-        if (renderer !== null && renderer.hitTest !== undefined) {
+        if (renderer?.hitTest !== undefined) {
             const result = renderer.hitTest(x, y);
             if (result !== null) {
                 return {

@@ -37,9 +37,8 @@ export class PriceFormatter implements IPriceFormatter {
         // \u2212 is unicode's minus sign https://www.fileformat.info/info/unicode/char/2212/index.htm
         // we should use it because it has the same width as plus sign +
         const sign = price < 0 ? '\u2212' : '';
-        price = Math.abs(price);
 
-        return sign + this._formatAsDecimal(price);
+        return sign + this._formatAsDecimal(Math.abs(price));
     }
 
     private _calculateDecimal(): void {
@@ -62,9 +61,9 @@ export class PriceFormatter implements IPriceFormatter {
         let intPart = Math.floor(price);
 
         let fracString = '';
-        const fracLength = this._fractionalLength !== undefined ? this._fractionalLength : NaN;
+        const fracLength = this._fractionalLength ?? NaN;
         if (base > 1) {
-            let fracPart = +(Math.round(price * base) - intPart * base).toFixed(this._fractionalLength);
+            let fracPart = Number((Math.round(price * base) - intPart * base).toFixed(this._fractionalLength));
             if (fracPart >= base) {
                 fracPart -= base;
                 intPart += 1;
@@ -72,7 +71,10 @@ export class PriceFormatter implements IPriceFormatter {
 
             fracString =
                 formatterOptions.decimalSign +
-                numberToStringWithLeadingZero(+fracPart.toFixed(this._fractionalLength) * this._minMove, fracLength);
+                numberToStringWithLeadingZero(
+                    Number(fracPart.toFixed(this._fractionalLength)) * this._minMove,
+                    fracLength,
+                );
         } else {
             // should round int part to min move
             intPart = Math.round(intPart * base) / base;

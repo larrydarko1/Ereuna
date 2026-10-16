@@ -9,7 +9,7 @@ import { isDefaultPriceScale } from '@/lib/charting/engine/model/price/default-p
 import { type PriceScale, type PriceScaleOptions } from '@/lib/charting/engine/model/price/price-scale';
 
 export class PriceScaleApi implements IPriceScaleApi {
-    private _chartWidget: IChartWidgetBase;
+    private readonly _chartWidget: IChartWidgetBase;
     private readonly _priceScaleId: string;
 
     public constructor(chartWidget: IChartWidgetBase, priceScaleId: string) {

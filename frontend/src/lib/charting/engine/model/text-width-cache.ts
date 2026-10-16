@@ -8,6 +8,11 @@ import { getDefined } from '@/lib/charting/engine/helpers/assertions';
 
 type CanvasCtxLike = Pick<CanvasRenderingContext2D, 'measureText' | 'save' | 'restore' | 'textBaseline'>;
 
+// jsdom's measureText returns only `width`, so the two bounding-box metrics can
+// genuinely be missing even though the DOM's own type says otherwise
+type MeasuredText = Pick<TextMetrics, 'width'> &
+    Partial<Pick<TextMetrics, 'actualBoundingBoxAscent' | 'actualBoundingBoxDescent'>>;
+
 const defaultReplacementRe = /[2-9]/g;
 
 export class TextWidthCache {
@@ -17,8 +22,8 @@ export class TextWidthCache {
     private _oldestTick = 1;
     // A Map rather than an object, so that evicting the oldest tick is a delete
     // by key instead of a dynamic property delete
-    private _tick2Labels = new Map<number, string>();
-    private _cache = new Map<string, { metrics: TextMetrics; tick: number }>();
+    private readonly _tick2Labels = new Map<number, string>();
+    private readonly _cache = new Map<string, { metrics: MeasuredText; tick: number }>();
 
     public constructor(size = 50) {
         this._maxSize = size;
@@ -37,18 +42,18 @@ export class TextWidthCache {
     }
 
     public yMidCorrection(ctx: CanvasCtxLike, text: string, optimizationReplacementRe?: RegExp): number {
-        const metrics = this._getMetrics(ctx, text, optimizationReplacementRe);
-        // jsdom's measureText returns only `width`, so the two bounding-box
-        // metrics can genuinely be missing even though the type says otherwise
-        const ascent: number | undefined = metrics.actualBoundingBoxAscent;
-        const descent: number | undefined = metrics.actualBoundingBoxDescent;
+        const { actualBoundingBoxAscent: ascent = 0, actualBoundingBoxDescent: descent = 0 } = this._getMetrics(
+            ctx,
+            text,
+            optimizationReplacementRe,
+        );
 
-        return ((ascent ?? 0) - (descent ?? 0)) / 2;
+        return (ascent - descent) / 2;
     }
 
-    private _getMetrics(ctx: CanvasCtxLike, text: string, optimizationReplacementRe?: RegExp): TextMetrics {
+    private _getMetrics(ctx: CanvasCtxLike, text: string, optimizationReplacementRe?: RegExp): MeasuredText {
         const re = optimizationReplacementRe ?? defaultReplacementRe;
-        const cacheString = String(text).replace(re, '0');
+        const cacheString = text.replace(re, '0');
 
         if (this._cache.has(cacheString)) {
             return getDefined(this._cache.get(cacheString)).metrics;
@@ -66,7 +71,7 @@ export class TextWidthCache {
 
         ctx.save();
         ctx.textBaseline = 'middle';
-        const metrics = ctx.measureText(cacheString);
+        const metrics: MeasuredText = ctx.measureText(cacheString);
         ctx.restore();
 
         if (metrics.width === 0 && text.length > 0) {
@@ -74,7 +79,7 @@ export class TextWidthCache {
             return metrics;
         }
 
-        this._cache.set(cacheString, { metrics: metrics, tick: this._usageTick });
+        this._cache.set(cacheString, { metrics, tick: this._usageTick });
         this._tick2Labels.set(this._usageTick, cacheString);
         this._actualSize++;
         this._usageTick++;

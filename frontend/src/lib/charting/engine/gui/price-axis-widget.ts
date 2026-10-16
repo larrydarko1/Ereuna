@@ -78,7 +78,7 @@ export class PriceAxisWidget implements IDestroyable {
     private readonly _canvasBinding: CanvasElementBitmapSizeBinding;
     private readonly _topCanvasBinding: CanvasElementBitmapSizeBinding;
 
-    private _mouseEventHandler: MouseEventHandler;
+    private readonly _mouseEventHandler: MouseEventHandler;
     private _mousedown = false;
 
     private readonly _widthCache: TextWidthCache = new TextWidthCache(200);
@@ -87,9 +87,9 @@ export class PriceAxisWidget implements IDestroyable {
     private _prevOptimalWidth = 0;
     private _isSettingSize = false;
 
-    private _sourcePaneViews: IPriceAxisViewsGetter;
-    private _sourceTopPaneViews: IPriceAxisViewsGetter;
-    private _sourceBottomPaneViews: IPriceAxisViewsGetter;
+    private readonly _sourcePaneViews: IPriceAxisViewsGetter;
+    private readonly _sourceTopPaneViews: IPriceAxisViewsGetter;
+    private readonly _sourceBottomPaneViews: IPriceAxisViewsGetter;
 
     public constructor(
         pane: PaneWidget,
@@ -424,7 +424,7 @@ export class PriceAxisWidget implements IDestroyable {
     private _backLabels(): IPriceAxisView[] {
         const res: IPriceAxisView[] = [];
 
-        const priceScale = this._priceScale === null ? undefined : this._priceScale;
+        const priceScale = this._priceScale ?? undefined;
 
         const addViewsForSources = (sources: readonly IDataSource[]): void => {
             for (const source of sources) {
@@ -453,7 +453,7 @@ export class PriceAxisWidget implements IDestroyable {
     }
 
     private _drawBorder({ context: ctx, bitmapSize, horizontalPixelRatio }: BitmapCoordinatesRenderingScope): void {
-        if (this._size === null || this._priceScale === null || !this._priceScale.options().borderVisible) {
+        if (this._size === null || this._priceScale?.options().borderVisible !== true) {
             return;
         }
 

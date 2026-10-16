@@ -44,7 +44,7 @@ export abstract class BarsPaneViewBase<
         _colorer: ISeriesBarColorer<TSeriesType>,
     ): BarCandlestickItemBase {
         return {
-            time: time,
+            time,
             open: nominal<BarPrice>(bar.value[PlotRowValueIndex.Open]),
             high: nominal<BarPrice>(bar.value[PlotRowValueIndex.High]),
             low: nominal<BarPrice>(bar.value[PlotRowValueIndex.Low]),

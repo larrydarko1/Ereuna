@@ -39,7 +39,7 @@ export class TimeAxisViewRenderer implements ITimeAxisViewRenderer {
     }
 
     public draw(target: CanvasRenderingTarget2D, rendererOptions: TimeAxisViewRendererOptions): void {
-        if (this._data === null || this._data.visible === false || this._data.text.length === 0) {
+        if (this._data === null || !this._data.visible || this._data.text.length === 0) {
             return;
         }
 

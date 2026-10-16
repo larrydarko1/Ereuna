@@ -28,10 +28,10 @@ type ReplayState = {
 type ReplayCallback = (index: number, date: string) => void;
 
 export class ReplayManager {
-    private state: ReplayState;
+    private readonly state: ReplayState;
     private fullData: OHLCData[];
     private intervalId: number | null = null;
-    private callbacks = new Set<ReplayCallback>();
+    private readonly callbacks = new Set<ReplayCallback>();
 
     constructor(data: OHLCData[]) {
         this.fullData = data;

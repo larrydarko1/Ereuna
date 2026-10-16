@@ -38,8 +38,8 @@ export abstract class LinePaneViewBase<
 
     protected _createRawItemBase(time: TimePointIndex, price: BarPrice): PricedValue & TimedValue {
         return {
-            time: time,
-            price: price,
+            time,
+            price,
             x: nominal<Coordinate>(NaN),
             y: nominal<Coordinate>(NaN),
         };

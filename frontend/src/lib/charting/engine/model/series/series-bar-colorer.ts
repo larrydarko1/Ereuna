@@ -77,7 +77,7 @@ type BarStylesMap = {
     Custom: CustomBarColorerStyle;
 };
 
-type FindBarFn = (barIndex: TimePointIndex, precomputedBars?: PrecomputedBars) => SeriesPlotRow<SeriesType> | null;
+type FindBarFn = (barIndex: TimePointIndex, precomputedBars?: PrecomputedBars) => SeriesPlotRow | null;
 
 type StyleGetterFn<T extends SeriesType> = (
     findBar: FindBarFn,
@@ -95,7 +95,7 @@ export type ISeriesBarColorer<T extends SeriesType> = {
 };
 
 export class SeriesBarColorer<T extends SeriesType> implements ISeriesBarColorer<T> {
-    private _series: Series<T>;
+    private readonly _series: Series<T>;
     private readonly _styleGetter: BarStylesFnMap[T];
 
     public constructor(series: Series<T>) {
@@ -109,7 +109,7 @@ export class SeriesBarColorer<T extends SeriesType> implements ISeriesBarColorer
         return this._styleGetter(this._findBar, this._series.options(), barIndex, precomputedBars);
     }
 
-    private _findBar = (barIndex: TimePointIndex, precomputedBars?: PrecomputedBars): SeriesPlotRow | null => {
+    private readonly _findBar = (barIndex: TimePointIndex, precomputedBars?: PrecomputedBars): SeriesPlotRow | null => {
         if (precomputedBars !== undefined) {
             return precomputedBars.value;
         }

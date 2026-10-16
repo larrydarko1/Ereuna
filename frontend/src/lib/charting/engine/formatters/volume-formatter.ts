@@ -12,34 +12,29 @@ export class VolumeFormatter implements IPriceFormatter {
     }
 
     public format(vol: number): string {
-        let sign = '';
-        if (vol < 0) {
-            sign = '-';
-            vol = -vol;
-        }
+        const sign = vol < 0 ? '-' : '';
+        const size = Math.abs(vol);
 
-        if (vol < 995) {
-            return sign + this._formatNumber(vol);
+        if (size < 995) {
+            return sign + this._formatNumber(size);
         }
-        if (vol < 999995) {
-            return sign + this._formatNumber(vol / 1000) + 'K';
+        if (size < 999995) {
+            return `${sign}${this._formatNumber(size / 1000)}K`;
         }
-        if (vol < 999999995) {
-            vol = 1000 * Math.round(vol / 1000);
-            return sign + this._formatNumber(vol / 1000000) + 'M';
+        if (size < 999999995) {
+            return `${sign}${this._formatNumber((1000 * Math.round(size / 1000)) / 1000000)}M`;
         }
-        vol = 1000000 * Math.round(vol / 1000000);
-        return sign + this._formatNumber(vol / 1000000000) + 'B';
+        return `${sign}${this._formatNumber((1000000 * Math.round(size / 1000000)) / 1000000000)}B`;
     }
 
     private _formatNumber(value: number): string {
         let res: string;
         const priceScale = Math.pow(10, this._precision);
-        value = Math.round(value * priceScale) / priceScale;
-        if (value >= 1e-15 && value < 1) {
-            res = value.toFixed(this._precision).replace(/\.?0+$/, ''); // regex removes trailing zeroes
+        const rounded = Math.round(value * priceScale) / priceScale;
+        if (rounded >= 1e-15 && rounded < 1) {
+            res = rounded.toFixed(this._precision).replace(/\.?0+$/, ''); // regex removes trailing zeroes
         } else {
-            res = String(value);
+            res = String(rounded);
         }
         return res.replace(/(\.[1-9]*)0+$/, (_e: string, p1: string): string => p1);
     }

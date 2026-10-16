@@ -71,10 +71,12 @@ type AxisVisibility = { timeVisible: boolean; secondsVisible: boolean };
 
 export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
     private _dateTimeFormatter!: DateFormatter | DateTimeFormatter;
-    private _options!: TimeChartOptions;
+    // Null until `createChart` hands the options over, which is after the time
+    // scale's constructor has already asked for a formatter
+    private _options: TimeChartOptions | null = null;
 
     public options(): TimeChartOptions {
-        return this._options;
+        return getNotNull(this._options);
     }
 
     public setOptions(options: TimeChartOptions): void {
@@ -91,7 +93,7 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
     }
 
     public createConverterToInternalObj(
-        data: SeriesDataItemTypeMap<Time>[SeriesType][],
+        data: SeriesDataItemTypeMap[SeriesType][],
     ): HorzScaleItemConverterToInternalObj<Time> {
         return getNotNull(selectTimeConverter(data));
     }
@@ -116,14 +118,14 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
     }
 
     public updateFormatter(options: TimeLocalizationOptions): void {
-        if (this._options === undefined) {
+        if (this._options === null) {
             return;
         }
         const dateFormat = options.dateFormat;
 
         if (this._options.timeScale.timeVisible) {
             this._dateTimeFormatter = new DateTimeFormatter({
-                dateFormat: dateFormat,
+                dateFormat,
                 timeFormat: this._options.timeScale.secondsVisible ? '%h:%m:%s' : '%h:%m',
                 dateTimeSeparator: '   ',
                 locale: options.locale,
@@ -139,12 +141,11 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
     }
 
     public formatTickmark(tickMark: TickMark, localizationOptions: LocalizationOptions<Time>): string {
+        const options = this.options().timeScale;
         const tickMarkType = weightToTickMarkType(tickMark.weight, {
-            timeVisible: this._options.timeScale.timeVisible,
-            secondsVisible: this._options.timeScale.secondsVisible,
+            timeVisible: options.timeVisible,
+            secondsVisible: options.secondsVisible,
         });
-
-        const options = this._options.timeScale;
 
         if (options.tickMarkFormatter !== undefined) {
             assert(isTime(tickMark.originalTime), 'a time scale tick mark carries the time it was given');

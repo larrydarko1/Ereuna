@@ -8,7 +8,7 @@ import { WatermarkRenderer, type WatermarkRendererData } from '@/lib/charting/en
 import { type IUpdatablePaneView } from '@/lib/charting/engine/views/pane/iupdatable-pane-view';
 
 export class WatermarkPaneView implements IUpdatablePaneView {
-    private _source: Watermark;
+    private readonly _source: Watermark;
     private _invalidated = true;
 
     private readonly _rendererData: WatermarkRendererData = {

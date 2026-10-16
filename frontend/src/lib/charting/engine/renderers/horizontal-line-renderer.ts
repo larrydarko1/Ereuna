@@ -50,7 +50,7 @@ export class HorizontalLineRenderer extends BitmapCoordinatesPaneRenderer {
         ) {
             return {
                 hitTestData: this._data,
-                externalId: externalId,
+                externalId,
             };
         }
 

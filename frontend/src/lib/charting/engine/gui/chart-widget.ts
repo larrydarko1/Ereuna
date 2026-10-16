@@ -48,7 +48,7 @@ export type MouseEventParamsImpl = {
     originalTime?: unknown;
     index?: TimePointIndex | undefined;
     point?: Point | undefined;
-    seriesData: Map<Series<SeriesType>, SeriesPlotRow<SeriesType>>;
+    seriesData: Map<Series<SeriesType>, SeriesPlotRow>;
     hoveredSeries?: Series<SeriesType> | undefined;
     hoveredObject?: string | undefined;
     touchMouseEventData?: TouchMouseEventData | undefined;
@@ -77,18 +77,18 @@ export class ChartWidget<THorzScaleItem> implements IDestroyable, IChartWidgetBa
     private _width = 0;
     private _leftPriceAxisWidth = 0;
     private _rightPriceAxisWidth = 0;
-    private _element: HTMLDivElement;
+    private readonly _element: HTMLDivElement;
     private readonly _tableElement: HTMLElement;
-    private _timeAxisWidget: TimeAxisWidget<THorzScaleItem>;
+    private readonly _timeAxisWidget: TimeAxisWidget<THorzScaleItem>;
     private _invalidateMask: InvalidateMask | null = null;
     private _drawPlanned = false;
-    private _clicked = new Delegate<MouseEventParamsImplSupplier>();
-    private _dblClicked = new Delegate<MouseEventParamsImplSupplier>();
-    private _crosshairMoved = new Delegate<MouseEventParamsImplSupplier>();
-    private _onWheelBound: (event: WheelEvent) => void;
+    private readonly _clicked = new Delegate<MouseEventParamsImplSupplier>();
+    private readonly _dblClicked = new Delegate<MouseEventParamsImplSupplier>();
+    private readonly _crosshairMoved = new Delegate<MouseEventParamsImplSupplier>();
+    private readonly _onWheelBound: (event: WheelEvent) => void;
     private _observer: ResizeObserver | null = null;
 
-    private _container: HTMLElement;
+    private readonly _container: HTMLElement;
     private _cursorStyleOverride: string | null = null;
 
     private readonly _horzScaleBehavior: IHorzScaleBehavior<THorzScaleItem>;
@@ -124,7 +124,7 @@ export class ChartWidget<THorzScaleItem> implements IDestroyable, IChartWidgetBa
         this._timeAxisWidget = new TimeAxisWidget(this, this._horzScaleBehavior);
         this._tableElement.appendChild(this._timeAxisWidget.getElement());
 
-        const usedObserver = options.autoSize === true;
+        const usedObserver = options.autoSize;
         if (usedObserver) {
             this._installObserver();
         }
@@ -221,8 +221,8 @@ export class ChartWidget<THorzScaleItem> implements IDestroyable, IChartWidgetBa
         this._height = sizeHint.height;
         this._width = sizeHint.width;
 
-        const heightStr = this._height + 'px';
-        const widthStr = this._width + 'px';
+        const heightStr = `${this._height}px`;
+        const widthStr = `${this._width}px`;
 
         getNotNull(this._element).style.height = heightStr;
         getNotNull(this._element).style.width = widthStr;
@@ -237,11 +237,7 @@ export class ChartWidget<THorzScaleItem> implements IDestroyable, IChartWidgetBa
         }
     }
 
-    public paint(invalidateMask?: InvalidateMask): void {
-        if (invalidateMask === undefined) {
-            invalidateMask = InvalidateMask.full();
-        }
-
+    public paint(invalidateMask: InvalidateMask = InvalidateMask.full()): void {
         for (const [i, paneWidget] of this._paneWidgets.entries()) {
             paneWidget.paint(invalidateMask.invalidateForPane(i).level);
         }
@@ -616,6 +612,7 @@ export class ChartWidget<THorzScaleItem> implements IDestroyable, IChartWidgetBa
 
     private _drawImpl(invalidateMask: InvalidateMask, time: number): void {
         const invalidationType = invalidateMask.fullInvalidation();
+        let painted = invalidateMask;
 
         // actions for full invalidation ONLY (not shared with light)
         if (invalidationType === InvalidationLevel.Full) {
@@ -644,12 +641,12 @@ export class ChartWidget<THorzScaleItem> implements IDestroyable, IChartWidgetBa
                 this._applyMomentaryAutoScale(this._invalidateMask);
                 this._applyTimeScaleInvalidations(this._invalidateMask, time);
 
-                invalidateMask = this._invalidateMask;
+                painted = this._invalidateMask;
                 this._invalidateMask = null;
             }
         }
 
-        this.paint(invalidateMask);
+        this.paint(painted);
     }
 
     private _applyTimeScaleInvalidations(invalidateMask: InvalidateMask, time: number): void {
@@ -688,6 +685,9 @@ export class ChartWidget<THorzScaleItem> implements IDestroyable, IChartWidgetBa
                 if (!invalidation.value.finished(time)) {
                     timeScale.setRightOffset(invalidation.value.getPosition(time));
                 }
+                break;
+            case TimeScaleInvalidationType.StopAnimation:
+                // The mask already dropped the animation this stops, when the two merged
                 break;
         }
     }
@@ -790,7 +790,7 @@ export class ChartWidget<THorzScaleItem> implements IDestroyable, IChartWidgetBa
         point: Point | null,
         event: TouchMouseEventData | null,
     ): MouseEventParamsImpl {
-        const seriesData = new Map<Series<SeriesType>, SeriesPlotRow<SeriesType>>();
+        const seriesData = new Map<Series<SeriesType>, SeriesPlotRow>();
         if (index !== null) {
             const serieses = this._model.serieses();
             serieses.forEach((s: Series<SeriesType>) => {
@@ -814,8 +814,7 @@ export class ChartWidget<THorzScaleItem> implements IDestroyable, IChartWidgetBa
         const hoveredSeries =
             hoveredSource !== null && hoveredSource.source instanceof Series ? hoveredSource.source : undefined;
 
-        const hoveredObject =
-            hoveredSource !== null && hoveredSource.object !== undefined ? hoveredSource.object.externalId : undefined;
+        const hoveredObject = hoveredSource?.object !== undefined ? hoveredSource.object.externalId : undefined;
 
         return {
             originalTime: clientTime,
@@ -904,5 +903,5 @@ function disableSelection(element: HTMLElement): void {
 }
 
 function shouldSubscribeMouseWheel<THorzScaleItem>(options: ChartOptionsInternal<THorzScaleItem>): boolean {
-    return Boolean(options.handleScroll.mouseWheel || options.handleScale.mouseWheel);
+    return options.handleScroll.mouseWheel || options.handleScale.mouseWheel;
 }
