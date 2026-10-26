@@ -17,20 +17,20 @@
         "axios": "^1.20.0",
         "fancy-canvas": "^2.1.0",
         "qrcode.vue": "^3.10.0",
-        "socket.io-client": "^4.8.3",
-        "vue": "^3.5.42",
-        "vue-i18n": "^11.4.10",
+        "socket.io-client": "^4.8.4",
+        "vue": "^3.5.44",
+        "vue-i18n": "^11.4.16",
         "vue-router": "^5.3.1"
     },
     "devDependencies": {
-        "@types/node": "^26.4.1",
-        "@vitejs/plugin-vue": "^6.0.8",
+        "@types/node": "^26.6.5",
+        "@vitejs/plugin-vue": "^6.0.10",
         "@vue/tsconfig": "^0.9.1",
-        "autoprefixer": "^10.5.4",
-        "sass-embedded": "^1.103.1",
+        "autoprefixer": "^10.6.1",
+        "sass-embedded": "^1.106.1",
         "typescript": "~6.0.2",
         "vite": "^8.3.0",
-        "vue-tsc": "^3.3.11"
+        "vue-tsc": "^3.3.13"
     },
     "private": true,
     "browserslist": [

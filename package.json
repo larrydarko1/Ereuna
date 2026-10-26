@@ -60,21 +60,21 @@
         "check": "larry check"
     },
     "devDependencies": {
-        "@axe-core/playwright": "^4.13.0",
+        "@axe-core/playwright": "^4.14.0",
         "@larrydarko/lint-config": "^0.1.0-beta.10",
-        "@playwright/test": "^1.63.0",
-        "@vitest/coverage-v8": "^5.0.0",
-        "@vue/test-utils": "^2.4.11",
+        "@playwright/test": "^1.64.1",
+        "@vitest/coverage-v8": "^5.0.5",
+        "@vue/test-utils": "^2.5.1",
         "concurrently": "^10.0.5",
         "dotenv": "^17.4.2",
         "ioredis": "^6.0.0",
         "jsdom": "^29.1.1",
-        "mongodb": "^7.6.0",
+        "mongodb": "^7.7.0",
         "msw": "^2.15.0",
         "tsx": "^4.23.15",
         "typescript": "~6.0.2",
         "vite": "^8.3.0",
-        "vitest": "^5.0.0"
+        "vitest": "^5.0.5"
     },
     "packageManager": "npm@11.16.0",
     "engines": {
