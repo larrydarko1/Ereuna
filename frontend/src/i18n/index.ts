@@ -80,6 +80,7 @@ const STORAGE_KEY = 'ereuna-locale';
 // type — `global.locale` stops being a ref and every `locale.value` read in
 // the app breaks. The third generic is what actually settles it.
 export const i18n = createI18n<[MessageSchema], AppLocale, false>({
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- v11 defaults to the deprecated Legacy mode; this is how to leave it, and the option goes with that mode in v12
     legacy: false,
     locale: DEFAULT_LOCALE,
     fallbackLocale: DEFAULT_LOCALE,
