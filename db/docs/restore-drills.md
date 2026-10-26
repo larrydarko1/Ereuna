@@ -7,7 +7,7 @@
 > boots against the result. The only thing that proves a backup works is a
 > restore.
 
-`npm run db:check` reads the table below. If the newest drill is more than **90
+`npx larry check db-drift` reads the table below. If the newest drill is more than **90
 days** old, or there has never been one, every run prints a warning until someone
 runs one.
 

@@ -87,7 +87,7 @@ export default larry({
     standards: fullstackStandards({
         refactoring: {
             // These quote the markers they ban, so the ban must not fire on them.
-            markerFiles: ['eslint.config.js', 'scripts/checks/check-refactoring.ts'],
+            markerFiles: ['eslint.config.js', 'larry.config.ts'],
         },
         i18n: {
             // A brand name reads the same in every locale.

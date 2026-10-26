@@ -16,7 +16,7 @@ from the one the operator meant.
 
 ## There is no `down`
 
-**Migrations must not export a `down()` function.** `npm run db:check` fails if
+**Migrations must not export a `down()` function.** `npx larry check db-drift` fails if
 one appears, and so does `db/__tests__/migrations-contract.test.ts`.
 
 This is not stylistic. A reversal that loses data is not a rollback; it is a
@@ -50,6 +50,6 @@ index on every restart of every replica.
   only ever held current data — a no-op.
 - **Never edit a merged migration.** It has already run somewhere; editing it
   changes nothing there and desynchronises environments. `.checksums.json`
-  records what each file hashed to and `npm run db:check` fails if one moves.
+  records what each file hashed to and `npx larry check db-drift` fails if one moves.
 - **Migration vs script.** If it must run exactly once in every environment,
   it is a migration. If it is "do this when needed", it is a script.

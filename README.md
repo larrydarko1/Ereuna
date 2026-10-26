@@ -261,7 +261,7 @@ Ereuna/                              # npm workspaces monorepo
 ├── ingestor/                        # ONE socket to the vendor trade feed
 ├── db/                              # forward-only migrations + schema docs
 ├── e2e/                             # Playwright specs
-└── scripts/checks/                  # the 18 gates, configured for this repo
+└── larry.config.ts                  # the 18 gates, configured for this repo
 ```
 
 ### The realtime path
@@ -319,16 +319,16 @@ every replica.
 npm run ci:check    # everything below, in order
 ```
 
-Eighteen gates in [`scripts/checks/`](scripts/checks/). Each is a thin wrapper over a gate
-from [@larrydarko/lint-config](https://www.npmjs.com/package/@larrydarko/lint-config), the
-package my projects share, and holds only this repo's answers — its paths, its
+Eighteen gates in [`larry.config.ts`](larry.config.ts), run by `npm run check`. Each is a
+gate from [@larrydarko/lint-config](https://www.npmjs.com/package/@larrydarko/lint-config), the
+package my projects share, and the config holds only this repo's answers — its paths, its
 thresholds, and the reason next to each one. Alongside them: ESLint (the same package's
 base and standards, wired to Ereuna's folders in `eslint.config.js`), `prettier --check`,
 stylelint, typecheck, the unit suite with coverage, and Playwright.
 
-Two gates are inverted from the written standard on purpose and say so in their own
-headers: `check-ws-standards.ts` _fails_ if a Redis adapter appears on the gateway, and
-`check-security-drift.ts` allows exactly two unauthenticated mounts and fails on a third.
+Two gates are inverted from the written standard on purpose and say so in their comments:
+`ws-standards` _fails_ if a Redis adapter appears on the gateway, and `security-drift`
+allows exactly two unauthenticated mounts and fails on a third.
 
 Nothing is excluded from them. The charting layer used to be — 208 files of vendored
 upstream code, skipped by every gate, with typecheck errors written off as out of scope.

@@ -21,7 +21,7 @@ const config = {
     lockCollectionName: 'changelog_lock',
     lockTtl: 0, // 0 disables the lock TTL — a crashed migration must be cleared deliberately
     // False on purpose: content hashing would let an edited migration silently
-    // re-run at deploy. Immutability is enforced by db:check instead, which
+    // re-run at deploy. Immutability is enforced by the db-drift gate instead, which
     // fails the build rather than changing what runs.
     useFileHash: false,
     moduleSystem: 'esm',

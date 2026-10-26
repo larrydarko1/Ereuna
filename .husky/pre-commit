@@ -1,1 +1,1 @@
-npm run tsconfig:check && npx --no -- lint-staged
+npx larry check tsconfigs && npx --no -- lint-staged
