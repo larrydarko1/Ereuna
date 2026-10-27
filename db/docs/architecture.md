@@ -32,7 +32,7 @@ is checked against it.
 
 Example documents are in [`examples/`](examples/), one per collection. They are
 fake, and they are held to the TypeScript type that declares the shape — an
-example with a field the type does not have fails `npm run db:check`, which is
+example with a field the type does not have fails `npx larry check db-drift`, which is
 what stops this directory describing a schema that no longer exists.
 
 ## Who writes what

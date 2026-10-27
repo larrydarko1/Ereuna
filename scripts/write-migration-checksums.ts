@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Record the checksum of every migration file.
- * `scripts/checks/check-db-drift.ts` compares the migrations against these
+ * The db-drift gate (`npx larry check db-drift`) compares the migrations against these
  * hashes and fails if one has moved — enforcing "never edit a merged migration"
  * mechanically rather than by memory.
  * Run this ONLY when adding a migration:

@@ -3,8 +3,9 @@
     "compilerOptions": {
         /* Output & Build */
         /*
-         * Node runs these files directly and strips the types itself, so tsc
-         * only ever checks them. There is no build step and nothing to emit.
+         * Node runs these files, and larry.config.ts, directly and strips the
+         * types itself, so tsc only ever checks them. There is no build step and
+         * nothing to emit.
          */
         "noEmit": true,
 
@@ -25,5 +26,5 @@
          */
         "allowImportingTsExtensions": true
     },
-    "include": ["**/*.ts"]
+    "include": ["**/*.ts", "../larry.config.ts"]
 }

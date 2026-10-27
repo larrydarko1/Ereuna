@@ -10,7 +10,7 @@
  *                  again, so a backup without them is not one.
  *  manifest.json - when, which database, how big, and what each collection held,
  *                  counted in the dump's own files rather than in the database.
- *                  `npm run db:check` reads `backups/latest.json` to say how
+ *                  `npx larry check db-drift` reads `backups/latest.json` to say how
  *                  stale the last backup is and to fail one that held nothing.
  * Redis is not backed up. Everything in it is a cache, a counter or a live feed,
  * and a restore clears the caches rather than bringing old ones back.
