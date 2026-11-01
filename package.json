@@ -88,5 +88,13 @@
         "worker",
         "ingestor",
         "db"
-    ]
+    ],
+    "allowScripts": {
+        "@parcel/watcher": false,
+        "argon2": false,
+        "esbuild": false,
+        "fsevents": false,
+        "msw": false,
+        "unrs-resolver": false
+    }
 }
