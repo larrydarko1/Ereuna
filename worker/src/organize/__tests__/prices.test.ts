@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 import { listAt } from '@/__tests__/support/values.js';
-import type { VendorMarketBar } from '@/lib/tiingo.js';
+import type { VendorDailyBar, VendorMarketBar } from '@/lib/tiingo.js';
+import { listSessions } from '@/utils/holidays.js';
 
 type Asset = Awaited<ReturnType<typeof import('@/organize/universe.js').activeUniverse>>[number];
 
@@ -18,14 +19,30 @@ vi.mock('@/lib/logger.js', () => ({
 const db: { current: DbStub } = { current: fakeDb() };
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 
-const vendor: { rows: VendorMarketBar[] } = { rows: [] };
-vi.mock('@/lib/tiingo.js', () => ({ marketPrices: () => Promise.resolve(vendor.rows) }));
+const vendor: {
+    rows: VendorMarketBar[];
+    history: Record<string, VendorDailyBar[]>;
+    asked: [string, string][];
+    failing: Set<string>;
+} = { rows: [], history: {}, asked: [], failing: new Set() };
+
+vi.mock('@/lib/tiingo.js', () => ({
+    marketPrices: (): Promise<VendorMarketBar[]> => Promise.resolve(vendor.rows),
+    dailyHistory: (symbol: string, startDate: string): Promise<VendorDailyBar[]> => {
+        vendor.asked.push([symbol, startDate]);
+        if (vendor.failing.has(symbol)) return Promise.reject(new Error('vendor 500'));
+        return Promise.resolve(vendor.history[symbol] ?? []);
+    },
+}));
+
 const { refetchHistory, updateDailyPrices } = await import('@/organize/prices.js');
 
 const { config } = await import('@/lib/config.js');
 
 const SESSION = new Date('2026-09-04T00:00:00.000Z');
 const CLOSING_MINUTE = new Date('2026-09-04T20:00:00.000Z');
+const PREVIOUS = new Date('2026-09-03T00:00:00.000Z');
+const LOOKBACK = listSessions(new Date(SESSION.getTime() - config.organize.gapLookbackDays * 86_400_000), SESSION);
 
 function asset(symbol: string): Asset {
     return {
@@ -55,6 +72,12 @@ function row(overrides: Partial<VendorMarketBar> = {}): VendorMarketBar {
     };
 }
 
+/** The daily store's answer: `symbol` holds a bar for every session in the lookback but `except`. */
+function stored(symbol: string, except: readonly Date[] = []): { _id: string; sessions: Date[] } {
+    const skip = new Set([SESSION, ...except].map((day) => day.getTime()));
+    return { _id: symbol, sessions: LOOKBACK.filter((day) => !skip.has(day.getTime())) };
+}
+
 /** Every document inserted into `collection`, across all its inserts. */
 const insertedInto = (collection: string): unknown[] =>
     db.current
@@ -65,11 +88,19 @@ const insertedInto = (collection: string): unknown[] =>
 beforeEach(() => {
     db.current = fakeDb();
     vendor.rows = [];
+    vendor.history = {};
+    vendor.asked = [];
+    vendor.failing = new Set();
 });
 
 describe('updateDailyPrices', () => {
     it('writes nothing and reports nothing when the vendor returns nothing', async () => {
-        await expect(updateDailyPrices([asset('AAPL')])).resolves.toEqual({ written: 0, splits: [], dividends: [] });
+        await expect(updateDailyPrices([asset('AAPL')])).resolves.toEqual({
+            written: 0,
+            since: null,
+            splits: [],
+            dividends: [],
+        });
         expect(db.current.of('OHCLVData').writes).toEqual([]);
     });
 
@@ -178,6 +209,68 @@ describe('updateDailyPrices', () => {
         vendor.rows = [row()];
         db.current.of('OHCLVData').insertMany.mockRejectedValueOnce(new Error('write conflict'));
         await expect(updateDailyPrices([asset('AAPL')])).rejects.toThrow('write conflict');
+    });
+});
+
+describe('updateDailyPrices, filling missing sessions', () => {
+    it('asks the per-symbol endpoint nothing when every session is stored', async () => {
+        vendor.rows = [row()];
+        db.current = fakeDb({ OHCLVData: [stored('AAPL')] });
+        await expect(updateDailyPrices([asset('AAPL')])).resolves.toMatchObject({ written: 1, since: SESSION });
+        expect(vendor.asked).toEqual([]);
+    });
+
+    it('fetches a session the run missed from the first missing day, and writes only that one', async () => {
+        vendor.rows = [row()];
+        vendor.history = { AAPL: [row({ date: PREVIOUS.toISOString(), adjClose: 104 }), row()] };
+        db.current = fakeDb({ OHCLVData: [stored('AAPL', [PREVIOUS])] });
+
+        await expect(updateDailyPrices([asset('AAPL')])).resolves.toMatchObject({ written: 2, since: PREVIOUS });
+        expect(vendor.asked).toEqual([['AAPL', '2026-09-03']]);
+        expect(insertedInto('OHCLVData')).toMatchObject([
+            { timestamp: PREVIOUS, close: 104 },
+            { timestamp: SESSION, close: 105 },
+        ]);
+    });
+
+    it("fetches tonight's bar too for a symbol the whole-market call left out", async () => {
+        vendor.rows = [row()];
+        vendor.history = { MSFT: [row({ ticker: 'MSFT' })] };
+        db.current = fakeDb({ OHCLVData: [stored('AAPL'), stored('MSFT')] });
+
+        await updateDailyPrices([asset('AAPL'), asset('MSFT')]);
+        expect(vendor.asked).toEqual([['MSFT', '2026-09-04']]);
+        expect(insertedInto('OHCLVData')).toMatchObject([{ tickerID: 'MSFT' }, { tickerID: 'AAPL' }]);
+    });
+
+    it('reports a split or dividend that fell on a filled session', async () => {
+        vendor.rows = [row()];
+        vendor.history = { AAPL: [row({ date: PREVIOUS.toISOString(), splitFactor: 2, divCash: 0.25 })] };
+        db.current = fakeDb({ OHCLVData: [stored('AAPL', [PREVIOUS])] });
+
+        await expect(updateDailyPrices([asset('AAPL')])).resolves.toMatchObject({
+            splits: [{ symbol: 'AAPL', at: PREVIOUS, factor: 2 }],
+            dividends: [{ symbol: 'AAPL', at: PREVIOUS, amount: 0.25 }],
+        });
+    });
+
+    it("keeps tonight's bars when a per-symbol request fails, leaving the hole for the next run", async () => {
+        vendor.rows = [row()];
+        vendor.failing = new Set(['AAPL']);
+        db.current = fakeDb({ OHCLVData: [stored('AAPL', [PREVIOUS])] });
+
+        await expect(updateDailyPrices([asset('AAPL')])).resolves.toMatchObject({ written: 1, since: SESSION });
+    });
+
+    it('looks for holes only up to the latest session the whole-market call carried', async () => {
+        vendor.rows = [row()];
+        db.current = fakeDb({ OHCLVData: [stored('AAPL')] });
+        await updateDailyPrices([asset('AAPL')]);
+
+        expect(db.current.of('OHCLVData').filters[0]).toEqual([
+            { $match: { timestamp: { $gte: new Date('2026-08-21T00:00:00.000Z'), $lte: SESSION } } },
+            { $group: { _id: '$tickerID', sessions: { $addToSet: '$timestamp' } } },
+        ]);
     });
 });
 

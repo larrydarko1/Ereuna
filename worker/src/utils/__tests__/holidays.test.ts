@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { holidayCalendar } from '@/utils/holidays.js';
+import { holidayCalendar, listSessions } from '@/utils/holidays.js';
 
 const dates = (year: number): string[] => holidayCalendar(year, 1).map((holiday) => holiday.date);
 
@@ -42,5 +42,32 @@ describe('holidayCalendar', () => {
         const calendar = holidayCalendar(2026, 2);
         expect(calendar).toHaveLength(20);
         expect(calendar.filter((holiday) => holiday.date.startsWith('2027'))).toHaveLength(10);
+    });
+});
+
+describe('listSessions', () => {
+    const days = (from: string, through: string): string[] =>
+        listSessions(new Date(from), new Date(through)).map((day) => day.toISOString().slice(0, 10));
+
+    it('lists the weekdays between two dates, both ends included', () => {
+        expect(days('2026-11-06', '2026-11-10')).toEqual(['2026-11-06', '2026-11-09', '2026-11-10']);
+    });
+
+    it('skips an exchange holiday', () => {
+        expect(days('2026-11-25', '2026-11-27')).toEqual(['2026-11-25', '2026-11-27']);
+    });
+
+    it('crosses into a new year with that year’s holidays', () => {
+        expect(days('2026-12-31', '2027-01-04')).toEqual(['2026-12-31', '2027-01-04']);
+    });
+
+    it('stamps each session at UTC midnight, whatever the time of the bounds', () => {
+        expect(listSessions(new Date('2026-11-10T23:00:00Z'), new Date('2026-11-10T01:00:00Z'))).toEqual([
+            new Date('2026-11-10T00:00:00.000Z'),
+        ]);
+    });
+
+    it('is empty when the range is backwards', () => {
+        expect(days('2026-11-10', '2026-11-09')).toEqual([]);
     });
 });

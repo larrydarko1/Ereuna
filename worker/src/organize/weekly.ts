@@ -28,13 +28,15 @@ const WEEKLY_GROUP: Document = {
 };
 
 /**
- * Rebuild the bar for the week in progress, for the whole universe.
+ * Rebuild every weekly bar from the week holding `since` to the week in
+ * progress, for the whole universe. `since` is the earliest daily bar tonight
+ * wrote, so a filled-in session from an earlier week reaches its weekly bar.
  * Replaced on (tickerID, timestamp) rather than inserted, so a second run in
  * the same week corrects the bar instead of duplicating it, and so does the
  * week-to-date bar the aggregator wrote at the bell.
  */
-export async function updateCurrentWeek(now = Date.now()): Promise<number> {
-    const weekStart = new Date(bucketStart('1w', now));
+export async function updateWeeksSince(since: Date): Promise<number> {
+    const weekStart = new Date(bucketStart('1w', since.getTime()));
     const rows = await aggregateWeeks({ timestamp: { $gte: weekStart } });
 
     for (const batch of chunk(rows, config.organize.writeBatchSize)) {
