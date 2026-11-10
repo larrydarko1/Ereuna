@@ -5,10 +5,23 @@
  * wrong would still pass against a fake that interpreted it the same wrong way.
  * So a collection answers reads with exactly what it was seeded with, and
  * records every filter and every write for the test to assert on directly.
+ * The one server rule it does keep: a candle collection is a time series, and
+ * any update to one is refused, the way MongoDB refuses it. A job that sends
+ * one has to fail its tests, not just its first night.
  */
 import { vi, type Mock } from 'vitest';
 
+import { OHLCV_COLLECTIONS } from '@ereuna/shared';
+
 import { recordAt } from '@/__tests__/support/values.js';
+
+export type DbStub = {
+    collection: Mock<(name: string) => CollectionStub>;
+    /** The stub for `name`, created on first use so a test can assert on an untouched one. */
+    of: (name: string) => CollectionStub;
+    /** Every write across every collection, in the order the job made them. */
+    writes: () => (WriteRecord & { collection: string })[];
+};
 
 /** The driver methods this double records a write for. */
 type WriteMethod = 'updateOne' | 'updateMany' | 'insertMany' | 'deleteMany' | 'bulkWrite' | 'createIndex';
@@ -45,28 +58,10 @@ type CollectionStub = {
     distinct: Mock;
 };
 
-export type DbStub = {
-    collection: Mock<(name: string) => CollectionStub>;
-    /** The stub for `name`, created on first use so a test can assert on an untouched one. */
-    of: (name: string) => CollectionStub;
-    /** Every write across every collection, in the order the job made them. */
-    writes: () => (WriteRecord & { collection: string })[];
-};
+const TIME_SERIES = new Set<string>(Object.values(OHLCV_COLLECTIONS));
 
-function cursor(rows: unknown[]): Record<string, unknown> {
-    const self: Record<string, unknown> = {
-        toArray: () => Promise.resolve(rows),
-        sort: () => self,
-        limit: () => self,
-        skip: () => self,
-        project: () => self,
-        map: (fn: (row: unknown) => unknown) => cursor(rows.map(fn)),
-        async *[Symbol.asyncIterator]() {
-            for (const row of rows) yield row;
-        },
-    };
-    return self;
-}
+/** The bulk operations a time series accepts. Everything else in a bulk write is an update. */
+const TIME_SERIES_BULK_OPS = new Set(['insertOne', 'deleteOne', 'deleteMany']);
 
 export function fakeDb(seed: Record<string, unknown[]> = {}): DbStub {
     const order: (WriteRecord & { collection: string })[] = [];
@@ -81,6 +76,9 @@ export function fakeDb(seed: Record<string, unknown[]> = {}): DbStub {
         const record =
             (method: WriteMethod, fallback: unknown) =>
             (...args: unknown[]): Promise<unknown> => {
+                if (TIME_SERIES.has(name) && isUpdate(method, args[0])) {
+                    return Promise.reject(new Error(`Cannot perform an update on a time-series collection: ${name}`));
+                }
                 const entry = { method, args };
                 writes.push(entry);
                 order.push({ ...entry, collection: name });
@@ -140,4 +138,30 @@ export function fakeDb(seed: Record<string, unknown[]> = {}): DbStub {
 /** The `$set` payload of the nth updateOne on a collection. */
 export function setPayload(collection: CollectionStub, index = 0): Record<string, unknown> {
     return recordAt(collection.writes.filter((w) => w.method === 'updateOne')[index]?.args, 1, '$set');
+}
+
+function cursor(rows: unknown[]): Record<string, unknown> {
+    const self: Record<string, unknown> = {
+        toArray: () => Promise.resolve(rows),
+        sort: () => self,
+        limit: () => self,
+        skip: () => self,
+        project: () => self,
+        map: (fn: (row: unknown) => unknown) => cursor(rows.map(fn)),
+        async *[Symbol.asyncIterator]() {
+            for (const row of rows) yield row;
+        },
+    };
+    return self;
+}
+
+function isUpdate(method: WriteMethod, operations: unknown): boolean {
+    if (method === 'updateOne' || method === 'updateMany') return true;
+    if (method !== 'bulkWrite' || !Array.isArray(operations)) return false;
+    return operations.some(
+        (operation: unknown) =>
+            typeof operation !== 'object' ||
+            operation === null ||
+            Object.keys(operation).some((kind) => !TIME_SERIES_BULK_OPS.has(kind)),
+    );
 }

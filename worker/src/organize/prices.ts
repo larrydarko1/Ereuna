@@ -1,8 +1,7 @@
-/** The daily bar update: one whole-market call, upserted. */
-import type { AnyBulkWriteOperation } from 'mongodb';
-
+/** The daily bar update: one whole-market call, replacing what the bell wrote. */
 import type { OhlcvDoc } from '@ereuna/shared';
 
+import { insertMissingBars, replaceBars } from '@/lib/candle-store.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
@@ -20,16 +19,17 @@ const CLOSING_MINUTE_UTC = 20;
 
 /**
  * Fetch and store the latest session's bar for every symbol in the universe.
- * Splits and dividends are returned rather than applied: applying a split
- * rewrites a symbol's whole history, and that belongs to the caller's ordering,
- * not to the middle of a bulk upsert.
+ * Replaced rather than inserted: the aggregator already wrote a daily bar at
+ * the bell out of the IEX prints alone, and the vendor's consolidated bar is
+ * the one to keep. Splits and dividends are returned rather than applied:
+ * applying a split rewrites a symbol's whole history, and that belongs to the
+ * caller's ordering, not to the middle of a batch.
  */
 export async function updateDailyPrices(universe: readonly Asset[]): Promise<PriceUpdate> {
     const wanted = new Map(universe.map((asset) => [asset.symbol.toUpperCase(), asset]));
     const rows = await marketPrices();
 
-    const bars: AnyBulkWriteOperation<OhlcvDoc>[] = [];
-    const closes: AnyBulkWriteOperation<OhlcvDoc>[] = [];
+    const bars: OhlcvDoc[] = [];
     const result: PriceUpdate = { written: 0, splits: [], dividends: [] };
 
     for (const row of rows) {
@@ -39,14 +39,7 @@ export async function updateDailyPrices(universe: readonly Asset[]): Promise<Pri
         const bar = toBar(symbol, row);
         if (bar === null) continue;
 
-        bars.push({
-            updateOne: {
-                filter: { tickerID: bar.tickerID, timestamp: bar.timestamp },
-                update: { $set: bar },
-                upsert: true,
-            },
-        });
-        closes.push(closingMinute(bar));
+        bars.push(bar);
         result.written += 1;
 
         if (row.splitFactor !== 1 && Number.isFinite(row.splitFactor)) {
@@ -57,16 +50,20 @@ export async function updateDailyPrices(universe: readonly Asset[]): Promise<Pri
         }
     }
 
-    await upsertBars('OHCLVData', bars);
-    await upsertBars('OHCLVData1m', closes);
+    for (const batch of chunk(bars, config.organize.writeBatchSize)) {
+        await replaceBars('OHCLVData', batch);
+        await insertMissingBars('OHCLVData1m', batch.map(closingMinute));
+    }
+
     logger.info({ ...counts(result) }, 'Daily prices updated');
     return result;
 }
 
 /**
- * Replace one symbol's entire daily and weekly history from the vendor.
+ * Replace one symbol's entire daily history from the vendor.
  * Run after a split, when every historical bar has a new adjusted price and
  * patching them individually would be slower and less correct than refetching.
+ * The weekly bars are derived from these, so the caller rebuilds them after.
  */
 export async function refetchHistory(symbol: string, history: readonly VendorDailyBar[]): Promise<number> {
     const bars = history.flatMap((row) => {
@@ -88,31 +85,23 @@ export async function refetchHistory(symbol: string, history: readonly VendorDai
 /**
  * The synthetic 1-minute bar at the closing minute.
  * It exists so a symbol that never printed during the session still has a
- * final intraday bar. `$setOnInsert`, not `$set`: on a symbol that did trade,
- * the aggregator has already written a real bar for that minute out of real
- * prints, and overwriting it with a flat one carrying zero volume would throw
- * that away
+ * final intraday bar. Written only where no bar is stored: on a symbol that
+ * did trade, the aggregator has already written a real bar for that minute out
+ * of real prints, and replacing it with a flat one carrying zero volume would
+ * throw that away
  */
-function closingMinute(bar: OhlcvDoc): AnyBulkWriteOperation<OhlcvDoc> {
+function closingMinute(bar: OhlcvDoc): OhlcvDoc {
     const timestamp = new Date(bar.timestamp);
     timestamp.setUTCHours(CLOSING_MINUTE_UTC, 0, 0, 0);
 
     return {
-        updateOne: {
-            filter: { tickerID: bar.tickerID, timestamp },
-            update: {
-                $setOnInsert: {
-                    tickerID: bar.tickerID,
-                    timestamp,
-                    open: bar.close,
-                    high: bar.close,
-                    low: bar.close,
-                    close: bar.close,
-                    volume: 0,
-                },
-            },
-            upsert: true,
-        },
+        tickerID: bar.tickerID,
+        timestamp,
+        open: bar.close,
+        high: bar.close,
+        low: bar.close,
+        close: bar.close,
+        volume: 0,
     };
 }
 
@@ -137,19 +126,6 @@ function toBar(symbol: string, row: VendorDailyBar): OhlcvDoc | null {
     // The daily series is keyed by date; the vendor's midnight stamp is the date
     timestamp.setUTCHours(0, 0, 0, 0);
     return { tickerID: symbol, timestamp, open, high, low, close, volume };
-}
-
-async function upsertBars(collection: string, operations: readonly AnyBulkWriteOperation<OhlcvDoc>[]): Promise<void> {
-    if (operations.length === 0) return;
-
-    for (const batch of chunk(operations, config.organize.writeBatchSize)) {
-        try {
-            // eslint-disable-next-line contracts/no-db-await-in-loop -- one round trip per batch of operations, not per item, and sequential so a whole universe does not swamp the pool
-            await getDb().collection<OhlcvDoc>(collection).bulkWrite(batch, { ordered: false });
-        } catch (err) {
-            logger.error({ err, collection, count: batch.length }, 'Bar bulk write failed');
-        }
-    }
 }
 
 function counts(result: PriceUpdate): Record<string, number> {

@@ -1,8 +1,10 @@
 /**
  * The aggregate role: the trade stream turned into candles.
- * Reads the ingestor's Redis stream, buckets it at seven timeframes, upserts
- * each finished candle into MongoDB and publishes both the finished and the
+ * Reads the ingestor's Redis stream, buckets it at seven timeframes, writes
+ * each finished candle to MongoDB and publishes both the finished and the
  * in-progress ones so the API's socket gateway can push them to a browser.
+ * A candle reaches MongoDB only once it has closed; until then it lives in
+ * this process and in its Redis last-value key.
  * THIS ROLE MUST RUN AS EXACTLY ONE PROCESS. Buckets are held in memory and the
  * consumer group splits the stream between whoever reads it, so a second copy
  * would build half a candle out of half the trades and then overwrite the other

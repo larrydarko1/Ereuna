@@ -26,7 +26,7 @@ export async function applySplits(splits: readonly Split[]): Promise<number> {
             if (!(await recordSplit(split))) continue;
             await refetchHistory(split.symbol, await dailyHistory(split.symbol));
             await rebuildWeekly(split.symbol);
-            await adjustIntraday(split.symbol, split.factor);
+            await adjustIntraday(split);
             applied += 1;
             logger.info({ symbol: split.symbol, factor: split.factor }, 'Split applied');
         } catch (err) {
@@ -79,30 +79,48 @@ async function recordSplit(split: Split): Promise<boolean> {
     return result.modifiedCount > 0;
 }
 
-/**
- * Restate the intraday bars a split has invalidated.
- */
 function isoDate(at: Date): string {
     return at.toISOString().slice(0, 10);
 }
 
-async function adjustIntraday(symbol: string, factor: number): Promise<void> {
+/**
+ * Restate the intraday bars a split has invalidated: the ones before its
+ * ex-date. That session's own bars already traded at the new price, and so did
+ * the closing minute the price step wrote for it.
+ * Read, adjusted here and written back, because a time series collection
+ * refuses to change a stored price. Delete before insert, so a failure between
+ * the two loses those bars rather than doubling them; intraday bars are kept
+ * for two weeks only, so that is the most at stake.
+ */
+async function adjustIntraday(split: Split): Promise<void> {
+    const { symbol, at, factor } = split;
     if (!Number.isFinite(factor) || factor <= 0) return;
     const db = getDb();
+    const before = { tickerID: symbol, timestamp: { $lt: at } };
 
     for (const collection of INTRADAY_COLLECTIONS) {
-        // eslint-disable-next-line contracts/no-db-await-in-loop -- one updateMany per intraday collection; no query spans collections, so six is the minimum
-        const result = await db.collection<OhlcvDoc>(collection).updateMany({ tickerID: symbol }, [
-            {
-                $set: {
-                    open: { $divide: ['$open', factor] },
-                    high: { $divide: ['$high', factor] },
-                    low: { $divide: ['$low', factor] },
-                    close: { $divide: ['$close', factor] },
-                    volume: { $multiply: ['$volume', factor] },
-                },
-            },
-        ]);
-        logger.debug({ symbol, collection, adjusted: result.modifiedCount }, 'Intraday bars adjusted for split');
+        const bars = db.collection<OhlcvDoc>(collection);
+        const stored = await bars.find(before, { projection: { _id: 0 } }).toArray();
+        if (stored.length === 0) continue;
+
+        await bars.deleteMany(before);
+        await bars.insertMany(
+            stored.map((bar) => toSplitAdjusted(bar, factor)),
+            { ordered: false },
+        );
+        logger.debug({ symbol, collection, adjusted: stored.length }, 'Intraday bars adjusted for split');
     }
+}
+
+/** A bar restated as if the split had always been in force: prices divided by the factor, volume multiplied. */
+function toSplitAdjusted(bar: OhlcvDoc, factor: number): OhlcvDoc {
+    return {
+        tickerID: bar.tickerID,
+        timestamp: bar.timestamp,
+        open: bar.open / factor,
+        high: bar.high / factor,
+        low: bar.low / factor,
+        close: bar.close / factor,
+        volume: bar.volume * factor,
+    };
 }

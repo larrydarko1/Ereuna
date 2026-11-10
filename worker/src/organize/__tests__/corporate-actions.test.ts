@@ -99,26 +99,56 @@ describe('applySplits', () => {
         expect(calls.rebuilt).toEqual([]);
     });
 
-    it('restates the intraday bars in every intraday collection', async () => {
+    it('restates the intraday bars in every intraday collection: read, delete, insert adjusted', async () => {
+        const previousSession = new Date('2026-09-03T19:59:00.000Z');
+        const bar = {
+            tickerID: 'AAPL',
+            timestamp: previousSession,
+            open: 400,
+            high: 440,
+            low: 380,
+            close: 420,
+            volume: 1_000,
+        };
+        db.current = fakeDb(Object.fromEntries(INTRADAY_COLLECTIONS.map((collection) => [collection, [bar]])));
         assetInfoModifies(1);
         await applySplits([{ symbol: 'AAPL', at: AT, factor: 4 }]);
 
         for (const collection of INTRADAY_COLLECTIONS) {
-            const [write] = db.current.of(collection).writes;
-            expect(write?.method).toBe('updateMany');
-            expect(write?.args[0]).toEqual({ tickerID: 'AAPL' });
-            expect(write?.args[1]).toEqual([
-                {
-                    $set: {
-                        open: { $divide: ['$open', 4] },
-                        high: { $divide: ['$high', 4] },
-                        low: { $divide: ['$low', 4] },
-                        close: { $divide: ['$close', 4] },
-                        volume: { $multiply: ['$volume', 4] },
-                    },
-                },
+            const stub = db.current.of(collection);
+            expect(stub.writes.map((write) => write.method)).toEqual(['deleteMany', 'insertMany']);
+            expect(stub.writes[1]?.args[0]).toEqual([
+                { ...bar, open: 100, high: 110, low: 95, close: 105, volume: 4_000 },
             ]);
         }
+    });
+
+    it('restates only the bars before the ex-date — that session already traded at the new price', async () => {
+        const bar = {
+            tickerID: 'AAPL',
+            timestamp: new Date('2026-09-03T19:59:00.000Z'),
+            open: 4,
+            high: 4,
+            low: 4,
+            close: 4,
+            volume: 1,
+        };
+        db.current = fakeDb(Object.fromEntries(INTRADAY_COLLECTIONS.map((collection) => [collection, [bar]])));
+        assetInfoModifies(1);
+        await applySplits([{ symbol: 'AAPL', at: AT, factor: 4 }]);
+
+        for (const collection of INTRADAY_COLLECTIONS) {
+            const stub = db.current.of(collection);
+            const before = { tickerID: 'AAPL', timestamp: { $lt: AT } };
+            expect(stub.filters).toEqual([before]);
+            expect(stub.writes[0]?.args[0]).toEqual(before);
+        }
+    });
+
+    it('writes nothing to a collection holding no bars for the symbol', async () => {
+        assetInfoModifies(1);
+        await applySplits([{ symbol: 'AAPL', at: AT, factor: 4 }]);
+        for (const collection of INTRADAY_COLLECTIONS) expect(db.current.of(collection).writes).toEqual([]);
     });
 
     it.each([

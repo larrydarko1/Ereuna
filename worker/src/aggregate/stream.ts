@@ -76,7 +76,7 @@ export async function consumeTrades(shouldStop: () => boolean): Promise<void> {
 
             // Acknowledged as a batch: one round trip per read rather than one
             // per trade, and a crash before the ack simply replays the batch,
-            // which the upsert on the way out makes harmless.
+            // which replacing on the way out makes harmless.
             if (ids.length > 0) await redis.xack(TIINGO_STREAM, TIINGO_GROUP, ...ids);
         } catch (err) {
             logger.error({ err }, 'Trade stream read failed');

@@ -1,30 +1,31 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
-import { at, listAt } from '@/__tests__/support/values.js';
+import { listAt } from '@/__tests__/support/values.js';
 import type { VendorMarketBar } from '@/lib/tiingo.js';
 
 type Asset = Awaited<ReturnType<typeof import('@/organize/universe.js').activeUniverse>>[number];
-const db: { current: DbStub } = { current: fakeDb() };
-vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
-
-const vendor: { rows: VendorMarketBar[] } = { rows: [] };
-vi.mock('@/lib/tiingo.js', () => ({ marketPrices: () => Promise.resolve(vendor.rows) }));
-const logged: { errors: unknown[] } = { errors: [] };
 
 vi.mock('@/lib/logger.js', () => ({
     logger: {
-        error: (payload: unknown): void => {
-            logged.errors.push(payload);
-        },
+        error: (): void => {},
         info: (): void => {},
         warn: (): void => {},
         debug: (): void => {},
     },
 }));
+
+const db: { current: DbStub } = { current: fakeDb() };
+vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+
+const vendor: { rows: VendorMarketBar[] } = { rows: [] };
+vi.mock('@/lib/tiingo.js', () => ({ marketPrices: () => Promise.resolve(vendor.rows) }));
 const { refetchHistory, updateDailyPrices } = await import('@/organize/prices.js');
 
 const { config } = await import('@/lib/config.js');
+
+const SESSION = new Date('2026-09-04T00:00:00.000Z');
+const CLOSING_MINUTE = new Date('2026-09-04T20:00:00.000Z');
 
 function asset(symbol: string): Asset {
     return {
@@ -54,14 +55,16 @@ function row(overrides: Partial<VendorMarketBar> = {}): VendorMarketBar {
     };
 }
 
-/** Every bulk operation written to `collection`, across all its writes. */
-const opsOn = (collection: string): unknown[] =>
-    db.current.of(collection).writes.flatMap((write) => listAt(write.args, 0));
+/** Every document inserted into `collection`, across all its inserts. */
+const insertedInto = (collection: string): unknown[] =>
+    db.current
+        .of(collection)
+        .writes.filter((write) => write.method === 'insertMany')
+        .flatMap((write) => listAt(write.args, 0));
 
 beforeEach(() => {
     db.current = fakeDb();
     vendor.rows = [];
-    logged.errors = [];
 });
 
 describe('updateDailyPrices', () => {
@@ -80,32 +83,22 @@ describe('updateDailyPrices', () => {
         await expect(updateDailyPrices([asset('AAPL')])).resolves.toMatchObject({ written: 1 });
     });
 
-    it('upserts the bar on (tickerID, timestamp), stamped at midnight UTC', async () => {
+    it("replaces the bell's bar on (tickerID, timestamp), stamped at midnight UTC", async () => {
         vendor.rows = [row()];
         await updateDailyPrices([asset('AAPL')]);
 
-        const [operation] = opsOn('OHCLVData');
-        expect(at(operation, 'updateOne', 'upsert')).toBe(true);
-        expect(at(operation, 'updateOne', 'filter')).toEqual({
-            tickerID: 'AAPL',
-            timestamp: new Date('2026-09-04T00:00:00.000Z'),
-        });
-        expect(at(operation, 'updateOne', 'update', '$set')).toEqual({
-            tickerID: 'AAPL',
-            timestamp: new Date('2026-09-04T00:00:00.000Z'),
-            open: 100,
-            high: 110,
-            low: 99,
-            close: 105,
-            volume: 1_000,
-        });
+        const writes = db.current.of('OHCLVData').writes;
+        expect(writes.map((write) => write.method)).toEqual(['deleteMany', 'insertMany']);
+        expect(writes[0]?.args[0]).toEqual({ timestamp: SESSION, tickerID: { $in: ['AAPL'] } });
+        expect(insertedInto('OHCLVData')).toEqual([
+            { tickerID: 'AAPL', timestamp: SESSION, open: 100, high: 110, low: 99, close: 105, volume: 1_000 },
+        ]);
     });
 
     it('stores the adjusted prices, which is the whole series it is joining', async () => {
         vendor.rows = [row()];
         await updateDailyPrices([asset('AAPL')]);
-        const [operation] = opsOn('OHCLVData');
-        expect(at(operation, 'updateOne', 'update', '$set', 'close')).toBe(105);
+        expect(insertedInto('OHCLVData')).toMatchObject([{ close: 105 }]);
     });
 
     // A row short of a field never gets this far: the vendor client drops it
@@ -118,21 +111,23 @@ describe('updateDailyPrices', () => {
         await expect(updateDailyPrices([asset('AAPL')])).resolves.toMatchObject({ written: 0 });
     });
 
-    it('writes a synthetic closing-minute bar at 20:00 UTC, insert-only', async () => {
+    it('writes a synthetic closing-minute bar at 20:00 UTC where none is stored', async () => {
         vendor.rows = [row()];
         await updateDailyPrices([asset('AAPL')]);
 
-        const [operation] = opsOn('OHCLVData1m');
-        expect(at(operation, 'updateOne', 'filter', 'timestamp')).toEqual(new Date('2026-09-04T20:00:00.000Z'));
-        expect(at(operation, 'updateOne', 'update', '$setOnInsert')).toEqual({
-            tickerID: 'AAPL',
-            timestamp: new Date('2026-09-04T20:00:00.000Z'),
-            open: 105,
-            high: 105,
-            low: 105,
-            close: 105,
-            volume: 0,
+        expect(db.current.of('OHCLVData1m').filters[0]).toEqual({
+            $or: [{ timestamp: CLOSING_MINUTE, tickerID: { $in: ['AAPL'] } }],
         });
+        expect(insertedInto('OHCLVData1m')).toEqual([
+            { tickerID: 'AAPL', timestamp: CLOSING_MINUTE, open: 105, high: 105, low: 105, close: 105, volume: 0 },
+        ]);
+    });
+
+    it('leaves a closing minute the aggregator built from real prints alone', async () => {
+        vendor.rows = [row()];
+        db.current = fakeDb({ OHCLVData1m: [{ tickerID: 'AAPL', timestamp: CLOSING_MINUTE }] });
+        await updateDailyPrices([asset('AAPL')]);
+        expect(db.current.of('OHCLVData1m').writes).toEqual([]);
     });
 
     it('reports a split rather than applying it — applying one rewrites a whole history', async () => {
@@ -168,17 +163,15 @@ describe('updateDailyPrices', () => {
         vendor.rows = universe.map((one) => ({ ...row(), ticker: one.symbol }));
         await updateDailyPrices(universe);
 
-        expect(db.current.of('OHCLVData').writes).toHaveLength(2);
-        expect(db.current.of('OHCLVData').writes[0]?.args[1]).toEqual({ ordered: false });
+        const inserts = db.current.of('OHCLVData').writes.filter((write) => write.method === 'insertMany');
+        expect(inserts).toHaveLength(2);
+        expect(inserts[0]?.args[1]).toEqual({ ordered: false });
     });
 
-    it('logs a failed batch and finishes the run', async () => {
+    it('fails the step when a write fails, rather than reporting bars it never stored', async () => {
         vendor.rows = [row()];
-        db.current = fakeDb();
-        db.current.of('OHCLVData').bulkWrite.mockRejectedValueOnce(new Error('write conflict'));
-
-        await expect(updateDailyPrices([asset('AAPL')])).resolves.toMatchObject({ written: 1 });
-        expect(logged.errors).toHaveLength(1);
+        db.current.of('OHCLVData').insertMany.mockRejectedValueOnce(new Error('write conflict'));
+        await expect(updateDailyPrices([asset('AAPL')])).rejects.toThrow('write conflict');
     });
 });
 
