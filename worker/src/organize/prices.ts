@@ -1,5 +1,6 @@
 /** The daily bar update: one whole-market call, replacing what the bell wrote. */
 import type { OhlcvDoc } from '@ereuna/shared';
+import { sessionClose } from '@ereuna/shared';
 
 import { insertMissingBars, replaceBars } from '@/lib/candle-store.js';
 import { config } from '@/lib/config.js';
@@ -13,9 +14,6 @@ export type PriceUpdate = {
     splits: { symbol: string; at: Date; factor: number }[];
     dividends: { symbol: string; at: Date; amount: number }[];
 };
-
-/** The minute the synthetic closing bar is stamped with: 16:00 New York, in UTC. */
-const CLOSING_MINUTE_UTC = 20;
 
 /**
  * Fetch and store the latest session's bar for every symbol in the universe.
@@ -91,12 +89,9 @@ export async function refetchHistory(symbol: string, history: readonly VendorDai
  * throw that away
  */
 function closingMinute(bar: OhlcvDoc): OhlcvDoc {
-    const timestamp = new Date(bar.timestamp);
-    timestamp.setUTCHours(CLOSING_MINUTE_UTC, 0, 0, 0);
-
     return {
         tickerID: bar.tickerID,
-        timestamp,
+        timestamp: sessionClose(bar.timestamp),
         open: bar.close,
         high: bar.close,
         low: bar.close,

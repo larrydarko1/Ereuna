@@ -111,7 +111,7 @@ describe('updateDailyPrices', () => {
         await expect(updateDailyPrices([asset('AAPL')])).resolves.toMatchObject({ written: 0 });
     });
 
-    it('writes a synthetic closing-minute bar at 20:00 UTC where none is stored', async () => {
+    it('writes a synthetic closing-minute bar at 16:00 New York where none is stored', async () => {
         vendor.rows = [row()];
         await updateDailyPrices([asset('AAPL')]);
 
@@ -121,6 +121,12 @@ describe('updateDailyPrices', () => {
         expect(insertedInto('OHCLVData1m')).toEqual([
             { tickerID: 'AAPL', timestamp: CLOSING_MINUTE, open: 105, high: 105, low: 105, close: 105, volume: 0 },
         ]);
+    });
+
+    it('stamps the closing minute at 21:00 UTC under standard time', async () => {
+        vendor.rows = [row({ date: '2026-11-10T00:00:00.000Z' })];
+        await updateDailyPrices([asset('AAPL')]);
+        expect(insertedInto('OHCLVData1m')).toMatchObject([{ timestamp: new Date('2026-11-10T21:00:00.000Z') }]);
     });
 
     it('leaves a closing minute the aggregator built from real prints alone', async () => {

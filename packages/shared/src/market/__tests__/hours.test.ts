@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isMarketHours } from '#market/hours.js';
+import { isMarketHours, sessionClose } from '#market/hours.js';
 
 /**
  * The dates below straddle a US daylight-saving change on purpose: the previous
@@ -26,5 +26,20 @@ describe('isMarketHours', () => {
 
     it('is closed at the weekend', () => {
         expect(isMarketHours(new Date('2026-07-18T14:00:00Z'))).toBe(false);
+    });
+});
+
+describe('sessionClose', () => {
+    it.each([
+        ['a summer day (EDT)', '2026-07-15T00:00:00Z', '2026-07-15T20:00:00.000Z'],
+        ['a winter day (EST)', '2026-11-10T00:00:00Z', '2026-11-10T21:00:00.000Z'],
+        ['the day daylight time starts', '2026-03-08T00:00:00Z', '2026-03-08T20:00:00.000Z'],
+        ['the day daylight time ends', '2026-11-01T00:00:00Z', '2026-11-01T21:00:00.000Z'],
+    ])('is 16:00 New York on %s', (_label, day, close) => {
+        expect(sessionClose(new Date(day)).toISOString()).toBe(close);
+    });
+
+    it('reads the date, not the time, of the instant it is given', () => {
+        expect(sessionClose(new Date('2026-11-10T23:59:00Z')).toISOString()).toBe('2026-11-10T21:00:00.000Z');
     });
 });
