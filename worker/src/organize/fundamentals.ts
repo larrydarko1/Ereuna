@@ -24,9 +24,8 @@ const BATCH_SIZE = 200;
 
 /**
  * Refresh statements for the whole universe.
- * Every symbol is fetched, because the vendor has no "changed since" endpoint
- * and a restatement is not a new period — but only the symbols whose set of
- * period dates actually moved are written.
+ * Every symbol is fetched and written, because the vendor has no "changed
+ * since" endpoint and a restatement changes the figures without adding a period.
  */
 export async function updateFundamentals(universe: readonly Asset[]): Promise<number> {
     let changed = 0;
