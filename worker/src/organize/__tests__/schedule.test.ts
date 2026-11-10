@@ -36,6 +36,24 @@ describe('msUntilNextRun', () => {
         expect(Math.abs(summer - winter)).toBe(HOUR_MS);
     });
 
+    it.each([
+        // Saturday 31 Oct, run hour + 30 min EDT → Sunday 1 Nov, run hour EST: a 25-hour day
+        [
+            'the clocks go back',
+            Date.UTC(2026, 9, 31, runHourUtcOffset, 30),
+            Date.UTC(2026, 10, 1, runHourUtcOffset + 1),
+        ],
+        // Saturday 7 Mar, run hour + 30 min EST → Sunday 8 Mar, run hour EDT: a 23-hour day
+        [
+            'the clocks go forward',
+            Date.UTC(2026, 2, 7, runHourUtcOffset + 1, 30),
+            Date.UTC(2026, 2, 8, runHourUtcOffset),
+        ],
+    ])('still lands on the run hour the night %s', (_, nowUtc, nextUtc) => {
+        const hour = config.organize.runHourEt * HOUR_MS;
+        expect(msUntilNextRun(new Date(nowUtc + hour))).toBe(nextUtc - nowUtc);
+    });
+
     it('handles midnight New York, which some runtimes render as hour 24', () => {
         // 00:30 New York
         const now = new Date(Date.UTC(2026, 8, 4, 4, 30));
