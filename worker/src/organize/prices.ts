@@ -22,6 +22,7 @@ export type PriceUpdate = {
 type PricedBar = { bar: OhlcvDoc; splitFactor: number; divCash: number };
 
 const DAY = 86_400_000;
+const MINUTE = 60_000;
 
 /**
  * Fetch and store the latest session's bar for every symbol in the universe,
@@ -150,17 +151,18 @@ function sessionsOf(held: Map<string, Set<number>>, symbol: string): Set<number>
 }
 
 /**
- * The synthetic 1-minute bar at the closing minute.
- * It exists so a symbol that never printed during the session still has a
- * final intraday bar. Written only where no bar is stored: on a symbol that
- * did trade, the aggregator has already written a real bar for that minute out
- * of real prints, and replacing it with a flat one carrying zero volume would
- * throw that away
+ * The synthetic 1-minute bar for the session's last minute, 15:59 New York.
+ * It exists so a symbol that never printed in that minute still ends the day
+ * on an intraday bar at the official close. Written only where no bar is
+ * stored: a symbol that did print then already has the aggregator's bar, and
+ * a flat one with zero volume would throw its range away. Stamped 15:59
+ * rather than 16:00 because the session ends at 16:00, so the aggregator never
+ * builds a 16:00 bar and one stamped there would follow every traded day.
  */
 function closingMinute(bar: OhlcvDoc): OhlcvDoc {
     return {
         tickerID: bar.tickerID,
-        timestamp: sessionClose(bar.timestamp),
+        timestamp: new Date(sessionClose(bar.timestamp).getTime() - MINUTE),
         open: bar.close,
         high: bar.close,
         low: bar.close,

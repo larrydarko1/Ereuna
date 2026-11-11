@@ -40,7 +40,7 @@ const { refetchHistory, updateDailyPrices } = await import('@/organize/prices.js
 const { config } = await import('@/lib/config.js');
 
 const SESSION = new Date('2026-09-04T00:00:00.000Z');
-const CLOSING_MINUTE = new Date('2026-09-04T20:00:00.000Z');
+const CLOSING_MINUTE = new Date('2026-09-04T19:59:00.000Z');
 const PREVIOUS = new Date('2026-09-03T00:00:00.000Z');
 const LOOKBACK = listSessions(new Date(SESSION.getTime() - config.organize.gapLookbackDays * 86_400_000), SESSION);
 
@@ -142,7 +142,7 @@ describe('updateDailyPrices', () => {
         await expect(updateDailyPrices([asset('AAPL')])).resolves.toMatchObject({ written: 0 });
     });
 
-    it('writes a synthetic closing-minute bar at 16:00 New York where none is stored', async () => {
+    it('writes a synthetic closing-minute bar at 15:59 New York where none is stored', async () => {
         vendor.rows = [row()];
         await updateDailyPrices([asset('AAPL')]);
 
@@ -154,10 +154,10 @@ describe('updateDailyPrices', () => {
         ]);
     });
 
-    it('stamps the closing minute at 21:00 UTC under standard time', async () => {
+    it('stamps the closing minute at 20:59 UTC under standard time', async () => {
         vendor.rows = [row({ date: '2026-11-10T00:00:00.000Z' })];
         await updateDailyPrices([asset('AAPL')]);
-        expect(insertedInto('OHCLVData1m')).toMatchObject([{ timestamp: new Date('2026-11-10T21:00:00.000Z') }]);
+        expect(insertedInto('OHCLVData1m')).toMatchObject([{ timestamp: new Date('2026-11-10T20:59:00.000Z') }]);
     });
 
     it('leaves a closing minute the aggregator built from real prints alone', async () => {
