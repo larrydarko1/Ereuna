@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 
 vi.mock('dotenv/config', () => ({}));
 vi.mock('@/lib/config.js', () => ({
-    config: { probe: { port: 9092, token: undefined }, pollIntervalMs: 10_000 },
+    config: { probe: { port: 9092, token: undefined }, pollIntervalMs: 10_000, shutdownTimeoutMs: 300 },
 }));
 /**
  * The entry point runs on import: it connects, starts the probes, enters the
@@ -54,6 +54,7 @@ const state: {
     open: boolean;
     universe: string[];
     sessions: number;
+    holdSession: boolean;
 } = {
     connectError: null,
     holidays: [],
@@ -61,6 +62,7 @@ const state: {
     open: true,
     universe: ['AAPL'],
     sessions: 0,
+    holdSession: false,
 };
 vi.mock('@/lib/db.js', () => ({
     connectDb: () => {
@@ -86,11 +88,20 @@ vi.mock('@/universe.js', () => ({
         return Promise.resolve(state.universe);
     },
 }));
+/** A session the test ends by hand, standing in for one still unsubscribing upstream. */
+const held: { end: (() => void) | null; shouldStop: (() => boolean) | null } = { end: null, shouldStop: null };
 vi.mock('@/tiingo.js', () => ({
-    runSession: () => {
+    runSession: (_symbols: readonly string[], shouldStop: () => boolean) => {
         calls.push('runSession');
         state.sessions += 1;
-        return Promise.resolve();
+        if (!state.holdSession) return Promise.resolve();
+        held.shouldStop = shouldStop;
+        return new Promise<void>((resolve) => {
+            held.end = (): void => {
+                calls.push('sessionEnded');
+                resolve();
+            };
+        });
     },
 }));
 
@@ -132,6 +143,9 @@ beforeEach(() => {
     state.open = true;
     state.universe = ['AAPL'];
     state.sessions = 0;
+    state.holdSession = false;
+    held.end = null;
+    held.shouldStop = null;
     exit.mockClear();
 });
 
@@ -209,5 +223,53 @@ describe('shutdown', () => {
         expect(calls).toContain('closeProbes');
         expect(calls).toContain('closeDb');
         await vi.waitFor(() => expect(exit).toHaveBeenCalledWith(0));
+    });
+
+    it('lets an open session unsubscribe before it closes the connections and exits', async () => {
+        state.holdSession = true;
+        await boot();
+        await vi.waitFor(() => expect(held.end).not.toBeNull());
+
+        process.emit('SIGTERM');
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        expect(held.shouldStop?.()).toBe(true);
+        expect(calls).not.toContain('closeDb');
+        expect(exit).not.toHaveBeenCalled();
+
+        held.end?.();
+        await vi.waitFor(() => expect(exit).toHaveBeenCalledWith(0));
+        expect(calls.indexOf('sessionEnded')).toBeLessThan(calls.indexOf('closeDb'));
+    });
+
+    it('shuts down once however many signals arrive while the session ends', async () => {
+        state.holdSession = true;
+        await boot();
+        await vi.waitFor(() => expect(held.end).not.toBeNull());
+
+        process.emit('SIGINT');
+        process.emit('SIGINT');
+        held.end?.();
+        await vi.waitFor(() => expect(exit).toHaveBeenCalledWith(0));
+        expect(calls.filter((call) => call === 'closeDb')).toHaveLength(1);
+    });
+
+    it('does not wait out the poll interval when stopped between sessions', async () => {
+        state.open = false;
+        await boot();
+        await vi.waitFor(() => expect(calls).toContain('getHolidays'));
+
+        process.emit('SIGTERM');
+        await vi.waitFor(() => expect(exit).toHaveBeenCalledWith(0), { timeout: 500 });
+    });
+
+    it('exits with a failure when the session outlasts the shutdown deadline', async () => {
+        state.holdSession = true;
+        await boot();
+        await vi.waitFor(() => expect(held.end).not.toBeNull());
+
+        process.emit('SIGTERM');
+        await vi.waitFor(() => expect(exit).toHaveBeenCalledWith(1));
+        expect(logged.errors).toHaveLength(1);
+        expect(calls).toContain('closeDb');
     });
 });

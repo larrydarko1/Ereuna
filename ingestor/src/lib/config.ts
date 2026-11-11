@@ -55,4 +55,5 @@ export const config = {
     },
 
     pollIntervalMs: 10_000, // How often the market-hours loop re-checks whether a session has begun
+    shutdownTimeoutMs: 15_000, // How long a shutdown waits for the session to unsubscribe and close before exiting anyway
 } as const;
