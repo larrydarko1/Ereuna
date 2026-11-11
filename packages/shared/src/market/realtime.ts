@@ -66,6 +66,12 @@ export const QUOTE_TIMEFRAME = '1m' satisfies AggregatorTimeframe;
 /** The raw trade feed, ingestor → aggregator. A stream, so a restart resumes. */
 export const TIINGO_STREAM = 'tiingo:stream';
 export const TIINGO_GROUP = 'aggregator';
+/**
+ * The aggregator's one consumer name. Fixed rather than per process: Redis keeps
+ * what a consumer read but never acknowledged under its name, so only a restart
+ * reading under the same name gets those entries back.
+ */
+export const TIINGO_CONSUMER = 'aggregator';
 /** Cap on the raw stream, trimmed approximately — it is a buffer, not a record. */
 export const TIINGO_STREAM_MAXLEN = 10_000;
 /**
