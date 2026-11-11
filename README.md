@@ -38,10 +38,11 @@ along with everything else.
 
 - **The app does not currently work end to end.** I know of open bugs and I'm working
   through them in order. Fixes land as batches, not as one big-bang restoration.
-- **The live market-data path is unverified.** The ingestor holds one socket to the
-  vendor's trade feed and the worker buckets that stream into candles. Neither can be
-  meaningfully tested for time constraints, so both are written but not yet proven
-  against real traffic as the previous implementation.
+- **The live market-data path is unverified against the real feed.** The ingestor
+  holds one socket to the vendor's trade feed and the worker buckets that stream into
+  candles. The feed simulator (below) runs that whole path, chart included, but it is
+  built from the vendor's documentation, so whether Tiingo behaves as documented is
+  only proven by a real trading day.
 - **There is no infrastructure in this repo.** No Dockerfiles, no compose, no Traefik,
   no Prometheus/Grafana/Loki. That was all deliberately dropped from scope. Infra isn't
   where my strength is, rebuilding it correctly would cost more time than the rewrite
@@ -179,8 +180,8 @@ which reminds you they're hidden.
 
 ## Running it locally
 
-You need MongoDB and Redis running, and a Tiingo API key if you want the market-data
-services to do anything.
+You need MongoDB and Redis running. The real market-data feed and the nightly batch
+need a Tiingo API key; the live path can run without one, on the feed simulator.
 
 ```bash
 npm install
@@ -193,6 +194,8 @@ The other processes run on their own, because none of them can be folded into an
 
 ```bash
 npm run ingestor          # vendor trade feed → Redis stream
+npm run feed:sim          # a local stand-in for the vendor feed, no key needed
+npm run ingestor:sim      # the ingestor, pointed at the simulator
 npm run worker            # both roles (default for local work)
 npm run worker:aggregate  # realtime bucketing only
 npm run worker:organize   # nightly batch only
@@ -216,8 +219,8 @@ TOTP_ENCRYPTION_KEY=   # 64 hex characters (AES-256-GCM key for TOTP secrets at 
 TIINGO_KEY=            # required by the ingestor and the worker
 ```
 
-Optional overrides: `MONGO_URI`, `MONGO_DB`, `REDIS_HOST`, `REDIS_PORT`, `PORT`,
-`CORS_ORIGIN`, `LOG_LEVEL`, `WORKER_ROLE`. In production the schema rejects any value
+Optional overrides: `MONGO_URI`, `MONGO_DB`, `REDIS_HOST`, `REDIS_PORT`, `TIINGO_URL`,
+`PORT`, `CORS_ORIGIN`, `LOG_LEVEL`, `WORKER_ROLE`. In production the schema rejects any value
 that's still a recognisable dev placeholder, rather than quietly booting with it.
 
 ## Architecture
@@ -279,6 +282,15 @@ worker   → aggregate: XREADGROUP over that stream, buckets into 7 timeframes,
    ▼
 api      → one `psubscribe aggr:*` per process, fans out to Socket.IO rooms
 ```
+
+**The feed simulator** stands in for the vendor, not for the ingestor: a local websocket
+that speaks Tiingo's protocol, so the real ingestor, aggregator, API and chart all run
+against it. It prices the symbols the ingestor subscribes to from their last daily bar,
+trades each in proportion to its last volume, and runs the tape busiest at the open and
+the close. `--rate` sets the average trades per second (`npm run feed:sim -- --rate 430`
+is about 10M over a session). The trades become real candles in the database the
+aggregator writes to. The ingestor reaches it through `TIINGO_URL`, which production
+refuses unless it is `wss://`.
 
 The ingestor and the aggregate role are **singletons**. Two ingestors double-subscribe
 upstream and write every trade twice; two aggregators split the consumer group and each

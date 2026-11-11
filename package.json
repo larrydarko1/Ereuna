@@ -45,6 +45,8 @@
         "worker:aggregate": "npm -w worker run dev:aggregate",
         "worker:organize": "npm -w worker run dev:organize",
         "ingestor": "npm -w ingestor run dev",
+        "ingestor:sim": "npm -w ingestor run dev:sim",
+        "feed:sim": "npm -w ingestor run sim --",
         "dbstart": "brew services start mongodb-community",
         "dbstop": "brew services stop mongodb-community",
         "db:migrate": "npm -w db run migrate:up",
