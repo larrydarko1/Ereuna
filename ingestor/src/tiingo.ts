@@ -116,6 +116,10 @@ export function runSession(symbols: readonly string[], shouldStop: () => boolean
                 return;
             }
 
+            // Checked per message, not only on the poll: the feed keeps pricing after
+            // the bell, and the aggregator buckets whatever reaches it
+            if (!closing && shouldStop()) stop();
+
             if (closing) {
                 const reply = readReply(raw);
                 if (reply === null || reply.messageType === 'H') return;

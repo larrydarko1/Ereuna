@@ -228,6 +228,18 @@ describe('ending the session', () => {
         expect(logged.warnings).toHaveLength(0);
     });
 
+    it('relays no trade that arrives after the stop signal, even before the next poll', async () => {
+        let stop = false;
+        const { socket } = await connected(() => stop);
+
+        stop = true;
+        socket.onmessage?.({ data: trade() });
+        await vi.advanceTimersByTimeAsync(0);
+
+        expect(redis.xadd).not.toHaveBeenCalled();
+        expect(socket.events().map((event) => event['eventName'])).toEqual(['subscribe', 'unsubscribe']);
+    });
+
     it('relays nothing and stays open through heartbeats and trades while it waits for the reply', async () => {
         const { socket } = await connected(() => true);
         await vi.advanceTimersByTimeAsync(1_000);
