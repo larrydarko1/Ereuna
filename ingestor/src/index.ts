@@ -26,6 +26,22 @@ const shutdown = new AbortController();
 let probes: Server | undefined;
 
 /**
+ * Startup is all-or-nothing. Without Mongo there is no ticker universe and
+ * therefore nothing to subscribe to, so a failure here kills the process with a
+ * logged reason rather than leaving a loop that quietly does nothing.
+ */
+const running = connectDb()
+    .then(() => {
+        probes = startProbeServer({ ...config.probe, logger });
+        logger.info({ port: config.probe.port }, 'Probes listening');
+        return run();
+    })
+    .catch((err: unknown) => {
+        logger.fatal({ err }, 'Ingestor failed');
+        process.exit(1);
+    });
+
+/**
  * Wait for the next session, run it, repeat.
  * The holiday check is first and cheap: on a closed day the loop should not be
  * reloading the ticker universe every ten seconds to decide it has no work.
@@ -66,22 +82,6 @@ async function awaitSessionEnd(): Promise<boolean> {
     const deadline = delay(config.shutdownTimeoutMs).then(() => false);
     return Promise.race([running.then(() => true), deadline]);
 }
-
-/**
- * Startup is all-or-nothing. Without Mongo there is no ticker universe and
- * therefore nothing to subscribe to, so a failure here kills the process with a
- * logged reason rather than leaving a loop that quietly does nothing.
- */
-const running = connectDb()
-    .then(() => {
-        probes = startProbeServer({ ...config.probe, logger });
-        logger.info({ port: config.probe.port }, 'Probes listening');
-        return run();
-    })
-    .catch((err: unknown) => {
-        logger.fatal({ err }, 'Ingestor failed');
-        process.exit(1);
-    });
 
 /**
  * Graceful shutdown. The abort is what ends the session: `runSession` polls it
