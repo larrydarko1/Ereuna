@@ -42,6 +42,7 @@ export const config = {
         url: 'wss://api.tiingo.com/iex',
         thresholdLevel: 6,
         handshakeTimeoutMs: 10_000, // How long to wait for the subscribe acknowledgement before giving up
+        unsubscribeTimeoutMs: 5_000, // How long to wait for the vendor's answer to the unsubscribe before closing anyway
     },
 
     logger: {

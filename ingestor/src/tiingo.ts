@@ -19,11 +19,16 @@ import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 import { getRedis } from '@/lib/redis.js';
 
-const subscribeAckSchema = z.object({
+// The vendor's protocol frames: the subscribe ack carries `subscriptionId`, the
+// unsubscribe reply the tickers still subscribed. A trade's `data` is an array,
+// so a trade never parses as one of these.
+const replySchema = z.object({
     messageType: z.string().optional(),
-    data: z.object({ subscriptionId: z.number().optional() }).optional(),
+    data: z.object({ subscriptionId: z.number().optional(), tickers: z.array(z.string()).optional() }).optional(),
     response: z.object({ code: z.number().optional(), message: z.string().optional() }).optional(),
 });
+
+type VendorReply = z.infer<typeof replySchema>;
 
 const relayed = new Counter({
     name: 'ingestor_messages_relayed_total',
@@ -52,6 +57,7 @@ export function runSession(symbols: readonly string[], shouldStop: () => boolean
         const socket = new WebSocket(config.tiingo.url);
         let subscriptionId: number | null = null;
         let closing = false;
+        let unsubscribeDeadline: NodeJS.Timeout | undefined;
 
         const handshake = setTimeout(() => {
             if (subscriptionId === null) {
@@ -67,18 +73,24 @@ export function runSession(symbols: readonly string[], shouldStop: () => boolean
         function stop(): void {
             if (closing) return;
             closing = true;
-            if (subscriptionId !== null) {
-                socket.send(
-                    JSON.stringify({
-                        eventName: 'unsubscribe',
-                        authorization: config.tiingo.key,
-                        eventData: { subscriptionId, tickers: symbols },
-                    }),
-                );
+            if (subscriptionId === null) {
+                socket.close();
+                return;
             }
-            // `close` flushes what is already queued, so the unsubscribe above
-            // goes out before the close frame rather than being dropped with it.
-            socket.close();
+            socket.send(
+                JSON.stringify({
+                    eventName: 'unsubscribe',
+                    authorization: config.tiingo.key,
+                    eventData: { subscriptionId, tickers: symbols },
+                }),
+            );
+            // The close waits for the vendor's answer: a socket dropped before the
+            // unsubscribe is processed is how a subscription outlives its socket
+            const id = subscriptionId;
+            unsubscribeDeadline = setTimeout(() => {
+                logger.warn({ subscriptionId: id }, 'No answer to the unsubscribe — closing anyway');
+                socket.close();
+            }, config.tiingo.unsubscribeTimeoutMs);
         }
 
         socket.onopen = (): void => {
@@ -104,6 +116,15 @@ export function runSession(symbols: readonly string[], shouldStop: () => boolean
                 return;
             }
 
+            if (closing) {
+                const reply = readReply(raw);
+                if (reply === null || reply.messageType === 'H') return;
+                logUnsubscribeReply(subscriptionId, reply);
+                clearTimeout(unsubscribeDeadline);
+                socket.close();
+                return;
+            }
+
             void relay(raw);
         };
 
@@ -115,6 +136,7 @@ export function runSession(symbols: readonly string[], shouldStop: () => boolean
 
         socket.onclose = (): void => {
             clearTimeout(handshake);
+            clearTimeout(unsubscribeDeadline);
             clearInterval(poll);
             logger.info('Vendor feed session ended');
             resolve();
@@ -174,16 +196,38 @@ function isTrade(raw: string): boolean {
 
 /** The subscription id from a subscribe acknowledgement, or null if it is not one. */
 function readSubscriptionId(raw: string): number | null {
+    const ack = readReply(raw);
+    if (ack === null || ack.messageType === 'H') return null;
+    const id = ack.data?.subscriptionId;
+    if (typeof id === 'number') return id;
+    logger.warn({ code: ack.response?.code, message: ack.response?.message }, 'Vendor rejected the subscription');
+    return null;
+}
+
+/**
+ * Log the vendor's answer to the unsubscribe. Confirmed means a 200 with no
+ * tickers left; anything else is a subscription the vendor may still be running.
+ */
+function logUnsubscribeReply(subscriptionId: number, reply: VendorReply): void {
+    const code = reply.response?.code;
+    const remaining = reply.data?.tickers ?? [];
+    if (code === 200 && remaining.length === 0) {
+        logger.info({ subscriptionId }, 'Unsubscribed');
+        return;
+    }
+    logger.warn(
+        { subscriptionId, code, message: reply.response?.message, remaining: remaining.length },
+        'Unsubscribe not confirmed',
+    );
+}
+
+/** A protocol frame from the vendor, or null for a trade or anything unreadable. */
+function readReply(raw: string): VendorReply | null {
     try {
-        const parsed = subscribeAckSchema.safeParse(JSON.parse(raw));
-        if (!parsed.success) return null;
-        const ack = parsed.data;
-        const id = ack.data?.subscriptionId;
-        if (typeof id === 'number') return id;
-        if (ack.messageType === 'H') return null;
-        logger.warn({ code: ack.response?.code, message: ack.response?.message }, 'Vendor rejected the subscription');
-        return null;
+        const parsed = replySchema.safeParse(JSON.parse(raw));
+        return parsed.success ? parsed.data : null;
     } catch {
+        // Not JSON, so not a reply; the relay is what counts malformed frames
         return null;
     }
 }

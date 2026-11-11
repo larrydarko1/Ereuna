@@ -29,6 +29,11 @@ describe('config', () => {
         expect(config.tiingo.thresholdLevel).toBeGreaterThan(0);
     });
 
+    it('gives a shutdown long enough for the stop poll and the unsubscribe reply', () => {
+        expect(config.tiingo.unsubscribeTimeoutMs).toBeGreaterThan(0);
+        expect(config.shutdownTimeoutMs).toBeGreaterThan(1_000 + config.tiingo.unsubscribeTimeoutMs);
+    });
+
     it('re-checks for a session often enough not to lose the first minutes of one', () => {
         expect(config.pollIntervalMs).toBeGreaterThan(0);
         expect(config.pollIntervalMs).toBeLessThanOrEqual(60_000);
