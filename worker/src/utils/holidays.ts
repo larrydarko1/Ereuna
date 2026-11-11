@@ -27,6 +27,24 @@ export function holidayCalendar(from: number, years = 2): Holiday[] {
     return Array.from({ length: years }, (_, offset) => holidaysFor(from + offset)).flat();
 }
 
+/** Every trading day from `from` through `through`, both inclusive, as UTC midnights. */
+export function listSessions(from: Date, through: Date): Date[] {
+    const first = Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate());
+    const last = Date.UTC(through.getUTCFullYear(), through.getUTCMonth(), through.getUTCDate());
+    if (last < first) return [];
+
+    const years = through.getUTCFullYear() - from.getUTCFullYear() + 1;
+    const closed = new Set(holidayCalendar(from.getUTCFullYear(), years).map((holiday) => holiday.date));
+    const sessions: Date[] = [];
+
+    for (let at = first; at <= last; at += DAY) {
+        const weekday = new Date(at).getUTCDay();
+        if (weekday !== 0 && weekday !== 6 && !closed.has(iso(at))) sessions.push(new Date(at));
+    }
+
+    return sessions;
+}
+
 /** Every exchange holiday in `year`, in date order. */
 function holidaysFor(year: number): Holiday[] {
     const holidays: Holiday[] = [

@@ -16,6 +16,8 @@ const seen: Record<string, unknown[]> = {};
 
 const fails = new Set<string>();
 
+const SINCE = new Date('2026-11-09T00:00:00.000Z');
+
 const state: { waitMs: number; universe: { symbol: string }[]; blocked: string | null; release: (() => void) | null } =
     {
         waitMs: 60_000,
@@ -65,13 +67,18 @@ const step =
         return Promise.resolve(result);
     };
 vi.mock('@/organize/prices.js', () => ({
-    updateDailyPrices: step('prices', { written: 1, splits: [{ symbol: 'AAPL' }], dividends: [{ symbol: 'AAPL' }] }),
+    updateDailyPrices: step('prices', {
+        written: 1,
+        since: SINCE,
+        splits: [{ symbol: 'AAPL' }],
+        dividends: [{ symbol: 'AAPL' }],
+    }),
 }));
 vi.mock('@/organize/corporate-actions.js', () => ({
     applySplits: step('splits'),
     applyDividends: step('dividends'),
 }));
-vi.mock('@/organize/weekly.js', () => ({ updateCurrentWeek: step('weekly') }));
+vi.mock('@/organize/weekly.js', () => ({ updateWeeksSince: step('weekly') }));
 vi.mock('@/organize/delist.js', () => ({
     markDelisted: step('delist', ['GONE']),
     stillListed: (universe: { symbol: string }[], delisted: string[]) =>
@@ -138,6 +145,17 @@ describe('the nightly line', () => {
         await runOnce();
         expect(order).toEqual(THE_LINE);
         expect(seen['splits']).toEqual([[]]);
+    });
+
+    it('rebuilds the weeks from the earliest daily bar the price step wrote', async () => {
+        await runOnce();
+        expect(seen['weekly']).toEqual([SINCE]);
+    });
+
+    it('rebuilds only the week in progress when the price step failed', async () => {
+        fails.add('prices');
+        await runOnce();
+        expect(seen['weekly']).toEqual([new Date()]);
     });
 
     it('drops the symbols the delisting scan retired before the steps that follow it', async () => {

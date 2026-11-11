@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { OHLCV_COLLECTIONS } from '@ereuna/shared';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
-import { at, listAt } from '@/__tests__/support/values.js';
+import { listAt } from '@/__tests__/support/values.js';
 import type { CandleDoc } from '@/aggregate/writer.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
@@ -44,9 +44,16 @@ function candle(overrides: Partial<CandleDoc> = {}): CandleDoc {
     };
 }
 
-/** Every bulk operation written to `collection`, across all its writes. */
-const opsOn = (collection: string): unknown[] =>
-    db.current.of(collection).writes.flatMap((write) => listAt(write.args, 0));
+/** Every write `collection` received with `method`, oldest first. */
+const callsOf = (collection: string, method: string): unknown[][] =>
+    db.current
+        .of(collection)
+        .writes.filter((write) => write.method === method)
+        .map((write) => write.args);
+
+/** Every document inserted into `collection`, across all its inserts. */
+const insertedInto = (collection: string): unknown[] =>
+    callsOf(collection, 'insertMany').flatMap((args) => listAt(args, 0));
 
 beforeEach(async () => {
     db.current = fakeDb();
@@ -85,7 +92,7 @@ describe('enqueue', () => {
     ] as const)('routes a %s candle to %s', async (timeframe, collection) => {
         writer.enqueue(timeframe, candle());
         await writer.flush();
-        expect(db.current.of(collection).writes).toHaveLength(1);
+        expect(insertedInto(collection)).toEqual([candle()]);
     });
 });
 
@@ -95,22 +102,29 @@ describe('flush', () => {
         expect(db.current.collection).not.toHaveBeenCalled();
     });
 
-    it('upserts on (tickerID, timestamp), which is what makes a replayed trade harmless', async () => {
+    it('replaces on (tickerID, timestamp): deletes the stored candle, then inserts', async () => {
         writer.enqueue('1m', candle());
         await writer.flush();
 
-        const [operation] = opsOn(OHLCV_COLLECTIONS.intraday1m);
-        expect(at(operation, 'updateOne', 'upsert')).toBe(true);
-        expect(at(operation, 'updateOne', 'filter')).toEqual({
-            tickerID: 'AAPL',
+        const writes = db.current.of(OHLCV_COLLECTIONS.intraday1m).writes;
+        expect(writes.map((write) => write.method)).toEqual(['deleteMany', 'insertMany']);
+        expect(writes[0]?.args[0]).toEqual({
             timestamp: new Date('2026-09-04T15:30:00.000Z'),
+            tickerID: { $in: ['AAPL'] },
         });
+    });
+
+    it('keeps only the last close of a bucket closed twice before a flush', async () => {
+        writer.enqueue('1w', candle({ close: 100 }));
+        writer.enqueue('1w', candle({ close: 102 }));
+        await writer.flush();
+        expect(insertedInto(OHLCV_COLLECTIONS.weekly)).toEqual([candle({ close: 102 })]);
     });
 
     it('writes unordered — one rejected document must not abandon the batch', async () => {
         writer.enqueue('1m', candle());
         await writer.flush();
-        expect(db.current.of(OHLCV_COLLECTIONS.intraday1m).writes[0]?.args[1]).toEqual({ ordered: false });
+        expect(callsOf(OHLCV_COLLECTIONS.intraday1m, 'insertMany')[0]?.[1]).toEqual({ ordered: false });
     });
 
     it('empties the buffer, so a second flush writes nothing', async () => {
@@ -119,27 +133,27 @@ describe('flush', () => {
         expect(writer.pendingWrites()).toBe(0);
 
         await writer.flush();
-        expect(db.current.of(OHLCV_COLLECTIONS.intraday1m).writes).toHaveLength(1);
+        expect(callsOf(OHLCV_COLLECTIONS.intraday1m, 'insertMany')).toHaveLength(1);
     });
 
     it('splits a long buffer into batches', async () => {
         const size = config.candles.writeBatchSize;
         for (let index = 0; index < size + 1; index += 1) writer.enqueue('1m', candle({ tickerID: `S${index}` }));
         await writer.flush();
-        expect(db.current.of(OHLCV_COLLECTIONS.intraday1m).writes).toHaveLength(2);
+        expect(callsOf(OHLCV_COLLECTIONS.intraday1m, 'insertMany')).toHaveLength(2);
     });
 
     it('writes each collection independently, so one is not held up by another', async () => {
         writer.enqueue('1m', candle());
         writer.enqueue('1d', candle());
         await writer.flush();
-        expect(db.current.of(OHLCV_COLLECTIONS.intraday1m).writes).toHaveLength(1);
-        expect(db.current.of(OHLCV_COLLECTIONS.daily).writes).toHaveLength(1);
+        expect(insertedInto(OHLCV_COLLECTIONS.intraday1m)).toHaveLength(1);
+        expect(insertedInto(OHLCV_COLLECTIONS.daily)).toHaveLength(1);
     });
 
     it('drops a failed batch rather than re-queueing it — a retry queue during an outage is how memory runs out', async () => {
         writer.enqueue('1m', candle());
-        db.current.of(OHLCV_COLLECTIONS.intraday1m).bulkWrite.mockRejectedValueOnce(new Error('not primary'));
+        db.current.of(OHLCV_COLLECTIONS.intraday1m).insertMany.mockRejectedValueOnce(new Error('not primary'));
 
         await expect(writer.flush()).resolves.toBeUndefined();
         expect(logged.errors).toHaveLength(1);
@@ -154,7 +168,7 @@ describe('the flush timer', () => {
         writer.enqueue('1m', candle());
 
         await vi.advanceTimersByTimeAsync(config.candles.flushIntervalMs);
-        expect(db.current.of(OHLCV_COLLECTIONS.intraday1m).writes).toHaveLength(1);
+        expect(insertedInto(OHLCV_COLLECTIONS.intraday1m)).toHaveLength(1);
         vi.useRealTimers();
     });
 
@@ -165,7 +179,7 @@ describe('the flush timer', () => {
         writer.enqueue('1m', candle());
 
         await vi.advanceTimersByTimeAsync(config.candles.flushIntervalMs);
-        expect(db.current.of(OHLCV_COLLECTIONS.intraday1m).writes).toHaveLength(1);
+        expect(insertedInto(OHLCV_COLLECTIONS.intraday1m)).toHaveLength(1);
         vi.useRealTimers();
     });
 
@@ -174,7 +188,7 @@ describe('the flush timer', () => {
         writer.enqueue('1m', candle());
         await writer.stopWriter();
 
-        expect(db.current.of(OHLCV_COLLECTIONS.intraday1m).writes).toHaveLength(1);
+        expect(insertedInto(OHLCV_COLLECTIONS.intraday1m)).toHaveLength(1);
         expect(writer.pendingWrites()).toBe(0);
     });
 

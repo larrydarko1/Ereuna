@@ -12,7 +12,7 @@ import { pruneIntraday } from '@/organize/prune.js';
 import { msUntilNextRun } from '@/organize/schedule.js';
 import { activeUniverse } from '@/organize/universe.js';
 import { updateValuations } from '@/organize/valuation.js';
-import { updateCurrentWeek } from '@/organize/weekly.js';
+import { updateWeeksSince } from '@/organize/weekly.js';
 
 type RunSummary = {
     steps: number;
@@ -21,7 +21,7 @@ type RunSummary = {
 };
 
 /** What the price step yields when it fails: no bars, and so no actions to apply. */
-const NO_PRICES: PriceUpdate = { written: 0, splits: [], dividends: [] };
+const NO_PRICES: PriceUpdate = { written: 0, since: null, splits: [], dividends: [] };
 
 let timer: NodeJS.Timeout | undefined;
 let stopping = false;
@@ -99,7 +99,7 @@ async function runNightly(): Promise<RunSummary> {
 
     await step('splits', () => applySplits(prices.splits), 0);
     await step('dividends', () => applyDividends(prices.dividends), 0);
-    await step('weekly', () => updateCurrentWeek(), 0);
+    await step('weekly', () => updateWeeksSince(prices.since ?? new Date()), 0);
 
     // The delisting scan needs tonight's bars, and every step after it should
     // skip the symbols it just retired rather than compute figures for them

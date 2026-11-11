@@ -1,13 +1,16 @@
 /** Weekly bars, rebuilt from the daily series. */
-import type { AnyBulkWriteOperation, Document } from 'mongodb';
+import type { Document } from 'mongodb';
 
 import type { OhlcvDoc } from '@ereuna/shared';
 
 import { bucketStart } from '@/aggregate/buckets.js';
+import { replaceBars } from '@/lib/candle-store.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
 import { chunk } from '@/organize/universe.js';
+
+const WEEKLY_COLLECTION = 'OHCLVData2';
 
 /** Group daily bars into weeks. `$dateTrunc` with a Monday start is the same rule as `bucketStart`. */
 const WEEKLY_GROUP: Document = {
@@ -25,15 +28,21 @@ const WEEKLY_GROUP: Document = {
 };
 
 /**
- * Rebuild the bar for the week in progress, for the whole universe.
- * Upserted on (tickerID, timestamp) rather than deleted and reinserted, so a
- * second run in the same week corrects the bar instead of duplicating it.
+ * Rebuild every weekly bar from the week holding `since` to the week in
+ * progress, for the whole universe. `since` is the earliest daily bar tonight
+ * wrote, so a filled-in session from an earlier week reaches its weekly bar.
+ * Replaced on (tickerID, timestamp) rather than inserted, so a second run in
+ * the same week corrects the bar instead of duplicating it, and so does the
+ * week-to-date bar the aggregator wrote at the bell.
  */
-export async function updateCurrentWeek(now = Date.now()): Promise<number> {
-    const weekStart = new Date(bucketStart('1w', now));
+export async function updateWeeksSince(since: Date): Promise<number> {
+    const weekStart = new Date(bucketStart('1w', since.getTime()));
     const rows = await aggregateWeeks({ timestamp: { $gte: weekStart } });
 
-    await upsertWeekly(rows);
+    for (const batch of chunk(rows, config.organize.writeBatchSize)) {
+        await replaceBars(WEEKLY_COLLECTION, batch);
+    }
+
     logger.info({ weekStart: weekStart.toISOString(), bars: rows.length }, 'Weekly bars updated');
     return rows.length;
 }
@@ -41,8 +50,13 @@ export async function updateCurrentWeek(now = Date.now()): Promise<number> {
 /** Rebuild every weekly bar for one symbol, after its daily history was replaced. */
 export async function rebuildWeekly(symbol: string): Promise<number> {
     const rows = await aggregateWeeks({ tickerID: symbol });
-    await getDb().collection<OhlcvDoc>('OHCLVData2').deleteMany({ tickerID: symbol });
-    await upsertWeekly(rows);
+    const weekly = getDb().collection<OhlcvDoc>(WEEKLY_COLLECTION);
+
+    await weekly.deleteMany({ tickerID: symbol });
+    for (const batch of chunk(rows, config.organize.writeBatchSize)) {
+        await weekly.insertMany(batch, { ordered: false });
+    }
+
     return rows.length;
 }
 
@@ -56,25 +70,4 @@ async function aggregateWeeks(match: Document): Promise<OhlcvDoc[]> {
         .toArray();
 
     return rows.map(({ _id, ...bar }) => ({ tickerID: _id.tickerID, timestamp: _id.week, ...bar }));
-}
-
-async function upsertWeekly(bars: readonly OhlcvDoc[]): Promise<void> {
-    if (bars.length === 0) return;
-
-    const operations: AnyBulkWriteOperation<OhlcvDoc>[] = bars.map((bar) => ({
-        updateOne: {
-            filter: { tickerID: bar.tickerID, timestamp: bar.timestamp },
-            update: { $set: bar },
-            upsert: true,
-        },
-    }));
-
-    for (const batch of chunk(operations, config.organize.writeBatchSize)) {
-        try {
-            // eslint-disable-next-line contracts/no-db-await-in-loop -- one round trip per batch of operations, not per item, and sequential so a whole universe does not swamp the pool
-            await getDb().collection<OhlcvDoc>('OHCLVData2').bulkWrite(batch, { ordered: false });
-        } catch (err) {
-            logger.error({ err, count: batch.length }, 'Weekly bulk write failed');
-        }
-    }
 }

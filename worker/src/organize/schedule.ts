@@ -9,22 +9,31 @@ const NY_PARTS = new Intl.DateTimeFormat('en-US', {
     hour12: false,
 });
 
+const DAY_SECONDS = 24 * 3600;
+
 /**
  * Milliseconds until the next run hour in New York.
- * Derived from the current local time of day rather than by constructing a
- * target date, because the offset between here and New York is the thing that
- * moves and reading it back out of a formatted date is what accounts for it.
+ * The first guess assumes a 24-hour day. The night the clocks change, the day
+ * is 23 or 25 hours and the guess lands an hour off, so it is read back on New
+ * York's clock and moved by however far it missed.
  */
 export function msUntilNextRun(now: Date = new Date()): number {
-    const parts = NY_PARTS.formatToParts(now);
+    const target = config.organize.runHourEt * 3600;
+    const until = target - secondsIntoDay(now);
+    const guess = now.getTime() + (until > 0 ? until : until + DAY_SECONDS) * 1000;
+
+    // A miss past twelve hours is the same miss measured across midnight
+    const miss = target - secondsIntoDay(new Date(guess));
+    const correction = Math.abs(miss) > DAY_SECONDS / 2 ? miss - Math.sign(miss) * DAY_SECONDS : miss;
+
+    return guess + correction * 1000 - now.getTime();
+}
+
+function secondsIntoDay(at: Date): number {
+    const parts = NY_PARTS.formatToParts(at);
     const value = (type: string): number => Number(parts.find((part) => part.type === type)?.value ?? 0);
 
     // 24 rather than 0 for midnight: `hour12: false` renders it either way
     // depending on the runtime, and both mean the same instant
-    const hour = value('hour') % 24;
-    const secondsIntoDay = hour * 3600 + value('minute') * 60 + value('second');
-    const target = config.organize.runHourEt * 3600;
-    const until = target - secondsIntoDay;
-
-    return (until > 0 ? until : until + 24 * 3600) * 1000;
+    return (value('hour') % 24) * 3600 + value('minute') * 60 + value('second');
 }

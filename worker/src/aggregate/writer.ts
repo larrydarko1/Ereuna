@@ -4,16 +4,17 @@
  * than written one at a time: at every aligned boundary the entire universe
  * closes a bucket at once, and eight thousand individual writes arriving in the
  * same tick is what the buffering exists to avoid.
- * Every write is an upsert keyed on `{ tickerID, timestamp }`. That is what
- * makes a restart safe — a bucket rebuilt from a replayed trade overwrites its
- * own row instead of adding a second one — and it is why this never inserts.
+ * Every write replaces on `{ tickerID, timestamp }` rather than inserting.
+ * The same bucket can close more than once — the weekly bar closes at every
+ * bell, and a restart mid-bucket closes a second copy of it — and each close
+ * must replace its own row instead of adding another.
  */
 import { Counter, Histogram } from 'prom-client';
 
 import { AGGREGATOR_TO_CHART, OHLCV_COLLECTIONS, type AggregatorTimeframe } from '@ereuna/shared';
 
+import { replaceBars } from '@/lib/candle-store.js';
 import { config } from '@/lib/config.js';
-import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
 
 export type CandleDoc = {
@@ -30,7 +31,7 @@ const pending = new Map<string, CandleDoc[]>();
 
 const written = new Counter({
     name: 'aggregator_candles_written_total',
-    help: 'Candles upserted into MongoDB',
+    help: 'Candles written to MongoDB',
     labelNames: ['collection'],
 });
 
@@ -89,20 +90,7 @@ async function write(collection: string, docs: CandleDoc[]): Promise<void> {
         const done = writeDuration.startTimer({ collection });
 
         try {
-            await getDb()
-                .collection(collection)
-                .bulkWrite(
-                    chunk.map((doc) => ({
-                        updateOne: {
-                            filter: { tickerID: doc.tickerID, timestamp: doc.timestamp },
-                            update: { $set: doc },
-                            upsert: true,
-                        },
-                    })),
-                    // Unordered: one rejected document must not abandon the rest
-                    // of a batch that has nothing to do with it.
-                    { ordered: false },
-                );
+            await replaceBars(collection, chunk);
             written.inc({ collection }, chunk.length);
         } catch (err) {
             // Not retried and not re-queued. A candle is worth a fraction of a
