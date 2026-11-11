@@ -269,8 +269,11 @@ the collection a decade of bars already live in.
 All seven candle collections are MongoDB **time series** collections, with
 `timestamp` as the time field and `tickerID` as the meta field. That is a
 property of the namespaces themselves, not of anything declared here: it cannot
-be changed without rewriting half a billion documents, and it is why upserting a
-candle needs MongoDB 8.0 or later, which added upsert support for time series.
+be changed without rewriting half a billion documents. It is also why a stored
+candle is never changed in place: the server refuses an upsert, an `updateOne`
+and a `$set` on a price (checked on 8.3 and 9.0), so a candle is replaced by a
+delete on `(tickerID, timestamp)` followed by an insert
+(`worker/src/lib/candle-store.ts`).
 Each has a `system.buckets.*` companion holding the compressed buckets; those
 are managed by the server and appear in neither the registry nor this document.
 
@@ -415,8 +418,9 @@ Each entry carries a `why`. An index without a query behind it is a write cost
 nobody has agreed to, and the contract test fails an entry that cannot state
 one.
 
-No candle index is unique. The aggregate role is a singleton and upserts on
-exactly `(tickerID, timestamp)`, so it cannot produce a duplicate — while the
+No candle index is unique. The aggregate role is a singleton and replaces a
+candle by deleting on exactly `(tickerID, timestamp)` before inserting it, so it
+cannot produce a duplicate — while the
 existing collections predate the constraint, and a `createIndex` that failed on
 old data would stop the worker booting rather than surface as a warning.
 

@@ -277,7 +277,7 @@ ingestor → holds ONE socket to the vendor's trade feed, XADDs `tiingo:stream`
    │
    ▼
 worker   → aggregate: XREADGROUP over that stream, buckets into 7 timeframes,
-   │                  upserts MongoDB, publishes `aggr:{tf}`
+   │                  writes each closed candle to MongoDB, publishes `aggr:{tf}`
    │       organize:  the nightly batch, 19:00 ET
    ▼
 api      → one `psubscribe aggr:*` per process, fans out to Socket.IO rooms
