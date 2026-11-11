@@ -61,7 +61,13 @@ const { config } = await import('@/lib/config.js');
 
 let runSession: typeof import('@/tiingo.js').runSession;
 
-const ACK = JSON.stringify({ data: { subscriptionId: 77 } });
+// The vendor's documented frames: https://www.tiingo.com/documentation/websockets/iex
+const ACK = JSON.stringify({
+    messageType: 'I',
+    data: { subscriptionId: 77 },
+    response: { code: 200, message: 'Success' },
+});
+const HEARTBEAT = JSON.stringify({ messageType: 'H', response: { code: 200, message: 'HeartBeat' } });
 const trade = (extra: Record<string, unknown> = {}): string =>
     JSON.stringify({ messageType: 'A', service: 'iex', data: [1, 'AAPL', 100], ...extra });
 
@@ -131,6 +137,17 @@ describe('the handshake', () => {
 
         expect(logged.warnings).toHaveLength(1);
         expect(redis.xadd).not.toHaveBeenCalled();
+    });
+
+    it('does not report a heartbeat that arrives before the acknowledgement as a rejection', async () => {
+        void runSession(['AAPL'], () => false);
+        FakeSocket.last?.onopen?.();
+        FakeSocket.last?.onmessage?.({ data: HEARTBEAT });
+        FakeSocket.last?.onmessage?.({ data: ACK });
+        await Promise.resolve();
+
+        expect(logged.warnings).toHaveLength(0);
+        expect(FakeSocket.last?.closed).toBe(false);
     });
 
     it('ignores a message that is not JSON while waiting for the acknowledgement', async () => {

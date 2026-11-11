@@ -20,6 +20,7 @@ import { logger } from '@/lib/logger.js';
 import { getRedis } from '@/lib/redis.js';
 
 const subscribeAckSchema = z.object({
+    messageType: z.string().optional(),
     data: z.object({ subscriptionId: z.number().optional() }).optional(),
     response: z.object({ code: z.number().optional(), message: z.string().optional() }).optional(),
 });
@@ -179,6 +180,7 @@ function readSubscriptionId(raw: string): number | null {
         const ack = parsed.data;
         const id = ack.data?.subscriptionId;
         if (typeof id === 'number') return id;
+        if (ack.messageType === 'H') return null;
         logger.warn({ code: ack.response?.code, message: ack.response?.message }, 'Vendor rejected the subscription');
         return null;
     } catch {
