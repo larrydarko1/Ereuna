@@ -30,7 +30,7 @@ const DAY = 86_400_000;
  * run missed would otherwise stay a hole for good; those come from the
  * per-symbol endpoint, one request per symbol with a hole.
  * Replaced rather than inserted: the aggregator already wrote a daily bar at
- * the bell out of the IEX prints alone, and the vendor's consolidated bar is
+ * the bell out of the feed's reference prices alone, and the vendor's official bar is
  * the one to keep. Splits and dividends are returned rather than applied:
  * applying a split rewrites a symbol's whole history, and that belongs to the
  * caller's ordering, not to the middle of a batch.

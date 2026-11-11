@@ -36,10 +36,10 @@ export const config = {
         port: parsed.REDIS_PORT,
     },
 
-    // https://www.tiingo.com/documentation/iex
+    // https://www.tiingo.com/documentation/websockets/equity-realtime-stock-data
     tiingo: {
         key: parsed.TIINGO_KEY,
-        url: 'wss://api.tiingo.com/iex',
+        url: 'wss://api.tiingo.com/equity/intraday',
         thresholdLevel: 6,
         handshakeTimeoutMs: 10_000, // How long to wait for the subscribe acknowledgement before giving up
         unsubscribeTimeoutMs: 5_000, // How long to wait for the vendor's answer to the unsubscribe before closing anyway

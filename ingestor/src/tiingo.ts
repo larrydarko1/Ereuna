@@ -2,10 +2,9 @@
  * One Tiingo session: connect, subscribe, relay every trade into Redis, and
  * unsubscribe on the way out.
  * A session lasts exactly one market day. The upstream socket is opened when
- * the bell rings and dropped when it rings again, rather than held open
- * overnight against a silent feed — a connection that has been idle for
- * sixteen hours is one that fails on the first message rather than the first
- * heartbeat, and there is nothing to lose by rebuilding it.
+ * the bell rings and dropped when it rings again. The feed itself runs 24x5, so
+ * this is what keeps pre-market, after-hours and overnight prices out of the
+ * candles, and it is also bandwidth the plan is not spent on.
  * Messages are relayed verbatim. The stream is the seam with the aggregator and
  * the aggregator is what understands the vendor's positional payload; parsing
  * it here would put the same knowledge in two processes.
@@ -13,7 +12,7 @@
 import { Counter } from 'prom-client';
 import { z } from 'zod';
 
-import { isList, isRecord, TIINGO_STREAM, TIINGO_STREAM_MAXLEN } from '@ereuna/shared';
+import { isList, isRecord, TIINGO_SERVICE, TIINGO_STREAM, TIINGO_STREAM_MAXLEN } from '@ereuna/shared';
 
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
@@ -183,7 +182,7 @@ function isTrade(raw: string): boolean {
     if (message['messageType'] === 'H' || message['messageType'] === 'I') return false;
 
     const data = message['data'];
-    if (message['messageType'] !== 'A' || message['service'] !== 'iex' || !isList(data)) {
+    if (message['messageType'] !== 'A' || message['service'] !== TIINGO_SERVICE || !isList(data)) {
         dropped.inc({ reason: 'unrecognised' });
         return false;
     }

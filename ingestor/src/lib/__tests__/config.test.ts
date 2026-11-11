@@ -20,7 +20,7 @@ describe('config', () => {
     });
 
     it('holds the vendor feed over a secure websocket', () => {
-        expect(config.tiingo.url).toBe('wss://api.tiingo.com/iex');
+        expect(config.tiingo.url).toBe('wss://api.tiingo.com/equity/intraday');
         expect(config.tiingo.key).toBe('test-key');
     });
 

@@ -61,7 +61,7 @@ const { config } = await import('@/lib/config.js');
 
 let runSession: typeof import('@/tiingo.js').runSession;
 
-// The vendor's documented frames: https://www.tiingo.com/documentation/websockets/iex
+// The vendor's documented frames: https://www.tiingo.com/documentation/websockets/equity-realtime-stock-data
 const ACK = JSON.stringify({
     messageType: 'I',
     data: { subscriptionId: 77 },
@@ -74,7 +74,7 @@ const UNSUBSCRIBED = JSON.stringify({
     response: { code: 200, message: 'Success' },
 });
 const trade = (extra: Record<string, unknown> = {}): string =>
-    JSON.stringify({ messageType: 'A', service: 'iex', data: [1, 'AAPL', 100], ...extra });
+    JSON.stringify({ messageType: 'A', service: 'cons', data: [1, 'AAPL', 100], ...extra });
 
 /** Open a session, complete the handshake, and hand back the socket driving it. */
 async function connected(
@@ -184,10 +184,11 @@ describe('relaying', () => {
     it.each([
         ['a heartbeat', JSON.stringify({ messageType: 'H' })],
         ['an info frame', JSON.stringify({ messageType: 'I' })],
-        ['another message type', JSON.stringify({ messageType: 'E', service: 'iex', data: [1, 'AAPL', 1] })],
+        ['another message type', JSON.stringify({ messageType: 'E', service: 'cons', data: [1, 'AAPL', 1] })],
+        ['the IEX feed', JSON.stringify({ messageType: 'A', service: 'iex', data: [1, 'AAPL', 1] })],
         ['another service', JSON.stringify({ messageType: 'A', service: 'crypto', data: [1, 'BTC', 1] })],
-        ['no data array', JSON.stringify({ messageType: 'A', service: 'iex' })],
-        ['a truncated data array', JSON.stringify({ messageType: 'A', service: 'iex', data: [1, 'AAPL'] })],
+        ['no data array', JSON.stringify({ messageType: 'A', service: 'cons' })],
+        ['a truncated data array', JSON.stringify({ messageType: 'A', service: 'cons', data: [1, 'AAPL'] })],
         ['malformed JSON', '{'],
     ])('does not relay %s', async (_label, payload) => {
         const { socket } = await connected();

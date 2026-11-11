@@ -11,7 +11,7 @@
 import { Counter } from 'prom-client';
 import { z } from 'zod';
 
-import { isList, isRecord, TIINGO_GROUP, TIINGO_STREAM } from '@ereuna/shared';
+import { isList, isRecord, TIINGO_GROUP, TIINGO_SERVICE, TIINGO_STREAM } from '@ereuna/shared';
 
 import { applyTrade } from '@/aggregate/builder.js';
 import { config } from '@/lib/config.js';
@@ -101,7 +101,7 @@ function handle(fields: string[]): void {
 }
 
 /**
- * The vendor's IEX payload as a trade.
+ * The vendor's reference-price payload as a trade.
  * `data` is positional — `[instant, ticker, price, …]` — which is why every
  * field is checked rather than trusted: a shape change upstream would otherwise
  * reach the candle state as a `NaN` price and poison the bar's high or low for
@@ -116,7 +116,7 @@ function parseTrade(payload: string): { symbol: string; price: number; at: numbe
         return null;
     }
 
-    const data = isRecord(parsed) && parsed['service'] === 'iex' ? parsed['data'] : undefined;
+    const data = isRecord(parsed) && parsed['service'] === TIINGO_SERVICE ? parsed['data'] : undefined;
     if (!isList(data) || data.length <= 2) {
         rejected.inc({ reason: 'unrecognised' });
         return null;

@@ -36,7 +36,7 @@ function read(...payloads: string[]): unknown {
 }
 
 const trade = (ticker: unknown, price: unknown, instant: unknown): string =>
-    JSON.stringify({ service: 'iex', data: [instant, ticker, price] });
+    JSON.stringify({ service: 'cons', data: [instant, ticker, price] });
 
 /** Run the loop for exactly `reads` iterations. */
 async function consume(reads: number): Promise<void> {
@@ -191,8 +191,9 @@ describe('decoding the vendor payload', () => {
     it.each([
         ['malformed JSON', 'not json'],
         ['another service', JSON.stringify({ service: 'crypto', data: [1, 'BTC', 1] })],
-        ['no data array', JSON.stringify({ service: 'iex' })],
-        ['too short a data array', JSON.stringify({ service: 'iex', data: [1, 'AAPL'] })],
+        ['the IEX feed', JSON.stringify({ service: 'iex', data: [1, 'AAPL', 1] })],
+        ['no data array', JSON.stringify({ service: 'cons' })],
+        ['too short a data array', JSON.stringify({ service: 'cons', data: [1, 'AAPL'] })],
     ])('rejects %s', async (_label, payload) => {
         await expect(decode(payload)).resolves.toEqual([]);
     });

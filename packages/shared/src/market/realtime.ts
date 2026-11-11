@@ -68,6 +68,12 @@ export const TIINGO_STREAM = 'tiingo:stream';
 export const TIINGO_GROUP = 'aggregator';
 /** Cap on the raw stream, trimmed approximately — it is a buffer, not a record. */
 export const TIINGO_STREAM_MAXLEN = 10_000;
+/**
+ * The `service` the vendor stamps on every price message of the feed the
+ * ingestor subscribes to (24x5 consolidated). The ingestor relays only these and
+ * the aggregator reads only these, so the two must name the same feed.
+ */
+export const TIINGO_SERVICE = 'cons';
 
 /** Aggregated buckets, aggregator → every API process. */
 export const AGGREGATE_CHANNEL_PATTERN = 'aggr:*';
