@@ -1,12 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { effectScope, nextTick, ref } from 'vue';
 
+import type { LiveQuote } from '@ereuna/shared';
+
 import { socket } from '@/__tests__/support/socket';
 import { useLiveQuotes, type UseLiveQuotesReturn } from '@/composables/data/useLiveQuotes';
 
 // Imported inside the factory: `vi.mock` is hoisted above this file's imports,
 // so the support module cannot be referenced from the outer scope here.
 vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());
+
+const quote = (price: number): LiveQuote => ({ price, changePercent: null });
 
 function inScope(
     symbols: () => readonly string[],
@@ -56,20 +60,20 @@ describe('subscribing', () => {
     it('does not re-subscribe when the same symbols are reordered', async () => {
         const symbols = ref(['AAPL', 'MSFT']);
         const { quotes } = inScope(() => symbols.value);
-        socket.deliver('quote:update', { quotes: { AAPL: 180 } });
+        socket.deliver('quote:update', { quotes: { AAPL: quote(180) } });
 
         symbols.value = ['MSFT', 'AAPL'];
         await nextTick();
 
         expect(socket.emitted).toHaveLength(1);
-        expect(quotes.quotes.value).toEqual({ AAPL: 180 });
+        expect(quotes.quotes.value).toEqual({ AAPL: quote(180) });
     });
 
     it('re-subscribes when the held symbols actually change, and drops the old prices', async () => {
         const symbols = ref(['AAPL']);
         const { quotes } = inScope(() => symbols.value);
-        socket.deliver('quote:update', { quotes: { AAPL: 180 } });
-        expect(quotes.quotes.value).toEqual({ AAPL: 180 });
+        socket.deliver('quote:update', { quotes: { AAPL: quote(180) } });
+        expect(quotes.quotes.value).toEqual({ AAPL: quote(180) });
 
         symbols.value = ['MSFT'];
         await nextTick();
@@ -91,21 +95,36 @@ describe('receiving', () => {
     it('merges a partial map rather than replacing it', () => {
         const { quotes } = inScope(() => ['AAPL', 'MSFT']);
 
-        socket.deliver('quote:update', { quotes: { AAPL: 180, MSFT: 410 } });
-        socket.deliver('quote:update', { quotes: { AAPL: 181 } });
+        socket.deliver('quote:update', { quotes: { AAPL: quote(180), MSFT: quote(410) } });
+        socket.deliver('quote:update', { quotes: { AAPL: quote(181) } });
 
-        expect(quotes.quotes.value).toEqual({ AAPL: 181, MSFT: 410 });
+        expect(quotes.quotes.value).toEqual({ AAPL: quote(181), MSFT: quote(410) });
     });
 
     it('drops a price for a symbol the portfolio does not hold', () => {
         const { quotes } = inScope(() => ['AAPL']);
 
-        socket.deliver('quote:update', { quotes: { AAPL: 180, TSLA: 250 } });
+        socket.deliver('quote:update', { quotes: { AAPL: quote(180), TSLA: quote(250) } });
 
-        expect(quotes.quotes.value).toEqual({ AAPL: 180 });
+        expect(quotes.quotes.value).toEqual({ AAPL: quote(180) });
     });
 
-    it('ignores a push that lands after the feed was switched off', async () => {
+    it('keeps the last quotes when the feed switches off at the bell', async () => {
+        const enabled = ref(true);
+        const { quotes } = inScope(
+            () => ['AAPL'],
+            () => enabled.value,
+        );
+        socket.deliver('quote:update', { quotes: { AAPL: quote(180) } });
+
+        enabled.value = false;
+        await nextTick();
+
+        expect(quotes.quotes.value).toEqual({ AAPL: quote(180) });
+        expect(socket.emitted).toHaveLength(1);
+    });
+
+    it('takes the closing bucket that lands just after the bell', async () => {
         const enabled = ref(true);
         const { quotes } = inScope(
             () => ['AAPL'],
@@ -114,9 +133,26 @@ describe('receiving', () => {
 
         enabled.value = false;
         await nextTick();
-        socket.deliver('quote:update', { quotes: { AAPL: 180 } });
+        socket.deliver('quote:update', { quotes: { AAPL: quote(181) } });
+
+        expect(quotes.quotes.value).toEqual({ AAPL: quote(181) });
+    });
+
+    it('starts afresh when the next session opens', async () => {
+        const enabled = ref(true);
+        const { quotes } = inScope(
+            () => ['AAPL'],
+            () => enabled.value,
+        );
+        socket.deliver('quote:update', { quotes: { AAPL: quote(180) } });
+        enabled.value = false;
+        await nextTick();
+
+        enabled.value = true;
+        await nextTick();
 
         expect(quotes.quotes.value).toEqual({});
+        expect(socket.emitted).toHaveLength(2);
     });
 
     it('reports whether the socket is up', () => {

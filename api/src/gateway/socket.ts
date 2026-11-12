@@ -13,7 +13,7 @@
  * Event contract (the payload schemas are SERVER_EVENTS and CLIENT_EVENTS in @ereuna/shared):
  * Server → Client:
  *     candle:update — { symbol, timeframe, candle } for the pair this socket watches.
- *     quote:update  — { quotes } a partial symbol→price map, only what moved.
+ *     quote:update  — { quotes } a partial symbol→{ price, changePercent } map, only what moved.
  * Client → Server:
  *     candle:watch — { symbol, timeframe }. Replaces this socket's candle subscription.
  *     quote:watch  — { symbols }. Replaces this socket's quote subscriptions.
@@ -32,6 +32,7 @@ import type { z } from 'zod';
 
 import {
     AGGREGATOR_TO_CHART,
+    BUCKET_MS,
     CHART_TO_AGGREGATOR,
     CLIENT_EVENTS,
     QUOTE_TIMEFRAME,
@@ -44,6 +45,7 @@ import {
     type ClientToServerEvents,
     type EventPayload,
     type LiveCandle,
+    type LiveQuote,
     type ServerEvent,
     type ServerToClientEvents,
 } from '@ereuna/shared';
@@ -53,6 +55,7 @@ import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 import { consumeTokenBucket, type TokenBucketOptions } from '@/lib/token-bucket.js';
 import { verifyAccessToken } from '@/middleware/auth.js';
+import { latestCloses, percentChange } from '@/services/market/index.js';
 
 /** What this gateway keeps on each socket; `userId` is set once the handshake token checks out. */
 type FeedData = {
@@ -84,6 +87,14 @@ const PUSHES: { [TEvent in ServerEvent]: z.ZodType<EventPayload<TEvent>> } = SER
 
 /** The last price emitted per symbol, so an unchanged bucket is not re-sent. */
 const lastPrices = new Map<string, number>();
+
+/**
+ * Each watched symbol's previous close, keyed to the trading day it was read
+ * for. Held per process like `lastPrices`: it is read from the same stored bar
+ * on every pod and cannot change during the day, and the push path is
+ * synchronous, so it has to be at hand before the first bucket arrives.
+ */
+const references = new Map<string, { day: number; close: number | undefined }>();
 
 let io: Server<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, FeedData> | undefined;
 
@@ -146,6 +157,7 @@ export async function closeSocket(): Promise<void> {
         io = undefined;
     }
     lastPrices.clear();
+    references.clear();
 }
 
 /** Fan one aggregated bucket into the rooms waiting for it. */
@@ -167,7 +179,8 @@ function dispatch(message: AggregateMessage): void {
     // connected client would otherwise be woken for a value it already has.
     if (lastPrices.get(message.tickerID) === message.close) return;
     lastPrices.set(message.tickerID, message.close);
-    const quotes = checkedPayload('quote:update', { quotes: { [message.tickerID]: message.close } });
+    const quote = toLiveQuote(message.tickerID, message.close, Date.parse(message.timestamp));
+    const quotes = checkedPayload('quote:update', { quotes: { [message.tickerID]: quote } });
     if (quotes !== undefined) io.to(quoteRoom(message.tickerID)).emit('quote:update', quotes);
 }
 
@@ -204,14 +217,49 @@ async function watchQuotes(socket: FeedSocket, userId: string, payload: unknown)
     socket.data.quoteRooms = rooms;
     for (const room of rooms) void socket.join(room);
 
-    const quotes: Record<string, number> = {};
+    // After the joins, which must stay synchronous so two quick watches cannot
+    // land out of order; a push in the gap goes out without a change, and the
+    // snapshot below, which has one, replaces it
+    await loadReferences(symbols, Date.now());
+
+    const quotes: Record<string, LiveQuote> = {};
     for (const symbol of symbols) {
         const opening = await readLastCandle(symbol, QUOTE_TIMEFRAME);
-        if (opening !== null) quotes[symbol] = opening.close;
+        if (opening !== null) quotes[symbol] = toLiveQuote(symbol, opening.close, Date.parse(opening.timestamp));
     }
     if (Object.keys(quotes).length === 0) return;
     const update = checkedPayload('quote:update', { quotes });
     if (update !== undefined) socket.emit('quote:update', update);
+}
+
+/**
+ * Read the previous close of every symbol not already known for today's
+ * trading day. A failed read leaves them unknown, which pushes a price with no
+ * change rather than refusing the watch: the price is still worth showing.
+ */
+async function loadReferences(symbols: readonly string[], now: number): Promise<void> {
+    const day = dayOf(now);
+    const missing = symbols.filter((symbol) => references.get(symbol)?.day !== day);
+    if (missing.length === 0) return;
+
+    try {
+        const closes = await latestCloses(missing, { before: new Date(day) });
+        for (const symbol of missing) references.set(symbol, { day, close: closes.get(symbol) });
+    } catch (err) {
+        logger.warn({ err, symbols: missing.length }, 'Previous-close read failed; quotes go out without a change');
+    }
+}
+
+/** A price as the page shows it, measured against the close before the day its bucket belongs to. */
+function toLiveQuote(symbol: string, price: number, at: number): LiveQuote {
+    const reference = references.get(symbol);
+    const close = reference?.day === dayOf(at) ? reference.close : undefined;
+    return { price, changePercent: percentChange(price, close) };
+}
+
+/** The UTC midnight a daily bar for this instant is stamped with; a session never crosses one. */
+function dayOf(at: number): number {
+    return Math.floor(at / BUCKET_MS['1d']) * BUCKET_MS['1d'];
 }
 
 /**

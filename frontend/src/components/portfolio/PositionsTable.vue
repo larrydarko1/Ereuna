@@ -2,14 +2,14 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import type { ValuedPosition } from '@ereuna/shared';
+import type { LiveQuote, ValuedPosition } from '@ereuna/shared';
 
 import { direction, formatCurrency, formatNumber, formatPercent } from '@/utils/formatters';
 
 const { positions, cash, quotes } = defineProps<{
     positions: readonly ValuedPosition[];
     cash: number;
-    quotes: Readonly<Record<string, number>>;
+    quotes: Readonly<Record<string, Readonly<LiveQuote>>>;
 }>();
 
 const emit = defineEmits<{ close: [position: ValuedPosition] }>();
@@ -18,7 +18,7 @@ const { t } = useI18n();
 
 const rows = computed(() =>
     positions.map((source) => {
-        const live = quotes[source.symbol];
+        const live = quotes[source.symbol]?.price;
         const price = live ?? source.lastClose;
 
         // With no live tick the server's own figures stand — recomputing them

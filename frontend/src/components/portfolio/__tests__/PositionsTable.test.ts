@@ -21,8 +21,17 @@ const position = (over: Partial<ValuedPosition> = {}): ValuedPosition => ({
     ...over,
 });
 
-const table = (positions: ValuedPosition[], quotes: Record<string, number> = {}, cash = 5_000): VueWrapper =>
-    mount(PositionsTable, { props: { positions, quotes, cash } });
+/** The table only reads a live quote's price, so a test names prices alone. */
+const table = (positions: ValuedPosition[], prices: Record<string, number> = {}, cash = 5_000): VueWrapper =>
+    mount(PositionsTable, {
+        props: {
+            positions,
+            quotes: Object.fromEntries(
+                Object.entries(prices).map(([symbol, price]) => [symbol, { price, changePercent: null }]),
+            ),
+            cash,
+        },
+    });
 
 const cells = (wrapper: VueWrapper): string[] => wrapper.findAll('tbody td').map((node) => node.text());
 

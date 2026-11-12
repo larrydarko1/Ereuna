@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import { LIMITS, type Quote } from '@ereuna/shared';
+import { LIMITS } from '@ereuna/shared';
 
 import { apiErrorMessage } from '@/api/client';
 import IconArrowDown from '@/components/icons/IconArrowDown.vue';
@@ -58,16 +58,22 @@ const rowButtons = useTemplateRef<HTMLButtonElement[]>('rowButtons');
 
 const tickers = computed(() => rows.value.map((row) => row.ticker));
 
-// The chart's and the portfolio's gate: the feed carries stocks only, and
-// outside the session the stored close is the price.
+// The chart's and the portfolio's gate: the feed carries stocks only, and only
+// during the session.
 const market = useMarketStatus(() => false);
 const { quotes } = useLiveQuotes(
     () => tickers.value,
     () => market.status.value === 'open' && tickers.value.length > 0,
 );
 
+// A live quote outranks the stored one: the server measured its change against
+// the previous session, which a row read before the last bell may predate
 const displayRows = computed<DisplayRow[]>(() =>
-    rows.value.map((row) => toDisplayRow(row.ticker, row.quote, quotes.value[row.ticker])),
+    rows.value.map(({ ticker, quote }) => {
+        const live = quotes.value[ticker];
+        if (live !== undefined) return { ticker, price: live.price, changePercent: live.changePercent };
+        return { ticker, price: quote?.close ?? null, changePercent: quote?.changePercent ?? null };
+    }),
 );
 
 /** Every write goes through here, so one place reports failure and clears it. */
@@ -175,19 +181,6 @@ function onKeydown(event: KeyboardEvent): void {
     event.preventDefault();
     emit('select', target);
     rowButtons.value?.[next]?.focus();
-}
-
-function toDisplayRow(
-    ticker: string,
-    quote: Pick<Quote, 'close' | 'changePercent'> | null,
-    live: number | undefined,
-): DisplayRow {
-    if (live === undefined) return { ticker, price: quote?.close ?? null, changePercent: quote?.changePercent ?? null };
-
-    // The feed only runs during the session, and the newest stored bar is then
-    // the previous session's: the aggregator writes today's at the closing bell.
-    const base = quote?.close ?? 0;
-    return { ticker, price: live, changePercent: base > 0 ? ((live - base) / base) * 100 : null };
 }
 
 function changeTone(value: number | null): string {

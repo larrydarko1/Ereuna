@@ -100,10 +100,10 @@ describe('WatchlistPanel live prices', () => {
         expect(socket.emitted).toEqual([{ event: 'quote:watch', payload: { symbols: ['AAPL', 'MSFT'] } }]);
     });
 
-    it('shows the live price, and the change from the last stored close', async () => {
+    it('shows the live price, and the change the server measured', async () => {
         const wrapper = await panel();
 
-        socket.deliver('quote:update', { quotes: { AAPL: 210 } });
+        socket.deliver('quote:update', { quotes: { AAPL: { price: 210, changePercent: 5 } } });
         await flushPromises();
 
         expect(wrapper.findAll('.watchlist__price').map((node) => node.text())).toEqual([
@@ -116,26 +116,36 @@ describe('WatchlistPanel live prices', () => {
         ]);
     });
 
-    it('shows a live price with no change for a symbol that has no stored bar', async () => {
+    it('shows a live price with no change when the server had nothing to measure it against', async () => {
         api.on('GET /api/watchlists/Tech', { name: 'Tech', rows: [row('NEW')] });
         const wrapper = await panel();
 
-        socket.deliver('quote:update', { quotes: { NEW: 12.5 } });
+        socket.deliver('quote:update', { quotes: { NEW: { price: 12.5, changePercent: null } } });
         await flushPromises();
 
         expect(wrapper.get('.watchlist__price').text()).toBe(formatNumber(12.5, 2));
         expect(wrapper.get('.watchlist__change').text()).toBe('');
     });
 
-    it('stays on the stored close while the market is shut', async () => {
+    it('shows the stored close, and subscribes to nothing, while the market is shut', async () => {
         vi.setSystemTime(CLOSED);
         const wrapper = await panel();
 
-        socket.deliver('quote:update', { quotes: { AAPL: 210 } });
-        await flushPromises();
-
         expect(socket.emitted).toEqual([]);
         expect(wrapper.get('.watchlist__price').text()).toBe(formatNumber(200, 2));
+    });
+
+    it('keeps the last live quote after the bell rather than falling back to the rows read before it', async () => {
+        const wrapper = await panel();
+        socket.deliver('quote:update', { quotes: { AAPL: { price: 210, changePercent: 5 } } });
+        await flushPromises();
+
+        vi.setSystemTime(CLOSED);
+        vi.advanceTimersByTime(CLOCK_TICK_MS);
+        await flushPromises();
+
+        expect(wrapper.get('.watchlist__price').text()).toBe(formatNumber(210, 2));
+        expect(wrapper.get('.watchlist__change').text()).toBe(formatPercent(5));
     });
 
     it('re-reads the rows when the session opens, so the change is measured from the newest close', async () => {

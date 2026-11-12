@@ -28,6 +28,19 @@ vi.mock('@/gateway/market-feed.js', () => ({
     readLastCandle: (symbol: string, timeframe: string) =>
         Promise.resolve(feed.last.get(`${symbol}:${timeframe}`) ?? null),
 }));
+const closes: {
+    bySymbol: Map<string, number>;
+    reads: { symbols: string[]; before: Date | undefined }[];
+    fail: boolean;
+} = { bySymbol: new Map(), reads: [], fail: false };
+vi.mock('@/services/market/index.js', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@/services/market/index.js')>()),
+    latestCloses: (symbols: readonly string[], options: { before?: Date } = {}) => {
+        closes.reads.push({ symbols: [...symbols], before: options.before });
+        if (closes.fail) return Promise.reject(new Error('not primary'));
+        return Promise.resolve(new Map([...closes.bySymbol].filter(([symbol]) => symbols.includes(symbol))));
+    },
+}));
 const buckets: { allowed: boolean; keys: string[] } = { allowed: true, keys: [] };
 
 vi.mock('@/lib/token-bucket.js', () => ({
@@ -92,6 +105,13 @@ function next<T>(socket: ClientSocket, event: string, ms = 200): Promise<T | nul
 }
 
 beforeEach(async () => {
+    // Only the clock: the server and the client still need real timers. The
+    // trading day is the one the fixture buckets are stamped on
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-03-02T14:31:00.000Z'));
+    closes.bySymbol = new Map([['AAPL', 150]]);
+    closes.reads = [];
+    closes.fail = false;
     feed.sink = null;
     feed.last = new Map();
     feed.stopped = 0;
@@ -109,6 +129,7 @@ afterEach(async () => {
     for (const socket of clients.splice(0)) socket.disconnect();
     await closeSocket();
     await new Promise<void>((resolve) => server.close(() => resolve()));
+    vi.useRealTimers();
 });
 
 describe('the handshake', () => {
@@ -269,9 +290,50 @@ describe('quote:watch', () => {
         const socket = await client();
         socket.emit('quote:watch', { symbols: ['aapl', 'msft', 'nosuch'] });
 
-        const update = await next<{ quotes: Record<string, number> }>(socket, 'quote:update');
+        const update = await next<{ quotes: Record<string, unknown> }>(socket, 'quote:update');
 
-        expect(update?.quotes).toEqual({ AAPL: 180, MSFT: 410 });
+        expect(update?.quotes).toEqual({
+            AAPL: { price: 180, changePercent: 20 },
+            MSFT: { price: 410, changePercent: null },
+        });
+    });
+
+    it("measures the change from the newest close stamped before the bucket's trading day", async () => {
+        const socket = await client();
+        socket.emit('quote:watch', { symbols: ['AAPL'] });
+        await next(socket, 'quote:update');
+
+        expect(closes.reads).toEqual([{ symbols: ['AAPL'], before: new Date('2026-03-02T00:00:00.000Z') }]);
+    });
+
+    it('reads each previous close once per trading day, not once per watch', async () => {
+        const socket = await client();
+        socket.emit('quote:watch', { symbols: ['AAPL'] });
+        await next(socket, 'quote:update');
+        socket.emit('quote:watch', { symbols: ['AAPL', 'MSFT'] });
+        await next(socket, 'quote:update');
+
+        expect(closes.reads.map((read) => read.symbols)).toEqual([['AAPL'], ['MSFT']]);
+    });
+
+    it('still sends the price when the previous close cannot be read', async () => {
+        closes.fail = true;
+        feed.last.set('AAPL:1m', message({ close: 180 }));
+        const socket = await client();
+        socket.emit('quote:watch', { symbols: ['AAPL'] });
+
+        expect(await next(socket, 'quote:update')).toEqual({ quotes: { AAPL: { price: 180, changePercent: null } } });
+        expect(logs).toContain('Previous-close read failed; quotes go out without a change');
+    });
+
+    it('gives no change for a bucket from a day its reference was not read for', async () => {
+        const socket = await client();
+        socket.emit('quote:watch', { symbols: ['AAPL'] });
+        await next(socket, 'quote:update');
+
+        feed.sink?.(message({ close: 181, timestamp: '2026-03-03T14:30:00.000Z' }));
+
+        expect(await next(socket, 'quote:update')).toEqual({ quotes: { AAPL: { price: 181, changePercent: null } } });
     });
 
     it('sends nothing when none of the symbols has a live bucket', async () => {
@@ -288,7 +350,7 @@ describe('quote:watch', () => {
 
         feed.sink?.(message({ close: 181 }));
 
-        expect(await next(socket, 'quote:update')).toEqual({ quotes: { AAPL: 181 } });
+        expect(await next(socket, 'quote:update')).toEqual({ quotes: { AAPL: { price: 181, changePercent: 20.67 } } });
     });
 
     it('does not re-send an unchanged price', async () => {
@@ -339,7 +401,7 @@ describe('quote:watch', () => {
         const socket = await client();
         socket.emit('quote:watch', { symbols: ['AAPL', 'aapl'] });
 
-        expect(await next(socket, 'quote:update')).toEqual({ quotes: { AAPL: 180 } });
+        expect(await next(socket, 'quote:update')).toEqual({ quotes: { AAPL: { price: 180, changePercent: 20 } } });
     });
 });
 

@@ -19,7 +19,7 @@ vi.mock('@/lib/cache.js', () => ({
     },
 }));
 
-const { closeOnOrAfter, latestCloses, quotes } = await import('@/services/market/market-quotes.js');
+const { closeOnOrAfter, latestCloses, percentChange, quotes } = await import('@/services/market/market-quotes.js');
 
 const pipelineOf = (index = 0): unknown[] => {
     const stages = db.current.of('OHCLVData').filters[index];
@@ -59,6 +59,27 @@ describe('latestCloses', () => {
         db.current = fakeDb({ OHCLVData: [{ _id: 'AAPL', close: 190 }] });
         const closes = await latestCloses(['AAPL', 'NEWCO']);
         expect(closes.has('NEWCO')).toBe(false);
+    });
+
+    it('reads only bars stamped before `before`, so a day written early cannot be its own reference', async () => {
+        const before = new Date('2026-03-02T00:00:00.000Z');
+        await latestCloses(['AAPL'], { before });
+        expect(pipelineOf()[0]).toEqual({ $match: { tickerID: { $in: ['AAPL'] }, timestamp: { $lt: before } } });
+    });
+
+    it('puts no date on the match without `before`', async () => {
+        await latestCloses(['AAPL']);
+        expect(pipelineOf()[0]).toEqual({ $match: { tickerID: { $in: ['AAPL'] } } });
+    });
+});
+
+describe('percentChange', () => {
+    it('measures the move to two places', () => {
+        expect(percentChange(181, 150)).toBe(20.67);
+    });
+
+    it.each([undefined, 0])('is null with no usable reference (%s)', (previous) => {
+        expect(percentChange(181, previous)).toBeNull();
     });
 });
 

@@ -29,6 +29,20 @@ const liveCandleSchema = z.object({
 
 export type LiveCandle = z.output<typeof liveCandleSchema>;
 
+/**
+ * One symbol's last price, with its change since the previous session's close
+ * worked out by the server, as a quote vendor's snapshot carries it. The page
+ * only displays it: it holds no reference price of its own that could be a
+ * session older than the one trading. `changePercent` is null for a symbol
+ * with no earlier bar to compare against.
+ */
+const liveQuoteSchema = z.object({
+    price: z.number(),
+    changePercent: z.number().nullable(),
+});
+
+export type LiveQuote = z.output<typeof liveQuoteSchema>;
+
 export type ServerEvent = keyof typeof SERVER_EVENTS;
 
 type ClientEvent = keyof typeof CLIENT_EVENTS;
@@ -52,8 +66,8 @@ export const SERVER_EVENTS = {
         timeframe: z.enum(CHART_TIMEFRAMES),
         candle: liveCandleSchema,
     }),
-    /** A partial symbol → last price map: only what moved since the last push. */
-    'quote:update': z.object({ quotes: z.record(z.string(), z.number()) }),
+    /** A partial symbol → quote map: only what moved since the last push. */
+    'quote:update': z.object({ quotes: z.record(z.string(), liveQuoteSchema) }),
 } as const;
 
 export const CLIENT_EVENTS = {

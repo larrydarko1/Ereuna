@@ -61,7 +61,7 @@ const trades = useTrades(() => selected.value, reload);
 const market = useMarketStatus(() => false);
 
 // Quotes are only worth a socket while something is trading and something is
-// held; outside those the last close is the price.
+// held; outside those the last quote received, or else the stored close, is the price.
 const { quotes } = useLiveQuotes(
     () => heldSymbols.value,
     () => market.status.value === 'open' && heldSymbols.value.length > 0,

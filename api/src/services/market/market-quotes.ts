@@ -18,21 +18,28 @@ const quotesSchema = z.array(quoteSchema);
 const BATCH_SIZE = 500;
 
 /**
- * The latest close for each symbol, as a map.
+ * The latest close for each symbol, as a map; with `before`, the latest bar
+ * stamped earlier than it, which is how the live feed finds the previous
+ * session's close whether or not today's bar has been written yet.
  * One aggregation per batch rather than one query per symbol: the old version
  * looped `find().sort().limit(1)` per ticker, so a 200-symbol watchlist cost
  * 200 round trips.
  */
-export async function latestCloses(symbols: readonly string[]): Promise<Map<string, number>> {
+export async function latestCloses(
+    symbols: readonly string[],
+    options: { before?: Date } = {},
+): Promise<Map<string, number>> {
     const closes = new Map<string, number>();
     if (symbols.length === 0) return closes;
+
+    const window = options.before === undefined ? {} : { timestamp: { $lt: options.before } };
 
     for (const batch of chunk(symbols, BATCH_SIZE)) {
         // eslint-disable-next-line contracts/no-db-await-in-loop -- one aggregation per batch of symbols; the per-symbol version above is the bug this replaced
         const docs = await getDb()
             .collection<OhlcvDoc>('OHCLVData')
             .aggregate<{ _id: string; close: number }>([
-                { $match: { tickerID: { $in: batch } } },
+                { $match: { tickerID: { $in: batch }, ...window } },
                 { $sort: { timestamp: -1 } },
                 { $group: { _id: '$tickerID', close: { $first: '$close' } } },
             ])
@@ -99,6 +106,17 @@ export async function closeOnOrAfter(symbol: string, from: Date): Promise<number
     return bar?.close ?? null;
 }
 
+/**
+ * The percentage move from `previous` to `latest`, to two places; null with no
+ * usable reference, since a change of zero would be a claim the data does not
+ * support. The REST quote and the live feed both use it, so a row reads the
+ * same whichever of the two last filled it.
+ */
+export function percentChange(latest: number, previous: number | undefined): number | null {
+    if (previous === undefined || previous === 0) return null;
+    return round2(((latest - previous) / previous) * 100);
+}
+
 function toQuote(symbol: string, bars: { close: number; timestamp: Date }[]): Quote {
     const latest = bars[0];
     const previous = bars[1];
@@ -114,9 +132,8 @@ function toQuote(symbol: string, bars: { close: number; timestamp: Date }[]): Qu
         };
     }
 
-    // A symbol with one bar has no comparison to make. Reporting a change of
-    // zero would be a claim the data does not support, so it stays null.
-    if (previous === undefined || previous.close === 0) {
+    const changePercent = percentChange(latest.close, previous?.close);
+    if (previous === undefined || changePercent === null) {
         return {
             symbol,
             close: latest.close,
@@ -134,7 +151,7 @@ function toQuote(symbol: string, bars: { close: number; timestamp: Date }[]): Qu
         timestamp: new Date(latest.timestamp).toISOString(),
         previousClose: previous.close,
         change: round2(change),
-        changePercent: round2((change / previous.close) * 100),
+        changePercent,
     };
 }
 
