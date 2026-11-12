@@ -13,6 +13,8 @@ vi.mock('@/aggregate/builder.js', () => ({
         applied.push([symbol, price, at]);
     },
 }));
+const session: { refused: Set<number> } = { refused: new Set() };
+vi.mock('@/aggregate/session.js', () => ({ isInSession: (at: number): boolean => !session.refused.has(at) }));
 const logged: { errors: unknown[] } = { errors: [] };
 vi.mock('@/lib/logger.js', () => ({
     logger: {
@@ -51,6 +53,7 @@ async function consume(reads: number): Promise<void> {
 beforeEach(() => {
     redis.current = fakeRedis();
     applied.length = 0;
+    session.refused.clear();
     logged.errors = [];
 });
 
@@ -182,6 +185,17 @@ describe('reading a batch', () => {
         expect(logged.errors).toHaveLength(1);
         expect(applied).toHaveLength(1);
         vi.useRealTimers();
+    });
+
+    it('drops a trade outside its session, and still acknowledges it', async () => {
+        session.refused.add(1_700_000_000_000);
+        redis.current.xreadgroup.mockResolvedValueOnce(
+            read(trade('AAPL', 100, 1_700_000_000_000), trade('MSFT', 50, 1_700_000_000_001)),
+        );
+        await consume(1);
+
+        expect(applied).toEqual([['MSFT', 50, 1_700_000_000_001]]);
+        expect(redis.current.xack).toHaveBeenCalledExactlyOnceWith(TIINGO_STREAM, TIINGO_GROUP, '166-0', '166-1');
     });
 
     it('ignores an entry with no `data` field', async () => {

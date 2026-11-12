@@ -142,6 +142,55 @@ describe('the session edges', () => {
     });
 });
 
+describe('isInSession', () => {
+    // 2026-09-03 is a Thursday under daylight time: the session is 13:30–20:00 UTC
+    const at = (iso: string): number => Date.parse(iso);
+
+    it('takes a print stamped inside the session being built', async () => {
+        vi.setSystemTime(at('2026-09-03T15:00:00Z'));
+        clock.open = true;
+        await session.startSession();
+        expect(session.isInSession(at('2026-09-03T14:59:59Z'))).toBe(true);
+    });
+
+    it('refuses a print stamped outside regular hours', async () => {
+        vi.setSystemTime(at('2026-09-03T15:00:00Z'));
+        await session.startSession();
+        expect(session.isInSession(at('2026-09-03T20:30:00Z'))).toBe(false);
+    });
+
+    it('refuses a late print for the session the bell already finalised', async () => {
+        vi.setSystemTime(at('2026-09-03T19:59:55Z'));
+        clock.open = true;
+        await session.startSession();
+
+        vi.setSystemTime(at('2026-09-03T20:00:01Z'));
+        clock.open = false;
+        await vi.advanceTimersByTimeAsync(config.candles.sweepIntervalMs);
+        expect(calls.closed).toBe(1);
+
+        // Hours alone would let it through: only the sealed close stops it
+        clock.open = true;
+        expect(session.isInSession(at('2026-09-03T19:59:59Z'))).toBe(false);
+    });
+
+    it('refuses a backlog from a session that closed before a restart', async () => {
+        vi.setSystemTime(at('2026-09-04T15:00:00Z'));
+        clock.open = true;
+        await session.startSession();
+        expect(session.isInSession(at('2026-09-03T19:59:59Z'))).toBe(false);
+    });
+
+    it('takes the opening prints before the tick has noticed the open', async () => {
+        vi.setSystemTime(at('2026-09-03T13:29:50Z'));
+        await session.startSession();
+
+        vi.setSystemTime(at('2026-09-03T13:30:01Z'));
+        clock.open = true;
+        expect(session.isInSession(at('2026-09-03T13:30:00Z'))).toBe(true);
+    });
+});
+
 describe('stopSession', () => {
     it('stops the ticker', async () => {
         await session.startSession();

@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { isList, isRecord, TIINGO_CONSUMER, TIINGO_GROUP, TIINGO_SERVICE, TIINGO_STREAM } from '@ereuna/shared';
 
 import { applyTrade } from '@/aggregate/builder.js';
+import { isInSession } from '@/aggregate/session.js';
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 import { getConsumer } from '@/lib/redis.js';
@@ -36,6 +37,11 @@ const NEW = '>';
 const consumed = new Counter({
     name: 'aggregator_trades_consumed_total',
     help: 'Trades read from the vendor stream',
+});
+
+const outsideSession = new Counter({
+    name: 'aggregator_trades_outside_session_total',
+    help: 'Trades dropped because they were stamped outside regular hours or after their session was finalised',
 });
 
 const rejected = new Counter({
@@ -130,6 +136,10 @@ function handle(fields: string[] | null): void {
     if (trade === null) return;
 
     consumed.inc();
+    if (!isInSession(trade.at)) {
+        outsideSession.inc();
+        return;
+    }
     applyTrade(trade.symbol, trade.price, trade.at);
 }
 
