@@ -1,16 +1,23 @@
 /**
  * portfolio-summary — the valued view of a portfolio, and its export.
- * Everything here is read-only and priced at the latest close: the stored
- * document holds what the trade log implies (cash, positions, realised stats),
- * and this module adds what only today's market can say (position values,
- * unrealised P/L, benchmark returns).
+ * Everything here is read-only. The stored document holds what the trade log
+ * implies (cash, positions, realised stats); this module adds what only the
+ * market can say (position values, unrealised P/L, benchmark returns). The
+ * summary prices at the latest close; the live feed passes the session's latest
+ * trades to the same valuation, so the two cannot disagree on how a number is made.
+ *
+ * Owns: the summary, the live valuation's arithmetic, the export.
+ * Does NOT own: replaying the log (services/portfolio/portfolio-rebuild.ts),
+ * pushing a valuation to a socket (gateway/portfolio-watch.ts).
  */
 import type { ObjectId } from 'mongodb';
 
 import type {
     BenchmarkResult,
+    PortfolioDoc,
     PortfolioExport,
     PortfolioSummary,
+    PortfolioValuation,
     PositionDoc,
     TradeDoc,
     TradeInput,
@@ -20,19 +27,50 @@ import type {
 import { AppError } from '@/lib/app-error.js';
 import { getDb } from '@/lib/db.js';
 import { closeOnOrAfter, latestCloses } from '@/services/market/index.js';
-import { getPortfolio } from '@/services/portfolio/portfolio-crud.js';
+import { findPortfolio, getPortfolio } from '@/services/portfolio/portfolio-crud.js';
 import { readTrades } from '@/services/portfolio/portfolio-rebuild.js';
+
+/** What a valuation needs from the store: the settled slot, its open positions, and each one's latest close. */
+export type Holdings = {
+    portfolio: Pick<PortfolioDoc, 'number' | 'cash' | 'baseValue' | 'leverage'>;
+    positions: PositionDoc[];
+    closes: ReadonlyMap<string, number>;
+};
+
+/** What a position is priced at, and whether that is a trade from the session in progress. */
+type Mark = { price: number; live: boolean };
 
 export async function getSummary(userId: ObjectId, number: number): Promise<PortfolioSummary> {
     const portfolio = await getPortfolio(userId, number);
-    const positions = await getDb()
-        .collection<PositionDoc>('Positions')
-        .find({ userId, portfolioNumber: number })
-        .sort({ symbol: 1 })
-        .toArray();
+    const holdings = await readHoldings(userId, portfolio);
+    const valuation = valuePortfolio(holdings, new Map());
 
-    const closes = await latestCloses(positions.map((position) => position.symbol));
-    const valued = positions.map((position) => valuePosition(position, closes.get(position.symbol) ?? null));
+    return {
+        ...valuation,
+        cash: portfolio.cash,
+        baseValue: portfolio.baseValue,
+        leverage: portfolio.leverage,
+        defaultCommission: portfolio.defaultCommission,
+        stats: portfolio.stats,
+        valueHistory: portfolio.valueHistory,
+        benchmarks: await benchmarkResults(userId, number, portfolio.benchmarks, valuation.totalPLPercent),
+    };
+}
+
+/** The slot and what it holds, or null for a slot nobody has written to. */
+export async function findHoldings(userId: ObjectId, number: number): Promise<Holdings | null> {
+    const portfolio = await findPortfolio(userId, number);
+    return portfolio === null ? null : readHoldings(userId, portfolio);
+}
+
+/**
+ * Price the holdings: each symbol at its live price where there is one, else at
+ * its latest close. Gross exposure is longs plus shorts, which is what the
+ * leverage limit is measured against; equity is cash plus net exposure.
+ */
+export function valuePortfolio(holdings: Holdings, live: ReadonlyMap<string, number>): PortfolioValuation {
+    const { portfolio, positions, closes } = holdings;
+    const valued = positions.map((position) => valuePosition(position, markOf(position.symbol, live, closes)));
 
     const longValue = sum(valued.filter((p) => p.side === 'long').map((p) => p.marketValue ?? 0));
     const shortValue = sum(valued.filter((p) => p.side === 'short').map((p) => p.marketValue ?? 0));
@@ -45,11 +83,7 @@ export async function getSummary(userId: ObjectId, number: number): Promise<Port
     const totalPLPercent = totalPL === null ? null : round2((totalPL / portfolio.baseValue) * 100);
 
     return {
-        number,
-        cash: portfolio.cash,
-        baseValue: portfolio.baseValue,
-        leverage: portfolio.leverage,
-        defaultCommission: portfolio.defaultCommission,
+        number: portfolio.number,
         positions: valued.map((position) => ({
             ...position,
             weight:
@@ -67,9 +101,6 @@ export async function getSummary(userId: ObjectId, number: number): Promise<Port
         unrealizedPL: round2(sum(valued.map((position) => position.unrealizedPL ?? 0))),
         totalPL,
         totalPLPercent,
-        stats: portfolio.stats,
-        valueHistory: portfolio.valueHistory,
-        benchmarks: await benchmarkResults(userId, number, portfolio.benchmarks, totalPLPercent),
     };
 }
 
@@ -98,24 +129,46 @@ function toExportedTrade(doc: TradeDoc): TradeInput {
     return { action: doc.action, symbol: doc.symbol, shares: doc.shares, price: doc.price, ...movement };
 }
 
+async function readHoldings(
+    userId: ObjectId,
+    portfolio: Pick<PortfolioDoc, 'number' | 'cash' | 'baseValue' | 'leverage'>,
+): Promise<Holdings> {
+    const positions = await getDb()
+        .collection<PositionDoc>('Positions')
+        .find({ userId, portfolioNumber: portfolio.number })
+        .sort({ symbol: 1 })
+        .toArray();
+    const closes = await latestCloses(positions.map((position) => position.symbol));
+    return { portfolio, positions, closes };
+}
+
+/** The price a symbol is marked at: the session's latest trade, else the latest close, else none yet. */
+function markOf(symbol: string, live: ReadonlyMap<string, number>, closes: ReadonlyMap<string, number>): Mark | null {
+    const trade = live.get(symbol);
+    if (trade !== undefined) return { price: trade, live: true };
+    const close = closes.get(symbol);
+    return close === undefined ? null : { price: close, live: false };
+}
+
 /**
- * Price one position at the latest close.
+ * Price one position.
  * A short profits as the price falls, so its unrealised P/L is the entry minus
  * the mark; both sides divide by the same committed capital, so a 10% move is
  * 10% either way round.
  */
-function valuePosition(position: PositionDoc, lastClose: number | null): ValuedPosition {
+function valuePosition(position: PositionDoc, mark: Mark | null): ValuedPosition {
     const base = {
         symbol: position.symbol,
         side: position.side,
         shares: position.shares,
         avgPrice: round2(position.avgPrice),
+        live: mark?.live ?? false,
     };
 
-    if (lastClose === null) {
+    if (mark === null) {
         return {
             ...base,
-            lastClose: null,
+            price: null,
             marketValue: null,
             exposure: null,
             unrealizedPL: null,
@@ -124,13 +177,14 @@ function valuePosition(position: PositionDoc, lastClose: number | null): ValuedP
         };
     }
 
-    const marketValue = lastClose * position.shares;
+    const { price } = mark;
+    const marketValue = price * position.shares;
     const cost = position.avgPrice * position.shares;
     const unrealizedPL = position.side === 'long' ? marketValue - cost : cost - marketValue;
 
     return {
         ...base,
-        lastClose,
+        price,
         marketValue: round2(marketValue),
         exposure: round2(position.side === 'long' ? marketValue : -marketValue),
         unrealizedPL: round2(unrealizedPL),

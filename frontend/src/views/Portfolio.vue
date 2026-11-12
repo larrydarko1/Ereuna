@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { CASH_ACTIONS, isOneOf } from '@ereuna/shared';
-import type { PositionAction, TradeInput, TradeRow, ValuedPosition } from '@ereuna/shared';
+import type { PortfolioSummary, PositionAction, TradeInput, TradeRow, ValuedPosition } from '@ereuna/shared';
 
 import BenchmarksDialog from '@/components/portfolio/BenchmarksDialog.vue';
 import BenchmarkStrip from '@/components/portfolio/BenchmarkStrip.vue';
@@ -25,7 +25,7 @@ import BarChart, { type Bar } from '@/components/viz/BarChart.vue';
 import DonutChart from '@/components/viz/DonutChart.vue';
 import LineChart from '@/components/viz/LineChart.vue';
 import { useMarketStatus } from '@/composables/charts/useMarketStatus';
-import { useLiveQuotes } from '@/composables/data/useLiveQuotes';
+import { useLivePortfolio } from '@/composables/portfolio/useLivePortfolio';
 import { usePortfolios } from '@/composables/portfolio/usePortfolios';
 import { useTrades } from '@/composables/portfolio/useTrades';
 import { formatCurrency, formatDate, formatNumber } from '@/utils/formatters';
@@ -41,7 +41,6 @@ const {
     error,
     openedSlots,
     isBlank,
-    heldSymbols,
     load,
     select,
     reload,
@@ -57,14 +56,17 @@ const {
 const trades = useTrades(() => selected.value, reload);
 
 // Equity hours, with no crypto exemption: the feed carries stocks only, and
-// outside the session the vendor is quiet, so the last close is the price.
+// outside the session the vendor is quiet, so the summary's close is the price.
 const market = useMarketStatus(() => false);
 
-// Quotes are only worth a socket while something is trading and something is
-// held; outside those the last quote received, or else the stored close, is the price.
-const { quotes } = useLiveQuotes(
-    () => heldSymbols.value,
-    () => market.status.value === 'open' && heldSymbols.value.length > 0,
+const live = useLivePortfolio(
+    () => summary.value,
+    () => market.status.value === 'open',
+);
+
+// The server's valuation laid over the summary it re-prices: the page shows both and computes neither
+const priced = computed<PortfolioSummary | null>(() =>
+    summary.value === null ? null : { ...summary.value, ...live.valuation.value },
 );
 
 const dialog = ref<Dialog | null>(null);
@@ -92,7 +94,7 @@ const returnBins = computed<Bar[]>(() =>
 );
 
 const allocation = computed(() =>
-    (summary.value?.positions ?? [])
+    (priced.value?.positions ?? [])
         .filter((position) => position.marketValue !== null)
         .map((position) => ({ label: position.symbol, value: position.marketValue ?? 0 })),
 );
@@ -228,10 +230,10 @@ onMounted(async () => {
             >{{ error }}</p
         >
 
-        <AppSpinner v-if="pending && summary === null" />
+        <AppSpinner v-if="pending && priced === null" />
 
         <EmptyState
-            v-else-if="summary === null"
+            v-else-if="priced === null"
             :title="t('portfolio.emptySlot')"
             :body="t('portfolio.emptySlotHint')">
             <button
@@ -249,10 +251,10 @@ onMounted(async () => {
         </EmptyState>
 
         <template v-else>
-            <SummaryCards :summary="summary" />
+            <SummaryCards :summary="priced" />
 
             <BenchmarkStrip
-                :benchmarks="summary.benchmarks"
+                :benchmarks="priced.benchmarks"
                 @edit="dialog = 'benchmarks'" />
 
             <div class="portfolio__charts">
@@ -275,7 +277,7 @@ onMounted(async () => {
                     <BarChart
                         v-if="returnBins.length > 0"
                         :bars="returnBins"
-                        :marker="summary.stats?.tradeReturnsChart.medianBinIndex ?? null"
+                        :marker="priced.stats?.tradeReturnsChart.medianBinIndex ?? null"
                         :label="t('portfolio.tradeReturns')"
                         :format="(value) => formatNumber(value, 0)" />
                     <p
@@ -302,23 +304,22 @@ onMounted(async () => {
             <section class="portfolio__panel">
                 <h2 class="portfolio__panel-title">{{ t('portfolio.positions') }}</h2>
                 <PositionsTable
-                    :positions="summary.positions"
-                    :cash="summary.cash"
-                    :quotes="quotes"
+                    :positions="priced.positions"
+                    :cash="priced.cash"
                     @close="closePosition" />
             </section>
 
             <section
-                v-if="summary.stats !== null"
+                v-if="priced.stats !== null"
                 class="portfolio__panel">
                 <h2 class="portfolio__panel-title">{{ t('portfolio.performance') }}</h2>
-                <StatsGrid :snapshot="summary.stats" />
+                <StatsGrid :snapshot="priced.stats" />
             </section>
 
             <section class="portfolio__panel">
                 <MonthlyPanel
                     v-if="fullLog !== null"
-                    :value-history="summary.valueHistory"
+                    :value-history="priced.valueHistory"
                     :trades="fullLog" />
                 <button
                     v-else
@@ -346,7 +347,7 @@ onMounted(async () => {
             v-if="dialog === 'trade'"
             :editing="tradeToEdit"
             :preset="tradePreset"
-            :default-commission="summary?.defaultCommission ?? 0"
+            :default-commission="priced?.defaultCommission ?? 0"
             :error="trades.error.value"
             :saving="saving"
             @close="dialog = null"
@@ -361,8 +362,8 @@ onMounted(async () => {
             @submit="submitTrade" />
 
         <SettingsDialog
-            v-if="dialog === 'settings' && summary !== null"
-            :summary="summary"
+            v-if="dialog === 'settings' && priced !== null"
+            :summary="priced"
             :error="error"
             :saving="saving"
             @close="dialog = null"
@@ -371,8 +372,8 @@ onMounted(async () => {
             @save-commission="run(() => saveCommission($event))" />
 
         <BenchmarksDialog
-            v-if="dialog === 'benchmarks' && summary !== null"
-            :current="summary.benchmarks.map((entry) => entry.symbol)"
+            v-if="dialog === 'benchmarks' && priced !== null"
+            :current="priced.benchmarks.map((entry) => entry.symbol)"
             :error="error"
             :saving="saving"
             @close="dialog = null"

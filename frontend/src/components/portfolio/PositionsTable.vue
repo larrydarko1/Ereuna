@@ -1,67 +1,18 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import type { LiveQuote, ValuedPosition } from '@ereuna/shared';
+import type { ValuedPosition } from '@ereuna/shared';
 
 import { direction, formatCurrency, formatNumber, formatPercent } from '@/utils/formatters';
 
-const { positions, cash, quotes } = defineProps<{
+const { positions, cash } = defineProps<{
     positions: readonly ValuedPosition[];
     cash: number;
-    quotes: Readonly<Record<string, Readonly<LiveQuote>>>;
 }>();
 
 const emit = defineEmits<{ close: [position: ValuedPosition] }>();
 
 const { t } = useI18n();
-
-const rows = computed(() =>
-    positions.map((source) => {
-        const live = quotes[source.symbol]?.price;
-        const price = live ?? source.lastClose;
-
-        // With no live tick the server's own figures stand — recomputing them
-        // from the same close would only introduce a rounding difference.
-        if (live === undefined || price === null) {
-            return {
-                source,
-                symbol: source.symbol,
-                side: source.side,
-                shares: source.shares,
-                avgPrice: source.avgPrice,
-                price,
-                live: false,
-                marketValue: source.marketValue,
-                pl: source.unrealizedPL,
-                plPercent: source.unrealizedPLPercent,
-                weight: source.weight,
-            };
-        }
-
-        const cost = source.avgPrice * source.shares;
-        // A short profits as the price falls, so the difference is taken the
-        // other way round. Everything else about the row is identical.
-        const pl =
-            source.side === 'long'
-                ? (price - source.avgPrice) * source.shares
-                : (source.avgPrice - price) * source.shares;
-
-        return {
-            source,
-            symbol: source.symbol,
-            side: source.side,
-            shares: source.shares,
-            avgPrice: source.avgPrice,
-            price,
-            live: true,
-            marketValue: price * source.shares,
-            pl,
-            plPercent: cost === 0 ? null : (pl / cost) * 100,
-            weight: source.weight,
-        };
-    }),
-);
 </script>
 
 <template>
@@ -114,7 +65,7 @@ const rows = computed(() =>
 
             <tbody>
                 <tr
-                    v-for="row in rows"
+                    v-for="row in positions"
                     :key="row.symbol">
                     <th
                         scope="row"
@@ -140,13 +91,13 @@ const rows = computed(() =>
                     </td>
                     <td
                         class="positions-table__num"
-                        :class="`positions-table__num--${direction(row.pl)}`">
-                        {{ row.pl === null ? '—' : formatCurrency(row.pl) }}
+                        :class="`positions-table__num--${direction(row.unrealizedPL)}`">
+                        {{ row.unrealizedPL === null ? '—' : formatCurrency(row.unrealizedPL) }}
                     </td>
                     <td
                         class="positions-table__num"
-                        :class="`positions-table__num--${direction(row.plPercent)}`">
-                        {{ row.plPercent === null ? '—' : formatPercent(row.plPercent) }}
+                        :class="`positions-table__num--${direction(row.unrealizedPLPercent)}`">
+                        {{ row.unrealizedPLPercent === null ? '—' : formatPercent(row.unrealizedPLPercent) }}
                     </td>
                     <td class="positions-table__num">
                         {{ row.weight === null ? '—' : `${formatNumber(row.weight, 1)}%` }}
@@ -155,13 +106,13 @@ const rows = computed(() =>
                         <button
                             type="button"
                             class="btn btn--small"
-                            @click="emit('close', row.source)">
+                            @click="emit('close', row)">
                             {{ t('portfolio.close') }}
                         </button>
                     </td>
                 </tr>
 
-                <tr v-if="rows.length === 0">
+                <tr v-if="positions.length === 0">
                     <td
                         class="positions-table__empty"
                         colspan="10"

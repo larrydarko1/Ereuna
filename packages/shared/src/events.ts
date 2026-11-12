@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { CHART_TIMEFRAMES } from '#db/collections.js';
 import { LIMITS } from '#limits.js';
 import { symbolField } from '#requests/fields.js';
+import { portfolioValuationSchema } from '#responses/portfolio.js';
 
 /**
  * One bucket as it reaches the browser. `time` matches the REST series exactly
@@ -79,17 +80,22 @@ export const SERVER_EVENTS = {
     }),
     /** A partial symbol → quote map: only what moved since the last push. */
     'quote:update': z.object({ quotes: z.record(z.string(), liveQuoteSchema) }),
+    /** The watched portfolio priced at the latest trades, at most once a second while they move. */
+    'portfolio:update': portfolioValuationSchema,
 } as const;
 
 export const CLIENT_EVENTS = {
     /** Replaces this socket's candle subscriptions with every pair its open charts show. */
     'candle:watch': z.object({ pairs: z.array(candlePairSchema).max(MAX_LIVE_CHARTS) }),
-    /**
-     * Replaces this socket's quote subscriptions. Capped at the larger of what
-     * one portfolio or one watchlist can hold: the caller is a positions table
-     * or a watchlist, and refusing its list would leave every row still.
-     */
-    'quote:watch': z.object({
-        symbols: z.array(symbolField).max(Math.max(LIMITS.positionsPerPortfolio, LIMITS.tickersPerWatchlist)),
+    /** Replaces this socket's quote subscriptions. Capped at what one watchlist can hold, the one caller. */
+    'quote:watch': z.object({ symbols: z.array(symbolField).max(LIMITS.tickersPerWatchlist) }),
+    /** Replaces the portfolio this socket has priced live; null stops it. */
+    'portfolio:watch': z.object({
+        number: z
+            .number()
+            .int()
+            .min(0)
+            .max(LIMITS.portfolioSlots - 1)
+            .nullable(),
     }),
 } as const;

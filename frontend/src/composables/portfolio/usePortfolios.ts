@@ -26,7 +26,6 @@ export type UsePortfoliosReturn = {
     error: Ref<string | null>;
     openedSlots: ComputedRef<Set<number>>;
     isBlank: ComputedRef<boolean>;
-    heldSymbols: ComputedRef<string[]>;
     load: () => Promise<void>;
     select: (slot: number) => Promise<void>;
     reload: () => Promise<void>;
@@ -60,8 +59,6 @@ export function usePortfolios(): UsePortfoliosReturn {
         if (current === null) return true;
         return current.positions.length === 0 && current.cash === 0 && current.baseValue === 0;
     });
-
-    const heldSymbols = computed(() => (summary.value?.positions ?? []).map((position) => position.symbol));
 
     function fail(err: unknown): string {
         return apiErrorMessage(err, i18n.global.t('errors.INTERNAL'));
@@ -169,7 +166,6 @@ export function usePortfolios(): UsePortfoliosReturn {
         error,
         openedSlots,
         isBlank,
-        heldSymbols,
         load,
         select,
         reload,

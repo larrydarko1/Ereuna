@@ -5,12 +5,13 @@ import type { PositionDoc, TradeDoc } from '@ereuna/shared';
 
 import { statsSnapshot } from '@/__tests__/support/fixtures.js';
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
+import type { Holdings } from '@/services/portfolio/portfolio-summary.js';
 
 const db: { current: DbStub } = { current: fakeDb() };
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 
 const state: {
-    portfolio: Record<string, unknown>;
+    portfolio: Record<string, unknown> | null;
     trades: Partial<WithId<TradeDoc>>[];
     closes: Map<string, number>;
     inception: Map<string, number | null>;
@@ -27,14 +28,22 @@ vi.mock('@/services/market/index.js', () => ({
 }));
 vi.mock('@/services/portfolio/portfolio-crud.js', () => ({
     getPortfolio: () => Promise.resolve(state.portfolio),
+    findPortfolio: () => Promise.resolve(state.portfolio),
 }));
 vi.mock('@/services/portfolio/portfolio-rebuild.js', () => ({
     readTrades: () => Promise.resolve(state.trades),
 }));
 
-const { exportPortfolio, getSummary } = await import('@/services/portfolio/portfolio-summary.js');
+const { exportPortfolio, findHoldings, getSummary, valuePortfolio } =
+    await import('@/services/portfolio/portfolio-summary.js');
 
 const USER_ID = new ObjectId('507f1f77bcf86cd799439011');
+
+const holdings = (positions: PositionDoc[], closes: [string, number][] = []): Holdings => ({
+    portfolio: { number: 0, cash: 1_000, baseValue: 10_000, leverage: 2 },
+    positions,
+    closes: new Map(closes),
+});
 
 function portfolio(overrides: Record<string, unknown> = {}): Record<string, unknown> {
     return {
@@ -98,7 +107,8 @@ describe('getSummary', () => {
 
         const summary = await getSummary(USER_ID, 0);
         expect(summary.positions[0]).toMatchObject({
-            lastClose: 120,
+            price: 120,
+            live: false,
             marketValue: 1_200,
             exposure: 1_200,
             unrealizedPL: 200,
@@ -124,7 +134,8 @@ describe('getSummary', () => {
 
         const summary = await getSummary(USER_ID, 0);
         expect(summary.positions[0]).toMatchObject({
-            lastClose: null,
+            price: null,
+            live: false,
             marketValue: null,
             exposure: null,
             unrealizedPL: null,
@@ -218,6 +229,57 @@ describe('getSummary', () => {
         const summary = await getSummary(USER_ID, 0);
         expect(summary.stats).toBe(stats);
         expect(summary.valueHistory).toEqual([{ date: '2026-01-01', value: 1 }]);
+    });
+});
+
+describe('valuePortfolio', () => {
+    it('marks a symbol at its live trade, and says so', () => {
+        const valuation = valuePortfolio(holdings([position()], [['AAPL', 120]]), new Map([['AAPL', 130]]));
+
+        expect(valuation.positions[0]).toMatchObject({ price: 130, live: true, marketValue: 1_300, unrealizedPL: 300 });
+    });
+
+    it('marks a symbol with no trade today at its latest close', () => {
+        const valuation = valuePortfolio(
+            holdings([position(), position({ symbol: 'MSFT' })], [['MSFT', 50]]),
+            new Map([['AAPL', 130]]),
+        );
+
+        expect(valuation.positions[1]).toMatchObject({ symbol: 'MSFT', price: 50, live: false, marketValue: 500 });
+    });
+
+    it('moves every total with the live price, the same way the summary makes them', () => {
+        const valuation = valuePortfolio(holdings([position()], [['AAPL', 120]]), new Map([['AAPL', 130]]));
+
+        expect(valuation).toMatchObject({
+            number: 0,
+            longValue: 1_300,
+            grossExposure: 1_300,
+            totalValue: 2_300,
+            unrealizedPL: 300,
+            buyingPower: 3_300,
+            totalPL: -7_700,
+            totalPLPercent: -77,
+        });
+        expect(valuation.positions[0]?.weight).toBe(100);
+    });
+});
+
+describe('findHoldings', () => {
+    it('answers null for a slot nobody has written to', async () => {
+        state.portfolio = null;
+
+        expect(await findHoldings(USER_ID, 3)).toBeNull();
+    });
+
+    it("carries the slot's positions with their latest closes", async () => {
+        db.current = fakeDb({ Positions: [position()] });
+        state.closes = new Map([['AAPL', 120]]);
+
+        const found = await findHoldings(USER_ID, 0);
+
+        expect(found?.positions.map((held) => held.symbol)).toEqual(['AAPL']);
+        expect(found?.closes.get('AAPL')).toBe(120);
     });
 });
 

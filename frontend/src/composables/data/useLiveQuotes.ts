@@ -3,10 +3,10 @@
  * change since the previous close, pushed as it moves.
  * The aggregator buckets each print into a 1-minute candle and publishes it,
  * and the API attaches the change, so a quote arrives ready to show. This
- * subscribes to the symbols a portfolio holds or a watchlist lists, over the
- * shared socket, and receives only the ones that changed. The server keeps one
- * quote subscription per socket, so one caller is mounted at a time: the
- * portfolio and the chart view's watchlist are separate pages.
+ * subscribes to the symbols a watchlist lists, over the shared socket, and
+ * receives only the ones that changed. The server keeps one quote subscription
+ * per socket, which holds while the watchlist is the one caller: the portfolio
+ * has its positions priced by the server instead (useLivePortfolio).
  * Quotes arrive as a partial map and are merged, never replaced: a message
  * carrying only the symbol that moved must not blank the twenty that did not.
  */

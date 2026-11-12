@@ -14,15 +14,17 @@
  * Server → Client:
  *     candle:update — { symbol, timeframe, candle } for each pair this socket watches.
  *     quote:update  — { quotes } a partial symbol→{ price, changePercent } map, only what moved.
+ *     portfolio:update — the watched portfolio's valuation, at most once a second while its symbols trade.
  * Client → Server:
  *     candle:watch — { pairs }. Replaces this socket's candle subscriptions.
  *     quote:watch  — { symbols }. Replaces this socket's quote subscriptions.
+ *     portfolio:watch — { number }. Replaces the portfolio this socket has priced live; null stops it.
  * Every push goes through `checkedPayload()`, which holds the payload to its
  * event's schema the way `send()` holds a REST answer to its route's: a payload
  * that does not fit is not sent, a field the schema does not declare is dropped,
  * and both are logged as errors. Every inbound payload is parsed with its
  * event's schema before anything reads it.
- * Both inbound events are client-controlled work, so they are rate limited per
+ * Every inbound event is client-controlled work, so they are rate limited per
  * user on top of the per-IP limit on the handshake itself.
  */
 import { type Server as HttpServer } from 'http';
@@ -51,6 +53,7 @@ import {
 } from '@ereuna/shared';
 
 import { readLastCandle, startMarketFeed, stopMarketFeed } from '@/gateway/market-feed.js';
+import { clearValuations, forgetValuation, repriceValuations, startValuation } from '@/gateway/portfolio-valuation.js';
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 import { consumeTokenBucket, type TokenBucketOptions } from '@/lib/token-bucket.js';
@@ -68,6 +71,7 @@ type FeedSocket = Socket<ClientToServerEvents, ServerToClientEvents, DefaultEven
 
 const candleWatchSchema = CLIENT_EVENTS['candle:watch'];
 const quoteWatchSchema = CLIENT_EVENTS['quote:watch'];
+const portfolioWatchSchema = CLIENT_EVENTS['portfolio:watch'];
 
 /**
  * Connection-time rate limit per client IP — 10 attempts burst, then one every
@@ -145,6 +149,8 @@ export async function initSocket(httpServer: HttpServer): Promise<void> {
         if (userId === undefined) return void socket.disconnect(true);
         socket.on('candle:watch', (payload: unknown) => void watchCandles(socket, userId, payload));
         socket.on('quote:watch', (payload: unknown) => void watchQuotes(socket, userId, payload));
+        socket.on('portfolio:watch', (payload: unknown) => void watchPortfolio(socket, userId, payload));
+        socket.on('disconnect', () => forgetValuation(socket.id));
     });
 
     await startMarketFeed(dispatch);
@@ -158,6 +164,7 @@ export async function closeSocket(): Promise<void> {
     }
     lastPrices.clear();
     references.clear();
+    clearValuations();
 }
 
 /** Fan one aggregated bucket into the rooms waiting for it. */
@@ -182,6 +189,7 @@ function dispatch(message: AggregateMessage): void {
     const quote = toLiveQuote(message.tickerID, message.close, Date.parse(message.timestamp));
     const quotes = checkedPayload('quote:update', { quotes: { [message.tickerID]: quote } });
     if (quotes !== undefined) io.to(quoteRoom(message.tickerID)).emit('quote:update', quotes);
+    repriceValuations(message.tickerID, message.close);
 }
 
 async function watchCandles(socket: FeedSocket, userId: string, payload: unknown): Promise<void> {
@@ -244,6 +252,16 @@ async function watchQuotes(socket: FeedSocket, userId: string, payload: unknown)
     if (Object.keys(quotes).length === 0) return;
     const update = checkedPayload('quote:update', { quotes });
     if (update !== undefined) socket.emit('quote:update', update);
+}
+
+async function watchPortfolio(socket: FeedSocket, userId: string, payload: unknown): Promise<void> {
+    const parsed = portfolioWatchSchema.safeParse(payload);
+    if (!parsed.success || !(await allowWatch(userId))) return;
+
+    await startValuation(socket.id, userId, parsed.data.number, (valuation) => {
+        const update = checkedPayload('portfolio:update', valuation);
+        if (update !== undefined) socket.emit('portfolio:update', update);
+    });
 }
 
 /**

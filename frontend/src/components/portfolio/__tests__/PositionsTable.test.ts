@@ -12,7 +12,8 @@ const position = (over: Partial<ValuedPosition> = {}): ValuedPosition => ({
     side: 'long',
     shares: 10,
     avgPrice: 100,
-    lastClose: 110,
+    price: 110,
+    live: false,
     marketValue: 1100,
     exposure: 1100,
     unrealizedPL: 100,
@@ -21,17 +22,8 @@ const position = (over: Partial<ValuedPosition> = {}): ValuedPosition => ({
     ...over,
 });
 
-/** The table only reads a live quote's price, so a test names prices alone. */
-const table = (positions: ValuedPosition[], prices: Record<string, number> = {}, cash = 5_000): VueWrapper =>
-    mount(PositionsTable, {
-        props: {
-            positions,
-            quotes: Object.fromEntries(
-                Object.entries(prices).map(([symbol, price]) => [symbol, { price, changePercent: null }]),
-            ),
-            cash,
-        },
-    });
+const table = (positions: ValuedPosition[], cash = 5_000): VueWrapper =>
+    mount(PositionsTable, { props: { positions, cash } });
 
 const cells = (wrapper: VueWrapper): string[] => wrapper.findAll('tbody td').map((node) => node.text());
 
@@ -46,40 +38,34 @@ describe('PositionsTable', () => {
         expect(wrapper.get('.positions-table__empty').text()).toBe(i18n.global.t('portfolio.noActivePositions'));
     });
 
-    it("keeps the server's own figures when no tick has arrived", () => {
-        const wrapper = table([position()]);
+    // The server prices every row, live or not: the browser computes no portfolio number
+    it('shows the figures the server sent, as they are', () => {
+        const wrapper = table([
+            position({ price: 120, marketValue: 1200, unrealizedPL: 200, unrealizedPLPercent: 20 }),
+        ]);
 
-        expect(cells(wrapper)[4]).toBe(formatCurrency(1100));
-        expect(cells(wrapper)[5]).toBe(formatCurrency(100));
-        expect(wrapper.find('.positions-table__live').exists()).toBe(false);
+        expect(cells(wrapper).slice(2, 7)).toEqual([
+            formatCurrency(100),
+            formatCurrency(120),
+            formatCurrency(1200),
+            formatCurrency(200),
+            formatPercent(20),
+        ]);
     });
 
-    it('revalues a long against the live price', () => {
-        const wrapper = table([position()], { AAPL: 120 });
-
-        expect(cells(wrapper)[4]).toBe(formatCurrency(1200));
-        expect(cells(wrapper)[5]).toBe(formatCurrency(200));
-        expect(cells(wrapper)[6]).toBe(formatPercent(20));
-        expect(wrapper.find('.positions-table__live').exists()).toBe(true);
-    });
-
-    it('profits a short as the price falls', () => {
-        const wrapper = table([position({ side: 'short' })], { AAPL: 80 });
-
-        expect(cells(wrapper)[5]).toBe(formatCurrency(200));
-        expect(cells(wrapper)[6]).toBe(formatPercent(20));
-    });
-
-    it('leaves the return blank rather than dividing by a cost of nothing', () => {
-        const wrapper = table([position({ avgPrice: 0 })], { AAPL: 120 });
-
-        expect(cells(wrapper)[6]).toBe('—');
+    it('marks a price the server took from the session in progress', () => {
+        expect(
+            table([position({ live: true })])
+                .find('.positions-table__live')
+                .exists(),
+        ).toBe(true);
+        expect(table([position()]).find('.positions-table__live').exists()).toBe(false);
     });
 
     it('dashes every figure the server could not price', () => {
         const wrapper = table([
             position({
-                lastClose: null,
+                price: null,
                 marketValue: null,
                 unrealizedPL: null,
                 unrealizedPLPercent: null,
@@ -100,23 +86,21 @@ describe('PositionsTable', () => {
     });
 
     it('colours a gain and a loss apart', () => {
-        const gain = table([position()], { AAPL: 120 });
-        const loss = table([position()], { AAPL: 80 });
+        const gain = table([position()]);
+        const loss = table([position({ unrealizedPL: -200, unrealizedPLPercent: -20 })]);
 
         expect(gain.findAll('tbody .positions-table__num')[4]?.classes()).toContain('positions-table__num--up');
         expect(loss.findAll('tbody .positions-table__num')[4]?.classes()).toContain('positions-table__num--down');
     });
 
     it('foots the table with cash, flagged when it is borrowed', () => {
-        expect(table([], {}, 5_000).get('tfoot .positions-table__num').text()).toBe(formatCurrency(5_000));
-        expect(table([], {}, -5_000).get('tfoot .positions-table__num').classes()).toContain(
-            'positions-table__num--down',
-        );
+        expect(table([], 5_000).get('tfoot .positions-table__num').text()).toBe(formatCurrency(5_000));
+        expect(table([], -5_000).get('tfoot .positions-table__num').classes()).toContain('positions-table__num--down');
     });
 
     it('asks to close the position it was told to, not a copy of the row', async () => {
         const held = position();
-        const wrapper = table([held], { AAPL: 120 });
+        const wrapper = table([held]);
 
         await wrapper.get('tbody .btn').trigger('click');
 

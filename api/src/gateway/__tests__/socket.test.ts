@@ -1,12 +1,14 @@
 import { createServer, type Server as HttpServer } from 'node:http';
 
 import jwt from 'jsonwebtoken';
+import { ObjectId } from 'mongodb';
 import { io as connect, type Socket as ClientSocket } from 'socket.io-client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { QUOTE_TIMEFRAME, type AggregateMessage } from '@ereuna/shared';
+import { QUOTE_TIMEFRAME, type AggregateMessage, type PositionDoc } from '@ereuna/shared';
 
 import { portOf } from '@/__tests__/support/port.js';
+import type { Holdings } from '@/services/portfolio/index.js';
 
 type Sink = (message: AggregateMessage) => void;
 
@@ -41,6 +43,19 @@ vi.mock('@/services/market/index.js', async (importOriginal) => ({
         return Promise.resolve(new Map([...closes.bySymbol].filter(([symbol]) => symbols.includes(symbol))));
     },
 }));
+const portfolios: { held: Holdings | null; reads: { userId: string; number: number }[]; fail: boolean } = {
+    held: null,
+    reads: [],
+    fail: false,
+};
+vi.mock('@/services/portfolio/index.js', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@/services/portfolio/index.js')>()),
+    findHoldings: (userId: ObjectId, number: number) => {
+        portfolios.reads.push({ userId: userId.toHexString(), number });
+        if (portfolios.fail) return Promise.reject(new Error('not primary'));
+        return Promise.resolve(portfolios.held);
+    },
+}));
 const buckets: { allowed: boolean; keys: string[] } = { allowed: true, keys: [] };
 
 vi.mock('@/lib/token-bucket.js', () => ({
@@ -59,7 +74,9 @@ let url: string;
 
 const clients: ClientSocket[] = [];
 
-const token = (userId = '507f1f77bcf86cd799439011'): string =>
+const USER = '507f1f77bcf86cd799439011';
+
+const token = (userId = USER): string =>
     jwt.sign({ sub: userId }, config.jwt.secret, { algorithm: 'HS256', expiresIn: '15m' });
 const message = (over: Partial<AggregateMessage> = {}): AggregateMessage => ({
     tickerID: 'AAPL',
@@ -81,6 +98,27 @@ vi.mock('@/lib/logger.js', () => ({
         error: (_ctx: unknown, message: string) => logs.push(message),
     },
 }));
+
+const held = (symbol: string, over: Partial<PositionDoc> = {}): PositionDoc => ({
+    userId: new ObjectId(USER),
+    portfolioNumber: 2,
+    symbol,
+    side: 'long',
+    shares: 10,
+    avgPrice: 100,
+    updatedAt: new Date('2026-03-01T00:00:00.000Z'),
+    ...over,
+});
+
+/** AAPL and MSFT held in slot 2, both closing yesterday at 150. */
+const holdings = (): Holdings => ({
+    portfolio: { number: 2, cash: 1_000, baseValue: 0, leverage: 1 },
+    positions: [held('AAPL'), held('MSFT')],
+    closes: new Map([
+        ['AAPL', 150],
+        ['MSFT', 150],
+    ]),
+});
 
 /** Open a client and wait for it to connect, or for the server to refuse it. */
 async function client(options: Parameters<typeof connect>[1] = {}): Promise<ClientSocket> {
@@ -115,6 +153,9 @@ beforeEach(async () => {
     feed.sink = null;
     feed.last = new Map();
     feed.stopped = 0;
+    portfolios.held = holdings();
+    portfolios.reads = [];
+    portfolios.fail = false;
     buckets.allowed = true;
     buckets.keys = [];
     logs.length = 0;
@@ -488,5 +529,107 @@ describe('closeSocket', () => {
         await closeSocket();
 
         expect(() => sink?.(message())).not.toThrow();
+    });
+});
+
+describe('portfolio:watch', () => {
+    type Pushed = { number: number; totalValue: number; positions: { symbol: string; price: number; live: boolean }[] };
+
+    it("answers at once with the socket owner's slot, priced at today's trades where there are any", async () => {
+        feed.last.set('AAPL:1m', message({ close: 180 }));
+        const socket = await client();
+        socket.emit('portfolio:watch', { number: 2 });
+
+        const update = await next<Pushed>(socket, 'portfolio:update');
+
+        expect(portfolios.reads).toEqual([{ userId: USER, number: 2 }]);
+        expect(update?.number).toBe(2);
+        expect(update?.positions).toMatchObject([
+            { symbol: 'AAPL', price: 180, live: true },
+            { symbol: 'MSFT', price: 150, live: false },
+        ]);
+        expect(update?.totalValue).toBe(1_000 + 1_800 + 1_500);
+    });
+
+    it('prices a symbol whose newest bucket is from an earlier session at its close', async () => {
+        feed.last.set('AAPL:1m', message({ close: 999, timestamp: '2026-02-27T20:59:00.000Z' }));
+        const socket = await client();
+        socket.emit('portfolio:watch', { number: 2 });
+
+        const update = await next<Pushed>(socket, 'portfolio:update');
+
+        expect(update?.positions[0]).toMatchObject({ symbol: 'AAPL', price: 150, live: false });
+    });
+
+    it('re-prices on a trade in a held symbol, one push for every trade in the second', async () => {
+        const socket = await client();
+        socket.emit('portfolio:watch', { number: 2 });
+        await next(socket, 'portfolio:update');
+
+        feed.sink?.(message({ close: 160 }));
+        feed.sink?.(message({ tickerID: 'MSFT', close: 170 }));
+        const update = await next<Pushed>(socket, 'portfolio:update', 1_500);
+
+        expect(update?.positions).toMatchObject([
+            { symbol: 'AAPL', price: 160, live: true },
+            { symbol: 'MSFT', price: 170, live: true },
+        ]);
+        expect(await next(socket, 'portfolio:update', 1_200)).toBeNull();
+    });
+
+    it('stays quiet for a trade in a symbol the slot does not hold', async () => {
+        const socket = await client();
+        socket.emit('portfolio:watch', { number: 2 });
+        await next(socket, 'portfolio:update');
+
+        feed.sink?.(message({ tickerID: 'NVDA', close: 900 }));
+
+        expect(await next(socket, 'portfolio:update', 1_200)).toBeNull();
+    });
+
+    it('stops when asked to watch nothing', async () => {
+        const socket = await client();
+        socket.emit('portfolio:watch', { number: 2 });
+        await next(socket, 'portfolio:update');
+        socket.emit('portfolio:watch', { number: null });
+        await next(socket, 'portfolio:update', 50);
+
+        feed.sink?.(message({ close: 160 }));
+
+        expect(await next(socket, 'portfolio:update', 1_200)).toBeNull();
+    });
+
+    it('pushes nothing for a slot nobody has written to', async () => {
+        portfolios.held = null;
+        const socket = await client();
+        socket.emit('portfolio:watch', { number: 5 });
+
+        expect(await next(socket, 'portfolio:update')).toBeNull();
+    });
+
+    it('refuses a slot that does not exist', async () => {
+        const socket = await client();
+        socket.emit('portfolio:watch', { number: 10 });
+
+        expect(await next(socket, 'portfolio:update')).toBeNull();
+        expect(portfolios.reads).toEqual([]);
+    });
+
+    it('logs a failed read and pushes nothing, so the page keeps its summary', async () => {
+        portfolios.fail = true;
+        const socket = await client();
+        socket.emit('portfolio:watch', { number: 2 });
+
+        expect(await next(socket, 'portfolio:update')).toBeNull();
+        expect(logs).toContain('Portfolio valuation read failed; the page keeps its summary');
+    });
+
+    it('rate limits it like any other subscription change', async () => {
+        buckets.allowed = false;
+        const socket = await client();
+        socket.emit('portfolio:watch', { number: 2 });
+
+        expect(await next(socket, 'portfolio:update')).toBeNull();
+        expect(portfolios.reads).toEqual([]);
     });
 });
