@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_SCREENER_COLUMNS, SCREENER_COLUMNS, toResultColumns } from '#responses/screener.js';
+import { SCREENER_COLUMNS, toResultColumns } from '#responses/screener.js';
+
+const DEFAULTS = ['TimeSeries.close', 'MarketCapitalization', 'PERatio', 'todaychange', 'AvgVolume1M'];
 
 describe('toResultColumns', () => {
     it('gives an account that chose nothing the defaults', () => {
-        expect(toResultColumns([])).toEqual(DEFAULT_SCREENER_COLUMNS);
+        expect(toResultColumns([])).toEqual(DEFAULTS);
     });
 
     it('keeps the columns the account chose, in its order, dropping any the registry no longer knows', () => {
@@ -12,10 +14,10 @@ describe('toResultColumns', () => {
     });
 
     it('falls back to the defaults when nothing the account chose is still known', () => {
-        expect(toResultColumns(['Retired'])).toEqual(DEFAULT_SCREENER_COLUMNS);
+        expect(toResultColumns(['Retired'])).toEqual(DEFAULTS);
     });
 
     it('defaults only to columns the API can project', () => {
-        for (const column of DEFAULT_SCREENER_COLUMNS) expect(SCREENER_COLUMNS).toContain(column);
+        for (const column of toResultColumns([])) expect(SCREENER_COLUMNS).toContain(column);
     });
 });

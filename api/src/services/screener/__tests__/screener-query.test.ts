@@ -10,7 +10,7 @@ import { ObjectId } from 'mongodb';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ZodType } from 'zod';
 
-import { DEFAULT_SCREENER_COLUMNS, isRecord } from '@ereuna/shared';
+import { isRecord } from '@ereuna/shared';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 import { at, listAt, recordAt } from '@/__tests__/support/values.js';
@@ -210,7 +210,9 @@ describe('runHiddenSymbols', () => {
     it('projects the default columns for an account that chose none', async () => {
         await runHiddenSymbols(USER_ID, { page: 1, limit: 10, hiddenSymbols: ['AAPL'], columns: [] });
 
-        for (const column of DEFAULT_SCREENER_COLUMNS) expect(projectStage()).toHaveProperty([column], 1);
+        for (const column of ['TimeSeries.close', 'MarketCapitalization', 'PERatio', 'todaychange', 'AvgVolume1M']) {
+            expect(projectStage()).toHaveProperty([column], 1);
+        }
     });
 
     // `quarterlyFinancials.0.assetsCurrent` as a projection path selects a field

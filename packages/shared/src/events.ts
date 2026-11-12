@@ -43,12 +43,6 @@ const liveQuoteSchema = z.object({
 
 export type LiveQuote = z.output<typeof liveQuoteSchema>;
 
-/**
- * The most charts one connection may have live at once. A page charts at most
- * two (the screener's daily over weekly); the rest is headroom, not a feature.
- */
-const MAX_LIVE_CHARTS = 4;
-
 const candlePairSchema = z.object({ symbol: symbolField, timeframe: z.enum(CHART_TIMEFRAMES) });
 
 /** One chart's live subscription, as a client asks for it. */
@@ -69,6 +63,12 @@ export type ServerToClientEvents = { [TEvent in ServerEvent]: (payload: EventPay
 
 /** Socket.IO's typed-events map for what a client sends. */
 export type ClientToServerEvents = { [TEvent in ClientEvent]: (payload: ClientPayload<TEvent>) => void };
+
+/**
+ * The most charts one connection may have live at once. A page charts at most
+ * two (the screener's daily over weekly); the rest is headroom, not a feature.
+ */
+const MAX_LIVE_CHARTS = 4;
 
 export const SERVER_EVENTS = {
     /** The bucket this socket watches, each time a trade moves it. */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { ALL_FILTER_KEYS, DEFAULT_SCREENER_COLUMNS, ENUM_FILTERS, MA_FILTERS, RANGE_FILTERS } from '@ereuna/shared';
+import { ALL_FILTER_KEYS, ENUM_FILTERS, MA_FILTERS, RANGE_FILTERS, toResultColumns } from '@ereuna/shared';
 
 import { screenerResult } from '@/__tests__/support/answers';
 import { COLUMNS, FILTER_GROUPS, filterGroup, findColumn, readColumn } from '@/constants/screener';
@@ -50,7 +50,7 @@ describe('COLUMNS', () => {
     });
 
     it('can render every column a result page carries by default', () => {
-        for (const path of DEFAULT_SCREENER_COLUMNS) expect(COLUMNS.some((column) => column.path === path)).toBe(true);
+        for (const path of toResultColumns([])) expect(COLUMNS.some((column) => column.path === path)).toBe(true);
     });
 });
 

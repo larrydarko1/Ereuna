@@ -86,15 +86,6 @@ export const SCREENER_COLUMNS = [
     ...MA_FILTERS.map((f) => f.path),
 ];
 
-/** What a result table shows an account that has not chosen columns of its own. */
-export const DEFAULT_SCREENER_COLUMNS: readonly ScreenerColumn[] = [
-    'TimeSeries.close',
-    'MarketCapitalization',
-    'PERatio',
-    'todaychange',
-    'AvgVolume1M',
-];
-
 /** One matching asset, with the user's chosen columns keyed by their AssetInfo path. */
 const screenerResultSchema = z.object({
     symbol: z.string(),
@@ -113,6 +104,15 @@ export const screenerResultPageSchema = z.object({
     page: z.number().int().positive(),
     pages: z.number().int().nonnegative(),
 });
+
+/** What a result table shows an account that has not chosen columns of its own. */
+const DEFAULT_SCREENER_COLUMNS: readonly ScreenerColumn[] = [
+    'TimeSeries.close',
+    'MarketCapitalization',
+    'PERatio',
+    'todaychange',
+    'AvgVolume1M',
+];
 
 /**
  * The columns a result page carries: the account's own that the registry still

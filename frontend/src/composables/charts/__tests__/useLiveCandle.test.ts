@@ -10,6 +10,9 @@ import { useLiveCandle, type UseLiveCandleReturn } from '@/composables/charts/us
 // so the support module cannot be referenced from the outer scope here.
 vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());
 
+/** Scopes still running, stopped after each test: the set of pairs is the tab's, and outlives a test that leaves one open. */
+const running: (() => void)[] = [];
+
 const candle = (close: number): Record<string, unknown> => ({
     time: '2026-03-02',
     open: close,
@@ -19,9 +22,6 @@ const candle = (close: number): Record<string, unknown> => ({
     volume: 1,
     final: false,
 });
-
-/** Scopes still running, stopped after each test: the set of pairs is the tab's, and outlives a test that leaves one open. */
-const running: (() => void)[] = [];
 
 function inScope(
     key: () => CandlePair,

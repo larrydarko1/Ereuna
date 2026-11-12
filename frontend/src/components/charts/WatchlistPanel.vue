@@ -28,6 +28,9 @@ const { symbol = '' } = defineProps<{ symbol?: string }>();
 
 const emit = defineEmits<{ select: [symbol: string] }>();
 
+// Keyed by ticker: a v-for ref array keeps a row a list switch reused in its old slot, not where the screen puts it
+const rowButtons = new Map<string, HTMLButtonElement>();
+
 const { t } = useI18n();
 const {
     lists,
@@ -54,8 +57,6 @@ const busy = ref(false);
 const error = ref<string | null>(null);
 const notice = ref<string | null>(null);
 const fileInput = useTemplateRef<HTMLInputElement>('fileInput');
-// Keyed by ticker: a v-for ref array keeps a row a list switch reused in its old slot, not where the screen puts it
-const rowButtons = new Map<string, HTMLButtonElement>();
 
 const tickers = computed(() => rows.value.map((row) => row.ticker));
 

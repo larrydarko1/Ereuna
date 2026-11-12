@@ -1,7 +1,7 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { DEFAULT_SCREENER_COLUMNS, type ScreenerResultPage, type ScreenerSummary } from '@ereuna/shared';
+import type { ScreenerResultPage, ScreenerSummary } from '@ereuna/shared';
 
 import { preferences, screenerResult, screenerSummary } from '@/__tests__/support/answers';
 import { assetProfile } from '@/__tests__/support/assets';
@@ -12,6 +12,9 @@ import { i18n } from '@/i18n';
 import Screener from '@/views/Screener.vue';
 
 vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());
+
+/** Price, market cap, P/E, today's change and average volume: every default is a figure. */
+const DEFAULT_COLUMN_COUNT = 5;
 
 /**
  * The price chart is stubbed: it drives the vendored canvas library, which has
@@ -123,7 +126,7 @@ describe('Screener', () => {
     it('shows the default columns until the account has chosen its own', async () => {
         const wrapper = await view();
 
-        expect(wrapper.findAll('.results-table__th--figure')).toHaveLength(DEFAULT_SCREENER_COLUMNS.length);
+        expect(wrapper.findAll('.results-table__th--figure')).toHaveLength(DEFAULT_COLUMN_COUNT);
     });
 
     it('ignores a stored column the catalogue no longer knows', async () => {
@@ -131,7 +134,7 @@ describe('Screener', () => {
 
         const wrapper = await view();
 
-        expect(wrapper.findAll('.results-table__th--figure')).toHaveLength(DEFAULT_SCREENER_COLUMNS.length);
+        expect(wrapper.findAll('.results-table__th--figure')).toHaveLength(DEFAULT_COLUMN_COUNT);
     });
 
     it('switches to the combined results, which come from their own route', async () => {
@@ -156,7 +159,7 @@ describe('Screener', () => {
 
         expect(api.calls.some((call) => call.path === '/api/screeners/hidden/results')).toBe(true);
         expect(wrapper.findAll('.results-table__row')).toHaveLength(1);
-        expect(wrapper.findAll('.results-table__th--figure')).toHaveLength(DEFAULT_SCREENER_COLUMNS.length);
+        expect(wrapper.findAll('.results-table__th--figure')).toHaveLength(DEFAULT_COLUMN_COUNT);
     });
 
     it('says the list is empty rather than drawing an empty table', async () => {
