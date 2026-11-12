@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import type { Quote } from '@ereuna/shared';
+import { LIMITS, type Quote } from '@ereuna/shared';
 
 import { apiErrorMessage } from '@/api/client';
 import IconArrowDown from '@/components/icons/IconArrowDown.vue';
@@ -27,9 +27,6 @@ type DisplayRow = {
 const { symbol = '' } = defineProps<{ symbol?: string }>();
 
 const emit = defineEmits<{ select: [symbol: string] }>();
-
-/** The API's per-list ceiling, so a file with more is refused before any write. */
-const MAX_IMPORT = 100;
 
 const { t } = useI18n();
 const {
@@ -144,8 +141,9 @@ async function importFile(event: Event): Promise<void> {
         error.value = t('watchlist.noSymbolsInFile');
         return;
     }
-    if (symbols.length > MAX_IMPORT) {
-        error.value = t('watchlist.tooManySymbols', { max: MAX_IMPORT });
+    // A file the list could never hold is refused before the first of its writes
+    if (symbols.length > LIMITS.tickersPerWatchlist) {
+        error.value = t('watchlist.tooManySymbols', { max: LIMITS.tickersPerWatchlist });
         return;
     }
 

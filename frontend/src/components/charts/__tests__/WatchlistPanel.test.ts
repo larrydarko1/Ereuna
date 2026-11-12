@@ -1,7 +1,7 @@
 import { enableAutoUnmount, flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { WatchlistSummary } from '@ereuna/shared';
+import { LIMITS, type WatchlistSummary } from '@ereuna/shared';
 
 import { watchlistRow as row, watchlistSummary } from '@/__tests__/support/answers';
 import { elementOf, query } from '@/__tests__/support/dom';
@@ -419,10 +419,15 @@ describe('WatchlistPanel', () => {
         seed([]);
         const wrapper = await panel();
 
-        await chooseFile(wrapper, Array.from({ length: 101 }, (_, index) => `SYM${index}`).join('\n'));
+        await chooseFile(
+            wrapper,
+            Array.from({ length: LIMITS.tickersPerWatchlist + 1 }, (_, index) => `SYM${index}`).join('\n'),
+        );
 
         expect(api.calls.some((call) => call.method === 'POST')).toBe(false);
-        expect(wrapper.get('[role="alert"]').text()).toBe(i18n.global.t('watchlist.tooManySymbols', { max: 100 }));
+        expect(wrapper.get('[role="alert"]').text()).toBe(
+            i18n.global.t('watchlist.tooManySymbols', { max: LIMITS.tickersPerWatchlist }),
+        );
     });
 
     it('exports the open list as one symbol per line', async () => {
