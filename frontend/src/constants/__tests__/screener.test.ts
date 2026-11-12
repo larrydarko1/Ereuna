@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { ALL_FILTER_KEYS, ENUM_FILTERS, MA_FILTERS, RANGE_FILTERS } from '@ereuna/shared';
+import { ALL_FILTER_KEYS, DEFAULT_SCREENER_COLUMNS, ENUM_FILTERS, MA_FILTERS, RANGE_FILTERS } from '@ereuna/shared';
 
 import { screenerResult } from '@/__tests__/support/answers';
-import { COLUMNS, DEFAULT_COLUMNS, FILTER_GROUPS, filterGroup, findColumn, readColumn } from '@/constants/screener';
+import { COLUMNS, FILTER_GROUPS, filterGroup, findColumn, readColumn } from '@/constants/screener';
 
 describe('filterGroup', () => {
     it('gives every filter the API serves a heading of its own', () => {
@@ -49,8 +49,8 @@ describe('COLUMNS', () => {
         expect(findColumn('NoSuchPath')).toBeNull();
     });
 
-    it('offers a default set that every column in it can actually render', () => {
-        for (const path of DEFAULT_COLUMNS) expect(COLUMNS.some((column) => column.path === path)).toBe(true);
+    it('can render every column a result page carries by default', () => {
+        for (const path of DEFAULT_SCREENER_COLUMNS) expect(COLUMNS.some((column) => column.path === path)).toBe(true);
     });
 });
 

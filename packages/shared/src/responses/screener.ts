@@ -5,6 +5,7 @@
  */
 import { z } from 'zod';
 
+import { isOneOf } from '#guards.js';
 import { ENUM_FILTERS, MA_DIRECTIONS, MA_FILTERS, MA_TARGETS, RANGE_FILTERS } from '#screener/filters.js';
 
 /** One row of GET /screeners, and POST /screeners (201) and PATCH /screeners/:name. */
@@ -85,6 +86,15 @@ export const SCREENER_COLUMNS = [
     ...MA_FILTERS.map((f) => f.path),
 ];
 
+/** What a result table shows an account that has not chosen columns of its own. */
+export const DEFAULT_SCREENER_COLUMNS: readonly ScreenerColumn[] = [
+    'TimeSeries.close',
+    'MarketCapitalization',
+    'PERatio',
+    'todaychange',
+    'AvgVolume1M',
+];
+
 /** One matching asset, with the user's chosen columns keyed by their AssetInfo path. */
 const screenerResultSchema = z.object({
     symbol: z.string(),
@@ -103,3 +113,13 @@ export const screenerResultPageSchema = z.object({
     page: z.number().int().positive(),
     pages: z.number().int().nonnegative(),
 });
+
+/**
+ * The columns a result page carries: the account's own that the registry still
+ * knows, in its order, or the defaults when none are left. The API projects
+ * these and the table heads them, so both must read the same list.
+ */
+export function toResultColumns(stored: readonly string[]): ScreenerColumn[] {
+    const known = stored.filter((column) => isOneOf(SCREENER_COLUMNS, column));
+    return known.length > 0 ? known : [...DEFAULT_SCREENER_COLUMNS];
+}

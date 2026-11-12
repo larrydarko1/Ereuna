@@ -208,15 +208,6 @@ export const COLUMNS: readonly ColumnSpec[] = [
     ...MA_FILTERS.map((spec) => ({ path: spec.path, filterKey: spec.key, format: 'number' as const })),
 ];
 
-/** Shown when a user has never chosen columns of their own. */
-export const DEFAULT_COLUMNS: readonly string[] = [
-    'TimeSeries.close',
-    'MarketCapitalization',
-    'PERatio',
-    'todaychange',
-    'AvgVolume1M',
-];
-
 const COLUMN_BY_PATH = new Map(COLUMNS.map((column) => [column.path, column]));
 
 /**

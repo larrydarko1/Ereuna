@@ -16,7 +16,7 @@ import {
     MA_FILTERS,
     numeric,
     RANGE_FILTERS,
-    SCREENER_COLUMNS,
+    toResultColumns,
     screenerResultPageSchema,
     type AssetInfoDoc,
     type ScreenerColumn,
@@ -184,7 +184,7 @@ async function executeCombined(
     options: { page: number; limit: number; columns: string[]; hiddenSymbols: string[] },
 ): Promise<ScreenerResultPage> {
     const { page, limit, hiddenSymbols } = options;
-    const columns = selectedColumns(options.columns);
+    const columns = toResultColumns(options.columns);
     const projection = buildProjection(columns);
 
     const branch = (screener: WithId<ScreenerDoc>): Document[] => [
@@ -237,7 +237,7 @@ async function executeQuery(
     options: { page: number; limit: number; columns: string[] },
 ): Promise<ScreenerResultPage> {
     const { page, limit } = options;
-    const columns = selectedColumns(options.columns);
+    const columns = toResultColumns(options.columns);
     const assets = getDb().collection<AssetInfoDoc>('AssetInfo');
     const projection = buildProjection(columns);
 
@@ -265,11 +265,6 @@ async function executeQuery(
         page,
         pages: Math.ceil(total / limit),
     };
-}
-
-/** The user's columns that the registry knows, in their order: a preference naming anything else is ignored. */
-function selectedColumns(columns: readonly string[]): ScreenerColumn[] {
-    return columns.filter((column): column is ScreenerColumn => isOneOf(SCREENER_COLUMNS, column));
 }
 
 function buildProjection(columns: readonly ScreenerColumn[]): Record<string, unknown> {
