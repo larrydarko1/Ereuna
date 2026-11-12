@@ -54,7 +54,8 @@ const busy = ref(false);
 const error = ref<string | null>(null);
 const notice = ref<string | null>(null);
 const fileInput = useTemplateRef<HTMLInputElement>('fileInput');
-const rowButtons = useTemplateRef<HTMLButtonElement[]>('rowButtons');
+// Keyed by ticker: a v-for ref array keeps a row a list switch reused in its old slot, not where the screen puts it
+const rowButtons = new Map<string, HTMLButtonElement>();
 
 const tickers = computed(() => rows.value.map((row) => row.ticker));
 
@@ -170,17 +171,21 @@ function exportList(): void {
     URL.revokeObjectURL(url);
 }
 
-function onKeydown(event: KeyboardEvent): void {
+/** Moves from the row the key was pressed on, which the chart's symbol need not be in. */
+function onKeydown(event: KeyboardEvent, index: number): void {
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
 
-    const index = tickers.value.indexOf(symbol);
-    const next = event.key === 'ArrowDown' ? index + 1 : index - 1;
-    const target = tickers.value[next];
+    const target = tickers.value[event.key === 'ArrowDown' ? index + 1 : index - 1];
     if (target === undefined) return;
 
     event.preventDefault();
     emit('select', target);
-    rowButtons.value?.[next]?.focus();
+    rowButtons.get(target)?.focus();
+}
+
+function bindRowButton(ticker: string, element: unknown): void {
+    if (element instanceof HTMLButtonElement) rowButtons.set(ticker, element);
+    else rowButtons.delete(ticker);
 }
 
 function changeTone(value: number | null): string {
@@ -328,12 +333,12 @@ watch(
                 class="watchlist__row"
                 :class="{ 'watchlist__row--active': row.ticker === symbol }">
                 <button
-                    ref="rowButtons"
+                    :ref="(element) => bindRowButton(row.ticker, element)"
                     type="button"
                     class="watchlist__symbol"
                     :aria-current="row.ticker === symbol"
                     @click="emit('select', row.ticker)"
-                    @keydown="onKeydown">
+                    @keydown="onKeydown($event, index)">
                     <span class="watchlist__ticker">{{ row.ticker }}</span>
                     <span class="watchlist__price">
                         {{ row.price === null ? '—' : formatNumber(row.price, 2) }}

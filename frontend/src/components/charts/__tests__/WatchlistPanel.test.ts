@@ -495,6 +495,33 @@ describe('WatchlistPanel', () => {
         wrapper.unmount();
     });
 
+    // A row both lists hold is kept across the switch, so it no longer sits
+    // where the screen puts it among the rows mounted around it
+    it('focuses the row it selected after switching away and back', async () => {
+        seed(['AAPL', 'MSFT', 'NVDA']);
+        api.on('GET /api/watchlists/Energy', { name: 'Energy', rows: [row('NVDA')] });
+        const wrapper = await panel({ symbol: 'AAPL' });
+        await wrapper.get('select').setValue('Energy');
+        await flushPromises();
+        await wrapper.get('select').setValue('Tech');
+        await flushPromises();
+
+        await wrapper.findAll('.watchlist__symbol')[0]?.trigger('keydown', { key: 'ArrowDown' });
+
+        expect(wrapper.emitted('select')?.at(-1)).toEqual(['MSFT']);
+        expect(document.activeElement?.textContent).toContain('MSFT');
+    });
+
+    it('moves from the row the key was pressed on when the chart is on a symbol from another list', async () => {
+        seed(['AAPL', 'MSFT', 'NVDA']);
+        const wrapper = await panel({ symbol: 'XOM' });
+
+        await wrapper.findAll('.watchlist__symbol')[1]?.trigger('keydown', { key: 'ArrowDown' });
+
+        expect(wrapper.emitted('select')?.at(-1)).toEqual(['NVDA']);
+        expect(document.activeElement?.textContent).toContain('NVDA');
+    });
+
     it('reports a failed read rather than an empty panel', async () => {
         api.on('GET /api/watchlists', { error: 'INTERNAL' }, { status: 500 });
 
