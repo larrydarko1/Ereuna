@@ -60,9 +60,11 @@ export const CLIENT_EVENTS = {
     /** Replaces this socket's candle subscription. */
     'candle:watch': z.object({ symbol: symbolField, timeframe: z.enum(CHART_TIMEFRAMES) }),
     /**
-     * Replaces this socket's quote subscriptions. Capped at what one portfolio
-     * can hold: the caller is a positions table, and silently truncating its
-     * list would leave rows that never tick.
+     * Replaces this socket's quote subscriptions. Capped at the larger of what
+     * one portfolio or one watchlist can hold: the caller is a positions table
+     * or a watchlist, and refusing its list would leave every row still.
      */
-    'quote:watch': z.object({ symbols: z.array(symbolField).max(LIMITS.positionsPerPortfolio) }),
+    'quote:watch': z.object({
+        symbols: z.array(symbolField).max(Math.max(LIMITS.positionsPerPortfolio, LIMITS.tickersPerWatchlist)),
+    }),
 } as const;

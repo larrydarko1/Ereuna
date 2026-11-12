@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, useTemplateRef } from 'vue';
+import { computed, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+
+import type { Quote } from '@ereuna/shared';
 
 import { apiErrorMessage } from '@/api/client';
 import IconArrowDown from '@/components/icons/IconArrowDown.vue';
@@ -8,11 +10,19 @@ import IconArrowUp from '@/components/icons/IconArrowUp.vue';
 import IconClose from '@/components/icons/IconClose.vue';
 import AppDialog from '@/components/ui/AppDialog.vue';
 import PromptDialog from '@/components/ui/PromptDialog.vue';
+import { useMarketStatus } from '@/composables/charts/useMarketStatus';
 import { useWatchlists } from '@/composables/charts/useWatchlists';
+import { useLiveQuotes } from '@/composables/data/useLiveQuotes';
 import { targetOf } from '@/utils/dom';
 import { formatNumber, formatPercent } from '@/utils/formatters';
 
 type Prompt = 'create' | 'rename' | null;
+
+type DisplayRow = {
+    ticker: string;
+    price: number | null;
+    changePercent: number | null;
+};
 
 const { symbol = '' } = defineProps<{ symbol?: string }>();
 
@@ -35,6 +45,7 @@ const {
     remove,
     addTicker,
     addTickers,
+    refresh,
     removeTicker,
     reorderTickers,
 } = useWatchlists();
@@ -49,6 +60,18 @@ const fileInput = useTemplateRef<HTMLInputElement>('fileInput');
 const rowButtons = useTemplateRef<HTMLButtonElement[]>('rowButtons');
 
 const tickers = computed(() => rows.value.map((row) => row.ticker));
+
+// The chart's and the portfolio's gate: the feed carries stocks only, and
+// outside the session the stored close is the price.
+const market = useMarketStatus(() => false);
+const { quotes } = useLiveQuotes(
+    () => tickers.value,
+    () => market.status.value === 'open' && tickers.value.length > 0,
+);
+
+const displayRows = computed<DisplayRow[]>(() =>
+    rows.value.map((row) => toDisplayRow(row.ticker, row.quote, quotes.value[row.ticker])),
+);
 
 /** Every write goes through here, so one place reports failure and clears it. */
 async function run(action: () => Promise<void>): Promise<void> {
@@ -156,6 +179,19 @@ function onKeydown(event: KeyboardEvent): void {
     rowButtons.value?.[next]?.focus();
 }
 
+function toDisplayRow(
+    ticker: string,
+    quote: Pick<Quote, 'close' | 'changePercent'> | null,
+    live: number | undefined,
+): DisplayRow {
+    if (live === undefined) return { ticker, price: quote?.close ?? null, changePercent: quote?.changePercent ?? null };
+
+    // The feed only runs during the session, and the newest stored bar is then
+    // the previous session's: the aggregator writes today's at the closing bell.
+    const base = quote?.close ?? 0;
+    return { ticker, price: live, changePercent: base > 0 ? ((live - base) / base) * 100 : null };
+}
+
 function changeTone(value: number | null): string {
     if (value === null || value === 0) return '';
     return value > 0 ? 'watchlist__change--up' : 'watchlist__change--down';
@@ -164,6 +200,15 @@ function changeTone(value: number | null): string {
 onMounted(() => {
     void run(() => load());
 });
+
+// A tab left open overnight holds rows read before the last bell, so their
+// close is two sessions old by the next open
+watch(
+    () => market.status.value,
+    (status) => {
+        if (status === 'open') void run(refresh);
+    },
+);
 </script>
 
 <template>
@@ -287,7 +332,7 @@ onMounted(() => {
             v-else
             class="watchlist__rows">
             <li
-                v-for="(row, index) in rows"
+                v-for="(row, index) in displayRows"
                 :key="row.ticker"
                 class="watchlist__row"
                 :class="{ 'watchlist__row--active': row.ticker === symbol }">
@@ -300,12 +345,12 @@ onMounted(() => {
                     @keydown="onKeydown">
                     <span class="watchlist__ticker">{{ row.ticker }}</span>
                     <span class="watchlist__price">
-                        {{ row.quote === null ? '—' : formatNumber(row.quote.close, 2) }}
+                        {{ row.price === null ? '—' : formatNumber(row.price, 2) }}
                     </span>
                     <span
                         class="watchlist__change"
-                        :class="changeTone(row.quote?.changePercent ?? null)">
-                        {{ row.quote?.changePercent == null ? '' : formatPercent(row.quote.changePercent) }}
+                        :class="changeTone(row.changePercent)">
+                        {{ row.changePercent === null ? '' : formatPercent(row.changePercent) }}
                     </span>
                 </button>
 

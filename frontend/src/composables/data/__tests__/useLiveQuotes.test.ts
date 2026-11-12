@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { effectScope, nextTick, ref } from 'vue';
 
 import { socket } from '@/__tests__/support/socket';
-import { useLiveQuotes, type UseLiveQuotesReturn } from '@/composables/portfolio/useLiveQuotes';
+import { useLiveQuotes, type UseLiveQuotesReturn } from '@/composables/data/useLiveQuotes';
 
 // Imported inside the factory: `vi.mock` is hoisted above this file's imports,
 // so the support module cannot be referenced from the outer scope here.
@@ -53,6 +53,18 @@ describe('subscribing', () => {
         expect(socket.emitted).toHaveLength(1);
     });
 
+    it('does not re-subscribe when the same symbols are reordered', async () => {
+        const symbols = ref(['AAPL', 'MSFT']);
+        const { quotes } = inScope(() => symbols.value);
+        socket.deliver('quote:update', { quotes: { AAPL: 180 } });
+
+        symbols.value = ['MSFT', 'AAPL'];
+        await nextTick();
+
+        expect(socket.emitted).toHaveLength(1);
+        expect(quotes.quotes.value).toEqual({ AAPL: 180 });
+    });
+
     it('re-subscribes when the held symbols actually change, and drops the old prices', async () => {
         const symbols = ref(['AAPL']);
         const { quotes } = inScope(() => symbols.value);
@@ -91,6 +103,20 @@ describe('receiving', () => {
         socket.deliver('quote:update', { quotes: { AAPL: 180, TSLA: 250 } });
 
         expect(quotes.quotes.value).toEqual({ AAPL: 180 });
+    });
+
+    it('ignores a push that lands after the feed was switched off', async () => {
+        const enabled = ref(true);
+        const { quotes } = inScope(
+            () => ['AAPL'],
+            () => enabled.value,
+        );
+
+        enabled.value = false;
+        await nextTick();
+        socket.deliver('quote:update', { quotes: { AAPL: 180 } });
+
+        expect(quotes.quotes.value).toEqual({});
     });
 
     it('reports whether the socket is up', () => {

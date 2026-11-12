@@ -1,17 +1,27 @@
-import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { enableAutoUnmount, flushPromises, mount, type VueWrapper } from '@vue/test-utils';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { WatchlistSummary } from '@ereuna/shared';
 
 import { watchlistRow as row, watchlistSummary } from '@/__tests__/support/answers';
 import { elementOf, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
+import { socket } from '@/__tests__/support/socket';
 import { clearAuth } from '@/api/client';
 import WatchlistPanel from '@/components/charts/WatchlistPanel.vue';
 import { i18n } from '@/i18n';
 import { formatNumber, formatPercent } from '@/utils/formatters';
 
+vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());
+
 const api = mockApi();
+
+/** A Friday during the session, and the same day after the bell. */
+const OPEN = new Date('2026-03-06T15:00:00Z'); // 10:00 New York
+const CLOSED = new Date('2026-03-06T22:00:00Z'); // 17:00 New York
+
+/** How often the market badge re-reads the clock. */
+const CLOCK_TICK_MS = 30_000;
 
 const summary = (name: string, tickerCount = 0): WatchlistSummary => watchlistSummary(name, { id: name, tickerCount });
 
@@ -58,6 +68,88 @@ beforeEach(() => {
     clearAuth();
     localStorage.clear();
     document.body.innerHTML = '';
+    socket.reset();
+    api.on('GET /api/market/holidays', { holidays: [] });
+    // Only the clock is faked: flushPromises runs on the real setTimeout.
+    // After the bell by default, so the live feed is off unless a test opens it
+    vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+    vi.setSystemTime(CLOSED);
+});
+
+afterEach(() => {
+    vi.useRealTimers();
+});
+
+// The rows live at module scope, so a panel left mounted re-subscribes when
+// the next test loads its own
+enableAutoUnmount(afterEach);
+
+describe('WatchlistPanel live prices', () => {
+    beforeEach(() => {
+        vi.setSystemTime(OPEN);
+        api.on('GET /api/watchlists', { items: [summary('Tech', 2)] });
+        api.on('GET /api/watchlists/Tech', {
+            name: 'Tech',
+            rows: [row('AAPL', { close: 200, changePercent: 1 }), row('MSFT', { close: 400, changePercent: -1 })],
+        });
+    });
+
+    it('subscribes to every listed symbol while the market is open', async () => {
+        await panel();
+
+        expect(socket.emitted).toEqual([{ event: 'quote:watch', payload: { symbols: ['AAPL', 'MSFT'] } }]);
+    });
+
+    it('shows the live price, and the change from the last stored close', async () => {
+        const wrapper = await panel();
+
+        socket.deliver('quote:update', { quotes: { AAPL: 210 } });
+        await flushPromises();
+
+        expect(wrapper.findAll('.watchlist__price').map((node) => node.text())).toEqual([
+            formatNumber(210, 2),
+            formatNumber(400, 2),
+        ]);
+        expect(wrapper.findAll('.watchlist__change').map((node) => node.text())).toEqual([
+            formatPercent(5),
+            formatPercent(-1),
+        ]);
+    });
+
+    it('shows a live price with no change for a symbol that has no stored bar', async () => {
+        api.on('GET /api/watchlists/Tech', { name: 'Tech', rows: [row('NEW')] });
+        const wrapper = await panel();
+
+        socket.deliver('quote:update', { quotes: { NEW: 12.5 } });
+        await flushPromises();
+
+        expect(wrapper.get('.watchlist__price').text()).toBe(formatNumber(12.5, 2));
+        expect(wrapper.get('.watchlist__change').text()).toBe('');
+    });
+
+    it('stays on the stored close while the market is shut', async () => {
+        vi.setSystemTime(CLOSED);
+        const wrapper = await panel();
+
+        socket.deliver('quote:update', { quotes: { AAPL: 210 } });
+        await flushPromises();
+
+        expect(socket.emitted).toEqual([]);
+        expect(wrapper.get('.watchlist__price').text()).toBe(formatNumber(200, 2));
+    });
+
+    it('re-reads the rows when the session opens, so the change is measured from the newest close', async () => {
+        vi.setSystemTime(new Date('2026-03-06T14:29:45Z')); // 09:29:45 New York
+        await panel();
+        const reads = (): number => api.calls.filter((call) => call.path === '/api/watchlists/Tech').length;
+        expect(reads()).toBe(1);
+
+        vi.advanceTimersByTime(CLOCK_TICK_MS);
+        await flushPromises();
+
+        expect(reads()).toBe(2);
+        expect(socket.emitted).toEqual([{ event: 'quote:watch', payload: { symbols: ['AAPL', 'MSFT'] } }]);
+    });
 });
 
 describe('WatchlistPanel', () => {

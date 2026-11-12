@@ -1,9 +1,11 @@
 /**
- * useLiveQuotes — the last traded price of every held symbol, pushed as it moves.
+ * useLiveQuotes — the last traded price of every symbol on screen, pushed as it moves.
  * The aggregator buckets each print into a 1-minute candle and publishes it, so
  * the price is already in Redis by the time it is worth showing. This subscribes
- * to the symbols currently held over the shared socket and receives only the
- * ones that changed.
+ * to the symbols a portfolio holds or a watchlist lists, over the shared socket,
+ * and receives only the ones that changed. The server keeps one quote
+ * subscription per socket, so one caller is mounted at a time: the portfolio
+ * and the chart view's watchlist are separate pages.
  * Prices arrive as a partial map and are merged, never replaced: a message
  * carrying only the symbol that moved must not blank the twenty that did not.
  */
@@ -23,10 +25,13 @@ export function useLiveQuotes(symbols: () => readonly string[], enabled: () => b
     const { socket, connected } = useSocket();
 
     function receive(update: EventPayload<'quote:update'>): void {
+        // Switching off sends nothing to the server, so the socket stays in its
+        // rooms; a feed that keeps printing after the bell must not keep ticking
+        if (!enabled()) return;
         const watched = new Set(symbols());
         const merged = { ...quotes.value };
-        // Filtered rather than merged wholesale: a message for the portfolio we
-        // have since left must not add rows to the one that replaced it.
+        // Filtered rather than merged wholesale: a message for the portfolio or
+        // list we have since left must not add rows to the one that replaced it.
         for (const [symbol, price] of Object.entries(update.quotes)) {
             if (watched.has(symbol)) merged[symbol] = price;
         }
@@ -48,8 +53,9 @@ export function useLiveQuotes(symbols: () => readonly string[], enabled: () => b
         // One string rather than a tuple: the caller derives this list from the
         // positions, so it is a new array on every reload even when it names
         // exactly the same symbols — and a tuple is a new array too, which
-        // re-subscribed and blanked every price on each reload.
-        () => `${symbols().join(',')}|${String(enabled())}`,
+        // re-subscribed and blanked every price on each reload. Sorted, because
+        // reordering a watchlist changes nothing the server sends.
+        () => `${[...symbols()].sort().join(',')}|${String(enabled())}`,
         () => {
             quotes.value = {};
             subscribe();

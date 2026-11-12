@@ -25,7 +25,7 @@ import BarChart, { type Bar } from '@/components/viz/BarChart.vue';
 import DonutChart from '@/components/viz/DonutChart.vue';
 import LineChart from '@/components/viz/LineChart.vue';
 import { useMarketStatus } from '@/composables/charts/useMarketStatus';
-import { useLiveQuotes } from '@/composables/portfolio/useLiveQuotes';
+import { useLiveQuotes } from '@/composables/data/useLiveQuotes';
 import { usePortfolios } from '@/composables/portfolio/usePortfolios';
 import { useTrades } from '@/composables/portfolio/useTrades';
 import { formatCurrency, formatDate, formatNumber } from '@/utils/formatters';
@@ -56,9 +56,8 @@ const {
 
 const trades = useTrades(() => selected.value, reload);
 
-// Equity hours, with no crypto exemption: the aggregator gates its own
-// publishing on the same schedule, so a socket held open outside them would
-// receive nothing regardless of what is held.
+// Equity hours, with no crypto exemption: the feed carries stocks only, and
+// outside the session the vendor is quiet, so the last close is the price.
 const market = useMarketStatus(() => false);
 
 // Quotes are only worth a socket while something is trading and something is
