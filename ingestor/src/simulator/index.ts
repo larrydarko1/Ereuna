@@ -3,7 +3,7 @@
  * API → chart runs end to end without a vendor key.
  *   npm run feed:sim                  the fake vendor, 20 trades a second
  *   npm run feed:sim -- --rate 430    about 10M trades over a session
- *   npm run ingestor:sim              the real ingestor, pointed at it
+ *   npm run dev:ingestor:sim          the real ingestor, pointed at it
  * It prices the symbols the ingestor subscribes to, read with the ingestor's
  * own query, starting from their last real daily bar. The trades it prints
  * become real candles in whichever database the aggregator writes to.

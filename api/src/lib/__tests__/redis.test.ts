@@ -59,11 +59,12 @@ describe('getRedis', () => {
         expect(built).toHaveLength(1);
     });
 
-    it('points at the configured host and port, and connects lazily', () => {
+    it('points at the configured host, port and database, and connects lazily', () => {
         redis.getRedis();
         expect(built[0]?.options).toMatchObject({
             host: config.redis.host,
             port: config.redis.port,
+            db: config.redis.db,
             lazyConnect: true,
         });
     });

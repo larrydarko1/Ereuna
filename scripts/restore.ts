@@ -23,16 +23,12 @@ import { createInterface } from 'node:readline/promises';
 
 import { Redis } from 'ioredis';
 
+import { CACHE_PATTERNS, clearKeys } from './lib/clear-keys.ts';
 import { type Counts, collectionCounts } from './lib/collection-counts.ts';
 import { dumpCounts } from './lib/dump-counts.ts';
 import { ROOT, dbConfig, optionalEnv } from './lib/env.ts';
 
 type Manifest = Counts & { database: string; completedAt: string };
-
-// `userKey` and `marketKey` in api/src/lib/cache.ts. Everything else in Redis is
-// a rate-limit counter, the live feed or its last values, none of which describe
-// the database
-const CACHE_PREFIXES = ['u:', 'm:'];
 
 async function main(): Promise<void> {
     const cfg = dbConfig();
@@ -79,9 +75,12 @@ async function main(): Promise<void> {
     const redis = new Redis({
         host: optionalEnv('REDIS_HOST', 'localhost'),
         port: Number(optionalEnv('REDIS_PORT', '6379')),
+        db: Number(optionalEnv('REDIS_DB', '0')),
     });
     try {
-        const cleared = await clearPrefixes(redis);
+        // Everything else in Redis is a rate-limit counter, the live feed or its last
+        // values, none of which describe the database
+        const cleared = await clearKeys(redis, CACHE_PATTERNS);
         console.log(`      ${cleared} cached entr${cleared === 1 ? 'y' : 'ies'} removed.\n`);
     } finally {
         redis.disconnect();
@@ -118,21 +117,6 @@ function verify(mismatches: string[]): void {
     if (mismatches.length === 0) return;
     console.error(mismatches.map((line) => `      ${line}`).join('\n'));
     throw new Error('the counts do not match the backup');
-}
-
-async function clearPrefixes(redis: Redis): Promise<number> {
-    let cleared = 0;
-
-    for (const prefix of CACHE_PREFIXES) {
-        let cursor = '0';
-        do {
-            const [next, keys] = await redis.scan(cursor, 'MATCH', `${prefix}*`, 'COUNT', 500);
-            if (keys.length > 0) cleared += await redis.del(...keys);
-            cursor = next;
-        } while (cursor !== '0');
-    }
-
-    return cleared;
 }
 
 function parseManifest(raw: string): Manifest {

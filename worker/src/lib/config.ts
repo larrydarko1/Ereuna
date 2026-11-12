@@ -6,7 +6,7 @@
  */
 import { z } from 'zod';
 
-import { loggerEnv, mongoEnv, nodeEnv, redisEnv } from '@ereuna/shared';
+import { loggerEnv, mongoEnv, nodeEnv, redisEnv, toMongoConfig, toRedisConfig } from '@ereuna/shared';
 
 const WORKER_ROLES = ['all', 'aggregate', 'organize'] as const;
 
@@ -52,15 +52,8 @@ export const config = {
 
     role: parsed.WORKER_ROLE,
 
-    mongo: {
-        uri: parsed.MONGO_URI,
-        db: parsed.MONGO_DB,
-    },
-
-    redis: {
-        host: parsed.REDIS_HOST,
-        port: parsed.REDIS_PORT,
-    },
+    mongo: toMongoConfig(parsed),
+    redis: toRedisConfig(parsed),
 
     tiingo: {
         key: parsed.TIINGO_KEY,

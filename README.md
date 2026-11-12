@@ -186,19 +186,31 @@ need a Tiingo API key; the live path can run without one, on the feed simulator.
 ```bash
 npm install
 
-# frontend (:3500) + api (:5500) together
+# frontend (:3500) + api (:5500) + worker, no live feed
 npm run dev
+
+# the live path with no key: the stack plus the ingestor, on the feed simulator
+npm run sim:reset   # once first: copies your database into EreunaSim
+npm run dev:sim
 ```
 
-The other processes run on their own, because none of them can be folded into another:
+`dev:sim` never touches your real data. Its trades become real candles, on every
+timeframe up to weekly, so it runs on a copy: the `EreunaSim` database and Redis
+database 1 (the names are in the root `package.json`'s `config`). `npm run sim:reset`
+makes that copy from the database `db/.env` names and empties the sim's Redis keys;
+run it again whenever the copy should start over from real data. You log in to the
+sim stack with your usual account, since the copy has it. Don't run `dev` and
+`dev:sim` at the same time: Redis delivers published messages to every database.
+
+Each process also runs on its own:
 
 ```bash
-npm run ingestor          # vendor trade feed → Redis stream
-npm run feed:sim          # a local stand-in for the vendor feed, no key needed
-npm run ingestor:sim      # the ingestor, pointed at the simulator
-npm run worker            # both roles (default for local work)
-npm run worker:aggregate  # realtime bucketing only
-npm run worker:organize   # nightly batch only
+npm run dev:ingestor          # vendor trade feed → Redis stream
+npm run feed:sim              # a local stand-in for the vendor feed, on the sim copy
+npm run dev:ingestor:sim      # the ingestor, pointed at the simulator and the sim copy
+npm run dev:worker            # both roles (default for local work)
+npm run dev:worker:aggregate  # realtime bucketing only
+npm run dev:worker:organize   # nightly batch only
 ```
 
 Database:
@@ -219,7 +231,7 @@ TOTP_ENCRYPTION_KEY=   # 64 hex characters (AES-256-GCM key for TOTP secrets at 
 TIINGO_KEY=            # required by the ingestor and the worker
 ```
 
-Optional overrides: `MONGO_URI`, `MONGO_DB`, `REDIS_HOST`, `REDIS_PORT`, `TIINGO_URL`,
+Optional overrides: `MONGO_URI`, `MONGO_DB`, `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB`, `TIINGO_URL`,
 `PORT`, `CORS_ORIGIN`, `LOG_LEVEL`, `WORKER_ROLE`. In production the schema rejects any value
 that's still a recognisable dev placeholder, rather than quietly booting with it.
 
@@ -289,8 +301,8 @@ against it. It prices the symbols the ingestor subscribes to from their last dai
 trades each in proportion to its last volume, and runs the tape busiest at the open and
 the close. `--rate` sets the average trades per second (`npm run feed:sim -- --rate 430`
 is about 10M over a session). The trades become real candles in the database the
-aggregator writes to. The ingestor reaches it through `TIINGO_URL`, which production
-refuses unless it is `wss://`.
+aggregator writes to, which under `dev:sim` is the `EreunaSim` copy. The ingestor
+reaches it through `TIINGO_URL`, which production refuses unless it is `wss://`.
 
 The ingestor and the aggregate role are **singletons**. Two ingestors double-subscribe
 upstream and write every trade twice; two aggregators split the consumer group and each

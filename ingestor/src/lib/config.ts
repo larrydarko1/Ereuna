@@ -11,7 +11,7 @@
  */
 import { z } from 'zod';
 
-import { loggerEnv, mongoEnv, nodeEnv, redisEnv, tiingoEnv } from '@ereuna/shared';
+import { loggerEnv, mongoEnv, nodeEnv, redisEnv, tiingoEnv, toMongoConfig, toRedisConfig } from '@ereuna/shared';
 
 const Env = z
     .object({
@@ -43,15 +43,8 @@ const parsed = Env.parse(process.env);
 export const config = {
     isDev: parsed.NODE_ENV !== 'production',
 
-    mongo: {
-        uri: parsed.MONGO_URI,
-        db: parsed.MONGO_DB,
-    },
-
-    redis: {
-        host: parsed.REDIS_HOST,
-        port: parsed.REDIS_PORT,
-    },
+    mongo: toMongoConfig(parsed),
+    redis: toRedisConfig(parsed),
 
     tiingo: {
         key: parsed.TIINGO_KEY,

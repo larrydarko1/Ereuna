@@ -25,6 +25,7 @@ type RedisConnection = {
 type RedisSettings = {
     host: string;
     port: number;
+    db: number;
     maxRetriesPerRequest: number | null;
     lazyConnect?: boolean;
 };

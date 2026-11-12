@@ -1,7 +1,17 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
-import { hexSecret, loggerEnv, mongoEnv, nodeEnv, redisEnv, requiredSecret, tiingoEnv } from '#config/env.js';
+import {
+    hexSecret,
+    loggerEnv,
+    mongoEnv,
+    nodeEnv,
+    redisEnv,
+    requiredSecret,
+    tiingoEnv,
+    toMongoConfig,
+    toRedisConfig,
+} from '#config/env.js';
 
 const originalNodeEnv = process.env['NODE_ENV'];
 
@@ -34,9 +44,24 @@ describe('the fragments', () => {
         expect(z.object(redisEnv).safeParse({ REDIS_PORT: '0' }).success).toBe(false);
     });
 
+    it('defaults REDIS_DB to 0 and takes only the 16 databases a Redis server has', () => {
+        expect(z.object(redisEnv).parse({}).REDIS_DB).toBe(0);
+        expect(z.object(redisEnv).parse({ REDIS_DB: '1' }).REDIS_DB).toBe(1);
+        expect(z.object(redisEnv).safeParse({ REDIS_DB: '16' }).success).toBe(false);
+        expect(z.object(redisEnv).safeParse({ REDIS_DB: '-1' }).success).toBe(false);
+    });
+
     it('gives TIINGO_KEY no default — both services need the real one', () => {
         expect(z.object(tiingoEnv).safeParse({}).success).toBe(false);
         expect(z.object(tiingoEnv).safeParse({ TIINGO_KEY: '' }).success).toBe(false);
+    });
+});
+
+describe('the connection groups', () => {
+    it('build the config.mongo and config.redis every service reads from what the fragments parsed', () => {
+        const parsed = z.object({ ...mongoEnv, ...redisEnv }).parse({ MONGO_DB: 'EreunaSim', REDIS_DB: '1' });
+        expect(toMongoConfig(parsed)).toEqual({ uri: 'mongodb://localhost:27017', db: 'EreunaSim' });
+        expect(toRedisConfig(parsed)).toEqual({ host: 'localhost', port: 6379, db: 1 });
     });
 });
 

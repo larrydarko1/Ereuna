@@ -37,7 +37,7 @@ let subscriber: Redis | null = null;
  * far smaller failure than an API that will not boot.
  */
 export async function startMarketFeed(sink: BucketSink): Promise<void> {
-    const client = new Redis({ host: config.redis.host, port: config.redis.port, maxRetriesPerRequest: null });
+    const client = new Redis({ ...config.redis, maxRetriesPerRequest: null });
     client.on('error', (err) => logger.error({ err }, 'Market feed subscriber error'));
 
     client.on('pmessage', (_pattern: string, _channel: string, payload: string) => {

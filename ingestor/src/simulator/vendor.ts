@@ -49,7 +49,7 @@ const requestSchema = z.object({
     eventData: z.object({ tickers: z.array(z.string()).default([]) }),
 });
 
-/** The port `npm run ingestor:sim` points the ingestor at. */
+/** The port `npm run dev:ingestor:sim` points the ingestor at. */
 export const SIMULATOR_PORT = 8787;
 
 const TICK_MS = 100;
