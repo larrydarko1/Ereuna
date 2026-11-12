@@ -43,6 +43,17 @@ const liveQuoteSchema = z.object({
 
 export type LiveQuote = z.output<typeof liveQuoteSchema>;
 
+/**
+ * The most charts one connection may have live at once. A page charts at most
+ * two (the screener's daily over weekly); the rest is headroom, not a feature.
+ */
+const MAX_LIVE_CHARTS = 4;
+
+const candlePairSchema = z.object({ symbol: symbolField, timeframe: z.enum(CHART_TIMEFRAMES) });
+
+/** One chart's live subscription, as a client asks for it. */
+export type CandlePair = z.input<typeof candlePairSchema>;
+
 export type ServerEvent = keyof typeof SERVER_EVENTS;
 
 type ClientEvent = keyof typeof CLIENT_EVENTS;
@@ -71,8 +82,8 @@ export const SERVER_EVENTS = {
 } as const;
 
 export const CLIENT_EVENTS = {
-    /** Replaces this socket's candle subscription. */
-    'candle:watch': z.object({ symbol: symbolField, timeframe: z.enum(CHART_TIMEFRAMES) }),
+    /** Replaces this socket's candle subscriptions with every pair its open charts show. */
+    'candle:watch': z.object({ pairs: z.array(candlePairSchema).max(MAX_LIVE_CHARTS) }),
     /**
      * Replaces this socket's quote subscriptions. Capped at the larger of what
      * one portfolio or one watchlist can hold: the caller is a positions table

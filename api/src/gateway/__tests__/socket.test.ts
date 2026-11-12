@@ -192,7 +192,7 @@ describe('the handshake', () => {
 describe('candle:watch', () => {
     it('delivers the bucket the aggregator publishes for the watched pair', async () => {
         const socket = await client();
-        socket.emit('candle:watch', { symbol: 'aapl', timeframe: 'daily' });
+        socket.emit('candle:watch', { pairs: [{ symbol: 'aapl', timeframe: 'daily' }] });
         await next(socket, 'candle:update');
 
         feed.sink?.(message({ timeframe: '1d', timestamp: '2026-03-02T00:00:00.000Z' }));
@@ -207,7 +207,7 @@ describe('candle:watch', () => {
 
     it('stamps an intraday bar to the second, the way the REST bars do', async () => {
         const socket = await client();
-        socket.emit('candle:watch', { symbol: 'AAPL', timeframe: 'intraday1m' });
+        socket.emit('candle:watch', { pairs: [{ symbol: 'AAPL', timeframe: 'intraday1m' }] });
         await next(socket, 'candle:update');
 
         feed.sink?.(message());
@@ -220,7 +220,7 @@ describe('candle:watch', () => {
     it('sends the half-built bucket immediately, so a chart is not blank until the next trade', async () => {
         feed.last.set('AAPL:1d', message({ timeframe: '1d', timestamp: '2026-03-02T00:00:00.000Z', close: 9 }));
         const socket = await client();
-        socket.emit('candle:watch', { symbol: 'AAPL', timeframe: 'daily' });
+        socket.emit('candle:watch', { pairs: [{ symbol: 'AAPL', timeframe: 'daily' }] });
 
         const update = await next<{ candle: { close: number } }>(socket, 'candle:update');
 
@@ -229,9 +229,9 @@ describe('candle:watch', () => {
 
     it('leaves the previous room, so an old chart stops ticking', async () => {
         const socket = await client();
-        socket.emit('candle:watch', { symbol: 'AAPL', timeframe: 'daily' });
+        socket.emit('candle:watch', { pairs: [{ symbol: 'AAPL', timeframe: 'daily' }] });
         await next(socket, 'candle:update');
-        socket.emit('candle:watch', { symbol: 'MSFT', timeframe: 'daily' });
+        socket.emit('candle:watch', { pairs: [{ symbol: 'MSFT', timeframe: 'daily' }] });
         await next(socket, 'candle:update');
 
         feed.sink?.(message({ timeframe: '1d', timestamp: '2026-03-02T00:00:00.000Z' }));
@@ -239,20 +239,79 @@ describe('candle:watch', () => {
         expect(await next(socket, 'candle:update')).toBeNull();
     });
 
-    it('ignores a re-watch of the pair it already holds', async () => {
+    it('answers a pair it already holds again, so a chart switching onto it is not blank', async () => {
         feed.last.set('AAPL:1d', message({ timeframe: '1d', timestamp: '2026-03-02T00:00:00.000Z' }));
         const socket = await client();
-        socket.emit('candle:watch', { symbol: 'AAPL', timeframe: 'daily' });
+        socket.emit('candle:watch', { pairs: [{ symbol: 'AAPL', timeframe: 'daily' }] });
         expect(await next(socket, 'candle:update')).not.toBeNull();
 
-        socket.emit('candle:watch', { symbol: 'AAPL', timeframe: 'daily' });
+        socket.emit('candle:watch', { pairs: [{ symbol: 'AAPL', timeframe: 'daily' }] });
+
+        expect(await next(socket, 'candle:update')).not.toBeNull();
+    });
+
+    it('watches every pair in the set, so two charts on one page both tick', async () => {
+        const socket = await client();
+        socket.emit('candle:watch', {
+            pairs: [
+                { symbol: 'AAPL', timeframe: 'daily' },
+                { symbol: 'AAPL', timeframe: 'weekly' },
+            ],
+        });
+        await next(socket, 'candle:update');
+
+        feed.sink?.(message({ timeframe: '1d', timestamp: '2026-03-02T00:00:00.000Z' }));
+        const daily = await next<{ timeframe: string }>(socket, 'candle:update');
+        feed.sink?.(message({ timeframe: '1w', timestamp: '2026-03-02T00:00:00.000Z' }));
+        const weekly = await next<{ timeframe: string }>(socket, 'candle:update');
+
+        expect(daily?.timeframe).toBe('daily');
+        expect(weekly?.timeframe).toBe('weekly');
+    });
+
+    it('leaves only the pairs the new set drops', async () => {
+        const socket = await client();
+        socket.emit('candle:watch', {
+            pairs: [
+                { symbol: 'AAPL', timeframe: 'daily' },
+                { symbol: 'AAPL', timeframe: 'weekly' },
+            ],
+        });
+        await next(socket, 'candle:update');
+        socket.emit('candle:watch', { pairs: [{ symbol: 'AAPL', timeframe: 'weekly' }] });
+        await next(socket, 'candle:update');
+
+        feed.sink?.(message({ timeframe: '1d', timestamp: '2026-03-02T00:00:00.000Z' }));
+        expect(await next(socket, 'candle:update')).toBeNull();
+        feed.sink?.(message({ timeframe: '1w', timestamp: '2026-03-02T00:00:00.000Z' }));
+        expect(await next(socket, 'candle:update')).not.toBeNull();
+    });
+
+    it('leaves every room for an empty set', async () => {
+        const socket = await client();
+        socket.emit('candle:watch', { pairs: [{ symbol: 'AAPL', timeframe: 'daily' }] });
+        await next(socket, 'candle:update');
+        socket.emit('candle:watch', { pairs: [] });
+        await next(socket, 'candle:update');
+
+        feed.sink?.(message({ timeframe: '1d', timestamp: '2026-03-02T00:00:00.000Z' }));
+
+        expect(await next(socket, 'candle:update')).toBeNull();
+    });
+
+    it('refuses a set past the cap rather than watching part of it', async () => {
+        const socket = await client();
+        const symbols = ['AAPL', 'MSFT', 'NVDA', 'AMZN', 'META'];
+        socket.emit('candle:watch', { pairs: symbols.map((symbol) => ({ symbol, timeframe: 'daily' })) });
+
+        feed.sink?.(message({ timeframe: '1d', timestamp: '2026-03-02T00:00:00.000Z' }));
 
         expect(await next(socket, 'candle:update')).toBeNull();
     });
 
     it('ignores a payload that is not a watch', async () => {
         const socket = await client();
-        socket.emit('candle:watch', { symbol: 'AAPL', timeframe: 'yearly' });
+        socket.emit('candle:watch', { pairs: [{ symbol: 'AAPL', timeframe: 'yearly' }] });
 
         feed.sink?.(message({ timeframe: '1d' }));
 
@@ -261,7 +320,7 @@ describe('candle:watch', () => {
 
     it('holds back a push its schema refuses, and logs why', async () => {
         const socket = await client();
-        socket.emit('candle:watch', { symbol: 'AAPL', timeframe: 'daily' });
+        socket.emit('candle:watch', { pairs: [{ symbol: 'AAPL', timeframe: 'daily' }] });
         await next(socket, 'candle:update');
 
         // A price that is no number at all: the bucket the aggregator wrote is broken, not the socket
@@ -275,7 +334,7 @@ describe('candle:watch', () => {
         feed.last.set('AAPL:1d', message({ timeframe: '1d', timestamp: '2026-03-02T00:00:00.000Z' }));
         const socket = await client();
         buckets.allowed = false;
-        socket.emit('candle:watch', { symbol: 'AAPL', timeframe: 'daily' });
+        socket.emit('candle:watch', { pairs: [{ symbol: 'AAPL', timeframe: 'daily' }] });
 
         expect(await next(socket, 'candle:update')).toBeNull();
         expect(buckets.keys.some((key) => key.startsWith('rl:ws:watch:'))).toBe(true);

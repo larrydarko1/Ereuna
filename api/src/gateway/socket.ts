@@ -12,10 +12,10 @@
  * need; adding the adapter would republish each one across pods to be discarded.
  * Event contract (the payload schemas are SERVER_EVENTS and CLIENT_EVENTS in @ereuna/shared):
  * Server → Client:
- *     candle:update — { symbol, timeframe, candle } for the pair this socket watches.
+ *     candle:update — { symbol, timeframe, candle } for each pair this socket watches.
  *     quote:update  — { quotes } a partial symbol→{ price, changePercent } map, only what moved.
  * Client → Server:
- *     candle:watch — { symbol, timeframe }. Replaces this socket's candle subscription.
+ *     candle:watch — { pairs }. Replaces this socket's candle subscriptions.
  *     quote:watch  — { symbols }. Replaces this socket's quote subscriptions.
  * Every push goes through `checkedPayload()`, which holds the payload to its
  * event's schema the way `send()` holds a REST answer to its route's: a payload
@@ -60,7 +60,7 @@ import { latestCloses, percentChange } from '@/services/market/index.js';
 /** What this gateway keeps on each socket; `userId` is set once the handshake token checks out. */
 type FeedData = {
     userId?: string;
-    candleRoom?: string; // The one candle room this socket is in, so switching charts can leave it
+    candleRooms?: string[]; // The candle rooms this socket is in, so a page's new set of charts can leave the rest
     quoteRooms?: string[]; // The quote rooms this socket is in, so a new watchlist can leave them all
 };
 
@@ -143,7 +143,7 @@ export async function initSocket(httpServer: HttpServer): Promise<void> {
         const { userId } = socket.data;
         // The auth middleware above refuses every socket without one; this only keeps the type honest
         if (userId === undefined) return void socket.disconnect(true);
-        socket.on('candle:watch', (payload: unknown) => void watchCandle(socket, userId, payload));
+        socket.on('candle:watch', (payload: unknown) => void watchCandles(socket, userId, payload));
         socket.on('quote:watch', (payload: unknown) => void watchQuotes(socket, userId, payload));
     });
 
@@ -184,25 +184,39 @@ function dispatch(message: AggregateMessage): void {
     if (quotes !== undefined) io.to(quoteRoom(message.tickerID)).emit('quote:update', quotes);
 }
 
-async function watchCandle(socket: FeedSocket, userId: string, payload: unknown): Promise<void> {
+async function watchCandles(socket: FeedSocket, userId: string, payload: unknown): Promise<void> {
     const parsed = candleWatchSchema.safeParse(payload);
     if (!parsed.success || !(await allowWatch(userId))) return;
 
-    const { symbol, timeframe } = parsed.data;
-    const bucket = CHART_TO_AGGREGATOR[timeframe];
-    const room = candleRoom(symbol, bucket);
+    const wanted = new Map(
+        parsed.data.pairs.map((pair) => [candleRoom(pair.symbol, CHART_TO_AGGREGATOR[pair.timeframe]), pair]),
+    );
+    // Synchronous on the in-memory adapter, like the quote rooms, so two quick
+    // watches cannot land out of order
+    const held = new Set(socket.data.candleRooms ?? []);
+    for (const room of held) if (!wanted.has(room)) void socket.leave(room);
+    for (const room of wanted.keys()) if (!held.has(room)) void socket.join(room);
+    socket.data.candleRooms = [...wanted.keys()];
 
-    if (socket.data.candleRoom === room) return;
-    if (socket.data.candleRoom !== undefined) await socket.leave(socket.data.candleRoom);
-    await socket.join(room);
-    socket.data.candleRoom = room;
-
-    // A chart opened mid-bucket should not stare at an empty last bar until the
-    // next trade, so the bucket as it stands right now is sent immediately.
-    const opening = await readLastCandle(symbol, bucket);
-    if (opening === null || socket.data.candleRoom !== room) return;
-    const update = checkedPayload('candle:update', { symbol, timeframe, candle: formatCandle(opening, timeframe) });
-    if (update !== undefined) socket.emit('candle:update', update);
+    // Every pair is answered, a held one too: a chart that switches onto a pair
+    // another chart already watches would otherwise stay blank until the next
+    // trade, just like one opened mid-bucket
+    const openings = await Promise.all(
+        [...wanted].map(async ([room, pair]) => ({
+            room,
+            pair,
+            opening: await readLastCandle(pair.symbol, CHART_TO_AGGREGATOR[pair.timeframe]),
+        })),
+    );
+    for (const { room, pair, opening } of openings) {
+        if (opening === null || !socket.data.candleRooms.includes(room)) continue;
+        const update = checkedPayload('candle:update', {
+            symbol: pair.symbol,
+            timeframe: pair.timeframe,
+            candle: formatCandle(opening, pair.timeframe),
+        });
+        if (update !== undefined) socket.emit('candle:update', update);
+    }
 }
 
 async function watchQuotes(socket: FeedSocket, userId: string, payload: unknown): Promise<void> {
