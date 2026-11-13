@@ -12,6 +12,7 @@ import MaFilter from '@/components/screener/MaFilter.vue';
 import RangeFilter from '@/components/screener/RangeFilter.vue';
 import type { FilterGrouping } from '@/composables/screener/useFilterRegistry';
 import type { ActiveFilter, FilterKind } from '@/composables/screener/useScreenerFilters';
+import { toShownBound, toStoredBound } from '@/constants/screener';
 import { formatDate, formatNumber } from '@/utils/formatters';
 
 const {
@@ -50,7 +51,7 @@ function summary(filter: FilterDescriptor): string | null {
 
     switch (value.kind) {
         case 'range':
-            return `${formatNumber(value.min, 2)} – ${formatNumber(value.max, 2)}`;
+            return `${formatNumber(toShownBound(filter.key, value.min), 2)} – ${formatNumber(toShownBound(filter.key, value.max), 2)}`;
         case 'date':
             return `${formatDate(value.from)} – ${formatDate(value.to)}`;
         case 'enum':
@@ -66,10 +67,25 @@ function summary(filter: FilterDescriptor): string | null {
     }
 }
 
-/** A control needs the stored value in its own shape; the union is narrowed once, here. */
+/**
+ * A control needs the stored value in its own shape; the union is narrowed once, here.
+ * A range is also scaled here, both ways: a ratio is typed and read as a percentage.
+ */
 function rangeValue(filter: FilterDescriptor): { min: number; max: number } | null {
     const value = valueFor(filter.key, filter.kind);
-    return value?.kind === 'range' ? { min: value.min, max: value.max } : null;
+    if (value?.kind !== 'range') return null;
+    return { min: toShownBound(filter.key, value.min), max: toShownBound(filter.key, value.max) };
+}
+
+function rangeBounds(key: string, bounds: { min: number; max: number } | null): { min: number; max: number } | null {
+    return bounds === null ? null : { min: toShownBound(key, bounds.min), max: toShownBound(key, bounds.max) };
+}
+
+function applyRange(key: string, range: { min?: number; max?: number }): void {
+    emit('apply', key, {
+        ...(range.min !== undefined ? { min: toStoredBound(key, range.min) } : {}),
+        ...(range.max !== undefined ? { max: toStoredBound(key, range.max) } : {}),
+    });
 }
 
 function dateValue(filter: FilterDescriptor): { from: string; to: string } | null {
@@ -128,9 +144,9 @@ function onFlag(key: string, value: { enabled: boolean }): void {
                 <RangeFilter
                     v-if="filter.kind === 'range'"
                     :value="rangeValue(filter)"
-                    :bounds="filter.bounds"
+                    :bounds="rangeBounds(filter.key, filter.bounds)"
                     :busy="saving === filter.key"
-                    @apply="emit('apply', filter.key, $event)" />
+                    @apply="applyRange(filter.key, $event)" />
                 <DateFilter
                     v-else-if="filter.kind === 'date'"
                     :value="dateValue(filter)"
