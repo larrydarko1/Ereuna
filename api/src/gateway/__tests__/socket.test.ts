@@ -27,6 +27,8 @@ vi.mock('@/gateway/market-feed.js', () => ({
         feed.stopped += 1;
         return Promise.resolve();
     },
+}));
+vi.mock('@/lib/last-bucket.js', () => ({
     readLastCandle: (symbol: string, timeframe: string) =>
         Promise.resolve(feed.last.get(`${symbol}:${timeframe}`) ?? null),
 }));

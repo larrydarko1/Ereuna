@@ -52,9 +52,10 @@ import {
     type ServerToClientEvents,
 } from '@ereuna/shared';
 
-import { readLastCandle, startMarketFeed, stopMarketFeed } from '@/gateway/market-feed.js';
+import { startMarketFeed, stopMarketFeed } from '@/gateway/market-feed.js';
 import { clearValuations, forgetValuation, repriceValuations, startValuation } from '@/gateway/portfolio-valuation.js';
 import { config } from '@/lib/config.js';
+import { readLastCandle } from '@/lib/last-bucket.js';
 import { logger } from '@/lib/logger.js';
 import { consumeTokenBucket, type TokenBucketOptions } from '@/lib/token-bucket.js';
 import { verifyAccessToken } from '@/middleware/auth.js';

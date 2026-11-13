@@ -13,7 +13,7 @@ import { ObjectId } from 'mongodb';
 
 import { BUCKET_MS, QUOTE_TIMEFRAME, type PortfolioValuation } from '@ereuna/shared';
 
-import { readLastCandle } from '@/gateway/market-feed.js';
+import { readLastCandle } from '@/lib/last-bucket.js';
 import { logger } from '@/lib/logger.js';
 import { findHoldings, valuePortfolio, type Holdings } from '@/services/portfolio/index.js';
 
