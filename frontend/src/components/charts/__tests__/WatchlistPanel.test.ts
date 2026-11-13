@@ -148,6 +148,20 @@ describe('WatchlistPanel live prices', () => {
         expect(wrapper.get('.watchlist__change').text()).toBe(formatPercent(5));
     });
 
+    it('re-reads the rows when it opens again, so a panel opened after the bell shows the close', async () => {
+        (await panel()).unmount();
+        vi.setSystemTime(CLOSED);
+        api.on('GET /api/watchlists/Tech', {
+            name: 'Tech',
+            rows: [row('AAPL', { close: 215, changePercent: 7.5 }), row('MSFT', { close: 400, changePercent: -1 })],
+        });
+
+        const wrapper = await panel();
+
+        expect(wrapper.get('.watchlist__price').text()).toBe(formatNumber(215, 2));
+        expect(wrapper.get('.watchlist__change').text()).toBe(formatPercent(7.5));
+    });
+
     it('re-reads the rows when the session opens, so the change is measured from the newest close', async () => {
         vi.setSystemTime(new Date('2026-03-06T14:29:45Z')); // 09:29:45 New York
         await panel();

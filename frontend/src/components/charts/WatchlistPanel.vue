@@ -37,6 +37,7 @@ const {
     activeName,
     rows,
     pending,
+    loaded,
     isEmpty,
     load,
     open,
@@ -194,8 +195,10 @@ function changeTone(value: number | null): string {
     return value > 0 ? 'watchlist__change--up' : 'watchlist__change--down';
 }
 
+// The rows outlive the panel, and this one may mount after the bell with rows
+// read during the session, priced before the day's close existed
 onMounted(() => {
-    void run(() => load());
+    void run(() => (loaded.value ? refresh() : load()));
 });
 
 // A tab left open overnight holds rows read before the last bell, so their
