@@ -1,5 +1,5 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ScreenerResultPage, ScreenerSummary } from '@ereuna/shared';
 
@@ -7,8 +7,10 @@ import { preferences, screenerResult, screenerSummary } from '@/__tests__/suppor
 import { assetProfile } from '@/__tests__/support/assets';
 import { elementOf, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
+import { socket } from '@/__tests__/support/socket';
 import { clearAuth } from '@/api/client';
 import { i18n } from '@/i18n';
+import { formatNumber } from '@/utils/formatters';
 import Screener from '@/views/Screener.vue';
 
 vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());
@@ -73,6 +75,11 @@ beforeEach(() => {
     clearAuth();
     localStorage.clear();
     document.body.innerHTML = '';
+    socket.reset();
+    // After the bell unless a test opens the session, so the live feed stays off
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-03-06T22:00:00Z'));
+    api.on('GET /api/market/holidays', { holidays: [] });
     api.on('GET /api/preferences', preferences());
     api.on('PATCH /api/preferences', preferences());
     api.on('GET /api/screeners', { items: [screener('Growth'), screener('Value')] });
@@ -91,7 +98,25 @@ beforeEach(() => {
     api.on('GET /api/charts/NVDA/profile', assetProfile({ symbol: 'NVDA', name: 'Nvidia', exchange: 'NASDAQ' }));
 });
 
+afterEach(() => {
+    vi.useRealTimers();
+});
+
 describe('Screener', () => {
+    it('ticks the price of the page during the session', async () => {
+        vi.setSystemTime(new Date('2026-03-06T15:00:00Z')); // 10:00 New York
+        api.on('GET /api/screeners/Growth/results', {
+            ...page(['AAPL']),
+            items: [screenerResult('AAPL', { columns: { 'TimeSeries.close': 200 } })],
+        });
+        const wrapper = await view();
+
+        socket.deliver('quote:update', { quotes: { AAPL: { price: 210, changePercent: 5 } } });
+        await flushPromises();
+
+        expect(wrapper.findAll('.results-table__td--figure')[0]?.text()).toBe(formatNumber(210, 2));
+    });
+
     it('reads the screeners, the filter catalogue and the preferences on arrival', async () => {
         await view();
 

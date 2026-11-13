@@ -87,7 +87,7 @@ export const SERVER_EVENTS = {
 export const CLIENT_EVENTS = {
     /** Replaces this socket's candle subscriptions with every pair its open charts show. */
     'candle:watch': z.object({ pairs: z.array(candlePairSchema).max(MAX_LIVE_CHARTS) }),
-    /** Replaces this socket's quote subscriptions. Capped at what one watchlist can hold, the one caller. */
+    /** Replaces this socket's quote subscriptions. Capped at what one watchlist holds, which is also one screener page. */
     'quote:watch': z.object({ symbols: z.array(symbolField).max(LIMITS.tickersPerWatchlist) }),
     /** Replaces the portfolio this socket has priced live; null stops it. */
     'portfolio:watch': z.object({

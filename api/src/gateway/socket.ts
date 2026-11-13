@@ -65,7 +65,7 @@ import { latestCloses, percentChange } from '@/services/market/index.js';
 type FeedData = {
     userId?: string;
     candleRooms?: string[]; // The candle rooms this socket is in, so a page's new set of charts can leave the rest
-    quoteRooms?: string[]; // The quote rooms this socket is in, so a new watchlist can leave them all
+    quoteRooms?: string[]; // The quote rooms this socket is in, so a new watch can leave them all
 };
 
 type FeedSocket = Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, FeedData>;

@@ -15,9 +15,11 @@ import ScreenerDialogs from '@/components/screener/ScreenerDialogs.vue';
 import ScreenerPicker from '@/components/screener/ScreenerPicker.vue';
 import WatchlistDialog from '@/components/screener/WatchlistDialog.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
+import { useMarketStatus } from '@/composables/charts/useMarketStatus';
 import { adoptPreferences, loadPreferences, patchPreferences, usePreferences } from '@/composables/data/usePreferences';
 import { useResource } from '@/composables/data/useResource';
 import { useFilterRegistry } from '@/composables/screener/useFilterRegistry';
+import { useLivePrices } from '@/composables/screener/useLivePrices';
 import { EXPORT_LIMIT, useScreenerExport } from '@/composables/screener/useScreenerExport';
 import { useScreenerFilters } from '@/composables/screener/useScreenerFilters';
 import { useScreenerResults, type ResultsSource } from '@/composables/screener/useScreenerResults';
@@ -82,6 +84,13 @@ const source = computed<ResultsSource>(() => {
 const results = useScreenerResults(
     () => source.value,
     () => revision.value,
+);
+
+// The feed carries stocks only, and only during the session
+const market = useMarketStatus(() => false);
+const live = useLivePrices(
+    () => results.items.value,
+    () => market.status.value === 'open',
 );
 
 const profile = useResource(
@@ -319,7 +328,7 @@ onUnmounted(() => {
 
                 <ResultsTable
                     v-else
-                    :items="results.items.value"
+                    :items="live.items.value"
                     :columns="columns"
                     :selected="selectedSymbol"
                     :hidden-symbols="hiddenSymbols"
