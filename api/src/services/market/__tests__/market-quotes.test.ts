@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ZodType } from 'zod';
 
-import { isList } from '@ereuna/shared';
+import { isList, type AggregateMessage } from '@ereuna/shared';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 import { at } from '@/__tests__/support/values.js';
@@ -19,6 +19,14 @@ vi.mock('@/lib/cache.js', () => ({
     },
 }));
 
+const live: { buckets: Map<string, AggregateMessage>; reads: string[] } = { buckets: new Map(), reads: [] };
+vi.mock('@/lib/last-bucket.js', () => ({
+    readLastCandle: (symbol: string, timeframe: string) => {
+        live.reads.push(`${symbol}:${timeframe}`);
+        return Promise.resolve(live.buckets.get(symbol) ?? null);
+    },
+}));
+
 const { closeOnOrAfter, latestCloses, percentChange, quotes } = await import('@/services/market/market-quotes.js');
 
 const pipelineOf = (index = 0): unknown[] => {
@@ -29,6 +37,8 @@ const pipelineOf = (index = 0): unknown[] => {
 beforeEach(() => {
     db.current = fakeDb({ OHCLVData: [] });
     cache.keys = [];
+    live.buckets = new Map();
+    live.reads = [];
 });
 
 describe('latestCloses', () => {
@@ -172,6 +182,75 @@ describe('quotes', () => {
     it('batches a long symbol list', async () => {
         await quotes(Array.from({ length: 501 }, (_u, i) => `S${i}`));
         expect(db.current.of('OHCLVData').aggregate).toHaveBeenCalledTimes(2);
+    });
+
+    describe("today's bar", () => {
+        const today = (close: number, symbol = 'AAPL'): AggregateMessage => ({
+            tickerID: symbol,
+            timeframe: '1d',
+            timestamp: '2026-01-11T00:00:00.000Z',
+            open: close,
+            high: close,
+            low: close,
+            close,
+            volume: 1_000,
+            final: false,
+        });
+
+        it("reads the aggregator's daily bucket", async () => {
+            await quotes(['AAPL']);
+            expect(live.reads).toEqual(['AAPL:1d']);
+        });
+
+        // The aggregator stores the daily bar at the bell, so during the session the newest stored bar is yesterday's
+        it('prices the session from it, against the newest stored close', async () => {
+            db.current = fakeDb({ OHCLVData: [bars(110, 100)] });
+            live.buckets.set('AAPL', today(121));
+
+            await expect(quotes(['AAPL'])).resolves.toEqual([
+                {
+                    symbol: 'AAPL',
+                    close: 121,
+                    timestamp: '2026-01-11T00:00:00.000Z',
+                    previousClose: 110,
+                    change: 11,
+                    changePercent: 10,
+                },
+            ]);
+        });
+
+        it('replaces the stored copy the bell wrote, rather than measuring the day against itself', async () => {
+            db.current = fakeDb({
+                OHCLVData: [
+                    {
+                        _id: 'AAPL',
+                        bars: [
+                            { close: 120, timestamp: new Date('2026-01-11T00:00:00.000Z') },
+                            { close: 100, timestamp: new Date('2026-01-10T00:00:00.000Z') },
+                        ],
+                    },
+                ],
+            });
+            live.buckets.set('AAPL', today(121));
+
+            const [quote] = await quotes(['AAPL']);
+            expect(quote).toMatchObject({ close: 121, previousClose: 100, change: 21 });
+        });
+
+        it('prices a listing with no stored history, with no change to report', async () => {
+            live.buckets.set('NEWCO', today(5, 'NEWCO'));
+
+            await expect(quotes(['NEWCO'])).resolves.toEqual([
+                {
+                    symbol: 'NEWCO',
+                    close: 5,
+                    timestamp: '2026-01-11T00:00:00.000Z',
+                    previousClose: null,
+                    change: null,
+                    changePercent: null,
+                },
+            ]);
+        });
     });
 });
 

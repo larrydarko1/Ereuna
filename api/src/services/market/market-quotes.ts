@@ -1,14 +1,23 @@
-/** market-quotes — latest and previous closes, read from the daily bar collection. */
+/**
+ * market-quotes — latest and previous closes: the daily bar collection, with
+ * today's bar taken from the aggregator while the stored copy has yet to land.
+ */
 import { z } from 'zod';
 
 import type { OhlcvDoc, Quote } from '@ereuna/shared';
-import { quoteSchema } from '@ereuna/shared';
 
 import { marketKey, withCache } from '@/lib/cache.js';
 import { sha256 } from '@/lib/crypto.js';
 import { getDb } from '@/lib/db.js';
+import { readLastCandle } from '@/lib/last-bucket.js';
 
-const quotesSchema = z.array(quoteSchema);
+/** A daily close as the quote reads it; the timestamp is the bar's UTC day, as an ISO string. */
+type Bar = { close: number; timestamp: string };
+
+/** Each symbol's two newest stored bars, newest first: what the cache holds. */
+const storedBarsSchema = z.array(
+    z.object({ symbol: z.string(), bars: z.array(z.object({ close: z.number(), timestamp: z.string() })) }),
+);
 
 /**
  * Symbols per aggregation. The pipeline sorts before grouping, so an unbounded
@@ -52,46 +61,21 @@ export async function latestCloses(
 }
 
 /**
- * Latest close plus the day-over-day change for each symbol.
- * `$push`-then-`$slice` takes the two most recent bars per symbol in a single
- * pass, so the previous close costs no extra query.
+ * Latest close plus the day-over-day change for each symbol, as a vendor's
+ * snapshot gives it: today's bar while the session builds it, the stored one
+ * otherwise. The aggregator stores a daily bar only at the bell, so without
+ * the live one a quote read during the session, or in the moment between the
+ * bell and the write, is yesterday's close.
  */
 export async function quotes(symbols: readonly string[]): Promise<Quote[]> {
     if (symbols.length === 0) return [];
 
-    // The key is a hash of the sorted symbol set, not the set itself: a
-    // 500-symbol watchlist would otherwise produce a multi-kilobyte Redis key,
-    // and sorting makes two callers requesting the same symbols share one entry.
-    return withCache(
-        marketKey('quotes', sha256([...symbols].sort().join(','))),
-        quotesSchema,
-        async () => {
-            const results: Quote[] = [];
+    const [stored, today] = await Promise.all([readStoredBars(symbols), readTodaysBars(symbols)]);
+    const bySymbol = new Map(stored.map((entry) => [entry.symbol, entry.bars]));
+    // A listing with no stored history yet still has a price once it trades
+    for (const symbol of today.keys()) if (!bySymbol.has(symbol)) bySymbol.set(symbol, []);
 
-            for (const batch of chunk(symbols, BATCH_SIZE)) {
-                // eslint-disable-next-line contracts/no-db-await-in-loop -- one aggregation per batch of symbols, not per symbol
-                const docs = await getDb()
-                    .collection<OhlcvDoc>('OHCLVData')
-                    .aggregate<{ _id: string; bars: { close: number; timestamp: Date }[] }>([
-                        { $match: { tickerID: { $in: batch } } },
-                        { $sort: { timestamp: -1 } },
-                        {
-                            $group: {
-                                _id: '$tickerID',
-                                bars: { $push: { close: '$close', timestamp: '$timestamp' } },
-                            },
-                        },
-                        { $project: { bars: { $slice: ['$bars', 2] } } },
-                    ])
-                    .toArray();
-
-                for (const doc of docs) results.push(toQuote(doc._id, doc.bars));
-            }
-
-            return results;
-        },
-        { dataType: 'price' },
-    );
+    return [...bySymbol].map(([symbol, bars]) => toQuote(symbol, withTodaysBar(bars, today.get(symbol))));
 }
 
 /**
@@ -117,7 +101,66 @@ export function percentChange(latest: number, previous: number | undefined): num
     return round2(((latest - previous) / previous) * 100);
 }
 
-function toQuote(symbol: string, bars: { close: number; timestamp: Date }[]): Quote {
+/**
+ * The two newest stored bars per symbol. `$push`-then-`$slice` takes them in a
+ * single pass, so the previous close costs no extra query.
+ */
+async function readStoredBars(symbols: readonly string[]): Promise<{ symbol: string; bars: Bar[] }[]> {
+    // The key is a hash of the sorted symbol set, not the set itself: a
+    // 500-symbol watchlist would otherwise produce a multi-kilobyte Redis key,
+    // and sorting makes two callers requesting the same symbols share one entry.
+    return withCache(
+        marketKey('quotes', sha256([...symbols].sort().join(','))),
+        storedBarsSchema,
+        async () => {
+            const results: { symbol: string; bars: Bar[] }[] = [];
+
+            for (const batch of chunk(symbols, BATCH_SIZE)) {
+                // eslint-disable-next-line contracts/no-db-await-in-loop -- one aggregation per batch of symbols, not per symbol
+                const docs = await getDb()
+                    .collection<OhlcvDoc>('OHCLVData')
+                    .aggregate<{ _id: string; bars: { close: number; timestamp: Date }[] }>([
+                        { $match: { tickerID: { $in: batch } } },
+                        { $sort: { timestamp: -1 } },
+                        {
+                            $group: {
+                                _id: '$tickerID',
+                                bars: { $push: { close: '$close', timestamp: '$timestamp' } },
+                            },
+                        },
+                        { $project: { bars: { $slice: ['$bars', 2] } } },
+                    ])
+                    .toArray();
+
+                for (const doc of docs) {
+                    const bars = doc.bars.map((bar) => ({ close: bar.close, timestamp: bar.timestamp.toISOString() }));
+                    results.push({ symbol: doc._id, bars });
+                }
+            }
+
+            return results;
+        },
+        { dataType: 'price' },
+    );
+}
+
+/** Today's bar of each symbol that has traded today, from the aggregator's last daily bucket. */
+async function readTodaysBars(symbols: readonly string[]): Promise<Map<string, Bar>> {
+    const buckets = await Promise.all(symbols.map((symbol) => readLastCandle(symbol, '1d')));
+    const bars = new Map<string, Bar>();
+    for (const bucket of buckets) {
+        if (bucket !== null) bars.set(bucket.tickerID, { close: bucket.close, timestamp: bucket.timestamp });
+    }
+    return bars;
+}
+
+/** Today's bar in front of the stored ones, which may already hold a copy of it: the bell writes one. */
+function withTodaysBar(bars: Bar[], today: Bar | undefined): Bar[] {
+    if (today === undefined) return bars;
+    return [today, ...bars.filter((bar) => Date.parse(bar.timestamp) < Date.parse(today.timestamp))];
+}
+
+function toQuote(symbol: string, bars: Bar[]): Quote {
     const latest = bars[0];
     const previous = bars[1];
 
@@ -137,7 +180,7 @@ function toQuote(symbol: string, bars: { close: number; timestamp: Date }[]): Qu
         return {
             symbol,
             close: latest.close,
-            timestamp: new Date(latest.timestamp).toISOString(),
+            timestamp: latest.timestamp,
             previousClose: previous?.close ?? null,
             change: null,
             changePercent: null,
@@ -148,7 +191,7 @@ function toQuote(symbol: string, bars: { close: number; timestamp: Date }[]): Qu
     return {
         symbol,
         close: latest.close,
-        timestamp: new Date(latest.timestamp).toISOString(),
+        timestamp: latest.timestamp,
         previousClose: previous.close,
         change: round2(change),
         changePercent,
