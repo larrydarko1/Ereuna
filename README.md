@@ -307,8 +307,9 @@ reaches it through `TIINGO_URL`, which production refuses unless it is `wss://`.
 The ingestor and the aggregate role are **singletons**. Two ingestors double-subscribe
 upstream and write every trade twice; two aggregators split the consumer group and each
 build half a candle out of half the trades. That's what `WORKER_ROLE` buys — one image,
-one entry point, and the ability to pin `replicas: 1` on the aggregate deployment while
-the organize one scales freely.
+one entry point, and the ability to pin `replicas: 1` on the aggregate deployment. The
+nightly run takes a Redis lock instead, so a second organize replica skips a night another
+one is already running rather than writing the same bars twice.
 
 Websockets are Socket.IO on the API's own HTTP server, one port, authenticated with the
 access token on the handshake. There is deliberately **no Redis adapter**: the adapter

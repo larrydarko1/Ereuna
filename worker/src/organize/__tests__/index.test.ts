@@ -18,13 +18,23 @@ const fails = new Set<string>();
 
 const SINCE = new Date('2026-11-09T00:00:00.000Z');
 
-const state: { waitMs: number; universe: { symbol: string }[]; blocked: string | null; release: (() => void) | null } =
-    {
-        waitMs: 60_000,
-        universe: [{ symbol: 'AAPL' }, { symbol: 'GONE' }],
-        blocked: null,
-        release: null,
-    };
+const state: {
+    waitMs: number;
+    universe: { symbol: string }[];
+    blocked: string | null;
+    release: (() => void) | null;
+    lockHeld: boolean;
+} = {
+    waitMs: 60_000,
+    universe: [{ symbol: 'AAPL' }, { symbol: 'GONE' }],
+    blocked: null,
+    release: null,
+    lockHeld: false,
+};
+vi.mock('@/organize/lock.js', () => ({
+    withNightlyLock: <T>(work: () => Promise<T>): Promise<T | null> =>
+        state.lockHeld ? Promise.resolve(null) : work(),
+}));
 vi.mock('@/organize/schedule.js', () => ({ msUntilNextRun: () => state.waitMs }));
 vi.mock('@/organize/universe.js', () => ({ activeUniverse: () => Promise.resolve(state.universe) }));
 const { config } = await import('@/lib/config.js');
@@ -116,6 +126,7 @@ beforeEach(async () => {
     state.universe = [{ symbol: 'AAPL' }, { symbol: 'GONE' }];
     state.blocked = null;
     state.release = null;
+    state.lockHeld = false;
     (config as { organize: { runOnStart: boolean } }).organize.runOnStart = false;
 
     vi.resetModules();
@@ -167,6 +178,23 @@ describe('the nightly line', () => {
         fails.add('delist');
         await runOnce();
         expect(seen['metrics']).toEqual([[{ symbol: 'AAPL' }, { symbol: 'GONE' }]]);
+    });
+});
+
+describe('one run at a time', () => {
+    it('skips the whole run while another process holds the nightly lock', async () => {
+        state.lockHeld = true;
+        await runOnce();
+        expect(order).toEqual([]);
+    });
+
+    it('keeps scheduling after a night the lock skipped', async () => {
+        state.lockHeld = true;
+        await runOnce();
+        state.lockHeld = false;
+        await vi.advanceTimersByTimeAsync(state.waitMs);
+        await vi.advanceTimersByTimeAsync(0);
+        expect(order).toEqual(THE_LINE);
     });
 });
 
