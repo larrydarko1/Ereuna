@@ -23,13 +23,6 @@ const Env = z
 
         PROBE_PORT: z.coerce.number().int().positive().default(9093),
         METRICS_TOKEN: z.string().optional(),
-
-        // Run the nightly batch once at startup instead of waiting for the
-        // clock. For a manual catch-up after an outage; never set in a deployment
-        ORGANIZE_ON_START: z
-            .enum(['true', 'false'])
-            .default('false')
-            .transform((value) => value === 'true'),
     })
     // superRefine rather than refine: the key is required for two of the three
     // roles and absent for the third, so it cannot be declared required in the
@@ -83,7 +76,6 @@ export const config = {
 
     organize: {
         runHourEt: 19, // Three hours after the 16:00 close, so late prints have settled
-        runOnStart: parsed.ORGANIZE_ON_START,
         writeBatchSize: 500, // AssetInfo updates per bulk write
         intradayRetentionDays: 14, // How long a 1m/5m/15m/30m/1hr bar is kept
         delistAfterDays: 14, // No daily bar for this long and the symbol is treated as delisted

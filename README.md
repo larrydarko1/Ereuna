@@ -211,6 +211,7 @@ npm run dev:ingestor:sim      # the ingestor, pointed at the simulator and the s
 npm run dev:worker            # both roles (default for local work)
 npm run dev:worker:aggregate  # realtime bucketing only
 npm run dev:worker:organize   # nightly batch only
+npm run nightly               # the nightly batch once, now, then exit
 ```
 
 Database:

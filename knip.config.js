@@ -13,7 +13,8 @@ export default knip({
         },
         'frontend': { entry: ['index.html!'], project: ['src/**/*.{ts,vue}!', '*.ts'] },
         'api': { project: ['src/**/*.ts!', '*.ts'] },
-        'worker': { project: ['src/**/*.ts!'] },
+        // `npm run nightly` starts at src/nightly.ts, behind an env prefix knip does not read
+        'worker': { entry: ['src/index.ts!', 'src/nightly.ts!'], project: ['src/**/*.ts!'] },
         'ingestor': { project: ['src/**/*.ts!'] },
         'db': { entry: ['migrate-mongo-config.js!', 'migrations/*.js!'], project: ['**/*.{js,ts}'] },
         'packages/shared': {

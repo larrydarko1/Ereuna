@@ -1,8 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/lib/config.js', () => ({
-    config: { organize: { runOnStart: false, runHourEt: 19 } },
-}));
 vi.mock('@/lib/logger.js', () => ({
     logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
 }));
@@ -37,7 +34,6 @@ vi.mock('@/organize/lock.js', () => ({
 }));
 vi.mock('@/organize/schedule.js', () => ({ msUntilNextRun: () => state.waitMs }));
 vi.mock('@/organize/universe.js', () => ({ activeUniverse: () => Promise.resolve(state.universe) }));
-const { config } = await import('@/lib/config.js');
 /**
  * `stopping` is module state and never goes back to false, which is right for a
  * process that stops once and exits — so each test gets its own instance of the
@@ -127,7 +123,6 @@ beforeEach(async () => {
     state.blocked = null;
     state.release = null;
     state.lockHeld = false;
-    (config as { organize: { runOnStart: boolean } }).organize.runOnStart = false;
 
     vi.resetModules();
     ({ startOrganizer, stopOrganizer } = await import('@/organize/index.js'));
@@ -203,18 +198,6 @@ describe('the schedule', () => {
         void startOrganizer();
         await vi.advanceTimersByTimeAsync(state.waitMs - 1);
         expect(order).toEqual([]);
-    });
-
-    it('runs immediately when ORGANIZE_ON_START is set, then schedules as usual', async () => {
-        (config as { organize: { runOnStart: boolean } }).organize.runOnStart = true;
-        void startOrganizer();
-        await vi.advanceTimersByTimeAsync(0);
-        expect(order).toEqual(THE_LINE);
-
-        order.length = 0;
-        await vi.advanceTimersByTimeAsync(state.waitMs);
-        await vi.advanceTimersByTimeAsync(0);
-        expect(order).toEqual(THE_LINE);
     });
 
     it('schedules the next run after one finishes', async () => {

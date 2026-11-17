@@ -1,5 +1,4 @@
 /** The nightly run. */
-import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 import { applyDividends, applySplits } from '@/organize/corporate-actions.js';
 import { updateDailyMetrics } from '@/organize/daily-metrics.js';
@@ -33,12 +32,7 @@ let stopping = false;
  * the exchange's clock each time and a daylight-saving change moves it by an
  * hour. Resolves only when the role is stopped.
  */
-export async function startOrganizer(): Promise<void> {
-    if (config.organize.runOnStart) {
-        logger.warn('ORGANIZE_ON_START is set — running immediately');
-        await runNightly();
-    }
-
+export function startOrganizer(): Promise<void> {
     return new Promise<void>((resolve): void => {
         const schedule = (): void => {
             if (stopping) {
@@ -75,7 +69,7 @@ export function stopOrganizer(): void {
  * One nightly run, now; null without running when another process holds the
  * nightly lock, since two runs replacing the same bars can leave duplicates.
  */
-async function runNightly(): Promise<RunSummary | null> {
+export async function runNightly(): Promise<RunSummary | null> {
     const summary = await withNightlyLock(runSteps);
     if (summary === null) logger.warn('Another nightly run holds the lock; this one is skipped');
     return summary;
