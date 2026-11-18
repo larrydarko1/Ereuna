@@ -24,12 +24,16 @@ export type Asset = {
  */
 export const PRIMARY_EXCHANGES: readonly string[] = ['NYSE', 'NASDAQ'];
 
-/** Every symbol not marked delisted, with the reference fields the run reads. */
+/**
+ * Every symbol not marked delisted, with the reference fields the run reads.
+ * Crypto is left out: the run has no price source for it, so each coin would
+ * cost a refused request every night and then be retired as delisted.
+ */
 export async function activeUniverse(): Promise<Asset[]> {
     const docs = await getDb()
         .collection<AssetInfoDoc>('AssetInfo')
         .find(
-            { Delisted: { $ne: true } },
+            { Delisted: { $ne: true }, AssetType: { $ne: 'Crypto' } },
             {
                 projection: {
                     _id: 0,
