@@ -272,4 +272,22 @@ describe('the request limit', () => {
         await expect(third).resolves.toEqual([]);
         expect(seen).toHaveLength(3);
     });
+
+    it('says once that it is waiting, not once per request held at the limit', async () => {
+        vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] });
+        const client = await freshClient('2');
+        const { logger } = await import('@/lib/logger.js');
+        const info = vi.spyOn(logger, 'info');
+        server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json([])));
+
+        await client.marketPrices();
+        await vi.advanceTimersByTimeAsync(1_000);
+        await client.marketPrices();
+        const held = [client.marketPrices(), client.marketPrices()];
+
+        await vi.advanceTimersByTimeAsync(3_600_000);
+        await Promise.all(held);
+        expect(seen).toHaveLength(4);
+        expect(info).toHaveBeenCalledTimes(1);
+    });
 });

@@ -219,7 +219,7 @@ async function attemptOnce(url: URL, path: string): Promise<unknown> {
  * callers can never both take the last slot.
  */
 async function takeSlot(path: string): Promise<void> {
-    for (;;) {
+    for (let waited = false; ; waited = true) {
         if (Date.now() < refusedUntil) throw new TiingoLimitError(path);
         const now = Date.now();
         while (sent[0] !== undefined && sent[0] <= now - HOUR) sent.shift();
@@ -227,7 +227,8 @@ async function takeSlot(path: string): Promise<void> {
         const wait = msUntilNextSlot(sent, now, config.tiingo.requestsPerHour, HOUR);
         if (wait === 0) {
             sent.push(now);
-            pacing = false;
+            // A pause ends when a request finds room without waiting; at the limit each slot goes to a waiter
+            if (!waited) pacing = false;
             return;
         }
         if (!pacing) {
