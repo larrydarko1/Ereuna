@@ -5,19 +5,20 @@ import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 
 /**
- * A daily bar as the vendor sends it. Only the adjusted prices are kept, so
- * only they are required; a row missing one is dropped rather than half-filled,
- * because a bar with a raw close among adjusted ones is a discontinuity every
- * derived figure would read as a move. A missing split factor or dividend is
- * read as none.
+ * A daily bar as the vendor sends it. The prices it traded at are kept, not the
+ * vendor's adjusted ones: those are restated for every later dividend as well as
+ * every split, which moves past prices off what anyone paid. Splits are applied
+ * here from each day's split factor, and dividends are recorded on their own.
+ * A row missing a price is dropped rather than half-filled; a missing split
+ * factor or dividend is read as none.
  */
 const dailyBarSchema = z.object({
     date: z.string(),
-    adjOpen: z.number(),
-    adjHigh: z.number(),
-    adjLow: z.number(),
-    adjClose: z.number(),
-    adjVolume: z.number(),
+    open: z.number(),
+    high: z.number(),
+    low: z.number(),
+    close: z.number(),
+    volume: z.number(),
     divCash: z.number().catch(0),
     splitFactor: z.number().catch(1),
 });

@@ -19,11 +19,11 @@ const server = setupServer();
 const ROW = {
     ticker: 'AAPL',
     date: '2026-09-04T00:00:00.000Z',
-    adjOpen: 101,
-    adjHigh: 106,
-    adjLow: 100,
-    adjClose: 105,
-    adjVolume: 1_000,
+    open: 101,
+    high: 106,
+    low: 100,
+    close: 105,
+    volume: 1_000,
     divCash: 0,
     splitFactor: 1,
 };
@@ -88,8 +88,8 @@ describe('the endpoints', () => {
     });
 });
 
-// A bar is only usable whole: a raw close among adjusted ones is a discontinuity
-// every derived figure would read as a move, so a row short of one is dropped
+// A bar is only usable whole: a hole in it is a move every derived figure would
+// read, so a row short of a price is dropped
 describe('the rows', () => {
     const answer = (rows: JsonBodyType): void => {
         server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json(rows)));
@@ -98,8 +98,8 @@ describe('the rows', () => {
     it.each([
         ['no ticker', { ticker: undefined }],
         ['an empty ticker', { ticker: '' }],
-        ['a missing adjusted close', { adjClose: undefined }],
-        ['a non-numeric adjusted volume', { adjVolume: 'lots' }],
+        ['a missing close', { close: undefined }],
+        ['a non-numeric volume', { volume: 'lots' }],
         ['no date', { date: null }],
     ])('drops a row with %s and keeps the rest', async (_label, overrides) => {
         answer([
@@ -109,8 +109,8 @@ describe('the rows', () => {
         await expect(marketPrices()).resolves.toEqual([{ ...ROW, ticker: 'MSFT' }]);
     });
 
-    it('keeps only the adjusted prices, which is the whole series a bar joins', async () => {
-        answer([{ ...ROW, open: 1, close: 1, volume: 1 }]);
+    it('keeps the prices it traded at, never the ones restated for later dividends', async () => {
+        answer([{ ...ROW, adjOpen: 1, adjClose: 1, adjVolume: 1 }]);
         await expect(marketPrices()).resolves.toEqual([ROW]);
     });
 

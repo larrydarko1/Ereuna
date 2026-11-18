@@ -8,6 +8,7 @@ import { dailyHistory } from '@/lib/tiingo.js';
 import { refetchHistory } from '@/organize/prices.js';
 import { rebuildWeekly } from '@/organize/weekly.js';
 import { assetInfoUpdates } from '@/organize/write.js';
+import { toSplitAdjusted } from '@/utils/splits.js';
 
 type Split = { symbol: string; at: Date; factor: number };
 type Dividend = { symbol: string; at: Date; amount: number };
@@ -110,17 +111,4 @@ async function adjustIntraday(split: Split): Promise<void> {
         );
         logger.debug({ symbol, collection, adjusted: stored.length }, 'Intraday bars adjusted for split');
     }
-}
-
-/** A bar restated as if the split had always been in force: prices divided by the factor, volume multiplied. */
-function toSplitAdjusted(bar: OhlcvDoc, factor: number): OhlcvDoc {
-    return {
-        tickerID: bar.tickerID,
-        timestamp: bar.timestamp,
-        open: bar.open / factor,
-        high: bar.high / factor,
-        low: bar.low / factor,
-        close: bar.close / factor,
-        volume: bar.volume * factor,
-    };
 }

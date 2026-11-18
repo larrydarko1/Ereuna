@@ -9,6 +9,7 @@ import { logger } from '@/lib/logger.js';
 import { dailyHistory, marketPrices, type VendorDailyBar } from '@/lib/tiingo.js';
 import { chunk, type Asset } from '@/organize/universe.js';
 import { listSessions } from '@/utils/holidays.js';
+import { isSplit, toSplitAdjusted } from '@/utils/splits.js';
 
 export type PriceUpdate = {
     written: number;
@@ -19,7 +20,7 @@ export type PriceUpdate = {
 };
 
 /** A usable vendor row: the bar to store, and the corporate actions it carries. */
-type PricedBar = { bar: OhlcvDoc; splitFactor: number; divCash: number };
+export type PricedBar = { bar: OhlcvDoc; splitFactor: number; divCash: number };
 
 const DAY = 86_400_000;
 const MINUTE = 60_000;
@@ -61,15 +62,12 @@ export async function updateDailyPrices(universe: readonly Asset[]): Promise<Pri
 
 /**
  * Replace one symbol's entire daily history from the vendor.
- * Run after a split, when every historical bar has a new adjusted price and
- * patching them individually would be slower and less correct than refetching.
+ * Run after a split, when every earlier bar needs restating and patching them
+ * individually would be slower and less correct than refetching.
  * The weekly bars are derived from these, so the caller rebuilds them after.
  */
 export async function refetchHistory(symbol: string, history: readonly VendorDailyBar[]): Promise<number> {
-    const bars = history.flatMap((row) => {
-        const bar = toBar(symbol, row);
-        return bar === null ? [] : [bar];
-    });
+    const bars = toPricedHistory(symbol, history).map(({ bar }) => bar);
     if (bars.length === 0) return 0;
 
     const db = getDb();
@@ -80,6 +78,52 @@ export async function refetchHistory(symbol: string, history: readonly VendorDai
     }
 
     return bars.length;
+}
+
+/**
+ * A symbol's vendor rows as stored bars, each restated for the splits after
+ * it, so a split never reads as a crash. Walked newest first, carrying the
+ * product of the split factors passed so far: a split's own session already
+ * traded at the new price, so its factor applies only to the sessions before it.
+ */
+export function toPricedHistory(symbol: string, rows: readonly VendorDailyBar[]): PricedBar[] {
+    const priced: PricedBar[] = [];
+    let factor = 1;
+
+    for (const row of [...rows].sort((a, b) => Date.parse(b.date) - Date.parse(a.date))) {
+        const bar = toBar(symbol, row);
+        if (bar !== null) {
+            priced.push({
+                bar: factor === 1 ? bar : toSplitAdjusted(bar, factor),
+                splitFactor: row.splitFactor,
+                divCash: row.divCash,
+            });
+        }
+        if (isSplit(row.splitFactor)) factor *= row.splitFactor;
+    }
+
+    return priced.reverse();
+}
+
+/**
+ * The synthetic 1-minute bar for the session's last minute, 15:59 New York.
+ * It exists so a symbol that never printed in that minute still ends the day
+ * on an intraday bar at the official close. Written only where no bar is
+ * stored: a symbol that did print then already has the aggregator's bar, and
+ * a flat one with zero volume would throw its range away. Stamped 15:59
+ * rather than 16:00 because the session ends at 16:00, so the aggregator never
+ * builds a 16:00 bar and one stamped there would follow every traded day.
+ */
+export function closingMinute(bar: OhlcvDoc): OhlcvDoc {
+    return {
+        tickerID: bar.tickerID,
+        timestamp: new Date(sessionClose(bar.timestamp).getTime() - MINUTE),
+        open: bar.close,
+        high: bar.close,
+        low: bar.close,
+        close: bar.close,
+        volume: 0,
+    };
 }
 
 /**
@@ -119,10 +163,7 @@ async function fetchSessions(symbol: string, missing: readonly Date[]): Promise<
 
     try {
         const rows = await dailyHistory(symbol, first.toISOString().slice(0, 10));
-        return rows.flatMap((row) => {
-            const priced = toPriced(symbol, row);
-            return priced !== null && wanted.has(priced.bar.timestamp.getTime()) ? [priced] : [];
-        });
+        return toPricedHistory(symbol, rows).filter(({ bar }) => wanted.has(bar.timestamp.getTime()));
     } catch (err) {
         logger.warn({ err, symbol, missing: missing.length }, 'Missing sessions could not be fetched');
         return [];
@@ -150,47 +191,22 @@ function sessionsOf(held: Map<string, Set<number>>, symbol: string): Set<number>
     return created;
 }
 
-/**
- * The synthetic 1-minute bar for the session's last minute, 15:59 New York.
- * It exists so a symbol that never printed in that minute still ends the day
- * on an intraday bar at the official close. Written only where no bar is
- * stored: a symbol that did print then already has the aggregator's bar, and
- * a flat one with zero volume would throw its range away. Stamped 15:59
- * rather than 16:00 because the session ends at 16:00, so the aggregator never
- * builds a 16:00 bar and one stamped there would follow every traded day.
- */
-function closingMinute(bar: OhlcvDoc): OhlcvDoc {
-    return {
-        tickerID: bar.tickerID,
-        timestamp: new Date(sessionClose(bar.timestamp).getTime() - MINUTE),
-        open: bar.close,
-        high: bar.close,
-        low: bar.close,
-        close: bar.close,
-        volume: 0,
-    };
-}
-
 function toPriced(symbol: string, row: VendorDailyBar): PricedBar | null {
     const bar = toBar(symbol, row);
     return bar === null ? null : { bar, splitFactor: row.splitFactor, divCash: row.divCash };
 }
 
 /**
- * One vendor row as a stored bar, or null when it is not usable.
- * The adjusted fields are the ones kept; a row missing any of them is dropped
- * rather than half-filled, because a bar with a raw close among adjusted ones
- * is a discontinuity that every derived figure would then read as a move.
+ * One vendor row as a stored bar at the prices it traded at, or null when it
+ * is not usable. A row with any price that is not a finite number is dropped
+ * rather than half-filled, because a hole in a bar is a move every derived
+ * figure would read.
  */
 function toBar(symbol: string, row: VendorDailyBar): OhlcvDoc | null {
     const timestamp = new Date(row.date);
     if (Number.isNaN(timestamp.getTime())) return null;
 
-    const open = row.adjOpen;
-    const high = row.adjHigh;
-    const low = row.adjLow;
-    const close = row.adjClose;
-    const volume = row.adjVolume;
+    const { open, high, low, close, volume } = row;
     if (![open, high, low, close, volume].every((value) => typeof value === 'number' && Number.isFinite(value)))
         return null;
 
@@ -204,7 +220,7 @@ function summarise(priced: readonly PricedBar[]): PriceUpdate {
 
     for (const { bar, splitFactor, divCash } of priced) {
         if (result.since === null || bar.timestamp < result.since) result.since = bar.timestamp;
-        if (splitFactor !== 1 && Number.isFinite(splitFactor)) {
+        if (isSplit(splitFactor)) {
             result.splits.push({ symbol: bar.tickerID, at: bar.timestamp, factor: splitFactor });
         }
         if (divCash !== 0 && Number.isFinite(divCash)) {
