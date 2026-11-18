@@ -45,6 +45,19 @@ export function listSessions(from: Date, through: Date): Date[] {
     return sessions;
 }
 
+/**
+ * The first session from the earliest stored one through `through` that has no
+ * bar, or null when none is missing. Starting at the earliest stored bar means
+ * a symbol that listed recently is not asked for the sessions before it traded.
+ */
+export function findFirstMissingSession(stored: readonly Date[], through: Date): Date | null {
+    const earliest = Math.min(...stored.map((at) => at.getTime()));
+    if (!Number.isFinite(earliest)) return null;
+
+    const held = new Set(stored.map((at) => at.getTime()));
+    return listSessions(new Date(earliest), through).find((session) => !held.has(session.getTime())) ?? null;
+}
+
 /** Every exchange holiday in `year`, in date order. */
 function holidaysFor(year: number): Holiday[] {
     const holidays: Holiday[] = [

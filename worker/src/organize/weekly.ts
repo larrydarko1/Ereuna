@@ -47,6 +47,18 @@ export async function updateWeeksSince(since: Date): Promise<number> {
     return rows.length;
 }
 
+/** Rebuild the weekly bars of `symbols` from the week holding `since`, after their recent daily bars were filled in. */
+export async function updateWeeksFor(symbols: readonly string[], since: Date): Promise<number> {
+    const weekStart = new Date(bucketStart('1w', since.getTime()));
+    const rows = await aggregateWeeks({ tickerID: { $in: [...symbols] }, timestamp: { $gte: weekStart } });
+
+    for (const batch of chunk(rows, config.organize.writeBatchSize)) {
+        await replaceBars(WEEKLY_COLLECTION, batch);
+    }
+
+    return rows.length;
+}
+
 /** Rebuild every weekly bar for one symbol, after its daily history was replaced. */
 export async function rebuildWeekly(symbol: string): Promise<number> {
     const rows = await aggregateWeeks({ tickerID: symbol });

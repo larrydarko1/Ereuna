@@ -62,9 +62,9 @@ export async function applyDividends(dividends: readonly Dividend[]): Promise<nu
 /**
  * Append the split and restate the share count.
  * Returns false when the document already carries it, which is what makes the
- * expensive repair below run once per split rather than once per run.
+ * nightly's expensive repair run once per split rather than once per run.
  */
-async function recordSplit(split: Split): Promise<boolean> {
+export async function recordSplit(split: Split): Promise<boolean> {
     const date = isoDate(split.at);
     const result = await assetInfoUpdates().updateOne(
         { 'Symbol': split.symbol, 'splits.date': { $ne: date } },

@@ -17,7 +17,7 @@ vi.mock('@/lib/logger.js', () => ({
 const db: { current: DbStub } = { current: fakeDb() };
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
 
-const { rebuildWeekly, updateWeeksSince } = await import('@/organize/weekly.js');
+const { rebuildWeekly, updateWeeksFor, updateWeeksSince } = await import('@/organize/weekly.js');
 const { config } = await import('@/lib/config.js');
 
 const WEEK = new Date(Date.UTC(2026, 7, 31));
@@ -118,6 +118,25 @@ describe('updateWeeksSince', () => {
         db.current = fakeDb({ OHCLVData: [grouped('AAPL', WEEK)] });
         db.current.of('OHCLVData2').insertMany.mockRejectedValueOnce(new Error('write conflict'));
         await expect(updateWeeksSince(NOW)).rejects.toThrow('write conflict');
+    });
+});
+
+describe('updateWeeksFor', () => {
+    it('matches only the named symbols, from the Monday of the week holding `since`', async () => {
+        db.current = fakeDb({ OHCLVData: [] });
+        await updateWeeksFor(['AAPL', 'MSFT'], NOW);
+        expect(at(pipelineOf(), 0, '$match')).toEqual({
+            tickerID: { $in: ['AAPL', 'MSFT'] },
+            timestamp: { $gte: WEEK },
+        });
+    });
+
+    it("replaces each week's bar on (tickerID, timestamp)", async () => {
+        db.current = fakeDb({ OHCLVData: [grouped('AAPL', WEEK)] });
+        await expect(updateWeeksFor(['AAPL'], NOW)).resolves.toBe(1);
+        const writes = db.current.of('OHCLVData2').writes;
+        expect(writes.map((write) => write.method)).toEqual(['deleteMany', 'insertMany']);
+        expect(insertedInto('OHCLVData2')).toMatchObject([{ tickerID: 'AAPL', timestamp: WEEK, close: 105 }]);
     });
 });
 

@@ -30,6 +30,7 @@
         "dev:worker:aggregate": "npm -w worker run dev:aggregate",
         "dev:worker:organize": "npm -w worker run dev:organize",
         "nightly": "npm -w worker run nightly",
+        "backfill": "npm -w worker run backfill",
         "dev:ingestor": "npm -w ingestor run dev",
         "dev:ingestor:sim": "MONGO_DB=$npm_package_config_simMongoDb REDIS_DB=$npm_package_config_simRedisDb npm -w ingestor run dev:sim",
         "feed:sim": "MONGO_DB=$npm_package_config_simMongoDb REDIS_DB=$npm_package_config_simRedisDb npm -w ingestor run sim --",

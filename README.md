@@ -212,6 +212,7 @@ npm run dev:worker            # both roles (default for local work)
 npm run dev:worker:aggregate  # realtime bucketing only
 npm run dev:worker:organize   # nightly batch only
 npm run nightly               # the nightly batch once, now, then exit
+npm run backfill              # fill the daily bars a restore from an old backup lacks; run before nightly
 ```
 
 Database:
