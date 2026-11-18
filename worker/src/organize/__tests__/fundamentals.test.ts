@@ -10,10 +10,14 @@ import type { Asset } from '@/organize/universe.js';
 vi.mock('@/lib/logger.js', () => ({
     logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
 }));
-const vendor: { bySymbol: Map<string, VendorStatement[] | Error> } = { bySymbol: new Map() };
+const vendor: { bySymbol: Map<string, VendorStatement[] | Error>; asked: string[] } = {
+    bySymbol: new Map(),
+    asked: [],
+};
 
 vi.mock('@/lib/tiingo.js', () => ({
     statements: (symbol: string) => {
+        vendor.asked.push(symbol);
         const answer = vendor.bySymbol.get(symbol);
         return answer instanceof Error ? Promise.reject(answer) : Promise.resolve(answer ?? []);
     },
@@ -76,6 +80,7 @@ const statementsOf = (symbol: string, list = 'quarterlyFinancials'): unknown[] =
 
 beforeEach(() => {
     vendor.bySymbol = new Map();
+    vendor.asked = [];
     state.written = [];
 });
 
@@ -94,6 +99,17 @@ describe('updateFundamentals', () => {
         vendor.bySymbol.set('GOOD', [filing('2026-06-30', 2)]);
         await expect(updateFundamentals([asset('BAD'), asset('GOOD')])).resolves.toBe(1);
         expect(fieldsFor('GOOD')).not.toEqual({});
+    });
+
+    it('asks for statements only for stocks, never for a fund, an ETF or a coin', async () => {
+        const universe = [
+            asset('AAPL'),
+            { ...asset('VFIAX'), assetType: 'Mutual Fund' },
+            { ...asset('SPY'), assetType: 'ETF' },
+            { ...asset('BTCUSD'), assetType: 'Crypto' },
+        ];
+        await updateFundamentals(universe);
+        expect(vendor.asked).toEqual(['AAPL']);
     });
 
     it('batches the universe rather than holding every statement set at once', async () => {

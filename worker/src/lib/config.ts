@@ -53,7 +53,7 @@ export const config = {
         baseUrl: 'https://api.tiingo.com',
         timeoutMs: 30_000,
         retries: 3, // Total attempts per request, with exponential back-off between them
-        concurrency: 8, // Simultaneous vendor requests. The per-ticker endpoints are called ~10k times a night
+        concurrency: 8, // Simultaneous vendor requests. The per-ticker statements endpoint is called once per stock a night
     },
 
     stream: {

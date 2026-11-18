@@ -320,7 +320,7 @@ already holds every bucket its own sockets need.
 The nightly run is a straight dependency line, not a scheduler: prices → splits →
 dividends → weekly → delist → fundamentals → metrics → valuations → market stats →
 holidays → prune. Each step is isolated, so one vendor outage costs one step and not
-the run.
+the run. Statements are fetched for stocks only, since nothing else files them.
 
 ### Database notes
 
