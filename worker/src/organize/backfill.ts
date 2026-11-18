@@ -22,7 +22,7 @@ import { rebuildWeekly, updateWeeksFor } from '@/organize/weekly.js';
 import { findFirstMissingSession } from '@/utils/holidays.js';
 import { isSplit } from '@/utils/splits.js';
 
-export type BackfillSummary = {
+type BackfillSummary = {
     symbols: number;
     current: number; // Nothing missing, so nothing asked
     filled: number;

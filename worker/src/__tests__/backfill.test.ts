@@ -22,7 +22,6 @@ const state: { connectError: Error | null; locked: boolean; runError: Error | nu
     locked: false,
     runError: null,
 };
-const DONE = { symbols: 2, current: 0, filled: 1, restated: 0, failed: 1, written: 220 };
 vi.mock('@/lib/db.js', () => ({
     connectDb: () => {
         calls.push('connectDb');
@@ -37,7 +36,9 @@ vi.mock('@/lib/db.js', () => ({
 vi.mock('@/organize/backfill.js', () => ({
     backfill: () => {
         calls.push(`backfill after ${db.current.writes().length} indexes`);
-        return state.runError === null ? Promise.resolve(DONE) : Promise.reject(state.runError);
+        return state.runError === null
+            ? Promise.resolve({ symbols: 2, current: 0, filled: 1, restated: 0, failed: 1, written: 220 })
+            : Promise.reject(state.runError);
     },
 }));
 vi.mock('@/organize/lock.js', () => ({
