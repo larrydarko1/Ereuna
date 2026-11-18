@@ -20,8 +20,8 @@ const Env = z
         WORKER_ROLE: z.enum(WORKER_ROLES).default('all'),
 
         TIINGO_KEY: z.string().default(''),
-        // The plan's hourly allowance; the Power plan's 10,000 is the default
-        TIINGO_REQUESTS_PER_HOUR: z.coerce.number().int().positive().default(10_000),
+        // Paced to across every process; the Power plan allows 10,000, less a margin for requests Tiingo counts a moment later than they were sent
+        TIINGO_REQUESTS_PER_HOUR: z.coerce.number().int().positive().default(9_500),
 
         PROBE_PORT: z.coerce.number().int().positive().default(9093),
         METRICS_TOKEN: z.string().optional(),

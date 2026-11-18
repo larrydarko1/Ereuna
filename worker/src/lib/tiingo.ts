@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
-import { msUntilNextSlot } from '@/utils/rate-window.js';
+import { REFUSED, refuse, reserve } from '@/lib/vendor-budget.js';
 
 /**
  * A daily bar as the vendor sends it. The prices it traded at are kept, not the
@@ -56,9 +56,6 @@ const HOUR = 3_600_000;
 
 const waiting: (() => void)[] = [];
 
-/** When each request of the last hour was sent, oldest first. */
-const sent: number[] = [];
-
 /**
  * The vendor refused a request for the plan's request limit. Thrown in place of
  * every request for an hour afterwards, unsent, so a caller can tell "stop and
@@ -87,7 +84,7 @@ class TiingoError extends Error {
 }
 
 let inFlight = 0;
-/** Until when every request is refused unsent, because the vendor said the limit was reached. */
+/** This process's own copy of the refusal, so it holds even while Redis cannot be reached. */
 let refusedUntil = 0;
 let pacing = false;
 
@@ -206,6 +203,9 @@ async function attemptOnce(url: URL, path: string): Promise<unknown> {
     if (response.status === 429) {
         // The plan counts what was sent before this process started too, so the pacing alone cannot rule this out
         refusedUntil = Date.now() + HOUR;
+        await refuse(HOUR).catch((err: unknown) =>
+            logger.warn({ err }, 'Could not share the refusal with other processes'),
+        );
         const detail = (await response.text().catch(() => '')).slice(0, 300);
         logger.error({ path, detail, resumesAt: new Date(refusedUntil) }, 'Tiingo refused: request limit reached');
         throw new TiingoLimitError(path);
@@ -215,25 +215,29 @@ async function attemptOnce(url: URL, path: string): Promise<unknown> {
 
 /**
  * Wait until one more request fits the hourly allowance, then count it as sent.
- * The check and the count run with no await between them, so two waiting
- * callers can never both take the last slot.
+ * The count is shared through Redis; if Redis cannot be reached the request goes
+ * out uncounted, because a 429 still stops the run and a nightly that halts on
+ * a cache blip is the worse failure.
  */
 async function takeSlot(path: string): Promise<void> {
     for (let waited = false; ; waited = true) {
         if (Date.now() < refusedUntil) throw new TiingoLimitError(path);
-        const now = Date.now();
-        while (sent[0] !== undefined && sent[0] <= now - HOUR) sent.shift();
-
-        const wait = msUntilNextSlot(sent, now, config.tiingo.requestsPerHour, HOUR);
+        const wait = await reserve(config.tiingo.requestsPerHour, HOUR).catch((err: unknown) => {
+            logger.warn({ err, path }, 'Tiingo request budget unreachable; sending uncounted');
+            return 0;
+        });
+        if (wait === REFUSED) throw new TiingoLimitError(path);
         if (wait === 0) {
-            sent.push(now);
             // A pause ends when a request finds room without waiting; at the limit each slot goes to a waiter
             if (!waited) pacing = false;
             return;
         }
         if (!pacing) {
             pacing = true;
-            logger.info({ resumesAt: new Date(now + wait) }, "Tiingo's hourly allowance is spent; waiting for it");
+            logger.info(
+                { resumesAt: new Date(Date.now() + wait) },
+                "Tiingo's hourly allowance is spent; waiting for it",
+            );
         }
         await new Promise((resolve): void => {
             setTimeout(resolve, wait);

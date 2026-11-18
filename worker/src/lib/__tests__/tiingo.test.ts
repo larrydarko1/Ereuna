@@ -2,8 +2,36 @@ import { http, HttpResponse, type JsonBodyType } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+/**
+ * Redis as the request budget sees it: the send times of the last window and
+ * the refusal flag, kept outside the module registry so a fresh client (a
+ * restart, a second process) shares them, as it would share the real Redis.
+ * The window rule is the Lua script's, run here as Redis would run it.
+ */
+const budget = vi.hoisted(() => ({ sent: [] as number[], refusedUntil: 0, broken: false }));
+
 vi.mock('@/lib/logger.js', () => ({
     logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
+}));
+
+vi.mock('@/lib/redis.js', () => ({
+    getPublisher: () => ({
+        eval: (...[, , , , now, window, limit]: [string, number, string, string, number, number, number, string]) => {
+            if (budget.broken) return Promise.reject(new Error('connection refused'));
+            if (Date.now() < budget.refusedUntil) return Promise.resolve(-1);
+            budget.sent = budget.sent.filter((at) => at > now - window);
+            if (budget.sent.length < limit) {
+                budget.sent.push(now);
+                return Promise.resolve(0);
+            }
+            const blocking = budget.sent[budget.sent.length - limit] ?? now;
+            return Promise.resolve(Math.max(1, blocking + window - now));
+        },
+        set: (_key: string, _value: string, _px: 'PX', ms: number) => {
+            budget.refusedUntil = Date.now() + ms;
+            return Promise.resolve('OK');
+        },
+    }),
 }));
 
 const { config } = await import('@/lib/config.js');
@@ -43,6 +71,9 @@ beforeAll(() => {
 
 beforeEach(() => {
     seen.length = 0;
+    budget.sent = [];
+    budget.refusedUntil = 0;
+    budget.broken = false;
 });
 
 afterEach(() => {
@@ -289,5 +320,41 @@ describe('the request limit', () => {
         await Promise.all(held);
         expect(seen).toHaveLength(4);
         expect(info).toHaveBeenCalledTimes(1);
+    });
+
+    it('counts what an earlier process sent, so a restart does not start from zero', async () => {
+        vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] });
+        server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json([])));
+        const before = await freshClient('2');
+        await before.marketPrices();
+        await before.marketPrices();
+
+        const restarted = await freshClient('2');
+        const held = restarted.marketPrices();
+        await vi.advanceTimersByTimeAsync(3_599_000);
+        expect(seen).toHaveLength(2);
+        await vi.advanceTimersByTimeAsync(1_000);
+        await held;
+        expect(seen).toHaveLength(3);
+    });
+
+    it('stops every process for the hour after one of them is refused', async () => {
+        vi.useFakeTimers({ toFake: ['Date'] });
+        server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json({}, { status: 429 })));
+        const refused = await freshClient('10000');
+        await expect(refused.marketPrices()).rejects.toThrow(refused.TiingoLimitError);
+
+        const other = await freshClient('10000');
+        await expect(other.marketPrices()).rejects.toThrow(other.TiingoLimitError);
+        expect(seen).toHaveLength(1);
+    });
+
+    it('still sends when Redis cannot be reached, rather than halt the nightly', async () => {
+        const client = await freshClient('10000');
+        budget.broken = true;
+        server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json([])));
+
+        await expect(client.marketPrices()).resolves.toEqual([]);
+        expect(seen).toHaveLength(1);
     });
 });
