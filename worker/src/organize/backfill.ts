@@ -14,7 +14,7 @@ import { insertMissingBars } from '@/lib/candle-store.js';
 import { config } from '@/lib/config.js';
 import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
-import { dailyHistory } from '@/lib/tiingo.js';
+import { dailyHistory, TiingoLimitError } from '@/lib/tiingo.js';
 import { applyDividends, recordSplit } from '@/organize/corporate-actions.js';
 import { closingMinute, refetchHistory, toPricedHistory, type PricedBar } from '@/organize/prices.js';
 import { activeUniverse, chunk } from '@/organize/universe.js';
@@ -34,7 +34,11 @@ type BackfillSummary = {
 /** One symbol's missing stretch: the first session it lacks, and the bars the vendor sent from there. */
 type Gap = { symbol: string; start: Date; priced: PricedBar[] };
 
-type Outcome = { status: 'current' } | { status: 'failed' } | { status: 'gap'; gap: Gap };
+type Outcome =
+    | { status: 'current' }
+    | { status: 'failed' }
+    | { status: 'limited'; err: TiingoLimitError }
+    | { status: 'gap'; gap: Gap };
 
 const DAY = 86_400_000;
 const SYMBOLS_PER_BATCH = 100;
@@ -46,7 +50,9 @@ const HISTORY_START = new Date('1960-01-01T00:00:00.000Z');
 /**
  * Fill every active symbol's missing sessions up to yesterday. Today's bar is
  * left to the nightly, which runs after this. A symbol the vendor refuses is
- * counted and skipped, so one unknown ticker never stops the run.
+ * counted and skipped, so one unknown ticker never stops the run. The plan's
+ * request limit does stop it, once the batch is written: a symbol counted as
+ * failed for it would keep its old last bar, and the nightly delists on that.
  */
 export async function backfill(now: Date): Promise<BackfillSummary> {
     const symbols = (await activeUniverse()).map((asset) => asset.symbol);
@@ -78,6 +84,8 @@ export async function backfill(now: Date): Promise<BackfillSummary> {
         await applyDividends(gaps.flatMap(dividendsOf));
 
         logger.info({ batch: index + 1, of: batches.length, ...summary }, 'Backfill progress');
+        const [limit] = outcomes.flatMap((outcome) => (outcome.status === 'limited' ? [outcome.err] : []));
+        if (limit !== undefined) throw limit;
     }
 
     return summary;
@@ -97,6 +105,7 @@ async function checkGap(symbol: string, now: Date): Promise<Outcome> {
         const priced = toPricedHistory(symbol, rows).filter(({ bar }) => bar.timestamp >= start);
         return priced.length === 0 ? { status: 'current' } : { status: 'gap', gap: { symbol, start, priced } };
     } catch (err) {
+        if (err instanceof TiingoLimitError) return { status: 'limited', err };
         logger.debug({ err, symbol }, 'Backfill could not fetch a symbol');
         return { status: 'failed' };
     }

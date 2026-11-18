@@ -10,18 +10,31 @@ vi.mock('@/lib/logger.js', () => ({
 }));
 const db: { current: DbStub } = { current: fakeDb() };
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
-const vendor: { history: Record<string, VendorDailyBar[]>; asked: [string, string][]; failing: Set<string> } = {
+const vendor: {
+    history: Record<string, VendorDailyBar[]>;
+    asked: [string, string][];
+    failing: Set<string>;
+    limitedFrom: string | null;
+} = {
     history: {},
     asked: [],
     failing: new Set(),
+    limitedFrom: null,
 };
-vi.mock('@/lib/tiingo.js', () => ({
-    dailyHistory: (symbol: string, startDate = '1960-01-01'): Promise<VendorDailyBar[]> => {
-        vendor.asked.push([symbol, startDate]);
-        if (vendor.failing.has(symbol)) return Promise.reject(new Error('Tiingo responded 404'));
-        return Promise.resolve(vendor.history[symbol] ?? []);
-    },
-}));
+vi.mock('@/lib/tiingo.js', async (importOriginal) => {
+    const real = await importOriginal<typeof import('@/lib/tiingo.js')>();
+    return {
+        TiingoLimitError: real.TiingoLimitError,
+        dailyHistory: (symbol: string, startDate = '1960-01-01'): Promise<VendorDailyBar[]> => {
+            vendor.asked.push([symbol, startDate]);
+            if (vendor.limitedFrom !== null && symbol >= vendor.limitedFrom) {
+                return Promise.reject(new real.TiingoLimitError(`/tiingo/daily/${symbol}/prices`));
+            }
+            if (vendor.failing.has(symbol)) return Promise.reject(new Error('Tiingo responded 404'));
+            return Promise.resolve(vendor.history[symbol] ?? []);
+        },
+    };
+});
 const universe: { symbols: string[] } = { symbols: [] };
 vi.mock('@/organize/universe.js', async (importOriginal) => ({
     ...(await importOriginal<typeof import('@/organize/universe.js')>()),
@@ -102,6 +115,7 @@ beforeEach(() => {
     vendor.history = {};
     vendor.asked = [];
     vendor.failing = new Set();
+    vendor.limitedFrom = null;
     universe.symbols = ['AAPL'];
     actions.splits = [];
     actions.dividends = [];
@@ -207,5 +221,15 @@ describe('backfill', () => {
         vendor.history = { AAPL: [row('2026-09-04')] };
 
         await expect(backfill(NOW)).resolves.toMatchObject({ symbols: 2, failed: 1, filled: 1, written: 1 });
+    });
+
+    it('stops at the request limit once the batch it has is written, and asks for no later batch', async () => {
+        universe.symbols = Array.from({ length: 150 }, (_unused, index) => `S${String(index).padStart(3, '0')}`);
+        vendor.limitedFrom = 'S050';
+        vendor.history = { S000: [row('2026-09-04')] };
+
+        await expect(backfill(NOW)).rejects.toThrow('request limit');
+        expect(insertedInto('OHCLVData')).toMatchObject([{ tickerID: 'S000' }]);
+        expect(vendor.asked.map(([symbol]) => symbol)).not.toContain('S100');
     });
 });

@@ -3,7 +3,8 @@
  * missing, then exit. Run it before `npm run nightly`, which only looks two
  * weeks back. It takes the nightly lock, so it never overlaps a nightly run.
  * Safe to stop and run again: each symbol resumes from its first missing
- * session. Exits 1 when it was skipped for the lock or could not run at all.
+ * session. Exits 1 when it was skipped for the lock, stopped at the plan's
+ * request limit (run it again after the hour it logs), or could not run at all.
  */
 import 'dotenv/config';
 

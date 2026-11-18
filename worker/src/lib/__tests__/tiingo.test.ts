@@ -157,18 +157,6 @@ describe('the retry ladder', () => {
         expect(attempts).toBe(2);
     });
 
-    it('retries a 429, which is the vendor having a moment rather than a bad request', async () => {
-        let attempts = 0;
-        server.use(
-            http.get(`${BASE}/tiingo/daily/prices`, () => {
-                attempts += 1;
-                return attempts === 1 ? new HttpResponse(null, { status: 429 }) : HttpResponse.json([]);
-            }),
-        );
-        await expect(marketPrices()).resolves.toEqual([]);
-        expect(attempts).toBe(2);
-    });
-
     it('retries a network failure', async () => {
         let attempts = 0;
         server.use(
@@ -231,5 +219,57 @@ describe('the concurrency limit', () => {
 
         server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json([])));
         await expect(marketPrices()).resolves.toEqual([]);
+    });
+});
+
+describe('the request limit', () => {
+    /** A client of its own, so the hour it is told to stop for, and the requests it counted, end with the test. */
+    async function freshClient(perHour: string): Promise<typeof import('@/lib/tiingo.js')> {
+        vi.stubEnv('TIINGO_REQUESTS_PER_HOUR', perHour);
+        vi.resetModules();
+        return import('@/lib/tiingo.js');
+    }
+
+    afterEach(() => {
+        vi.useRealTimers();
+        vi.unstubAllEnvs();
+    });
+
+    it('stops at a 429 and sends nothing more for an hour, then asks again', async () => {
+        vi.useFakeTimers({ toFake: ['Date'] });
+        const client = await freshClient('10000');
+        let status = 429;
+        server.use(
+            http.get(`${BASE}/tiingo/daily/prices`, () =>
+                status === 429
+                    ? HttpResponse.json({ detail: 'over your hourly allocation' }, { status })
+                    : HttpResponse.json([]),
+            ),
+        );
+
+        await expect(client.marketPrices()).rejects.toThrow(client.TiingoLimitError);
+        await expect(client.dailyHistory('AAPL')).rejects.toThrow(client.TiingoLimitError);
+        expect(seen).toHaveLength(1);
+
+        status = 200;
+        vi.setSystemTime(Date.now() + 3_600_001);
+        await expect(client.marketPrices()).resolves.toEqual([]);
+        expect(seen).toHaveLength(2);
+    });
+
+    it('holds a request past the hourly allowance until the oldest is an hour old', async () => {
+        vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] });
+        const client = await freshClient('2');
+        server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json([])));
+
+        await client.marketPrices();
+        await client.marketPrices();
+        const third = client.marketPrices();
+
+        await vi.advanceTimersByTimeAsync(3_599_000);
+        expect(seen).toHaveLength(2);
+        await vi.advanceTimersByTimeAsync(1_000);
+        await expect(third).resolves.toEqual([]);
+        expect(seen).toHaveLength(3);
     });
 });

@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
+import { msUntilNextSlot } from '@/utils/rate-window.js';
 
 /**
  * A daily bar as the vendor sends it. The prices it traded at are kept, not the
@@ -51,7 +52,27 @@ export type VendorStatementItem = z.infer<typeof statementItemSchema>;
 
 export type VendorStatement = z.infer<typeof statementSchema>;
 
+const HOUR = 3_600_000;
+
 const waiting: (() => void)[] = [];
+
+/** When each request of the last hour was sent, oldest first. */
+const sent: number[] = [];
+
+/**
+ * The vendor refused a request for the plan's request limit. Thrown in place of
+ * every request for an hour afterwards, unsent, so a caller can tell "stop and
+ * come back" from "this symbol failed".
+ */
+export class TiingoLimitError extends Error {
+    readonly path: string;
+
+    constructor(path: string) {
+        super(`Tiingo ${path} not sent: the plan's request limit was reached, asking again after an hour`);
+        this.name = 'TiingoLimitError';
+        this.path = path;
+    }
+}
 
 class TiingoError extends Error {
     readonly status: number;
@@ -66,6 +87,9 @@ class TiingoError extends Error {
 }
 
 let inFlight = 0;
+/** Until when every request is refused unsent, because the vendor said the limit was reached. */
+let refusedUntil = 0;
+let pacing = false;
 
 /** Every listed symbol's end-of-day bar for the latest session, in one call. */
 export function marketPrices(): Promise<VendorMarketBar[]> {
@@ -112,9 +136,10 @@ function release(): void {
 /**
  * GET a vendor path and parse it as JSON.
  *
- * Retries on a network failure and on 5xx and 429, because those are the vendor
- * having a moment. A 4xx is not retried: asking again for a ticker the vendor
- * does not know wastes the rate limit that the rest of the run needs.
+ * Retries on a network failure and on 5xx, because those are the vendor having
+ * a moment. A 4xx is not retried: asking again for a ticker the vendor does not
+ * know wastes the allowance the rest of the run needs. A 429 is the allowance
+ * spent, which another try cannot fix.
  */
 async function request<T>(path: string, row: z.ZodType<T>, query: Record<string, string> = {}): Promise<T[]> {
     const url = new URL(path, config.tiingo.baseUrl);
@@ -151,7 +176,8 @@ async function retrying(url: URL, path: string): Promise<unknown> {
         try {
             return await attemptOnce(url, path);
         } catch (err) {
-            if (err instanceof TiingoError && err.status < 500 && err.status !== 429) throw err;
+            if (err instanceof TiingoLimitError) throw err;
+            if (err instanceof TiingoError && err.status < 500) throw err;
             if (attempt === config.tiingo.retries) throw err;
             logger.debug({ err, path, attempt }, 'Vendor request failed, retrying');
         }
@@ -170,11 +196,46 @@ async function retrying(url: URL, path: string): Promise<unknown> {
  * so the 4xx rule lives in exactly one place.
  */
 async function attemptOnce(url: URL, path: string): Promise<unknown> {
+    await takeSlot(path);
     const response = await fetch(url, {
         headers: { Authorization: `Token ${config.tiingo.key}`, Accept: 'application/json' },
         signal: AbortSignal.timeout(config.tiingo.timeoutMs),
     });
 
     if (response.ok) return response.json();
+    if (response.status === 429) {
+        // The plan counts what was sent before this process started too, so the pacing alone cannot rule this out
+        refusedUntil = Date.now() + HOUR;
+        const detail = (await response.text().catch(() => '')).slice(0, 300);
+        logger.error({ path, detail, resumesAt: new Date(refusedUntil) }, 'Tiingo refused: request limit reached');
+        throw new TiingoLimitError(path);
+    }
     throw new TiingoError(response.status, path);
+}
+
+/**
+ * Wait until one more request fits the hourly allowance, then count it as sent.
+ * The check and the count run with no await between them, so two waiting
+ * callers can never both take the last slot.
+ */
+async function takeSlot(path: string): Promise<void> {
+    for (;;) {
+        if (Date.now() < refusedUntil) throw new TiingoLimitError(path);
+        const now = Date.now();
+        while (sent[0] !== undefined && sent[0] <= now - HOUR) sent.shift();
+
+        const wait = msUntilNextSlot(sent, now, config.tiingo.requestsPerHour, HOUR);
+        if (wait === 0) {
+            sent.push(now);
+            pacing = false;
+            return;
+        }
+        if (!pacing) {
+            pacing = true;
+            logger.info({ resumesAt: new Date(now + wait) }, "Tiingo's hourly allowance is spent; waiting for it");
+        }
+        await new Promise((resolve): void => {
+            setTimeout(resolve, wait);
+        });
+    }
 }
