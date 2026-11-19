@@ -22,7 +22,7 @@
         "url": "git+https://github.com/larrydarko1/Ereuna.git"
     },
     "scripts": {
-        "dev": "concurrently -n front,api,worker -c blue,green,red \"npm run dev:frontend\" \"npm run dev:api\" \"npm run dev:worker\"",
+        "dev": "concurrently -n front,api,worker,ingestor -c blue,green,red,yellow \"npm run dev:frontend\" \"npm run dev:api\" \"npm run dev:worker\" \"npm run dev:ingestor\" ",
         "dev:sim": "MONGO_DB=$npm_package_config_simMongoDb REDIS_DB=$npm_package_config_simRedisDb concurrently -n front,api,worker,vendor,ingestor -c blue,green,red,purple,yellow \"npm run dev:frontend\" \"npm run dev:api\" \"npm run dev:worker:aggregate\" \"npm run feed:sim\" \"npm run dev:ingestor:sim\"",
         "dev:frontend": "npm -w frontend run dev",
         "dev:api": "npm -w api run dev",
