@@ -38,11 +38,12 @@ along with everything else.
 
 - **The app does not currently work end to end.** I know of open bugs and I'm working
   through them in order. Fixes land as batches, not as one big-bang restoration.
-- **The live market-data path is unverified against the real feed.** The ingestor
-  holds one socket to the vendor's trade feed and the worker buckets that stream into
-  candles. The feed simulator (below) runs that whole path, chart included, but it is
-  built from the vendor's documentation, so whether Tiingo behaves as documented is
-  only proven by a real trading day.
+- **The live market-data path is proven at volume only on the simulator.** The
+  ingestor holds one socket to the vendor's trade feed and the worker buckets that
+  stream into candles. That path and the nightly batch have run against the real
+  feed for one trading day on three symbols, and against the feed simulator (below)
+  at about 10M trades over a full session on a copy of the whole database. A full
+  universe on the real feed has not run yet.
 - **There is no infrastructure in this repo.** No Dockerfiles, no compose, no Traefik,
   no Prometheus/Grafana/Loki. That was all deliberately dropped from scope. Infra isn't
   where my strength is, rebuilding it correctly would cost more time than the rewrite
@@ -186,7 +187,7 @@ need a Tiingo API key; the live path can run without one, on the feed simulator.
 ```bash
 npm install
 
-# frontend (:3500) + api (:5500) + worker, no live feed
+# frontend (:3500) + api (:5500) + worker + ingestor, on the real feed
 npm run dev
 
 # the live path with no key: the stack plus the ingestor, on the feed simulator
@@ -225,17 +226,23 @@ npm run db:migrate:status
 ### Environment
 
 Most infra values have working local defaults, so a fresh clone starts with very little.
-Two secrets have no default and will kill the process at boot if missing:
+Three secrets have no default and will kill the process at boot if missing:
 
 ```bash
 JWT_SECRET=            # 32+ characters
 TOTP_ENCRYPTION_KEY=   # 64 hex characters (AES-256-GCM key for TOTP secrets at rest)
-TIINGO_KEY=            # required by the ingestor and the worker
+TIINGO_KEY=            # required by the ingestor, and by the worker unless WORKER_ROLE=aggregate
 ```
 
 Optional overrides: `MONGO_URI`, `MONGO_DB`, `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB`, `TIINGO_URL`,
-`PORT`, `CORS_ORIGIN`, `LOG_LEVEL`, `WORKER_ROLE`. In production the schema rejects any value
-that's still a recognisable dev placeholder, rather than quietly booting with it.
+`TIINGO_REQUESTS_PER_HOUR`, `PORT`, `CORS_ORIGIN`, `LOG_LEVEL`, `WORKER_ROLE`. In production the
+schema rejects any value that's still a recognisable dev placeholder, rather than quietly booting
+with it.
+
+`TIINGO_REQUESTS_PER_HOUR` (9,500 by default, of the Power plan's 10,000) is one allowance every
+worker process shares, counted in Redis, so a nightly and a backfill running together can't
+overspend it. After a 429 none of them sends anything for an hour, and the backfill stops where
+it is; running it again picks up from there.
 
 ## Architecture
 
