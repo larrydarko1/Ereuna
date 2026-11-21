@@ -20,14 +20,10 @@ export class CustomPriceLinePaneView extends SeriesHorizontalLinePaneView {
 
         const lineOptions = this._priceLine.options();
 
-        if (!this._series.visible() || !lineOptions.lineVisible) {
-            return;
-        }
+        if (!this._series.visible() || !lineOptions.lineVisible) return;
 
         const coordinate = this._priceLine.yCoord();
-        if (coordinate === null) {
-            return;
-        }
+        if (coordinate === null) return;
 
         data.visible = true;
         data.y = coordinate;

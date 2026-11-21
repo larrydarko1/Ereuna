@@ -146,11 +146,8 @@ function closePosition(position: ValuedPosition): void {
 async function submitTrade(trade: TradeInput): Promise<void> {
     const editing = tradeToEdit.value;
     await run(async () => {
-        if (editing === null) {
-            await trades.create(trade);
-        } else {
-            await trades.update(editing.id, trade);
-        }
+        if (editing === null) await trades.create(trade);
+        else await trades.update(editing.id, trade);
         // The monthly breakdown was computed from a log that has just changed.
         fullLog.value = null;
         dialog.value = null;

@@ -53,27 +53,19 @@ export class CrosshairTimeAxisView implements ITimeAxisView {
         const data = this._rendererData;
         data.visible = false;
 
-        if (this._crosshair.options().mode === CrosshairMode.Hidden) {
-            return;
-        }
+        if (this._crosshair.options().mode === CrosshairMode.Hidden) return;
 
         const options = this._crosshair.options().vertLine;
 
-        if (!options.labelVisible) {
-            return;
-        }
+        if (!options.labelVisible) return;
 
         const timeScale = this._model.timeScale();
-        if (timeScale.isEmpty()) {
-            return;
-        }
+        if (timeScale.isEmpty()) return;
 
         data.width = timeScale.width();
 
         const value = this._valueProvider();
-        if (value === null) {
-            return;
-        }
+        if (value === null) return;
 
         data.coordinate = value.coordinate;
         const currentTime = timeScale.indexToTimeScalePoint(this._crosshair.appliedIndex());

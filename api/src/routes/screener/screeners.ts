@@ -201,9 +201,7 @@ router.patch(
         if (req.body.include !== undefined) {
             summary = await screenerService.setScreenerIncluded(userId, name, { include: req.body.include });
         }
-        if (req.body.name !== undefined) {
-            summary = await screenerService.renameScreener(userId, name, req.body.name);
-        }
+        if (req.body.name !== undefined) summary = await screenerService.renameScreener(userId, name, req.body.name);
 
         send(res, screenerSummarySchema, summary);
     }),

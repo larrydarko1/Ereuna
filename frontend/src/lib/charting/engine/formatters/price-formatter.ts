@@ -93,21 +93,13 @@ export class PriceFormatter implements IPriceFormatter {
  * @param length - The length. Must be between 0 and 16 inclusive.
  */
 export function numberToStringWithLeadingZero(value: number, length: number): string {
-    if (!isNumber(value)) {
-        return 'n/a';
-    }
+    if (!isNumber(value)) return 'n/a';
 
-    if (!isInteger(length)) {
-        throw new TypeError('invalid length');
-    }
+    if (!isInteger(length)) throw new TypeError('invalid length');
 
-    if (length < 0 || length > 16) {
-        throw new TypeError('invalid length');
-    }
+    if (length < 0 || length > 16) throw new TypeError('invalid length');
 
-    if (length === 0) {
-        return value.toString();
-    }
+    if (length === 0) return value.toString();
 
     const dummyString = '0000000000000000';
     return (dummyString + value.toString()).slice(-length);

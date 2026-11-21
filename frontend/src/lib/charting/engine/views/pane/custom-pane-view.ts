@@ -55,9 +55,7 @@ export class SeriesCustomPaneView extends SeriesPaneViewBase<'Custom', CustomBar
             this._paneView.renderer(),
             (price: number): Coordinate | null => {
                 const firstValue = series.firstValue();
-                if (firstValue === null) {
-                    return null;
-                }
+                if (firstValue === null) return null;
 
                 return series.priceScale().priceToCoordinate(price, firstValue.value);
             },
@@ -119,8 +117,6 @@ function unwrapItemData(item: CustomBarItem): CustomBarItemData<unknown> {
 /** The caller's item as it was given: the row keeps it without its time or colour, and the renderer is owed both */
 function originalItem(row: SeriesPlotRow<'Custom'>): CustomData<unknown> {
     const item: CustomData<unknown> = { ...row.data, time: row.originalTime };
-    if (row.color !== undefined) {
-        item.color = row.color;
-    }
+    if (row.color !== undefined) item.color = row.color;
     return item;
 }

@@ -38,9 +38,7 @@ export class SeriesPriceAxisView extends PriceAxisView {
         paneRendererData.visible = false;
 
         const source = this._source;
-        if (!source.visible()) {
-            return;
-        }
+        if (!source.visible()) return;
 
         const seriesOptions = source.options();
 
@@ -51,9 +49,7 @@ export class SeriesPriceAxisView extends PriceAxisView {
             seriesOptions.seriesLastValueMode === PriceAxisLastValueMode.LastPriceAndPercentageValue;
 
         const lastValueData = source.lastValueData(false);
-        if (lastValueData.noData) {
-            return;
-        }
+        if (lastValueData.noData) return;
 
         if (showSeriesLastValue) {
             axisRendererData.text = this._axisText(lastValueData, { showSeriesLastValue, showPriceAndPercentage });
@@ -87,9 +83,7 @@ export class SeriesPriceAxisView extends PriceAxisView {
 
         const title = this._source.title();
 
-        if (shows.showSymbolLabel === true && title.length !== 0) {
-            result += `${title} `;
-        }
+        if (shows.showSymbolLabel === true && title.length !== 0) result += `${title} `;
 
         if (shows.showSeriesLastValue && shows.showPriceAndPercentage) {
             result += this._source.priceScale().isPercentage()
@@ -101,13 +95,9 @@ export class SeriesPriceAxisView extends PriceAxisView {
     }
 
     protected _axisText(lastValueData: LastValueDataResultWithData, shows: LabelParts): string {
-        if (!shows.showSeriesLastValue) {
-            return '';
-        }
+        if (!shows.showSeriesLastValue) return '';
 
-        if (!shows.showPriceAndPercentage) {
-            return lastValueData.text;
-        }
+        if (!shows.showPriceAndPercentage) return lastValueData.text;
 
         return this._source.priceScale().isPercentage()
             ? lastValueData.formattedPricePercentage

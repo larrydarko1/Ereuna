@@ -126,9 +126,7 @@ export function pressKey(key: string, target: EventTarget = document.body): void
 }
 
 beforeEach(() => {
-    for (const [token, value] of Object.entries(THEME_TOKENS)) {
-        document.documentElement.style.setProperty(token, value);
-    }
+    for (const [token, value] of Object.entries(THEME_TOKENS)) document.documentElement.style.setProperty(token, value);
 
     // Only the timeouts: the engine reads `performance.now` and schedules frames,
     // and a test that froze those would be measuring a chart that never moves
@@ -137,7 +135,5 @@ beforeEach(() => {
 
 afterEach(() => {
     vi.useRealTimers();
-    for (const token of Object.keys(THEME_TOKENS)) {
-        document.documentElement.style.removeProperty(token);
-    }
+    for (const token of Object.keys(THEME_TOKENS)) document.documentElement.style.removeProperty(token);
 });

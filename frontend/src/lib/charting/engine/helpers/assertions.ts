@@ -9,9 +9,7 @@
 // Splitting it in two would produce assertTrue/assertFalse, worse at every call site.
 // eslint-disable-next-line contracts/no-boolean-flag -- the flag is the subject, not a mode
 export function assert(condition: boolean, message?: string): asserts condition {
-    if (!condition) {
-        throw new Error(message === undefined ? 'Assertion failed' : `Assertion failed: ${message}`);
-    }
+    if (!condition) throw new Error(message === undefined ? 'Assertion failed' : `Assertion failed: ${message}`);
 }
 
 /**
@@ -23,9 +21,7 @@ export function assert(condition: boolean, message?: string): asserts condition 
 export function getDefined(value: undefined): never;
 export function getDefined<T>(value: T | undefined): T;
 export function getDefined<T>(value: T | undefined): T {
-    if (value === undefined) {
-        throw new Error('Value is undefined');
-    }
+    if (value === undefined) throw new Error('Value is undefined');
 
     return value;
 }
@@ -34,9 +30,7 @@ export function getDefined<T>(value: T | undefined): T {
 export function getNotNull(value: null): never;
 export function getNotNull<T>(value: T | null): T;
 export function getNotNull<T>(value: T | null): T {
-    if (value === null) {
-        throw new Error('Value is null');
-    }
+    if (value === null) throw new Error('Value is null');
 
     return value;
 }

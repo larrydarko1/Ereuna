@@ -239,12 +239,15 @@ function portablePattern(pattern: string): string {
         const next = pattern[at + 1] ?? '';
         at++;
         const spelled = ascii[next];
-        if (spelled !== undefined) out += inClass || next === '0' ? spelled : `[${spelled}]`;
-        else if (/[DWsSbB]/.test(next))
+        if (spelled !== undefined) {
+            out += inClass || next === '0' ? spelled : `[${spelled}]`;
+        } else if (/[DWsSbB]/.test(next)) {
             throw new Error(
                 `pattern ${pattern}: spell \\${next} out as a class, which Python reads as JavaScript does`,
             );
-        else out += `\\${next}`;
+        } else {
+            out += `\\${next}`;
+        }
     }
     return out;
 }

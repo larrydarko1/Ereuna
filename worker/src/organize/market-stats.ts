@@ -168,9 +168,7 @@ function breadthByUniverse(rows: readonly Row[]): Record<number, Record<string, 
     for (const period of MA_PERIODS) {
         const byUniverse: Record<string, { up: number; down: number }> = {};
 
-        for (const [universe, members] of partitions) {
-            byUniverse[universe] = shareAboveAverage(members, period);
-        }
+        for (const [universe, members] of partitions) byUniverse[universe] = shareAboveAverage(members, period);
 
         breadth[period] = byUniverse;
     }

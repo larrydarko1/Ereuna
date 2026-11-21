@@ -256,9 +256,7 @@ export class DataLayer<THorzScaleItem> {
         const info: SeriesUpdateInfo = { lastBarUpdatedOrNewBarsAddedToTheRight: isSeriesPlotRow(plotRow) };
 
         // if point already exist on the time scale - we don't need to make a full update and just make an incremental one
-        if (!affectsTimeScale) {
-            return this._getUpdateResponse(series, -1, info);
-        }
+        if (!affectsTimeScale) return this._getUpdateResponse(series, -1, info);
 
         const newPoint: InternalTimeScalePoint = {
             timeWeight: nominal<TickMarkWeightValue>(0),
@@ -298,15 +296,10 @@ export class DataLayer<THorzScaleItem> {
             lastSeriesRow === null ||
             this._horzScaleBehavior.key(plotRow.time) > this._horzScaleBehavior.key(lastSeriesRow.time)
         ) {
-            if (isSeriesPlotRow(plotRow)) {
-                seriesData.push(plotRow);
-            }
+            if (isSeriesPlotRow(plotRow)) seriesData.push(plotRow);
         } else {
-            if (isSeriesPlotRow(plotRow)) {
-                seriesData[seriesData.length - 1] = plotRow;
-            } else {
-                seriesData.splice(-1, 1);
-            }
+            if (isSeriesPlotRow(plotRow)) seriesData[seriesData.length - 1] = plotRow;
+            else seriesData.splice(-1, 1);
         }
 
         this._seriesLastTimePoint.set(series, plotRow.time);
@@ -395,9 +388,7 @@ export class DataLayer<THorzScaleItem> {
 
         this._seriesRowsBySeries.forEach((data: SeriesPlotRow[]) => {
             const lastRow = data[data.length - 1];
-            if (lastRow !== undefined) {
-                baseIndex = nominal<TimePointIndex>(Math.max(baseIndex, lastRow.index));
-            }
+            if (lastRow !== undefined) baseIndex = nominal<TimePointIndex>(Math.max(baseIndex, lastRow.index));
         });
 
         return baseIndex;

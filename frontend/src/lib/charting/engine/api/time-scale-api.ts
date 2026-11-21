@@ -94,9 +94,7 @@ export class TimeScaleApi<THorzScaleItem> implements ITimeScaleApi<THorzScaleIte
     public findVisibleRange(): Range<THorzScaleItem> | null {
         const timeRange = this._timeScale.visibleTimeRange();
 
-        if (timeRange === null) {
-            return null;
-        }
+        if (timeRange === null) return null;
 
         return {
             from: callerType<THorzScaleItem>(timeRange.from.originalTime),
@@ -116,9 +114,7 @@ export class TimeScaleApi<THorzScaleItem> implements ITimeScaleApi<THorzScaleIte
 
     public findVisibleLogicalRange(): LogicalRange | null {
         const logicalRange = this._timeScale.visibleLogicalRange();
-        if (logicalRange === null) {
-            return null;
-        }
+        if (logicalRange === null) return null;
 
         return {
             from: logicalRange.left(),
@@ -142,25 +138,19 @@ export class TimeScaleApi<THorzScaleItem> implements ITimeScaleApi<THorzScaleIte
     public logicalToCoordinate(logical: Logical): Coordinate | null {
         const timeScale = this._model.timeScale();
 
-        if (timeScale.isEmpty()) {
-            return null;
-        }
+        if (timeScale.isEmpty()) return null;
         return timeScale.indexToCoordinate(nominal<TimePointIndex>(logical));
     }
 
     public coordinateToLogical(x: number): Logical | null {
-        if (this._timeScale.isEmpty()) {
-            return null;
-        }
+        if (this._timeScale.isEmpty()) return null;
         return nominal<Logical>(this._timeScale.coordinateToIndex(nominal<Coordinate>(x)));
     }
 
     public timeToCoordinate(time: THorzScaleItem): Coordinate | null {
         const timePoint = this._horzScaleBehavior.convertHorzItemToInternal(time);
         const timePointIndex = this._timeScale.timeToIndex(timePoint);
-        if (timePointIndex === null) {
-            return null;
-        }
+        if (timePointIndex === null) return null;
 
         return this._timeScale.indexToCoordinate(timePointIndex);
     }
@@ -169,9 +159,7 @@ export class TimeScaleApi<THorzScaleItem> implements ITimeScaleApi<THorzScaleIte
         const timeScale = this._model.timeScale();
         const timePointIndex = timeScale.coordinateToIndex(nominal<Coordinate>(x));
         const timePoint = timeScale.indexToTimeScalePoint(timePointIndex);
-        if (timePoint === null) {
-            return null;
-        }
+        if (timePoint === null) return null;
 
         return callerType<THorzScaleItem>(timePoint.originalTime);
     }
@@ -220,15 +208,11 @@ export class TimeScaleApi<THorzScaleItem> implements ITimeScaleApi<THorzScaleIte
     }
 
     private _onVisibleBarsChanged(): void {
-        if (this._timeRangeChanged.hasListeners()) {
-            this._timeRangeChanged.fire(this.findVisibleRange());
-        }
+        if (this._timeRangeChanged.hasListeners()) this._timeRangeChanged.fire(this.findVisibleRange());
     }
 
     private _onVisibleLogicalRangeChanged(): void {
-        if (this._logicalRangeChanged.hasListeners()) {
-            this._logicalRangeChanged.fire(this.findVisibleLogicalRange());
-        }
+        if (this._logicalRangeChanged.hasListeners()) this._logicalRangeChanged.fire(this.findVisibleLogicalRange());
     }
 
     private _onSizeChanged(size: Size): void {

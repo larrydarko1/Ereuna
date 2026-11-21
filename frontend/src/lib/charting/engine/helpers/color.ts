@@ -228,9 +228,7 @@ const rgbaRe = /^rgba\(\s*(-?\d{1,10})\s*,\s*(-?\d{1,10})\s*,\s*(-?\d{1,10})\s*,
 
 export function applyAlpha(color: string, alpha: number): string {
     // special case optimization
-    if (color === 'transparent') {
-        return color;
-    }
+    if (color === 'transparent') return color;
 
     const originRgba = colorStringToRgba(color);
     const originAlpha = originRgba[3];
@@ -271,21 +269,15 @@ function rgba(red: number, green: number, blue: number, alpha: number): Rgba {
 }
 
 function normalizeRgbComponent(component: number): number {
-    if (component < 0) {
-        return 0;
-    }
-    if (component > 255) {
-        return 255;
-    }
+    if (component < 0) return 0;
+    if (component > 255) return 255;
     // NaN values are treated as 0
     const rounded = Math.round(component);
     return Number.isNaN(rounded) ? 0 : rounded;
 }
 
 function normalizeAlphaComponent(component: AlphaComponent): AlphaComponent {
-    if (component <= 0 || component > 1) {
-        return nominal<AlphaComponent>(Math.min(Math.max(component, 0), 1));
-    }
+    if (component <= 0 || component > 1) return nominal<AlphaComponent>(Math.min(Math.max(component, 0), 1));
     // limit the precision of all numbers to at most 4 digits in fractional part
     return nominal<AlphaComponent>(Math.round(component * 10000) / 10000);
 }

@@ -169,22 +169,14 @@ function drawRoundRect(
     }
 
     ctx.lineTo(x + w - radii[1], y);
-    if (radii[1] !== 0) {
-        ctx.arcTo(x + w, y, x + w, y + radii[1], radii[1]);
-    }
+    if (radii[1] !== 0) ctx.arcTo(x + w, y, x + w, y + radii[1], radii[1]);
 
     ctx.lineTo(x + w, y + h - radii[2]);
-    if (radii[2] !== 0) {
-        ctx.arcTo(x + w, y + h, x + w - radii[2], y + h, radii[2]);
-    }
+    if (radii[2] !== 0) ctx.arcTo(x + w, y + h, x + w - radii[2], y + h, radii[2]);
 
     ctx.lineTo(x + radii[3], y + h);
-    if (radii[3] !== 0) {
-        ctx.arcTo(x, y + h, x, y + h - radii[3], radii[3]);
-    }
+    if (radii[3] !== 0) ctx.arcTo(x, y + h, x, y + h - radii[3], radii[3]);
 
     ctx.lineTo(x, y + radii[0]);
-    if (radii[0] !== 0) {
-        ctx.arcTo(x, y, x + radii[0], y, radii[0]);
-    }
+    if (radii[0] !== 0) ctx.arcTo(x, y, x + radii[0], y, radii[0]);
 }

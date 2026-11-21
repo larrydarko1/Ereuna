@@ -39,7 +39,9 @@ export function fakeRedis(): RedisStub {
         }),
         del: vi.fn((...keys: string[]) => {
             let removed = 0;
-            for (const key of keys) if (store.delete(key)) removed += 1;
+            for (const key of keys) {
+                if (store.delete(key)) removed += 1;
+            }
             return Promise.resolve(removed);
         }),
         exists: vi.fn((...keys: string[]) => Promise.resolve(keys.filter((key) => store.has(key)).length)),

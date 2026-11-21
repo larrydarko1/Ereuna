@@ -55,16 +55,12 @@ export class TextWidthCache {
         const re = optimizationReplacementRe ?? defaultReplacementRe;
         const cacheString = text.replace(re, '0');
 
-        if (this._cache.has(cacheString)) {
-            return getDefined(this._cache.get(cacheString)).metrics;
-        }
+        if (this._cache.has(cacheString)) return getDefined(this._cache.get(cacheString)).metrics;
 
         if (this._actualSize === this._maxSize) {
             const oldestValue = this._tick2Labels.get(this._oldestTick);
             this._tick2Labels.delete(this._oldestTick);
-            if (oldestValue !== undefined) {
-                this._cache.delete(oldestValue);
-            }
+            if (oldestValue !== undefined) this._cache.delete(oldestValue);
             this._oldestTick++;
             this._actualSize--;
         }

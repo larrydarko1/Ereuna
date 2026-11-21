@@ -96,9 +96,7 @@ function getColoredLineBasedSeriesPlotRow(
         originalTime,
     };
 
-    if (item.color !== undefined) {
-        res.color = item.color;
-    }
+    if (item.color !== undefined) res.color = item.color;
 
     return res;
 }
@@ -113,17 +111,11 @@ function getAreaSeriesPlotRow(
 
     const res: Mutable<SeriesPlotRow<'Area'>> = { index, time, value: [val, val, val, val], originalTime };
 
-    if (item.lineColor !== undefined) {
-        res.lineColor = item.lineColor;
-    }
+    if (item.lineColor !== undefined) res.lineColor = item.lineColor;
 
-    if (item.topColor !== undefined) {
-        res.topColor = item.topColor;
-    }
+    if (item.topColor !== undefined) res.topColor = item.topColor;
 
-    if (item.bottomColor !== undefined) {
-        res.bottomColor = item.bottomColor;
-    }
+    if (item.bottomColor !== undefined) res.bottomColor = item.bottomColor;
 
     return res;
 }
@@ -138,29 +130,17 @@ function getBaselineSeriesPlotRow(
 
     const res: Mutable<SeriesPlotRow<'Baseline'>> = { index, time, value: [val, val, val, val], originalTime };
 
-    if (item.topLineColor !== undefined) {
-        res.topLineColor = item.topLineColor;
-    }
+    if (item.topLineColor !== undefined) res.topLineColor = item.topLineColor;
 
-    if (item.bottomLineColor !== undefined) {
-        res.bottomLineColor = item.bottomLineColor;
-    }
+    if (item.bottomLineColor !== undefined) res.bottomLineColor = item.bottomLineColor;
 
-    if (item.topFillColor1 !== undefined) {
-        res.topFillColor1 = item.topFillColor1;
-    }
+    if (item.topFillColor1 !== undefined) res.topFillColor1 = item.topFillColor1;
 
-    if (item.topFillColor2 !== undefined) {
-        res.topFillColor2 = item.topFillColor2;
-    }
+    if (item.topFillColor2 !== undefined) res.topFillColor2 = item.topFillColor2;
 
-    if (item.bottomFillColor1 !== undefined) {
-        res.bottomFillColor1 = item.bottomFillColor1;
-    }
+    if (item.bottomFillColor1 !== undefined) res.bottomFillColor1 = item.bottomFillColor1;
 
-    if (item.bottomFillColor2 !== undefined) {
-        res.bottomFillColor2 = item.bottomFillColor2;
-    }
+    if (item.bottomFillColor2 !== undefined) res.bottomFillColor2 = item.bottomFillColor2;
 
     return res;
 }
@@ -178,9 +158,7 @@ function getBarSeriesPlotRow(
         originalTime,
     };
 
-    if (item.color !== undefined) {
-        res.color = item.color;
-    }
+    if (item.color !== undefined) res.color = item.color;
 
     return res;
 }
@@ -197,17 +175,11 @@ function getCandlestickSeriesPlotRow(
         value: [item.open, item.high, item.low, item.close],
         originalTime,
     };
-    if (item.color !== undefined) {
-        res.color = item.color;
-    }
+    if (item.color !== undefined) res.color = item.color;
 
-    if (item.borderColor !== undefined) {
-        res.borderColor = item.borderColor;
-    }
+    if (item.borderColor !== undefined) res.borderColor = item.borderColor;
 
-    if (item.wickColor !== undefined) {
-        res.wickColor = item.wickColor;
-    }
+    if (item.wickColor !== undefined) res.wickColor = item.wickColor;
 
     return res;
 }
@@ -234,9 +206,7 @@ function wrapCustomValues<T extends SeriesPlotRow | WhitespacePlotRow, THorzScal
     plotRow: Mutable<T>,
     bar: SeriesDataItemTypeMap<THorzScaleItem>[SeriesType],
 ): Mutable<T> {
-    if (bar.customValues !== undefined) {
-        plotRow.customValues = bar.customValues;
-    }
+    if (bar.customValues !== undefined) plotRow.customValues = bar.customValues;
     return plotRow;
 }
 
@@ -244,9 +214,7 @@ function isWhitespaceDataWithCustomCheck<THorzScaleItem>(
     bar: SeriesDataItemTypeMap<THorzScaleItem>[SeriesType],
     customIsWhitespace?: WhitespaceCheck<THorzScaleItem>,
 ): bar is WhitespaceData<THorzScaleItem> {
-    if (customIsWhitespace !== undefined) {
-        return customIsWhitespace(bar);
-    }
+    if (customIsWhitespace !== undefined) return customIsWhitespace(bar);
     return isWhitespaceData(bar);
 }
 

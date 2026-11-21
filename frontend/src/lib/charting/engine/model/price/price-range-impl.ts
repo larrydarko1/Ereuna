@@ -18,9 +18,7 @@ export class PriceRangeImpl {
     }
 
     public equals(pr: PriceRangeImpl | null): boolean {
-        if (pr === null) {
-            return false;
-        }
+        if (pr === null) return false;
         return this._minValue === pr._minValue && this._maxValue === pr._maxValue;
     }
 
@@ -45,9 +43,7 @@ export class PriceRangeImpl {
     }
 
     public merge(anotherRange: PriceRangeImpl | null): PriceRangeImpl {
-        if (anotherRange === null) {
-            return this;
-        }
+        if (anotherRange === null) return this;
         return new PriceRangeImpl(
             computeFiniteResult(Math.min, this.minValue(), anotherRange.minValue(), -Infinity),
             computeFiniteResult(Math.max, this.maxValue(), anotherRange.maxValue(), Infinity),
@@ -55,14 +51,10 @@ export class PriceRangeImpl {
     }
 
     public scaleAroundCenter(coeff: number): void {
-        if (!isNumber(coeff)) {
-            return;
-        }
+        if (!isNumber(coeff)) return;
 
         const delta = this._maxValue - this._minValue;
-        if (delta === 0) {
-            return;
-        }
+        if (delta === 0) return;
 
         const center = (this._maxValue + this._minValue) * 0.5;
         let maxDelta = this._maxValue - center;
@@ -74,9 +66,7 @@ export class PriceRangeImpl {
     }
 
     public shift(delta: number): void {
-        if (!isNumber(delta)) {
-            return;
-        }
+        if (!isNumber(delta)) return;
 
         this._maxValue += delta;
         this._minValue += delta;
@@ -103,9 +93,7 @@ function computeFiniteResult(
     const firstFinite = Number.isFinite(valueOne);
     const secondFinite = Number.isFinite(valueTwo);
 
-    if (firstFinite && secondFinite) {
-        return method(valueOne, valueTwo);
-    }
+    if (firstFinite && secondFinite) return method(valueOne, valueTwo);
 
     // Exactly one of them is finite by here, or neither
     if (firstFinite) return valueOne;

@@ -47,18 +47,14 @@ export abstract class PaneRendererAreaBase<
     }
 
     protected _drawImpl(renderingScope: BitmapCoordinatesRenderingScope): void {
-        if (this._data === null) {
-            return;
-        }
+        if (this._data === null) return;
 
         const { items, visibleRange, barWidth, lineWidth, lineStyle, lineType } = this._data;
         const baseLevelCoordinate =
             this._data.baseLevelCoordinate ??
             nominal<Coordinate>(this._data.invertFilledArea ? 0 : renderingScope.mediaSize.height);
 
-        if (visibleRange === null) {
-            return;
-        }
+        if (visibleRange === null) return;
 
         const ctx = renderingScope.context;
 

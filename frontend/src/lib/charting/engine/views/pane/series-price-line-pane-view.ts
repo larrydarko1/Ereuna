@@ -15,14 +15,10 @@ export class SeriesPriceLinePaneView extends SeriesHorizontalLinePaneView {
         data.visible = false;
 
         const seriesOptions = this._series.options();
-        if (!seriesOptions.priceLineVisible || !this._series.visible()) {
-            return;
-        }
+        if (!seriesOptions.priceLineVisible || !this._series.visible()) return;
 
         const lastValueData = this._series.lastValueData(seriesOptions.priceLineSource === PriceLineSource.LastBar);
-        if (lastValueData.noData) {
-            return;
-        }
+        if (lastValueData.noData) return;
 
         data.visible = true;
         data.y = lastValueData.coordinate;

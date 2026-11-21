@@ -35,14 +35,10 @@ export class CustomPriceLinePriceAxisView extends PriceAxisView {
 
         const series = this._series;
 
-        if (!labelVisible || !series.visible()) {
-            return;
-        }
+        if (!labelVisible || !series.visible()) return;
 
         const coordinate = this._priceLine.yCoord();
-        if (coordinate === null) {
-            return;
-        }
+        if (coordinate === null) return;
 
         if (showPaneLabel) {
             paneRendererData.text = options.title;
@@ -68,9 +64,7 @@ export class CustomPriceLinePriceAxisView extends PriceAxisView {
 
     private _formatPrice(price: number): string {
         const firstValue = this._series.firstValue();
-        if (firstValue === null) {
-            return '';
-        }
+        if (firstValue === null) return '';
 
         return this._series.priceScale().formatPrice(price, firstValue.value);
     }

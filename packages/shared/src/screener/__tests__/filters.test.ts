@@ -64,9 +64,7 @@ describe('findRangeFilter', () => {
     });
 
     it('gives every range filter a bounds source', () => {
-        for (const spec of RANGE_FILTERS) {
-            expect(['fixed', 'derived', 'latestClose']).toContain(spec.bounds.kind);
-        }
+        for (const spec of RANGE_FILTERS) expect(['fixed', 'derived', 'latestClose']).toContain(spec.bounds.kind);
     });
 
     it('gives a fixed-bounds filter a min below its max', () => {

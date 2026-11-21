@@ -23,23 +23,15 @@ const validDateRegex = /^\d\d\d\d-\d\d-\d\d$/;
 
 export function selectTimeConverter(data: TimedData<Time>[]): TimeConverter | null {
     const first = data[0];
-    if (first === undefined) {
-        return null;
-    }
-    if (isBusinessDay(first.time) || isString(first.time)) {
-        return businessDayConverter;
-    }
+    if (first === undefined) return null;
+    if (isBusinessDay(first.time) || isString(first.time)) return businessDayConverter;
     return timestampConverter;
 }
 
 export function convertTime(time: Time): InternalHorzScaleItem {
-    if (isUTCTimestamp(time)) {
-        return timestampConverter(time);
-    }
+    if (isUTCTimestamp(time)) return timestampConverter(time);
 
-    if (!isBusinessDay(time)) {
-        return businessDayConverter(stringToBusinessDay(time));
-    }
+    if (!isBusinessDay(time)) return businessDayConverter(stringToBusinessDay(time));
 
     return businessDayConverter(time);
 }
@@ -51,9 +43,7 @@ export function timePointOf(item: InternalHorzScaleItem): TimePoint {
 }
 
 export function convertStringToBusinessDay(value: TimedData<Time>): void {
-    if (isString(value.time)) {
-        value.time = stringToBusinessDay(value.time);
-    }
+    if (isString(value.time)) value.time = stringToBusinessDay(value.time);
 }
 
 export function convertStringsToBusinessDays(data: TimedData<Time>[]): void {
@@ -62,12 +52,8 @@ export function convertStringsToBusinessDays(data: TimedData<Time>[]): void {
 
 function businessDayConverter(time: Time): InternalHorzScaleItem {
     let businessDay = time;
-    if (isString(time)) {
-        businessDay = stringToBusinessDay(time);
-    }
-    if (!isBusinessDay(businessDay)) {
-        throw new Error('time must be of type BusinessDay');
-    }
+    if (isString(time)) businessDay = stringToBusinessDay(time);
+    if (!isBusinessDay(businessDay)) throw new Error('time must be of type BusinessDay');
 
     const date = new Date(Date.UTC(businessDay.year, businessDay.month - 1, businessDay.day, 0, 0, 0, 0));
 
@@ -78,9 +64,7 @@ function businessDayConverter(time: Time): InternalHorzScaleItem {
 }
 
 function timestampConverter(time: Time): InternalHorzScaleItem {
-    if (!isUTCTimestamp(time)) {
-        throw new Error('time must be of type isUTCTimestamp');
-    }
+    if (!isUTCTimestamp(time)) throw new Error('time must be of type isUTCTimestamp');
     return internalItem({ timestamp: time });
 }
 
@@ -91,14 +75,10 @@ function stringToBusinessDay(value: string): BusinessDay {
     // builds only, on perf grounds; one regex per business day is not worth a
     // date that silently means something else.
     // https://bugs.chromium.org/p/chromium/issues/detail?id=968939
-    if (!validDateRegex.test(value)) {
-        throw new Error(`Invalid date string=${value}, expected format=yyyy-mm-dd`);
-    }
+    if (!validDateRegex.test(value)) throw new Error(`Invalid date string=${value}, expected format=yyyy-mm-dd`);
 
     const parsed = new Date(value);
-    if (isNaN(parsed.getTime())) {
-        throw new Error(`Invalid date string=${value}, expected format=yyyy-mm-dd`);
-    }
+    if (isNaN(parsed.getTime())) throw new Error(`Invalid date string=${value}, expected format=yyyy-mm-dd`);
 
     return {
         day: parsed.getUTCDate(),

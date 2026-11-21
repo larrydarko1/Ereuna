@@ -44,18 +44,12 @@ export abstract class SeriesPaneViewBase<
 
     public update(updateType?: UpdateType): void {
         this._invalidated = true;
-        if (updateType === 'data') {
-            this._dataInvalidated = true;
-        }
-        if (updateType === 'options') {
-            this._optionsInvalidated = true;
-        }
+        if (updateType === 'data') this._dataInvalidated = true;
+        if (updateType === 'options') this._optionsInvalidated = true;
     }
 
     public renderer(): IPaneRenderer | null {
-        if (!this._series.visible()) {
-            return null;
-        }
+        if (!this._series.visible()) return null;
 
         this._makeValid();
 
@@ -102,23 +96,15 @@ export abstract class SeriesPaneViewBase<
 
         this._clearVisibleRange();
 
-        if (timeScale.isEmpty() || priceScale.isEmpty()) {
-            return;
-        }
+        if (timeScale.isEmpty() || priceScale.isEmpty()) return;
 
         const visibleBars = timeScale.visibleStrictRange();
-        if (visibleBars === null) {
-            return;
-        }
+        if (visibleBars === null) return;
 
-        if (this._series.bars().size() === 0) {
-            return;
-        }
+        if (this._series.bars().size() === 0) return;
 
         const firstValue = this._series.firstValue();
-        if (firstValue === null) {
-            return;
-        }
+        if (firstValue === null) return;
 
         this._itemsVisibleRange = visibleTimedValues(this._items, visibleBars, {
             extended: this._extendedVisibleRange,

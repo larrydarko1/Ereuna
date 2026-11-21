@@ -68,9 +68,7 @@ export class ReplayManager {
 
         // If replay is active, adjust current index if needed
         if (this.state.isActive) {
-            if (this.state.currentIndex >= data.length) {
-                this.state.currentIndex = Math.max(0, data.length - 1);
-            }
+            if (this.state.currentIndex >= data.length) this.state.currentIndex = Math.max(0, data.length - 1);
             this.notifyCallbacks();
         }
     }
@@ -140,11 +138,8 @@ export class ReplayManager {
      * Toggle play/pause
      */
     togglePlayPause(): void {
-        if (this.state.isPlaying) {
-            this.pause();
-        } else {
-            this.play();
-        }
+        if (this.state.isPlaying) this.pause();
+        else this.play();
     }
 
     /**
@@ -238,9 +233,7 @@ export class ReplayManager {
      * Get current progress as percentage (0-100)
      */
     getProgress(): number {
-        if (!this.state.isActive || this.state.endIndex === this.state.startIndex) {
-            return 0;
-        }
+        if (!this.state.isActive || this.state.endIndex === this.state.startIndex) return 0;
 
         const range = this.state.endIndex - this.state.startIndex;
         const current = this.state.currentIndex - this.state.startIndex;
@@ -252,22 +245,16 @@ export class ReplayManager {
      * Get current date/time as formatted string
      */
     getCurrentDateString(): string {
-        if (!this.state.isActive || this.state.currentIndex >= this.fullData.length) {
-            return '';
-        }
+        if (!this.state.isActive || this.state.currentIndex >= this.fullData.length) return '';
 
         const currentBar = this.fullData[this.state.currentIndex];
-        if (currentBar === undefined) {
-            return '';
-        }
+        if (currentBar === undefined) return '';
 
         const timestamp = timeToTimestamp(currentBar.time);
 
         const date = new Date(timestamp * 1000);
 
-        if (isNaN(date.getTime())) {
-            return 'Invalid Date';
-        }
+        if (isNaN(date.getTime())) return 'Invalid Date';
 
         return date.toLocaleString('en-US', {
             year: 'numeric',

@@ -108,9 +108,7 @@ function findBestPrimitiveHitTest(
             }
         }
     }
-    if (bestPrimitiveHit === undefined || bestHitSource === undefined) {
-        return null;
-    }
+    if (bestPrimitiveHit === undefined || bestHitSource === undefined) return null;
     return {
         hit: bestPrimitiveHit,
         source: bestHitSource,

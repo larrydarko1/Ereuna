@@ -37,7 +37,7 @@ async function main(): Promise<void> {
 
     const backupDir = path.isAbsolute(arg) ? arg : path.join(ROOT, arg);
     const manifestFile = path.join(backupDir, 'manifest.json');
-    if (!fs.existsSync(manifestFile)) throw new Error(`no manifest.json in ${backupDir} — not a backup this script took`);
+    if (!fs.existsSync(manifestFile)) { throw new Error(`no manifest.json in ${backupDir} — not a backup this script took`); }
     const manifest = parseManifest(fs.readFileSync(manifestFile, 'utf8'));
 
     console.log(`Restoring '${manifest.database}' from ${manifest.completedAt} into '${cfg.mongoDb}'.\n`);

@@ -43,9 +43,7 @@ export function useScreeners(): UseScreenersReturn {
 
             // Hold the selection if it survived, otherwise fall to the first
             // screener — an empty panel with a name in the header is a dead end.
-            if (!data.items.some((item) => item.name === selected.value)) {
-                selected.value = data.items[0]?.name ?? '';
-            }
+            if (!data.items.some((item) => item.name === selected.value)) selected.value = data.items[0]?.name ?? '';
         } catch (err) {
             error.value = apiErrorMessage(err, i18n.global.t('errors.INTERNAL'));
         } finally {

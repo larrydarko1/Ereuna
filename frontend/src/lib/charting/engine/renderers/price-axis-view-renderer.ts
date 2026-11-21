@@ -61,9 +61,7 @@ export class PriceAxisViewRenderer implements IPriceAxisViewRenderer {
     }
 
     public height(rendererOptions: PriceAxisViewRendererOptions): number {
-        if (!this._data.visible) {
-            return 0;
-        }
+        if (!this._data.visible) return 0;
 
         return rendererOptions.fontSize + rendererOptions.paddingTop + rendererOptions.paddingBottom;
     }
@@ -74,9 +72,7 @@ export class PriceAxisViewRenderer implements IPriceAxisViewRenderer {
         textWidthCache: TextWidthCache,
         align: 'left' | 'right',
     ): void {
-        if (!this._data.visible || this._data.text.length === 0) {
-            return;
-        }
+        if (!this._data.visible || this._data.text.length === 0) return;
 
         const textColor = this._data.color;
         const backgroundColor = this._commonData.background;
@@ -187,9 +183,7 @@ export class PriceAxisViewRenderer implements IPriceAxisViewRenderer {
 
         const tickHeightBitmap = Math.max(1, Math.floor(verticalPixelRatio));
         let totalHeightBitmap = Math.round(totalHeight * verticalPixelRatio);
-        if (totalHeightBitmap % 2 !== tickHeightBitmap % 2) {
-            totalHeightBitmap += 1;
-        }
+        if (totalHeightBitmap % 2 !== tickHeightBitmap % 2) totalHeightBitmap += 1;
         const horzBorderBitmap = horzBorder > 0 ? Math.max(1, Math.floor(horzBorder * horizontalPixelRatio)) : 0;
         const totalWidthBitmap = Math.round(totalWidth * horizontalPixelRatio);
         // tick overlaps scale border

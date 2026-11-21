@@ -54,12 +54,8 @@ export class PaneRendererHistogram extends BitmapCoordinatesPaneRenderer {
         horizontalPixelRatio,
         verticalPixelRatio,
     }: BitmapCoordinatesRenderingScope): void {
-        if (this._data === null || this._data.items.length === 0 || this._data.visibleRange === null) {
-            return;
-        }
-        if (this._precalculatedCache.length === 0) {
-            this._fillPrecalculatedCache(horizontalPixelRatio);
-        }
+        if (this._data === null || this._data.items.length === 0 || this._data.visibleRange === null) return;
+        if (this._precalculatedCache.length === 0) this._fillPrecalculatedCache(horizontalPixelRatio);
 
         const tickWidth = Math.max(1, Math.floor(verticalPixelRatio));
         const histogramBase = Math.round(this._data.histogramBase * verticalPixelRatio);
@@ -137,9 +133,7 @@ export class PaneRendererHistogram extends BitmapCoordinatesPaneRenderer {
             const prev = this._precalculatedCache[i - this._data.visibleRange.from - 1];
             if (current === undefined || prev === undefined) continue;
 
-            if (current.time !== prev.time + 1) {
-                continue;
-            }
+            if (current.time !== prev.time + 1) continue;
             if (current.left - prev.right !== spacing + 1) {
                 // have to align
                 if (prev.roundedCenter > prev.center) {
@@ -158,9 +152,7 @@ export class PaneRendererHistogram extends BitmapCoordinatesPaneRenderer {
             if (current === undefined) continue;
 
             // this could happen if barspacing < 1
-            if (current.right < current.left) {
-                current.right = current.left;
-            }
+            if (current.right < current.left) current.right = current.left;
             const width = current.right - current.left + 1;
             minWidth = Math.min(width, minWidth);
         }
@@ -175,11 +167,8 @@ export class PaneRendererHistogram extends BitmapCoordinatesPaneRenderer {
 
                 // Shave the pixel off whichever side the rounding pushed the
                 // column away from, so the bar stays centred on its bar spacing
-                if (current.roundedCenter > current.center) {
-                    current.right -= 1;
-                } else {
-                    current.left += 1;
-                }
+                if (current.roundedCenter > current.center) current.right -= 1;
+                else current.left += 1;
             }
         }
     }

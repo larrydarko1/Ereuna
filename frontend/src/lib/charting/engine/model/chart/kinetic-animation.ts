@@ -50,9 +50,7 @@ export class KineticAnimation {
                 return;
             }
 
-            if (Math.abs(this._position1.position - position) < this._minMove) {
-                return;
-            }
+            if (Math.abs(this._position1.position - position) < this._minMove) return;
         }
 
         this._position4 = this._position3;
@@ -62,13 +60,9 @@ export class KineticAnimation {
     }
 
     public start(position: Coordinate, time: number): void {
-        if (this._position1 === null || this._position2 === null) {
-            return;
-        }
+        if (this._position1 === null || this._position2 === null) return;
 
-        if (time - this._position1.time > Constants.MaxStartDelay) {
-            return;
-        }
+        if (time - this._position1.time > Constants.MaxStartDelay) return;
 
         // To calculate all the rest parameters we should calculate the speed af first
         let totalDistance = 0;
@@ -102,13 +96,9 @@ export class KineticAnimation {
         }
 
         let resultSpeed = 0;
-        for (const [i, speed] of speedItems.entries()) {
-            resultSpeed += ((distanceItems[i] ?? 0) / totalDistance) * speed;
-        }
+        for (const [i, speed] of speedItems.entries()) resultSpeed += ((distanceItems[i] ?? 0) / totalDistance) * speed;
 
-        if (Math.abs(resultSpeed) < this._minSpeed) {
-            return;
-        }
+        if (Math.abs(resultSpeed) < this._minSpeed) return;
 
         this._animationStartPosition = { position, time };
         this._speedPxPerMsec = resultSpeed;

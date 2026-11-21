@@ -81,9 +81,7 @@ export class PlotList<TPlotRowType extends PlotRow = PlotRow> {
 
     public search(index: TimePointIndex, searchMode: MismatchDirection = MismatchDirection.None): TPlotRowType | null {
         const pos = this._search(index, searchMode);
-        if (pos === null) {
-            return null;
-        }
+        if (pos === null) return null;
 
         return {
             ...this._valueAt(pos),
@@ -103,9 +101,7 @@ export class PlotList<TPlotRowType extends PlotRow = PlotRow> {
         // this code works for single series only
         // could fail after whitespaces implementation
 
-        if (this.isEmpty()) {
-            return null;
-        }
+        if (this.isEmpty()) return null;
 
         let result: MinMax | null = null;
 
@@ -151,9 +147,7 @@ export class PlotList<TPlotRowType extends PlotRow = PlotRow> {
 
     private _searchNearestLeft(index: TimePointIndex): PlotRowIndex | null {
         let nearestLeftPos = this._lowerbound(index);
-        if (nearestLeftPos > 0) {
-            nearestLeftPos = nearestLeftPos - 1;
-        }
+        if (nearestLeftPos > 0) nearestLeftPos = nearestLeftPos - 1;
 
         return nearestLeftPos !== this._items.length && this._indexAt(nominal<PlotRowIndex>(nearestLeftPos)) < index
             ? nominal<PlotRowIndex>(nearestLeftPos)
@@ -170,9 +164,7 @@ export class PlotList<TPlotRowType extends PlotRow = PlotRow> {
     private _bsearch(index: TimePointIndex): PlotRowIndex | null {
         const start = this._lowerbound(index);
         const item = this._items[nominal<PlotRowIndex>(start)];
-        if (item !== undefined && !(index < item.index)) {
-            return nominal<PlotRowIndex>(start);
-        }
+        if (item !== undefined && !(index < item.index)) return nominal<PlotRowIndex>(start);
 
         return null;
     }
@@ -197,9 +189,7 @@ export class PlotList<TPlotRowType extends PlotRow = PlotRow> {
             if (item === undefined) continue;
 
             const plotValue = item.value[plotIndex];
-            if (Number.isNaN(plotValue)) {
-                continue;
-            }
+            if (Number.isNaN(plotValue)) continue;
 
             if (result === null) {
                 result = { min: plotValue, max: plotValue };
@@ -220,9 +210,7 @@ export class PlotList<TPlotRowType extends PlotRow = PlotRow> {
         // this code works for single series only
         // could fail after whitespaces implementation
 
-        if (this.isEmpty()) {
-            return null;
-        }
+        if (this.isEmpty()) return null;
 
         let result: MinMax | null = null;
 
@@ -290,12 +278,8 @@ export class PlotList<TPlotRowType extends PlotRow = PlotRow> {
 }
 
 function mergeMinMax(first: MinMax | null, second: MinMax | null): MinMax | null {
-    if (first === null) {
-        return second;
-    }
-    if (second === null) {
-        return first;
-    }
+    if (first === null) return second;
+    if (second === null) return first;
     // merge MinMax values
     const min = Math.min(first.min, second.min);
     const max = Math.max(first.max, second.max);

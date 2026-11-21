@@ -186,7 +186,7 @@ export function getDroppedIndexCalls(): string[] {
  */
 function matches(doc: Doc, filter: Doc): boolean {
     return Object.entries(filter).every(([field, condition]) => {
-        if (field === '$or') return Array.isArray(condition) && condition.filter(isRecord).some((clause) => matches(doc, clause));
+        if (field === '$or') { return Array.isArray(condition) && condition.filter(isRecord).some((clause) => matches(doc, clause)); }
         if (!isRecord(condition)) return doc[field] === condition;
         if ('$exists' in condition) return hasPath(doc, field) === condition['$exists'];
         if (Array.isArray(condition['$in'])) return condition['$in'].includes(doc[field]);

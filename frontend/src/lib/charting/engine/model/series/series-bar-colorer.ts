@@ -110,9 +110,7 @@ export class SeriesBarColorer<T extends SeriesType> implements ISeriesBarColorer
     }
 
     private readonly _findBar = (barIndex: TimePointIndex, precomputedBars?: PrecomputedBars): SeriesPlotRow | null => {
-        if (precomputedBars !== undefined) {
-            return precomputedBars.value;
-        }
+        if (precomputedBars !== undefined) return precomputedBars.value;
 
         return this._series.bars().valueAt(barIndex);
     };

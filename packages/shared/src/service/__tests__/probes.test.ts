@@ -17,8 +17,9 @@ function start(options: { token?: string } = {}): Promise<string> {
         server?.once('listening', () => {
             const address = server?.address();
             // A TCP listener reports an object; only a pipe or socket path reports a string
-            if (address === null || address === undefined || typeof address === 'string')
+            if (address === null || address === undefined || typeof address === 'string') {
                 throw new Error('not on a TCP port');
+            }
             resolve(`http://127.0.0.1:${address.port}`);
         });
     });

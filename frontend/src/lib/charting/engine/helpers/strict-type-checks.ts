@@ -20,9 +20,7 @@ type PlainObject = Record<string, unknown>;
  * returned as itself, so it keeps the type it came in with.
  */
 export function merge<T extends object>(dst: T, ...sources: object[]): T {
-    for (const src of sources) {
-        mergeInto(dst, src);
-    }
+    for (const src of sources) mergeInto(dst, src);
 
     return dst;
 }
@@ -75,35 +73,24 @@ function isMergeable(value: unknown): value is PlainObject {
 function mergeInto(dst: object, src: object): void {
     for (const key of Object.keys(src)) {
         const value: unknown = Reflect.get(src, key);
-        if (value === undefined) {
-            continue;
-        }
+        if (value === undefined) continue;
 
         const existing: unknown = Reflect.get(dst, key);
 
         // An array or a primitive replaces what was there outright; only a
         // nested object that the target already has is merged into
-        if (isMergeable(value) && isMergeable(existing)) {
-            mergeInto(existing, value);
-        } else {
-            Reflect.set(dst, key, value);
-        }
+        if (isMergeable(value) && isMergeable(existing)) mergeInto(existing, value);
+        else Reflect.set(dst, key, value);
     }
 }
 
 function copyOf(value: unknown): unknown {
-    if (typeof value !== 'object' || value === null) {
-        return value;
-    }
+    if (typeof value !== 'object' || value === null) return value;
 
-    if (Array.isArray(value)) {
-        return value.map(copyOf);
-    }
+    if (Array.isArray(value)) return value.map(copyOf);
 
     const copy: PlainObject = {};
-    for (const [key, item] of Object.entries(value)) {
-        copy[key] = copyOf(item);
-    }
+    for (const [key, item] of Object.entries(value)) copy[key] = copyOf(item);
 
     return copy;
 }

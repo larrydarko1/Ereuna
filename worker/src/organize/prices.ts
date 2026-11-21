@@ -207,8 +207,9 @@ function toBar(symbol: string, row: VendorDailyBar): OhlcvDoc | null {
     if (Number.isNaN(timestamp.getTime())) return null;
 
     const { open, high, low, close, volume } = row;
-    if (![open, high, low, close, volume].every((value) => typeof value === 'number' && Number.isFinite(value)))
+    if (![open, high, low, close, volume].every((value) => typeof value === 'number' && Number.isFinite(value))) {
         return null;
+    }
 
     // The daily series is keyed by date; the vendor's midnight stamp is the date
     timestamp.setUTCHours(0, 0, 0, 0);
@@ -220,9 +221,7 @@ function summarise(priced: readonly PricedBar[]): PriceUpdate {
 
     for (const { bar, splitFactor, divCash } of priced) {
         if (result.since === null || bar.timestamp < result.since) result.since = bar.timestamp;
-        if (isSplit(splitFactor)) {
-            result.splits.push({ symbol: bar.tickerID, at: bar.timestamp, factor: splitFactor });
-        }
+        if (isSplit(splitFactor)) result.splits.push({ symbol: bar.tickerID, at: bar.timestamp, factor: splitFactor });
         if (divCash !== 0 && Number.isFinite(divCash)) {
             result.dividends.push({ symbol: bar.tickerID, at: bar.timestamp, amount: divCash });
         }

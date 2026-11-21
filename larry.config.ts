@@ -24,24 +24,24 @@ const FRAMEWORK_NAMED = /(^|\/)(index|App)(\.test)?\.ts$/;
  *
  * The other two are `series-options.ts` and `series-style-options.ts`, which are
  * type declarations carrying upstream's per-field documentation. Counted as code
- * they are 130 and 91 lines; the rest is the JSDoc that says what each option does
+ * they are 123 and 91 lines; the rest is the JSDoc that says what each option does
  * and what it defaults to, which is the only place that is written down. They were
  * one 918-line file and splitting them is what the cap bought.
  */
 const LENGTH_BASELINE: Record<string, number> = {
-    'frontend/src/components/charts/PriceChart.vue': 690,
+    'frontend/src/components/charts/PriceChart.vue': 687,
     'packages/shared/src/screener/filters.ts': 464,
-    'frontend/src/lib/charting/engine/gui/chart-widget.ts': 764,
-    'frontend/src/lib/charting/engine/gui/mouse-event-handler.ts': 709,
-    'frontend/src/lib/charting/engine/gui/pane-widget.ts': 695,
-    'frontend/src/lib/charting/engine/gui/price-axis-widget.ts': 645,
-    'frontend/src/lib/charting/engine/gui/time-axis-widget.ts': 487,
-    'frontend/src/lib/charting/engine/model/chart/chart-model.ts': 642,
-    'frontend/src/lib/charting/engine/model/price/price-scale.ts': 904,
-    'frontend/src/lib/charting/engine/model/series/series.ts': 670,
-    'frontend/src/lib/charting/engine/model/series/series-options.ts': 466,
+    'frontend/src/lib/charting/engine/gui/chart-widget.ts': 703,
+    'frontend/src/lib/charting/engine/gui/mouse-event-handler.ts': 626,
+    'frontend/src/lib/charting/engine/gui/pane-widget.ts': 614,
+    'frontend/src/lib/charting/engine/gui/price-axis-widget.ts': 579,
+    'frontend/src/lib/charting/engine/gui/time-axis-widget.ts': 449,
+    'frontend/src/lib/charting/engine/model/chart/chart-model.ts': 614,
+    'frontend/src/lib/charting/engine/model/price/price-scale.ts': 805,
+    'frontend/src/lib/charting/engine/model/series/series.ts': 622,
+    'frontend/src/lib/charting/engine/model/series/series-options.ts': 462,
     'frontend/src/lib/charting/engine/model/series/series-style-options.ts': 466,
-    'frontend/src/lib/charting/engine/model/time/time-scale.ts': 861,
+    'frontend/src/lib/charting/engine/model/time/time-scale.ts': 805,
 };
 
 export default defineConfig({

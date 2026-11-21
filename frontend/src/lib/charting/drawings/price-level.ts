@@ -111,9 +111,7 @@ export class PriceLevelManager {
     }
 
     private notifyChange(): void {
-        if (this.onChangeCallback !== null && !this.isDeserializing && !this.isClearing) {
-            this.onChangeCallback();
-        }
+        if (this.onChangeCallback !== null && !this.isDeserializing && !this.isClearing) this.onChangeCallback();
     }
 
     // The three DOM handlers are arrow properties so that `this` survives being
@@ -140,9 +138,7 @@ export class PriceLevelManager {
     private readonly handleKeyDown = (event: KeyboardEvent): void => {
         if (event.key !== 'Backspace' && event.key !== 'Delete') return;
 
-        if (isTypingTarget(event.target)) {
-            return;
-        }
+        if (isTypingTarget(event.target)) return;
 
         if (this.selectedLevelId !== null) {
             event.preventDefault(); // Backspace would otherwise navigate back
@@ -353,17 +349,13 @@ export class PriceLevelManager {
         level.labelDiv.remove();
         this.levels.delete(id);
 
-        if (this.selectedLevelId === id) {
-            this.selectedLevelId = null;
-        }
+        if (this.selectedLevelId === id) this.selectedLevelId = null;
 
         this.notifyChange();
     }
 
     public removeSelectedLevel(): void {
-        if (this.selectedLevelId !== null) {
-            this.removePriceLevel(this.selectedLevelId);
-        }
+        if (this.selectedLevelId !== null) this.removePriceLevel(this.selectedLevelId);
     }
 
     public clear(): void {

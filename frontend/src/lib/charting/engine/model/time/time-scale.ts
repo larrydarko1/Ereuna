@@ -305,23 +305,15 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
     ): void {
         merge(this._options, options);
 
-        if (this._options.fixLeftEdge) {
-            this._doFixLeftEdge();
-        }
+        if (this._options.fixLeftEdge) this._doFixLeftEdge();
 
-        if (this._options.fixRightEdge) {
-            this._doFixRightEdge();
-        }
+        if (this._options.fixRightEdge) this._doFixRightEdge();
 
         // note that bar spacing should be applied before right offset
         // because right offset depends on bar spacing
-        if (options.barSpacing !== undefined) {
-            this._model.setBarSpacing(options.barSpacing);
-        }
+        if (options.barSpacing !== undefined) this._model.setBarSpacing(options.barSpacing);
 
-        if (options.rightOffset !== undefined) {
-            this._model.setRightOffset(options.rightOffset);
-        }
+        if (options.rightOffset !== undefined) this._model.setRightOffset(options.rightOffset);
 
         if (options.minBarSpacing !== undefined) {
             // yes, if we apply min bar spacing then we need to correct bar spacing
@@ -410,9 +402,7 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
 
     public visibleTimeRange(): TimePointsRange | null {
         const visibleBars = this.visibleStrictRange();
-        if (visibleBars === null) {
-            return null;
-        }
+        if (visibleBars === null) return null;
 
         const range: LogicalRange = {
             from: nominal<Logical>(visibleBars.left()),
@@ -447,13 +437,9 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
     }
 
     public setWidth(newWidth: number): void {
-        if (!isFinite(newWidth) || newWidth <= 0) {
-            return;
-        }
+        if (!isFinite(newWidth) || newWidth <= 0) return;
 
-        if (this._width === newWidth) {
-            return;
-        }
+        if (this._width === newWidth) return;
 
         // when we change the width and we need to correct visible range because of fixing left edge
         // we need to check the previous visible range rather than the new one
@@ -491,9 +477,7 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
     }
 
     public indexToCoordinate(index: TimePointIndex): Coordinate {
-        if (this.isEmpty() || !isInteger(index)) {
-            return nominal<Coordinate>(0);
-        }
+        if (this.isEmpty() || !isInteger(index)) return nominal<Coordinate>(0);
 
         const baseIndex = this.baseIndex();
         const deltaFromRight = baseIndex + this._rightOffset - index;
@@ -545,13 +529,9 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
     }
 
     public marks(): TimeMark[] | null {
-        if (this.isEmpty()) {
-            return null;
-        }
+        if (this.isEmpty()) return null;
 
-        if (this._timeMarksCache !== null) {
-            return this._timeMarksCache;
-        }
+        if (this._timeMarksCache !== null) return this._timeMarksCache;
 
         const spacing = this._barSpacing;
         const fontSize = this._model.options().layout.fontSize;
@@ -581,9 +561,7 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
 
         let targetIndex = 0;
         for (const tm of items) {
-            if (!(firstBar <= tm.index && tm.index <= lastBar)) {
-                continue;
-            }
+            if (!(firstBar <= tm.index && tm.index <= lastBar)) continue;
 
             let label: TimeMark;
             const existingLabel = this._labels[targetIndex];
@@ -662,32 +640,22 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
     }
 
     public startScale(x: Coordinate): void {
-        if (this._scrollStartPoint !== null) {
-            this.endScroll();
-        }
+        if (this._scrollStartPoint !== null) this.endScroll();
 
-        if (this._scaleStartPoint !== null || this._commonTransitionStartState !== null) {
-            return;
-        }
+        if (this._scaleStartPoint !== null || this._commonTransitionStartState !== null) return;
 
-        if (this.isEmpty()) {
-            return;
-        }
+        if (this.isEmpty()) return;
 
         this._scaleStartPoint = x;
         this._saveCommonTransitionsStartState();
     }
 
     public scaleTo(x: Coordinate): void {
-        if (this._commonTransitionStartState === null) {
-            return;
-        }
+        if (this._commonTransitionStartState === null) return;
 
         const startLengthFromRight = clamp(this._width - x, 0, this._width);
         const currentLengthFromRight = clamp(this._width - getNotNull(this._scaleStartPoint), 0, this._width);
-        if (startLengthFromRight === 0 || currentLengthFromRight === 0) {
-            return;
-        }
+        if (startLengthFromRight === 0 || currentLengthFromRight === 0) return;
 
         this.setBarSpacing(
             (this._commonTransitionStartState.barSpacing * startLengthFromRight) / currentLengthFromRight,
@@ -695,31 +663,23 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
     }
 
     public endScale(): void {
-        if (this._scaleStartPoint === null) {
-            return;
-        }
+        if (this._scaleStartPoint === null) return;
 
         this._scaleStartPoint = null;
         this._clearCommonTransitionsStartState();
     }
 
     public startScroll(x: Coordinate): void {
-        if (this._scrollStartPoint !== null || this._commonTransitionStartState !== null) {
-            return;
-        }
+        if (this._scrollStartPoint !== null || this._commonTransitionStartState !== null) return;
 
-        if (this.isEmpty()) {
-            return;
-        }
+        if (this.isEmpty()) return;
 
         this._scrollStartPoint = x;
         this._saveCommonTransitionsStartState();
     }
 
     public scrollTo(x: Coordinate): void {
-        if (this._scrollStartPoint === null) {
-            return;
-        }
+        if (this._scrollStartPoint === null) return;
 
         const shiftInLogical = (this._scrollStartPoint - x) / this.barSpacing();
         this._rightOffset = getNotNull(this._commonTransitionStartState).rightOffset + shiftInLogical;
@@ -730,9 +690,7 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
     }
 
     public endScroll(): void {
-        if (this._scrollStartPoint === null) {
-            return;
-        }
+        if (this._scrollStartPoint === null) return;
 
         this._scrollStartPoint = null;
         this._clearCommonTransitionsStartState();
@@ -746,9 +704,7 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
         offset: number,
         animationDuration: number = Constants.DefaultAnimationDuration,
     ): void {
-        if (!isFinite(offset)) {
-            throw new RangeError('offset is required and must be finite number');
-        }
+        if (!isFinite(offset)) throw new RangeError('offset is required and must be finite number');
 
         if (!isFinite(animationDuration) || animationDuration <= 0) {
             throw new RangeError('animationDuration (optional) must be finite positive number');
@@ -808,9 +764,7 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
     public fitContent(): void {
         const first = this._firstIndex();
         const last = this._lastIndex();
-        if (first === null || last === null) {
-            return;
-        }
+        if (first === null || last === null) return;
 
         this.setVisibleRange(new RangeImpl(first, nominal<TimePointIndex>(last + this._options.rightOffset)));
     }
@@ -877,9 +831,7 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
     }
 
     private _updateVisibleRange(): void {
-        if (!this._visibleRangeInvalidated) {
-            return;
-        }
+        if (!this._visibleRangeInvalidated) return;
 
         this._visibleRangeInvalidated = false;
 
@@ -945,9 +897,7 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
     private _minRightOffset(): number | null {
         const firstIndex = this._firstIndex();
         const baseIndex = this._baseIndexOrNull;
-        if (firstIndex === null || baseIndex === null) {
-            return null;
-        }
+        if (firstIndex === null || baseIndex === null) return null;
 
         const barsEstimation = this._options.fixLeftEdge
             ? this._width / this._barSpacing
@@ -1020,19 +970,13 @@ export class TimeScale<THorzScaleItem> implements ITimeScale {
     }
 
     private _doFixLeftEdge(): void {
-        if (!this._options.fixLeftEdge) {
-            return;
-        }
+        if (!this._options.fixLeftEdge) return;
 
         const firstIndex = this._firstIndex();
-        if (firstIndex === null) {
-            return;
-        }
+        if (firstIndex === null) return;
 
         const visibleRange = this.visibleStrictRange();
-        if (visibleRange === null) {
-            return;
-        }
+        if (visibleRange === null) return;
 
         const delta = visibleRange.left() - firstIndex;
         if (delta < 0) {

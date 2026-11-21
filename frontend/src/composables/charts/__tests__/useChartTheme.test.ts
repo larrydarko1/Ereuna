@@ -6,9 +6,7 @@ import { DEFAULT_THEME } from '@/composables/ui/themes';
 import { useTheme } from '@/composables/ui/useTheme';
 
 const paint = (tokens: Record<string, string>): void => {
-    for (const [token, value] of Object.entries(tokens)) {
-        document.documentElement.style.setProperty(token, value);
-    }
+    for (const [token, value] of Object.entries(tokens)) document.documentElement.style.setProperty(token, value);
 };
 
 afterEach(() => {

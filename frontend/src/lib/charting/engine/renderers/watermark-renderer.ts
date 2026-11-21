@@ -44,25 +44,18 @@ export class WatermarkRenderer extends MediaCoordinatesPaneRenderer {
     }
 
     protected override _drawBackgroundImpl(renderingScope: MediaCoordinatesRenderingScope): void {
-        if (!this._data.visible) {
-            return;
-        }
+        if (!this._data.visible) return;
 
         const { context: ctx, mediaSize } = renderingScope;
 
         let textHeight = 0;
         for (const line of this._data.lines) {
-            if (line.text.length === 0) {
-                continue;
-            }
+            if (line.text.length === 0) continue;
 
             ctx.font = line.font;
             const textWidth = this._metrics(ctx, line.text);
-            if (textWidth > mediaSize.width) {
-                line.zoom = mediaSize.width / textWidth;
-            } else {
-                line.zoom = 1;
-            }
+            if (textWidth > mediaSize.width) line.zoom = mediaSize.width / textWidth;
+            else line.zoom = 1;
 
             textHeight += line.lineHeight * line.zoom;
         }

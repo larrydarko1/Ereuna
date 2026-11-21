@@ -210,9 +210,7 @@ function settle(
  * makes the value history run past today, so it is refused at the boundary.
  */
 function assertNotFuture(tradeDate: Date): void {
-    if (tradeDate.getTime() > Date.now()) {
-        throw new AppError(422, 'INVALID_TRADE_DATE', 'trade date is in the future');
-    }
+    if (tradeDate.getTime() > Date.now()) throw new AppError(422, 'INVALID_TRADE_DATE', 'trade date is in the future');
 }
 
 /** Drop one trade from a candidate log, matched by id rather than by value. */

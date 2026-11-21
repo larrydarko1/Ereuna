@@ -46,15 +46,11 @@ export abstract class PaneRendererLineBase<
     }
 
     protected _drawImpl(renderingScope: BitmapCoordinatesRenderingScope): void {
-        if (this._data === null) {
-            return;
-        }
+        if (this._data === null) return;
 
         const { items, visibleRange, barWidth, lineType, lineWidth, lineStyle, pointMarkersRadius } = this._data;
 
-        if (visibleRange === null) {
-            return;
-        }
+        if (visibleRange === null) return;
 
         const ctx = renderingScope.context;
 

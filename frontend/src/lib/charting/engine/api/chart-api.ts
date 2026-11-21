@@ -307,15 +307,11 @@ export class ChartApi<THorzScaleItem>
     ): void {
         const series = this._seriesMap.get(seriesApi);
 
-        if (series === undefined) {
-            return;
-        }
+        if (series === undefined) return;
 
         const pane = this._chartWidget.model().paneForSource(series);
 
-        if (pane === null) {
-            return;
-        }
+        if (pane === null) return;
 
         this._chartWidget.model().placeCrosshairAt(price, horizontalPosition, pane);
     }
@@ -409,9 +405,7 @@ export class ChartApi<THorzScaleItem>
 }
 
 function patchPriceFormat(priceFormat?: DeepPartial<PriceFormat>): void {
-    if (priceFormat === undefined || !isBuiltInFormat(priceFormat)) {
-        return;
-    }
+    if (priceFormat === undefined || !isBuiltInFormat(priceFormat)) return;
     if (priceFormat.minMove !== undefined && priceFormat.precision === undefined) {
         priceFormat.precision = precisionByMinMove(priceFormat.minMove);
     }

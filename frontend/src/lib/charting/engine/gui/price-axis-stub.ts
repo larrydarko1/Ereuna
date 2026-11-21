@@ -95,13 +95,9 @@ export class PriceAxisStub implements IDestroyable {
     }
 
     public paint(type: InvalidationLevel): void {
-        if (type < InvalidationLevel.Full && !this._invalidated) {
-            return;
-        }
+        if (type < InvalidationLevel.Full && !this._invalidated) return;
 
-        if (this._size.width === 0 || this._size.height === 0) {
-            return;
-        }
+        if (this._size.width === 0 || this._size.height === 0) return;
 
         this._invalidated = false;
 
@@ -121,9 +117,7 @@ export class PriceAxisStub implements IDestroyable {
 
     public drawBitmap(ctx: CanvasRenderingContext2D, x: number, y: number): void {
         const bitmapSize = this.getBitmapSize();
-        if (bitmapSize.width > 0 && bitmapSize.height > 0) {
-            ctx.drawImage(this._canvasBinding.canvasElement, x, y);
-        }
+        if (bitmapSize.width > 0 && bitmapSize.height > 0) ctx.drawImage(this._canvasBinding.canvasElement, x, y);
     }
 
     private _drawBorder({
@@ -132,9 +126,7 @@ export class PriceAxisStub implements IDestroyable {
         horizontalPixelRatio,
         verticalPixelRatio,
     }: BitmapCoordinatesRenderingScope): void {
-        if (!this._borderVisible()) {
-            return;
-        }
+        if (!this._borderVisible()) return;
 
         ctx.fillStyle = this._options.timeScale.borderColor;
 

@@ -277,17 +277,13 @@ export class PriceScale {
         merge(this._options, options);
         this.updateFormatter();
 
-        if (options.mode !== undefined) {
-            this.setMode({ mode: options.mode });
-        }
+        if (options.mode !== undefined) this.setMode({ mode: options.mode });
 
         if (options.scaleMargins !== undefined) {
             const top = getDefined(options.scaleMargins.top);
             const bottom = getDefined(options.scaleMargins.bottom);
 
-            if (top < 0 || top > 1) {
-                throw new Error(`Invalid top margin - expect value between 0 and 1, given=${top}`);
-            }
+            if (top < 0 || top > 1) throw new Error(`Invalid top margin - expect value between 0 and 1, given=${top}`);
 
             if (bottom < 0 || bottom > 1) {
                 throw new Error(`Invalid bottom margin - expect value between 0 and 1, given=${bottom}`);
@@ -330,9 +326,7 @@ export class PriceScale {
         const oldMode = this.mode();
         let priceRange: PriceRangeImpl | null;
 
-        if (newMode.autoScale !== undefined) {
-            this._options.autoScale = newMode.autoScale;
-        }
+        if (newMode.autoScale !== undefined) this._options.autoScale = newMode.autoScale;
 
         if (newMode.mode !== undefined) {
             this._options.mode = newMode.mode;
@@ -348,9 +342,7 @@ export class PriceScale {
             if (canConvertPriceRangeFromLog(this._priceRange, this._logFormula)) {
                 priceRange = convertPriceRangeFromLog(this._priceRange, this._logFormula);
 
-                if (priceRange !== null) {
-                    this.setPriceRange(priceRange);
-                }
+                if (priceRange !== null) this.setPriceRange(priceRange);
             } else {
                 this._options.autoScale = true;
             }
@@ -360,15 +352,11 @@ export class PriceScale {
         if (newMode.mode === PriceScaleMode.Logarithmic && newMode.mode !== oldMode.mode) {
             priceRange = convertPriceRangeToLog(this._priceRange, this._logFormula);
 
-            if (priceRange !== null) {
-                this.setPriceRange(priceRange);
-            }
+            if (priceRange !== null) this.setPriceRange(priceRange);
         }
 
         const modeChanged = oldMode.mode !== this._options.mode;
-        if (modeChanged && (oldMode.mode === PriceScaleMode.Percentage || this.isPercentage())) {
-            this.updateFormatter();
-        }
+        if (modeChanged && (oldMode.mode === PriceScaleMode.Percentage || this.isPercentage())) this.updateFormatter();
 
         if (modeChanged && (oldMode.mode === PriceScaleMode.IndexedTo100 || this.isIndexedTo100())) {
             this.updateFormatter();
@@ -395,9 +383,7 @@ export class PriceScale {
     }
 
     public setHeight(value: number): void {
-        if (this._height === value) {
-            return;
-        }
+        if (this._height === value) return;
 
         this._height = value;
         this._invalidateInternalHeightCache();
@@ -405,9 +391,7 @@ export class PriceScale {
     }
 
     public internalHeight(): number {
-        if (this._internalHeightCache !== null) {
-            return this._internalHeightCache;
-        }
+        if (this._internalHeightCache !== null) return this._internalHeightCache;
 
         const res = this.height() - this._topMarginPx() - this._bottomMarginPx();
         this._internalHeightCache = res;
@@ -457,11 +441,8 @@ export class PriceScale {
 
     public priceToCoordinate(price: number, baseValue: number): Coordinate {
         let logical = price;
-        if (this.isPercentage()) {
-            logical = toPercent(price, baseValue);
-        } else if (this.isIndexedTo100()) {
-            logical = toIndexedTo100(price, baseValue);
-        }
+        if (this.isPercentage()) logical = toPercent(price, baseValue);
+        else if (this.isIndexedTo100()) logical = toIndexedTo100(price, baseValue);
 
         return this._logicalToCoordinate(logical, baseValue);
     }
@@ -491,14 +472,10 @@ export class PriceScale {
 
             const price = point.price;
 
-            if (isNaN(price)) {
-                continue;
-            }
+            if (isNaN(price)) continue;
 
             let logical = price;
-            if (transformFn !== null) {
-                logical = nominal<BarPrice>(transformFn(point.price, baseValue));
-            }
+            if (transformFn !== null) logical = nominal<BarPrice>(transformFn(point.price, baseValue));
 
             const invCoordinate = bh + hmm * (logical - min);
             const coordinate = isInverted ? invCoordinate : this._height - 1 - invCoordinate;
@@ -566,11 +543,8 @@ export class PriceScale {
 
     public logicalToPrice(logical: number, baseValue: number): BarPrice {
         let value = logical;
-        if (this.isPercentage()) {
-            value = fromPercent(value, baseValue);
-        } else if (this.isIndexedTo100()) {
-            value = fromIndexedTo100(value, baseValue);
-        }
+        if (this.isPercentage()) value = fromPercent(value, baseValue);
+        else if (this.isIndexedTo100()) value = fromIndexedTo100(value, baseValue);
         return nominal<BarPrice>(value);
     }
 
@@ -579,15 +553,11 @@ export class PriceScale {
     }
 
     public orderedSources(): readonly IPriceDataSource[] {
-        if (this._cachedOrderedSources !== null) {
-            return this._cachedOrderedSources;
-        }
+        if (this._cachedOrderedSources !== null) return this._cachedOrderedSources;
 
         let sources: IPriceDataSource[] = [];
         for (const [i, ds] of this._dataSources.entries()) {
-            if (ds.zorder() === null) {
-                ds.setZorder(i + 1);
-            }
+            if (ds.zorder() === null) ds.setZorder(i + 1);
 
             sources.push(ds);
         }
@@ -598,9 +568,7 @@ export class PriceScale {
     }
 
     public addDataSource(source: IPriceDataSource): void {
-        if (this._dataSources.includes(source)) {
-            return;
-        }
+        if (this._dataSources.includes(source)) return;
 
         this._dataSources.push(source);
         this.updateFormatter();
@@ -609,9 +577,7 @@ export class PriceScale {
 
     public removeDataSource(source: IPriceDataSource): void {
         const index = this._dataSources.indexOf(source);
-        if (index === -1) {
-            throw new Error('source is not attached to scale');
-        }
+        if (index === -1) throw new Error('source is not attached to scale');
 
         this._dataSources.splice(index, 1);
 
@@ -634,13 +600,9 @@ export class PriceScale {
 
         for (const source of this._dataSources) {
             const firstValue = source.firstValue();
-            if (firstValue === null) {
-                continue;
-            }
+            if (firstValue === null) continue;
 
-            if (result === null || firstValue.timePoint < result.timePoint) {
-                result = firstValue;
-            }
+            if (result === null || firstValue.timePoint < result.timePoint) result = firstValue;
         }
 
         return result === null ? null : result.value;
@@ -677,17 +639,11 @@ export class PriceScale {
     }
 
     public startScale(x: number): void {
-        if (this.isPercentage() || this.isIndexedTo100()) {
-            return;
-        }
+        if (this.isPercentage() || this.isIndexedTo100()) return;
 
-        if (this._scaleStartPoint !== null || this._priceRangeSnapshot !== null) {
-            return;
-        }
+        if (this._scaleStartPoint !== null || this._priceRangeSnapshot !== null) return;
 
-        if (this.isEmpty()) {
-            return;
-        }
+        if (this.isEmpty()) return;
 
         // invert x
         this._scaleStartPoint = this._height - x;
@@ -695,13 +651,9 @@ export class PriceScale {
     }
 
     public scaleTo(x: number): void {
-        if (this.isPercentage() || this.isIndexedTo100()) {
-            return;
-        }
+        if (this.isPercentage() || this.isIndexedTo100()) return;
 
-        if (this._scaleStartPoint === null) {
-            return;
-        }
+        if (this._scaleStartPoint === null) return;
 
         this.setMode({
             autoScale: false,
@@ -718,46 +670,32 @@ export class PriceScale {
     }
 
     public endScale(): void {
-        if (this.isPercentage() || this.isIndexedTo100()) {
-            return;
-        }
+        if (this.isPercentage() || this.isIndexedTo100()) return;
 
         this._scaleStartPoint = null;
         this._priceRangeSnapshot = null;
     }
 
     public startScroll(x: number): void {
-        if (this.isAutoScale()) {
-            return;
-        }
+        if (this.isAutoScale()) return;
 
-        if (this._scrollStartPoint !== null || this._priceRangeSnapshot !== null) {
-            return;
-        }
+        if (this._scrollStartPoint !== null || this._priceRangeSnapshot !== null) return;
 
-        if (this.isEmpty()) {
-            return;
-        }
+        if (this.isEmpty()) return;
 
         this._scrollStartPoint = x;
         this._priceRangeSnapshot = getNotNull(this.priceRange()).clone();
     }
 
     public scrollTo(x: number): void {
-        if (this.isAutoScale()) {
-            return;
-        }
+        if (this.isAutoScale()) return;
 
-        if (this._scrollStartPoint === null) {
-            return;
-        }
+        if (this._scrollStartPoint === null) return;
 
         const priceUnitsPerPixel = getNotNull(this.priceRange()).length() / (this.internalHeight() - 1);
         let pixelDelta = x - this._scrollStartPoint;
 
-        if (this.isInverted()) {
-            pixelDelta *= -1;
-        }
+        if (this.isInverted()) pixelDelta *= -1;
 
         const priceDelta = pixelDelta * priceUnitsPerPixel;
         const newPriceRange = getNotNull(this._priceRangeSnapshot).clone();
@@ -768,13 +706,9 @@ export class PriceScale {
     }
 
     public endScroll(): void {
-        if (this.isAutoScale()) {
-            return;
-        }
+        if (this.isAutoScale()) return;
 
-        if (this._scrollStartPoint === null) {
-            return;
-        }
+        if (this._scrollStartPoint === null) return;
 
         this._scrollStartPoint = null;
         this._priceRangeSnapshot = null;
@@ -833,9 +767,7 @@ export class PriceScale {
         this._marksCache = null;
         const formatterSource = this._formatterSource();
         let base = 100;
-        if (formatterSource !== null) {
-            base = Math.round(1 / formatterSource.minMove());
-        }
+        if (formatterSource !== null) base = Math.round(1 / formatterSource.minMove());
 
         this._formatter = defaultPriceFormatter;
         if (this.isPercentage()) {
@@ -897,9 +829,7 @@ export class PriceScale {
 
     private _logicalToCoordinate(logical: number, _baseValue: number): Coordinate {
         this._makeSureItIsValid();
-        if (this.isEmpty()) {
-            return nominal<Coordinate>(0);
-        }
+        if (this.isEmpty()) return nominal<Coordinate>(0);
 
         const value = this.isLog() && logical !== 0 ? toLog(logical, this._logFormula) : logical;
         const range = getNotNull(this.priceRange());
@@ -910,9 +840,7 @@ export class PriceScale {
 
     private _coordinateToLogical(coordinate: number, _baseValue: number): number {
         this._makeSureItIsValid();
-        if (this.isEmpty()) {
-            return 0;
-        }
+        if (this.isEmpty()) return 0;
 
         const invCoordinate = this.invertedCoordinate(coordinate);
         const range = getNotNull(this.priceRange());
@@ -929,9 +857,7 @@ export class PriceScale {
 
     private _recalculatePriceRangeImpl(): void {
         const visibleBars = this._invalidatedForRange.visibleBars;
-        if (visibleBars === null) {
-            return;
-        }
+        if (visibleBars === null) return;
 
         let priceRange: PriceRangeImpl | null = null;
         const sources = this.sourcesForAutoScale();
@@ -940,14 +866,10 @@ export class PriceScale {
         let marginBelow = 0;
 
         for (const source of sources) {
-            if (!source.visible()) {
-                continue;
-            }
+            if (!source.visible()) continue;
 
             const firstValue = source.firstValue();
-            if (firstValue === null) {
-                continue;
-            }
+            if (firstValue === null) continue;
 
             const autoScaleInfo = source.autoscaleInfo(visibleBars.left(), visibleBars.right());
             let sourceRange = autoScaleInfo?.priceRange() ?? null;
@@ -968,11 +890,8 @@ export class PriceScale {
                         break;
                 }
 
-                if (priceRange === null) {
-                    priceRange = sourceRange;
-                } else {
-                    priceRange = priceRange.merge(getNotNull(sourceRange));
-                }
+                if (priceRange === null) priceRange = sourceRange;
+                else priceRange = priceRange.merge(getNotNull(sourceRange));
 
                 const margins = autoScaleInfo?.margins() ?? null;
                 if (margins !== null) {
@@ -1002,23 +921,17 @@ export class PriceScale {
                 // to avoid incorrect range and empty (blank) scale (in case of min tick much greater than 1)
                 const extendValue = 5 * minMove;
 
-                if (this.isLog()) {
-                    priceRange = convertPriceRangeFromLog(priceRange, this._logFormula);
-                }
+                if (this.isLog()) priceRange = convertPriceRangeFromLog(priceRange, this._logFormula);
 
                 priceRange = new PriceRangeImpl(
                     priceRange.minValue() - extendValue,
                     priceRange.maxValue() + extendValue,
                 );
 
-                if (this.isLog()) {
-                    priceRange = convertPriceRangeToLog(priceRange, this._logFormula);
-                }
+                if (this.isLog()) priceRange = convertPriceRangeToLog(priceRange, this._logFormula);
             }
 
-            if (this.isLog()) {
-                priceRange = this._relogPriceRange(priceRange);
-            }
+            if (this.isLog()) priceRange = this._relogPriceRange(priceRange);
 
             this.setPriceRange(priceRange);
         } else {
@@ -1041,9 +954,7 @@ export class PriceScale {
     private _relogPriceRange(priceRange: PriceRangeImpl | null): PriceRangeImpl | null {
         const rawRange = convertPriceRangeFromLog(priceRange, this._logFormula);
         const newLogFormula = logFormulaForPriceRange(rawRange);
-        if (logFormulasAreSame(newLogFormula, this._logFormula)) {
-            return priceRange;
-        }
+        if (logFormulasAreSame(newLogFormula, this._logFormula)) return priceRange;
 
         const rawSnapshot =
             this._priceRangeSnapshot !== null
@@ -1051,25 +962,17 @@ export class PriceScale {
                 : null;
 
         this._logFormula = newLogFormula;
-        if (rawSnapshot !== null) {
-            this._priceRangeSnapshot = convertPriceRangeToLog(rawSnapshot, newLogFormula);
-        }
+        if (rawSnapshot !== null) this._priceRangeSnapshot = convertPriceRangeToLog(rawSnapshot, newLogFormula);
 
         return convertPriceRangeToLog(rawRange, newLogFormula);
     }
 
     private _getCoordinateTransformer(): PriceTransformer | null {
-        if (this.isPercentage()) {
-            return toPercent;
-        }
+        if (this.isPercentage()) return toPercent;
 
-        if (this.isIndexedTo100()) {
-            return toIndexedTo100;
-        }
+        if (this.isIndexedTo100()) return toIndexedTo100;
 
-        if (this.isLog()) {
-            return (price: number): number => toLog(price, this._logFormula);
-        }
+        if (this.isLog()) return (price: number): number => toLog(price, this._logFormula);
 
         return null;
     }
@@ -1079,9 +982,7 @@ export class PriceScale {
         formatter: PriceFormatterFn | undefined,
         fallbackFormatter?: IPriceFormatter,
     ): string {
-        if (formatter === undefined) {
-            return (fallbackFormatter ?? this.formatter()).format(value);
-        }
+        if (formatter === undefined) return (fallbackFormatter ?? this.formatter()).format(value);
 
         return formatter(nominal<BarPrice>(value));
     }

@@ -203,8 +203,12 @@ async function watchCandles(socket: FeedSocket, userId: string, payload: unknown
     // Synchronous on the in-memory adapter, like the quote rooms, so two quick
     // watches cannot land out of order
     const held = new Set(socket.data.candleRooms ?? []);
-    for (const room of held) if (!wanted.has(room)) void socket.leave(room);
-    for (const room of wanted.keys()) if (!held.has(room)) void socket.join(room);
+    for (const room of held) {
+        if (!wanted.has(room)) void socket.leave(room);
+    }
+    for (const room of wanted.keys()) {
+        if (!held.has(room)) void socket.join(room);
+    }
     socket.data.candleRooms = [...wanted.keys()];
 
     // Every pair is answered, a held one too: a chart that switches onto a pair
@@ -312,8 +316,9 @@ function checkedPayload<TEvent extends ServerEvent>(
         return undefined;
     }
     const dropped = droppedKeys(payload, parsed.data);
-    if (dropped.length > 0)
+    if (dropped.length > 0) {
         logger.error({ event, dropped }, 'Socket payload carried fields its schema does not declare');
+    }
     return parsed.data;
 }
 

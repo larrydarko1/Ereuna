@@ -89,9 +89,7 @@ export class SeriesLastPriceAnimationPaneView implements IUpdatablePaneView {
             const now = performance.now();
             const timeToAnimationEnd = this._endTime - now;
             if (timeToAnimationEnd > 0) {
-                if (timeToAnimationEnd < Constants.AnimationPeriod / 4) {
-                    this._endTime += Constants.AnimationPeriod;
-                }
+                if (timeToAnimationEnd < Constants.AnimationPeriod / 4) this._endTime += Constants.AnimationPeriod;
                 return;
             }
             this._startTime = now;
@@ -142,14 +140,10 @@ export class SeriesLastPriceAnimationPaneView implements IUpdatablePaneView {
         const timeScale = this._series.model().timeScale();
         const visibleRange = timeScale.visibleStrictRange();
         const firstValue = this._series.firstValue();
-        if (visibleRange === null || firstValue === null) {
-            return;
-        }
+        if (visibleRange === null || firstValue === null) return;
 
         const lastValue = this._series.lastValueData(true);
-        if (lastValue.noData || !visibleRange.contains(lastValue.index)) {
-            return;
-        }
+        if (lastValue.noData || !visibleRange.contains(lastValue.index)) return;
 
         const lastValuePoint: Point = {
             x: timeScale.indexToCoordinate(lastValue.index),

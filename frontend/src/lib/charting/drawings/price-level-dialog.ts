@@ -247,9 +247,7 @@ export function openPriceLevelMenu(at: { x: number; y: number }, handlers: Conte
 }
 
 function applyStyle(element: HTMLElement, style: Record<string, string>): void {
-    for (const [property, value] of Object.entries(style)) {
-        element.style.setProperty(toKebabCase(property), value);
-    }
+    for (const [property, value] of Object.entries(style)) element.style.setProperty(toKebabCase(property), value);
 }
 
 function toKebabCase(property: string): string {

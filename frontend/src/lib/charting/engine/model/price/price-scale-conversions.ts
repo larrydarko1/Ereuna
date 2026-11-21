@@ -50,9 +50,7 @@ export function toIndexedTo100Range(priceRange: PriceRangeImpl, baseValue: numbe
 
 export function toLog(price: number, logFormula: LogFormula): number {
     const magnitude = Math.abs(price);
-    if (magnitude < 1e-15) {
-        return 0;
-    }
+    if (magnitude < 1e-15) return 0;
 
     const res = Math.log10(magnitude + logFormula.coordOffset) + logFormula.logicalOffset;
     return price < 0 ? -res : res;
@@ -60,9 +58,7 @@ export function toLog(price: number, logFormula: LogFormula): number {
 
 export function fromLog(logical: number, logFormula: LogFormula): number {
     const magnitude = Math.abs(logical);
-    if (magnitude < 1e-15) {
-        return 0;
-    }
+    if (magnitude < 1e-15) return 0;
 
     const res = Math.pow(10, magnitude - logFormula.logicalOffset) - logFormula.coordOffset;
     return logical < 0 ? -res : res;
@@ -72,9 +68,7 @@ export function convertPriceRangeToLog(
     priceRange: PriceRangeImpl | null,
     logFormula: LogFormula,
 ): PriceRangeImpl | null {
-    if (priceRange === null) {
-        return null;
-    }
+    if (priceRange === null) return null;
 
     const min = toLog(priceRange.minValue(), logFormula);
     const max = toLog(priceRange.maxValue(), logFormula);
@@ -83,9 +77,7 @@ export function convertPriceRangeToLog(
 }
 
 export function canConvertPriceRangeFromLog(priceRange: PriceRangeImpl | null, logFormula: LogFormula): boolean {
-    if (priceRange === null) {
-        return false;
-    }
+    if (priceRange === null) return false;
 
     const min = fromLog(priceRange.minValue(), logFormula);
     const max = fromLog(priceRange.maxValue(), logFormula);
@@ -103,9 +95,7 @@ export function convertPriceRangeFromLog(
     priceRange: PriceRangeImpl | null,
     logFormula: LogFormula,
 ): PriceRangeImpl | null {
-    if (priceRange === null) {
-        return null;
-    }
+    if (priceRange === null) return null;
 
     const min = fromLog(priceRange.minValue(), logFormula);
     const max = fromLog(priceRange.maxValue(), logFormula);
@@ -114,14 +104,10 @@ export function convertPriceRangeFromLog(
 }
 
 export function logFormulaForPriceRange(range: PriceRangeImpl | null): LogFormula {
-    if (range === null) {
-        return defLogFormula;
-    }
+    if (range === null) return defLogFormula;
 
     const diff = Math.abs(range.maxValue() - range.minValue());
-    if (diff >= 1 || diff < 1e-15) {
-        return defLogFormula;
-    }
+    if (diff >= 1 || diff < 1e-15) return defLogFormula;
 
     const digits = Math.ceil(Math.abs(Math.log10(diff)));
     const logicalOffset = defLogFormula.logicalOffset + digits;

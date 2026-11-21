@@ -97,25 +97,19 @@ export class SeriesApi<
 
     public priceToCoordinate(price: number): Coordinate | null {
         const firstValue = this._series.firstValue();
-        if (firstValue === null) {
-            return null;
-        }
+        if (firstValue === null) return null;
 
         return this._series.priceScale().priceToCoordinate(price, firstValue.value);
     }
 
     public coordinateToPrice(coordinate: number): BarPrice | null {
         const firstValue = this._series.firstValue();
-        if (firstValue === null) {
-            return null;
-        }
+        if (firstValue === null) return null;
         return this._series.priceScale().coordinateToPrice(nominal<Coordinate>(coordinate), firstValue.value);
     }
 
     public barsInLogicalRange(range: Range<number> | null): BarsInfo<THorzScaleItem> | null {
-        if (range === null) {
-            return null;
-        }
+        if (range === null) return null;
 
         // we use TimeScaleVisibleRange here to convert LogicalRange to strict range properly
         const correctedRange = getNotNull(
@@ -125,9 +119,7 @@ export class SeriesApi<
         );
 
         const bars = this._series.bars();
-        if (bars.isEmpty()) {
-            return null;
-        }
+        if (bars.isEmpty()) return null;
 
         const dataFirstBarInRange = bars.search(correctedRange.left(), MismatchDirection.NearestRight);
         const dataLastBarInRange = bars.search(correctedRange.right(), MismatchDirection.NearestLeft);
@@ -280,14 +272,10 @@ export class SeriesApi<
 
     public detachPrimitive(primitive: ISeriesPrimitive<THorzScaleItem>): void {
         this._series.detachPrimitive(primitive);
-        if (primitive.detached !== undefined) {
-            primitive.detached();
-        }
+        if (primitive.detached !== undefined) primitive.detached();
     }
 
     private _onDataChanged(scope: DataChangedScope): void {
-        if (this._dataChangedDelegate.hasListeners()) {
-            this._dataChangedDelegate.fire(scope);
-        }
+        if (this._dataChangedDelegate.hasListeners()) this._dataChangedDelegate.fire(scope);
     }
 }

@@ -213,12 +213,8 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
     public setHoveredSource(source: HoveredSource | null): void {
         const prevSource = this._hoveredSource;
         this._hoveredSource = source;
-        if (prevSource !== null) {
-            this.updateSource(prevSource.source);
-        }
-        if (source !== null) {
-            this.updateSource(source.source);
-        }
+        if (prevSource !== null) this.updateSource(prevSource.source);
+        if (source !== null) this.updateSource(source.source);
     }
 
     public options(): Readonly<ChartOptionsInternal<THorzScaleItem>> {
@@ -230,13 +226,9 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
 
         this._panes.forEach((p: Pane) => p.applyScaleOptions(options));
 
-        if (options.timeScale !== undefined) {
-            this._timeScale.applyOptions(options.timeScale);
-        }
+        if (options.timeScale !== undefined) this._timeScale.applyOptions(options.timeScale);
 
-        if (options.localization !== undefined) {
-            this._timeScale.applyLocalizationOptions(options.localization);
-        }
+        if (options.localization !== undefined) this._timeScale.applyLocalizationOptions(options.localization);
 
         if (options.leftPriceScale !== undefined || options.rightPriceScale !== undefined) {
             this._priceScalesOptionsChanged.fire();
@@ -267,9 +259,7 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
         // Upstream threw here in development builds and returned silently in
         // production. An unknown id is a mistake at the call site either way,
         // and swallowing it applies none of the options the caller asked for
-        if (res === null) {
-            throw new Error(`Trying to apply price scale options with incorrect ID: ${priceScaleId}`);
-        }
+        if (res === null) throw new Error(`Trying to apply price scale options with incorrect ID: ${priceScaleId}`);
 
         res.priceScale.applyOptions(options);
         this._priceScalesOptionsChanged.fire();
@@ -362,25 +352,19 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
     }
 
     public startScrollPrice(pane: Pane, priceScale: PriceScale, x: number): void {
-        if (priceScale.isAutoScale()) {
-            return;
-        }
+        if (priceScale.isAutoScale()) return;
         pane.startScrollPrice(priceScale, x);
     }
 
     public scrollPriceTo(pane: Pane, priceScale: PriceScale, x: number): void {
-        if (priceScale.isAutoScale()) {
-            return;
-        }
+        if (priceScale.isAutoScale()) return;
         pane.scrollPriceTo(priceScale, x);
         this.updateCrosshair();
         this._invalidate(this._paneInvalidationMask(pane, InvalidationLevel.Light));
     }
 
     public endScrollPrice(pane: Pane, priceScale: PriceScale): void {
-        if (priceScale.isAutoScale()) {
-            return;
-        }
+        if (priceScale.isAutoScale()) return;
         pane.endScrollPrice(priceScale);
         this._invalidate(this._paneInvalidationMask(pane, InvalidationLevel.Light));
     }
@@ -402,9 +386,7 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
      */
     public zoomTime(pointX: Coordinate, scale: number): void {
         const timeScale = this.timeScale();
-        if (timeScale.isEmpty() || scale === 0) {
-            return;
-        }
+        if (timeScale.isEmpty() || scale === 0) return;
 
         const timeScaleWidth = timeScale.width();
         const anchor = nominal<Coordinate>(Math.max(1, Math.min(pointX, timeScaleWidth)));
@@ -467,17 +449,13 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
 
         const priceScale = pane.defaultPriceScale();
         const firstValue = priceScale.firstValue();
-        if (firstValue !== null) {
-            price = priceScale.coordinateToPrice(y, firstValue);
-        }
+        if (firstValue !== null) price = priceScale.coordinateToPrice(y, firstValue);
         price = this._magnet.align(price, index, pane);
 
         this._crosshair.setPosition(index, price, pane);
 
         this.cursorUpdate();
-        if (move.silent !== true) {
-            this._crosshairMoved.fire(this._crosshair.appliedIndex(), { x, y }, event);
-        }
+        if (move.silent !== true) this._crosshairMoved.fire(this._crosshair.appliedIndex(), { x, y }, event);
     }
 
     /**
@@ -500,9 +478,7 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
         const crosshair = this.crosshairSource();
         crosshair.clearPosition();
         this.cursorUpdate();
-        if (skipEvent !== true) {
-            this._crosshairMoved.fire(null, null, null);
-        }
+        if (skipEvent !== true) this._crosshairMoved.fire(null, null, null);
     }
 
     public updateCrosshair(): void {
@@ -560,9 +536,7 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
     }
 
     public recalculatePane(pane: Pane | null): void {
-        if (pane !== null) {
-            pane.recalculate();
-        }
+        if (pane !== null) pane.recalculate();
     }
 
     public paneForSource(source: IPriceDataSource): Pane | null {
@@ -722,9 +696,7 @@ export class ChartModel<THorzScaleItem> implements IDestroyable, IChartModelBase
             };
         } else {
             const cachedValue = this._gradientColorsCache.colors.get(step);
-            if (cachedValue !== undefined) {
-                return cachedValue;
-            }
+            if (cachedValue !== undefined) return cachedValue;
         }
 
         const result = gradientColorAtPercent(topColor, bottomColor, step / 100);

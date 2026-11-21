@@ -121,9 +121,7 @@ router.post(
 
 router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
     const rawToken = readRefreshCookie(req);
-    if (rawToken === null) {
-        throw new AppError(401, 'NO_REFRESH_TOKEN', 'No refresh token cookie present');
-    }
+    if (rawToken === null) throw new AppError(401, 'NO_REFRESH_TOKEN', 'No refresh token cookie present');
 
     const result = await authService.rotateRefreshToken(rawToken);
     setRefreshCookie(res, result.refreshToken, result.refreshMaxAge);

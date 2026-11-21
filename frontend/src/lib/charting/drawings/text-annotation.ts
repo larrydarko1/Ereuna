@@ -104,11 +104,8 @@ export class TextAnnotationManager {
     }
 
     public toggle(): void {
-        if (this.isActive) {
-            this.deactivate();
-        } else {
-            this.activate();
-        }
+        if (this.isActive) this.deactivate();
+        else this.activate();
     }
 
     public isToolActive(): boolean {
@@ -189,9 +186,7 @@ export class TextAnnotationManager {
     private readonly handleKeyDown = (event: KeyboardEvent): void => {
         if (event.key !== 'Backspace' && event.key !== 'Delete') return;
 
-        if (isTypingTarget(event.target)) {
-            return;
-        }
+        if (isTypingTarget(event.target)) return;
 
         if (this.selectedAnnotationId !== null) {
             event.preventDefault(); // Backspace would otherwise navigate back

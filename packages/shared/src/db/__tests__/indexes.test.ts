@@ -101,9 +101,7 @@ describe('the index manifests', () => {
 
     it('splits the manifests by writer with no overlap', () => {
         const apiOwned = new Set(INDEXES.map((spec) => spec.collection));
-        for (const spec of [...OHLCV_INDEXES, ...REFERENCE_INDEXES]) {
-            expect(apiOwned.has(spec.collection)).toBe(false);
-        }
+        for (const spec of [...OHLCV_INDEXES, ...REFERENCE_INDEXES]) expect(apiOwned.has(spec.collection)).toBe(false);
     });
 });
 

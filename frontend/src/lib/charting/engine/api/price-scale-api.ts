@@ -26,9 +26,7 @@ export class PriceScaleApi implements IPriceScaleApi {
     }
 
     public width(): number {
-        if (!isDefaultPriceScale(this._priceScaleId)) {
-            return 0;
-        }
+        if (!isDefaultPriceScale(this._priceScaleId)) return 0;
 
         return this._chartWidget.getPriceAxisWidth(this._priceScaleId);
     }

@@ -40,9 +40,7 @@ export class PaneRendererBars extends BitmapCoordinatesPaneRenderer {
         horizontalPixelRatio,
         verticalPixelRatio,
     }: BitmapCoordinatesRenderingScope): void {
-        if (this._data === null || this._data.bars.length === 0 || this._data.visibleRange === null) {
-            return;
-        }
+        if (this._data === null || this._data.bars.length === 0 || this._data.visibleRange === null) return;
 
         this._barWidth = this._calcBarWidth(horizontalPixelRatio);
 
@@ -52,9 +50,7 @@ export class PaneRendererBars extends BitmapCoordinatesPaneRenderer {
         // in order of keeping crosshair-over-bar drawing symmetric
         if (this._barWidth >= 2) {
             const lineWidth = Math.max(1, Math.floor(horizontalPixelRatio));
-            if (lineWidth % 2 !== this._barWidth % 2) {
-                this._barWidth--;
-            }
+            if (lineWidth % 2 !== this._barWidth % 2) this._barWidth--;
         }
 
         // if scale is compressed, bar could become less than 1 CSS pixel
@@ -129,9 +125,7 @@ export class PaneRendererBars extends BitmapCoordinatesPaneRenderer {
  */
 function clampNub(top: number, height: number, bodyBottom: number): { top: number; bottom: number } {
     const bottom = top + height - 1;
-    if (bottom <= bodyBottom) {
-        return { top, bottom };
-    }
+    if (bottom <= bodyBottom) return { top, bottom };
 
     return { top: bodyBottom - height + 1, bottom: bodyBottom };
 }

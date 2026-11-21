@@ -55,9 +55,7 @@ export async function updatePreferences(userId: ObjectId, patch: PreferencesPatc
     }
 
     const result = await getDb().collection<UserDoc>('Users').updateOne({ _id: userId }, { $set: update });
-    if (result.matchedCount === 0) {
-        throw new AppError(404, 'USER_NOT_FOUND', `user ${userId.toHexString()} not found`);
-    }
+    if (result.matchedCount === 0) throw new AppError(404, 'USER_NOT_FOUND', `user ${userId.toHexString()} not found`);
 
     // The column selection is part of the screener's projection, so a cached
     // page written before the change is missing the columns just asked for.

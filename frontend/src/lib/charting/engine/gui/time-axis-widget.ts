@@ -139,12 +139,8 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
 
     public destroy(): void {
         this._mouseEventHandler.destroy();
-        if (this._leftStub !== null) {
-            this._leftStub.destroy();
-        }
-        if (this._rightStub !== null) {
-            this._rightStub.destroy();
-        }
+        if (this._leftStub !== null) this._leftStub.destroy();
+        if (this._rightStub !== null) this._rightStub.destroy();
 
         this._topCanvasBinding.unsubscribeSuggestedBitmapSizeChanged(this._topCanvasSuggestedBitmapSizeChangedHandler);
         releaseCanvas(this._topCanvasBinding.canvasElement);
@@ -168,15 +164,11 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
     }
 
     public mouseDownEvent(event: TouchMouseEvent): void {
-        if (this._mouseDown) {
-            return;
-        }
+        if (this._mouseDown) return;
 
         this._mouseDown = true;
         const model = this._chart.model();
-        if (model.timeScale().isEmpty() || !this._chart.options().handleScale.axisPressedMouseMove.time) {
-            return;
-        }
+        if (model.timeScale().isEmpty() || !this._chart.options().handleScale.axisPressedMouseMove.time) return;
 
         model.startScaleTime(event.localX);
     }
@@ -189,17 +181,13 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
         const model = this._chart.model();
         if (!model.timeScale().isEmpty() && this._mouseDown) {
             this._mouseDown = false;
-            if (this._chart.options().handleScale.axisPressedMouseMove.time) {
-                model.endScaleTime();
-            }
+            if (this._chart.options().handleScale.axisPressedMouseMove.time) model.endScaleTime();
         }
     }
 
     public pressedMouseMoveEvent(event: TouchMouseEvent): void {
         const model = this._chart.model();
-        if (model.timeScale().isEmpty() || !this._chart.options().handleScale.axisPressedMouseMove.time) {
-            return;
-        }
+        if (model.timeScale().isEmpty() || !this._chart.options().handleScale.axisPressedMouseMove.time) return;
 
         model.scaleTimeTo(event.localX);
     }
@@ -211,9 +199,7 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
     public mouseUpEvent(): void {
         this._mouseDown = false;
         const model = this._chart.model();
-        if (model.timeScale().isEmpty() && !this._chart.options().handleScale.axisPressedMouseMove.time) {
-            return;
-        }
+        if (model.timeScale().isEmpty() && !this._chart.options().handleScale.axisPressedMouseMove.time) return;
 
         model.endScaleTime();
     }
@@ -223,9 +209,7 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
     }
 
     public mouseDoubleClickEvent(): void {
-        if (this._chart.options().handleScale.axisDoubleClickReset.time) {
-            this._chart.model().resetTimeScale();
-        }
+        if (this._chart.options().handleScale.axisDoubleClickReset.time) this._chart.model().resetTimeScale();
     }
 
     public doubleTapEvent(): void {
@@ -233,9 +217,7 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
     }
 
     public mouseEnterEvent(): void {
-        if (this._chart.model().options().handleScale.axisPressedMouseMove.time) {
-            this._setCursor(CursorType.EwResize);
-        }
+        if (this._chart.model().options().handleScale.axisPressedMouseMove.time) this._setCursor(CursorType.EwResize);
     }
 
     public mouseLeaveEvent(): void {
@@ -297,15 +279,11 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
 
     public drawBitmap(ctx: CanvasRenderingContext2D, x: number, y: number): void {
         const bitmapSize = this.getBitmapSize();
-        if (bitmapSize.width > 0 && bitmapSize.height > 0) {
-            ctx.drawImage(this._canvasBinding.canvasElement, x, y);
-        }
+        if (bitmapSize.width > 0 && bitmapSize.height > 0) ctx.drawImage(this._canvasBinding.canvasElement, x, y);
     }
 
     public paint(type: InvalidationLevel): void {
-        if (type === InvalidationLevel.None) {
-            return;
-        }
+        if (type === InvalidationLevel.None) return;
 
         if (type !== InvalidationLevel.Cursor) {
             this._canvasBinding.applySuggestedBitmapSize();
@@ -323,12 +301,8 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
                 // this._drawLabels(this._chart.model().dataSources(), target);
             }
 
-            if (this._leftStub !== null) {
-                this._leftStub.paint(type);
-            }
-            if (this._rightStub !== null) {
-                this._rightStub.paint(type);
-            }
+            if (this._leftStub !== null) this._leftStub.paint(type);
+            if (this._rightStub !== null) this._rightStub.paint(type);
         }
 
         this._topCanvasBinding.applySuggestedBitmapSize();
@@ -376,9 +350,7 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
         const timeScale = this._chart.model().timeScale();
         const tickMarks = timeScale.marks();
 
-        if (tickMarks === null || tickMarks.length === 0) {
-            return;
-        }
+        if (tickMarks === null || tickMarks.length === 0) return;
 
         const maxWeight = this._horzScaleBehavior.maxTickMarkWeight(tickMarks);
 
@@ -427,9 +399,7 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
                     ctx.fillText(tickMark.label, coordinate, yText);
                 }
             }
-            if (this._chart.options().timeScale.allowBoldLabels) {
-                ctx.font = this._baseBoldFont();
-            }
+            if (this._chart.options().timeScale.allowBoldLabels) ctx.font = this._baseBoldFont();
             for (const tickMark of tickMarks) {
                 if (tickMark.weight >= maxWeight) {
                     const coordinate = tickMark.needAlignCoordinate
@@ -450,9 +420,7 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
         const labelWidthHalf = labelWidth / 2;
         const leftTextCoordinate = Math.floor(coordinate - labelWidthHalf) + 0.5;
 
-        if (leftTextCoordinate < 0) {
-            return coordinate + Math.abs(0 - leftTextCoordinate);
-        }
+        if (leftTextCoordinate < 0) return coordinate + Math.abs(0 - leftTextCoordinate);
         if (leftTextCoordinate + labelWidth > this._size.width) {
             return coordinate - Math.abs(this._size.width - (leftTextCoordinate + labelWidth));
         }
@@ -463,9 +431,7 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
     private _drawLabels(sources: readonly IDataSource[], target: CanvasRenderingTarget2D): void {
         const rendererOptions = this._getRendererOptions();
         for (const source of sources) {
-            for (const view of source.timeAxisViews()) {
-                view.renderer().draw(target, rendererOptions);
-            }
+            for (const view of source.timeAxisViews()) view.renderer().draw(target, rendererOptions);
         }
     }
 
@@ -560,15 +526,11 @@ export class TimeAxisWidget<THorzScaleItem> implements MouseEventHandlers, IDest
     }
 
     private readonly _canvasSuggestedBitmapSizeChangedHandler = (): void => {
-        if (!this._isSettingSize) {
-            this._chart.model().lightUpdate();
-        }
+        if (!this._isSettingSize) this._chart.model().lightUpdate();
     };
 
     private readonly _topCanvasSuggestedBitmapSizeChangedHandler = (): void => {
-        if (!this._isSettingSize) {
-            this._chart.model().lightUpdate();
-        }
+        if (!this._isSettingSize) this._chart.model().lightUpdate();
     };
 }
 

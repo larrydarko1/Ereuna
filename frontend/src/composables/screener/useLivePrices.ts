@@ -34,7 +34,8 @@ function withLiveQuote(item: ScreenerResult, quote: Readonly<LiveQuote> | undefi
 
     const columns = { ...item.columns };
     if (PRICE_COLUMN in columns) columns[PRICE_COLUMN] = quote.price;
-    if (CHANGE_COLUMN in columns)
+    if (CHANGE_COLUMN in columns) {
         columns[CHANGE_COLUMN] = quote.changePercent === null ? null : quote.changePercent / 100;
+    }
     return { ...item, columns };
 }
