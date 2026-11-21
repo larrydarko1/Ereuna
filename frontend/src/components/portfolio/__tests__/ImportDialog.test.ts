@@ -1,19 +1,12 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { query } from '@/__tests__/support/dom';
+import { getElement, query } from '@/__tests__/support/dom';
 import ImportDialog from '@/components/portfolio/ImportDialog.vue';
 import { i18n } from '@/i18n';
 
 const open = (props: Record<string, unknown> = {}): VueWrapper =>
     mount(ImportDialog, { props, attachTo: document.body });
-
-/** The dialog is teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} in the dialog`);
-    return element;
-};
 
 /** A file input cannot be assigned, so the change carries the file itself. */
 const choose = async (contents: string): Promise<void> => {
@@ -25,7 +18,7 @@ const choose = async (contents: string): Promise<void> => {
 };
 
 const submit = async (): Promise<void> => {
-    $('.dialog__footer .btn--primary').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    getElement('.dialog__footer .btn--primary').dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await Promise.resolve();
 };
 
@@ -40,7 +33,7 @@ describe('ImportDialog', () => {
         await submit();
 
         expect(wrapper.emitted('submit')).toBeUndefined();
-        expect($('.dialog__footer .btn--primary').hasAttribute('disabled')).toBe(true);
+        expect(getElement('.dialog__footer .btn--primary').hasAttribute('disabled')).toBe(true);
     });
 
     it('counts the trades a file holds before importing them', async () => {
@@ -48,7 +41,7 @@ describe('ImportDialog', () => {
 
         await choose(JSON.stringify({ trades: [{ action: 'buy' }, { action: 'sell' }] }));
 
-        expect($('.import-dialog__summary').textContent.trim()).toBe(
+        expect(getElement('.import-dialog__summary').textContent.trim()).toBe(
             i18n.global.t('portfolio.importSummary', { trades: 2 }),
         );
     });
@@ -71,7 +64,7 @@ describe('ImportDialog', () => {
 
         await choose('not json at all');
 
-        expect($('.form-error[role="alert"]').textContent).toBe(i18n.global.t('portfolio.importInvalid'));
+        expect(getElement('.form-error[role="alert"]').textContent).toBe(i18n.global.t('portfolio.importInvalid'));
     });
 
     it('refuses JSON that is not an export', async () => {
@@ -79,7 +72,7 @@ describe('ImportDialog', () => {
 
         await choose(JSON.stringify({ positions: [] }));
 
-        expect($('.form-error[role="alert"]').textContent).toBe(i18n.global.t('portfolio.importInvalid'));
+        expect(getElement('.form-error[role="alert"]').textContent).toBe(i18n.global.t('portfolio.importInvalid'));
     });
 
     it('refuses a JSON literal, which has no trades to read', async () => {
@@ -87,7 +80,7 @@ describe('ImportDialog', () => {
 
         await choose('null');
 
-        expect($('.form-error[role="alert"]').textContent).toBe(i18n.global.t('portfolio.importInvalid'));
+        expect(getElement('.form-error[role="alert"]').textContent).toBe(i18n.global.t('portfolio.importInvalid'));
     });
 
     it('forgets the last file when a new one is chosen', async () => {
@@ -105,19 +98,19 @@ describe('ImportDialog', () => {
 
         await choose('not json');
 
-        expect($('.form-error[role="alert"]').textContent).toBe(i18n.global.t('portfolio.importInvalid'));
+        expect(getElement('.form-error[role="alert"]').textContent).toBe(i18n.global.t('portfolio.importInvalid'));
     });
 
     it('shows what the API refused when the file itself was fine', () => {
         open({ error: 'Slot is not empty' });
 
-        expect($('.form-error[role="alert"]').textContent).toBe('Slot is not empty');
+        expect(getElement('.form-error[role="alert"]').textContent).toBe('Slot is not empty');
     });
 
     it('closes on cancel', async () => {
         const wrapper = open();
 
-        $('.dialog__footer .btn').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        getElement('.dialog__footer .btn').dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await Promise.resolve();
 
         expect(wrapper.emitted('close')).toHaveLength(1);

@@ -113,17 +113,17 @@ describe('converting between a coordinate and a point on the scale', () => {
     it('round-trips a logical index', () => {
         const chart = chartWithBars();
 
-        const x = chart.timeScale().logicalToCoordinate(nominal<Logical>(12));
-        expect(x).not.toBeNull();
-        expect(chart.timeScale().coordinateToLogical(x!)).toBeCloseTo(12, 5);
+        const coordinate = chart.timeScale().logicalToCoordinate(nominal<Logical>(12));
+        expect(coordinate).not.toBeNull();
+        expect(chart.timeScale().coordinateToLogical(coordinate!)).toBeCloseTo(12, 5);
     });
 
     it('round-trips a time that is on a bar', () => {
         const chart = chartWithBars();
 
-        const x = chart.timeScale().timeToCoordinate(timeAt(12));
-        expect(x).not.toBeNull();
-        expect(chart.timeScale().coordinateToTime(x!)).toBe(timeAt(12));
+        const coordinate = chart.timeScale().timeToCoordinate(timeAt(12));
+        expect(coordinate).not.toBeNull();
+        expect(chart.timeScale().coordinateToTime(coordinate!)).toBe(timeAt(12));
     });
 
     it('answers null for a time no bar sits on', () => {

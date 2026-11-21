@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LIMITS, type WatchlistSummary } from '@ereuna/shared';
 
 import { watchlistRow as row, watchlistSummary } from '@/__tests__/support/answers';
-import { elementOf, query } from '@/__tests__/support/dom';
+import { elementOf, getElement, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { socket } from '@/__tests__/support/socket';
 import { clearAuth } from '@/api/client';
@@ -29,13 +29,6 @@ const panel = async (props: Record<string, unknown> = {}): Promise<VueWrapper> =
     const wrapper = mount(WatchlistPanel, { props, attachTo: document.body });
     await flushPromises();
     return wrapper;
-};
-
-/** Dialogs are teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} on the page`);
-    return element;
 };
 
 const seed = (tickers: string[] = ['AAPL', 'MSFT']): void => {
@@ -343,7 +336,7 @@ describe('WatchlistPanel', () => {
         const input = query('.dialog input', HTMLInputElement);
         input.value = 'Growth';
         input.dispatchEvent(new Event('input', { bubbles: true }));
-        $('.prompt__submit').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        getElement('.prompt__submit').dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await flushPromises();
 
         expect(api.calls.find((call) => call.method === 'POST')?.body).toEqual({ name: 'Growth' });
@@ -360,7 +353,7 @@ describe('WatchlistPanel', () => {
         const input = query('.dialog input', HTMLInputElement);
         input.value = 'Tech';
         input.dispatchEvent(new Event('input', { bubbles: true }));
-        $('.prompt__submit').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        getElement('.prompt__submit').dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await flushPromises();
 
         expect(document.body.querySelector('.dialog')).not.toBeNull();
@@ -379,7 +372,7 @@ describe('WatchlistPanel', () => {
         const input = query('.dialog input', HTMLInputElement);
         input.value = 'Renamed';
         input.dispatchEvent(new Event('input', { bubbles: true }));
-        $('.prompt__submit').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        getElement('.prompt__submit').dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await flushPromises();
 
         expect(api.calls.find((call) => call.method === 'PATCH')?.body).toEqual({ name: 'Renamed' });
@@ -392,7 +385,7 @@ describe('WatchlistPanel', () => {
 
         await wrapper.findAll('.watchlist__tools button')[2]?.trigger('click');
 
-        expect($('.watchlist__confirm').textContent).toBe(
+        expect(getElement('.watchlist__confirm').textContent).toBe(
             i18n.global.t('watchlist.confirmDeleteBody', { name: 'Tech' }),
         );
         wrapper.unmount();

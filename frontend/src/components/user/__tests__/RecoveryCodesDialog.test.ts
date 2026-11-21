@@ -1,6 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { getElement } from '@/__tests__/support/dom';
 import RecoveryCodesDialog from '@/components/user/RecoveryCodesDialog.vue';
 import { i18n } from '@/i18n';
 
@@ -10,12 +11,6 @@ const open = (codes: readonly string[] = CODES): VueWrapper =>
     mount(RecoveryCodesDialog, { props: { codes }, attachTo: document.body });
 
 /** The dialog is teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} in the dialog`);
-    return element;
-};
-
 const buttons = (): HTMLElement[] => [...document.body.querySelectorAll<HTMLElement>('.dialog__footer button')];
 
 const press = async (index: number): Promise<void> => {
@@ -42,7 +37,7 @@ describe('RecoveryCodesDialog', () => {
     it('cannot be dismissed by a stray backdrop click, since the codes are shown once', async () => {
         const wrapper = open();
 
-        $('.dialog').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        getElement('.dialog').dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await Promise.resolve();
 
         expect(wrapper.emitted('close')).toBeUndefined();

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { TradeRow } from '@ereuna/shared';
 
-import { query } from '@/__tests__/support/dom';
+import { getElement, query } from '@/__tests__/support/dom';
 import CashDialog from '@/components/portfolio/CashDialog.vue';
 import { i18n } from '@/i18n';
 import { toDateInput } from '@/utils/formatters';
@@ -22,13 +22,6 @@ const cashRow: TradeRow = {
 
 const open = (props: Record<string, unknown> = {}): VueWrapper => mount(CashDialog, { props, attachTo: document.body });
 
-/** The dialog is teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} in the dialog`);
-    return element;
-};
-
 const type = async (selector: string, value: string): Promise<void> => {
     const field = query(selector, HTMLInputElement);
     field.value = value;
@@ -37,7 +30,7 @@ const type = async (selector: string, value: string): Promise<void> => {
 };
 
 const save = async (): Promise<void> => {
-    $('.dialog__footer .btn--primary').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    getElement('.dialog__footer .btn--primary').dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await Promise.resolve();
 };
 
@@ -75,7 +68,7 @@ describe('CashDialog', () => {
         await save();
 
         expect(wrapper.emitted('submit')).toBeUndefined();
-        expect($('.dialog__footer .btn--primary').hasAttribute('disabled')).toBe(true);
+        expect(getElement('.dialog__footer .btn--primary').hasAttribute('disabled')).toBe(true);
     });
 
     it('will not save a movement of nothing', async () => {
@@ -114,19 +107,19 @@ describe('CashDialog', () => {
         await save();
 
         expect(wrapper.emitted('submit')).toBeUndefined();
-        expect($('.dialog__footer .btn--primary').textContent.trim()).toBe(i18n.global.t('common.saving'));
+        expect(getElement('.dialog__footer .btn--primary').textContent.trim()).toBe(i18n.global.t('common.saving'));
     });
 
     it('shows what the last save was refused for', () => {
         open({ error: 'Not enough cash' });
 
-        expect($('.form-error[role="alert"]').textContent).toBe('Not enough cash');
+        expect(getElement('.form-error[role="alert"]').textContent).toBe('Not enough cash');
     });
 
     it('closes on cancel', async () => {
         const wrapper = open();
 
-        $('.dialog__footer .btn').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        getElement('.dialog__footer .btn').dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await Promise.resolve();
 
         expect(wrapper.emitted('close')).toHaveLength(1);

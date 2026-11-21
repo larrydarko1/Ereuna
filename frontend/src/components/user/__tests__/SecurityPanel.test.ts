@@ -1,7 +1,7 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { query } from '@/__tests__/support/dom';
+import { getElement, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import SecurityPanel from '@/components/user/SecurityPanel.vue';
 import { i18n } from '@/i18n';
@@ -14,13 +14,6 @@ const panel = async (enabled: boolean): Promise<VueWrapper> => {
     return wrapper;
 };
 
-/** Dialogs are teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} on the page`);
-    return element;
-};
-
 const type = async (selector: string, value: string): Promise<void> => {
     const field = query(selector, HTMLInputElement);
     field.value = value;
@@ -29,7 +22,7 @@ const type = async (selector: string, value: string): Promise<void> => {
 };
 
 const confirmDialog = async (): Promise<void> => {
-    $('.dialog__footer .btn--danger, .dialog__footer .btn--primary').dispatchEvent(
+    getElement('.dialog__footer .btn--danger, .dialog__footer .btn--primary').dispatchEvent(
         new MouseEvent('click', { bubbles: true }),
     );
     await flushPromises();
@@ -95,7 +88,7 @@ describe('SecurityPanel', () => {
         await type('.reauth__code', '000000');
         await confirmDialog();
 
-        expect($('.reauth .form-error').textContent).toBe(i18n.global.t('errors.INVALID_TWO_FA_CODE'));
+        expect(getElement('.reauth .form-error').textContent).toBe(i18n.global.t('errors.INVALID_TWO_FA_CODE'));
         expect(wrapper.emitted('changed')).toBeUndefined();
     });
 

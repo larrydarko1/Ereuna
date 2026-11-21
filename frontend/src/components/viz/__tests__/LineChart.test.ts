@@ -64,10 +64,10 @@ describe('LineChart', () => {
 
     it('centres a flat series rather than dividing by zero', () => {
         const wrapper = chart({ points: points([100, 100, 100]) });
-        const d = wrapper.get('.line-chart__line').attributes('d') ?? '';
+        const path = wrapper.get('.line-chart__line').attributes('d') ?? '';
 
-        expect(d).not.toContain('NaN');
-        expect(d).toContain('M0.00,150.00');
+        expect(path).not.toContain('NaN');
+        expect(path).toContain('M0.00,150.00');
     });
 
     it('reads out the point under the pointer, formatted', async () => {

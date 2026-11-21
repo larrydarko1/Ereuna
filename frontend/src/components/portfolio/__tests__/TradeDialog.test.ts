@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { TradeRow } from '@ereuna/shared';
 
-import { query } from '@/__tests__/support/dom';
+import { getElement, query } from '@/__tests__/support/dom';
 import TradeDialog from '@/components/portfolio/TradeDialog.vue';
 import { i18n } from '@/i18n';
 import { formatCurrency, formatNumber, toDateInput } from '@/utils/formatters';
@@ -23,13 +23,6 @@ const TRADE: TradeRow = {
 const open = (props: Record<string, unknown> = {}): VueWrapper =>
     mount(TradeDialog, { props, attachTo: document.body });
 
-/** The dialog is teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} in the dialog`);
-    return element;
-};
-
 /** Fields are a mix of plain labels and AppField, so both markups are searched. */
 const field = (label: string): HTMLInputElement => {
     const node = [...document.body.querySelectorAll('.form-field, .field')].find(
@@ -48,7 +41,7 @@ const type = async (label: string, value: string): Promise<void> => {
 };
 
 const save = async (): Promise<void> => {
-    $('.dialog__footer .btn--primary').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    getElement('.dialog__footer .btn--primary').dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await Promise.resolve();
 };
 
@@ -74,13 +67,13 @@ describe('TradeDialog', () => {
 
         expect(query('input[value="buy"]', HTMLInputElement).checked).toBe(true);
         expect(field(i18n.global.t('portfolio.date')).value).toBe(toDateInput(new Date()));
-        expect($('.dialog__title').textContent).toBe(i18n.global.t('portfolio.newTrade'));
+        expect(getElement('.dialog__title').textContent).toBe(i18n.global.t('portfolio.newTrade'));
     });
 
     it('opens on the trade being corrected', () => {
         open({ editing: TRADE });
 
-        expect($('.dialog__title').textContent).toBe(i18n.global.t('portfolio.editTrade'));
+        expect(getElement('.dialog__title').textContent).toBe(i18n.global.t('portfolio.editTrade'));
         expect(query('input[value="sell"]', HTMLInputElement).checked).toBe(true);
         expect(field(i18n.global.t('portfolio.symbol')).value).toBe('AAPL');
         expect(field(i18n.global.t('portfolio.shares')).value).toBe('10');
@@ -99,7 +92,7 @@ describe('TradeDialog', () => {
 
         await fill('aapl', '10', '190.5');
 
-        expect($('.form-output').textContent).toBe(formatCurrency(1905));
+        expect(getElement('.form-output').textContent).toBe(formatCurrency(1905));
     });
 
     it('reads a half-typed number as nothing rather than as an error', async () => {
@@ -107,7 +100,7 @@ describe('TradeDialog', () => {
 
         await type(i18n.global.t('portfolio.shares'), '-');
 
-        expect($('.form-output').textContent).toBe(formatCurrency(0));
+        expect(getElement('.form-output').textContent).toBe(formatCurrency(0));
     });
 
     it('will not save without a symbol, shares and a price', async () => {
@@ -166,19 +159,19 @@ describe('TradeDialog', () => {
         await save();
 
         expect(wrapper.emitted('submit')).toBeUndefined();
-        expect($('.dialog__footer .btn--primary').textContent.trim()).toBe(i18n.global.t('common.saving'));
+        expect(getElement('.dialog__footer .btn--primary').textContent.trim()).toBe(i18n.global.t('common.saving'));
     });
 
     it('shows what the last save was refused for', () => {
         open({ error: 'Not enough shares' });
 
-        expect($('.form-error[role="alert"]').textContent).toBe('Not enough shares');
+        expect(getElement('.form-error[role="alert"]').textContent).toBe('Not enough shares');
     });
 
     it('closes on cancel', async () => {
         const wrapper = open();
 
-        $('.dialog__footer .btn').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        getElement('.dialog__footer .btn').dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await Promise.resolve();
 
         expect(wrapper.emitted('close')).toHaveLength(1);

@@ -1,6 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { getElement } from '@/__tests__/support/dom';
 import ColumnsDialog from '@/components/screener/ColumnsDialog.vue';
 import { COLUMNS } from '@/constants/screener';
 import { i18n } from '@/i18n';
@@ -10,15 +11,8 @@ const FIRST = COLUMNS[0]?.path ?? '';
 const open = (columns: readonly string[]): VueWrapper =>
     mount(ColumnsDialog, { props: { columns }, attachTo: document.body });
 
-/** The dialog is teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} in the dialog`);
-    return element;
-};
-
 const click = async (selector: string): Promise<void> => {
-    $(selector).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    getElement(selector).dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await Promise.resolve();
 };
 
@@ -57,7 +51,7 @@ describe('ColumnsDialog', () => {
         await click('.columns-dialog__button--primary');
 
         expect(wrapper.emitted('save')).toBeUndefined();
-        expect($('[role="alert"]').textContent).toBe(i18n.global.t('screener.errorNoColumns'));
+        expect(getElement('[role="alert"]').textContent).toBe(i18n.global.t('screener.errorNoColumns'));
     });
 
     it('closes on cancel without saving', async () => {

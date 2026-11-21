@@ -123,9 +123,9 @@ describe('the four ways a price scale can map a price to a coordinate', () => {
         const { chart, series } = chartWithLine();
         const price = lineData()[10]?.value ?? 0;
 
-        const y = series.priceToCoordinate(price);
-        expect(y).not.toBeNull();
-        expect(series.coordinateToPrice(y!)).toBeCloseTo(price, 4);
+        const coordinate = series.priceToCoordinate(price);
+        expect(coordinate).not.toBeNull();
+        expect(series.coordinateToPrice(coordinate!)).toBeCloseTo(price, 4);
         expect(chart.priceScale('right').options().mode).toBe(PriceScaleMode.Normal);
     });
 
@@ -135,9 +135,9 @@ describe('the four ways a price scale can map a price to a coordinate', () => {
         paint(chart);
         const price = lineData()[10]?.value ?? 0;
 
-        const y = series.priceToCoordinate(price);
-        expect(y).not.toBeNull();
-        expect(series.coordinateToPrice(y!)).toBeCloseTo(price, 2);
+        const coordinate = series.priceToCoordinate(price);
+        expect(coordinate).not.toBeNull();
+        expect(series.coordinateToPrice(coordinate!)).toBeCloseTo(price, 2);
     });
 
     it('still draws in percentage mode', () => {

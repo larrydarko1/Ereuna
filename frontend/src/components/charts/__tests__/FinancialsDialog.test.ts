@@ -5,6 +5,7 @@ import type { Financials } from '@ereuna/shared';
 import { STATEMENT_FIELDS } from '@ereuna/shared';
 
 import { statement } from '@/__tests__/support/answers';
+import { getElement } from '@/__tests__/support/dom';
 import FinancialsDialog from '@/components/charts/FinancialsDialog.vue';
 import { i18n } from '@/i18n';
 import { formatCompact, formatNumber } from '@/utils/formatters';
@@ -23,12 +24,6 @@ const open = (props: Record<string, unknown> = {}): VueWrapper =>
     mount(FinancialsDialog, { props: { symbol: 'AAPL', ...props }, attachTo: document.body });
 
 /** The dialog is teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} in the dialog`);
-    return element;
-};
-
 const all = (selector: string): HTMLElement[] => [...document.body.querySelectorAll<HTMLElement>(selector)];
 
 const click = async (element: HTMLElement): Promise<void> => {
@@ -49,19 +44,19 @@ describe('FinancialsDialog', () => {
     it('names the instrument in its title', () => {
         open({ statements: statements() });
 
-        expect($('.dialog__title').textContent).toBe(`${i18n.global.t('financials.title')} — AAPL`);
+        expect(getElement('.dialog__title').textContent).toBe(`${i18n.global.t('financials.title')} — AAPL`);
     });
 
     it('spins while the statements are being read', () => {
         open({ pending: true });
 
-        expect($('.financials-dialog__note').textContent).toBe(i18n.global.t('sidebar.loading'));
+        expect(getElement('.financials-dialog__note').textContent).toBe(i18n.global.t('sidebar.loading'));
     });
 
     it('says there is nothing filed rather than showing an empty table', () => {
         open({ statements: statements({ annual: [], quarterly: [] }) });
 
-        expect($('.financials-dialog__note').textContent).toBe(i18n.global.t('financials.noData'));
+        expect(getElement('.financials-dialog__note').textContent).toBe(i18n.global.t('financials.noData'));
     });
 
     it('opens on the annual filings, headed by their years', () => {
@@ -73,7 +68,7 @@ describe('FinancialsDialog', () => {
     it('switches to the quarters, headed by quarter and year', async () => {
         open({ statements: statements() });
 
-        await click($('.financials-dialog__periods button:last-child'));
+        await click(getElement('.financials-dialog__periods button:last-child'));
 
         expect(headers()).toEqual(['Q1 2026']);
     });
@@ -81,10 +76,10 @@ describe('FinancialsDialog', () => {
     it('marks the period in view as pressed', async () => {
         open({ statements: statements() });
 
-        await click($('.financials-dialog__periods button:last-child'));
+        await click(getElement('.financials-dialog__periods button:last-child'));
 
         expect(all('.financials-dialog__period--active')).toHaveLength(1);
-        expect($('.financials-dialog__periods button:last-child').getAttribute('aria-pressed')).toBe('true');
+        expect(getElement('.financials-dialog__periods button:last-child').getAttribute('aria-pressed')).toBe('true');
     });
 
     it('shows every line any period reported, not only the newest', () => {
@@ -156,7 +151,7 @@ describe('FinancialsDialog', () => {
 
         expect(all('.financials-dialog__description')).toHaveLength(0);
 
-        await click($('.financials-dialog__toggle input'));
+        await click(getElement('.financials-dialog__toggle input'));
 
         expect(all('.financials-dialog__description').length).toBeGreaterThan(0);
     });
@@ -172,7 +167,7 @@ describe('FinancialsDialog', () => {
     it('closes on the dialog close', async () => {
         const wrapper = open({ statements: statements() });
 
-        await click($('.dialog__close'));
+        await click(getElement('.dialog__close'));
 
         expect(wrapper.emitted('close')).toHaveLength(1);
     });
