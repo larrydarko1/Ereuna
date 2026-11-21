@@ -15,6 +15,8 @@ here marks a point in development, and its date is the day the number was set.
 
 ## [Unreleased]
 
+## [2026.11.0] - 2026-11-21
+
 ### Upgrading
 
 1. Install Node 26. `engines` asks for `>=26`.
