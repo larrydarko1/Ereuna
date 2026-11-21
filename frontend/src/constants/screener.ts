@@ -13,8 +13,8 @@ import { ENUM_FILTERS, isOneOf, MA_FILTERS, RANGE_FILTERS, SCREENER_COLUMNS } fr
 
 export type FilterGroup = (typeof FILTER_GROUPS)[number];
 
-/** How a result column reads once it is in a cell. */
-export type ColumnFormat = 'text' | 'number' | 'compact' | 'percent' | 'date';
+/** How a result column reads once it is in a cell: `percent` is stored as one (3.2), `ratio` as a fraction (0.032). */
+export type ColumnFormat = 'text' | 'number' | 'compact' | 'percent' | 'ratio' | 'date';
 
 /** Which list the results table is showing: one screener, all of them, or the hidden set. */
 export type ListMode = (typeof LIST_MODES)[number];
@@ -144,11 +144,7 @@ const GROUP_BY_KEY: Readonly<Record<string, FilterGroup>> = {
     'fund-categories': 'funds',
 };
 
-/**
- * Percentages come out of the ingestor already scaled (12.5 meaning 12.5%),
- * so they format as `percent` rather than `ratio`. Anything measured in money
- * or shares is compacted; everything else is a plain two-decimal number.
- */
+/** Anything measured in money or shares is compacted; a figure in no list here is a plain two-decimal number. */
 const COMPACT_PATHS = new Set([
     'MarketCapitalization',
     'EV',
@@ -156,10 +152,6 @@ const COMPACT_PATHS = new Set([
     'AvgVolume1M',
     'AvgVolume6M',
     'AvgVolume1Y',
-    'ADV1W',
-    'ADV1M',
-    'ADV4M',
-    'ADV1Y',
     'quarterlyFinancials.0.assetsCurrent',
     'quarterlyFinancials.0.liabilitiesCurrent',
     'quarterlyFinancials.0.debtCurrent',
@@ -168,10 +160,16 @@ const COMPACT_PATHS = new Set([
     'quarterlyFinancials.0.bookVal',
 ]);
 
-const PERCENT_KEYS = new Set([
+/**
+ * The few figures the nightly run stores already scaled (3.2 meaning 3.2%): the
+ * gap and the daily volatility it works out itself, and the fund expense ratio.
+ * The asset summary (summaryFields.ts) reads the same fields the same way.
+ */
+const PERCENT_KEYS = new Set(['gap-percent', 'adv-1w', 'adv-1m', 'adv-4m', 'adv-1y', 'net-expense-ratio']);
+
+/** Percentages stored as fractions (0.032 meaning 3.2%): every change, growth rate, margin and yield. */
+const RATIO_KEYS = new Set([
     'div-yield',
-    'net-expense-ratio',
-    'gap-percent',
     'eps-qoq',
     'eps-yoy',
     'earnings-qoq',
@@ -208,15 +206,6 @@ export const COLUMNS: readonly ColumnSpec[] = [
     ...MA_FILTERS.map((spec) => ({ path: spec.path, filterKey: spec.key, format: 'number' as const })),
 ];
 
-/** Shown when a user has never chosen columns of their own. */
-export const DEFAULT_COLUMNS: readonly string[] = [
-    'TimeSeries.close',
-    'MarketCapitalization',
-    'PERatio',
-    'todaychange',
-    'AvgVolume1M',
-];
-
 const COLUMN_BY_PATH = new Map(COLUMNS.map((column) => [column.path, column]));
 
 /**
@@ -241,7 +230,19 @@ export function findColumn(path: string): ColumnSpec | null {
     return COLUMN_BY_PATH.get(path) ?? null;
 }
 
+/** A filter bound as the user types and reads it: a ratio's as a percentage, so 5 means 5%. */
+export function toShownBound(filterKey: string, stored: number): number {
+    // Rounded past any figure a filter holds: 0.07 × 100 is 7.000000000000001 in binary
+    return RATIO_KEYS.has(filterKey) ? Math.round(stored * 100 * 1e8) / 1e8 : stored;
+}
+
+/** A typed filter bound as the API compares it against the stored figure. */
+export function toStoredBound(filterKey: string, shown: number): number {
+    return RATIO_KEYS.has(filterKey) ? shown / 100 : shown;
+}
+
 function columnFormat(key: string, path: string): ColumnFormat {
+    if (RATIO_KEYS.has(key)) return 'ratio';
     if (PERCENT_KEYS.has(key)) return 'percent';
     if (COMPACT_PATHS.has(path)) return 'compact';
     return 'number';

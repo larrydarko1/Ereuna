@@ -1,15 +1,15 @@
 /**
- * The trading session, and what happens at each end of it.
- * The aggregator does not gate on market hours — it buckets whatever arrives,
- * so a feed that one day carries something other than US equities needs no
- * change here. What it does need is the two edges: a week-to-date bar restored
- * when a session opens, and every open bucket finalised when one closes.
+ * The trading session, and what happens at each end of it: a week-to-date bar
+ * restored when a session opens, every open bucket finalised when one closes,
+ * and no trade let in that belongs to neither. Bars are written once and
+ * replaced on `(tickerID, timestamp)`, so a print that reopened a finalised
+ * bucket would be swept later as a bar of its own and overwrite the real one.
  * Session state is derived from the same helper the API uses, so the two cannot
  * disagree about whether the market is open, and it resolves the boundary
  * through `Intl` rather than a fixed UTC hour — a hardcoded close is correct for
  * seven months of the year.
  */
-import { isMarketHours } from '@ereuna/shared';
+import { isMarketHours, sessionClose } from '@ereuna/shared';
 
 import { bucketStart } from '@/aggregate/buckets.js';
 import { closeSession, openBucketCount, seedWeekly, sweep } from '@/aggregate/builder.js';
@@ -19,15 +19,31 @@ import { getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
 
 const WEEKLY_COLLECTION = 'OHCLVData2';
+const DAY_MS = 86_400_000;
 
 let ticker: NodeJS.Timeout | undefined;
 let wasOpen = false;
+/** The close of the newest session whose bars are already written, as epoch ms. */
+let sealedThrough = 0;
 
 export async function startSession(): Promise<void> {
     wasOpen = isMarketHours();
+    // A restart has no buckets to finalise, so a backlog from a session that
+    // already closed could only build bars of a few prints each
+    sealedThrough = latestCloseAt(Date.now());
     if (wasOpen) await onOpen();
 
     ticker = setInterval(() => void tick(), config.candles.sweepIntervalMs);
+}
+
+/**
+ * Whether a trade belongs to a bar still being built: stamped inside regular
+ * hours, and after the last close that was finalised. Judged by the trade's own
+ * time rather than by the tick, which notices the open up to an interval late
+ * and would drop the opening prints.
+ */
+export function isInSession(at: number): boolean {
+    return at >= sealedThrough && isMarketHours(new Date(at));
 }
 
 export function stopSession(): void {
@@ -53,8 +69,15 @@ async function onOpen(): Promise<void> {
 async function onClose(): Promise<void> {
     logger.info({ openBuckets: openBucketCount() }, 'Market closed — finalising');
     closeSession();
+    sealedThrough = latestCloseAt(Date.now());
     await flush();
     logger.info({ pendingWrites: pendingWrites() }, 'Session finalised');
+}
+
+/** The newest regular-session close at or before `now`. A weekend's is harmless: no print is stamped then. */
+function latestCloseAt(now: number): number {
+    const today = sessionClose(new Date(now)).getTime();
+    return today <= now ? today : sessionClose(new Date(now - DAY_MS)).getTime();
 }
 
 /**

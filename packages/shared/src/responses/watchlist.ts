@@ -24,8 +24,8 @@ export const watchlistSummarySchema = z.object({
 /** GET /watchlists and PUT /watchlists/order — every list, in the user's order. */
 export const watchlistListSchema = z.object({ items: z.array(watchlistSummarySchema) });
 
-/** The latest close against the one before it — a watchlist row's figures, and what the API caches per symbol. */
-export const quoteSchema = z.object({
+/** The latest close against the one before it: a watchlist row's figures. */
+const quoteSchema = z.object({
     symbol: z.string(),
     close: z.number(),
     timestamp: z.string(),

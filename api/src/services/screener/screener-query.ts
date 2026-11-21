@@ -1,7 +1,9 @@
 /**
  * screener-query — turning stored filters into a MongoDB query, and running it.
- * Owns: query construction and result retrieval.
- * Does NOT own: filter storage (screener-filters.ts) or bounds (screener-bounds.ts).
+ * Owns: query construction and result retrieval, with each page's price and
+ * today's change brought up to the latest quote.
+ * Does NOT own: filter storage (screener-filters.ts), bounds (screener-bounds.ts)
+ * or the quote itself (services/market/market-quotes.ts).
  */
 import type { Document, Filter, WithId } from 'mongodb';
 import { type ObjectId } from 'mongodb';
@@ -16,9 +18,10 @@ import {
     MA_FILTERS,
     numeric,
     RANGE_FILTERS,
-    SCREENER_COLUMNS,
+    toResultColumns,
     screenerResultPageSchema,
     type AssetInfoDoc,
+    type Quote,
     type ScreenerColumn,
     type ScreenerDoc,
     type ScreenerFilterValue,
@@ -28,6 +31,7 @@ import {
 
 import { userKey, withCache } from '@/lib/cache.js';
 import { getDb } from '@/lib/db.js';
+import { quotes } from '@/services/market/market-quotes.js';
 import { getScreener } from '@/services/screener/screener-crud.js';
 
 /** One branch of the combined query, tagged with the screener that produced it. */
@@ -37,6 +41,10 @@ type TaggedAsset = AssetInfoDoc & { screeners: string[] };
 const INDEXED_COLUMN = /^(?<array>[^.]+)\.(?<index>\d+)\.(?<field>.+)$/;
 
 const MA_DIRECTIONS = ['abv', 'blw'] as const;
+
+/** The columns a quote answers more recently than the nightly run does. */
+const PRICE_COLUMN = 'TimeSeries.close';
+const CHANGE_COLUMN = 'todaychange';
 
 /** The categorical columns, whose cells are text; every other column is a figure. */
 const TEXT_COLUMNS: ReadonlySet<string> = new Set(ENUM_FILTERS.map((spec) => spec.queryPath));
@@ -59,12 +67,13 @@ export async function runScreener(
     const screener = await getScreener(userId, screenerName);
     const { page, limit, columns = [], hiddenSymbols = [] } = options;
 
-    return withCache(
+    const result = await withCache(
         userKey(userId.toHexString(), 'screener', screener._id.toHexString(), String(page), String(limit)),
         screenerResultPageSchema,
         () => executeQuery(buildQuery(screener.filters, hiddenSymbols), { page, limit, columns }),
         { dataType: 'price' },
     );
+    return withLatestPrices(result);
 }
 
 /** Run every screener the user has switched on, as one query. */
@@ -78,12 +87,13 @@ export async function runIncludedScreeners(
 
     if (screeners.length === 0) return { items: [], total: 0, page, pages: 0 };
 
-    return withCache(
+    const result = await withCache(
         userKey(userId.toHexString(), 'screener', 'combined', String(page), String(limit)),
         screenerResultPageSchema,
         () => executeCombined(screeners, { page, limit, columns, hiddenSymbols }),
         { dataType: 'price' },
     );
+    return withLatestPrices(result);
 }
 
 /**
@@ -99,12 +109,39 @@ export async function runHiddenSymbols(
     const { page, limit, columns = [], hiddenSymbols = [] } = options;
     if (hiddenSymbols.length === 0) return { items: [], total: 0, page, pages: 0 };
 
-    return withCache(
+    const result = await withCache(
         userKey(userId.toHexString(), 'screener', 'hidden', String(page), String(limit)),
         screenerResultPageSchema,
         () => executeQuery({ Symbol: { $in: hiddenSymbols } }, { page, limit, columns }),
         { dataType: 'price' },
     );
+    return withLatestPrices(result);
+}
+
+/**
+ * A page with its price and today's change taken from the latest quote. The
+ * nightly run's are a session old from the next open until it runs again, and
+ * today's bar is priced by the quote as it builds. Filters still match on the
+ * nightly figures, so during the session a row can sit just outside a price
+ * filter it matched at the last close.
+ */
+async function withLatestPrices(page: ScreenerResultPage): Promise<ScreenerResultPage> {
+    const priced = page.items.filter((item) => PRICE_COLUMN in item.columns || CHANGE_COLUMN in item.columns);
+    if (priced.length === 0) return page;
+
+    const bySymbol = new Map((await quotes(priced.map((item) => item.symbol))).map((quote) => [quote.symbol, quote]));
+    return { ...page, items: page.items.map((item) => withQuote(item, bySymbol.get(item.symbol))) };
+}
+
+/** The change goes in the nightly run's unit, a fraction, which the live feed's percentage is divided into too. */
+function withQuote(item: ScreenerResult, quote: Quote | undefined): ScreenerResult {
+    if (quote === undefined) return item;
+
+    const columns = { ...item.columns };
+    if (PRICE_COLUMN in columns) columns[PRICE_COLUMN] = quote.close;
+    if (CHANGE_COLUMN in columns)
+        columns[CHANGE_COLUMN] = quote.changePercent === null ? null : quote.changePercent / 100;
+    return { ...item, columns };
 }
 
 /**
@@ -184,7 +221,7 @@ async function executeCombined(
     options: { page: number; limit: number; columns: string[]; hiddenSymbols: string[] },
 ): Promise<ScreenerResultPage> {
     const { page, limit, hiddenSymbols } = options;
-    const columns = selectedColumns(options.columns);
+    const columns = toResultColumns(options.columns);
     const projection = buildProjection(columns);
 
     const branch = (screener: WithId<ScreenerDoc>): Document[] => [
@@ -237,7 +274,7 @@ async function executeQuery(
     options: { page: number; limit: number; columns: string[] },
 ): Promise<ScreenerResultPage> {
     const { page, limit } = options;
-    const columns = selectedColumns(options.columns);
+    const columns = toResultColumns(options.columns);
     const assets = getDb().collection<AssetInfoDoc>('AssetInfo');
     const projection = buildProjection(columns);
 
@@ -265,11 +302,6 @@ async function executeQuery(
         page,
         pages: Math.ceil(total / limit),
     };
-}
-
-/** The user's columns that the registry knows, in their order: a preference naming anything else is ignored. */
-function selectedColumns(columns: readonly string[]): ScreenerColumn[] {
-    return columns.filter((column): column is ScreenerColumn => isOneOf(SCREENER_COLUMNS, column));
 }
 
 function buildProjection(columns: readonly ScreenerColumn[]): Record<string, unknown> {

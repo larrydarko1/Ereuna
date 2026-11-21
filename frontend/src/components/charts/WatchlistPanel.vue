@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, useTemplateRef } from 'vue';
+import { computed, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+
+import { LIMITS } from '@ereuna/shared';
 
 import { apiErrorMessage } from '@/api/client';
 import IconArrowDown from '@/components/icons/IconArrowDown.vue';
@@ -8,18 +10,26 @@ import IconArrowUp from '@/components/icons/IconArrowUp.vue';
 import IconClose from '@/components/icons/IconClose.vue';
 import AppDialog from '@/components/ui/AppDialog.vue';
 import PromptDialog from '@/components/ui/PromptDialog.vue';
+import { useMarketStatus } from '@/composables/charts/useMarketStatus';
 import { useWatchlists } from '@/composables/charts/useWatchlists';
+import { useLiveQuotes } from '@/composables/data/useLiveQuotes';
 import { targetOf } from '@/utils/dom';
 import { formatNumber, formatPercent } from '@/utils/formatters';
 
 type Prompt = 'create' | 'rename' | null;
 
+type DisplayRow = {
+    ticker: string;
+    price: number | null;
+    changePercent: number | null;
+};
+
 const { symbol = '' } = defineProps<{ symbol?: string }>();
 
 const emit = defineEmits<{ select: [symbol: string] }>();
 
-/** The API's per-list ceiling, so a file with more is refused before any write. */
-const MAX_IMPORT = 100;
+// Keyed by ticker: a v-for ref array keeps a row a list switch reused in its old slot, not where the screen puts it
+const rowButtons = new Map<string, HTMLButtonElement>();
 
 const { t } = useI18n();
 const {
@@ -27,6 +37,7 @@ const {
     activeName,
     rows,
     pending,
+    loaded,
     isEmpty,
     load,
     open,
@@ -35,6 +46,7 @@ const {
     remove,
     addTicker,
     addTickers,
+    refresh,
     removeTicker,
     reorderTickers,
 } = useWatchlists();
@@ -46,9 +58,26 @@ const busy = ref(false);
 const error = ref<string | null>(null);
 const notice = ref<string | null>(null);
 const fileInput = useTemplateRef<HTMLInputElement>('fileInput');
-const rowButtons = useTemplateRef<HTMLButtonElement[]>('rowButtons');
 
 const tickers = computed(() => rows.value.map((row) => row.ticker));
+
+// The chart's and the portfolio's gate: the feed carries stocks only, and only
+// during the session.
+const market = useMarketStatus(() => false);
+const { quotes } = useLiveQuotes(
+    () => tickers.value,
+    () => market.status.value === 'open' && tickers.value.length > 0,
+);
+
+// A live quote outranks the stored one: the server measured its change against
+// the previous session, which a row read before the last bell may predate
+const displayRows = computed<DisplayRow[]>(() =>
+    rows.value.map(({ ticker, quote }) => {
+        const live = quotes.value[ticker];
+        if (live !== undefined) return { ticker, price: live.price, changePercent: live.changePercent };
+        return { ticker, price: quote?.close ?? null, changePercent: quote?.changePercent ?? null };
+    }),
+);
 
 /** Every write goes through here, so one place reports failure and clears it. */
 async function run(action: () => Promise<void>): Promise<void> {
@@ -121,8 +150,9 @@ async function importFile(event: Event): Promise<void> {
         error.value = t('watchlist.noSymbolsInFile');
         return;
     }
-    if (symbols.length > MAX_IMPORT) {
-        error.value = t('watchlist.tooManySymbols', { max: MAX_IMPORT });
+    // A file the list could never hold is refused before the first of its writes
+    if (symbols.length > LIMITS.tickersPerWatchlist) {
+        error.value = t('watchlist.tooManySymbols', { max: LIMITS.tickersPerWatchlist });
         return;
     }
 
@@ -143,17 +173,21 @@ function exportList(): void {
     URL.revokeObjectURL(url);
 }
 
-function onKeydown(event: KeyboardEvent): void {
+/** Moves from the row the key was pressed on, which the chart's symbol need not be in. */
+function onKeydown(event: KeyboardEvent, index: number): void {
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
 
-    const index = tickers.value.indexOf(symbol);
-    const next = event.key === 'ArrowDown' ? index + 1 : index - 1;
-    const target = tickers.value[next];
+    const target = tickers.value[event.key === 'ArrowDown' ? index + 1 : index - 1];
     if (target === undefined) return;
 
     event.preventDefault();
     emit('select', target);
-    rowButtons.value?.[next]?.focus();
+    rowButtons.get(target)?.focus();
+}
+
+function bindRowButton(ticker: string, element: unknown): void {
+    if (element instanceof HTMLButtonElement) rowButtons.set(ticker, element);
+    else rowButtons.delete(ticker);
 }
 
 function changeTone(value: number | null): string {
@@ -161,9 +195,20 @@ function changeTone(value: number | null): string {
     return value > 0 ? 'watchlist__change--up' : 'watchlist__change--down';
 }
 
+// The rows outlive the panel, and this one may mount after the bell with rows
+// read during the session, priced before the day's close existed
 onMounted(() => {
-    void run(() => load());
+    void run(() => (loaded.value ? refresh() : load()));
 });
+
+// A tab left open overnight holds rows read before the last bell, so their
+// close is two sessions old by the next open
+watch(
+    () => market.status.value,
+    (status) => {
+        if (status === 'open') void run(refresh);
+    },
+);
 </script>
 
 <template>
@@ -287,25 +332,25 @@ onMounted(() => {
             v-else
             class="watchlist__rows">
             <li
-                v-for="(row, index) in rows"
+                v-for="(row, index) in displayRows"
                 :key="row.ticker"
                 class="watchlist__row"
                 :class="{ 'watchlist__row--active': row.ticker === symbol }">
                 <button
-                    ref="rowButtons"
+                    :ref="(element) => bindRowButton(row.ticker, element)"
                     type="button"
                     class="watchlist__symbol"
                     :aria-current="row.ticker === symbol"
                     @click="emit('select', row.ticker)"
-                    @keydown="onKeydown">
+                    @keydown="onKeydown($event, index)">
                     <span class="watchlist__ticker">{{ row.ticker }}</span>
                     <span class="watchlist__price">
-                        {{ row.quote === null ? '—' : formatNumber(row.quote.close, 2) }}
+                        {{ row.price === null ? '—' : formatNumber(row.price, 2) }}
                     </span>
                     <span
                         class="watchlist__change"
-                        :class="changeTone(row.quote?.changePercent ?? null)">
-                        {{ row.quote?.changePercent == null ? '' : formatPercent(row.quote.changePercent) }}
+                        :class="changeTone(row.changePercent)">
+                        {{ row.changePercent === null ? '' : formatPercent(row.changePercent) }}
                     </span>
                 </button>
 

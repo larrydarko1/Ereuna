@@ -55,10 +55,6 @@ describe('config', () => {
         expect(config.organize.runHourEt).toBeLessThan(24);
     });
 
-    it('does not run the nightly batch at startup unless asked', () => {
-        expect(config.organize.runOnStart).toBe(false);
-    });
-
     it('keeps intraday bars longer than it waits before calling a symbol delisted', () => {
         expect(config.organize.intradayRetentionDays).toBeGreaterThan(0);
         expect(config.organize.delistAfterDays).toBeGreaterThan(0);

@@ -1,8 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AGGREGATE_CHANNEL_PATTERN, BUCKET_MS, lastCandleKey } from '@ereuna/shared';
+import { AGGREGATE_CHANNEL_PATTERN } from '@ereuna/shared';
 
-import { fakeRedis, type RedisStub } from '@/__tests__/support/redis.js';
 import type { BucketSink } from '@/gateway/market-feed.js';
 
 type Handler = (...args: unknown[]) => void;
@@ -50,9 +49,7 @@ class FakeSubscriber {
 
 vi.mock('ioredis', () => ({ Redis: FakeSubscriber }));
 const state: { subscribeError: Error | null } = { subscribeError: null };
-const redis: { current: RedisStub } = { current: fakeRedis() };
 
-vi.mock('@/lib/redis.js', () => ({ getRedis: () => redis.current }));
 const logs: { level: string; message: string }[] = [];
 vi.mock('@/lib/logger.js', () => ({
     logger: {
@@ -63,7 +60,7 @@ vi.mock('@/lib/logger.js', () => ({
     },
 }));
 
-const { readLastCandle, startMarketFeed, stopMarketFeed } = await import('@/gateway/market-feed.js');
+const { startMarketFeed, stopMarketFeed } = await import('@/gateway/market-feed.js');
 
 const bucket = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
     tickerID: 'aapl',
@@ -84,10 +81,8 @@ const subscriber = (): FakeSubscriber => {
 
 beforeEach(() => {
     state.subscribeError = null;
-    redis.current = fakeRedis();
     logs.length = 0;
     FakeSubscriber.last = undefined;
-    vi.useRealTimers();
 });
 
 afterEach(async () => {
@@ -208,54 +203,5 @@ describe('stopMarketFeed', () => {
         await stopMarketFeed();
 
         expect(client.quits).toBe(1);
-    });
-});
-
-describe('readLastCandle', () => {
-    it("reads the aggregator's own key", async () => {
-        await readLastCandle('AAPL', '1m');
-
-        expect(redis.current.get).toHaveBeenCalledWith(lastCandleKey('AAPL', '1m'));
-    });
-
-    it('answers with the bucket while it is still the live one', async () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(new Date('2026-03-02T14:30:30Z'));
-        redis.current.store.set(lastCandleKey('AAPL', '1m'), JSON.stringify(bucket()));
-
-        await expect(readLastCandle('AAPL', '1m')).resolves.toMatchObject({ tickerID: 'AAPL', close: 1.5 });
-    });
-
-    it('drops a bucket older than one bucket width — that is not the live bar', async () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(new Date(Date.parse('2026-03-02T14:30:00Z') + BUCKET_MS['1m']));
-        redis.current.store.set(lastCandleKey('AAPL', '1m'), JSON.stringify(bucket()));
-
-        await expect(readLastCandle('AAPL', '1m')).resolves.toBeNull();
-    });
-
-    it('drops a bucket stamped in the future', async () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(new Date('2026-03-02T14:00:00Z'));
-        redis.current.store.set(lastCandleKey('AAPL', '1m'), JSON.stringify(bucket()));
-
-        await expect(readLastCandle('AAPL', '1m')).resolves.toBeNull();
-    });
-
-    it('answers null when nothing is stored', async () => {
-        await expect(readLastCandle('AAPL', '1m')).resolves.toBeNull();
-    });
-
-    it('answers null when the stored payload is not a usable bucket', async () => {
-        redis.current.store.set(lastCandleKey('AAPL', '1m'), 'nonsense');
-
-        await expect(readLastCandle('AAPL', '1m')).resolves.toBeNull();
-    });
-
-    it('answers null and logs when Redis is unreachable', async () => {
-        redis.current.breakAll();
-
-        await expect(readLastCandle('AAPL', '1m')).resolves.toBeNull();
-        expect(logs).toContainEqual({ level: 'warn', message: 'Last-candle read failed' });
     });
 });

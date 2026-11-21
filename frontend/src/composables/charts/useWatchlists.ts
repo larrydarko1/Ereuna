@@ -1,9 +1,8 @@
 /**
  * useWatchlists — the user's watchlists and the rows of whichever one is open.
- * Held at module scope because two things render it at once: the ticker strip
- * across the top of the chart view and the list panel down its right side. Two
- * copies of this state is two copies that disagree the moment a ticker is added
- * from one of them.
+ * Held at module scope because two things render it: the list panel beside the
+ * chart and the screener's add-to-list dialog. Two copies of this state is two
+ * copies that disagree the moment a ticker is added from one of them.
  * Lists are addressed by name, which is what the API keys them on and what the
  * user typed. Rows carry a quote that may be null — a symbol the ingestor has
  * not reached yet still belongs to the list the user built, so it is shown

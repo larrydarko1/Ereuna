@@ -59,7 +59,8 @@ const valuedPositionSchema = z.object({
     side: z.enum(['long', 'short']),
     shares: z.number(),
     avgPrice: z.number(),
-    lastClose: z.number().nullable(), // Null when the ingestor has no bar for the symbol yet
+    price: z.number().nullable(), // Null when the ingestor has no bar for the symbol yet
+    live: z.boolean(), // True when the price is the session's latest trade rather than the latest close
     marketValue: z.number().nullable(), // Absolute value — a short's is what buying it back would cost
     exposure: z.number().nullable(), // Signed contribution to equity: negative for a short
     unrealizedPL: z.number().nullable(),
@@ -167,6 +168,26 @@ export const portfolioSummarySchema = z.object({
     benchmarks: z.array(benchmarkResultSchema),
 });
 
+/**
+ * The part of a summary the market moves, as the live feed pushes it while the
+ * session trades. The trade log's own figures (cash, stats, history) only change
+ * with a write, which re-reads the whole summary.
+ */
+export const portfolioValuationSchema = portfolioSummarySchema.pick({
+    number: true,
+    positions: true,
+    longValue: true,
+    shortValue: true,
+    grossExposure: true,
+    netExposure: true,
+    totalValue: true,
+    leverageUsed: true,
+    buyingPower: true,
+    unrealizedPL: true,
+    totalPL: true,
+    totalPLPercent: true,
+});
+
 /** PUT /portfolios/:number/base-value */
 export const baseValueSchema = portfolioRowSchema.pick({ baseValue: true });
 
@@ -202,4 +223,5 @@ export type ValuedPosition = z.infer<typeof valuedPositionSchema>;
 export type BenchmarkResult = z.infer<typeof benchmarkResultSchema>;
 export type PortfolioRow = z.infer<typeof portfolioRowSchema>;
 export type PortfolioSummary = z.infer<typeof portfolioSummarySchema>;
+export type PortfolioValuation = z.infer<typeof portfolioValuationSchema>;
 export type PortfolioExport = z.infer<typeof portfolioExportSchema>;

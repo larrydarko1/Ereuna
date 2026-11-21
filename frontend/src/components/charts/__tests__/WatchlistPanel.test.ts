@@ -1,17 +1,27 @@
-import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { enableAutoUnmount, flushPromises, mount, type VueWrapper } from '@vue/test-utils';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { WatchlistSummary } from '@ereuna/shared';
+import { LIMITS, type WatchlistSummary } from '@ereuna/shared';
 
 import { watchlistRow as row, watchlistSummary } from '@/__tests__/support/answers';
 import { elementOf, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
+import { socket } from '@/__tests__/support/socket';
 import { clearAuth } from '@/api/client';
 import WatchlistPanel from '@/components/charts/WatchlistPanel.vue';
 import { i18n } from '@/i18n';
 import { formatNumber, formatPercent } from '@/utils/formatters';
 
+vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());
+
 const api = mockApi();
+
+/** A Friday during the session, and the same day after the bell. */
+const OPEN = new Date('2026-03-06T15:00:00Z'); // 10:00 New York
+const CLOSED = new Date('2026-03-06T22:00:00Z'); // 17:00 New York
+
+/** How often the market badge re-reads the clock. */
+const CLOCK_TICK_MS = 30_000;
 
 const summary = (name: string, tickerCount = 0): WatchlistSummary => watchlistSummary(name, { id: name, tickerCount });
 
@@ -58,6 +68,112 @@ beforeEach(() => {
     clearAuth();
     localStorage.clear();
     document.body.innerHTML = '';
+    socket.reset();
+    api.on('GET /api/market/holidays', { holidays: [] });
+    // Only the clock is faked: flushPromises runs on the real setTimeout.
+    // After the bell by default, so the live feed is off unless a test opens it
+    vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+    vi.setSystemTime(CLOSED);
+});
+
+afterEach(() => {
+    vi.useRealTimers();
+});
+
+// The rows live at module scope, so a panel left mounted re-subscribes when
+// the next test loads its own
+enableAutoUnmount(afterEach);
+
+describe('WatchlistPanel live prices', () => {
+    beforeEach(() => {
+        vi.setSystemTime(OPEN);
+        api.on('GET /api/watchlists', { items: [summary('Tech', 2)] });
+        api.on('GET /api/watchlists/Tech', {
+            name: 'Tech',
+            rows: [row('AAPL', { close: 200, changePercent: 1 }), row('MSFT', { close: 400, changePercent: -1 })],
+        });
+    });
+
+    it('subscribes to every listed symbol while the market is open', async () => {
+        await panel();
+
+        expect(socket.emitted).toEqual([{ event: 'quote:watch', payload: { symbols: ['AAPL', 'MSFT'] } }]);
+    });
+
+    it('shows the live price, and the change the server measured', async () => {
+        const wrapper = await panel();
+
+        socket.deliver('quote:update', { quotes: { AAPL: { price: 210, changePercent: 5 } } });
+        await flushPromises();
+
+        expect(wrapper.findAll('.watchlist__price').map((node) => node.text())).toEqual([
+            formatNumber(210, 2),
+            formatNumber(400, 2),
+        ]);
+        expect(wrapper.findAll('.watchlist__change').map((node) => node.text())).toEqual([
+            formatPercent(5),
+            formatPercent(-1),
+        ]);
+    });
+
+    it('shows a live price with no change when the server had nothing to measure it against', async () => {
+        api.on('GET /api/watchlists/Tech', { name: 'Tech', rows: [row('NEW')] });
+        const wrapper = await panel();
+
+        socket.deliver('quote:update', { quotes: { NEW: { price: 12.5, changePercent: null } } });
+        await flushPromises();
+
+        expect(wrapper.get('.watchlist__price').text()).toBe(formatNumber(12.5, 2));
+        expect(wrapper.get('.watchlist__change').text()).toBe('');
+    });
+
+    it('shows the stored close, and subscribes to nothing, while the market is shut', async () => {
+        vi.setSystemTime(CLOSED);
+        const wrapper = await panel();
+
+        expect(socket.emitted).toEqual([]);
+        expect(wrapper.get('.watchlist__price').text()).toBe(formatNumber(200, 2));
+    });
+
+    it('keeps the last live quote after the bell rather than falling back to the rows read before it', async () => {
+        const wrapper = await panel();
+        socket.deliver('quote:update', { quotes: { AAPL: { price: 210, changePercent: 5 } } });
+        await flushPromises();
+
+        vi.setSystemTime(CLOSED);
+        vi.advanceTimersByTime(CLOCK_TICK_MS);
+        await flushPromises();
+
+        expect(wrapper.get('.watchlist__price').text()).toBe(formatNumber(210, 2));
+        expect(wrapper.get('.watchlist__change').text()).toBe(formatPercent(5));
+    });
+
+    it('re-reads the rows when it opens again, so a panel opened after the bell shows the close', async () => {
+        (await panel()).unmount();
+        vi.setSystemTime(CLOSED);
+        api.on('GET /api/watchlists/Tech', {
+            name: 'Tech',
+            rows: [row('AAPL', { close: 215, changePercent: 7.5 }), row('MSFT', { close: 400, changePercent: -1 })],
+        });
+
+        const wrapper = await panel();
+
+        expect(wrapper.get('.watchlist__price').text()).toBe(formatNumber(215, 2));
+        expect(wrapper.get('.watchlist__change').text()).toBe(formatPercent(7.5));
+    });
+
+    it('re-reads the rows when the session opens, so the change is measured from the newest close', async () => {
+        vi.setSystemTime(new Date('2026-03-06T14:29:45Z')); // 09:29:45 New York
+        await panel();
+        const reads = (): number => api.calls.filter((call) => call.path === '/api/watchlists/Tech').length;
+        expect(reads()).toBe(1);
+
+        vi.advanceTimersByTime(CLOCK_TICK_MS);
+        await flushPromises();
+
+        expect(reads()).toBe(2);
+        expect(socket.emitted).toEqual([{ event: 'quote:watch', payload: { symbols: ['AAPL', 'MSFT'] } }]);
+    });
 });
 
 describe('WatchlistPanel', () => {
@@ -327,10 +443,15 @@ describe('WatchlistPanel', () => {
         seed([]);
         const wrapper = await panel();
 
-        await chooseFile(wrapper, Array.from({ length: 101 }, (_, index) => `SYM${index}`).join('\n'));
+        await chooseFile(
+            wrapper,
+            Array.from({ length: LIMITS.tickersPerWatchlist + 1 }, (_, index) => `SYM${index}`).join('\n'),
+        );
 
         expect(api.calls.some((call) => call.method === 'POST')).toBe(false);
-        expect(wrapper.get('[role="alert"]').text()).toBe(i18n.global.t('watchlist.tooManySymbols', { max: 100 }));
+        expect(wrapper.get('[role="alert"]').text()).toBe(
+            i18n.global.t('watchlist.tooManySymbols', { max: LIMITS.tickersPerWatchlist }),
+        );
     });
 
     it('exports the open list as one symbol per line', async () => {
@@ -386,6 +507,33 @@ describe('WatchlistPanel', () => {
 
         expect(document.activeElement).toBe(wrapper.findAll('.watchlist__symbol')[1]?.element);
         wrapper.unmount();
+    });
+
+    // A row both lists hold is kept across the switch, so it no longer sits
+    // where the screen puts it among the rows mounted around it
+    it('focuses the row it selected after switching away and back', async () => {
+        seed(['AAPL', 'MSFT', 'NVDA']);
+        api.on('GET /api/watchlists/Energy', { name: 'Energy', rows: [row('NVDA')] });
+        const wrapper = await panel({ symbol: 'AAPL' });
+        await wrapper.get('select').setValue('Energy');
+        await flushPromises();
+        await wrapper.get('select').setValue('Tech');
+        await flushPromises();
+
+        await wrapper.findAll('.watchlist__symbol')[0]?.trigger('keydown', { key: 'ArrowDown' });
+
+        expect(wrapper.emitted('select')?.at(-1)).toEqual(['MSFT']);
+        expect(document.activeElement?.textContent).toContain('MSFT');
+    });
+
+    it('moves from the row the key was pressed on when the chart is on a symbol from another list', async () => {
+        seed(['AAPL', 'MSFT', 'NVDA']);
+        const wrapper = await panel({ symbol: 'XOM' });
+
+        await wrapper.findAll('.watchlist__symbol')[1]?.trigger('keydown', { key: 'ArrowDown' });
+
+        expect(wrapper.emitted('select')?.at(-1)).toEqual(['NVDA']);
+        expect(document.activeElement?.textContent).toContain('NVDA');
     });
 
     it('reports a failed read rather than an empty panel', async () => {

@@ -1,5 +1,6 @@
 /**
- * Redis clients — the trade stream in, the aggregated feed out.
+ * Redis clients — the trade stream in, the aggregated feed out, and the
+ * nightly lock.
  * Two connections, because a client that is blocked in XREADGROUP cannot
  * publish: the read holds the connection for up to `blockMs` at a time, and a
  * publish queued behind it would be delayed by exactly as long as the market
@@ -22,7 +23,7 @@ const publisher = redisConnection(Redis, OPTIONS, logger, 'publisher');
 /** The connection that reads the trade stream. Blocks, so nothing else may use it. */
 export const getConsumer = consumer.get;
 
-/** The connection that publishes aggregated candles and writes last-value keys. */
+/** The connection for every command that does not block: candle publishes, last-value keys, the nightly lock. */
 export const getPublisher = publisher.get;
 
 export async function closeRedis(): Promise<void> {

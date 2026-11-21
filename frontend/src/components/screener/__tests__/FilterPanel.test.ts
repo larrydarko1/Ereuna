@@ -120,6 +120,30 @@ describe('FilterPanel', () => {
         expect(wrapper.emitted('apply')?.[0]).toEqual(['market-cap', { min: 10, max: undefined }]);
     });
 
+    describe('a ratio, stored as a fraction', () => {
+        const change = descriptor({ key: 'change-today', bounds: { min: -0.12, max: 0.07 } });
+
+        it('takes a typed percentage and saves the fraction', async () => {
+            const wrapper = panel([change]);
+
+            await wrapper.findAll('.range-filter input')[0]?.setValue('5');
+            await wrapper.get('.range-filter').trigger('submit');
+
+            expect(wrapper.emitted('apply')?.[0]).toEqual(['change-today', { min: 0.05 }]);
+        });
+
+        it('shows the saved range, the summary and the bounds as percentages', () => {
+            const wrapper = panel([change], { 'change-today': { kind: 'range', min: 0.01, max: 0.05 } });
+            const inputs = wrapper.findAll('.range-filter input');
+
+            expect(inputs.map((input) => input.element.getAttribute('placeholder'))).toEqual([
+                formatNumber(-12, 2),
+                formatNumber(7, 2),
+            ]);
+            expect(wrapper.text()).toContain(`${formatNumber(1, 2)} – ${formatNumber(5, 2)}`);
+        });
+    });
+
     it('passes a clear up from the card', async () => {
         const wrapper = panel([descriptor()], { 'market-cap': { kind: 'range', min: 1, max: 2 } });
 

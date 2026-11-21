@@ -10,6 +10,7 @@
  */
 import 'dotenv/config';
 import { type Server } from 'http';
+import { setTimeout as delay } from 'node:timers/promises';
 
 import { startProbeServer } from '@ereuna/shared/service/probes';
 
@@ -23,6 +24,22 @@ import { loadUniverse } from '@/universe.js';
 
 const shutdown = new AbortController();
 let probes: Server | undefined;
+
+/**
+ * Startup is all-or-nothing. Without Mongo there is no ticker universe and
+ * therefore nothing to subscribe to, so a failure here kills the process with a
+ * logged reason rather than leaving a loop that quietly does nothing.
+ */
+const running = connectDb()
+    .then(() => {
+        probes = startProbeServer({ ...config.probe, logger });
+        logger.info({ port: config.probe.port }, 'Probes listening');
+        return run();
+    })
+    .catch((err: unknown) => {
+        logger.fatal({ err }, 'Ingestor failed');
+        process.exit(1);
+    });
 
 /**
  * Wait for the next session, run it, repeat.
@@ -50,40 +67,40 @@ async function run(): Promise<void> {
     }
 }
 
-function sleep(ms: number): Promise<void> {
-    return new Promise((resolve): void => {
-        setTimeout(resolve, ms);
-    });
+/** A wait that a shutdown cuts short, so stopping never sits out the poll interval. */
+async function sleep(ms: number): Promise<void> {
+    // The rejection is the abort itself, and the loop's own condition ends the loop
+    await delay(ms, undefined, { signal: shutdown.signal }).catch(() => undefined);
 }
 
 /**
- * Startup is all-or-nothing. Without Mongo there is no ticker universe and
- * therefore nothing to subscribe to, so a failure here kills the process with a
- * logged reason rather than leaving a loop that quietly does nothing.
+ * Wait for the session to unsubscribe and close, or for the deadline.
+ * True when the session ended in time. The deadline exists because a vendor
+ * that never answers the close frame would otherwise hold the process forever.
  */
-connectDb()
-    .then(() => {
-        probes = startProbeServer({ ...config.probe, logger });
-        logger.info({ port: config.probe.port }, 'Probes listening');
-        return run();
-    })
-    .catch((err: unknown) => {
-        logger.fatal({ err }, 'Ingestor failed');
-        process.exit(1);
-    });
+async function awaitSessionEnd(): Promise<boolean> {
+    const deadline = delay(config.shutdownTimeoutMs).then(() => false);
+    return Promise.race([running.then(() => true), deadline]);
+}
 
 /**
  * Graceful shutdown. The abort is what ends the session: `runSession` polls it
- * and unsubscribes upstream on the way out, so the vendor is told the
- * subscription is over rather than being left to time it out.
+ * and unsubscribes upstream on the way out. The connections close only after
+ * that, because exiting first is exactly the socket that drops without telling
+ * the vendor, and the subscription is left for the vendor to time out.
  */
 for (const signal of ['SIGTERM', 'SIGINT'] as const) {
     process.on(signal, () => {
+        if (shutdown.signal.aborted) return;
         logger.info({ signal }, 'Shutting down');
         shutdown.abort();
         probes?.close();
-        Promise.allSettled([closeDb(), closeRedis()])
-            .then(() => process.exit(0))
+        awaitSessionEnd()
+            .then(async (ended) => {
+                if (!ended) logger.error({ timeoutMs: config.shutdownTimeoutMs }, 'Session did not end in time');
+                await Promise.allSettled([closeDb(), closeRedis()]);
+                process.exit(ended ? 0 : 1);
+            })
             .catch(() => process.exit(1));
     });
 }

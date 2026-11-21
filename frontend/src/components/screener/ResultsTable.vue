@@ -62,6 +62,8 @@ function cell(row: ScreenerResult, path: string, format: ColumnFormat): string {
                 return formatCompact(value);
             case 'percent':
                 return `${formatNumber(value, 2)}%`;
+            case 'ratio':
+                return `${formatNumber(value * 100, 2)}%`;
             case 'date':
                 return PLACEHOLDER;
             default:
@@ -73,13 +75,13 @@ function cell(row: ScreenerResult, path: string, format: ColumnFormat): string {
 }
 
 function isNegative(row: ScreenerResult, path: string, format: ColumnFormat): boolean {
-    if (format !== 'percent') return false;
+    if (format !== 'percent' && format !== 'ratio') return false;
     const value = readColumn(row, path);
     return typeof value === 'number' && value < 0;
 }
 
 function isPositive(row: ScreenerResult, path: string, format: ColumnFormat): boolean {
-    if (format !== 'percent') return false;
+    if (format !== 'percent' && format !== 'ratio') return false;
     const value = readColumn(row, path);
     return typeof value === 'number' && value > 0;
 }

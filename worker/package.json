@@ -9,6 +9,8 @@
         "dev": "tsx watch src/index.ts",
         "dev:aggregate": "WORKER_ROLE=aggregate tsx watch src/index.ts",
         "dev:organize": "WORKER_ROLE=organize tsx watch src/index.ts",
+        "nightly": "WORKER_ROLE=organize tsx src/nightly.ts",
+        "backfill": "WORKER_ROLE=organize tsx src/backfill.ts",
         "build": "tsc && tsc-alias",
         "typecheck": "tsc --noEmit",
         "test": "vitest run"

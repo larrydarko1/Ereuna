@@ -40,10 +40,13 @@ describe('chunk', () => {
 });
 
 describe('activeUniverse', () => {
-    it('asks only for assets that are not delisted', async () => {
+    it('asks only for assets that are not delisted, and leaves crypto out', async () => {
         db.current = fakeDb({ AssetInfo: [] });
         await activeUniverse();
-        expect(db.current.of('AssetInfo').filters[0]).toEqual({ Delisted: { $ne: true } });
+        expect(db.current.of('AssetInfo').filters[0]).toEqual({
+            Delisted: { $ne: true },
+            AssetType: { $ne: 'Crypto' },
+        });
     });
 
     it('maps a complete document onto an asset', async () => {

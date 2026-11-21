@@ -29,7 +29,7 @@ type OpenBucket = {
     high: number;
     low: number;
     close: number;
-    volume?: number; // depending what Tiingo plan you have
+    volume?: number; // never set yet: threshold 6 sends prices without sizes, so the nightly bar brings the volume
     publishedAt: number;
 };
 

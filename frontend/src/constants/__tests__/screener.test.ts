@@ -1,9 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
-import { ALL_FILTER_KEYS, ENUM_FILTERS, MA_FILTERS, RANGE_FILTERS } from '@ereuna/shared';
+import { ALL_FILTER_KEYS, ENUM_FILTERS, MA_FILTERS, RANGE_FILTERS, toResultColumns } from '@ereuna/shared';
 
 import { screenerResult } from '@/__tests__/support/answers';
-import { COLUMNS, DEFAULT_COLUMNS, FILTER_GROUPS, filterGroup, findColumn, readColumn } from '@/constants/screener';
+import {
+    COLUMNS,
+    FILTER_GROUPS,
+    filterGroup,
+    findColumn,
+    readColumn,
+    toShownBound,
+    toStoredBound,
+} from '@/constants/screener';
 
 describe('filterGroup', () => {
     it('gives every filter the API serves a heading of its own', () => {
@@ -24,13 +32,40 @@ describe('filterGroup', () => {
     });
 });
 
+describe('filter bounds', () => {
+    it('shows a ratio as a percentage, with no binary noise from the scaling', () => {
+        expect(toShownBound('change-today', 0.07)).toBe(7);
+    });
+
+    it('stores a typed percentage of a ratio as the fraction the API compares', () => {
+        expect(toStoredBound('change-today', 5)).toBe(0.05);
+    });
+
+    it('leaves every other bound as typed', () => {
+        expect(toShownBound('gap-percent', 2.5)).toBe(2.5);
+        expect(toStoredBound('market-cap', 1_000)).toBe(1_000);
+    });
+});
+
 describe('COLUMNS', () => {
     it('offers exactly the paths some filter names — anything else renders empty', () => {
         expect(COLUMNS).toHaveLength(RANGE_FILTERS.length + ENUM_FILTERS.length + MA_FILTERS.length);
     });
 
-    it('formats a percentage as one, rather than scaling it a second time', () => {
-        expect(findColumn('DividendYield')?.format).toBe('percent');
+    // The nightly run stores these as fractions: 0.0062 for a 0.62% day
+    it.each([
+        'todaychange',
+        'ytdchange',
+        'DividendYield',
+        'EPSQoQ',
+        'quarterlyFinancials.0.grossMargin',
+        'percoff52WeekHigh',
+    ])('reads %s as a fraction to show as a percentage', (path) => {
+        expect(findColumn(path)?.format).toBe('ratio');
+    });
+
+    it.each(['Gap', 'ADV1M'])('reads %s as a percentage already, rather than scaling it a second time', (path) => {
+        expect(findColumn(path)?.format).toBe('percent');
     });
 
     it('compacts what is measured in money or shares', () => {
@@ -49,8 +84,8 @@ describe('COLUMNS', () => {
         expect(findColumn('NoSuchPath')).toBeNull();
     });
 
-    it('offers a default set that every column in it can actually render', () => {
-        for (const path of DEFAULT_COLUMNS) expect(COLUMNS.some((column) => column.path === path)).toBe(true);
+    it('can render every column a result page carries by default', () => {
+        for (const path of toResultColumns([])) expect(COLUMNS.some((column) => column.path === path)).toBe(true);
     });
 });
 

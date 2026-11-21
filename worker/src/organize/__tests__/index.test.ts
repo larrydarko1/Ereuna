@@ -1,8 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/lib/config.js', () => ({
-    config: { organize: { runOnStart: false, runHourEt: 19 } },
-}));
 vi.mock('@/lib/logger.js', () => ({
     logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
 }));
@@ -18,16 +15,25 @@ const fails = new Set<string>();
 
 const SINCE = new Date('2026-11-09T00:00:00.000Z');
 
-const state: { waitMs: number; universe: { symbol: string }[]; blocked: string | null; release: (() => void) | null } =
-    {
-        waitMs: 60_000,
-        universe: [{ symbol: 'AAPL' }, { symbol: 'GONE' }],
-        blocked: null,
-        release: null,
-    };
+const state: {
+    waitMs: number;
+    universe: { symbol: string }[];
+    blocked: string | null;
+    release: (() => void) | null;
+    lockHeld: boolean;
+} = {
+    waitMs: 60_000,
+    universe: [{ symbol: 'AAPL' }, { symbol: 'GONE' }],
+    blocked: null,
+    release: null,
+    lockHeld: false,
+};
+vi.mock('@/organize/lock.js', () => ({
+    withNightlyLock: <T>(work: () => Promise<T>): Promise<T | null> =>
+        state.lockHeld ? Promise.resolve(null) : work(),
+}));
 vi.mock('@/organize/schedule.js', () => ({ msUntilNextRun: () => state.waitMs }));
 vi.mock('@/organize/universe.js', () => ({ activeUniverse: () => Promise.resolve(state.universe) }));
-const { config } = await import('@/lib/config.js');
 /**
  * `stopping` is module state and never goes back to false, which is right for a
  * process that stops once and exits — so each test gets its own instance of the
@@ -116,7 +122,7 @@ beforeEach(async () => {
     state.universe = [{ symbol: 'AAPL' }, { symbol: 'GONE' }];
     state.blocked = null;
     state.release = null;
-    (config as { organize: { runOnStart: boolean } }).organize.runOnStart = false;
+    state.lockHeld = false;
 
     vi.resetModules();
     ({ startOrganizer, stopOrganizer } = await import('@/organize/index.js'));
@@ -170,23 +176,28 @@ describe('the nightly line', () => {
     });
 });
 
+describe('one run at a time', () => {
+    it('skips the whole run while another process holds the nightly lock', async () => {
+        state.lockHeld = true;
+        await runOnce();
+        expect(order).toEqual([]);
+    });
+
+    it('keeps scheduling after a night the lock skipped', async () => {
+        state.lockHeld = true;
+        await runOnce();
+        state.lockHeld = false;
+        await vi.advanceTimersByTimeAsync(state.waitMs);
+        await vi.advanceTimersByTimeAsync(0);
+        expect(order).toEqual(THE_LINE);
+    });
+});
+
 describe('the schedule', () => {
     it('waits rather than running at startup by default', async () => {
         void startOrganizer();
         await vi.advanceTimersByTimeAsync(state.waitMs - 1);
         expect(order).toEqual([]);
-    });
-
-    it('runs immediately when ORGANIZE_ON_START is set, then schedules as usual', async () => {
-        (config as { organize: { runOnStart: boolean } }).organize.runOnStart = true;
-        void startOrganizer();
-        await vi.advanceTimersByTimeAsync(0);
-        expect(order).toEqual(THE_LINE);
-
-        order.length = 0;
-        await vi.advanceTimersByTimeAsync(state.waitMs);
-        await vi.advanceTimersByTimeAsync(0);
-        expect(order).toEqual(THE_LINE);
     });
 
     it('schedules the next run after one finishes', async () => {

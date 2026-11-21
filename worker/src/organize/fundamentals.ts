@@ -23,17 +23,19 @@ type Statement = {
 const BATCH_SIZE = 200;
 
 /**
- * Refresh statements for the whole universe.
- * Every symbol is fetched and written, because the vendor has no "changed
+ * Refresh statements for every stock in the universe.
+ * Every stock is fetched and written, because the vendor has no "changed
  * since" endpoint and a restatement changes the figures without adding a period.
  */
 export async function updateFundamentals(universe: readonly Asset[]): Promise<number> {
+    // Only a company files statements: a request for a fund, an ETF or a coin is a certain refusal
+    const stocks = universe.filter((asset) => asset.assetType === 'Stock');
     let changed = 0;
 
     // Batched rather than one Promise.all over the universe: a statement set is
     // forty quarters of fifty fields, and holding ten thousand of them until a
     // single write at the end is most of the run's memory for no benefit
-    for (const batch of chunk(universe, BATCH_SIZE)) {
+    for (const batch of chunk(stocks, BATCH_SIZE)) {
         const operations: AnyBulkWriteOperation<AssetInfoDoc>[] = [];
 
         await Promise.all(
@@ -59,7 +61,7 @@ export async function updateFundamentals(universe: readonly Asset[]): Promise<nu
         await writeAssetInfo(operations);
     }
 
-    logger.info({ changed, universe: universe.length }, 'Fundamentals updated');
+    logger.info({ changed, stocks: stocks.length }, 'Fundamentals updated');
     return changed;
 }
 

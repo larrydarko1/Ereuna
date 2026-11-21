@@ -10,7 +10,7 @@ import { ObjectId } from 'mongodb';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ZodType } from 'zod';
 
-import { isRecord } from '@ereuna/shared';
+import { isRecord, type Quote } from '@ereuna/shared';
 
 import { fakeDb, type DbStub } from '@/__tests__/support/mongo.js';
 import { at, listAt, recordAt } from '@/__tests__/support/values.js';
@@ -24,6 +24,14 @@ vi.mock('@/lib/cache.js', () => ({
 
 const db: { current: DbStub } = { current: fakeDb() };
 vi.mock('@/lib/db.js', () => ({ getDb: () => db.current }));
+
+const latest: { bySymbol: Map<string, Quote>; asked: string[][] } = { bySymbol: new Map(), asked: [] };
+vi.mock('@/services/market/market-quotes.js', () => ({
+    quotes: (symbols: readonly string[]) => {
+        latest.asked.push([...symbols]);
+        return Promise.resolve(symbols.flatMap((symbol) => latest.bySymbol.get(symbol) ?? []));
+    },
+}));
 
 const { runHiddenSymbols, runIncludedScreeners } = await import('@/services/screener/screener-query.js');
 
@@ -53,6 +61,8 @@ const projectStage = (): Record<string, unknown> => stage('$project');
 
 beforeEach(() => {
     db.current = fakeDb();
+    latest.bySymbol = new Map();
+    latest.asked = [];
 });
 
 describe('the query one screener’s filters build', () => {
@@ -205,6 +215,16 @@ describe('runHiddenSymbols', () => {
         expect(projectStage()).not.toHaveProperty('NotAColumn');
     });
 
+    // A new account stores no columns and the table heads the defaults, so a
+    // projection of nothing left every cell under them empty, price included
+    it('projects the default columns for an account that chose none', async () => {
+        await runHiddenSymbols(USER_ID, { page: 1, limit: 10, hiddenSymbols: ['AAPL'], columns: [] });
+
+        for (const column of ['TimeSeries.close', 'MarketCapitalization', 'PERatio', 'todaychange', 'AvgVolume1M']) {
+            expect(projectStage()).toHaveProperty([column], 1);
+        }
+    });
+
     // `quarterlyFinancials.0.assetsCurrent` as a projection path selects a field
     // literally named `0`. Nothing has one, so the column arrived empty and the
     // whole array rode along with it, one `{}` per quarter.
@@ -283,5 +303,73 @@ describe('runHiddenSymbols', () => {
 
         const stages = pipeline().map((entry) => Object.keys(isRecord(entry) ? entry : {})[0]);
         expect(stages.indexOf('$limit')).toBeLessThan(stages.indexOf('$project'));
+    });
+});
+
+describe('the latest price', () => {
+    const quote = (symbol: string, close: number, changePercent: number | null): Quote => ({
+        symbol,
+        close,
+        timestamp: '2026-03-02T00:00:00.000Z',
+        previousClose: 100,
+        change: null,
+        changePercent,
+    });
+
+    const hidden = (columns: string[]): ReturnType<typeof runHiddenSymbols> =>
+        runHiddenSymbols(USER_ID, { page: 1, limit: 10, hiddenSymbols: ['AAPL', 'MSFT'], columns });
+
+    beforeEach(() => {
+        db.current = fakeDb({
+            AssetInfo: [
+                { Symbol: 'AAPL', TimeSeries: { close: 100 }, todaychange: 0.01, PERatio: 30 },
+                { Symbol: 'MSFT', TimeSeries: { close: 400 }, todaychange: -0.02, PERatio: 35 },
+            ],
+        });
+    });
+
+    // The nightly run's close is a session old from the next open until it runs again
+    it('prices the page from the latest quote, the change in the nightly unit', async () => {
+        latest.bySymbol.set('AAPL', quote('AAPL', 110, 10));
+
+        const page = await hidden(['TimeSeries.close', 'todaychange', 'PERatio']);
+
+        expect(page.items[0]?.columns).toEqual({ 'TimeSeries.close': 110, 'todaychange': 0.1, 'PERatio': 30 });
+    });
+
+    it('keeps the nightly figures for a symbol with no quote', async () => {
+        latest.bySymbol.set('AAPL', quote('AAPL', 110, 10));
+
+        const page = await hidden(['TimeSeries.close', 'todaychange']);
+
+        expect(page.items[1]?.columns).toEqual({ 'TimeSeries.close': 400, 'todaychange': -0.02 });
+    });
+
+    it('reports no change when the quote had nothing to measure it against', async () => {
+        latest.bySymbol.set('AAPL', quote('AAPL', 110, null));
+
+        const page = await hidden(['todaychange']);
+
+        expect(page.items[0]?.columns).toEqual({ todaychange: null });
+    });
+
+    it('adds no column the page did not ask for', async () => {
+        latest.bySymbol.set('AAPL', quote('AAPL', 110, 10));
+
+        const page = await hidden(['todaychange']);
+
+        expect(page.items[0]?.columns).not.toHaveProperty(['TimeSeries.close']);
+    });
+
+    it('asks for no quote when the page shows neither figure', async () => {
+        await hidden(['PERatio']);
+
+        expect(latest.asked).toEqual([]);
+    });
+
+    it('asks once for the whole page', async () => {
+        await hidden(['TimeSeries.close']);
+
+        expect(latest.asked).toEqual([['AAPL', 'MSFT']]);
     });
 });

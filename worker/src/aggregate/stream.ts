@@ -2,7 +2,8 @@
  * The trade stream: `tiingo:stream` in, `applyTrade` out.
  * Read through a consumer group rather than a plain subscription, so a restart
  * resumes from the last acknowledged id instead of silently missing whatever
- * arrived while the process was down. The group is created on first use with
+ * arrived while the process was down, and first replays the batch a crash left
+ * read but unacknowledged. The group is created on first use with
  * `MKSTREAM`, which is what lets the aggregator start before the ingestor has
  * ever written anything.
  * The vendor's payload is a positional array. Its shape is decoded here and
@@ -11,21 +12,36 @@
 import { Counter } from 'prom-client';
 import { z } from 'zod';
 
-import { isList, isRecord, TIINGO_GROUP, TIINGO_STREAM } from '@ereuna/shared';
+import { isList, isRecord, TIINGO_CONSUMER, TIINGO_GROUP, TIINGO_SERVICE, TIINGO_STREAM } from '@ereuna/shared';
 
 import { applyTrade } from '@/aggregate/builder.js';
+import { isInSession } from '@/aggregate/session.js';
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 import { getConsumer } from '@/lib/redis.js';
 
-/** An XREADGROUP reply: per stream, its entries as `[id, [field, value, …]]`; null when the block timed out. */
-const streamReadSchema = z.array(z.tuple([z.string(), z.array(z.tuple([z.string(), z.array(z.string())]))])).nullable();
+/**
+ * An XREADGROUP reply: per stream, its entries as `[id, [field, value, …]]`; null when the block timed out.
+ * A pending entry the length cap already trimmed comes back with null fields.
+ */
+const streamReadSchema = z
+    .array(z.tuple([z.string(), z.array(z.tuple([z.string(), z.array(z.string()).nullable()]))]))
+    .nullable();
 
 type StreamRead = z.infer<typeof streamReadSchema>;
+
+/** XREADGROUP ids: this consumer's own unacknowledged entries, or entries never delivered to anyone. */
+const PENDING = '0';
+const NEW = '>';
 
 const consumed = new Counter({
     name: 'aggregator_trades_consumed_total',
     help: 'Trades read from the vendor stream',
+});
+
+const outsideSession = new Counter({
+    name: 'aggregator_trades_outside_session_total',
+    help: 'Trades dropped because they were stamped outside regular hours or after their session was finalised',
 });
 
 const rejected = new Counter({
@@ -42,7 +58,6 @@ const rejected = new Counter({
  */
 export async function consumeTrades(shouldStop: () => boolean): Promise<void> {
     const redis = getConsumer();
-    const name = `${TIINGO_GROUP}-${process.pid}`;
 
     try {
         await redis.xgroup('CREATE', TIINGO_STREAM, TIINGO_GROUP, '0', 'MKSTREAM');
@@ -51,33 +66,52 @@ export async function consumeTrades(shouldStop: () => boolean): Promise<void> {
         // start after the first.
     }
 
-    logger.info({ stream: TIINGO_STREAM, group: TIINGO_GROUP, consumer: name }, 'Consuming the trade stream');
+    logger.info(
+        { stream: TIINGO_STREAM, group: TIINGO_GROUP, consumer: TIINGO_CONSUMER },
+        'Consuming the trade stream',
+    );
+
+    let cursor: typeof PENDING | typeof NEW = PENDING;
+    let replayed = 0;
+    let unacked: string[] = [];
 
     while (!shouldStop()) {
         try {
+            // A batch whose ack failed is acknowledged before anything else is
+            // read: left pending, it would be replayed at the next start into
+            // buckets that were long since written
+            if (unacked.length > 0) {
+                await redis.xack(TIINGO_STREAM, TIINGO_GROUP, ...unacked);
+                unacked = [];
+            }
+
             const response = streamReadSchema.parse(
                 await redis.xreadgroup(
                     'GROUP',
                     TIINGO_GROUP,
-                    name,
+                    TIINGO_CONSUMER,
                     'COUNT',
                     config.stream.batchSize,
                     'BLOCK',
                     config.stream.blockMs,
                     'STREAMS',
                     TIINGO_STREAM,
-                    '>',
+                    cursor,
                 ),
             );
 
-            if (response === null) continue;
+            const ids = response === null ? [] : drain(response, handle);
+            if (ids.length === 0 && cursor === PENDING) logger.info({ replayed }, 'Pending entries replayed');
+            if (ids.length === 0) {
+                cursor = NEW;
+                continue;
+            }
+            if (cursor === PENDING) replayed += ids.length;
 
-            const ids = drain(response, handle);
-
-            // Acknowledged as a batch: one round trip per read rather than one
-            // per trade, and a crash before the ack simply replays the batch,
-            // which replacing on the way out makes harmless.
-            if (ids.length > 0) await redis.xack(TIINGO_STREAM, TIINGO_GROUP, ...ids);
+            // Acknowledged as a batch: one round trip per read rather than one per trade
+            unacked = ids;
+            await redis.xack(TIINGO_STREAM, TIINGO_GROUP, ...unacked);
+            unacked = [];
         } catch (err) {
             logger.error({ err }, 'Trade stream read failed');
             await sleep(1000);
@@ -85,7 +119,12 @@ export async function consumeTrades(shouldStop: () => boolean): Promise<void> {
     }
 }
 
-function handle(fields: string[]): void {
+function handle(fields: string[] | null): void {
+    if (fields === null) {
+        rejected.inc({ reason: 'trimmed' });
+        return;
+    }
+
     const index = fields.indexOf('data');
     const payload = index === -1 ? undefined : fields[index + 1];
     if (payload === undefined) {
@@ -97,11 +136,15 @@ function handle(fields: string[]): void {
     if (trade === null) return;
 
     consumed.inc();
+    if (!isInSession(trade.at)) {
+        outsideSession.inc();
+        return;
+    }
     applyTrade(trade.symbol, trade.price, trade.at);
 }
 
 /**
- * The vendor's IEX payload as a trade.
+ * The vendor's reference-price payload as a trade.
  * `data` is positional — `[instant, ticker, price, …]` — which is why every
  * field is checked rather than trusted: a shape change upstream would otherwise
  * reach the candle state as a `NaN` price and poison the bar's high or low for
@@ -116,7 +159,7 @@ function parseTrade(payload: string): { symbol: string; price: number; at: numbe
         return null;
     }
 
-    const data = isRecord(parsed) && parsed['service'] === 'iex' ? parsed['data'] : undefined;
+    const data = isRecord(parsed) && parsed['service'] === TIINGO_SERVICE ? parsed['data'] : undefined;
     if (!isList(data) || data.length <= 2) {
         rejected.inc({ reason: 'unrecognised' });
         return null;
@@ -162,7 +205,7 @@ function sleep(ms: number): Promise<void> {
 }
 
 /** Hand every entry in a read to `onEntry` and give back the ids to acknowledge. */
-function drain(response: StreamRead, onEntry: (fields: string[]) => void): string[] {
+function drain(response: StreamRead, onEntry: (fields: string[] | null) => void): string[] {
     const ids: string[] = [];
 
     for (const [, entries] of response ?? []) {

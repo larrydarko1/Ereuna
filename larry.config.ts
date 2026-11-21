@@ -238,9 +238,6 @@ export default defineConfig({
             },
         },
         'pipeline': { skip: 'No script ran it before larry upgrade.' },
-        // `requireCheckboxes` is deliberately off. This repo's todo.md is prose grouped by
-        // section, not a task list, and imposing `- [ ]` on it would be a formatting rule
-        // pretending to be a process rule.
         'refactoring': {},
         // `injectionGuard` — Vite prepends `_variables.scss` to every stylesheet but
         // index.scss. The entry `@use`s the partials that EMIT CSS, and every SFC <style>

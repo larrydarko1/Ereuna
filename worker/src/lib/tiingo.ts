@@ -3,21 +3,23 @@ import { z } from 'zod';
 
 import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
+import { REFUSED, refuse, reserve } from '@/lib/vendor-budget.js';
 
 /**
- * A daily bar as the vendor sends it. Only the adjusted prices are kept, so
- * only they are required; a row missing one is dropped rather than half-filled,
- * because a bar with a raw close among adjusted ones is a discontinuity every
- * derived figure would read as a move. A missing split factor or dividend is
- * read as none.
+ * A daily bar as the vendor sends it. The prices it traded at are kept, not the
+ * vendor's adjusted ones: those are restated for every later dividend as well as
+ * every split, which moves past prices off what anyone paid. Splits are applied
+ * here from each day's split factor, and dividends are recorded on their own.
+ * A row missing a price is dropped rather than half-filled; a missing split
+ * factor or dividend is read as none.
  */
 const dailyBarSchema = z.object({
     date: z.string(),
-    adjOpen: z.number(),
-    adjHigh: z.number(),
-    adjLow: z.number(),
-    adjClose: z.number(),
-    adjVolume: z.number(),
+    open: z.number(),
+    high: z.number(),
+    low: z.number(),
+    close: z.number(),
+    volume: z.number(),
     divCash: z.number().catch(0),
     splitFactor: z.number().catch(1),
 });
@@ -50,7 +52,24 @@ export type VendorStatementItem = z.infer<typeof statementItemSchema>;
 
 export type VendorStatement = z.infer<typeof statementSchema>;
 
+const HOUR = 3_600_000;
+
 const waiting: (() => void)[] = [];
+
+/**
+ * The vendor refused a request for the plan's request limit. Thrown in place of
+ * every request for an hour afterwards, unsent, so a caller can tell "stop and
+ * come back" from "this symbol failed".
+ */
+export class TiingoLimitError extends Error {
+    readonly path: string;
+
+    constructor(path: string) {
+        super(`Tiingo ${path} not sent: the plan's request limit was reached, asking again after an hour`);
+        this.name = 'TiingoLimitError';
+        this.path = path;
+    }
+}
 
 class TiingoError extends Error {
     readonly status: number;
@@ -65,6 +84,9 @@ class TiingoError extends Error {
 }
 
 let inFlight = 0;
+/** This process's own copy of the refusal, so it holds even while Redis cannot be reached. */
+let refusedUntil = 0;
+let pacing = false;
 
 /** Every listed symbol's end-of-day bar for the latest session, in one call. */
 export function marketPrices(): Promise<VendorMarketBar[]> {
@@ -111,9 +133,10 @@ function release(): void {
 /**
  * GET a vendor path and parse it as JSON.
  *
- * Retries on a network failure and on 5xx and 429, because those are the vendor
- * having a moment. A 4xx is not retried: asking again for a ticker the vendor
- * does not know wastes the rate limit that the rest of the run needs.
+ * Retries on a network failure and on 5xx, because those are the vendor having
+ * a moment. A 4xx is not retried: asking again for a ticker the vendor does not
+ * know wastes the allowance the rest of the run needs. A 429 is the allowance
+ * spent, which another try cannot fix.
  */
 async function request<T>(path: string, row: z.ZodType<T>, query: Record<string, string> = {}): Promise<T[]> {
     const url = new URL(path, config.tiingo.baseUrl);
@@ -150,7 +173,8 @@ async function retrying(url: URL, path: string): Promise<unknown> {
         try {
             return await attemptOnce(url, path);
         } catch (err) {
-            if (err instanceof TiingoError && err.status < 500 && err.status !== 429) throw err;
+            if (err instanceof TiingoLimitError) throw err;
+            if (err instanceof TiingoError && err.status < 500) throw err;
             if (attempt === config.tiingo.retries) throw err;
             logger.debug({ err, path, attempt }, 'Vendor request failed, retrying');
         }
@@ -169,11 +193,54 @@ async function retrying(url: URL, path: string): Promise<unknown> {
  * so the 4xx rule lives in exactly one place.
  */
 async function attemptOnce(url: URL, path: string): Promise<unknown> {
+    await takeSlot(path);
     const response = await fetch(url, {
         headers: { Authorization: `Token ${config.tiingo.key}`, Accept: 'application/json' },
         signal: AbortSignal.timeout(config.tiingo.timeoutMs),
     });
 
     if (response.ok) return response.json();
+    if (response.status === 429) {
+        // The plan counts what was sent before this process started too, so the pacing alone cannot rule this out
+        refusedUntil = Date.now() + HOUR;
+        await refuse(HOUR).catch((err: unknown) =>
+            logger.warn({ err }, 'Could not share the refusal with other processes'),
+        );
+        const detail = (await response.text().catch(() => '')).slice(0, 300);
+        logger.error({ path, detail, resumesAt: new Date(refusedUntil) }, 'Tiingo refused: request limit reached');
+        throw new TiingoLimitError(path);
+    }
     throw new TiingoError(response.status, path);
+}
+
+/**
+ * Wait until one more request fits the hourly allowance, then count it as sent.
+ * The count is shared through Redis; if Redis cannot be reached the request goes
+ * out uncounted, because a 429 still stops the run and a nightly that halts on
+ * a cache blip is the worse failure.
+ */
+async function takeSlot(path: string): Promise<void> {
+    for (let waited = false; ; waited = true) {
+        if (Date.now() < refusedUntil) throw new TiingoLimitError(path);
+        const wait = await reserve(config.tiingo.requestsPerHour, HOUR).catch((err: unknown) => {
+            logger.warn({ err, path }, 'Tiingo request budget unreachable; sending uncounted');
+            return 0;
+        });
+        if (wait === REFUSED) throw new TiingoLimitError(path);
+        if (wait === 0) {
+            // A pause ends when a request finds room without waiting; at the limit each slot goes to a waiter
+            if (!waited) pacing = false;
+            return;
+        }
+        if (!pacing) {
+            pacing = true;
+            logger.info(
+                { resumesAt: new Date(Date.now() + wait) },
+                "Tiingo's hourly allowance is spent; waiting for it",
+            );
+        }
+        await new Promise((resolve): void => {
+            setTimeout(resolve, wait);
+        });
+    }
 }

@@ -1,7 +1,7 @@
 /**
  * The shared Socket.IO connection — one per tab, for the live market feed.
  * Opened lazily by the first composable that needs it and reused by the rest,
- * so a chart and a positions table cost one handshake between them rather than
+ * so a chart and a portfolio cost one handshake between them rather than
  * one each. The access token is read at connect time rather than captured, so a
  * reconnect after a silent refresh presents the token that is current then.
  * The connection dies with the session: `onSessionCleared` drops it, because a

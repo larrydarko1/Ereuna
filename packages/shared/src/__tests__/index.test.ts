@@ -41,7 +41,6 @@ describe('the package barrel', () => {
         'chartDrawingsSchema',
         'screenerResultPageSchema',
         'portfolioSummarySchema',
-        'quoteSchema',
     ])('re-exports %s', (name) => {
         expect(shared).toHaveProperty(name);
     });

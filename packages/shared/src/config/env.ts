@@ -11,6 +11,13 @@
  */
 import { z } from 'zod';
 
+// What `mongoEnv` and `redisEnv` parse to, and the `config.mongo` / `config.redis`
+// groups every service builds from them
+type MongoEnv = { MONGO_URI: string; MONGO_DB: string };
+type RedisEnv = { REDIS_HOST: string; REDIS_PORT: number; REDIS_DB: number };
+type MongoConfig = { uri: string; db: string };
+type RedisConfig = { host: string; port: number; db: number };
+
 /** Substrings that mark a value as an obvious dev placeholder (rejected in prod). */
 const DEV_PLACEHOLDERS = ['dev_secret', 'dev-', 'change', 'replace-me', 'replace-with', 'your-'];
 
@@ -38,6 +45,9 @@ export const mongoEnv = {
 export const redisEnv = {
     REDIS_HOST: infraDefault('localhost'),
     REDIS_PORT: z.coerce.number().int().positive().default(6379),
+    // One of the server's 16 numbered databases. `dev:sim` runs on its own, so the
+    // simulated trade stream and live candles never mix with the real ones
+    REDIS_DB: z.coerce.number().int().min(0).max(15).default(0),
 };
 
 /**
@@ -48,6 +58,14 @@ export const redisEnv = {
 export const tiingoEnv = {
     TIINGO_KEY: z.string().min(1),
 };
+
+export function toMongoConfig(env: MongoEnv): MongoConfig {
+    return { uri: env.MONGO_URI, db: env.MONGO_DB };
+}
+
+export function toRedisConfig(env: RedisEnv): RedisConfig {
+    return { host: env.REDIS_HOST, port: env.REDIS_PORT, db: env.REDIS_DB };
+}
 
 /** A required secret: at least `min` chars, and in prod not a recognisable dev placeholder. */
 export function requiredSecret(min = 32): z.ZodString {

@@ -66,9 +66,13 @@ export async function listPortfolios(userId: ObjectId): Promise<PortfolioRow[]> 
 }
 
 export async function getPortfolio(userId: ObjectId, number: number): Promise<WithId<PortfolioDoc>> {
-    const doc = await collection().findOne({ userId, number });
+    const doc = await findPortfolio(userId, number);
     if (doc === null) throw new AppError(404, 'PORTFOLIO_NOT_FOUND', `portfolio ${number} not found`);
     return doc;
+}
+
+export async function findPortfolio(userId: ObjectId, number: number): Promise<WithId<PortfolioDoc> | null> {
+    return collection().findOne({ userId, number });
 }
 
 /**

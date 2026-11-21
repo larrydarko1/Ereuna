@@ -15,7 +15,17 @@ import path from 'node:path';
 import argon2 from 'argon2';
 import { z } from 'zod';
 
-import { hexSecret, LIMITS, loggerEnv, mongoEnv, nodeEnv, redisEnv, requiredSecret } from '@ereuna/shared';
+import {
+    hexSecret,
+    LIMITS,
+    loggerEnv,
+    mongoEnv,
+    nodeEnv,
+    redisEnv,
+    requiredSecret,
+    toMongoConfig,
+    toRedisConfig,
+} from '@ereuna/shared';
 
 const Env = z.object({
     ...nodeEnv,
@@ -100,15 +110,8 @@ export const config = {
         maxAge: 30 * 24 * 60 * 60, // 30 days
     },
 
-    mongo: {
-        uri: parsed.MONGO_URI,
-        db: parsed.MONGO_DB,
-    },
-
-    redis: {
-        host: parsed.REDIS_HOST,
-        port: parsed.REDIS_PORT,
-    },
+    mongo: toMongoConfig(parsed),
+    redis: toRedisConfig(parsed),
 
     logger: {
         level: parsed.LOG_LEVEL,

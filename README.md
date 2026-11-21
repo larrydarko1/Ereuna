@@ -38,10 +38,12 @@ along with everything else.
 
 - **The app does not currently work end to end.** I know of open bugs and I'm working
   through them in order. Fixes land as batches, not as one big-bang restoration.
-- **The live market-data path is unverified.** The ingestor holds one socket to the
-  vendor's trade feed and the worker buckets that stream into candles. Neither can be
-  meaningfully tested for time constraints, so both are written but not yet proven
-  against real traffic as the previous implementation.
+- **The live market-data path is proven at volume only on the simulator.** The
+  ingestor holds one socket to the vendor's trade feed and the worker buckets that
+  stream into candles. That path and the nightly batch have run against the real
+  feed for one trading day on three symbols, and against the feed simulator (below)
+  at about 10M trades over a full session on a copy of the whole database. A full
+  universe on the real feed has not run yet.
 - **There is no infrastructure in this repo.** No Dockerfiles, no compose, no Traefik,
   no Prometheus/Grafana/Loki. That was all deliberately dropped from scope. Infra isn't
   where my strength is, rebuilding it correctly would cost more time than the rewrite
@@ -179,23 +181,39 @@ which reminds you they're hidden.
 
 ## Running it locally
 
-You need MongoDB and Redis running, and a Tiingo API key if you want the market-data
-services to do anything.
+You need MongoDB and Redis running. The real market-data feed and the nightly batch
+need a Tiingo API key; the live path can run without one, on the feed simulator.
 
 ```bash
 npm install
 
-# frontend (:3500) + api (:5500) together
+# frontend (:3500) + api (:5500) + worker + ingestor, on the real feed
 npm run dev
+
+# the live path with no key: the stack plus the ingestor, on the feed simulator
+npm run sim:reset   # once first: copies your database into EreunaSim
+npm run dev:sim
 ```
 
-The other processes run on their own, because none of them can be folded into another:
+`dev:sim` never touches your real data. Its trades become real candles, on every
+timeframe up to weekly, so it runs on a copy: the `EreunaSim` database and Redis
+database 1 (the names are in the root `package.json`'s `config`). `npm run sim:reset`
+makes that copy from the database `db/.env` names and empties the sim's Redis keys;
+run it again whenever the copy should start over from real data. You log in to the
+sim stack with your usual account, since the copy has it. Don't run `dev` and
+`dev:sim` at the same time: Redis delivers published messages to every database.
+
+Each process also runs on its own:
 
 ```bash
-npm run ingestor          # vendor trade feed → Redis stream
-npm run worker            # both roles (default for local work)
-npm run worker:aggregate  # realtime bucketing only
-npm run worker:organize   # nightly batch only
+npm run dev:ingestor          # vendor trade feed → Redis stream
+npm run feed:sim              # a local stand-in for the vendor feed, on the sim copy
+npm run dev:ingestor:sim      # the ingestor, pointed at the simulator and the sim copy
+npm run dev:worker            # both roles (default for local work)
+npm run dev:worker:aggregate  # realtime bucketing only
+npm run dev:worker:organize   # nightly batch only
+npm run nightly               # the nightly batch once, now, then exit
+npm run backfill              # fill the daily bars a restore from an old backup lacks; run before nightly
 ```
 
 Database:
@@ -208,17 +226,23 @@ npm run db:migrate:status
 ### Environment
 
 Most infra values have working local defaults, so a fresh clone starts with very little.
-Two secrets have no default and will kill the process at boot if missing:
+Three secrets have no default and will kill the process at boot if missing:
 
 ```bash
 JWT_SECRET=            # 32+ characters
 TOTP_ENCRYPTION_KEY=   # 64 hex characters (AES-256-GCM key for TOTP secrets at rest)
-TIINGO_KEY=            # required by the ingestor and the worker
+TIINGO_KEY=            # required by the ingestor, and by the worker unless WORKER_ROLE=aggregate
 ```
 
-Optional overrides: `MONGO_URI`, `MONGO_DB`, `REDIS_HOST`, `REDIS_PORT`, `PORT`,
-`CORS_ORIGIN`, `LOG_LEVEL`, `WORKER_ROLE`. In production the schema rejects any value
-that's still a recognisable dev placeholder, rather than quietly booting with it.
+Optional overrides: `MONGO_URI`, `MONGO_DB`, `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB`, `TIINGO_URL`,
+`TIINGO_REQUESTS_PER_HOUR`, `PORT`, `CORS_ORIGIN`, `LOG_LEVEL`, `WORKER_ROLE`. In production the
+schema rejects any value that's still a recognisable dev placeholder, rather than quietly booting
+with it.
+
+`TIINGO_REQUESTS_PER_HOUR` (9,500 by default, of the Power plan's 10,000) is one allowance every
+worker process shares, counted in Redis, so a nightly and a backfill running together can't
+overspend it. After a 429 none of them sends anything for an hour, and the backfill stops where
+it is; running it again picks up from there.
 
 ## Architecture
 
@@ -274,17 +298,27 @@ ingestor → holds ONE socket to the vendor's trade feed, XADDs `tiingo:stream`
    │
    ▼
 worker   → aggregate: XREADGROUP over that stream, buckets into 7 timeframes,
-   │                  upserts MongoDB, publishes `aggr:{tf}`
+   │                  writes each closed candle to MongoDB, publishes `aggr:{tf}`
    │       organize:  the nightly batch, 19:00 ET
    ▼
 api      → one `psubscribe aggr:*` per process, fans out to Socket.IO rooms
 ```
 
+**The feed simulator** stands in for the vendor, not for the ingestor: a local websocket
+that speaks Tiingo's protocol, so the real ingestor, aggregator, API and chart all run
+against it. It prices the symbols the ingestor subscribes to from their last daily bar,
+trades each in proportion to its last volume, and runs the tape busiest at the open and
+the close. `--rate` sets the average trades per second (`npm run feed:sim -- --rate 430`
+is about 10M over a session). The trades become real candles in the database the
+aggregator writes to, which under `dev:sim` is the `EreunaSim` copy. The ingestor
+reaches it through `TIINGO_URL`, which production refuses unless it is `wss://`.
+
 The ingestor and the aggregate role are **singletons**. Two ingestors double-subscribe
 upstream and write every trade twice; two aggregators split the consumer group and each
 build half a candle out of half the trades. That's what `WORKER_ROLE` buys — one image,
-one entry point, and the ability to pin `replicas: 1` on the aggregate deployment while
-the organize one scales freely.
+one entry point, and the ability to pin `replicas: 1` on the aggregate deployment. The
+nightly run takes a Redis lock instead, so a second organize replica skips a night another
+one is already running rather than writing the same bars twice.
 
 Websockets are Socket.IO on the API's own HTTP server, one port, authenticated with the
 access token on the handshake. There is deliberately **no Redis adapter**: the adapter
@@ -294,7 +328,8 @@ already holds every bucket its own sockets need.
 The nightly run is a straight dependency line, not a scheduler: prices → splits →
 dividends → weekly → delist → fundamentals → metrics → valuations → market stats →
 holidays → prune. Each step is isolated, so one vendor outage costs one step and not
-the run.
+the run. Statements are fetched for stocks only, since nothing else files them, and
+crypto is left out of the run entirely, because nothing fetches its daily prices yet.
 
 ### Database notes
 

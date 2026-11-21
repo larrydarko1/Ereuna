@@ -40,7 +40,7 @@ const { refetchHistory, updateDailyPrices } = await import('@/organize/prices.js
 const { config } = await import('@/lib/config.js');
 
 const SESSION = new Date('2026-09-04T00:00:00.000Z');
-const CLOSING_MINUTE = new Date('2026-09-04T20:00:00.000Z');
+const CLOSING_MINUTE = new Date('2026-09-04T19:59:00.000Z');
 const PREVIOUS = new Date('2026-09-03T00:00:00.000Z');
 const LOOKBACK = listSessions(new Date(SESSION.getTime() - config.organize.gapLookbackDays * 86_400_000), SESSION);
 
@@ -61,11 +61,11 @@ function row(overrides: Partial<VendorMarketBar> = {}): VendorMarketBar {
     return {
         ticker: 'AAPL',
         date: '2026-09-04T00:00:00.000Z',
-        adjOpen: 100,
-        adjHigh: 110,
-        adjLow: 99,
-        adjClose: 105,
-        adjVolume: 1_000,
+        open: 100,
+        high: 110,
+        low: 99,
+        close: 105,
+        volume: 1_000,
         splitFactor: 1,
         divCash: 0,
         ...overrides,
@@ -126,23 +126,17 @@ describe('updateDailyPrices', () => {
         ]);
     });
 
-    it('stores the adjusted prices, which is the whole series it is joining', async () => {
-        vendor.rows = [row()];
-        await updateDailyPrices([asset('AAPL')]);
-        expect(insertedInto('OHCLVData')).toMatchObject([{ close: 105 }]);
-    });
-
     // A row short of a field never gets this far: the vendor client drops it
     it.each([
         ['an unparseable date', { date: 'not a date' }],
-        ['an infinite adjusted high', { adjHigh: Number.POSITIVE_INFINITY }],
-        ['a NaN adjusted close', { adjClose: Number.NaN }],
+        ['an infinite high', { high: Number.POSITIVE_INFINITY }],
+        ['a NaN close', { close: Number.NaN }],
     ])('drops a row with %s rather than half-filling the bar', async (_label, overrides) => {
         vendor.rows = [row(overrides)];
         await expect(updateDailyPrices([asset('AAPL')])).resolves.toMatchObject({ written: 0 });
     });
 
-    it('writes a synthetic closing-minute bar at 16:00 New York where none is stored', async () => {
+    it('writes a synthetic closing-minute bar at 15:59 New York where none is stored', async () => {
         vendor.rows = [row()];
         await updateDailyPrices([asset('AAPL')]);
 
@@ -154,10 +148,10 @@ describe('updateDailyPrices', () => {
         ]);
     });
 
-    it('stamps the closing minute at 21:00 UTC under standard time', async () => {
+    it('stamps the closing minute at 20:59 UTC under standard time', async () => {
         vendor.rows = [row({ date: '2026-11-10T00:00:00.000Z' })];
         await updateDailyPrices([asset('AAPL')]);
-        expect(insertedInto('OHCLVData1m')).toMatchObject([{ timestamp: new Date('2026-11-10T21:00:00.000Z') }]);
+        expect(insertedInto('OHCLVData1m')).toMatchObject([{ timestamp: new Date('2026-11-10T20:59:00.000Z') }]);
     });
 
     it('leaves a closing minute the aggregator built from real prints alone', async () => {
@@ -222,7 +216,7 @@ describe('updateDailyPrices, filling missing sessions', () => {
 
     it('fetches a session the run missed from the first missing day, and writes only that one', async () => {
         vendor.rows = [row()];
-        vendor.history = { AAPL: [row({ date: PREVIOUS.toISOString(), adjClose: 104 }), row()] };
+        vendor.history = { AAPL: [row({ date: PREVIOUS.toISOString(), close: 104 }), row()] };
         db.current = fakeDb({ OHCLVData: [stored('AAPL', [PREVIOUS])] });
 
         await expect(updateDailyPrices([asset('AAPL')])).resolves.toMatchObject({ written: 2, since: PREVIOUS });
@@ -289,7 +283,29 @@ describe('refetchHistory', () => {
     });
 
     it('returns how many bars it stored, dropping the unusable ones', async () => {
-        await expect(refetchHistory('AAPL', [row(), row({ adjClose: Number.NaN })])).resolves.toBe(1);
+        await expect(refetchHistory('AAPL', [row(), row({ close: Number.NaN })])).resolves.toBe(1);
+    });
+
+    it('restates the sessions before a split by its factor, and leaves its own session and later as traded', async () => {
+        await refetchHistory('AAPL', [
+            row({ date: '2026-09-02T00:00:00.000Z', close: 400, volume: 10 }),
+            row({ date: '2026-09-03T00:00:00.000Z', close: 100, volume: 40, splitFactor: 4 }),
+            row({ close: 105, volume: 50 }),
+        ]);
+        expect(insertedInto('OHCLVData')).toMatchObject([
+            { timestamp: new Date('2026-09-02T00:00:00.000Z'), close: 100, volume: 40 },
+            { timestamp: PREVIOUS, close: 100, volume: 40 },
+            { timestamp: SESSION, close: 105, volume: 50 },
+        ]);
+    });
+
+    it('compounds two splits for the sessions before both', async () => {
+        await refetchHistory('AAPL', [
+            row({ date: '2026-09-01T00:00:00.000Z', close: 600 }),
+            row({ date: '2026-09-02T00:00:00.000Z', close: 300, splitFactor: 2 }),
+            row({ date: '2026-09-03T00:00:00.000Z', close: 100, splitFactor: 3 }),
+        ]);
+        expect(insertedInto('OHCLVData')).toMatchObject([{ close: 100 }, { close: 100 }, { close: 100 }]);
     });
 
     it('batches a long history', async () => {

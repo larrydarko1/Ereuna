@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { PortfolioExport, PortfolioRow, PortfolioSummary, ValuedPosition } from '@ereuna/shared';
+import type { PortfolioExport, PortfolioRow, PortfolioSummary } from '@ereuna/shared';
 
 import { portfolioRow } from '@/__tests__/support/answers';
 import { mockApi, ORIGIN } from '@/__tests__/support/msw';
@@ -37,19 +37,6 @@ const summary = (over: Partial<PortfolioSummary> = {}): PortfolioSummary => ({
     valueHistory: [],
     benchmarks: [],
     ...over,
-});
-
-const position = (symbol: string): ValuedPosition => ({
-    symbol,
-    side: 'long',
-    shares: 1,
-    avgPrice: 1,
-    lastClose: 1,
-    marketValue: 1,
-    exposure: 1,
-    unrealizedPL: 0,
-    unrealizedPLPercent: 0,
-    weight: 100,
 });
 
 const build = (): UsePortfoliosReturn => usePortfolios();
@@ -156,7 +143,7 @@ describe('select', () => {
     });
 });
 
-describe('isBlank and heldSymbols', () => {
+describe('isBlank', () => {
     it('calls a slot with nothing held, owed or declared blank', async () => {
         mock.on('GET /api/portfolios/0', summary({ cash: 0, baseValue: 0 }));
         const portfolios = build();
@@ -164,7 +151,6 @@ describe('isBlank and heldSymbols', () => {
         await portfolios.reload();
 
         expect(portfolios.isBlank.value).toBe(true);
-        expect(portfolios.heldSymbols.value).toEqual([]);
     });
 
     it('does not call a slot with cash in it blank', async () => {
@@ -174,15 +160,6 @@ describe('isBlank and heldSymbols', () => {
         await portfolios.reload();
 
         expect(portfolios.isBlank.value).toBe(false);
-    });
-
-    it('names what is held, for the live quote subscription', async () => {
-        mock.on('GET /api/portfolios/0', summary({ positions: [position('AAPL'), position('MSFT')] }));
-        const portfolios = build();
-
-        await portfolios.reload();
-
-        expect(portfolios.heldSymbols.value).toEqual(['AAPL', 'MSFT']);
     });
 });
 

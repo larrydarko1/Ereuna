@@ -8,12 +8,13 @@
 import 'dotenv/config';
 import { type Server } from 'http';
 
-import { OHLCV_INDEXES, REFERENCE_INDEXES, type IndexSpec } from '@ereuna/shared';
+import { OHLCV_INDEXES, REFERENCE_INDEXES } from '@ereuna/shared';
 import { startProbeServer } from '@ereuna/shared/service/probes';
 
 import { startAggregator, stopAggregator } from '@/aggregate/index.js';
 import { config } from '@/lib/config.js';
-import { closeDb, connectDb, getDb } from '@/lib/db.js';
+import { closeDb, connectDb } from '@/lib/db.js';
+import { ensureIndexes } from '@/lib/indexes.js';
 import { logger } from '@/lib/logger.js';
 import { closeRedis } from '@/lib/redis.js';
 import { startOrganizer, stopOrganizer } from '@/organize/index.js';
@@ -24,29 +25,13 @@ const runsOrganize = role === 'all' || role === 'organize';
 
 let probes: Server | undefined;
 
-async function ensureIndexes(): Promise<void> {
-    const specs: IndexSpec[] = [...OHLCV_INDEXES, ...(runsOrganize ? REFERENCE_INDEXES : [])];
-    const db = getDb();
-
-    for (const { collection, keys, options } of specs) {
-        try {
-            // eslint-disable-next-line contracts/no-db-await-in-loop, no-restricted-syntax -- the worker is this repo's manifest applier, and on half a billion bars the builds go one at a time
-            await db.collection(collection).createIndex(keys, options ?? {});
-        } catch (err) {
-            logger.error({ err, collection, keys }, 'Index could not be created');
-        }
-    }
-
-    logger.info({ count: specs.length }, 'Indexes ensured');
-}
-
 /**
  * Startup is all-or-nothing. Without Mongo there is nowhere to put a finished
  * candle, and an aggregator that consumed the stream anyway would acknowledge
  * trades it then dropped — so a failure here kills the process with a reason.
  */
 connectDb()
-    .then(ensureIndexes)
+    .then(() => ensureIndexes([...OHLCV_INDEXES, ...(runsOrganize ? REFERENCE_INDEXES : [])]))
     .then(() => {
         probes = startProbeServer({ ...config.probe, logger });
         logger.info({ role, port: config.probe.port }, 'Worker started');

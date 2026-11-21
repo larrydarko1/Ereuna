@@ -2,6 +2,8 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { toResultColumns } from '@ereuna/shared';
+
 import { getProfile } from '@/api/chart';
 import { hideSymbol, unhideSymbol } from '@/api/preferences';
 import type { FilterValue } from '@/api/screener';
@@ -13,14 +15,16 @@ import ScreenerDialogs from '@/components/screener/ScreenerDialogs.vue';
 import ScreenerPicker from '@/components/screener/ScreenerPicker.vue';
 import WatchlistDialog from '@/components/screener/WatchlistDialog.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
+import { useMarketStatus } from '@/composables/charts/useMarketStatus';
 import { adoptPreferences, loadPreferences, patchPreferences, usePreferences } from '@/composables/data/usePreferences';
 import { useResource } from '@/composables/data/useResource';
 import { useFilterRegistry } from '@/composables/screener/useFilterRegistry';
+import { useLivePrices } from '@/composables/screener/useLivePrices';
 import { EXPORT_LIMIT, useScreenerExport } from '@/composables/screener/useScreenerExport';
 import { useScreenerFilters } from '@/composables/screener/useScreenerFilters';
 import { useScreenerResults, type ResultsSource } from '@/composables/screener/useScreenerResults';
 import { useScreeners } from '@/composables/screener/useScreeners';
-import { DEFAULT_COLUMNS, findColumn, type ListMode, type ScreenerDialog } from '@/constants/screener';
+import type { ListMode, ScreenerDialog } from '@/constants/screener';
 
 type Pane = 'filters' | 'results' | 'chart';
 
@@ -67,11 +71,7 @@ const dialogError = ref<string | null>(null);
  */
 const revision = ref(0);
 
-const columns = computed(() => {
-    const stored = preferences.value?.screenerColumns ?? [];
-    const usable = stored.filter((path) => findColumn(path) !== null);
-    return usable.length > 0 ? usable : [...DEFAULT_COLUMNS];
-});
+const columns = computed(() => toResultColumns(preferences.value?.screenerColumns ?? []));
 
 const hiddenSymbols = computed(() => preferences.value?.hiddenSymbols ?? []);
 
@@ -84,6 +84,13 @@ const source = computed<ResultsSource>(() => {
 const results = useScreenerResults(
     () => source.value,
     () => revision.value,
+);
+
+// The feed carries stocks only, and only during the session
+const market = useMarketStatus(() => false);
+const live = useLivePrices(
+    () => results.items.value,
+    () => market.status.value === 'open',
 );
 
 const profile = useResource(
@@ -321,7 +328,7 @@ onUnmounted(() => {
 
                 <ResultsTable
                     v-else
-                    :items="results.items.value"
+                    :items="live.items.value"
                     :columns="columns"
                     :selected="selectedSymbol"
                     :hidden-symbols="hiddenSymbols"

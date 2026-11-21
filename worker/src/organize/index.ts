@@ -1,11 +1,11 @@
 /** The nightly run. */
-import { config } from '@/lib/config.js';
 import { logger } from '@/lib/logger.js';
 import { applyDividends, applySplits } from '@/organize/corporate-actions.js';
 import { updateDailyMetrics } from '@/organize/daily-metrics.js';
 import { markDelisted, stillListed } from '@/organize/delist.js';
 import { updateFundamentals } from '@/organize/fundamentals.js';
 import { updateHolidays } from '@/organize/holidays.js';
+import { withNightlyLock } from '@/organize/lock.js';
 import { updateMarketStats } from '@/organize/market-stats.js';
 import { updateDailyPrices, type PriceUpdate } from '@/organize/prices.js';
 import { pruneIntraday } from '@/organize/prune.js';
@@ -32,12 +32,7 @@ let stopping = false;
  * the exchange's clock each time and a daylight-saving change moves it by an
  * hour. Resolves only when the role is stopped.
  */
-export async function startOrganizer(): Promise<void> {
-    if (config.organize.runOnStart) {
-        logger.warn('ORGANIZE_ON_START is set — running immediately');
-        await runNightly();
-    }
-
+export function startOrganizer(): Promise<void> {
     return new Promise<void>((resolve): void => {
         const schedule = (): void => {
             if (stopping) {
@@ -70,7 +65,17 @@ export function stopOrganizer(): void {
     if (timer !== undefined) clearTimeout(timer);
 }
 
-async function runNightly(): Promise<RunSummary> {
+/**
+ * One nightly run, now; null without running when another process holds the
+ * nightly lock, since two runs replacing the same bars can leave duplicates.
+ */
+export async function runNightly(): Promise<RunSummary | null> {
+    const summary = await withNightlyLock(runSteps);
+    if (summary === null) logger.warn('Another nightly run holds the lock; this one is skipped');
+    return summary;
+}
+
+async function runSteps(): Promise<RunSummary> {
     const startedAt = Date.now();
     const failed: string[] = [];
     let steps = 0;

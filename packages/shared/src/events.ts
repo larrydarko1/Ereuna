@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { CHART_TIMEFRAMES } from '#db/collections.js';
 import { LIMITS } from '#limits.js';
 import { symbolField } from '#requests/fields.js';
+import { portfolioValuationSchema } from '#responses/portfolio.js';
 
 /**
  * One bucket as it reaches the browser. `time` matches the REST series exactly
@@ -29,6 +30,25 @@ const liveCandleSchema = z.object({
 
 export type LiveCandle = z.output<typeof liveCandleSchema>;
 
+/**
+ * One symbol's last price, with its change since the previous session's close
+ * worked out by the server, as a quote vendor's snapshot carries it. The page
+ * only displays it: it holds no reference price of its own that could be a
+ * session older than the one trading. `changePercent` is null for a symbol
+ * with no earlier bar to compare against.
+ */
+const liveQuoteSchema = z.object({
+    price: z.number(),
+    changePercent: z.number().nullable(),
+});
+
+export type LiveQuote = z.output<typeof liveQuoteSchema>;
+
+const candlePairSchema = z.object({ symbol: symbolField, timeframe: z.enum(CHART_TIMEFRAMES) });
+
+/** One chart's live subscription, as a client asks for it. */
+export type CandlePair = z.input<typeof candlePairSchema>;
+
 export type ServerEvent = keyof typeof SERVER_EVENTS;
 
 type ClientEvent = keyof typeof CLIENT_EVENTS;
@@ -45,6 +65,12 @@ export type ServerToClientEvents = { [TEvent in ServerEvent]: (payload: EventPay
 /** Socket.IO's typed-events map for what a client sends. */
 export type ClientToServerEvents = { [TEvent in ClientEvent]: (payload: ClientPayload<TEvent>) => void };
 
+/**
+ * The most charts one connection may have live at once. A page charts at most
+ * two (the screener's daily over weekly); the rest is headroom, not a feature.
+ */
+const MAX_LIVE_CHARTS = 4;
+
 export const SERVER_EVENTS = {
     /** The bucket this socket watches, each time a trade moves it. */
     'candle:update': z.object({
@@ -52,17 +78,24 @@ export const SERVER_EVENTS = {
         timeframe: z.enum(CHART_TIMEFRAMES),
         candle: liveCandleSchema,
     }),
-    /** A partial symbol → last price map: only what moved since the last push. */
-    'quote:update': z.object({ quotes: z.record(z.string(), z.number()) }),
+    /** A partial symbol → quote map: only what moved since the last push. */
+    'quote:update': z.object({ quotes: z.record(z.string(), liveQuoteSchema) }),
+    /** The watched portfolio priced at the latest trades, at most once a second while they move. */
+    'portfolio:update': portfolioValuationSchema,
 } as const;
 
 export const CLIENT_EVENTS = {
-    /** Replaces this socket's candle subscription. */
-    'candle:watch': z.object({ symbol: symbolField, timeframe: z.enum(CHART_TIMEFRAMES) }),
-    /**
-     * Replaces this socket's quote subscriptions. Capped at what one portfolio
-     * can hold: the caller is a positions table, and silently truncating its
-     * list would leave rows that never tick.
-     */
-    'quote:watch': z.object({ symbols: z.array(symbolField).max(LIMITS.positionsPerPortfolio) }),
+    /** Replaces this socket's candle subscriptions with every pair its open charts show. */
+    'candle:watch': z.object({ pairs: z.array(candlePairSchema).max(MAX_LIVE_CHARTS) }),
+    /** Replaces this socket's quote subscriptions. Capped at what one watchlist holds, which is also one screener page. */
+    'quote:watch': z.object({ symbols: z.array(symbolField).max(LIMITS.tickersPerWatchlist) }),
+    /** Replaces the portfolio this socket has priced live; null stops it. */
+    'portfolio:watch': z.object({
+        number: z
+            .number()
+            .int()
+            .min(0)
+            .max(LIMITS.portfolioSlots - 1)
+            .nullable(),
+    }),
 } as const;

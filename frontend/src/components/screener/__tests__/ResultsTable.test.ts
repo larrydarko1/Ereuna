@@ -52,6 +52,13 @@ describe('ResultsTable', () => {
         expect(cells(table())[2]).toBe(`${formatNumber(1.25, 2)}%`);
     });
 
+    it('shows a change stored as a fraction as the percentage it is', () => {
+        const wrapper = table({ items: [result('AAPL', { todaychange: -0.0062 })], columns: ['todaychange'] });
+
+        expect(cells(wrapper)).toEqual([`${formatNumber(-0.62, 2)}%`]);
+        expect(wrapper.get('.results-table__td--figure').classes()).toContain('results-table__td--down');
+    });
+
     it('dashes a missing figure rather than printing null', () => {
         expect(
             cells(

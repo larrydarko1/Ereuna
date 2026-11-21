@@ -1,5 +1,5 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ScreenerResultPage, ScreenerSummary } from '@ereuna/shared';
 
@@ -7,12 +7,16 @@ import { preferences, screenerResult, screenerSummary } from '@/__tests__/suppor
 import { assetProfile } from '@/__tests__/support/assets';
 import { elementOf, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
+import { socket } from '@/__tests__/support/socket';
 import { clearAuth } from '@/api/client';
-import { DEFAULT_COLUMNS } from '@/constants/screener';
 import { i18n } from '@/i18n';
+import { formatNumber } from '@/utils/formatters';
 import Screener from '@/views/Screener.vue';
 
 vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());
+
+/** Price, market cap, P/E, today's change and average volume: every default is a figure. */
+const DEFAULT_COLUMN_COUNT = 5;
 
 /**
  * The price chart is stubbed: it drives the vendored canvas library, which has
@@ -71,6 +75,11 @@ beforeEach(() => {
     clearAuth();
     localStorage.clear();
     document.body.innerHTML = '';
+    socket.reset();
+    // After the bell unless a test opens the session, so the live feed stays off
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-03-06T22:00:00Z'));
+    api.on('GET /api/market/holidays', { holidays: [] });
     api.on('GET /api/preferences', preferences());
     api.on('PATCH /api/preferences', preferences());
     api.on('GET /api/screeners', { items: [screener('Growth'), screener('Value')] });
@@ -89,7 +98,25 @@ beforeEach(() => {
     api.on('GET /api/charts/NVDA/profile', assetProfile({ symbol: 'NVDA', name: 'Nvidia', exchange: 'NASDAQ' }));
 });
 
+afterEach(() => {
+    vi.useRealTimers();
+});
+
 describe('Screener', () => {
+    it('ticks the price of the page during the session', async () => {
+        vi.setSystemTime(new Date('2026-03-06T15:00:00Z')); // 10:00 New York
+        api.on('GET /api/screeners/Growth/results', {
+            ...page(['AAPL']),
+            items: [screenerResult('AAPL', { columns: { 'TimeSeries.close': 200 } })],
+        });
+        const wrapper = await view();
+
+        socket.deliver('quote:update', { quotes: { AAPL: { price: 210, changePercent: 5 } } });
+        await flushPromises();
+
+        expect(wrapper.findAll('.results-table__td--figure')[0]?.text()).toBe(formatNumber(210, 2));
+    });
+
     it('reads the screeners, the filter catalogue and the preferences on arrival', async () => {
         await view();
 
@@ -124,7 +151,7 @@ describe('Screener', () => {
     it('shows the default columns until the account has chosen its own', async () => {
         const wrapper = await view();
 
-        expect(wrapper.findAll('.results-table__th--figure')).toHaveLength(DEFAULT_COLUMNS.length);
+        expect(wrapper.findAll('.results-table__th--figure')).toHaveLength(DEFAULT_COLUMN_COUNT);
     });
 
     it('ignores a stored column the catalogue no longer knows', async () => {
@@ -132,7 +159,7 @@ describe('Screener', () => {
 
         const wrapper = await view();
 
-        expect(wrapper.findAll('.results-table__th--figure')).toHaveLength(DEFAULT_COLUMNS.length);
+        expect(wrapper.findAll('.results-table__th--figure')).toHaveLength(DEFAULT_COLUMN_COUNT);
     });
 
     it('switches to the combined results, which come from their own route', async () => {
@@ -157,7 +184,7 @@ describe('Screener', () => {
 
         expect(api.calls.some((call) => call.path === '/api/screeners/hidden/results')).toBe(true);
         expect(wrapper.findAll('.results-table__row')).toHaveLength(1);
-        expect(wrapper.findAll('.results-table__th--figure')).toHaveLength(DEFAULT_COLUMNS.length);
+        expect(wrapper.findAll('.results-table__th--figure')).toHaveLength(DEFAULT_COLUMN_COUNT);
     });
 
     it('says the list is empty rather than drawing an empty table', async () => {

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { TIINGO_GROUP, TIINGO_STREAM } from '@ereuna/shared';
+import { TIINGO_CONSUMER, TIINGO_GROUP, TIINGO_STREAM } from '@ereuna/shared';
 
 import { fakeRedis, type RedisStub } from '@/__tests__/support/redis.js';
 
@@ -13,6 +13,8 @@ vi.mock('@/aggregate/builder.js', () => ({
         applied.push([symbol, price, at]);
     },
 }));
+const session: { refused: Set<number> } = { refused: new Set() };
+vi.mock('@/aggregate/session.js', () => ({ isInSession: (at: number): boolean => !session.refused.has(at) }));
 const logged: { errors: unknown[] } = { errors: [] };
 vi.mock('@/lib/logger.js', () => ({
     logger: {
@@ -36,7 +38,7 @@ function read(...payloads: string[]): unknown {
 }
 
 const trade = (ticker: unknown, price: unknown, instant: unknown): string =>
-    JSON.stringify({ service: 'iex', data: [instant, ticker, price] });
+    JSON.stringify({ service: 'cons', data: [instant, ticker, price] });
 
 /** Run the loop for exactly `reads` iterations. */
 async function consume(reads: number): Promise<void> {
@@ -51,6 +53,7 @@ async function consume(reads: number): Promise<void> {
 beforeEach(() => {
     redis.current = fakeRedis();
     applied.length = 0;
+    session.refused.clear();
     logged.errors = [];
 });
 
@@ -66,29 +69,30 @@ describe('joining the stream', () => {
         expect(logged.errors).toEqual([]);
     });
 
-    it('names the consumer after the process, so two would not share an entry', async () => {
-        redis.current.xreadgroup.mockResolvedValue(null);
+    it('reads under one fixed consumer name, so a restart finds what the last run left unacknowledged', async () => {
         await consume(1);
         const [, group, name] = redis.current.xreadgroup.mock.calls[0] ?? [];
         expect(group).toBe(TIINGO_GROUP);
-        expect(name).toBe(`${TIINGO_GROUP}-${process.pid}`);
+        expect(name).toBe(TIINGO_CONSUMER);
     });
 
-    it('reads a bounded batch with a blocking wait, taking only new entries', async () => {
-        redis.current.xreadgroup.mockResolvedValue(null);
-        await consume(1);
-        expect(redis.current.xreadgroup).toHaveBeenCalledWith(
+    it('reads a bounded batch with a blocking wait, its own pending entries first and then new ones', async () => {
+        await consume(2);
+        const flags = [
             'GROUP',
             TIINGO_GROUP,
-            expect.any(String),
+            TIINGO_CONSUMER,
             'COUNT',
             config.stream.batchSize,
             'BLOCK',
             config.stream.blockMs,
             'STREAMS',
             TIINGO_STREAM,
-            '>',
-        );
+        ];
+        expect(redis.current.xreadgroup.mock.calls).toEqual([
+            [...flags, '0'],
+            [...flags, '>'],
+        ]);
     });
 
     it('stops without ever reading when told to stop first', async () => {
@@ -130,6 +134,45 @@ describe('reading a batch', () => {
         expect(redis.current.xack).not.toHaveBeenCalled();
     });
 
+    it('replays the entries a crash left unacknowledged before reading new ones', async () => {
+        redis.current.xreadgroup.mockResolvedValueOnce(read(trade('AAPL', 100, 1_700_000_000_000)));
+        redis.current.xreadgroup.mockResolvedValueOnce([[TIINGO_STREAM, []]]);
+        await consume(3);
+
+        expect(applied).toEqual([['AAPL', 100, 1_700_000_000_000]]);
+        expect(redis.current.xack).toHaveBeenCalledExactlyOnceWith(TIINGO_STREAM, TIINGO_GROUP, '166-0');
+        expect(redis.current.xreadgroup.mock.calls.map((call) => call.at(-1))).toEqual(['0', '0', '>']);
+    });
+
+    it('acknowledges a pending entry the length cap already trimmed, rather than failing on it every read', async () => {
+        redis.current.xreadgroup.mockResolvedValueOnce([[TIINGO_STREAM, [['166-0', null]]]]);
+        await consume(1);
+
+        expect(logged.errors).toEqual([]);
+        expect(applied).toEqual([]);
+        expect(redis.current.xack).toHaveBeenCalledWith(TIINGO_STREAM, TIINGO_GROUP, '166-0');
+    });
+
+    it('acknowledges a batch whose ack failed before reading anything else', async () => {
+        vi.useFakeTimers();
+        redis.current.xreadgroup.mockResolvedValueOnce(read(trade('AAPL', 100, 1_700_000_000_000)));
+        redis.current.xack.mockRejectedValueOnce(new Error('connection lost'));
+
+        const done = consume(2);
+        await vi.advanceTimersByTimeAsync(1_000);
+        await done;
+
+        expect(redis.current.xack.mock.calls).toEqual([
+            [TIINGO_STREAM, TIINGO_GROUP, '166-0'],
+            [TIINGO_STREAM, TIINGO_GROUP, '166-0'],
+        ]);
+        const [, retry] = redis.current.xack.mock.invocationCallOrder;
+        const [, secondRead] = redis.current.xreadgroup.mock.invocationCallOrder;
+        expect(retry).toBeLessThan(secondRead ?? 0);
+        expect(applied).toHaveLength(1);
+        vi.useRealTimers();
+    });
+
     it('logs a failed read and keeps the loop alive — the stream is the only input', async () => {
         vi.useFakeTimers();
         redis.current.xreadgroup.mockRejectedValueOnce(new Error('connection lost'));
@@ -142,6 +185,17 @@ describe('reading a batch', () => {
         expect(logged.errors).toHaveLength(1);
         expect(applied).toHaveLength(1);
         vi.useRealTimers();
+    });
+
+    it('drops a trade outside its session, and still acknowledges it', async () => {
+        session.refused.add(1_700_000_000_000);
+        redis.current.xreadgroup.mockResolvedValueOnce(
+            read(trade('AAPL', 100, 1_700_000_000_000), trade('MSFT', 50, 1_700_000_000_001)),
+        );
+        await consume(1);
+
+        expect(applied).toEqual([['MSFT', 50, 1_700_000_000_001]]);
+        expect(redis.current.xack).toHaveBeenCalledExactlyOnceWith(TIINGO_STREAM, TIINGO_GROUP, '166-0', '166-1');
     });
 
     it('ignores an entry with no `data` field', async () => {
@@ -191,8 +245,9 @@ describe('decoding the vendor payload', () => {
     it.each([
         ['malformed JSON', 'not json'],
         ['another service', JSON.stringify({ service: 'crypto', data: [1, 'BTC', 1] })],
-        ['no data array', JSON.stringify({ service: 'iex' })],
-        ['too short a data array', JSON.stringify({ service: 'iex', data: [1, 'AAPL'] })],
+        ['the IEX feed', JSON.stringify({ service: 'iex', data: [1, 'AAPL', 1] })],
+        ['no data array', JSON.stringify({ service: 'cons' })],
+        ['too short a data array', JSON.stringify({ service: 'cons', data: [1, 'AAPL'] })],
     ])('rejects %s', async (_label, payload) => {
         await expect(decode(payload)).resolves.toEqual([]);
     });

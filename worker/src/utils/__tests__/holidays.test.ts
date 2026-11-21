@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { holidayCalendar, listSessions } from '@/utils/holidays.js';
+import { findFirstMissingSession, holidayCalendar, listSessions } from '@/utils/holidays.js';
 
 const dates = (year: number): string[] => holidayCalendar(year, 1).map((holiday) => holiday.date);
 
@@ -69,5 +69,32 @@ describe('listSessions', () => {
 
     it('is empty when the range is backwards', () => {
         expect(days('2026-11-10', '2026-11-09')).toEqual([]);
+    });
+});
+
+describe('findFirstMissingSession', () => {
+    const day = (date: string): Date => new Date(`${date}T00:00:00.000Z`);
+
+    it('is null with nothing stored, since there is no first session to start from', () => {
+        expect(findFirstMissingSession([], day('2026-09-04'))).toBeNull();
+    });
+
+    it('is null when every session through the last one asked for is stored', () => {
+        const stored = [day('2026-09-01'), day('2026-09-02'), day('2026-09-03'), day('2026-09-04')];
+        expect(findFirstMissingSession(stored, day('2026-09-07'))).toBeNull();
+    });
+
+    it('finds a hole before a later stored bar, not just after the last one', () => {
+        const stored = [day('2026-09-01'), day('2026-09-04')];
+        expect(findFirstMissingSession(stored, day('2026-09-04'))).toEqual(day('2026-09-02'));
+    });
+
+    it('skips weekends and holidays, which are no session to miss', () => {
+        const stored = [day('2026-09-04'), day('2026-09-08')];
+        expect(findFirstMissingSession(stored, day('2026-09-09'))).toEqual(day('2026-09-09'));
+    });
+
+    it('never asks for the sessions before the earliest stored bar', () => {
+        expect(findFirstMissingSession([day('2026-09-03')], day('2026-09-03'))).toBeNull();
     });
 });

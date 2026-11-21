@@ -1,5 +1,5 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { PortfolioSummary, TradeRow } from '@ereuna/shared';
 
@@ -7,10 +7,11 @@ import { portfolioRow } from '@/__tests__/support/answers';
 import { elementOf, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { summary as makeSummary } from '@/__tests__/support/portfolio';
+import { socket } from '@/__tests__/support/socket';
 import { objectId } from '@/__tests__/support/values';
 import { clearAuth } from '@/api/client';
 import { i18n } from '@/i18n';
-import { toDateInput } from '@/utils/formatters';
+import { formatCurrency, toDateInput } from '@/utils/formatters';
 import Portfolio from '@/views/Portfolio.vue';
 
 vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());
@@ -35,7 +36,8 @@ const position = (symbol: string): PortfolioSummary['positions'][number] => ({
     side: 'long',
     shares: 10,
     avgPrice: 100,
-    lastClose: 110,
+    price: 110,
+    live: false,
     marketValue: 1100,
     exposure: 1100,
     unrealizedPL: 100,
@@ -114,6 +116,7 @@ beforeEach(() => {
     clearAuth();
     localStorage.clear();
     document.body.innerHTML = '';
+    socket.reset();
 });
 
 describe('Portfolio', () => {
@@ -364,5 +367,50 @@ describe('Portfolio', () => {
 
         expect(wrapper.get('[role="alert"]').text()).toBe(i18n.global.t('errors.INTERNAL'));
         expect(wrapper.find('.portfolio-tabs').exists()).toBe(true);
+    });
+});
+
+describe('Portfolio live valuation', () => {
+    beforeEach(() => {
+        // Only the clock: flushPromises runs on the real setTimeout. 10:00 New York on a Friday
+        vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+        vi.setSystemTime(new Date('2026-03-06T15:00:00Z'));
+        api.on('GET /api/market/holidays', { holidays: [] });
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    it('asks the server to price the open slot while the session trades', async () => {
+        seed({ positions: [position('AAPL')] });
+
+        await view();
+
+        expect(socket.emitted).toContainEqual({ event: 'portfolio:watch', payload: { number: 0 } });
+    });
+
+    it('shows the valuation the server pushed over the summary it read', async () => {
+        seed({ positions: [position('AAPL')] });
+        const wrapper = await view();
+
+        socket.deliver('portfolio:update', {
+            number: 0,
+            positions: [{ ...position('AAPL'), price: 130, live: true }],
+            longValue: 1_300,
+            shortValue: 0,
+            grossExposure: 1_300,
+            netExposure: 1_300,
+            totalValue: 123_456,
+            leverageUsed: 0.01,
+            buyingPower: 245_612,
+            unrealizedPL: 300,
+            totalPL: 23_456,
+            totalPLPercent: 23.46,
+        });
+        await flushPromises();
+
+        expect(wrapper.get('.summary-cards').text()).toContain(formatCurrency(123_456));
+        expect(wrapper.get('.positions-table__live').text()).toBe(formatCurrency(130));
     });
 });

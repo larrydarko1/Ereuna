@@ -12,17 +12,19 @@
  * need; adding the adapter would republish each one across pods to be discarded.
  * Event contract (the payload schemas are SERVER_EVENTS and CLIENT_EVENTS in @ereuna/shared):
  * Server → Client:
- *     candle:update — { symbol, timeframe, candle } for the pair this socket watches.
- *     quote:update  — { quotes } a partial symbol→price map, only what moved.
+ *     candle:update — { symbol, timeframe, candle } for each pair this socket watches.
+ *     quote:update  — { quotes } a partial symbol→{ price, changePercent } map, only what moved.
+ *     portfolio:update — the watched portfolio's valuation, at most once a second while its symbols trade.
  * Client → Server:
- *     candle:watch — { symbol, timeframe }. Replaces this socket's candle subscription.
+ *     candle:watch — { pairs }. Replaces this socket's candle subscriptions.
  *     quote:watch  — { symbols }. Replaces this socket's quote subscriptions.
+ *     portfolio:watch — { number }. Replaces the portfolio this socket has priced live; null stops it.
  * Every push goes through `checkedPayload()`, which holds the payload to its
  * event's schema the way `send()` holds a REST answer to its route's: a payload
  * that does not fit is not sent, a field the schema does not declare is dropped,
  * and both are logged as errors. Every inbound payload is parsed with its
  * event's schema before anything reads it.
- * Both inbound events are client-controlled work, so they are rate limited per
+ * Every inbound event is client-controlled work, so they are rate limited per
  * user on top of the per-IP limit on the handshake itself.
  */
 import { type Server as HttpServer } from 'http';
@@ -32,6 +34,7 @@ import type { z } from 'zod';
 
 import {
     AGGREGATOR_TO_CHART,
+    BUCKET_MS,
     CHART_TO_AGGREGATOR,
     CLIENT_EVENTS,
     QUOTE_TIMEFRAME,
@@ -44,27 +47,32 @@ import {
     type ClientToServerEvents,
     type EventPayload,
     type LiveCandle,
+    type LiveQuote,
     type ServerEvent,
     type ServerToClientEvents,
 } from '@ereuna/shared';
 
-import { readLastCandle, startMarketFeed, stopMarketFeed } from '@/gateway/market-feed.js';
+import { startMarketFeed, stopMarketFeed } from '@/gateway/market-feed.js';
+import { clearValuations, forgetValuation, repriceValuations, startValuation } from '@/gateway/portfolio-valuation.js';
 import { config } from '@/lib/config.js';
+import { readLastCandle } from '@/lib/last-bucket.js';
 import { logger } from '@/lib/logger.js';
 import { consumeTokenBucket, type TokenBucketOptions } from '@/lib/token-bucket.js';
 import { verifyAccessToken } from '@/middleware/auth.js';
+import { latestCloses, percentChange } from '@/services/market/index.js';
 
 /** What this gateway keeps on each socket; `userId` is set once the handshake token checks out. */
 type FeedData = {
     userId?: string;
-    candleRoom?: string; // The one candle room this socket is in, so switching charts can leave it
-    quoteRooms?: string[]; // The quote rooms this socket is in, so a new watchlist can leave them all
+    candleRooms?: string[]; // The candle rooms this socket is in, so a page's new set of charts can leave the rest
+    quoteRooms?: string[]; // The quote rooms this socket is in, so a new watch can leave them all
 };
 
 type FeedSocket = Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, FeedData>;
 
 const candleWatchSchema = CLIENT_EVENTS['candle:watch'];
 const quoteWatchSchema = CLIENT_EVENTS['quote:watch'];
+const portfolioWatchSchema = CLIENT_EVENTS['portfolio:watch'];
 
 /**
  * Connection-time rate limit per client IP — 10 attempts burst, then one every
@@ -84,6 +92,14 @@ const PUSHES: { [TEvent in ServerEvent]: z.ZodType<EventPayload<TEvent>> } = SER
 
 /** The last price emitted per symbol, so an unchanged bucket is not re-sent. */
 const lastPrices = new Map<string, number>();
+
+/**
+ * Each watched symbol's previous close, keyed to the trading day it was read
+ * for. Held per process like `lastPrices`: it is read from the same stored bar
+ * on every pod and cannot change during the day, and the push path is
+ * synchronous, so it has to be at hand before the first bucket arrives.
+ */
+const references = new Map<string, { day: number; close: number | undefined }>();
 
 let io: Server<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, FeedData> | undefined;
 
@@ -132,8 +148,10 @@ export async function initSocket(httpServer: HttpServer): Promise<void> {
         const { userId } = socket.data;
         // The auth middleware above refuses every socket without one; this only keeps the type honest
         if (userId === undefined) return void socket.disconnect(true);
-        socket.on('candle:watch', (payload: unknown) => void watchCandle(socket, userId, payload));
+        socket.on('candle:watch', (payload: unknown) => void watchCandles(socket, userId, payload));
         socket.on('quote:watch', (payload: unknown) => void watchQuotes(socket, userId, payload));
+        socket.on('portfolio:watch', (payload: unknown) => void watchPortfolio(socket, userId, payload));
+        socket.on('disconnect', () => forgetValuation(socket.id));
     });
 
     await startMarketFeed(dispatch);
@@ -146,6 +164,8 @@ export async function closeSocket(): Promise<void> {
         io = undefined;
     }
     lastPrices.clear();
+    references.clear();
+    clearValuations();
 }
 
 /** Fan one aggregated bucket into the rooms waiting for it. */
@@ -167,29 +187,45 @@ function dispatch(message: AggregateMessage): void {
     // connected client would otherwise be woken for a value it already has.
     if (lastPrices.get(message.tickerID) === message.close) return;
     lastPrices.set(message.tickerID, message.close);
-    const quotes = checkedPayload('quote:update', { quotes: { [message.tickerID]: message.close } });
+    const quote = toLiveQuote(message.tickerID, message.close, Date.parse(message.timestamp));
+    const quotes = checkedPayload('quote:update', { quotes: { [message.tickerID]: quote } });
     if (quotes !== undefined) io.to(quoteRoom(message.tickerID)).emit('quote:update', quotes);
+    repriceValuations(message.tickerID, message.close);
 }
 
-async function watchCandle(socket: FeedSocket, userId: string, payload: unknown): Promise<void> {
+async function watchCandles(socket: FeedSocket, userId: string, payload: unknown): Promise<void> {
     const parsed = candleWatchSchema.safeParse(payload);
     if (!parsed.success || !(await allowWatch(userId))) return;
 
-    const { symbol, timeframe } = parsed.data;
-    const bucket = CHART_TO_AGGREGATOR[timeframe];
-    const room = candleRoom(symbol, bucket);
+    const wanted = new Map(
+        parsed.data.pairs.map((pair) => [candleRoom(pair.symbol, CHART_TO_AGGREGATOR[pair.timeframe]), pair]),
+    );
+    // Synchronous on the in-memory adapter, like the quote rooms, so two quick
+    // watches cannot land out of order
+    const held = new Set(socket.data.candleRooms ?? []);
+    for (const room of held) if (!wanted.has(room)) void socket.leave(room);
+    for (const room of wanted.keys()) if (!held.has(room)) void socket.join(room);
+    socket.data.candleRooms = [...wanted.keys()];
 
-    if (socket.data.candleRoom === room) return;
-    if (socket.data.candleRoom !== undefined) await socket.leave(socket.data.candleRoom);
-    await socket.join(room);
-    socket.data.candleRoom = room;
-
-    // A chart opened mid-bucket should not stare at an empty last bar until the
-    // next trade, so the bucket as it stands right now is sent immediately.
-    const opening = await readLastCandle(symbol, bucket);
-    if (opening === null || socket.data.candleRoom !== room) return;
-    const update = checkedPayload('candle:update', { symbol, timeframe, candle: formatCandle(opening, timeframe) });
-    if (update !== undefined) socket.emit('candle:update', update);
+    // Every pair is answered, a held one too: a chart that switches onto a pair
+    // another chart already watches would otherwise stay blank until the next
+    // trade, just like one opened mid-bucket
+    const openings = await Promise.all(
+        [...wanted].map(async ([room, pair]) => ({
+            room,
+            pair,
+            opening: await readLastCandle(pair.symbol, CHART_TO_AGGREGATOR[pair.timeframe]),
+        })),
+    );
+    for (const { room, pair, opening } of openings) {
+        if (opening === null || !socket.data.candleRooms.includes(room)) continue;
+        const update = checkedPayload('candle:update', {
+            symbol: pair.symbol,
+            timeframe: pair.timeframe,
+            candle: formatCandle(opening, pair.timeframe),
+        });
+        if (update !== undefined) socket.emit('candle:update', update);
+    }
 }
 
 async function watchQuotes(socket: FeedSocket, userId: string, payload: unknown): Promise<void> {
@@ -204,14 +240,59 @@ async function watchQuotes(socket: FeedSocket, userId: string, payload: unknown)
     socket.data.quoteRooms = rooms;
     for (const room of rooms) void socket.join(room);
 
-    const quotes: Record<string, number> = {};
+    // After the joins, which must stay synchronous so two quick watches cannot
+    // land out of order; a push in the gap goes out without a change, and the
+    // snapshot below, which has one, replaces it
+    await loadReferences(symbols, Date.now());
+
+    const quotes: Record<string, LiveQuote> = {};
     for (const symbol of symbols) {
         const opening = await readLastCandle(symbol, QUOTE_TIMEFRAME);
-        if (opening !== null) quotes[symbol] = opening.close;
+        if (opening !== null) quotes[symbol] = toLiveQuote(symbol, opening.close, Date.parse(opening.timestamp));
     }
     if (Object.keys(quotes).length === 0) return;
     const update = checkedPayload('quote:update', { quotes });
     if (update !== undefined) socket.emit('quote:update', update);
+}
+
+async function watchPortfolio(socket: FeedSocket, userId: string, payload: unknown): Promise<void> {
+    const parsed = portfolioWatchSchema.safeParse(payload);
+    if (!parsed.success || !(await allowWatch(userId))) return;
+
+    await startValuation(socket.id, userId, parsed.data.number, (valuation) => {
+        const update = checkedPayload('portfolio:update', valuation);
+        if (update !== undefined) socket.emit('portfolio:update', update);
+    });
+}
+
+/**
+ * Read the previous close of every symbol not already known for today's
+ * trading day. A failed read leaves them unknown, which pushes a price with no
+ * change rather than refusing the watch: the price is still worth showing.
+ */
+async function loadReferences(symbols: readonly string[], now: number): Promise<void> {
+    const day = dayOf(now);
+    const missing = symbols.filter((symbol) => references.get(symbol)?.day !== day);
+    if (missing.length === 0) return;
+
+    try {
+        const closes = await latestCloses(missing, { before: new Date(day) });
+        for (const symbol of missing) references.set(symbol, { day, close: closes.get(symbol) });
+    } catch (err) {
+        logger.warn({ err, symbols: missing.length }, 'Previous-close read failed; quotes go out without a change');
+    }
+}
+
+/** A price as the page shows it, measured against the close before the day its bucket belongs to. */
+function toLiveQuote(symbol: string, price: number, at: number): LiveQuote {
+    const reference = references.get(symbol);
+    const close = reference?.day === dayOf(at) ? reference.close : undefined;
+    return { price, changePercent: percentChange(price, close) };
+}
+
+/** The UTC midnight a daily bar for this instant is stamped with; a session never crosses one. */
+function dayOf(at: number): number {
+    return Math.floor(at / BUCKET_MS['1d']) * BUCKET_MS['1d'];
 }
 
 /**

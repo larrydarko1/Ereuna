@@ -66,9 +66,13 @@ describe('the two connections', () => {
         expect(built).toEqual([]);
     });
 
-    it('points both at the configured host and port', () => {
+    it('points both at the configured host, port and database', () => {
         redis.getConsumer();
-        expect(built[0]?.options).toMatchObject({ host: config.redis.host, port: config.redis.port });
+        expect(built[0]?.options).toMatchObject({
+            host: config.redis.host,
+            port: config.redis.port,
+            db: config.redis.db,
+        });
     });
 
     it('never gives up on a request — ioredis would abort a blocking read as a timeout', () => {

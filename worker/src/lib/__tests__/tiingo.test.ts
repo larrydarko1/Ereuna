@@ -2,8 +2,36 @@ import { http, HttpResponse, type JsonBodyType } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+/**
+ * Redis as the request budget sees it: the send times of the last window and
+ * the refusal flag, kept outside the module registry so a fresh client (a
+ * restart, a second process) shares them, as it would share the real Redis.
+ * The window rule is the Lua script's, run here as Redis would run it.
+ */
+const budget = vi.hoisted(() => ({ sent: [] as number[], refusedUntil: 0, broken: false }));
+
 vi.mock('@/lib/logger.js', () => ({
     logger: { info: (): void => {}, warn: (): void => {}, error: (): void => {}, debug: (): void => {} },
+}));
+
+vi.mock('@/lib/redis.js', () => ({
+    getPublisher: () => ({
+        eval: (...[, , , , now, window, limit]: [string, number, string, string, number, number, number, string]) => {
+            if (budget.broken) return Promise.reject(new Error('connection refused'));
+            if (Date.now() < budget.refusedUntil) return Promise.resolve(-1);
+            budget.sent = budget.sent.filter((at) => at > now - window);
+            if (budget.sent.length < limit) {
+                budget.sent.push(now);
+                return Promise.resolve(0);
+            }
+            const blocking = budget.sent[budget.sent.length - limit] ?? now;
+            return Promise.resolve(Math.max(1, blocking + window - now));
+        },
+        set: (_key: string, _value: string, _px: 'PX', ms: number) => {
+            budget.refusedUntil = Date.now() + ms;
+            return Promise.resolve('OK');
+        },
+    }),
 }));
 
 const { config } = await import('@/lib/config.js');
@@ -19,11 +47,11 @@ const server = setupServer();
 const ROW = {
     ticker: 'AAPL',
     date: '2026-09-04T00:00:00.000Z',
-    adjOpen: 101,
-    adjHigh: 106,
-    adjLow: 100,
-    adjClose: 105,
-    adjVolume: 1_000,
+    open: 101,
+    high: 106,
+    low: 100,
+    close: 105,
+    volume: 1_000,
     divCash: 0,
     splitFactor: 1,
 };
@@ -43,6 +71,9 @@ beforeAll(() => {
 
 beforeEach(() => {
     seen.length = 0;
+    budget.sent = [];
+    budget.refusedUntil = 0;
+    budget.broken = false;
 });
 
 afterEach(() => {
@@ -88,8 +119,8 @@ describe('the endpoints', () => {
     });
 });
 
-// A bar is only usable whole: a raw close among adjusted ones is a discontinuity
-// every derived figure would read as a move, so a row short of one is dropped
+// A bar is only usable whole: a hole in it is a move every derived figure would
+// read, so a row short of a price is dropped
 describe('the rows', () => {
     const answer = (rows: JsonBodyType): void => {
         server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json(rows)));
@@ -98,8 +129,8 @@ describe('the rows', () => {
     it.each([
         ['no ticker', { ticker: undefined }],
         ['an empty ticker', { ticker: '' }],
-        ['a missing adjusted close', { adjClose: undefined }],
-        ['a non-numeric adjusted volume', { adjVolume: 'lots' }],
+        ['a missing close', { close: undefined }],
+        ['a non-numeric volume', { volume: 'lots' }],
         ['no date', { date: null }],
     ])('drops a row with %s and keeps the rest', async (_label, overrides) => {
         answer([
@@ -109,8 +140,8 @@ describe('the rows', () => {
         await expect(marketPrices()).resolves.toEqual([{ ...ROW, ticker: 'MSFT' }]);
     });
 
-    it('keeps only the adjusted prices, which is the whole series a bar joins', async () => {
-        answer([{ ...ROW, open: 1, close: 1, volume: 1 }]);
+    it('keeps the prices it traded at, never the ones restated for later dividends', async () => {
+        answer([{ ...ROW, adjOpen: 1, adjClose: 1, adjVolume: 1 }]);
         await expect(marketPrices()).resolves.toEqual([ROW]);
     });
 
@@ -154,18 +185,6 @@ describe('the retry ladder', () => {
             }),
         );
         await expect(marketPrices()).resolves.toEqual([ROW]);
-        expect(attempts).toBe(2);
-    });
-
-    it('retries a 429, which is the vendor having a moment rather than a bad request', async () => {
-        let attempts = 0;
-        server.use(
-            http.get(`${BASE}/tiingo/daily/prices`, () => {
-                attempts += 1;
-                return attempts === 1 ? new HttpResponse(null, { status: 429 }) : HttpResponse.json([]);
-            }),
-        );
-        await expect(marketPrices()).resolves.toEqual([]);
         expect(attempts).toBe(2);
     });
 
@@ -231,5 +250,111 @@ describe('the concurrency limit', () => {
 
         server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json([])));
         await expect(marketPrices()).resolves.toEqual([]);
+    });
+});
+
+describe('the request limit', () => {
+    /** A client of its own, so the hour it is told to stop for, and the requests it counted, end with the test. */
+    async function freshClient(perHour: string): Promise<typeof import('@/lib/tiingo.js')> {
+        vi.stubEnv('TIINGO_REQUESTS_PER_HOUR', perHour);
+        vi.resetModules();
+        return import('@/lib/tiingo.js');
+    }
+
+    afterEach(() => {
+        vi.useRealTimers();
+        vi.unstubAllEnvs();
+    });
+
+    it('stops at a 429 and sends nothing more for an hour, then asks again', async () => {
+        vi.useFakeTimers({ toFake: ['Date'] });
+        const client = await freshClient('10000');
+        let status = 429;
+        server.use(
+            http.get(`${BASE}/tiingo/daily/prices`, () =>
+                status === 429
+                    ? HttpResponse.json({ detail: 'over your hourly allocation' }, { status })
+                    : HttpResponse.json([]),
+            ),
+        );
+
+        await expect(client.marketPrices()).rejects.toThrow(client.TiingoLimitError);
+        await expect(client.dailyHistory('AAPL')).rejects.toThrow(client.TiingoLimitError);
+        expect(seen).toHaveLength(1);
+
+        status = 200;
+        vi.setSystemTime(Date.now() + 3_600_001);
+        await expect(client.marketPrices()).resolves.toEqual([]);
+        expect(seen).toHaveLength(2);
+    });
+
+    it('holds a request past the hourly allowance until the oldest is an hour old', async () => {
+        vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] });
+        const client = await freshClient('2');
+        server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json([])));
+
+        await client.marketPrices();
+        await client.marketPrices();
+        const third = client.marketPrices();
+
+        await vi.advanceTimersByTimeAsync(3_599_000);
+        expect(seen).toHaveLength(2);
+        await vi.advanceTimersByTimeAsync(1_000);
+        await expect(third).resolves.toEqual([]);
+        expect(seen).toHaveLength(3);
+    });
+
+    it('says once that it is waiting, not once per request held at the limit', async () => {
+        vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] });
+        const client = await freshClient('2');
+        const { logger } = await import('@/lib/logger.js');
+        const info = vi.spyOn(logger, 'info');
+        server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json([])));
+
+        await client.marketPrices();
+        await vi.advanceTimersByTimeAsync(1_000);
+        await client.marketPrices();
+        const held = [client.marketPrices(), client.marketPrices()];
+
+        await vi.advanceTimersByTimeAsync(3_600_000);
+        await Promise.all(held);
+        expect(seen).toHaveLength(4);
+        expect(info).toHaveBeenCalledTimes(1);
+    });
+
+    it('counts what an earlier process sent, so a restart does not start from zero', async () => {
+        vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] });
+        server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json([])));
+        const before = await freshClient('2');
+        await before.marketPrices();
+        await before.marketPrices();
+
+        const restarted = await freshClient('2');
+        const held = restarted.marketPrices();
+        await vi.advanceTimersByTimeAsync(3_599_000);
+        expect(seen).toHaveLength(2);
+        await vi.advanceTimersByTimeAsync(1_000);
+        await held;
+        expect(seen).toHaveLength(3);
+    });
+
+    it('stops every process for the hour after one of them is refused', async () => {
+        vi.useFakeTimers({ toFake: ['Date'] });
+        server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json({}, { status: 429 })));
+        const refused = await freshClient('10000');
+        await expect(refused.marketPrices()).rejects.toThrow(refused.TiingoLimitError);
+
+        const other = await freshClient('10000');
+        await expect(other.marketPrices()).rejects.toThrow(other.TiingoLimitError);
+        expect(seen).toHaveLength(1);
+    });
+
+    it('still sends when Redis cannot be reached, rather than halt the nightly', async () => {
+        const client = await freshClient('10000');
+        budget.broken = true;
+        server.use(http.get(`${BASE}/tiingo/daily/prices`, () => HttpResponse.json([])));
+
+        await expect(client.marketPrices()).resolves.toEqual([]);
+        expect(seen).toHaveLength(1);
     });
 });

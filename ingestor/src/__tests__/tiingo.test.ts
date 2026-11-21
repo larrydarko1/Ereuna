@@ -61,9 +61,20 @@ const { config } = await import('@/lib/config.js');
 
 let runSession: typeof import('@/tiingo.js').runSession;
 
-const ACK = JSON.stringify({ data: { subscriptionId: 77 } });
+// The vendor's documented frames: https://www.tiingo.com/documentation/websockets/equity-realtime-stock-data
+const ACK = JSON.stringify({
+    messageType: 'I',
+    data: { subscriptionId: 77 },
+    response: { code: 200, message: 'Success' },
+});
+const HEARTBEAT = JSON.stringify({ messageType: 'H', response: { code: 200, message: 'HeartBeat' } });
+const UNSUBSCRIBED = JSON.stringify({
+    messageType: 'I',
+    data: { tickers: [], thresholdLevel: '6' },
+    response: { code: 200, message: 'Success' },
+});
 const trade = (extra: Record<string, unknown> = {}): string =>
-    JSON.stringify({ messageType: 'A', service: 'iex', data: [1, 'AAPL', 100], ...extra });
+    JSON.stringify({ messageType: 'A', service: 'cons', data: [1, 'AAPL', 100], ...extra });
 
 /** Open a session, complete the handshake, and hand back the socket driving it. */
 async function connected(
@@ -133,6 +144,17 @@ describe('the handshake', () => {
         expect(redis.xadd).not.toHaveBeenCalled();
     });
 
+    it('does not report a heartbeat that arrives before the acknowledgement as a rejection', async () => {
+        void runSession(['AAPL'], () => false);
+        FakeSocket.last?.onopen?.();
+        FakeSocket.last?.onmessage?.({ data: HEARTBEAT });
+        FakeSocket.last?.onmessage?.({ data: ACK });
+        await Promise.resolve();
+
+        expect(logged.warnings).toHaveLength(0);
+        expect(FakeSocket.last?.closed).toBe(false);
+    });
+
     it('ignores a message that is not JSON while waiting for the acknowledgement', async () => {
         void runSession(['AAPL'], () => false);
         FakeSocket.last?.onopen?.();
@@ -162,10 +184,11 @@ describe('relaying', () => {
     it.each([
         ['a heartbeat', JSON.stringify({ messageType: 'H' })],
         ['an info frame', JSON.stringify({ messageType: 'I' })],
-        ['another message type', JSON.stringify({ messageType: 'E', service: 'iex', data: [1, 'AAPL', 1] })],
+        ['another message type', JSON.stringify({ messageType: 'E', service: 'cons', data: [1, 'AAPL', 1] })],
+        ['the IEX feed', JSON.stringify({ messageType: 'A', service: 'iex', data: [1, 'AAPL', 1] })],
         ['another service', JSON.stringify({ messageType: 'A', service: 'crypto', data: [1, 'BTC', 1] })],
-        ['no data array', JSON.stringify({ messageType: 'A', service: 'iex' })],
-        ['a truncated data array', JSON.stringify({ messageType: 'A', service: 'iex', data: [1, 'AAPL'] })],
+        ['no data array', JSON.stringify({ messageType: 'A', service: 'cons' })],
+        ['a truncated data array', JSON.stringify({ messageType: 'A', service: 'cons', data: [1, 'AAPL'] })],
         ['malformed JSON', '{'],
     ])('does not relay %s', async (_label, payload) => {
         const { socket } = await connected();
@@ -186,17 +209,77 @@ describe('relaying', () => {
 });
 
 describe('ending the session', () => {
-    it('unsubscribes before closing, so the vendor is told rather than timing it out', async () => {
+    it('unsubscribes, and closes only once the vendor confirms it', async () => {
         let stop = false;
         const { socket, done } = await connected(() => stop);
 
         stop = true;
         await vi.advanceTimersByTimeAsync(1_000);
+        expect(socket.events().map((event) => event['eventName'])).toEqual(['subscribe', 'unsubscribe']);
+        expect(socket.events()[1]).toEqual({
+            eventName: 'unsubscribe',
+            authorization: config.tiingo.key,
+            eventData: { subscriptionId: 77, tickers: ['AAPL'] },
+        });
+        expect(socket.closed).toBe(false);
+
+        socket.onmessage?.({ data: UNSUBSCRIBED });
+        await done;
+        expect(socket.closed).toBe(true);
+        expect(logged.warnings).toHaveLength(0);
+    });
+
+    it('relays no trade that arrives after the stop signal, even before the next poll', async () => {
+        let stop = false;
+        const { socket } = await connected(() => stop);
+
+        stop = true;
+        socket.onmessage?.({ data: trade() });
+        await vi.advanceTimersByTimeAsync(0);
+
+        expect(redis.xadd).not.toHaveBeenCalled();
+        expect(socket.events().map((event) => event['eventName'])).toEqual(['subscribe', 'unsubscribe']);
+    });
+
+    it('relays nothing and stays open through heartbeats and trades while it waits for the reply', async () => {
+        const { socket } = await connected(() => true);
+        await vi.advanceTimersByTimeAsync(1_000);
+
+        socket.onmessage?.({ data: HEARTBEAT });
+        socket.onmessage?.({ data: trade() });
+        await vi.advanceTimersByTimeAsync(0);
+
+        expect(redis.xadd).not.toHaveBeenCalled();
+        expect(socket.closed).toBe(false);
+    });
+
+    it('closes anyway, with a warning, when the vendor never answers the unsubscribe', async () => {
+        const { socket, done } = await connected(() => true);
+        await vi.advanceTimersByTimeAsync(1_000 + config.tiingo.unsubscribeTimeoutMs);
         await done;
 
-        expect(socket.events().map((event) => event['eventName'])).toEqual(['subscribe', 'unsubscribe']);
-        expect(socket.events()[1]?.['eventData']).toEqual({ subscriptionId: 77, tickers: ['AAPL'] });
         expect(socket.closed).toBe(true);
+        expect(logged.warnings).toHaveLength(1);
+    });
+
+    it.each([
+        ['a refusal', JSON.stringify({ messageType: 'I', response: { code: 404, message: 'Not found' } })],
+        [
+            'tickers still subscribed',
+            JSON.stringify({
+                messageType: 'I',
+                data: { tickers: ['AAPL'], thresholdLevel: '6' },
+                response: { code: 200, message: 'Success' },
+            }),
+        ],
+    ])('reports %s in the reply and still closes', async (_label, reply) => {
+        const { socket, done } = await connected(() => true);
+        await vi.advanceTimersByTimeAsync(1_000);
+
+        socket.onmessage?.({ data: reply });
+        await done;
+        expect(socket.closed).toBe(true);
+        expect(logged.warnings).toHaveLength(1);
     });
 
     it('closes without an unsubscribe when it never got a subscription id', async () => {
@@ -214,6 +297,7 @@ describe('ending the session', () => {
     it('stops only once however long the stop signal stays raised', async () => {
         const { socket, done } = await connected(() => true);
         await vi.advanceTimersByTimeAsync(5_000);
+        socket.onmessage?.({ data: UNSUBSCRIBED });
         await done;
         expect(socket.events().filter((event) => event['eventName'] === 'unsubscribe')).toHaveLength(1);
     });
