@@ -410,6 +410,14 @@ which brings ESLint, Prettier, stylelint, knip and jscpd.
 
 **External** — Tiingo (market data).
 
+## Versioning
+
+Versions are calendar-based, `YYYY.M.PATCH`: the year and month a release ships, then
+how many releases came before it that month. Ereuna is a web app, so there's no old
+version to stay on, and the number says how recent a release is. What changed, and what
+an upgrade asks you to do, is in [CHANGELOG.md](CHANGELOG.md), which also explains the
+older numbers in the history.
+
 ## Acknowledgments
 
 - **TradingView** — for Lightweight Charts, forked and extended here
