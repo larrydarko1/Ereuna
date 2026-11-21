@@ -238,7 +238,7 @@ export default defineConfig({
             },
         },
         'pipeline': { skip: 'No script ran it before larry upgrade.' },
-        'refactoring': {},
+        'refactoring': { claudeCode: true },
         // `injectionGuard` — Vite prepends `_variables.scss` to every stylesheet but
         // index.scss. The entry `@use`s the partials that EMIT CSS, and every SFC <style>
         // block is its own Sass compilation, so injecting the entry would re-emit the whole
