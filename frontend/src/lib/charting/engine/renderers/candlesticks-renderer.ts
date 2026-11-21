@@ -44,9 +44,7 @@ export class PaneRendererCandlesticks extends BitmapCoordinatesPaneRenderer {
     }
 
     protected override _drawImpl(renderingScope: BitmapCoordinatesRenderingScope): void {
-        if (this._data === null || this._data.bars.length === 0 || this._data.visibleRange === null) {
-            return;
-        }
+        if (this._data === null || this._data.bars.length === 0 || this._data.visibleRange === null) return;
 
         const { horizontalPixelRatio } = renderingScope;
 
@@ -59,19 +57,13 @@ export class PaneRendererCandlesticks extends BitmapCoordinatesPaneRenderer {
         // in order of keeping crosshair-over-candlesticks drawing symmetric
         if (this._barWidth >= 2) {
             const wickWidth = Math.floor(horizontalPixelRatio);
-            if (wickWidth % 2 !== this._barWidth % 2) {
-                this._barWidth--;
-            }
+            if (wickWidth % 2 !== this._barWidth % 2) this._barWidth--;
         }
 
         const bars = this._data.bars;
-        if (this._data.wickVisible) {
-            this._drawWicks(renderingScope, bars, this._data.visibleRange);
-        }
+        if (this._data.wickVisible) this._drawWicks(renderingScope, bars, this._data.visibleRange);
 
-        if (this._data.borderVisible) {
-            this._drawBorder(renderingScope, bars, this._data.visibleRange);
-        }
+        if (this._data.borderVisible) this._drawBorder(renderingScope, bars, this._data.visibleRange);
 
         const borderWidth = this._calculateBorderWidth(horizontalPixelRatio);
 
@@ -85,9 +77,7 @@ export class PaneRendererCandlesticks extends BitmapCoordinatesPaneRenderer {
         bars: readonly CandlestickItem[],
         visibleRange: SeriesItemsIndexesRange,
     ): void {
-        if (this._data === null) {
-            return;
-        }
+        if (this._data === null) return;
 
         const { context: ctx, horizontalPixelRatio, verticalPixelRatio } = renderingScope;
 
@@ -135,9 +125,7 @@ export class PaneRendererCandlesticks extends BitmapCoordinatesPaneRenderer {
 
     private _calculateBorderWidth(pixelRatio: number): number {
         let borderWidth = Math.floor(Constants.BarBorderWidth * pixelRatio);
-        if (this._barWidth <= 2 * borderWidth) {
-            borderWidth = Math.floor((this._barWidth - 1) * 0.5);
-        }
+        if (this._barWidth <= 2 * borderWidth) borderWidth = Math.floor((this._barWidth - 1) * 0.5);
         const res = Math.max(Math.floor(pixelRatio), borderWidth);
         if (this._barWidth <= res * 2) {
             // do not draw bodies, restore original value
@@ -151,9 +139,7 @@ export class PaneRendererCandlesticks extends BitmapCoordinatesPaneRenderer {
         bars: readonly CandlestickItem[],
         visibleRange: SeriesItemsIndexesRange,
     ): void {
-        if (this._data === null) {
-            return;
-        }
+        if (this._data === null) return;
 
         const { context: ctx, horizontalPixelRatio, verticalPixelRatio } = renderingScope;
 
@@ -197,9 +183,7 @@ export class PaneRendererCandlesticks extends BitmapCoordinatesPaneRenderer {
         bars: readonly CandlestickItem[],
         visibleRange: SeriesItemsIndexesRange,
     ): void {
-        if (this._data === null) {
-            return;
-        }
+        if (this._data === null) return;
 
         const { context: ctx, horizontalPixelRatio, verticalPixelRatio } = renderingScope;
 
@@ -229,9 +213,7 @@ export class PaneRendererCandlesticks extends BitmapCoordinatesPaneRenderer {
                 bottom -= borderWidth;
             }
 
-            if (top > bottom) {
-                continue;
-            }
+            if (top > bottom) continue;
             ctx.fillRect(left, top, right - left + 1, bottom - top + 1);
         }
     }

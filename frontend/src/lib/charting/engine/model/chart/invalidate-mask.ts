@@ -154,9 +154,7 @@ export class InvalidateMask {
     }
 
     public merge(other: InvalidateMask): void {
-        for (const tsInvalidation of other._timeScaleInvalidations) {
-            this._applyTimeScaleInvalidation(tsInvalidation);
-        }
+        for (const tsInvalidation of other._timeScaleInvalidations) this._applyTimeScaleInvalidation(tsInvalidation);
 
         this._globalLevel = higherLevel(this._globalLevel, other._globalLevel);
         other._invalidatedPanes.forEach((invalidation: PaneInvalidation, index: number) => {
@@ -201,9 +199,7 @@ export class InvalidateMask {
         const index = this._timeScaleInvalidations.findIndex(
             (inv: TimeScaleInvalidation) => inv.type === TimeScaleInvalidationType.Animation,
         );
-        if (index !== -1) {
-            this._timeScaleInvalidations.splice(index, 1);
-        }
+        if (index !== -1) this._timeScaleInvalidations.splice(index, 1);
     }
 }
 
@@ -216,9 +212,7 @@ function mergePaneInvalidation(
     beforeValue: PaneInvalidation | undefined,
     newValue: PaneInvalidation,
 ): PaneInvalidation {
-    if (beforeValue === undefined) {
-        return newValue;
-    }
+    if (beforeValue === undefined) return newValue;
     const level = higherLevel(beforeValue.level, newValue.level);
     const autoScale = beforeValue.autoScale === true || newValue.autoScale === true;
     return { level, autoScale };

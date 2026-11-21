@@ -10,14 +10,10 @@ export function clamp(value: number, minVal: number, maxVal: number): number {
 }
 
 export function isBaseDecimal(value: number): boolean {
-    if (value < 0) {
-        return false;
-    }
+    if (value < 0) return false;
 
     for (let current = value; current > 1; current /= 10) {
-        if (current % 10 !== 0) {
-            return false;
-        }
+        if (current % 10 !== 0) return false;
     }
 
     return true;
@@ -33,15 +29,11 @@ export function equal(x1: number, x2: number, epsilon: number): boolean {
 
 // We can't use Math.min(...arr) because that would only support arrays shorter than 65536 items.
 export function min(arr: number[]): number {
-    if (arr.length < 1) {
-        throw Error('array is empty');
-    }
+    if (arr.length < 1) throw Error('array is empty');
 
     let minVal = getDefined(arr[0]);
     for (const value of arr) {
-        if (value < minVal) {
-            minVal = value;
-        }
+        if (value < minVal) minVal = value;
     }
 
     return minVal;

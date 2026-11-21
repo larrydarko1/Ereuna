@@ -88,8 +88,8 @@ That's the difference I'd point at. Vibe coding is accepting output with no spec
 verification. Here the spec and the verification came first, and the generated code has
 to survive them.
 
-**On the test numbers:** unit coverage sits at 92% of lines and 83% of branches across
-272 test files, plus 11 Playwright end-to-end specs. Treat that as evidence the suite
+**On the test numbers:** unit coverage sits at 94% of lines and 83% of branches across
+298 test files, plus 11 Playwright end-to-end specs. Treat that as evidence the suite
 exists and passes, not as evidence the code is correct — tests generated alongside the
 code, from the same spec, can encode the same misunderstanding the code does. The gates
 catch structural drift. They don't catch a wrong idea, faithfully implemented and
@@ -367,7 +367,7 @@ allows exactly two unauthenticated mounts and fails on a third.
 
 Nothing is excluded from them. The charting layer used to be — 208 files of vendored
 upstream code, skipped by every gate, with typecheck errors written off as out of scope.
-It isn't vendored any more: it's 211 first-party files under
+It isn't vendored any more: it's 214 first-party files under
 [`frontend/src/lib/charting/`](frontend/src/lib/charting/), it typechecks clean, it lints
 under the full rule set, every custom gate reaches it, and it's in coverage scope with
 the rest of the repo. The eleven files in it that couldn't get under the 400-line cap are
@@ -409,6 +409,14 @@ Playwright, concurrently, and [@larrydarko/lint-config](https://www.npmjs.com/pa
 which brings ESLint, Prettier, stylelint, knip and jscpd.
 
 **External** — Tiingo (market data).
+
+## Versioning
+
+Versions are calendar-based, `YYYY.M.PATCH`: the year and month a release ships, then
+how many releases came before it that month. Ereuna is a web app, so there's no old
+version to stay on, and the number says how recent a release is. What changed, and what
+an upgrade asks you to do, is in [CHANGELOG.md](CHANGELOG.md), which also explains the
+older numbers in the history.
 
 ## Acknowledgments
 

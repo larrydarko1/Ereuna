@@ -35,9 +35,7 @@ export class PriceTickSpanCalculator {
                     throw new Error('unexpected base');
                 }
 
-                if (this._fractionalDividers.length > 100) {
-                    throw new Error('something wrong with base');
-                }
+                if (this._fractionalDividers.length > 100) throw new Error('something wrong with base');
             }
         }
     }
@@ -64,16 +62,12 @@ export class PriceTickSpanCalculator {
             const resultTickSpanLarger1 = greaterOrEqual(resultTickSpan, 1, Constants.TickSpanEpsilon);
             const haveToContinue =
                 resultTickSpanLargerMinMovement && resultTickSpanLargerMaxTickSpan && resultTickSpanLarger1;
-            if (!haveToContinue) {
-                break;
-            }
+            if (!haveToContinue) break;
             resultTickSpan /= divider;
             divider = getDefined(this._integralDividers[++index % this._integralDividers.length]);
         }
 
-        if (resultTickSpan <= minMovement + Constants.TickSpanEpsilon) {
-            resultTickSpan = minMovement;
-        }
+        if (resultTickSpan <= minMovement + Constants.TickSpanEpsilon) resultTickSpan = minMovement;
 
         resultTickSpan = Math.max(1, resultTickSpan);
 

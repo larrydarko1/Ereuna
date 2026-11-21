@@ -38,16 +38,12 @@ export function walkLine<TItem extends LinePoint, TStyle extends CanvasRendering
 ): void {
     const { items, lineType, visibleRange, barWidth } = path;
 
-    if (items.length === 0 || visibleRange.from >= items.length || visibleRange.to <= 0) {
-        return;
-    }
+    if (items.length === 0 || visibleRange.from >= items.length || visibleRange.to <= 0) return;
 
     const { context: ctx, horizontalPixelRatio, verticalPixelRatio } = renderingScope;
 
     const firstItem = items[visibleRange.from];
-    if (firstItem === undefined) {
-        return;
-    }
+    if (firstItem === undefined) return;
 
     let currentStyle = styleGetter(renderingScope, firstItem);
     let currentStyleFirstItem = firstItem;

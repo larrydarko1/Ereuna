@@ -16,20 +16,14 @@ export class SeriesHorizontalBaseLinePaneView extends SeriesHorizontalLinePaneVi
 
         const priceScale = this._series.priceScale();
         const mode = priceScale.mode().mode;
-        if (mode !== PriceScaleMode.Percentage && mode !== PriceScaleMode.IndexedTo100) {
-            return;
-        }
+        if (mode !== PriceScaleMode.Percentage && mode !== PriceScaleMode.IndexedTo100) return;
 
         const seriesOptions = this._series.options();
 
-        if (!seriesOptions.baseLineVisible || !this._series.visible()) {
-            return;
-        }
+        if (!seriesOptions.baseLineVisible || !this._series.visible()) return;
 
         const firstValue = this._series.firstValue();
-        if (firstValue === null) {
-            return;
-        }
+        if (firstValue === null) return;
 
         this._lineRendererData.visible = true;
         this._lineRendererData.y = priceScale.priceToCoordinate(firstValue.value, firstValue.value);

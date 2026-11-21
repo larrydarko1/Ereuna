@@ -72,12 +72,8 @@ export class Pane implements IDestroyable {
     }
 
     public applyScaleOptions(options: DeepPartial<ChartOptionsBase>): void {
-        if (options.leftPriceScale !== undefined) {
-            this._leftPriceScale.applyOptions(options.leftPriceScale);
-        }
-        if (options.rightPriceScale !== undefined) {
-            this._rightPriceScale.applyOptions(options.rightPriceScale);
-        }
+        if (options.leftPriceScale !== undefined) this._leftPriceScale.applyOptions(options.leftPriceScale);
+        if (options.rightPriceScale !== undefined) this._rightPriceScale.applyOptions(options.rightPriceScale);
         if (options.localization !== undefined) {
             this._leftPriceScale.updateFormatter();
             this._rightPriceScale.updateFormatter();
@@ -87,9 +83,7 @@ export class Pane implements IDestroyable {
             for (const sources of sourceArrays) {
                 const priceScale = getNotNull(getDefined(sources[0]).priceScale());
                 priceScale.applyOptions(options.overlayPriceScales);
-                if (options.localization !== undefined) {
-                    priceScale.updateFormatter();
-                }
+                if (options.localization !== undefined) priceScale.updateFormatter();
             }
         }
     }
@@ -156,9 +150,7 @@ export class Pane implements IDestroyable {
         this._dataSources.forEach((ds: IPriceDataSource) => {
             if (this.isOverlay(ds)) {
                 const priceScale = ds.priceScale();
-                if (priceScale !== null) {
-                    priceScale.setHeight(height);
-                }
+                if (priceScale !== null) priceScale.setHeight(height);
             }
         });
 
@@ -171,9 +163,7 @@ export class Pane implements IDestroyable {
 
     public isOverlay(source: IPriceDataSource): boolean {
         const priceScale = source.priceScale();
-        if (priceScale === null) {
-            return true;
-        }
+        if (priceScale === null) return true;
         return this._leftPriceScale !== priceScale && this._rightPriceScale !== priceScale;
     }
 
@@ -194,18 +184,14 @@ export class Pane implements IDestroyable {
             const overlayIndex = overlaySources.indexOf(source);
             if (overlayIndex !== -1) {
                 overlaySources.splice(overlayIndex, 1);
-                if (overlaySources.length === 0) {
-                    this._overlaySourcesByScaleId.delete(priceScaleId);
-                }
+                if (overlaySources.length === 0) this._overlaySourcesByScaleId.delete(priceScaleId);
             }
         }
 
         const priceScale = source.priceScale();
         // if source has owner, it returns owner's price scale
         // and it does not have source in their list
-        if (priceScale?.dataSources().includes(source) === true) {
-            priceScale.removeDataSource(source);
-        }
+        if (priceScale?.dataSources().includes(source) === true) priceScale.removeDataSource(source);
 
         if (priceScale !== null) {
             priceScale.invalidateSourcesCache();
@@ -216,12 +202,8 @@ export class Pane implements IDestroyable {
     }
 
     public priceScalePosition(priceScale: PriceScale): PriceScalePosition {
-        if (priceScale === this._leftPriceScale) {
-            return 'left';
-        }
-        if (priceScale === this._rightPriceScale) {
-            return 'right';
-        }
+        if (priceScale === this._leftPriceScale) return 'left';
+        if (priceScale === this._rightPriceScale) return 'right';
 
         return 'overlay';
     }
@@ -287,18 +269,13 @@ export class Pane implements IDestroyable {
     public defaultVisiblePriceScale(): PriceScale | null {
         let priceScale: PriceScale | null = null;
 
-        if (this._model.options().rightPriceScale.visible) {
-            priceScale = this._rightPriceScale;
-        } else if (this._model.options().leftPriceScale.visible) {
-            priceScale = this._leftPriceScale;
-        }
+        if (this._model.options().rightPriceScale.visible) priceScale = this._rightPriceScale;
+        else if (this._model.options().leftPriceScale.visible) priceScale = this._leftPriceScale;
         return priceScale;
     }
 
     public recalculatePriceScale(priceScale: PriceScale | null): void {
-        if (priceScale?.isAutoScale() !== true) {
-            return;
-        }
+        if (priceScale?.isAutoScale() !== true) return;
 
         this._recalculatePriceScaleImpl(priceScale);
     }
@@ -306,9 +283,7 @@ export class Pane implements IDestroyable {
     public resetPriceScale(priceScale: PriceScale): void {
         const visibleBars = this._timeScale.visibleStrictRange();
         priceScale.setMode({ autoScale: true });
-        if (visibleBars !== null) {
-            priceScale.recalculatePriceRange(visibleBars);
-        }
+        if (visibleBars !== null) priceScale.recalculatePriceRange(visibleBars);
         this.updateAllSources();
     }
 
@@ -322,9 +297,7 @@ export class Pane implements IDestroyable {
         this.recalculatePriceScale(this._rightPriceScale);
 
         this._dataSources.forEach((ds: IPriceDataSource) => {
-            if (this.isOverlay(ds)) {
-                this.recalculatePriceScale(ds.priceScale());
-            }
+            if (this.isOverlay(ds)) this.recalculatePriceScale(ds.priceScale());
         });
 
         this.updateAllSources();
@@ -350,9 +323,7 @@ export class Pane implements IDestroyable {
 
         if (sourceForAutoScale.length > 0 && !this._timeScale.isEmpty()) {
             const visibleBars = this._timeScale.visibleStrictRange();
-            if (visibleBars !== null) {
-                priceScale.recalculatePriceRange(visibleBars);
-            }
+            if (visibleBars !== null) priceScale.recalculatePriceRange(visibleBars);
         }
 
         priceScale.updateAllViews();
@@ -360,22 +331,16 @@ export class Pane implements IDestroyable {
 
     private _getZOrderMinMax(): MinMaxOrderInfo {
         const sources = this.orderedSources();
-        if (sources.length === 0) {
-            return { minZOrder: 0, maxZOrder: 0 };
-        }
+        if (sources.length === 0) return { minZOrder: 0, maxZOrder: 0 };
 
         let minZOrder = 0;
         let maxZOrder = 0;
         for (const ds of sources) {
             const zOrder = ds.zorder();
             if (zOrder !== null) {
-                if (zOrder < minZOrder) {
-                    minZOrder = zOrder;
-                }
+                if (zOrder < minZOrder) minZOrder = zOrder;
 
-                if (zOrder > maxZOrder) {
-                    maxZOrder = zOrder;
-                }
+                if (zOrder > maxZOrder) maxZOrder = zOrder;
             }
         }
 
@@ -405,9 +370,7 @@ export class Pane implements IDestroyable {
     }
 
     private _onPriceScaleModeChanged(priceScale: PriceScale, oldMode: PriceScaleState, newMode: PriceScaleState): void {
-        if (oldMode.mode === newMode.mode) {
-            return;
-        }
+        if (oldMode.mode === newMode.mode) return;
 
         // momentary auto scale if we toggle percentage/indexedTo100 mode
         this._recalculatePriceScaleImpl(priceScale);

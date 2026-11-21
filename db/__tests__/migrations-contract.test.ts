@@ -6,10 +6,10 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
 import { ALL_COLLECTIONS, INDEXES, OHLCV_INDEXES, REFERENCE_INDEXES } from '@ereuna/shared';
 
-const DB_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const DB_DIR = path.resolve(import.meta.dirname, '..');
 const MIGRATIONS_DIR = path.join(DB_DIR, 'migrations');
 
 const migrationFiles = fs

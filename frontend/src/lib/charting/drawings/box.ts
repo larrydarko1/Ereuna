@@ -236,11 +236,8 @@ export class BoxManager extends DrawingLayer {
         const box = this.boxes.find((candidate) => candidate.id === target.boxId);
         if (box === undefined || box.locked) return;
 
-        if (target.corner === 'body') {
-            this.moveBox(box, pointer);
-        } else {
-            resizeBox(box, target.corner, pointer);
-        }
+        if (target.corner === 'body') this.moveBox(box, pointer);
+        else resizeBox(box, target.corner, pointer);
 
         this.draw();
     }
@@ -349,8 +346,6 @@ export class BoxManager extends DrawingLayer {
 
         // The hole has to be the chart's own background for the ring to read
         const handle = { radius: CORNER_HANDLE_RADIUS, color: themeColor, holeColor: getThemeColor('--color-bg') };
-        for (const corner of cornersOf(box)) {
-            drawHandle(ctx, corner, handle);
-        }
+        for (const corner of cornersOf(box)) drawHandle(ctx, corner, handle);
     }
 }

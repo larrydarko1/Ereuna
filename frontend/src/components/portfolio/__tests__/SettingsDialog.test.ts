@@ -1,7 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { elementOf } from '@/__tests__/support/dom';
+import { elementOf, getElement } from '@/__tests__/support/dom';
 import SettingsDialog from '@/components/portfolio/SettingsDialog.vue';
 
 const SUMMARY = { baseValue: 100_000, leverage: 2, defaultCommission: 1 };
@@ -10,12 +10,6 @@ const open = (props: Record<string, unknown> = {}): VueWrapper =>
     mount(SettingsDialog, { props: { summary: SUMMARY, ...props }, attachTo: document.body });
 
 /** The dialog is teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} in the dialog`);
-    return element;
-};
-
 const rows = (): HTMLElement[] => [...document.body.querySelectorAll<HTMLElement>('.settings-dialog__row')];
 
 const edit = async (row: number, value: string): Promise<void> => {
@@ -90,13 +84,13 @@ describe('SettingsDialog', () => {
     it('shows what the last save was refused for', () => {
         open({ error: 'Leverage too high' });
 
-        expect($('.form-error[role="alert"]').textContent).toBe('Leverage too high');
+        expect(getElement('.form-error[role="alert"]').textContent).toBe('Leverage too high');
     });
 
     it('closes on the dialog close', async () => {
         const wrapper = open();
 
-        $('.dialog__close').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        getElement('.dialog__close').dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await Promise.resolve();
 
         expect(wrapper.emitted('close')).toHaveLength(1);

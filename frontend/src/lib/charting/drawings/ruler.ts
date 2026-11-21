@@ -115,11 +115,8 @@ export class ChartRuler {
     }
 
     public toggle(): void {
-        if (this.isActive) {
-            this.deactivate();
-        } else {
-            this.activate();
-        }
+        if (this.isActive) this.deactivate();
+        else this.activate();
     }
 
     public isRulerActive(): boolean {
@@ -287,9 +284,7 @@ export class ChartRuler {
         let boxX = Math.max(10, x - boxWidth / 2);
         const boxY = y - boxHeight - 20 < 10 ? y + 20 : y - boxHeight - 20;
 
-        if (boxX + boxWidth > canvasWidth - 10) {
-            boxX = canvasWidth - boxWidth - 10;
-        }
+        if (boxX + boxWidth > canvasWidth - 10) boxX = canvasWidth - boxWidth - 10;
 
         ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
         ctx.shadowBlur = 12;

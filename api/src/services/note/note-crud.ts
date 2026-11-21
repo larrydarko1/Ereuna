@@ -70,9 +70,7 @@ export async function updateNote(userId: ObjectId, noteId: ObjectId, message: st
 
 export async function deleteNote(userId: ObjectId, noteId: ObjectId): Promise<void> {
     const result = await collection().deleteOne({ _id: noteId, userId });
-    if (result.deletedCount === 0) {
-        throw new AppError(404, 'NOTE_NOT_FOUND', `note ${noteId.toHexString()} not found`);
-    }
+    if (result.deletedCount === 0) throw new AppError(404, 'NOTE_NOT_FOUND', `note ${noteId.toHexString()} not found`);
 }
 
 function toRow(doc: WithId<NoteDoc>): NoteRow {

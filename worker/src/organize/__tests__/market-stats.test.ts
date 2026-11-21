@@ -93,9 +93,7 @@ describe('updateMarketStats', () => {
 describe('moving-average breadth', () => {
     it('reports one SMA field per period the panel renders', async () => {
         const document = await run([asset()]);
-        for (const period of [5, 10, 20, 50, 100, 150, 200]) {
-            expect(document).toHaveProperty(`SMA${period}`);
-        }
+        for (const period of [5, 10, 20, 50, 100, 150, 200]) expect(document).toHaveProperty(`SMA${period}`);
     });
 
     it('splits a universe into fractions that add to one', async () => {

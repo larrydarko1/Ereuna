@@ -16,9 +16,7 @@ export class TimeScaleVisibleRange {
     }
 
     public strictRange(): RangeImpl<TimePointIndex> | null {
-        if (this._logicalRange === null) {
-            return null;
-        }
+        if (this._logicalRange === null) return null;
 
         return new RangeImpl(
             nominal<TimePointIndex>(Math.floor(this._logicalRange.left())),

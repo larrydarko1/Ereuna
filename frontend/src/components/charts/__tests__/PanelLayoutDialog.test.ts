@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { PANEL_SECTIONS, SUMMARY_FIELDS } from '@ereuna/shared';
 
+import { getElement } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
 import PanelLayoutDialog from '@/components/charts/PanelLayoutDialog.vue';
@@ -22,12 +23,6 @@ const preferences = (panels: Record<string, unknown> | null): Record<string, unk
 });
 
 const open = (): VueWrapper => mount(PanelLayoutDialog, { attachTo: document.body });
-
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} in the dialog`);
-    return element;
-};
 
 const all = (selector: string): HTMLElement[] => [...document.body.querySelectorAll<HTMLElement>(selector)];
 
@@ -55,7 +50,7 @@ describe('PanelLayoutDialog', () => {
     it('opens on the sections, with the layout in use', () => {
         open();
 
-        expect($('.panel-layout__tab').getAttribute('aria-pressed')).toBe('true');
+        expect(getElement('.panel-layout__tab').getAttribute('aria-pressed')).toBe('true');
         expect(chosen()).toHaveLength(PANEL_SECTIONS.length);
     });
 
@@ -81,7 +76,7 @@ describe('PanelLayoutDialog', () => {
         await loadPreferences(true);
         const wrapper = open();
 
-        await click($('.panel-layout__save'));
+        await click(getElement('.panel-layout__save'));
 
         expect(api.last().body).toEqual({ panels: { sections: ['notes'], summaryFields: ['symbol'] } });
         expect(wrapper.emitted('close')).toHaveLength(1);
@@ -92,7 +87,7 @@ describe('PanelLayoutDialog', () => {
         await loadPreferences(true);
         open();
 
-        await click($('.panel-layout__link'));
+        await click(getElement('.panel-layout__link'));
 
         expect(chosen()).toHaveLength(PANEL_SECTIONS.length);
         expect(api.calls.some((call) => call.method === 'PATCH')).toBe(false);
@@ -111,16 +106,16 @@ describe('PanelLayoutDialog', () => {
         api.on('PATCH /api/preferences', { error: 'INTERNAL' }, { status: 500 });
         const wrapper = open();
 
-        await click($('.panel-layout__save'));
+        await click(getElement('.panel-layout__save'));
 
-        expect($('[role="alert"]').textContent).toBe(i18n.global.t('errors.INTERNAL'));
+        expect(getElement('[role="alert"]').textContent).toBe(i18n.global.t('errors.INTERNAL'));
         expect(wrapper.emitted('close')).toBeUndefined();
     });
 
     it('closes on the dialog close', async () => {
         const wrapper = open();
 
-        await click($('.dialog__close'));
+        await click(getElement('.dialog__close'));
 
         expect(wrapper.emitted('close')).toHaveLength(1);
     });

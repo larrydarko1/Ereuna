@@ -81,9 +81,7 @@ function deduplicatePatterns(patterns: PatternMatch[]): PatternMatch[] {
     const result: PatternMatch[] = [];
 
     for (const pattern of sorted) {
-        if (!result.some((existing) => isOverlapping(pattern, existing))) {
-            result.push(pattern);
-        }
+        if (!result.some((existing) => isOverlapping(pattern, existing))) result.push(pattern);
     }
 
     return result;

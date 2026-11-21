@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PortfolioSummary, TradeRow } from '@ereuna/shared';
 
 import { portfolioRow } from '@/__tests__/support/answers';
-import { elementOf, query } from '@/__tests__/support/dom';
+import { elementOf, getElement, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { summary as makeSummary } from '@/__tests__/support/portfolio';
 import { socket } from '@/__tests__/support/socket';
@@ -56,13 +56,6 @@ const view = async (): Promise<VueWrapper> => {
     await flushPromises();
     await flushPromises();
     return wrapper;
-};
-
-/** Dialogs are teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} on the page`);
-    return element;
 };
 
 const click = async (element: HTMLElement | undefined): Promise<void> => {
@@ -185,7 +178,7 @@ describe('Portfolio', () => {
 
         await click(toolbar(wrapper, 0));
         await fillTrade('AAPL', '5', '200');
-        await click($('.dialog__footer .btn--primary'));
+        await click(getElement('.dialog__footer .btn--primary'));
 
         expect(api.calls.find((call) => call.method === 'POST')?.body).toMatchObject({ symbol: 'AAPL', shares: 5 });
         expect(document.body.querySelector('.trade-dialog')).toBeNull();
@@ -199,7 +192,7 @@ describe('Portfolio', () => {
         await click(elementOf(wrapper.findAll('.trade-history__row-actions .btn')[0]?.element, HTMLElement));
 
         expect(field(i18n.global.t('portfolio.symbol')).value).toBe('AAPL');
-        expect($('.dialog__title').textContent).toBe(i18n.global.t('portfolio.editTrade'));
+        expect(getElement('.dialog__title').textContent).toBe(i18n.global.t('portfolio.editTrade'));
         wrapper.unmount();
     });
 
@@ -212,7 +205,7 @@ describe('Portfolio', () => {
         await click(elementOf(wrapper.findAll('.trade-history__row-actions .btn')[0]?.element, HTMLElement));
         expect(query('.cash-dialog input[type="number"]', HTMLInputElement).value).toBe('2500');
         await set('.cash-dialog input[type="number"]', '3000');
-        await click($('.dialog__footer .btn--primary'));
+        await click(getElement('.dialog__footer .btn--primary'));
 
         expect(api.calls.find((call) => call.method === 'PATCH')?.body).toEqual({
             action: 'deposit',
@@ -228,10 +221,10 @@ describe('Portfolio', () => {
         const wrapper = await view();
 
         await click(elementOf(wrapper.findAll('.trade-history__row-actions .btn')[0]?.element, HTMLElement));
-        await click($('.dialog__footer .btn:not(.btn--primary)'));
+        await click(getElement('.dialog__footer .btn:not(.btn--primary)'));
         await click(toolbar(wrapper, 1));
         await set('.cash-dialog input[type="number"]', '2500');
-        await click($('.dialog__footer .btn--primary'));
+        await click(getElement('.dialog__footer .btn--primary'));
 
         expect(api.calls.map((call) => call.method)).not.toContain('PATCH');
         expect(api.calls.find((call) => call.method === 'POST')?.body).toMatchObject({ action: 'deposit' });
@@ -246,7 +239,7 @@ describe('Portfolio', () => {
         await click(elementOf(wrapper.findAll('.trade-history__row-actions .btn')[1]?.element, HTMLElement));
         expect(document.body.querySelector('[role="dialog"]')).not.toBeNull();
 
-        await click($('.dialog__footer .btn--danger, .dialog__footer .btn--primary'));
+        await click(getElement('.dialog__footer .btn--danger, .dialog__footer .btn--primary'));
 
         expect(api.calls.some((call) => call.method === 'DELETE')).toBe(true);
         wrapper.unmount();
@@ -270,7 +263,7 @@ describe('Portfolio', () => {
 
         await click(toolbar(wrapper, 1));
         await set('.cash-dialog input[type="number"]', '2500');
-        await click($('.dialog__footer .btn--primary'));
+        await click(getElement('.dialog__footer .btn--primary'));
 
         expect(api.calls.find((call) => call.method === 'POST')?.body).toEqual({
             action: 'deposit',
@@ -299,7 +292,7 @@ describe('Portfolio', () => {
         const wrapper = await view();
 
         await click(elementOf(wrapper.get('.benchmark-strip .btn--small').element, HTMLElement));
-        await click($('.dialog__footer .btn--primary'));
+        await click(getElement('.dialog__footer .btn--primary'));
 
         expect(api.calls.find((call) => call.method === 'PUT')?.path).toBe('/api/portfolios/0/benchmarks');
         wrapper.unmount();
@@ -311,7 +304,7 @@ describe('Portfolio', () => {
         const wrapper = await view();
 
         await click(toolbar(wrapper, 5));
-        await click($('.dialog__footer .btn--danger, .dialog__footer .btn--primary'));
+        await click(getElement('.dialog__footer .btn--danger, .dialog__footer .btn--primary'));
 
         expect(api.calls.some((call) => call.method === 'DELETE')).toBe(true);
         wrapper.unmount();

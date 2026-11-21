@@ -38,9 +38,7 @@ export class HorizontalLineRenderer extends BitmapCoordinatesPaneRenderer {
     }
 
     public hitTest(_x: Coordinate, y: Coordinate): HoveredObject | null {
-        if (this._data?.visible !== true) {
-            return null;
-        }
+        if (this._data?.visible !== true) return null;
 
         const { y: itemY, lineWidth, externalId } = this._data;
         // add a fixed area threshold around line (Y + width) for hit test
@@ -63,18 +61,12 @@ export class HorizontalLineRenderer extends BitmapCoordinatesPaneRenderer {
         horizontalPixelRatio,
         verticalPixelRatio,
     }: BitmapCoordinatesRenderingScope): void {
-        if (this._data === null) {
-            return;
-        }
+        if (this._data === null) return;
 
-        if (this._data.visible === false) {
-            return;
-        }
+        if (this._data.visible === false) return;
 
         const top = Math.round(this._data.y * verticalPixelRatio);
-        if (top < 0 || top > bitmapSize.height) {
-            return;
-        }
+        if (top < 0 || top > bitmapSize.height) return;
 
         ctx.lineCap = 'butt';
         ctx.strokeStyle = this._data.color;

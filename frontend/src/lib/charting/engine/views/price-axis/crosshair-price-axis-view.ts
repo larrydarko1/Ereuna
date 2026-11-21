@@ -31,19 +31,13 @@ export class CrosshairPriceAxisView extends PriceAxisView {
         commonRendererData: PriceAxisViewRendererCommonData,
     ): void {
         axisRendererData.visible = false;
-        if (this._source.options().mode === CrosshairMode.Hidden) {
-            return;
-        }
+        if (this._source.options().mode === CrosshairMode.Hidden) return;
 
         const options = this._source.options().horzLine;
-        if (!options.labelVisible) {
-            return;
-        }
+        if (!options.labelVisible) return;
 
         const firstValue = this._priceScale.firstValue();
-        if (!this._source.visible() || this._priceScale.isEmpty() || firstValue === null) {
-            return;
-        }
+        if (!this._source.visible() || this._priceScale.isEmpty() || firstValue === null) return;
 
         const colors = generateContrastColors(options.labelBackgroundColor);
         commonRendererData.background = colors.background;

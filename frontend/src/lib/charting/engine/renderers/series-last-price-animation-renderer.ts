@@ -32,9 +32,7 @@ export class SeriesLastPriceAnimationRenderer extends BitmapCoordinatesPaneRende
         verticalPixelRatio,
     }: BitmapCoordinatesRenderingScope): void {
         const data = this._data;
-        if (data === null) {
-            return;
-        }
+        if (data === null) return;
 
         const tickWidth = Math.max(1, Math.floor(horizontalPixelRatio));
 

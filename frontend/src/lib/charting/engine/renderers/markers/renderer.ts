@@ -66,9 +66,7 @@ export class SeriesMarkersRenderer extends BitmapCoordinatesPaneRenderer {
     }
 
     public hitTest(x: Coordinate, y: Coordinate): HoveredObject | null {
-        if (this._data?.visibleRange == null) {
-            return null;
-        }
+        if (this._data?.visibleRange == null) return null;
 
         for (let i = this._data.visibleRange.from; i < this._data.visibleRange.to; i++) {
             const item = this._data.items[i];
@@ -88,9 +86,7 @@ export class SeriesMarkersRenderer extends BitmapCoordinatesPaneRenderer {
         horizontalPixelRatio,
         verticalPixelRatio,
     }: BitmapCoordinatesRenderingScope): void {
-        if (this._data?.visibleRange == null) {
-            return;
-        }
+        if (this._data?.visibleRange == null) return;
 
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
@@ -154,9 +150,7 @@ function drawShape(
     ctx: CanvasRenderingContext2D,
     coordinates: BitmapShapeItemCoordinates,
 ): void {
-    if (item.size === 0) {
-        return;
-    }
+    if (item.size === 0) return;
 
     switch (item.shape) {
         case 'arrowDown':
@@ -190,9 +184,7 @@ function hitTestItem(item: SeriesMarkerRendererDataItem, x: Coordinate, y: Coord
 }
 
 function hitTestShape(item: SeriesMarkerRendererDataItem, x: Coordinate, y: Coordinate): boolean {
-    if (item.size === 0) {
-        return false;
-    }
+    if (item.size === 0) return false;
 
     switch (item.shape) {
         case 'arrowDown':

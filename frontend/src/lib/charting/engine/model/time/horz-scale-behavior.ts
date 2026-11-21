@@ -85,11 +85,8 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
     }
 
     public preprocessData(data: DataItem<Time> | DataItem<Time>[]): void {
-        if (Array.isArray(data)) {
-            convertStringsToBusinessDays(data);
-        } else {
-            convertStringToBusinessDay(data);
-        }
+        if (Array.isArray(data)) convertStringsToBusinessDays(data);
+        else convertStringToBusinessDay(data);
     }
 
     public createConverterToInternalObj(
@@ -99,9 +96,7 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
     }
 
     public key(item: InternalHorzScaleItem | Time): InternalHorzScaleItemKey {
-        if (isTimePoint(item)) {
-            return nominal<InternalHorzScaleItemKey>(item.timestamp);
-        }
+        if (isTimePoint(item)) return nominal<InternalHorzScaleItemKey>(item.timestamp);
         assert(isTime(item), 'a horizontal item is either a time point or a time');
         return this.key(this.convertHorzItemToInternal(item));
     }
@@ -118,9 +113,7 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
     }
 
     public updateFormatter(options: TimeLocalizationOptions): void {
-        if (this._options === null) {
-            return;
-        }
+        if (this._options === null) return;
         const dateFormat = options.dateFormat;
 
         if (this._options.timeScale.timeVisible) {
@@ -154,9 +147,7 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
                 tickMarkType,
                 localizationOptions.locale,
             );
-            if (tickMarkString !== null) {
-                return tickMarkString;
-            }
+            if (tickMarkString !== null) return tickMarkString;
         }
 
         return defaultTickMarkFormatter(timePointOf(tickMark.time), tickMarkType, localizationOptions.locale);
@@ -164,9 +155,7 @@ export class HorzScaleBehaviorTime implements IHorzScaleBehavior<Time> {
 
     public maxTickMarkWeight(tickMarks: TimeMark[]): TickMarkWeightValue {
         const firstMark = tickMarks[0];
-        if (firstMark === undefined) {
-            return nominal<TickMarkWeightValue>(TickMarkWeight.LessThanSecond);
-        }
+        if (firstMark === undefined) return nominal<TickMarkWeightValue>(TickMarkWeight.LessThanSecond);
 
         let maxWeight = tickMarks.reduce(markWithGreaterWeight, firstMark).weight;
 
@@ -195,9 +184,7 @@ function weightToTickMarkType(weight: TickMarkWeightValue, shows: AxisVisibility
     switch (weight) {
         case TickMarkWeight.LessThanSecond:
         case TickMarkWeight.Second:
-            if (!timeVisible) {
-                return TickMarkType.DayOfMonth;
-            }
+            if (!timeVisible) return TickMarkType.DayOfMonth;
 
             return secondsVisible ? TickMarkType.TimeWithSeconds : TickMarkType.Time;
 

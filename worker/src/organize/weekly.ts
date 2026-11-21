@@ -39,9 +39,7 @@ export async function updateWeeksSince(since: Date): Promise<number> {
     const weekStart = new Date(bucketStart('1w', since.getTime()));
     const rows = await aggregateWeeks({ timestamp: { $gte: weekStart } });
 
-    for (const batch of chunk(rows, config.organize.writeBatchSize)) {
-        await replaceBars(WEEKLY_COLLECTION, batch);
-    }
+    for (const batch of chunk(rows, config.organize.writeBatchSize)) await replaceBars(WEEKLY_COLLECTION, batch);
 
     logger.info({ weekStart: weekStart.toISOString(), bars: rows.length }, 'Weekly bars updated');
     return rows.length;
@@ -52,9 +50,7 @@ export async function updateWeeksFor(symbols: readonly string[], since: Date): P
     const weekStart = new Date(bucketStart('1w', since.getTime()));
     const rows = await aggregateWeeks({ tickerID: { $in: [...symbols] }, timestamp: { $gte: weekStart } });
 
-    for (const batch of chunk(rows, config.organize.writeBatchSize)) {
-        await replaceBars(WEEKLY_COLLECTION, batch);
-    }
+    for (const batch of chunk(rows, config.organize.writeBatchSize)) await replaceBars(WEEKLY_COLLECTION, batch);
 
     return rows.length;
 }
@@ -65,9 +61,7 @@ export async function rebuildWeekly(symbol: string): Promise<number> {
     const weekly = getDb().collection<OhlcvDoc>(WEEKLY_COLLECTION);
 
     await weekly.deleteMany({ tickerID: symbol });
-    for (const batch of chunk(rows, config.organize.writeBatchSize)) {
-        await weekly.insertMany(batch, { ordered: false });
-    }
+    for (const batch of chunk(rows, config.organize.writeBatchSize)) await weekly.insertMany(batch, { ordered: false });
 
     return rows.length;
 }

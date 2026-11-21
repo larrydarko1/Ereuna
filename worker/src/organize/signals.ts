@@ -55,36 +55,42 @@ export function generateSignals(series: Series): Signal[] {
     const convergence = macd(closes);
     if (convergence !== null) {
         const crossed = crossing(convergence.macd, convergence.signal);
-        if (crossed === 'up')
+        if (crossed === 'up') {
             emit(
                 'BUY',
                 'MACD_Bullish_Cross',
                 gap(convergence.macd, convergence.signal, 4),
                 'MACD crossed above its signal line',
             );
-        if (crossed === 'down')
+        }
+        if (crossed === 'down') {
             emit(
                 'SELL',
                 'MACD_Bearish_Cross',
                 gap(convergence.macd, convergence.signal, 4),
                 'MACD crossed below its signal line',
             );
+        }
     }
 
     const fast = rollingMean(closes, 50);
     const slow = rollingMean(closes, 200);
     const crossed = crossing(fast, slow);
-    if (crossed === 'up')
+    if (crossed === 'up') {
         emit('BUY', 'Golden_Cross', gap(fast, slow, 2), '50-day moving average crossed above the 200-day');
-    if (crossed === 'down')
+    }
+    if (crossed === 'down') {
         emit('SELL', 'Death_Cross', gap(fast, slow, 2), '50-day moving average crossed below the 200-day');
+    }
 
     const move = changePercent(closes);
     if (move !== null && isVolumeSpike(volumes)) {
-        if (move > BREAKOUT_MOVE_PERCENT)
+        if (move > BREAKOUT_MOVE_PERCENT) {
             emit('BUY', 'Volume_Breakout', round2(move), `Volume spike with a ${round2(move)}% move up`);
-        if (move < -BREAKOUT_MOVE_PERCENT)
+        }
+        if (move < -BREAKOUT_MOVE_PERCENT) {
             emit('SELL', 'Volume_Breakdown', round2(move), `Volume spike with a ${round2(move)}% move down`);
+        }
     }
 
     return signals;

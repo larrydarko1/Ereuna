@@ -35,9 +35,7 @@ export function getPivots(
                 break;
             }
         }
-        if (isHigh) {
-            highs.push({ index: i, time: bar.time, price: bar.high });
-        }
+        if (isHigh) highs.push({ index: i, time: bar.time, price: bar.high });
 
         let isLow = true;
         for (let j = i - leftBars; j <= i + rightBars; j++) {
@@ -47,9 +45,7 @@ export function getPivots(
                 break;
             }
         }
-        if (isLow) {
-            lows.push({ index: i, time: bar.time, price: bar.low });
-        }
+        if (isLow) lows.push({ index: i, time: bar.time, price: bar.low });
     }
 
     return { highs, lows };

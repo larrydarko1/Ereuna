@@ -1,7 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { query } from '@/__tests__/support/dom';
+import { getElement, query } from '@/__tests__/support/dom';
 import ReauthDialog from '@/components/user/ReauthDialog.vue';
 import { i18n } from '@/i18n';
 
@@ -11,13 +11,6 @@ const open = (props: Record<string, unknown> = {}): VueWrapper =>
         attachTo: document.body,
     });
 
-/** The dialog is teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} in the dialog`);
-    return element;
-};
-
 const type = async (selector: string, value: string): Promise<void> => {
     const field = query(selector, HTMLInputElement);
     field.value = value;
@@ -26,7 +19,7 @@ const type = async (selector: string, value: string): Promise<void> => {
 };
 
 const submit = async (): Promise<void> => {
-    $('.dialog__footer .btn--primary, .dialog__footer .btn--danger').dispatchEvent(
+    getElement('.dialog__footer .btn--primary, .dialog__footer .btn--danger').dispatchEvent(
         new MouseEvent('click', { bubbles: true }),
     );
     await Promise.resolve();
@@ -40,8 +33,8 @@ describe('ReauthDialog', () => {
     it('says what it is asking for', () => {
         open();
 
-        expect($('.dialog__title').textContent).toBe('Disable 2FA');
-        expect($('.reauth__message').textContent).toBe('Confirm it is you');
+        expect(getElement('.dialog__title').textContent).toBe('Disable 2FA');
+        expect(getElement('.reauth__message').textContent).toBe('Confirm it is you');
     });
 
     it('asks for nothing it was not told to ask for', () => {
@@ -68,7 +61,9 @@ describe('ReauthDialog', () => {
 
         await type('input[type="password"]', 'secret');
 
-        expect($('.dialog__footer .btn--danger, .dialog__footer .btn--primary').hasAttribute('disabled')).toBe(true);
+        expect(getElement('.dialog__footer .btn--danger, .dialog__footer .btn--primary').hasAttribute('disabled')).toBe(
+            true,
+        );
         expect(wrapper.emitted('submit')).toBeUndefined();
     });
 
@@ -95,7 +90,7 @@ describe('ReauthDialog', () => {
         const wrapper = open({ needsPassword: true });
 
         await type('input[type="password"]', 'secret');
-        $('.reauth').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        getElement('.reauth').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
         await Promise.resolve();
 
         expect(wrapper.emitted('submit')).toHaveLength(1);
@@ -108,13 +103,13 @@ describe('ReauthDialog', () => {
         await submit();
 
         expect(wrapper.emitted('submit')).toBeUndefined();
-        expect($('.dialog__footer .btn--primary').textContent.trim()).toBe(i18n.global.t('common.processing'));
+        expect(getElement('.dialog__footer .btn--primary').textContent.trim()).toBe(i18n.global.t('common.processing'));
     });
 
     it('shows what the last attempt was refused for', () => {
         open({ error: 'Wrong password' });
 
-        expect($('.form-error[role="alert"]').textContent).toBe('Wrong password');
+        expect(getElement('.form-error[role="alert"]').textContent).toBe('Wrong password');
     });
 
     it('marks the action dangerous when it destroys something', () => {
@@ -126,7 +121,7 @@ describe('ReauthDialog', () => {
     it('closes on cancel', async () => {
         const wrapper = open();
 
-        $('.dialog__footer .btn').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        getElement('.dialog__footer .btn').dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await Promise.resolve();
 
         expect(wrapper.emitted('close')).toHaveLength(1);

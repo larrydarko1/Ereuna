@@ -118,11 +118,12 @@ describe('updateDailyMetrics', () => {
 
     it('batches the universe rather than holding every series at once', async () => {
         const universe = Array.from({ length: 401 }, (_unused, index) => asset(`S${index}`));
-        for (const one of universe)
+        for (const one of universe) {
             state.series.set(
                 one.symbol,
                 series(5, (index) => 10 + index),
             );
+        }
         await updateDailyMetrics(universe);
         // Two metric batches plus the one relative-strength write at the end
         expect(state.written).toHaveLength(3);

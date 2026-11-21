@@ -82,15 +82,11 @@ function seriesRowsTimeSpan<TSeriesType extends SeriesType, THorzScaleItem>(
     seriesRows: SeriesPlotRow<TSeriesType>[] | undefined,
     bh: IHorzScaleBehavior<THorzScaleItem>,
 ): SeriesRowsTimeSpan | undefined {
-    if (seriesRows === undefined || seriesRows.length === 0) {
-        return undefined;
-    }
+    if (seriesRows === undefined || seriesRows.length === 0) return undefined;
 
     const first = seriesRows[0];
     const last = seriesRows[seriesRows.length - 1];
-    if (first === undefined || last === undefined) {
-        return undefined;
-    }
+    if (first === undefined || last === undefined) return undefined;
 
     return {
         firstTime: bh.key(first.time),

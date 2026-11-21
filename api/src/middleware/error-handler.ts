@@ -28,11 +28,8 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
         // logContext is spread FIRST so the canonical fields and client context
         // always win — a stray logContext `ip` cannot shadow the real req.ip.
         const security = err.securityEvent ? securityContext(req) : undefined;
-        if (err.status >= 500) {
-            req.log.error({ ...err.logContext, err, code: err.code, ...security }, err.message);
-        } else {
-            req.log.warn({ ...err.logContext, code: err.code, status: err.status, ...security }, err.message);
-        }
+        if (err.status >= 500) req.log.error({ ...err.logContext, err, code: err.code, ...security }, err.message);
+        else req.log.warn({ ...err.logContext, code: err.code, status: err.status, ...security }, err.message);
         res.status(err.status).json({ error: err.code, ...(err.params !== undefined ? { params: err.params } : {}) });
         return;
     }

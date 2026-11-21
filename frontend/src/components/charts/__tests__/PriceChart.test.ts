@@ -6,7 +6,7 @@ import type { AssetProfile, Candle, ChartSeries } from '@ereuna/shared';
 
 import { chartSeries, noDrawings, preferences } from '@/__tests__/support/answers';
 import { assetProfile } from '@/__tests__/support/assets';
-import { elementOf } from '@/__tests__/support/dom';
+import { elementOf, getElement } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
 import PriceChart from '@/components/charts/PriceChart.vue';
@@ -47,13 +47,6 @@ const chart = async (props: Record<string, unknown> = {}): Promise<VueWrapper> =
     await flushPromises();
     await flushPromises();
     return wrapper;
-};
-
-/** Dialogs are teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} on the page`);
-    return element;
 };
 
 const click = async (element: HTMLElement | undefined): Promise<void> => {
@@ -204,7 +197,7 @@ describe('PriceChart', () => {
 
         await click(toolbarButton(wrapper, i18n.global.t('charts.settings.title')));
         expect(document.body.querySelector('.chart-settings')).not.toBeNull();
-        await click($('.dialog__close'));
+        await click(getElement('.dialog__close'));
 
         await click(toolbarButton(wrapper, i18n.global.t('charts.tools.screenshot')));
         expect(document.body.querySelector('.screenshot')).not.toBeNull();
@@ -276,7 +269,7 @@ describe('PriceChart', () => {
         await click(toolbarButton(wrapper, i18n.global.t('charts.replay.start')));
         expect(document.body.querySelector('.replay-start')).not.toBeNull();
 
-        await click($('.replay-start__confirm'));
+        await click(getElement('.replay-start__confirm'));
 
         expect(wrapper.find('.replay').exists()).toBe(true);
         wrapper.unmount();
@@ -286,7 +279,7 @@ describe('PriceChart', () => {
         const wrapper = await chart({ profile: profile() });
 
         await click(toolbarButton(wrapper, i18n.global.t('charts.replay.start')));
-        await click($('.dialog__close'));
+        await click(getElement('.dialog__close'));
 
         expect(document.body.querySelector('.replay-start')).toBeNull();
         expect(wrapper.find('.replay').exists()).toBe(false);

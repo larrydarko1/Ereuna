@@ -45,9 +45,7 @@ export class SeriesBaselinePaneView extends LinePaneViewBase<
 
     protected _prepareRendererData(): void {
         const firstValue = this._series.firstValue();
-        if (firstValue === null) {
-            return;
-        }
+        if (firstValue === null) return;
 
         const options = this._series.options();
 

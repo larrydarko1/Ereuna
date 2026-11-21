@@ -97,9 +97,7 @@ export class TickMarks {
             }
         });
 
-        for (const weight of weightsToClear) {
-            this._marksByWeight.delete(weight);
-        }
+        for (const weight of weightsToClear) this._marksByWeight.delete(weight);
     }
 
     private _buildMarksImpl(maxIndexesPerMark: number): readonly TickMark[] {
@@ -107,9 +105,7 @@ export class TickMarks {
 
         for (const weight of Array.from(this._marksByWeight.keys()).sort((a: number, b: number) => b - a)) {
             const currentWeight = this._marksByWeight.get(weight);
-            if (currentWeight === undefined) {
-                continue;
-            }
+            if (currentWeight === undefined) continue;
 
             // Built tickMarks are now prevMarks, and marks it as new array
             const prevMarks = marks;
@@ -131,9 +127,7 @@ export class TickMarks {
                 const carried = carryMarksBefore(prevMarks, prevMarksPointer, currentIndex);
                 prevMarksPointer = carried.pointer;
                 marks.push(...carried.moved);
-                if (carried.moved.length > 0) {
-                    leftIndex = getDefined(carried.moved[carried.moved.length - 1]).index;
-                }
+                if (carried.moved.length > 0) leftIndex = getDefined(carried.moved[carried.moved.length - 1]).index;
                 const fits =
                     carried.rightIndex - currentIndex >= maxIndexesPerMark &&
                     currentIndex - leftIndex >= maxIndexesPerMark;
@@ -141,9 +135,7 @@ export class TickMarks {
                 // A mark that does not fit is dropped — unless the caller asked
                 // for uniform spacing, in which case this whole weight is
                 // abandoned and the heavier one stands
-                if (!fits && this._uniformDistribution) {
-                    return prevMarks;
-                }
+                if (!fits && this._uniformDistribution) return prevMarks;
 
                 if (!fits) continue;
 
@@ -176,9 +168,7 @@ function carryMarksBefore(
         const lastMark = prevMarks[pointer];
         if (lastMark === undefined) break;
 
-        if (lastMark.index >= currentIndex) {
-            return { pointer, moved, rightIndex: lastMark.index };
-        }
+        if (lastMark.index >= currentIndex) return { pointer, moved, rightIndex: lastMark.index };
 
         pointer++;
         moved.push(lastMark);

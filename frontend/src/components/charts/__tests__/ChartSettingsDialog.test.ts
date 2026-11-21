@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { CHART_STYLES, DEFAULT_INDICATORS, type ChartTimeframe } from '@ereuna/shared';
 
-import { elementOf, query } from '@/__tests__/support/dom';
+import { elementOf, getElement, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { at, recordAt } from '@/__tests__/support/values';
 import { clearAuth } from '@/api/client';
@@ -26,12 +26,6 @@ const preferences = (chartSettings: Record<string, unknown> | null): Record<stri
 
 const open = (timeframe: ChartTimeframe = 'daily'): VueWrapper =>
     mount(ChartSettingsDialog, { attachTo: document.body, props: { timeframe } });
-
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} in the dialog`);
-    return element;
-};
 
 const all = (selector: string): HTMLElement[] => [...document.body.querySelectorAll<HTMLElement>(selector)];
 
@@ -90,8 +84,8 @@ describe('ChartSettingsDialog', () => {
     it('writes nothing until Save, so closing is a real cancel', async () => {
         const wrapper = open();
 
-        await set($('.chart-settings__select'), 'line');
-        await click($('.dialog__close'));
+        await set(getElement('.chart-settings__select'), 'line');
+        await click(getElement('.dialog__close'));
 
         expect(api.calls.some((call) => call.method === 'PATCH')).toBe(false);
         expect(wrapper.emitted('close')).toHaveLength(1);
@@ -100,8 +94,8 @@ describe('ChartSettingsDialog', () => {
     it('saves the whole settings document', async () => {
         const wrapper = open();
 
-        await set($('.chart-settings__select'), 'line');
-        await click($('.chart-settings__save'));
+        await set(getElement('.chart-settings__select'), 'line');
+        await click(getElement('.chart-settings__save'));
 
         expect(api.last().body).toMatchObject({ chartSettings: { style: 'line' } });
         expect(wrapper.emitted('close')).toHaveLength(1);
@@ -117,7 +111,7 @@ describe('ChartSettingsDialog', () => {
         open();
 
         await set(all('.chart-settings__number')[0], '');
-        await click($('.chart-settings__save'));
+        await click(getElement('.chart-settings__save'));
 
         expect(api.last().body).toMatchObject({
             chartSettings: { indicators: { daily: [{ period: 1, type: 'SMA', visible: true }, {}, {}, {}] } },
@@ -135,7 +129,7 @@ describe('ChartSettingsDialog', () => {
         open('weekly');
 
         await set(all('.chart-settings__number')[0], '30');
-        await click($('.chart-settings__save'));
+        await click(getElement('.chart-settings__save'));
 
         const indicators = recordAt(api.last().body, 'chartSettings', 'indicators');
         expect(at(indicators, 'weekly', 0)).toMatchObject({ period: 30 });
@@ -147,7 +141,7 @@ describe('ChartSettingsDialog', () => {
         await loadPreferences(true);
         open();
 
-        await click($('.chart-settings__link'));
+        await click(getElement('.chart-settings__link'));
 
         expect(query('.chart-settings__select', HTMLSelectElement).value).toBe('candlestick');
         expect(api.calls.some((call) => call.method === 'PATCH')).toBe(false);
@@ -157,9 +151,9 @@ describe('ChartSettingsDialog', () => {
         api.on('PATCH /api/preferences', { error: 'INTERNAL' }, { status: 500 });
         const wrapper = open();
 
-        await click($('.chart-settings__save'));
+        await click(getElement('.chart-settings__save'));
 
-        expect($('[role="alert"]').textContent).toBe(i18n.global.t('errors.INTERNAL'));
+        expect(getElement('[role="alert"]').textContent).toBe(i18n.global.t('errors.INTERNAL'));
         expect(wrapper.emitted('close')).toBeUndefined();
     });
 });

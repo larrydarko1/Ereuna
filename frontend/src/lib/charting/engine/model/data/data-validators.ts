@@ -28,9 +28,7 @@ export function checkItemsAreOrdered<THorzScaleItem>(
     bh: IHorzScaleBehavior<THorzScaleItem>,
     allowDuplicates = false,
 ): void {
-    if (data.length === 0) {
-        return;
-    }
+    if (data.length === 0) return;
 
     let prevTime = bh.key(getDefined(data[0]).time);
     for (let i = 1; i < data.length; ++i) {
@@ -72,9 +70,7 @@ function checkBarItem<THorzScaleItem>(
     type: 'Bar' | 'Candlestick',
     barItem: SeriesDataItemTypeMap<THorzScaleItem>[typeof type],
 ): void {
-    if (!isFulfilledData(barItem)) {
-        return;
-    }
+    if (!isFulfilledData(barItem)) return;
 
     assert(
         typeof barItem.open === 'number',
@@ -98,9 +94,7 @@ function checkLineItem<THorzScaleItem>(
     type: 'Area' | 'Baseline' | 'Line' | 'Histogram',
     lineItem: SeriesDataItemTypeMap<THorzScaleItem>[typeof type],
 ): void {
-    if (!isFulfilledData(lineItem)) {
-        return;
-    }
+    if (!isFulfilledData(lineItem)) return;
 
     assert(
         typeof lineItem.value === 'number',

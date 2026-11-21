@@ -26,9 +26,7 @@ const dateBoundsSchema: z.ZodType<DateBounds> = z.object({ min: z.string(), max:
  * recent close rather than an aggregate over a field.
  */
 export async function getRangeBounds(spec: RangeFilterSpec): Promise<FilterBounds> {
-    if (spec.bounds.kind === 'fixed') {
-        return { min: spec.bounds.min, max: spec.bounds.max };
-    }
+    if (spec.bounds.kind === 'fixed') return { min: spec.bounds.min, max: spec.bounds.max };
 
     if (spec.bounds.kind === 'latestClose') {
         return withCache(marketKey('bounds', spec.key), filterBoundsSchema, fetchPriceBounds, { dataType: 'static' });

@@ -1,22 +1,17 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import { getElement } from '@/__tests__/support/dom';
 import { clearAuth } from '@/api/client';
 import ScreenshotDialog from '@/components/charts/ScreenshotDialog.vue';
 import { useChartTheme } from '@/composables/charts/useChartTheme';
 
 const open = (): VueWrapper => mount(ScreenshotDialog, { attachTo: document.body });
 
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} in the dialog`);
-    return element;
-};
-
 const boxes = (): HTMLInputElement[] => [...document.body.querySelectorAll<HTMLInputElement>('.screenshot input')];
 
 const download = async (): Promise<void> => {
-    $('.screenshot__download').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    getElement('.screenshot__download').dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await Promise.resolve();
 };
 
@@ -64,7 +59,7 @@ describe('ScreenshotDialog', () => {
     it('closes on the dialog close', async () => {
         const wrapper = open();
 
-        $('.dialog__close').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        getElement('.dialog__close').dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await Promise.resolve();
 
         expect(wrapper.emitted('close')).toHaveLength(1);

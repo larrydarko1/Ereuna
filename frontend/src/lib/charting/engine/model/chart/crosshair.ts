@@ -85,9 +85,7 @@ export class Crosshair extends DataSource {
 
                 // The pane's own default scale already holds the price; any
                 // other scale has to be read back out of the coordinate
-                if (priceScale === getNotNull(this._pane).defaultPriceScale()) {
-                    return { price: rawPrice, coordinate };
-                }
+                if (priceScale === getNotNull(this._pane).defaultPriceScale()) return { price: rawPrice, coordinate };
 
                 const firstValue = getNotNull(priceScale.firstValue());
                 return { price: priceScale.coordinateToPrice(coordinate, firstValue), coordinate };
@@ -101,9 +99,7 @@ export class Crosshair extends DataSource {
             return (): CrosshairTimeAndCoordinate | null => {
                 const time = this._model.timeScale().indexToTime(rawIndexProvider());
                 const coordinate = rawCoordinateProvider();
-                if (time === null || !Number.isFinite(coordinate)) {
-                    return null;
-                }
+                if (time === null || !Number.isFinite(coordinate)) return null;
                 return {
                     time,
                     coordinate,
@@ -149,9 +145,7 @@ export class Crosshair extends DataSource {
     }
 
     public setPosition(index: TimePointIndex, price: number, pane: Pane): void {
-        if (!this._subscribed) {
-            this._subscribed = true;
-        }
+        if (!this._subscribed) this._subscribed = true;
 
         this._visible = true;
 
@@ -199,9 +193,7 @@ export class Crosshair extends DataSource {
     }
 
     public override priceAxisViews(pane: Pane, priceScale: PriceScale): IPriceAxisView[] {
-        if (!this._visible || this._pane !== pane) {
-            this._priceAxisViews.clear();
-        }
+        if (!this._visible || this._pane !== pane) this._priceAxisViews.clear();
 
         const views: IPriceAxisView[] = [];
         if (this._pane === pane) {
@@ -233,9 +225,7 @@ export class Crosshair extends DataSource {
     }
 
     private _tryToUpdateViews(index: TimePointIndex, price: number, pane: Pane): void {
-        if (this._tryToUpdateData(index, price, pane)) {
-            this.updateAllViews();
-        }
+        if (this._tryToUpdateData(index, price, pane)) this.updateAllViews();
     }
 
     private _tryToUpdateData(newIndex: TimePointIndex, newPrice: number, newPane: Pane): boolean {

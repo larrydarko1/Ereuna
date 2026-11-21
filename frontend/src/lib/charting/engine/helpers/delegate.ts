@@ -26,9 +26,7 @@ export class Delegate<T1 = void, T2 = void, T3 = void> implements ISubscription<
 
     public unsubscribe(callback: Callback<T1, T2, T3>): void {
         const index = this._listeners.findIndex((listener: Listener<T1, T2, T3>) => callback === listener.callback);
-        if (index > -1) {
-            this._listeners.splice(index, 1);
-        }
+        if (index > -1) this._listeners.splice(index, 1);
     }
 
     public unsubscribeAll(linkedObject: unknown): void {

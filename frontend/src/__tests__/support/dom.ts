@@ -13,5 +13,12 @@ export function elementOf<T extends Element>(element: unknown, kind: new () => T
 
 /** The first match for `selector` under `root` (the whole document by default), checked to be a `kind`. */
 export function query<T extends Element>(selector: string, kind: new () => T, root: ParentNode = document): T {
-    return elementOf(root.querySelector(selector), kind);
+    const element = root.querySelector(selector);
+    if (element === null) throw new Error(`nothing matches ${selector}`);
+    return elementOf(element, kind);
+}
+
+/** The first match for `selector` in the document, a teleported dialog's content included. */
+export function getElement(selector: string): HTMLElement {
+    return query(selector, HTMLElement);
 }

@@ -73,7 +73,9 @@ export async function quotes(symbols: readonly string[]): Promise<Quote[]> {
     const [stored, today] = await Promise.all([readStoredBars(symbols), readTodaysBars(symbols)]);
     const bySymbol = new Map(stored.map((entry) => [entry.symbol, entry.bars]));
     // A listing with no stored history yet still has a price once it trades
-    for (const symbol of today.keys()) if (!bySymbol.has(symbol)) bySymbol.set(symbol, []);
+    for (const symbol of today.keys()) {
+        if (!bySymbol.has(symbol)) bySymbol.set(symbol, []);
+    }
 
     return [...bySymbol].map(([symbol, bars]) => toQuote(symbol, withTodaysBar(bars, today.get(symbol))));
 }

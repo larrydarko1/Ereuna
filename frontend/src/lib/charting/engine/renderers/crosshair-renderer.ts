@@ -40,16 +40,12 @@ export class CrosshairRenderer extends BitmapCoordinatesPaneRenderer {
         horizontalPixelRatio,
         verticalPixelRatio,
     }: BitmapCoordinatesRenderingScope): void {
-        if (this._data === null) {
-            return;
-        }
+        if (this._data === null) return;
 
         const vertLinesVisible = this._data.vertLine.visible;
         const horzLinesVisible = this._data.horzLine.visible;
 
-        if (!vertLinesVisible && !horzLinesVisible) {
-            return;
-        }
+        if (!vertLinesVisible && !horzLinesVisible) return;
 
         const left = Math.round(this._data.x * horizontalPixelRatio);
         const top = Math.round(this._data.y * verticalPixelRatio);

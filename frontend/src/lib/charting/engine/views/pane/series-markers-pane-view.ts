@@ -87,13 +87,9 @@ export class SeriesMarkersPaneView implements IUpdatablePaneView {
     }
 
     public renderer(_addAnchors?: boolean): IPaneRenderer | null {
-        if (!this._series.visible()) {
-            return null;
-        }
+        if (!this._series.visible()) return null;
 
-        if (this._invalidated) {
-            this._makeValid();
-        }
+        if (this._invalidated) this._makeValid();
 
         const layout = this._model.options().layout;
         this._renderer.setParams(layout.fontSize, layout.fontFamily);
@@ -133,9 +129,7 @@ export class SeriesMarkersPaneView implements IUpdatablePaneView {
     protected _getMarkerPositions(): MarkerPositions {
         this._markersPositions ??= this._series.indexedMarkers().reduce(
             (acc: MarkerPositions, marker: InternalSeriesMarker<TimePointIndex>) => {
-                if (!acc[marker.position]) {
-                    acc[marker.position] = true;
-                }
+                if (!acc[marker.position]) acc[marker.position] = true;
                 return acc;
             },
             {
@@ -172,17 +166,11 @@ export class SeriesMarkersPaneView implements IUpdatablePaneView {
 
         this._data.visibleRange = null;
         const visibleBars = timeScale.visibleStrictRange();
-        if (visibleBars === null) {
-            return;
-        }
+        if (visibleBars === null) return;
 
         const firstValue = this._series.firstValue();
-        if (firstValue === null) {
-            return;
-        }
-        if (this._data.items.length === 0) {
-            return;
-        }
+        if (firstValue === null) return;
+        if (this._data.items.length === 0) return;
         let prevTimeIndex = NaN;
         const shapeMargin = calculateShapeMargin(timeScale.barSpacing());
         const offsets: Offsets = {
@@ -213,9 +201,7 @@ export class SeriesMarkersPaneView implements IUpdatablePaneView {
                 };
             }
             const dataAt = this._series.dataAt(marker.time);
-            if (dataAt === null) {
-                continue;
-            }
+            if (dataAt === null) continue;
             placeMarker(rendererItem, marker, {
                 seriesData: dataAt,
                 offsets,

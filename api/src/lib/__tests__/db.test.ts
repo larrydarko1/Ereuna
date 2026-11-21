@@ -72,9 +72,7 @@ describe('connectDb', () => {
     it('applies every index in the manifest before it resolves', async () => {
         await db.connectDb();
         const applied = INDEXES.map((spec) => spec.collection);
-        for (const collection of new Set(applied)) {
-            expect(state.db.of(collection).createIndex).toHaveBeenCalled();
-        }
+        for (const collection of new Set(applied)) expect(state.db.of(collection).createIndex).toHaveBeenCalled();
     });
 
     it('passes an empty options object for an index that declares none', async () => {

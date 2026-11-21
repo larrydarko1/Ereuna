@@ -154,12 +154,8 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     public destroy(): void {
-        if (this._leftPriceAxisWidget !== null) {
-            this._leftPriceAxisWidget.destroy();
-        }
-        if (this._rightPriceAxisWidget !== null) {
-            this._rightPriceAxisWidget.destroy();
-        }
+        if (this._leftPriceAxisWidget !== null) this._leftPriceAxisWidget.destroy();
+        if (this._rightPriceAxisWidget !== null) this._rightPriceAxisWidget.destroy();
 
         this._topCanvasBinding.unsubscribeSuggestedBitmapSizeChanged(this._topCanvasSuggestedBitmapSizeChangedHandler);
         releaseCanvas(this._topCanvasBinding.canvasElement);
@@ -169,9 +165,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
         releaseCanvas(this._canvasBinding.canvasElement);
         this._canvasBinding.dispose();
 
-        if (this._state !== null) {
-            this._state.onDestroyed().unsubscribeAll(this);
-        }
+        if (this._state !== null) this._state.onDestroyed().unsubscribeAll(this);
 
         this._mouseEventHandler.destroy();
     }
@@ -181,9 +175,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     public setState(pane: Pane | null): void {
-        if (this._state !== null) {
-            this._state.onDestroyed().unsubscribeAll(this);
-        }
+        if (this._state !== null) this._state.onDestroyed().unsubscribeAll(this);
 
         this._state = pane;
 
@@ -205,14 +197,10 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     public updatePriceAxisWidgetsStates(): void {
-        if (this._state === null) {
-            return;
-        }
+        if (this._state === null) return;
 
         this._recreatePriceAxisWidgets();
-        if (this._model().serieses().length === 0) {
-            return;
-        }
+        if (this._model().serieses().length === 0) return;
 
         if (this._leftPriceAxisWidget !== null) {
             const leftPriceScale = this._state.leftPriceScale();
@@ -225,12 +213,8 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     public updatePriceAxisWidgets(): void {
-        if (this._leftPriceAxisWidget !== null) {
-            this._leftPriceAxisWidget.update();
-        }
-        if (this._rightPriceAxisWidget !== null) {
-            this._rightPriceAxisWidget.update();
-        }
+        if (this._leftPriceAxisWidget !== null) this._leftPriceAxisWidget.update();
+        if (this._rightPriceAxisWidget !== null) this._rightPriceAxisWidget.update();
     }
 
     public stretchFactor(): number {
@@ -238,15 +222,11 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     public setStretchFactor(stretchFactor: number): void {
-        if (this._state !== null) {
-            this._state.setStretchFactor(stretchFactor);
-        }
+        if (this._state !== null) this._state.setStretchFactor(stretchFactor);
     }
 
     public mouseEnterEvent(event: MouseEventHandlerMouseEvent): void {
-        if (this._state === null) {
-            return;
-        }
+        if (this._state === null) return;
         this._onMouseEvent();
         this._setCrosshairPosition(event.localX, event.localY, event);
     }
@@ -258,9 +238,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     public mouseMoveEvent(event: MouseEventHandlerMouseEvent): void {
-        if (this._state === null) {
-            return;
-        }
+        if (this._state === null) return;
         this._onMouseEvent();
 
         this._setCrosshairPosition(event.localX, event.localY, event);
@@ -270,9 +248,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     public mouseClickEvent(event: MouseEventHandlerMouseEvent): void {
-        if (this._state === null) {
-            return;
-        }
+        if (this._state === null) return;
         this._onMouseEvent();
         const hitTest = this.hitTest(event.localX, event.localY);
         this._model().setHoveredSource(hitTest === null ? null : { source: hitTest.source, object: hitTest.object });
@@ -280,9 +256,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     public mouseDoubleClickEvent(event: MouseEventHandlerMouseEvent | MouseEventHandlerTouchEvent): void {
-        if (this._state === null) {
-            return;
-        }
+        if (this._state === null) return;
         this._fireMouseClickDelegate(this._dblClicked, event);
     }
 
@@ -297,9 +271,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     public mouseUpEvent(event: MouseEventHandlerMouseEvent): void {
-        if (this._state === null) {
-            return;
-        }
+        if (this._state === null) return;
         this._onMouseEvent();
 
         this._longTap = false;
@@ -308,9 +280,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     public tapEvent(event: MouseEventHandlerTouchEvent): void {
-        if (this._state === null) {
-            return;
-        }
+        if (this._state === null) return;
         this._fireClickedDelegate(event);
     }
 
@@ -324,9 +294,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     public mouseLeaveEvent(_event: MouseEventHandlerMouseEvent): void {
-        if (this._state === null) {
-            return;
-        }
+        if (this._state === null) return;
         this._onMouseEvent();
 
         this._state.model().setHoveredSource(null);
@@ -347,9 +315,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     public pinchEvent(middlePoint: Position, scale: number): void {
-        if (!this._chart.options().handleScale.pinch) {
-            return;
-        }
+        if (!this._chart.options().handleScale.pinch) return;
 
         const zoomScale = (scale - this._prevPinchScale) * 5;
         this._prevPinchScale = scale;
@@ -371,9 +337,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     public touchMoveEvent(event: MouseEventHandlerTouchEvent): void {
-        if (this._state === null) {
-            return;
-        }
+        if (this._state === null) return;
 
         const { localX, localY } = event;
         if (this._startTrackPoint !== null) {
@@ -411,9 +375,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     public setSize(newSize: Size): void {
-        if (equalSizes(this._size, newSize)) {
-            return;
-        }
+        if (equalSizes(this._size, newSize)) return;
 
         this._size = newSize;
         this._isSettingSize = true;
@@ -432,9 +394,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
         for (const source of pane.dataSources()) {
             if (pane.isOverlay(source)) {
                 const priceScale = source.priceScale();
-                if (priceScale !== null) {
-                    pane.recalculatePriceScale(priceScale);
-                }
+                if (priceScale !== null) pane.recalculatePriceScale(priceScale);
 
                 // for overlay drawings price scale is owner's price scale
                 // however owner's price scale could not contain ds
@@ -449,30 +409,18 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
 
     public drawBitmap(ctx: CanvasRenderingContext2D, x: number, y: number): void {
         const bitmapSize = this.getBitmapSize();
-        if (bitmapSize.width > 0 && bitmapSize.height > 0) {
-            ctx.drawImage(this._canvasBinding.canvasElement, x, y);
-        }
+        if (bitmapSize.width > 0 && bitmapSize.height > 0) ctx.drawImage(this._canvasBinding.canvasElement, x, y);
     }
 
     public paint(type: InvalidationLevel): void {
-        if (type === InvalidationLevel.None) {
-            return;
-        }
+        if (type === InvalidationLevel.None) return;
 
-        if (this._state === null) {
-            return;
-        }
+        if (this._state === null) return;
 
-        if (type > InvalidationLevel.Cursor) {
-            this.recalculatePriceScales();
-        }
+        if (type > InvalidationLevel.Cursor) this.recalculatePriceScales();
 
-        if (this._leftPriceAxisWidget !== null) {
-            this._leftPriceAxisWidget.paint(type);
-        }
-        if (this._rightPriceAxisWidget !== null) {
-            this._rightPriceAxisWidget.paint(type);
-        }
+        if (this._leftPriceAxisWidget !== null) this._leftPriceAxisWidget.paint(type);
+        if (this._rightPriceAxisWidget !== null) this._rightPriceAxisWidget.paint(type);
 
         if (type !== InvalidationLevel.Cursor) {
             this._canvasBinding.applySuggestedBitmapSize();
@@ -513,9 +461,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     private _onStateDestroyed(): void {
-        if (this._state !== null) {
-            this._state.onDestroyed().unsubscribeAll(this);
-        }
+        if (this._state !== null) this._state.onDestroyed().unsubscribeAll(this);
 
         this._state = null;
     }
@@ -540,11 +486,8 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
         const topColor = model.backgroundTopColor();
         const bottomColor = model.backgroundBottomColor();
 
-        if (topColor === bottomColor) {
-            clearRect(ctx, 0, 0, width, height, bottomColor);
-        } else {
-            clearRectWithGradient(ctx, { x: 0, y: 0, width, height }, { topColor, bottomColor });
-        }
+        if (topColor === bottomColor) clearRect(ctx, 0, 0, width, height, bottomColor);
+        else clearRectWithGradient(ctx, { x: 0, y: 0, width, height }, { topColor, bottomColor });
     }
 
     private _drawGrid(target: CanvasRenderingTarget2D): void {
@@ -552,9 +495,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
         const paneView = state.grid().paneView();
         const renderer = paneView.renderer();
 
-        if (renderer !== null) {
-            renderer.draw(target, { isHovered: false });
-        }
+        if (renderer !== null) renderer.draw(target, { isHovered: false });
     }
 
     private _drawWatermark(target: CanvasRenderingTarget2D): void {
@@ -571,13 +512,9 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
         const state = getNotNull(this._state);
         const sources = state.orderedSources();
 
-        for (const source of sources) {
-            this._drawSourceImpl(target, paneViewsGetter, drawBackground, source);
-        }
+        for (const source of sources) this._drawSourceImpl(target, paneViewsGetter, drawBackground, source);
 
-        for (const source of sources) {
-            this._drawSourceImpl(target, paneViewsGetter, drawForeground, source);
-        }
+        for (const source of sources) this._drawSourceImpl(target, paneViewsGetter, drawForeground, source);
     }
 
     private _drawSourceImpl(
@@ -600,9 +537,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     private _recreatePriceAxisWidgets(): void {
-        if (this._state === null) {
-            return;
-        }
+        if (this._state === null) return;
         const chart = this._chart;
         const leftAxisVisible = this._state.leftPriceScale().options().visible;
         const rightAxisVisible = this._state.rightPriceScale().options().visible;
@@ -676,9 +611,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     private _endScroll(_event: TouchMouseEvent): void {
-        if (!this._isScrolling) {
-            return;
-        }
+        if (!this._isScrolling) return;
 
         const model = this._model();
         const state = this.state();
@@ -706,9 +639,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     private _mouseTouchDownEvent(): void {
-        if (this._state === null) {
-            return;
-        }
+        if (this._state === null) return;
 
         this._model().stopTimeScaleAnimation();
 
@@ -723,16 +654,12 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     private _pressedMouseTouchMoveEvent(event: TouchMouseEvent): void {
-        if (this._state === null) {
-            return;
-        }
+        if (this._state === null) return;
 
         const model = this._model();
         const timeScale = model.timeScale();
 
-        if (timeScale.isEmpty()) {
-            return;
-        }
+        if (timeScale.isEmpty()) return;
 
         const chartOptions = this._chart.options();
         const scrollOptions = chartOptions.handleScroll;
@@ -779,9 +706,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
                 this._scrollXAnimation = null;
             }
 
-            if (!priceScale.isEmpty()) {
-                model.startScrollPrice(this._state, priceScale, event.localY);
-            }
+            if (!priceScale.isEmpty()) model.startScrollPrice(this._state, priceScale, event.localY);
 
             model.startScrollTime(event.localX);
             this._isScrolling = true;
@@ -789,9 +714,7 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
 
         if (this._isScrolling) {
             // this allows scrolling not default price scales
-            if (!priceScale.isEmpty()) {
-                model.scrollPriceTo(this._state, priceScale, event.localY);
-            }
+            if (!priceScale.isEmpty()) model.scrollPriceTo(this._state, priceScale, event.localY);
 
             model.scrollTimeTo(event.localX);
             if (this._scrollXAnimation !== null) {
@@ -801,17 +724,13 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
     }
 
     private readonly _canvasSuggestedBitmapSizeChangedHandler = (): void => {
-        if (this._isSettingSize || this._state === null) {
-            return;
-        }
+        if (this._isSettingSize || this._state === null) return;
 
         this._model().lightUpdate();
     };
 
     private readonly _topCanvasSuggestedBitmapSizeChangedHandler = (): void => {
-        if (this._isSettingSize || this._state === null) {
-            return;
-        }
+        if (this._isSettingSize || this._state === null) return;
 
         this._model().lightUpdate();
     };

@@ -40,9 +40,7 @@ export abstract class SeriesHorizontalLinePaneView implements IPaneView {
     }
 
     public renderer(): IPaneRenderer | null {
-        if (!this._series.visible()) {
-            return null;
-        }
+        if (!this._series.visible()) return null;
 
         if (this._invalidated) {
             this._updateImpl();

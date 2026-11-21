@@ -1,7 +1,7 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { query } from '@/__tests__/support/dom';
+import { getElement, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import TwoFactorDialog from '@/components/user/TwoFactorDialog.vue';
 import { i18n } from '@/i18n';
@@ -16,13 +16,6 @@ const open = async (): Promise<VueWrapper> => {
     return wrapper;
 };
 
-/** The dialog is teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} in the dialog`);
-    return element;
-};
-
 const type = async (value: string): Promise<void> => {
     const field = query('.enrol__code', HTMLInputElement);
     field.value = value;
@@ -31,7 +24,7 @@ const type = async (value: string): Promise<void> => {
 };
 
 const confirm = async (): Promise<void> => {
-    $('.dialog__footer .btn--primary').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    getElement('.dialog__footer .btn--primary').dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await flushPromises();
 };
 
@@ -51,7 +44,7 @@ describe('TwoFactorDialog', () => {
 
         await open();
 
-        expect($('.enrol__secret').textContent).toBe(ENROLMENT.secret);
+        expect(getElement('.enrol__secret').textContent).toBe(ENROLMENT.secret);
         expect(document.body.querySelector('.enrol__qr svg')).not.toBeNull();
     });
 
@@ -85,7 +78,7 @@ describe('TwoFactorDialog', () => {
         await type('000000');
         await confirm();
 
-        expect($('.enrol .form-error').textContent).toBe(i18n.global.t('errors.INVALID_TWO_FA_CODE'));
+        expect(getElement('.enrol .form-error').textContent).toBe(i18n.global.t('errors.INVALID_TWO_FA_CODE'));
         expect(wrapper.emitted('enrolled')).toBeUndefined();
     });
 
@@ -95,14 +88,14 @@ describe('TwoFactorDialog', () => {
         await open();
 
         expect(document.body.querySelector('.enrol')).toBeNull();
-        expect($('.form-error[role="alert"]').textContent).toBe(i18n.global.t('errors.INTERNAL'));
+        expect(getElement('.form-error[role="alert"]').textContent).toBe(i18n.global.t('errors.INTERNAL'));
     });
 
     it('closes on cancel', async () => {
         api.on('POST /api/account/2fa', ENROLMENT);
         const wrapper = await open();
 
-        $('.dialog__footer .btn').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        getElement('.dialog__footer .btn').dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await Promise.resolve();
 
         expect(wrapper.emitted('close')).toHaveLength(1);

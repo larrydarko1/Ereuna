@@ -34,8 +34,9 @@ beforeEach(async () => {
     service.reorderWatchlists.mockResolvedValue([summary]);
     service.getWatchlistRows.mockResolvedValue(detail);
     service.renameWatchlist.mockResolvedValue(summary);
-    for (const mock of [service.reorderTickers, service.addTicker, service.removeTicker])
+    for (const mock of [service.reorderTickers, service.addTicker, service.removeTicker]) {
         mock.mockResolvedValue(entries);
+    }
     service.deleteWatchlist.mockResolvedValue(undefined);
     harness = await serve((app) => app.use('/api/watchlists', quietLogger, asUser(USER), router));
 });

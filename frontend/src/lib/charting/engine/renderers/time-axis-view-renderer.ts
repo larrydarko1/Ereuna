@@ -39,9 +39,7 @@ export class TimeAxisViewRenderer implements ITimeAxisViewRenderer {
     }
 
     public draw(target: CanvasRenderingTarget2D, rendererOptions: TimeAxisViewRendererOptions): void {
-        if (this._data === null || !this._data.visible || this._data.text.length === 0) {
-            return;
-        }
+        if (this._data === null || !this._data.visible || this._data.text.length === 0) return;
 
         const textWidth = target.useMediaCoordinateSpace(({ context: ctx }: MediaCoordinatesRenderingScope) => {
             ctx.font = rendererOptions.font;
@@ -49,9 +47,7 @@ export class TimeAxisViewRenderer implements ITimeAxisViewRenderer {
                 rendererOptions.widthCache.measureText(ctx, getNotNull(this._data).text, optimizationReplacementRe),
             );
         });
-        if (textWidth <= 0) {
-            return;
-        }
+        if (textWidth <= 0) return;
 
         const horzMargin = rendererOptions.paddingHorizontal;
         const labelWidth = textWidth + 2 * horzMargin;

@@ -21,16 +21,12 @@ export class Magnet {
 
     public align(price: number, index: TimePointIndex, pane: Pane): number {
         const res = price;
-        if (this._options.mode === CrosshairMode.Normal) {
-            return res;
-        }
+        if (this._options.mode === CrosshairMode.Normal) return res;
 
         const defaultPriceScale = pane.defaultPriceScale();
         const firstValue = defaultPriceScale.firstValue();
 
-        if (firstValue === null) {
-            return res;
-        }
+        if (firstValue === null) return res;
 
         const priceCoordinate = defaultPriceScale.priceToCoordinate(price, firstValue);
 
@@ -40,37 +36,27 @@ export class Magnet {
             .filter((source: IPriceDataSource): source is Series<SeriesType> => source instanceof Series);
 
         const candidates = serieses.reduce<Coordinate[]>((acc: Coordinate[], series: ISeries<SeriesType>) => {
-            if (pane.isOverlay(series) || !series.visible()) {
-                return acc;
-            }
+            if (pane.isOverlay(series) || !series.visible()) return acc;
             const ps = series.priceScale();
             const bars = series.bars();
-            if (ps.isEmpty() || !bars.contains(index)) {
-                return acc;
-            }
+            if (ps.isEmpty() || !bars.contains(index)) return acc;
 
             const bar = bars.valueAt(index);
-            if (bar === null) {
-                return acc;
-            }
+            if (bar === null) return acc;
 
             // convert bar to pixels
             const firstPrice = getPresent(series.firstValue());
             return acc.concat([ps.priceToCoordinate(bar.value[PlotRowValueIndex.Close], firstPrice.value)]);
         }, []);
 
-        if (candidates.length === 0) {
-            return res;
-        }
+        if (candidates.length === 0) return res;
 
         candidates.sort(
             (y1: Coordinate, y2: Coordinate) => Math.abs(y1 - priceCoordinate) - Math.abs(y2 - priceCoordinate),
         );
 
         const nearest = candidates[0];
-        if (nearest === undefined) {
-            return res;
-        }
+        if (nearest === undefined) return res;
 
         return defaultPriceScale.coordinateToPrice(nearest, firstValue);
     }

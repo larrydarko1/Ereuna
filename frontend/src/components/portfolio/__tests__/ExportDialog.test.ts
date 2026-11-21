@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { PortfolioExport } from '@ereuna/shared';
 
-import { query } from '@/__tests__/support/dom';
+import { getElement, query } from '@/__tests__/support/dom';
 import ExportDialog from '@/components/portfolio/ExportDialog.vue';
 import { i18n } from '@/i18n';
 
@@ -53,15 +53,8 @@ const open = (props: Record<string, unknown> = {}): VueWrapper =>
         attachTo: document.body,
     });
 
-/** The dialog is teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} in the dialog`);
-    return element;
-};
-
 const download = async (): Promise<void> => {
-    $('.dialog__footer .btn--primary').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    getElement('.dialog__footer .btn--primary').dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await new Promise((resolve) => setTimeout(resolve, 0));
 };
 
@@ -76,7 +69,7 @@ describe('ExportDialog', () => {
         open();
 
         expect(query('input[value="json"]', HTMLInputElement).checked).toBe(true);
-        expect($('.form-hint').textContent).toBe(i18n.global.t('portfolio.exportJsonHint'));
+        expect(getElement('.form-hint').textContent).toBe(i18n.global.t('portfolio.exportJsonHint'));
     });
 
     it('explains what the spreadsheet format leaves out', async () => {
@@ -85,7 +78,7 @@ describe('ExportDialog', () => {
         query('input[value="csv"]', HTMLInputElement).click();
         await Promise.resolve();
 
-        expect($('.form-hint').textContent).toBe(i18n.global.t('portfolio.exportCsvHint'));
+        expect(getElement('.form-hint').textContent).toBe(i18n.global.t('portfolio.exportCsvHint'));
     });
 
     it('names the file for the slot the user sees, not the index', async () => {
@@ -146,14 +139,14 @@ describe('ExportDialog', () => {
 
         await download();
 
-        expect($('.form-error[role="alert"]').textContent).toBe(i18n.global.t('errors.INTERNAL'));
+        expect(getElement('.form-error[role="alert"]').textContent).toBe(i18n.global.t('errors.INTERNAL'));
         expect(wrapper.emitted('close')).toBeUndefined();
     });
 
     it('closes on cancel', async () => {
         const wrapper = open();
 
-        $('.dialog__footer .btn').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        getElement('.dialog__footer .btn').dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await Promise.resolve();
 
         expect(wrapper.emitted('close')).toHaveLength(1);

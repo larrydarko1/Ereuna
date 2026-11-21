@@ -139,8 +139,9 @@ function withQuote(item: ScreenerResult, quote: Quote | undefined): ScreenerResu
 
     const columns = { ...item.columns };
     if (PRICE_COLUMN in columns) columns[PRICE_COLUMN] = quote.close;
-    if (CHANGE_COLUMN in columns)
+    if (CHANGE_COLUMN in columns) {
         columns[CHANGE_COLUMN] = quote.changePercent === null ? null : quote.changePercent / 100;
+    }
     return { ...item, columns };
 }
 

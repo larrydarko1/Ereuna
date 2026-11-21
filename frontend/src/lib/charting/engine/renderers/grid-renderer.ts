@@ -36,9 +36,7 @@ export class GridRenderer extends BitmapCoordinatesPaneRenderer {
         horizontalPixelRatio,
         verticalPixelRatio,
     }: BitmapCoordinatesRenderingScope): void {
-        if (this._data === null) {
-            return;
-        }
+        if (this._data === null) return;
 
         const lineWidth = Math.max(1, Math.floor(horizontalPixelRatio));
         ctx.lineWidth = lineWidth;

@@ -38,8 +38,6 @@ export function drawSourcePaneViews(
 export function drawViews(views: readonly IPaneView[], drawRendererFn: DrawRendererFn): void {
     for (const view of views) {
         const renderer = view.renderer();
-        if (renderer !== null) {
-            drawRendererFn(renderer);
-        }
+        if (renderer !== null) drawRendererFn(renderer);
     }
 }

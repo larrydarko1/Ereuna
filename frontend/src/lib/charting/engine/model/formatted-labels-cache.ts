@@ -39,9 +39,7 @@ export class FormattedLabelsCache<THorzScaleItem> {
         const cacheKey = this._horzScaleBehavior.cacheKey(time);
 
         const tick = this._cache.get(cacheKey);
-        if (tick !== undefined) {
-            return tick.string;
-        }
+        if (tick !== undefined) return tick.string;
 
         if (this._actualSize === this._maxSize) {
             const oldestValue = this._tick2Labels.get(this._oldestTick);

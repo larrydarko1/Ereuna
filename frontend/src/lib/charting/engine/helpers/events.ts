@@ -6,9 +6,7 @@ import { isChrome } from '@/lib/charting/engine/helpers/browsers';
 import { MouseEventButton } from '@/lib/charting/engine/helpers/mouse-event-button';
 
 export function preventScrollByWheelClick(el: HTMLElement): void {
-    if (!isChrome()) {
-        return;
-    }
+    if (!isChrome()) return;
 
     el.addEventListener('mousedown', (e: MouseEvent) => {
         if (e.button === MouseEventButton.Middle) {

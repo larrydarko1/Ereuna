@@ -76,9 +76,7 @@ export async function reorderWatchlists(userId: ObjectId, names: readonly string
 
     const wanted = names.map((name) => name.toLowerCase());
     const missing = wanted.filter((name) => !docs.some((doc) => doc.nameLower === name));
-    if (missing.length > 0) {
-        throw new AppError(404, 'WATCHLIST_NOT_FOUND', `unknown watchlists: ${missing.join(', ')}`);
-    }
+    if (missing.length > 0) throw new AppError(404, 'WATCHLIST_NOT_FOUND', `unknown watchlists: ${missing.join(', ')}`);
 
     const ordered = [
         ...wanted.flatMap((name) => docs.filter((doc) => doc.nameLower === name)),

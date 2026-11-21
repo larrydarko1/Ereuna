@@ -32,9 +32,7 @@ export class PriceTickMarkBuilder {
     }
 
     public tickSpan(high: number, low: number): number {
-        if (high < low) {
-            throw new Error('high < low');
-        }
+        if (high < low) throw new Error('high < low');
 
         const scaleHeight = this._priceScale.height();
         const markHeight = this._tickMarkHeight();
@@ -96,14 +94,10 @@ export class PriceTickMarkBuilder {
 
             // check if there is place for it
             // this is required for log scale
-            if (prevCoord !== null && Math.abs(coord - prevCoord) < this._tickMarkHeight()) {
-                continue;
-            }
+            if (prevCoord !== null && Math.abs(coord - prevCoord) < this._tickMarkHeight()) continue;
 
             // check if a tick mark is partially visible and skip it if entireTextOnly is true
-            if (coord < minCoord || coord > maxCoord) {
-                continue;
-            }
+            if (coord < minCoord || coord > maxCoord) continue;
 
             const existingMark = this._marks[targetIndex];
             if (existingMark !== undefined) {

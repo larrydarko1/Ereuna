@@ -68,9 +68,7 @@ export class CrosshairMarksPaneView implements IUpdatablePaneView {
 
         serieses.forEach((s: ISeries<SeriesType>, index: number) => {
             const data = this._markersData[index];
-            if (data === undefined) {
-                return;
-            }
+            if (data === undefined) return;
 
             const seriesData = s.markerDataAtIndex(timePointIndex);
 
@@ -80,9 +78,7 @@ export class CrosshairMarksPaneView implements IUpdatablePaneView {
             }
 
             const marker = data.items[0];
-            if (marker === undefined) {
-                return;
-            }
+            if (marker === undefined) return;
 
             const firstValue = getNotNull(s.firstValue());
             data.lineColor = seriesData.backgroundColor;

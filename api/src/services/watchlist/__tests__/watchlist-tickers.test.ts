@@ -22,9 +22,7 @@ vi.mock('@/services/market/index.js', () => ({
 vi.mock('@/services/market/market-quotes.js', () => ({ quotes: () => Promise.resolve(state.quotes) }));
 vi.mock('@/services/watchlist/watchlist-crud.js', () => ({
     getWatchlist: () => {
-        if (state.watchlist === null) {
-            return Promise.reject(new AppError(404, 'WATCHLIST_NOT_FOUND', 'not found'));
-        }
+        if (state.watchlist === null) return Promise.reject(new AppError(404, 'WATCHLIST_NOT_FOUND', 'not found'));
         return Promise.resolve(state.watchlist);
     },
 }));

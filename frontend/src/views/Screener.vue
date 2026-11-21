@@ -189,9 +189,7 @@ watch(results.items, (current) => {
         selectedSymbol.value = '';
         return;
     }
-    if (!current.some((row) => row.symbol === selectedSymbol.value)) {
-        selectedSymbol.value = current[0]?.symbol ?? '';
-    }
+    if (!current.some((row) => row.symbol === selectedSymbol.value)) selectedSymbol.value = current[0]?.symbol ?? '';
 });
 
 onMounted(async () => {

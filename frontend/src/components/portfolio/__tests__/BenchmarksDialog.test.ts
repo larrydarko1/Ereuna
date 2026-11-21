@@ -1,19 +1,12 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { query } from '@/__tests__/support/dom';
+import { getElement, query } from '@/__tests__/support/dom';
 import BenchmarksDialog from '@/components/portfolio/BenchmarksDialog.vue';
 import { i18n } from '@/i18n';
 
 const open = (props: Record<string, unknown> = {}): VueWrapper =>
     mount(BenchmarksDialog, { props: { current: ['SPY'], ...props }, attachTo: document.body });
-
-/** The dialog is teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} in the dialog`);
-    return element;
-};
 
 const type = async (value: string): Promise<void> => {
     const field = query('.benchmarks-dialog__add input', HTMLInputElement);
@@ -23,7 +16,7 @@ const type = async (value: string): Promise<void> => {
 };
 
 const add = async (): Promise<void> => {
-    $('.benchmarks-dialog__add').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    getElement('.benchmarks-dialog__add').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     await Promise.resolve();
 };
 
@@ -44,7 +37,7 @@ describe('BenchmarksDialog', () => {
     it('says so when nothing is tracked yet', () => {
         open({ current: [] });
 
-        expect($('.form-hint').textContent).toBe(i18n.global.t('portfolio.noBenchmarks'));
+        expect(getElement('.form-hint').textContent).toBe(i18n.global.t('portfolio.noBenchmarks'));
     });
 
     it('adds a symbol in upper case, whatever was typed', async () => {
@@ -72,7 +65,7 @@ describe('BenchmarksDialog', () => {
         await add();
 
         expect(listed()).toEqual(['SPY']);
-        expect($('.benchmarks-dialog__add button').hasAttribute('disabled')).toBe(true);
+        expect(getElement('.benchmarks-dialog__add button').hasAttribute('disabled')).toBe(true);
     });
 
     it('refuses a blank symbol', async () => {
@@ -97,7 +90,7 @@ describe('BenchmarksDialog', () => {
     it('removes a symbol from the list', async () => {
         open({ current: ['SPY', 'QQQ'] });
 
-        $('.benchmarks-dialog__item .btn').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        getElement('.benchmarks-dialog__item .btn').dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await Promise.resolve();
 
         expect(listed()).toEqual(['QQQ']);
@@ -108,7 +101,7 @@ describe('BenchmarksDialog', () => {
 
         await type('qqq');
         await add();
-        $('.dialog__footer .btn--primary').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        getElement('.dialog__footer .btn--primary').dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await Promise.resolve();
 
         expect(wrapper.emitted('save')?.[0]).toEqual([['SPY', 'QQQ']]);
@@ -117,14 +110,14 @@ describe('BenchmarksDialog', () => {
     it('shows what the last save was refused for, and locks while saving', () => {
         open({ error: 'Unknown symbol', saving: true });
 
-        expect($('.form-error[role="alert"]').textContent).toBe('Unknown symbol');
-        expect($('.dialog__footer .btn--primary').hasAttribute('disabled')).toBe(true);
+        expect(getElement('.form-error[role="alert"]').textContent).toBe('Unknown symbol');
+        expect(getElement('.dialog__footer .btn--primary').hasAttribute('disabled')).toBe(true);
     });
 
     it('closes on cancel', async () => {
         const wrapper = open();
 
-        $('.dialog__footer .btn').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        getElement('.dialog__footer .btn').dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await Promise.resolve();
 
         expect(wrapper.emitted('close')).toHaveLength(1);

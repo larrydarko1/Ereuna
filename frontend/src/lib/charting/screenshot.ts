@@ -90,9 +90,7 @@ export class ChartScreenshot {
      */
     private captureChartCanvas(): HTMLCanvasElement {
         const canvases = Array.from(this.chartContainer.querySelectorAll('canvas'));
-        if (canvases.length === 0) {
-            throw new Error('Chart container holds no canvas to capture');
-        }
+        if (canvases.length === 0) throw new Error('Chart container holds no canvas to capture');
 
         const rect = this.chartContainer.getBoundingClientRect();
         let maxBottom = 0;
@@ -115,9 +113,7 @@ export class ChartScreenshot {
         combinedCanvas.height = height * dpr;
 
         const ctx = combinedCanvas.getContext('2d');
-        if (ctx === null) {
-            throw new Error('Could not acquire a 2d context for the capture canvas');
-        }
+        if (ctx === null) throw new Error('Could not acquire a 2d context for the capture canvas');
 
         ctx.scale(dpr, dpr);
 
@@ -159,9 +155,7 @@ export class ChartScreenshot {
         finalCanvas.height = finalHeight;
 
         const ctx = finalCanvas.getContext('2d');
-        if (ctx === null) {
-            throw new Error('Could not acquire a 2d context for the export canvas');
-        }
+        if (ctx === null) throw new Error('Could not acquire a 2d context for the export canvas');
 
         ctx.fillStyle = config.backgroundColor;
         ctx.fillRect(0, 0, finalWidth, finalHeight);
@@ -296,9 +290,7 @@ export class ChartScreenshot {
         tempCanvas.height = height;
 
         const tempCtx = tempCanvas.getContext('2d');
-        if (tempCtx === null) {
-            throw new Error('Could not acquire a 2d context to recolour the logo');
-        }
+        if (tempCtx === null) throw new Error('Could not acquire a 2d context to recolour the logo');
 
         tempCtx.drawImage(img, 0, 0, logoWidth, height);
         tempCtx.globalCompositeOperation = 'source-in';
@@ -318,9 +310,7 @@ export class ChartScreenshot {
     }
 
     private truncateText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
-        if (ctx.measureText(text).width <= maxWidth) {
-            return text;
-        }
+        if (ctx.measureText(text).width <= maxWidth) return text;
 
         let truncated = text;
         while (truncated.length > 0 && ctx.measureText(`${truncated}...`).width > maxWidth) {
@@ -335,9 +325,7 @@ export class ChartScreenshot {
      * or dark, so the header text is chosen against its luminance
      */
     private getContrastColors(backgroundColor: string): { textColor: string; textColorSecondary: string } {
-        if (this.isLightColor(backgroundColor)) {
-            return { textColor: '#1a1b26', textColorSecondary: '#6b7280' };
-        }
+        if (this.isLightColor(backgroundColor)) return { textColor: '#1a1b26', textColorSecondary: '#6b7280' };
 
         return { textColor: '#ffffff', textColorSecondary: '#9ca3af' };
     }

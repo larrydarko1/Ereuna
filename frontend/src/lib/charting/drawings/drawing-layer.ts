@@ -82,11 +82,8 @@ export abstract class DrawingLayer {
     }
 
     public toggle(): void {
-        if (this.active) {
-            this.deactivate();
-        } else {
-            this.activate();
-        }
+        if (this.active) this.deactivate();
+        else this.activate();
     }
 
     /** Repaints the whole overlay from the tool's stored shapes. */
@@ -221,9 +218,7 @@ export abstract class DrawingLayer {
     private readonly handleKeyDown = (event: KeyboardEvent): void => {
         if (event.key !== 'Backspace' && event.key !== 'Delete') return;
 
-        if (isTypingTarget(event.target)) {
-            return;
-        }
+        if (isTypingTarget(event.target)) return;
 
         if (!this.hasSelection()) return;
 

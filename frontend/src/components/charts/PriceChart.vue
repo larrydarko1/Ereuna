@@ -289,11 +289,8 @@ function applyBars(): void {
             ? timeValue(last.time) === applied.last
             : bars.length === applied.length + 1 && timeValue(last.time) > applied.last);
 
-    if (tail) {
-        mainSeries.update(priceOnly.value ? { time: last.time, value: last.close } : last);
-    } else {
-        mainSeries.setData(priceOnly.value ? [...closes(bars)] : [...bars]);
-    }
+    if (tail) mainSeries.update(priceOnly.value ? { time: last.time, value: last.close } : last);
+    else mainSeries.setData(priceOnly.value ? [...closes(bars)] : [...bars]);
 
     applied = last === undefined ? null : { length: bars.length, last: timeValue(last.time) };
 

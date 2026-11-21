@@ -15,15 +15,9 @@ export class VolumeFormatter implements IPriceFormatter {
         const sign = vol < 0 ? '-' : '';
         const size = Math.abs(vol);
 
-        if (size < 995) {
-            return sign + this._formatNumber(size);
-        }
-        if (size < 999995) {
-            return `${sign}${this._formatNumber(size / 1000)}K`;
-        }
-        if (size < 999999995) {
-            return `${sign}${this._formatNumber((1000 * Math.round(size / 1000)) / 1000000)}M`;
-        }
+        if (size < 995) return sign + this._formatNumber(size);
+        if (size < 999995) return `${sign}${this._formatNumber(size / 1000)}K`;
+        if (size < 999999995) return `${sign}${this._formatNumber((1000 * Math.round(size / 1000)) / 1000000)}M`;
         return `${sign}${this._formatNumber((1000000 * Math.round(size / 1000000)) / 1000000000)}B`;
     }
 

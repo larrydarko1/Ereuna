@@ -5,7 +5,7 @@ import type { ScreenerResultPage, ScreenerSummary } from '@ereuna/shared';
 
 import { preferences, screenerResult, screenerSummary } from '@/__tests__/support/answers';
 import { assetProfile } from '@/__tests__/support/assets';
-import { elementOf, query } from '@/__tests__/support/dom';
+import { elementOf, getElement, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { socket } from '@/__tests__/support/socket';
 import { clearAuth } from '@/api/client';
@@ -48,13 +48,6 @@ const view = async (): Promise<VueWrapper> => {
     await flushPromises();
     await flushPromises();
     return wrapper;
-};
-
-/** Dialogs are teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} on the page`);
-    return element;
 };
 
 const click = async (element: HTMLElement | undefined): Promise<void> => {
@@ -240,7 +233,7 @@ describe('Screener', () => {
         const wrapper = await view();
 
         await click(action(wrapper, i18n.global.t('screener.columnsTitle')));
-        await click($('.columns-dialog__button--primary'));
+        await click(getElement('.columns-dialog__button--primary'));
 
         expect(api.calls.find((call) => call.method === 'PATCH')?.body).toHaveProperty('screenerColumns');
         wrapper.unmount();
@@ -256,7 +249,7 @@ describe('Screener', () => {
         const input = query('.prompt input', HTMLInputElement);
         input.value = 'New';
         input.dispatchEvent(new Event('input', { bubbles: true }));
-        await click($('.prompt__submit'));
+        await click(getElement('.prompt__submit'));
 
         expect(api.calls.find((call) => call.method === 'POST')?.body).toEqual({ name: 'New' });
         wrapper.unmount();
@@ -270,7 +263,7 @@ describe('Screener', () => {
         const input = query('.prompt input', HTMLInputElement);
         input.value = 'Growth';
         input.dispatchEvent(new Event('input', { bubbles: true }));
-        await click($('.prompt__submit'));
+        await click(getElement('.prompt__submit'));
 
         expect(document.body.querySelector('.prompt')).not.toBeNull();
         wrapper.unmount();
@@ -281,7 +274,7 @@ describe('Screener', () => {
         const wrapper = await view();
 
         await click(elementOf(wrapper.findAll('.picker__button')[3]?.element, HTMLElement));
-        await click($('.dialog__footer .btn--danger'));
+        await click(getElement('.dialog__footer .btn--danger'));
 
         expect(api.calls.some((call) => call.method === 'DELETE')).toBe(true);
         wrapper.unmount();
@@ -410,7 +403,7 @@ describe('Screener', () => {
         const wrapper = await view();
 
         await click(elementOf(wrapper.findAll('.results-table__action')[1]?.element, HTMLElement));
-        await click($('.watchlist-dialog__item'));
+        await click(getElement('.watchlist-dialog__item'));
 
         expect(api.calls.some((call) => call.path === '/api/watchlists/Longs/tickers')).toBe(true);
         wrapper.unmount();

@@ -1,6 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { getElement } from '@/__tests__/support/dom';
 import AppDialog from '@/components/ui/AppDialog.vue';
 import { i18n } from '@/i18n';
 
@@ -14,20 +15,13 @@ const open = (props: Record<string, unknown> = {}, slots: Record<string, string>
 const press = (key: string, init: KeyboardEventInit = {}): void =>
     void document.dispatchEvent(new KeyboardEvent('keydown', { key, ...init }));
 
-/** The dialog is teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} in the dialog`);
-    return element;
-};
-
 const click = async (selector: string): Promise<void> => {
-    $(selector).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    getElement(selector).dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await Promise.resolve();
 };
 
 const mousedown = async (selector: string): Promise<void> => {
-    $(selector).dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    getElement(selector).dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
     await Promise.resolve();
 };
 
@@ -41,11 +35,11 @@ afterEach(() => {
 describe('AppDialog', () => {
     it('renders as a modal dialog named by its own title', () => {
         open();
-        const panel = $('[role="dialog"]');
+        const panel = getElement('[role="dialog"]');
 
         expect(panel.getAttribute('aria-modal')).toBe('true');
-        expect(panel.getAttribute('aria-labelledby')).toBe($('.dialog__title').id);
-        expect($('.dialog__title').textContent).toBe('Delete portfolio');
+        expect(panel.getAttribute('aria-labelledby')).toBe(getElement('.dialog__title').id);
+        expect(getElement('.dialog__title').textContent).toBe('Delete portfolio');
     });
 
     it('renders the body it was given, and no footer until there is one', () => {
@@ -58,7 +52,7 @@ describe('AppDialog', () => {
     it('renders a footer when the slot is filled', () => {
         open({}, { footer: '<button>Delete</button>' });
 
-        expect($('.dialog__footer').textContent).toBe('Delete');
+        expect(getElement('.dialog__footer').textContent).toBe('Delete');
     });
 
     it('closes on the header button', async () => {
@@ -67,7 +61,7 @@ describe('AppDialog', () => {
         await click('.dialog__close');
 
         expect(wrapper.emitted('close')).toHaveLength(1);
-        expect($('.dialog__close').getAttribute('aria-label')).toBe(i18n.global.t('common.close'));
+        expect(getElement('.dialog__close').getAttribute('aria-label')).toBe(i18n.global.t('common.close'));
     });
 
     it('closes on Escape', () => {
@@ -117,7 +111,7 @@ describe('AppDialog', () => {
         open({}, { footer: '<button class="go">Delete</button>' });
         await settle();
 
-        expect(document.activeElement).toBe($('.dialog__close'));
+        expect(document.activeElement).toBe(getElement('.dialog__close'));
     });
 
     it('returns focus where it came from on close', async () => {
@@ -134,14 +128,14 @@ describe('AppDialog', () => {
 
     it.each(['sm', 'md', 'lg'] as const)('renders at %s', (size) => {
         open({ size });
-        expect($('.dialog__panel').classList).toContain(`dialog__panel--${size}`);
+        expect(getElement('.dialog__panel').classList).toContain(`dialog__panel--${size}`);
     });
 
     it('keeps Tab inside — the page behind is still there and still clickable', async () => {
         open({}, { footer: '<button class="go">Delete</button>' });
         await settle();
-        const last = $('.go');
-        const first = $('.dialog__close');
+        const last = getElement('.go');
+        const first = getElement('.dialog__close');
 
         last.focus();
         press('Tab');
@@ -155,7 +149,7 @@ describe('AppDialog', () => {
     it('leaves an ordinary Tab alone', async () => {
         open({}, { footer: '<button class="go">Delete</button>' });
         await settle();
-        const first = $('.dialog__close');
+        const first = getElement('.dialog__close');
 
         first.focus();
         press('Tab');

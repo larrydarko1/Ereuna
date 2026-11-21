@@ -229,11 +229,8 @@ export class TrendLineManager extends DrawingLayer {
         const line = this.trendLines.find((candidate) => candidate.id === target.lineId);
         if (line === undefined || line.locked) return;
 
-        if (target.pointIndex === 1) {
-            line.point1 = pointer;
-        } else {
-            line.point2 = pointer;
-        }
+        if (target.pointIndex === 1) line.point1 = pointer;
+        else line.point2 = pointer;
 
         this.draw();
     }
@@ -260,9 +257,7 @@ export class TrendLineManager extends DrawingLayer {
         for (const line of this.trendLines) {
             this.updateLineCoordinates(line);
 
-            if (distanceToSegment(pointer, line.point1, line.point2) <= LINE_HIT_DISTANCE) {
-                return line.id;
-            }
+            if (distanceToSegment(pointer, line.point1, line.point2) <= LINE_HIT_DISTANCE) return line.id;
         }
 
         return null;

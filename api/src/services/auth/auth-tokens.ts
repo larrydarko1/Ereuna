@@ -148,9 +148,7 @@ export async function loginUser(
 
     await clearLoginFailures(key);
 
-    if (user.totpEnabled) {
-        return { requires2FA: true, tempToken: generate2FATempToken(user._id.toHexString()) };
-    }
+    if (user.totpEnabled) return { requires2FA: true, tempToken: generate2FATempToken(user._id.toHexString()) };
 
     return { requires2FA: false, ...(await issueSession(user, options)) };
 }

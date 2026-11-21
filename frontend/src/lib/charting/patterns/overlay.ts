@@ -260,9 +260,7 @@ export class PatternOverlayManager {
      * Apply all markers to the main series
      */
     private applyMarkers(): void {
-        if (this.markers.length === 0) {
-            return;
-        }
+        if (this.markers.length === 0) return;
 
         // setMarkers requires ascending time order
         const sortedMarkers = [...this.markers].sort(

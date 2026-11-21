@@ -59,14 +59,10 @@ export class CustomPriceLine {
         const priceScale = series.priceScale();
         const timeScale = series.model().timeScale();
 
-        if (timeScale.isEmpty() || priceScale.isEmpty()) {
-            return null;
-        }
+        if (timeScale.isEmpty() || priceScale.isEmpty()) return null;
 
         const firstValue = series.firstValue();
-        if (firstValue === null) {
-            return null;
-        }
+        if (firstValue === null) return null;
 
         return priceScale.priceToCoordinate(this._options.price, firstValue.value);
     }

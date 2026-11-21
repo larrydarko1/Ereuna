@@ -58,9 +58,7 @@ export async function createScreener(userId: ObjectId, name: string): Promise<Sc
         const result = await screeners.insertOne(doc);
         return toSummary({ ...doc, _id: result.insertedId });
     } catch (err) {
-        if (isDuplicateKey(err)) {
-            throw new AppError(409, 'SCREENER_NAME_TAKEN', `screener ${name} already exists`);
-        }
+        if (isDuplicateKey(err)) throw new AppError(409, 'SCREENER_NAME_TAKEN', `screener ${name} already exists`);
         throw err;
     }
 }
@@ -79,9 +77,7 @@ export async function renameScreener(userId: ObjectId, name: string, newName: st
         await invalidateResults(userId);
         return toSummary(updated);
     } catch (err) {
-        if (isDuplicateKey(err)) {
-            throw new AppError(409, 'SCREENER_NAME_TAKEN', `screener ${newName} already exists`);
-        }
+        if (isDuplicateKey(err)) throw new AppError(409, 'SCREENER_NAME_TAKEN', `screener ${newName} already exists`);
         throw err;
     }
 }

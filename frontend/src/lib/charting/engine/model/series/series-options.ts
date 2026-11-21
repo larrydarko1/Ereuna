@@ -507,14 +507,10 @@ export function fillUpDownCandlesticksColors(options: Partial<CandlestickStyleOp
 }
 
 export function precisionByMinMove(minMove: number): number {
-    if (minMove >= 1) {
-        return 0;
-    }
+    if (minMove >= 1) return 0;
     let scaled = minMove;
     for (let i = 0; i < 8; i++, scaled *= 10) {
-        if (Math.abs(Math.round(scaled) - scaled) < 1e-8) {
-            return i;
-        }
+        if (Math.abs(Math.round(scaled) - scaled) < 1e-8) return i;
     }
     return 8;
 }

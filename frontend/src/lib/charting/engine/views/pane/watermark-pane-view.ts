@@ -42,9 +42,7 @@ export class WatermarkPaneView implements IUpdatablePaneView {
         const data = this._rendererData;
         data.visible = options.visible;
 
-        if (!data.visible) {
-            return;
-        }
+        if (!data.visible) return;
 
         data.color = options.color;
         data.horzAlign = options.horzAlign;

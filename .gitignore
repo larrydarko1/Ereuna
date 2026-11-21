@@ -42,6 +42,8 @@ docker/certs/
 acme.json
 todo.md
 CLAUDE.md
+CLAUDE.local.md
+.claude/
 coverage
 /e2e/playwright-report
 /e2e/test-results

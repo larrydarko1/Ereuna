@@ -1,7 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { query } from '@/__tests__/support/dom';
+import { getElement, query } from '@/__tests__/support/dom';
 import PromptDialog from '@/components/ui/PromptDialog.vue';
 
 const open = (props: Record<string, unknown> = {}): VueWrapper =>
@@ -9,9 +9,6 @@ const open = (props: Record<string, unknown> = {}): VueWrapper =>
         props: { title: 'New watchlist', label: 'Name', ...props },
         attachTo: document.body,
     });
-
-/** The dialog is teleported to <body>, which the wrapper does not traverse. */
-const $ = (selector: string): HTMLElement => query(selector, HTMLElement);
 
 const type = async (value: string): Promise<void> => {
     const input = query('.prompt__input', HTMLInputElement);
@@ -31,7 +28,7 @@ describe('PromptDialog', () => {
     it('ties the label to the input', () => {
         open();
 
-        expect($('.prompt__label').getAttribute('for')).toBe($('.prompt__input').id);
+        expect(getElement('.prompt__label').getAttribute('for')).toBe(getElement('.prompt__input').id);
     });
 
     it('opens empty, with the submit refused', () => {
@@ -53,8 +50,8 @@ describe('PromptDialog', () => {
 
         await type('Tech');
 
-        expect($('.prompt__count').textContent).toBe('4/20');
-        expect($('.prompt__input').getAttribute('maxlength')).toBe('20');
+        expect(getElement('.prompt__count').textContent).toBe('4/20');
+        expect(getElement('.prompt__input').getAttribute('maxlength')).toBe('20');
     });
 
     it('submits the trimmed value', async () => {
@@ -69,7 +66,7 @@ describe('PromptDialog', () => {
     it('submits on Enter in the form', async () => {
         const wrapper = open({ initial: 'Tech' });
 
-        $('.prompt').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        getElement('.prompt').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
         await Promise.resolve();
 
         expect(wrapper.emitted('submit')).toEqual([['Tech']]);
@@ -79,7 +76,7 @@ describe('PromptDialog', () => {
         const wrapper = open();
         await type('   ');
 
-        $('.prompt').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        getElement('.prompt').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 
         expect(submitButton().disabled).toBe(true);
         expect(wrapper.emitted('submit')).toBeUndefined();
@@ -94,13 +91,13 @@ describe('PromptDialog', () => {
     it('shows a failure where a screen reader will announce it', () => {
         open({ error: 'That name is taken' });
 
-        expect($('[role="alert"]').textContent).toBe('That name is taken');
+        expect(getElement('[role="alert"]').textContent).toBe('That name is taken');
     });
 
     it('closes on cancel', async () => {
         const wrapper = open();
 
-        $('.prompt__cancel').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        getElement('.prompt__cancel').dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await Promise.resolve();
 
         expect(wrapper.emitted('close')).toHaveLength(1);

@@ -53,18 +53,14 @@ function singleValueData<THorzScaleItem>(plotRow: PlotRow): SingleValueData<THor
         value: plotRow.value[PlotRowValueIndex.Close],
         time: callerType<THorzScaleItem>(plotRow.originalTime),
     };
-    if (plotRow.customValues !== undefined) {
-        data.customValues = plotRow.customValues;
-    }
+    if (plotRow.customValues !== undefined) data.customValues = plotRow.customValues;
     return data;
 }
 
 function lineData<THorzScaleItem>(plotRow: LinePlotRow): LineData<THorzScaleItem> {
     const result: LineData<THorzScaleItem> = singleValueData(plotRow);
 
-    if (plotRow.color !== undefined) {
-        result.color = plotRow.color;
-    }
+    if (plotRow.color !== undefined) result.color = plotRow.color;
 
     return result;
 }
@@ -72,17 +68,11 @@ function lineData<THorzScaleItem>(plotRow: LinePlotRow): LineData<THorzScaleItem
 function areaData<THorzScaleItem>(plotRow: AreaPlotRow): AreaData<THorzScaleItem> {
     const result: AreaData<THorzScaleItem> = singleValueData(plotRow);
 
-    if (plotRow.lineColor !== undefined) {
-        result.lineColor = plotRow.lineColor;
-    }
+    if (plotRow.lineColor !== undefined) result.lineColor = plotRow.lineColor;
 
-    if (plotRow.topColor !== undefined) {
-        result.topColor = plotRow.topColor;
-    }
+    if (plotRow.topColor !== undefined) result.topColor = plotRow.topColor;
 
-    if (plotRow.bottomColor !== undefined) {
-        result.bottomColor = plotRow.bottomColor;
-    }
+    if (plotRow.bottomColor !== undefined) result.bottomColor = plotRow.bottomColor;
 
     return result;
 }
@@ -90,29 +80,17 @@ function areaData<THorzScaleItem>(plotRow: AreaPlotRow): AreaData<THorzScaleItem
 function baselineData<THorzScaleItem>(plotRow: BaselinePlotRow): BaselineData<THorzScaleItem> {
     const result: BaselineData<THorzScaleItem> = singleValueData(plotRow);
 
-    if (plotRow.topLineColor !== undefined) {
-        result.topLineColor = plotRow.topLineColor;
-    }
+    if (plotRow.topLineColor !== undefined) result.topLineColor = plotRow.topLineColor;
 
-    if (plotRow.bottomLineColor !== undefined) {
-        result.bottomLineColor = plotRow.bottomLineColor;
-    }
+    if (plotRow.bottomLineColor !== undefined) result.bottomLineColor = plotRow.bottomLineColor;
 
-    if (plotRow.topFillColor1 !== undefined) {
-        result.topFillColor1 = plotRow.topFillColor1;
-    }
+    if (plotRow.topFillColor1 !== undefined) result.topFillColor1 = plotRow.topFillColor1;
 
-    if (plotRow.topFillColor2 !== undefined) {
-        result.topFillColor2 = plotRow.topFillColor2;
-    }
+    if (plotRow.topFillColor2 !== undefined) result.topFillColor2 = plotRow.topFillColor2;
 
-    if (plotRow.bottomFillColor1 !== undefined) {
-        result.bottomFillColor1 = plotRow.bottomFillColor1;
-    }
+    if (plotRow.bottomFillColor1 !== undefined) result.bottomFillColor1 = plotRow.bottomFillColor1;
 
-    if (plotRow.bottomFillColor2 !== undefined) {
-        result.bottomFillColor2 = plotRow.bottomFillColor2;
-    }
+    if (plotRow.bottomFillColor2 !== undefined) result.bottomFillColor2 = plotRow.bottomFillColor2;
 
     return result;
 }
@@ -125,18 +103,14 @@ function ohlcData<THorzScaleItem>(plotRow: PlotRow): OhlcData<THorzScaleItem> {
         close: plotRow.value[PlotRowValueIndex.Close],
         time: callerType<THorzScaleItem>(plotRow.originalTime),
     };
-    if (plotRow.customValues !== undefined) {
-        data.customValues = plotRow.customValues;
-    }
+    if (plotRow.customValues !== undefined) data.customValues = plotRow.customValues;
     return data;
 }
 
 function barData<THorzScaleItem>(plotRow: BarPlotRow): BarData<THorzScaleItem> {
     const result: BarData<THorzScaleItem> = ohlcData<THorzScaleItem>(plotRow);
 
-    if (plotRow.color !== undefined) {
-        result.color = plotRow.color;
-    }
+    if (plotRow.color !== undefined) result.color = plotRow.color;
 
     return result;
 }
@@ -145,17 +119,11 @@ function candlestickData<THorzScaleItem>(plotRow: CandlestickPlotRow): Candlesti
     const result: CandlestickData<THorzScaleItem> = ohlcData(plotRow);
     const { color, borderColor, wickColor } = plotRow;
 
-    if (color !== undefined) {
-        result.color = color;
-    }
+    if (color !== undefined) result.color = color;
 
-    if (borderColor !== undefined) {
-        result.borderColor = borderColor;
-    }
+    if (borderColor !== undefined) result.borderColor = borderColor;
 
-    if (wickColor !== undefined) {
-        result.wickColor = wickColor;
-    }
+    if (wickColor !== undefined) result.wickColor = wickColor;
 
     return result;
 }

@@ -28,9 +28,7 @@ const intradayWeightDivisors: WeightDivisor[] = [
 ];
 
 export function fillWeightsForPoints(sortedTimePoints: readonly Mutable<TimeScalePoint>[], startIndex = 0): void {
-    if (sortedTimePoints.length === 0) {
-        return;
-    }
+    if (sortedTimePoints.length === 0) return;
 
     const pointBefore = sortedTimePoints[startIndex - 1];
     let prevTime = startIndex === 0 || pointBefore === undefined ? null : timePointOf(pointBefore.time).timestamp;
@@ -80,20 +78,12 @@ function seconds(count: number): number {
 }
 
 function weightByTime(currentDate: Date, prevDate: Date): TickMarkWeight {
-    if (currentDate.getUTCFullYear() !== prevDate.getUTCFullYear()) {
-        return TickMarkWeight.Year;
-    }
-    if (currentDate.getUTCMonth() !== prevDate.getUTCMonth()) {
-        return TickMarkWeight.Month;
-    }
-    if (currentDate.getUTCDate() !== prevDate.getUTCDate()) {
-        return TickMarkWeight.Day;
-    }
+    if (currentDate.getUTCFullYear() !== prevDate.getUTCFullYear()) return TickMarkWeight.Year;
+    if (currentDate.getUTCMonth() !== prevDate.getUTCMonth()) return TickMarkWeight.Month;
+    if (currentDate.getUTCDate() !== prevDate.getUTCDate()) return TickMarkWeight.Day;
 
     for (const { divisor, weight } of [...intradayWeightDivisors].reverse()) {
-        if (Math.floor(prevDate.getTime() / divisor) !== Math.floor(currentDate.getTime() / divisor)) {
-            return weight;
-        }
+        if (Math.floor(prevDate.getTime() / divisor) !== Math.floor(currentDate.getTime() / divisor)) return weight;
     }
 
     return TickMarkWeight.LessThanSecond;

@@ -86,22 +86,16 @@ export function visibleTimedValues(
     const from = lowerBound(items, firstBar, lowerBoundItemsCompare);
     const to = upperBound(items, lastBar, upperBoundItemsCompare);
 
-    if (!options.extended) {
-        return { from, to };
-    }
+    if (!options.extended) return { from, to };
 
     let extendedFrom = from;
     let extendedTo = to;
 
     const fromItem = items[from];
-    if (from > 0 && fromItem !== undefined && fromItem.time >= firstBar) {
-        extendedFrom = from - 1;
-    }
+    if (from > 0 && fromItem !== undefined && fromItem.time >= firstBar) extendedFrom = from - 1;
 
     const beforeToItem = items[to - 1];
-    if (to > 0 && to < items.length && beforeToItem !== undefined && beforeToItem.time <= lastBar) {
-        extendedTo = to + 1;
-    }
+    if (to > 0 && to < items.length && beforeToItem !== undefined && beforeToItem.time <= lastBar) extendedTo = to + 1;
 
     return { from: extendedFrom, to: extendedTo };
 }

@@ -36,9 +36,7 @@ class PanePriceAxisViewRenderer implements IPaneRenderer {
     }
 
     public draw(target: CanvasRenderingTarget2D): void {
-        if (this._rendererOptions === null || this._priceAxisViewRenderer === null) {
-            return;
-        }
+        if (this._rendererOptions === null || this._priceAxisViewRenderer === null) return;
 
         this._priceAxisViewRenderer.draw(target, this._rendererOptions, this._textWidthCache, this._align);
     }
@@ -63,22 +61,16 @@ export class PanePriceAxisView implements IPaneView {
 
     public renderer(): IPaneRenderer | null {
         const pane = this._chartModel.paneForSource(this._dataSource);
-        if (pane === null) {
-            return null;
-        }
+        if (pane === null) return null;
 
         // this price scale will be used to find label placement only (left, right, none)
         const priceScale = pane.isOverlay(this._dataSource)
             ? pane.defaultVisiblePriceScale()
             : this._dataSource.priceScale();
-        if (priceScale === null) {
-            return null;
-        }
+        if (priceScale === null) return null;
 
         const position = pane.priceScalePosition(priceScale);
-        if (position === 'overlay') {
-            return null;
-        }
+        if (position === 'overlay') return null;
 
         const options = this._chartModel.priceAxisRendererOptions();
         if (options.fontSize !== this._fontSize) {

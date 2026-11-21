@@ -1,6 +1,7 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { getElement } from '@/__tests__/support/dom';
 import PatternsDialog from '@/components/charts/PatternsDialog.vue';
 import { i18n } from '@/i18n';
 import type { PatternMatch } from '@/lib/charting';
@@ -22,12 +23,6 @@ const pattern = (over: Partial<PatternMatch> = {}): PatternMatch =>
 const open = (patterns: PatternMatch[]): VueWrapper =>
     mount(PatternsDialog, { props: { symbol: 'AAPL', patterns }, attachTo: document.body });
 
-const $ = (selector: string): HTMLElement => {
-    const element = document.body.querySelector<HTMLElement>(selector);
-    if (element === null) throw new Error(`no ${selector} in the dialog`);
-    return element;
-};
-
 const all = (selector: string): HTMLElement[] => [...document.body.querySelectorAll<HTMLElement>(selector)];
 
 afterEach(() => {
@@ -38,14 +33,14 @@ describe('PatternsDialog', () => {
     it('names the instrument the patterns were found on', () => {
         open([pattern()]);
 
-        expect($('.patterns__subject').textContent).toBe('AAPL');
+        expect(getElement('.patterns__subject').textContent).toBe('AAPL');
     });
 
     it('says there are none, and why there might not be', () => {
         open([]);
 
-        expect($('.patterns__empty').textContent).toBe(i18n.global.t('charts.patterns.none'));
-        expect($('.patterns__hint').textContent).toBe(i18n.global.t('charts.patterns.noneHint'));
+        expect(getElement('.patterns__empty').textContent).toBe(i18n.global.t('charts.patterns.none'));
+        expect(getElement('.patterns__hint').textContent).toBe(i18n.global.t('charts.patterns.noneHint'));
     });
 
     it('shows one entry per pattern', () => {
@@ -56,7 +51,7 @@ describe('PatternsDialog', () => {
     it('names a pattern from the locale', () => {
         open([pattern()]);
 
-        expect($('.patterns__name').textContent.trim()).toBe(i18n.global.t('charts.patterns.types.doubleTop'));
+        expect(getElement('.patterns__name').textContent.trim()).toBe(i18n.global.t('charts.patterns.types.doubleTop'));
     });
 
     it('colours a pattern by which way it reads', () => {
@@ -75,13 +70,13 @@ describe('PatternsDialog', () => {
     it('shows the confidence as a whole percentage', () => {
         open([pattern({ confidence: 0.824 })]);
 
-        expect($('.patterns__confidence').textContent).toContain(`${formatNumber(82.4, 0)}%`);
+        expect(getElement('.patterns__confidence').textContent).toContain(`${formatNumber(82.4, 0)}%`);
     });
 
     it('reads the detector’s epoch seconds as the span the pattern covers', () => {
         open([pattern()]);
 
-        expect($('.patterns__span').textContent).toBe(
+        expect(getElement('.patterns__span').textContent).toBe(
             `${formatDate(new Date(START * 1000))} – ${formatDate(new Date(END * 1000))}`,
         );
     });
@@ -89,7 +84,7 @@ describe('PatternsDialog', () => {
     it('closes on the dialog close', async () => {
         const wrapper = open([pattern()]);
 
-        $('.dialog__close').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        getElement('.dialog__close').dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await Promise.resolve();
 
         expect(wrapper.emitted('close')).toHaveLength(1);

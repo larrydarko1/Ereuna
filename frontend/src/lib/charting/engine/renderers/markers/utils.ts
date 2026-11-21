@@ -48,13 +48,9 @@ export function shapeMargin(barSpacing: number): number {
  * something sits outside the bar on that side, half when it only sits inside it.
  */
 export function calculateAdjustedMargin(margin: number, placement: { hasSide: boolean; hasInBar: boolean }): number {
-    if (placement.hasSide) {
-        return margin;
-    }
+    if (placement.hasSide) return margin;
 
-    if (placement.hasInBar) {
-        return Math.ceil(margin / 2);
-    }
+    if (placement.hasInBar) return Math.ceil(margin / 2);
 
     return 0;
 }

@@ -16,9 +16,7 @@ import {
 
 describe('the timeframe tables', () => {
     it('maps every chart timeframe onto a bucket the aggregator publishes', () => {
-        for (const bucket of Object.values(CHART_TO_AGGREGATOR)) {
-            expect(AGGREGATOR_TIMEFRAMES).toContain(bucket);
-        }
+        for (const bucket of Object.values(CHART_TO_AGGREGATOR)) expect(AGGREGATOR_TIMEFRAMES).toContain(bucket);
     });
 
     it('round-trips chart → bucket → chart for every entry', () => {

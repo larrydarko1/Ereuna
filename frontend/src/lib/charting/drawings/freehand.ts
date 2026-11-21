@@ -114,11 +114,8 @@ export class FreehandManager {
     }
 
     public toggle(): void {
-        if (this.isActive) {
-            this.deactivate();
-        } else {
-            this.activate();
-        }
+        if (this.isActive) this.deactivate();
+        else this.activate();
     }
 
     public isToolActive(): boolean {
@@ -203,9 +200,7 @@ export class FreehandManager {
     private readonly handleKeyDown = (event: KeyboardEvent): void => {
         if (event.key !== 'Backspace' && event.key !== 'Delete') return;
 
-        if (isTypingTarget(event.target)) {
-            return;
-        }
+        if (isTypingTarget(event.target)) return;
 
         if (this.selectedPathId !== null) {
             event.preventDefault(); // Backspace would otherwise navigate back
@@ -413,9 +408,7 @@ export class FreehandManager {
         ctx.lineJoin = 'round';
 
         ctx.moveTo(start.x, start.y);
-        for (const point of rest) {
-            ctx.lineTo(point.x, point.y);
-        }
+        for (const point of rest) ctx.lineTo(point.x, point.y);
         ctx.stroke();
 
         // Endpoint dots only while the stroke is actually being moved — they

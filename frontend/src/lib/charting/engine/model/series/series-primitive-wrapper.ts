@@ -79,12 +79,8 @@ class SeriesPrimitivePaneViewWrapper implements IPaneView {
 
     public renderer(): IPaneRenderer | null {
         const baseRenderer = this._paneView.renderer();
-        if (baseRenderer === null) {
-            return null;
-        }
-        if (this._cache?.base === baseRenderer) {
-            return this._cache.wrapper;
-        }
+        if (baseRenderer === null) return null;
+        if (this._cache?.base === baseRenderer) return this._cache.wrapper;
         const wrapper = new SeriesPrimitiveRendererWrapper(baseRenderer);
         this._cache = {
             base: baseRenderer,
@@ -188,9 +184,7 @@ export class SeriesPrimitiveWrapper<TSeriesAttachedParameters = unknown> {
 
     public paneViews(): readonly ISeriesPrimitivePaneViewWrapper[] {
         const base = this._primitive.paneViews?.() ?? [];
-        if (this._paneViewsCache?.base === base) {
-            return this._paneViewsCache.wrapper;
-        }
+        if (this._paneViewsCache?.base === base) return this._paneViewsCache.wrapper;
         const wrapper = base.map((pw: ISeriesPrimitivePaneView) => new SeriesPrimitivePaneViewWrapper(pw));
         this._paneViewsCache = {
             base,
@@ -201,9 +195,7 @@ export class SeriesPrimitiveWrapper<TSeriesAttachedParameters = unknown> {
 
     public timeAxisViews(): readonly ITimeAxisView[] {
         const base = this._primitive.timeAxisViews?.() ?? [];
-        if (this._timeAxisViewsCache?.base === base) {
-            return this._timeAxisViewsCache.wrapper;
-        }
+        if (this._timeAxisViewsCache?.base === base) return this._timeAxisViewsCache.wrapper;
         const timeScale = this._series.model().timeScale();
         const wrapper = base.map(
             (aw: ISeriesPrimitiveAxisView) => new SeriesPrimitiveTimeAxisViewWrapper(aw, timeScale),
@@ -217,9 +209,7 @@ export class SeriesPrimitiveWrapper<TSeriesAttachedParameters = unknown> {
 
     public priceAxisViews(): readonly IPriceAxisView[] {
         const base = this._primitive.priceAxisViews?.() ?? [];
-        if (this._priceAxisViewsCache?.base === base) {
-            return this._priceAxisViewsCache.wrapper;
-        }
+        if (this._priceAxisViewsCache?.base === base) return this._priceAxisViewsCache.wrapper;
         const priceScale = this._series.priceScale();
         const wrapper = base.map(
             (aw: ISeriesPrimitiveAxisView) => new SeriesPrimitivePriceAxisViewWrapper(aw, priceScale),
@@ -233,9 +223,7 @@ export class SeriesPrimitiveWrapper<TSeriesAttachedParameters = unknown> {
 
     public priceAxisPaneViews(): readonly ISeriesPrimitivePaneViewWrapper[] {
         const base = this._primitive.priceAxisPaneViews?.() ?? [];
-        if (this._priceAxisPaneViewsCache?.base === base) {
-            return this._priceAxisPaneViewsCache.wrapper;
-        }
+        if (this._priceAxisPaneViewsCache?.base === base) return this._priceAxisPaneViewsCache.wrapper;
         const wrapper = base.map((pw: ISeriesPrimitivePaneView) => new SeriesPrimitivePaneViewWrapper(pw));
         this._priceAxisPaneViewsCache = {
             base,
@@ -246,9 +234,7 @@ export class SeriesPrimitiveWrapper<TSeriesAttachedParameters = unknown> {
 
     public timeAxisPaneViews(): readonly ISeriesPrimitivePaneViewWrapper[] {
         const base = this._primitive.timeAxisPaneViews?.() ?? [];
-        if (this._timeAxisPaneViewsCache?.base === base) {
-            return this._timeAxisPaneViewsCache.wrapper;
-        }
+        if (this._timeAxisPaneViewsCache?.base === base) return this._timeAxisPaneViewsCache.wrapper;
         const wrapper = base.map((pw: ISeriesPrimitivePaneView) => new SeriesPrimitivePaneViewWrapper(pw));
         this._timeAxisPaneViewsCache = {
             base,
