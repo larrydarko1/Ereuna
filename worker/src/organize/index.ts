@@ -107,14 +107,20 @@ async function runSteps(): Promise<RunSummary> {
     await step('weekly', () => updateWeeksSince(prices.since ?? new Date()), 0);
 
     // The delisting scan needs tonight's bars, and every step after it should
-    // skip the symbols it just retired rather than compute figures for them
-    await step(
-        'delist',
-        async () => {
-            universe = stillListed(universe, await markDelisted(universe));
-        },
-        undefined,
-    );
+    // skip the symbols it just retired rather than compute figures for them.
+    // Without tonight's bars a symbol one night short of the cutoff would be
+    // retired for the vendor's outage, so the scan waits for a night that has them
+    if (failed.includes('prices')) {
+        logger.warn('Delisting scan skipped: the price update failed tonight');
+    } else {
+        await step(
+            'delist',
+            async () => {
+                universe = stillListed(universe, await markDelisted(universe));
+            },
+            undefined,
+        );
+    }
 
     await step('fundamentals', () => updateFundamentals(universe), 0);
     await step('metrics', () => updateDailyMetrics(universe), 0);

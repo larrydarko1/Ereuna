@@ -149,8 +149,14 @@ describe('the nightly line', () => {
     it('still applies the actions when prices failed, on an empty list', async () => {
         fails.add('prices');
         await runOnce();
-        expect(order).toEqual(THE_LINE);
         expect(seen['splits']).toEqual([[]]);
+    });
+
+    it('skips the delisting scan when prices failed, and runs everything else', async () => {
+        fails.add('prices');
+        await runOnce();
+        expect(order).toEqual(THE_LINE.filter((name) => name !== 'delist'));
+        expect(seen['metrics']).toEqual([[{ symbol: 'AAPL' }, { symbol: 'GONE' }]]);
     });
 
     it('rebuilds the weeks from the earliest daily bar the price step wrote', async () => {

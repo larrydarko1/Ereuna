@@ -82,6 +82,7 @@ export const config = {
         writeBatchSize: 500, // AssetInfo updates per bulk write
         intradayRetentionDays: 14, // How long a 1m/5m/15m/30m/1hr bar is kept
         delistAfterDays: 14, // No daily bar for this long and the symbol is treated as delisted
+        maxDelistShare: 0.05, // A scan retiring more of the universe than this is refused: that many at once is a price outage, not delistings
         gapLookbackDays: 14, // How far back a missing daily bar is looked for; older than delistAfterDays is a delisting, not a gap
     },
 
