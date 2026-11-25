@@ -15,6 +15,10 @@ here marks a point in development, and its date is the day the number was set.
 
 ## [Unreleased]
 
+### Changed
+
+- Supported browsers are now Safari and iOS 26, Chrome and Edge 136, Firefox 134 and newer, the first of each that runs all of ES2025. They were Safari and iOS 14 and up.
+
 ## [2026.11.0] - 2026-11-21
 
 ### Upgrading

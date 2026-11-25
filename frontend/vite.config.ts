@@ -9,8 +9,8 @@ export default defineConfig({
     // Node, not the browser. The browser target is this app's to decide, not the
     // shared package's, so state it here — and state it to match the
     // browserslist field rather than leaving it implied.
-    oxc: { target: 'es2020' },
-    build: { target: ['es2020', 'safari14'] },
+    oxc: { target: 'es2025' },
+    build: { target: 'es2025' },
     resolve: {
         alias: {
             '@': path.resolve(import.meta.dirname, 'src'),
