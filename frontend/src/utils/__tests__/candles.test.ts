@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { ChartBar, ChartPoint } from '@/composables/charts/useChartSeries';
 import type { Time } from '@/lib/charting';
-import { closes, heikinAshi, relativeVolume } from '@/utils/candles';
+import { closes, findQuote, heikinAshi, relativeVolume } from '@/utils/candles';
 
 const bar = (over: Partial<ChartBar> = {}): ChartBar => ({
     time: '2026-03-02' as Time,
@@ -55,6 +55,28 @@ describe('heikinAshi', () => {
 describe('closes', () => {
     it('keeps the time and drops everything but the close', () => {
         expect(closes([bar()])).toEqual([{ time: '2026-03-02', value: 11 }]);
+    });
+});
+
+describe('findQuote', () => {
+    const bars = [bar({ close: 10 }), bar({ open: 10.5, high: 13, low: 10, close: 12 }), bar({ close: 9 })];
+
+    it('quotes the last bar against the one before it when no bar is picked', () => {
+        expect(findQuote(bars, null)).toEqual({ open: 10, high: 12, low: 9, close: 9, change: -3, changePercent: -25 });
+    });
+
+    it('quotes the bar under the crosshair', () => {
+        expect(findQuote(bars, 1)).toEqual({ open: 10.5, high: 13, low: 10, close: 12, change: 2, changePercent: 20 });
+    });
+
+    it('has no quote for the first bar, which has nothing to move against', () => {
+        expect(findQuote(bars, 0)).toBeNull();
+        expect(findQuote([bar()], null)).toBeNull();
+        expect(findQuote([], null)).toBeNull();
+    });
+
+    it('reports no percentage move off a zero close rather than dividing by it', () => {
+        expect(findQuote([bar({ close: 0 }), bar({ close: 5 })], null)?.changePercent).toBe(0);
     });
 });
 

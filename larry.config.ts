@@ -29,7 +29,7 @@ const FRAMEWORK_NAMED = /(^|\/)(index|App)(\.test)?\.ts$/;
  * one 918-line file and splitting them is what the cap bought.
  */
 const LENGTH_BASELINE: Record<string, number> = {
-    'frontend/src/components/charts/PriceChart.vue': 687,
+    'frontend/src/components/charts/PriceChart.vue': 676,
     'packages/shared/src/screener/filters.ts': 464,
     'frontend/src/lib/charting/engine/gui/chart-widget.ts': 703,
     'frontend/src/lib/charting/engine/gui/mouse-event-handler.ts': 626,

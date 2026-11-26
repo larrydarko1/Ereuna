@@ -55,7 +55,7 @@ import {
     type ScreenshotConfig,
     type SeriesType,
 } from '@/lib/charting';
-import { closes, heikinAshi, relativeVolume } from '@/utils/candles';
+import { closes, findQuote, heikinAshi, relativeVolume } from '@/utils/candles';
 import { timeToIsoDate, timeValue } from '@/utils/chartTime';
 
 const {
@@ -165,25 +165,7 @@ const overlayLabels = computed<OverlayLabel[]>(() =>
  * The change is against the bar before it, which is why a series of one bar
  * has no quote: there is nothing to have changed from.
  */
-const quote = computed<ChartQuote | null>(() => {
-    const bars = shapedBars.value;
-    if (bars.length < 2) return null;
-
-    const index = crosshairIndex.value ?? bars.length - 1;
-    const current = bars[index];
-    const previous = bars[index - 1];
-    if (current === undefined || previous === undefined) return null;
-
-    const change = current.close - previous.close;
-    return {
-        open: current.open,
-        high: current.high,
-        low: current.low,
-        close: current.close,
-        change,
-        changePercent: previous.close === 0 ? 0 : (change / previous.close) * 100,
-    };
-});
+const quote = computed<ChartQuote | null>(() => findQuote(shapedBars.value, crosshairIndex.value));
 
 const badges = computed(() => {
     const flags: string[] = [];
