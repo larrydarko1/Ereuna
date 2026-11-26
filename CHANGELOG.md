@@ -31,6 +31,7 @@ here marks a point in development, and its date is the day the number was set.
 ### Fixed
 
 - The API reports itself not ready when the database takes more than 5 seconds to answer, instead of waiting until the readiness probe times out.
+- The worker and the ingestor answer their liveness probe while they connect to the database and build its indexes, so Kubernetes no longer restarts one that is only slow to start.
 - The nightly no longer marks symbols delisted on a night its price update failed, and it refuses a delisting scan that would retire more than 5% of active symbols at once. Weeks of failed price updates used to delist the whole market.
 
 ### Removed
