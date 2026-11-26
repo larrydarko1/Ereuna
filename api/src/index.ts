@@ -8,6 +8,7 @@
  *                      that can fail, so every error, a body that would not
  *                      parse included, reaches the error handler with an id
  *                      and somewhere to log
+ *       metrics      — times every request to its finish, refusals included
  *       cors         — the single allowed frontend origin
  *       json         — body parsing, with an explicit size cap
  *       cookieParser — the httpOnly refresh cookie
@@ -27,9 +28,11 @@ import express from 'express';
 import helmet from 'helmet';
 
 import { closeSocket, initSocket } from '@/gateway/index.js';
+import { AppError } from '@/lib/app-error.js';
 import { config } from '@/lib/config.js';
 import { closeDb, connectDb, getDb } from '@/lib/db.js';
 import { logger } from '@/lib/logger.js';
+import { initMetrics, metricsEndpoint, metricsMiddleware } from '@/lib/metrics.js';
 import { assetLimiter, relaxedLimiter, standardLimiter, strictLimiter } from '@/lib/rate-limiters.js';
 import { closeRedis } from '@/lib/redis.js';
 import { optionalAuth, requireAuth } from '@/middleware/auth.js';
@@ -47,6 +50,8 @@ import { watchlistsRouter } from '@/routes/watchlist/index.js';
 
 const app = express();
 const server = createServer(app);
+
+initMetrics();
 
 /** A numeric hop count, never `true` — otherwise a client can spoof
  *  X-Forwarded-For and defeat every req.ip-keyed control. */
@@ -102,6 +107,7 @@ app.use((_req: express.Request, res: express.Response, next: express.NextFunctio
 });
 
 app.use(requestId);
+app.use(metricsMiddleware());
 app.use(cors({ origin: config.corsOrigin, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
@@ -122,6 +128,21 @@ app.use('/api/market', relaxedLimiter, requireAuth, marketRouter);
 // The one unauthenticated route group: an `<img src>` cannot carry a token.
 // See routes/asset/logos.ts for what stands in for auth here.
 app.use('/api/logos', assetLimiter, logosRouter);
+
+// Not rate-limited, like the probes: a scraper polls on a fixed interval. The
+// token is required in production; a wrong one is a 404, so a caller without
+// it learns nothing about whether metrics are served here
+app.get(
+    '/metrics',
+    (req: express.Request, _res: express.Response, next: express.NextFunction) => {
+        if (config.metricsToken !== '' && req.headers.authorization !== `Bearer ${config.metricsToken}`) {
+            next(new AppError(404, 'NOT_FOUND', 'Metrics scrape without the bearer token'));
+            return;
+        }
+        next();
+    },
+    metricsEndpoint,
+);
 
 app.get('/healthz', async (_req: express.Request, res: express.Response) => {
     try {

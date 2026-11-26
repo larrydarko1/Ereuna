@@ -20,6 +20,10 @@ here marks a point in development, and its date is the day the number was set.
 1. Set `METRICS_TOKEN` to a random value of at least 32 characters in the production
    env of the API, the worker and the ingestor. Each one refuses to start without it.
 
+### Added
+
+- The API serves `/metrics` for Prometheus: the rate, errors and latency of every route, beside the process metrics the worker and the ingestor already report.
+
 ### Changed
 
 - Supported browsers are now Safari and iOS 26, Chrome and Edge 136, Firefox 134 and newer, the first of each that runs all of ES2025. They were Safari and iOS 14 and up.

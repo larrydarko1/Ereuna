@@ -421,7 +421,7 @@ imports from outside. Charts outside it are hand-written SVG in `components/viz/
 scaled by `viewBox`.
 
 **API** — Express, Zod, MongoDB driver, Socket.IO, IORedis, Argon2, jsonwebtoken,
-otpauth (TOTP), Helmet, cors, cookie-parser, Pino, dotenv. Rate limiting is not a
+otpauth (TOTP), Helmet, cors, cookie-parser, Pino, prom-client, dotenv. Rate limiting is not a
 library: `lib/rate-limiters.ts` is a Redis-backed token bucket, so the tiers hold across
 replicas rather than per process.
 

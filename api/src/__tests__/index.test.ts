@@ -9,6 +9,7 @@
 import type { Server } from 'node:http';
 
 import type { Express } from 'express';
+import { register } from 'prom-client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { portOf } from '@/__tests__/support/port.js';
@@ -106,9 +107,14 @@ const exit = vi.spyOn(process, 'exit').mockImplementation(() => {
 
 let harness: { url: string; server: Server } | null = null;
 
-/** Boot a fresh copy of the entry point and wait for its startup chain to settle. */
+/**
+ * Boot a fresh copy of the entry point and wait for its startup chain to settle.
+ * The register is cleared first: prom-client lives outside the module reset, and
+ * a fresh copy registering the same metric names again would throw.
+ */
 async function boot(): Promise<Express> {
     vi.resetModules();
+    register.clear();
     state.app = null;
     await import('@/index.js');
     await vi.waitFor(() => expect(state.order.length).toBeGreaterThan(0));
@@ -148,6 +154,7 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
+    vi.unstubAllEnvs();
     if (harness !== null) {
         const { server } = harness;
         harness = null;
@@ -288,6 +295,54 @@ describe('the probes', () => {
 
         expect(response.status).toBe(503);
         await expect(response.json()).resolves.toEqual({ ok: false });
+    });
+});
+
+describe('/metrics', () => {
+    const TOKEN = 'a-metrics-token-of-thirty-two-chars';
+
+    it('serves the request histogram, open when no token is configured', async () => {
+        const url = await listen(await boot());
+        await fetch(`${url}/livez`);
+        await fetch(`${url}/api/nothing-here`);
+        const response = await fetch(`${url}/metrics`);
+
+        expect(response.status).toBe(200);
+        const body = await response.text();
+        expect(body).toContain('http_request_duration_seconds_count{method="GET",route="/livez",status="200"} 1');
+        expect(body).toContain('http_request_duration_seconds_count{method="GET",route="unknown",status="404"} 1');
+    });
+
+    it('labels a request the auth middleware refused by the route it was for', async () => {
+        const url = await listen(await boot());
+        await fetch(`${url}/api/portfolios/0/trades`);
+        const body = await (await fetch(`${url}/metrics`)).text();
+
+        expect(body).toContain(
+            'http_request_duration_seconds_count{method="GET",route="/api/portfolios/:number/trades",status="401"} 1',
+        );
+    });
+
+    it.each([
+        ['no header', {}],
+        ['the wrong token', { authorization: 'Bearer not-the-token' }],
+        ['the token without its scheme', { authorization: TOKEN }],
+    ])('answers 404 to %s once a token is configured', async (_case, headers) => {
+        vi.stubEnv('METRICS_TOKEN', TOKEN);
+        const url = await listen(await boot());
+        const response = await fetch(`${url}/metrics`, { headers });
+
+        expect(response.status).toBe(404);
+        await expect(response.json()).resolves.toEqual({ error: 'NOT_FOUND' });
+    });
+
+    it('serves the metrics to the configured bearer token', async () => {
+        vi.stubEnv('METRICS_TOKEN', TOKEN);
+        const url = await listen(await boot());
+        const response = await fetch(`${url}/metrics`, { headers: { authorization: `Bearer ${TOKEN}` } });
+
+        expect(response.status).toBe(200);
+        expect(response.headers.get('content-type')).toBe(register.contentType);
     });
 });
 
