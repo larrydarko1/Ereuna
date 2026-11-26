@@ -11,6 +11,7 @@
         "search": "Suchen",
         "close": "Schließen",
         "dismiss": "Ausblenden",
+        "copyFailed": "Der Browser hat das Kopieren nicht erlaubt. Markiere den Text und kopiere ihn selbst.",
         "next": "Weiter",
         "previous": "Vorherige",
         "yes": "Ja",

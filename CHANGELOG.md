@@ -36,6 +36,7 @@ here marks a point in development, and its date is the day the number was set.
 - A chart screenshot that cannot be made says so in a notice, instead of the Download button doing nothing.
 - Drawing on a chart whose saved drawings failed to load no longer erases them. The chart says they didn't load and saves nothing there until they do.
 - A chart says so when its drawings could not be saved or cleared, and the notice stays until a later save gets through. Both failures used to be silent.
+- A copy button the browser refuses (the recovery codes, a summary value) says so, instead of leaving whatever was copied before on the clipboard.
 
 ### Removed
 

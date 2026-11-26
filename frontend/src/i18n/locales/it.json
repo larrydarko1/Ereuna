@@ -11,6 +11,7 @@
         "search": "Cerca",
         "close": "Chiudi",
         "dismiss": "Ignora",
+        "copyFailed": "Il browser non ha consentito la copia. Seleziona il testo e copialo tu.",
         "next": "Avanti",
         "previous": "Precedente",
         "yes": "Sì",

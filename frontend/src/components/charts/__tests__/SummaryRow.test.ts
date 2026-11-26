@@ -4,9 +4,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import SummaryRow from '@/components/charts/SummaryRow.vue';
 import IconCheck from '@/components/icons/IconCheck.vue';
 import IconCopy from '@/components/icons/IconCopy.vue';
+import { useNotifications } from '@/composables/ui/useNotifications';
 import type { SummaryFormat } from '@/constants/summaryFields';
 import { i18n } from '@/i18n';
 import { formatCompact, formatDate, formatNumber } from '@/utils/formatters';
+
+const { notifications, dismiss } = useNotifications();
 
 const row = (value: string | number | null, format: SummaryFormat = 'text'): VueWrapper =>
     mount(SummaryRow, { props: { label: 'Market cap', value, format } });
@@ -15,6 +18,7 @@ const shown = (value: string | number | null, format: SummaryFormat): string =>
     row(value, format).get('.summary-row__value, .summary-row__prose').text();
 
 afterEach(() => {
+    for (const notice of [...notifications.value]) dismiss(notice.id);
     vi.restoreAllMocks();
 });
 
@@ -101,7 +105,7 @@ describe('SummaryRow', () => {
         vi.useRealTimers();
     });
 
-    it('stays quiet when the browser refuses the clipboard', async () => {
+    it('says so when the browser refuses the clipboard', async () => {
         Object.defineProperty(navigator, 'clipboard', {
             configurable: true,
             value: { writeText: vi.fn().mockRejectedValue(new Error('denied')) },
@@ -112,6 +116,7 @@ describe('SummaryRow', () => {
         await Promise.resolve();
 
         expect(wrapper.get('.summary-row__copy').findComponent(IconCopy).exists()).toBe(true);
+        expect(notifications.value.map((notice) => notice.message)).toEqual([i18n.global.t('common.copyFailed')]);
     });
 
     it('collapses a paragraph until it is asked for', async () => {

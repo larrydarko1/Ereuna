@@ -11,6 +11,7 @@
         "search": "Quaerere",
         "close": "Claudere",
         "dismiss": "Dimittere",
+        "copyFailed": "Navigatrum exscribere non permisit. Textum selige et ipse exscribe.",
         "next": "Proximum",
         "previous": "Prius",
         "yes": "Ita",

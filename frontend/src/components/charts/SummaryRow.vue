@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 
 import IconCheck from '@/components/icons/IconCheck.vue';
 import IconCopy from '@/components/icons/IconCopy.vue';
+import { notify } from '@/composables/ui/useNotifications';
 import type { SummaryFormat } from '@/constants/summaryFields';
 import { formatCompact, formatDate, formatNumber } from '@/utils/formatters';
 
@@ -68,8 +69,9 @@ async function copy(): Promise<void> {
             copied.value = false;
         }, 2000);
     } catch {
-        // No clipboard permission, or an insecure origin. The value is on
-        // screen and selectable either way, so there is nothing to report.
+        // No clipboard permission, or an insecure origin. A paste would then
+        // bring back whatever was copied before, so the user has to know
+        notify.error(t('common.copyFailed'));
     }
 }
 </script>

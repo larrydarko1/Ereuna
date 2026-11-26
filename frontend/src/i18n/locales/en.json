@@ -11,6 +11,7 @@
         "search": "Search",
         "close": "Close",
         "dismiss": "Dismiss",
+        "copyFailed": "The browser didn't allow copying. Select the text and copy it yourself.",
         "next": "Next",
         "previous": "Previous",
         "yes": "Yes",

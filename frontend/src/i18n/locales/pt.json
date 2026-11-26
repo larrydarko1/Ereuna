@@ -11,6 +11,7 @@
         "search": "Buscar",
         "close": "Fechar",
         "dismiss": "Dispensar",
+        "copyFailed": "O navegador não permitiu copiar. Selecione o texto e copie você mesmo.",
         "next": "Próximo",
         "previous": "Anterior",
         "yes": "Sim",

@@ -11,6 +11,7 @@
         "search": "Rechercher",
         "close": "Fermer",
         "dismiss": "Ignorer",
+        "copyFailed": "Le navigateur n'a pas autorisé la copie. Sélectionnez le texte et copiez-le vous-même.",
         "next": "Suivant",
         "previous": "Précédent",
         "yes": "Oui",

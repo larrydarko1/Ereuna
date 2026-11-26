@@ -11,6 +11,7 @@
         "search": "Ara",
         "close": "Kapat",
         "dismiss": "Kapat",
+        "copyFailed": "Tarayıcı kopyalamaya izin vermedi. Metni seçip kendiniz kopyalayın.",
         "next": "İleri",
         "previous": "Önceki",
         "yes": "Evet",
