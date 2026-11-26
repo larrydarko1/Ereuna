@@ -41,6 +41,12 @@ function asset(symbol: string): Asset {
     };
 }
 
+/** Symbols that all printed today: 19 of them make one retirement exactly 5% of a 20-symbol universe. */
+function trading(count: number): { universe: Asset[]; bars: { _id: string; latest: Date }[] } {
+    const universe = Array.from({ length: count }, (_, index) => asset(`T${index}`));
+    return { universe, bars: universe.map((one) => ({ _id: one.symbol, latest: new Date() })) };
+}
+
 beforeEach(() => {
     db.current = fakeDb();
     state.written = [];
@@ -54,13 +60,15 @@ describe('markDelisted', () => {
     });
 
     it('marks a symbol the aggregation did not return', async () => {
-        db.current = fakeDb({ OHCLVData: [{ _id: 'AAPL', latest: new Date() }] });
-        await expect(markDelisted([asset('AAPL'), asset('GONE')])).resolves.toEqual(['GONE']);
+        const { universe, bars } = trading(19);
+        db.current = fakeDb({ OHCLVData: bars });
+        await expect(markDelisted([...universe, asset('GONE')])).resolves.toEqual(['GONE']);
     });
 
     it('clears the relative-strength scores alongside the flag — a delisted symbol should not rank', async () => {
-        db.current = fakeDb({ OHCLVData: [] });
-        await markDelisted([asset('GONE')]);
+        const { universe, bars } = trading(19);
+        db.current = fakeDb({ OHCLVData: bars });
+        await markDelisted([...universe, asset('GONE')]);
         expect(state.written).toEqual([
             {
                 updateOne: {
@@ -80,6 +88,22 @@ describe('markDelisted', () => {
         const cutoff = dateAt(db.current.of('OHCLVData').filters, 0, 1, '$match', 'latest', '$gte');
         const expected = before - config.organize.delistAfterDays * 86_400_000;
         expect(Math.abs(cutoff.getTime() - expected)).toBeLessThan(5_000);
+    });
+
+    it('refuses, writing nothing, when the scan would retire more than the configured share', async () => {
+        const { universe, bars } = trading(18);
+        db.current = fakeDb({ OHCLVData: bars });
+        await expect(markDelisted([...universe, asset('GONE'), asset('ALSO')])).rejects.toThrow(
+            'Delisting scan refused: 2 of 20 symbols',
+        );
+        expect(state.written).toEqual([]);
+    });
+
+    it('refuses the whole universe going quiet — weeks of failed price updates look exactly like that', async () => {
+        const { universe } = trading(20);
+        db.current = fakeDb({ OHCLVData: [] });
+        await expect(markDelisted(universe)).rejects.toThrow('Delisting scan refused: 20 of 20 symbols');
+        expect(state.written).toEqual([]);
     });
 
     it('allows disk use — the grouping walks every daily bar', async () => {

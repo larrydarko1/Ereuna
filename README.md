@@ -57,6 +57,32 @@ along with everything else.
 The banner and demo GIF above are from the pre-rewrite version, and show features that
 have since been cut or are being rebuilt.
 
+### What the market data covers
+
+All market data comes from one vendor, Tiingo: daily and live prices for stocks, ETFs
+and funds, and financial statements for US stocks. One vendor is not enough to keep a
+market data app correct without someone looking after it, because part of what such an
+app needs is not in Tiingo's catalogue:
+
+- **Corporate actions arrive when they happen, not before.** There is no calendar of
+  upcoming splits and dividends; each one reaches the app in the daily bar of the day it
+  takes effect.
+- **No reference data for listings.** New listings, delistings, ticker changes and
+  exchange moves are not published as events. New listings don't enter the app on their
+  own, and a symbol counts as delisted once it has gone 14 days without a daily bar, so a
+  ticker change reads as the old symbol going quiet.
+- **Fundamentals cover stocks only.** Funds, ETFs and crypto have no financial data to
+  screen on.
+
+Crypto prices are available, live and daily, and I left them out on purpose: a market
+that never closes needs its own ingestor running around the clock, and with no
+fundamentals behind them most of the app's columns would be empty for every coin.
+
+A fully automated version would take more than one vendor (one for reference data and
+corporate-action calendars, another for fund and crypto fundamentals) and manual review
+for the cases no vendor covers cleanly. That is beyond the scope of this project rewrite,
+so these are documented limits of this repository rather than open bugs.
+
 ## How this was built
 
 This rewrite is AI-assisted, and I'd rather say so than let you guess from the commit
@@ -328,8 +354,10 @@ already holds every bucket its own sockets need.
 The nightly run is a straight dependency line, not a scheduler: prices → splits →
 dividends → weekly → delist → fundamentals → metrics → valuations → market stats →
 holidays → prune. Each step is isolated, so one vendor outage costs one step and not
-the run. Statements are fetched for stocks only, since nothing else files them, and
-crypto is left out of the run entirely, because nothing fetches its daily prices yet.
+the run. The delisting scan is skipped on a night the price step failed, and refuses to
+retire more than 5% of the universe at once, since only a price outage silences that many
+symbols. Statements are fetched for stocks only, since nothing else files them, and
+crypto is left out on purpose (see [What the market data covers](#what-the-market-data-covers)).
 
 ### Database notes
 
