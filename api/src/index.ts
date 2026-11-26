@@ -146,7 +146,8 @@ app.get(
 
 app.get('/healthz', async (_req: express.Request, res: express.Response) => {
     try {
-        await getDb().command({ ping: 1 });
+        // Bounded, so a hung Mongo answers the probe with a 503 before kubelet gives up on it
+        await getDb().command({ ping: 1 }, { timeoutMS: 5000 });
         res.json({ ok: true });
     } catch {
         // A kubelet probe, not a client-facing error — a bare ok/503, no AppError.
