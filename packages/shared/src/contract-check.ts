@@ -5,8 +5,9 @@
  * these, so the two suites read one definition of "the API would refuse this".
  *
  * Test infrastructure by design: only the two suites call these, so each is
- * tagged `@public` for the dead-code gate. `droppedKeys` is the exception —
- * `validated()`, `send()` and the socket gateway use it in production too.
+ * tagged `@public` for the dead-code gate. Two are the exception. `droppedKeys`
+ * is used by `validated()`, `send()` and the socket gateway, and `routeOf` names
+ * each request's route for the API's metrics.
  */
 import { z } from 'zod';
 
@@ -19,8 +20,6 @@ import { isRecord } from '#guards.js';
  * none. Where two routes take the same path (`/charts/search` and
  * `/charts/:symbol`), the fixed segment wins, as the routers order them.
  * A test may write a declared `:param` in place of a value.
- *
- * @public
  */
 export function routeOf(method: string, pathname: string): ApiRoute | undefined {
     const given = pathname.split('/');
