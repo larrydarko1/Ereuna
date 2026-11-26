@@ -349,6 +349,9 @@
         "noData": "Keine Daten",
         "timeframeLabel": "Zeitraum",
         "clearDrawingsBody": "Sind Sie sicher, dass Sie alle Zeichnungen für dieses Symbol löschen möchten? Dies kann nicht rückgängig gemacht werden.",
+        "drawingsLoadFailed": "Deine Zeichnungen auf {symbol} konnten nicht geladen werden. Neue Zeichnungen dort werden daher nicht über sie gespeichert. Öffne das Diagramm erneut, um es noch einmal zu versuchen.",
+        "drawingsSaveFailed": "Deine Zeichnungen auf {symbol} konnten nicht gespeichert werden. Deine nächste Änderung versucht es erneut.",
+        "drawingsClearFailed": "Die gespeicherten Zeichnungen auf {symbol} konnten nicht gelöscht werden. Sie erscheinen wieder, wenn du es das nächste Mal öffnest.",
         "timeframes": {
             "intraday1m": "1 Minute",
             "intraday5m": "5 Minuten",

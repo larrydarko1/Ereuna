@@ -349,6 +349,9 @@
         "noData": "Neniuj datumoj",
         "timeframeLabel": "Tempokadro",
         "clearDrawingsBody": "Ĉu vi certas ke vi volas forigi ĉiujn desegnojn por ĉi tiu simbolo? Ĉi tio ne povas esti malfari.",
+        "drawingsLoadFailed": "Ne eblis ŝargi viajn desegnaĵojn sur {symbol}, do tio, kion vi nun desegnas tie, ne estos konservita super ili. Remalfermu la diagramon por reprovi.",
+        "drawingsSaveFailed": "Ne eblis konservi viajn desegnaĵojn sur {symbol}. Via sekva ŝanĝo reprovos.",
+        "drawingsClearFailed": "Ne eblis forigi la konservitajn desegnaĵojn sur {symbol}. Ili reaperos la venontan fojon, kiam vi malfermos ĝin.",
         "timeframes": {
             "intraday1m": "1 minuto",
             "intraday5m": "5 minutoj",

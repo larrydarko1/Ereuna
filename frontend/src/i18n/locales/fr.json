@@ -349,6 +349,9 @@
         "noData": "Aucune donnée",
         "timeframeLabel": "Intervalle",
         "clearDrawingsBody": "Êtes-vous sûr de vouloir effacer tous les dessins pour ce symbole ? Cette action est irréversible.",
+        "drawingsLoadFailed": "Impossible de charger vos tracés sur {symbol} : ce que vous y dessinez maintenant ne sera pas enregistré par-dessus. Rouvrez le graphique pour réessayer.",
+        "drawingsSaveFailed": "Impossible d'enregistrer vos tracés sur {symbol}. Votre prochaine modification réessaiera.",
+        "drawingsClearFailed": "Impossible d'effacer les tracés enregistrés sur {symbol}. Ils réapparaîtront la prochaine fois que vous l'ouvrirez.",
         "timeframes": {
             "intraday1m": "1 minute",
             "intraday5m": "5 minutes",

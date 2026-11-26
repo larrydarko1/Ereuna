@@ -349,6 +349,9 @@
         "noData": "Nulla data",
         "timeframeLabel": "Intervallum temporis",
         "clearDrawingsBody": "Certusne es te velle purgare omnes picturas pro hoc symbolo? Hoc revocari non potest.",
+        "drawingsLoadFailed": "Delineationes tuae in {symbol} onerari non potuerunt, itaque quae nunc ibi delineas super eas non servabuntur. Tabulam iterum aperi ut denuo coneris.",
+        "drawingsSaveFailed": "Delineationes tuae in {symbol} servari non potuerunt. Proxima mutatio tua iterum conabitur.",
+        "drawingsClearFailed": "Delineationes servatae in {symbol} deleri non potuerunt. Redibunt cum id proxime aperies.",
         "timeframes": {
             "intraday1m": "1 minutum",
             "intraday5m": "5 minuta",

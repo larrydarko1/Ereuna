@@ -34,6 +34,8 @@ here marks a point in development, and its date is the day the number was set.
 - The worker and the ingestor answer their liveness probe while they connect to the database and build its indexes, so Kubernetes no longer restarts one that is only slow to start.
 - The nightly no longer marks symbols delisted on a night its price update failed, and it refuses a delisting scan that would retire more than 5% of active symbols at once. Weeks of failed price updates used to delist the whole market.
 - A chart screenshot that cannot be made says so in a notice, instead of the Download button doing nothing.
+- Drawing on a chart whose saved drawings failed to load no longer erases them. The chart says they didn't load and saves nothing there until they do.
+- A chart says so when its drawings could not be saved or cleared, and the notice stays until a later save gets through. Both failures used to be silent.
 
 ### Removed
 

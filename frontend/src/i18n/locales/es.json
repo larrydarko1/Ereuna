@@ -349,6 +349,9 @@
         "noData": "Sin datos",
         "timeframeLabel": "Marco temporal",
         "clearDrawingsBody": "¿Está seguro de que desea eliminar todos los dibujos de este símbolo? Esta acción no se puede deshacer.",
+        "drawingsLoadFailed": "No se pudieron cargar tus dibujos en {symbol}, así que lo que dibujes ahí ahora no se guardará encima de ellos. Vuelve a abrir el gráfico para reintentarlo.",
+        "drawingsSaveFailed": "No se pudieron guardar tus dibujos en {symbol}. Tu próximo cambio lo volverá a intentar.",
+        "drawingsClearFailed": "No se pudieron borrar los dibujos guardados en {symbol}. Volverán la próxima vez que lo abras.",
         "timeframes": {
             "intraday1m": "1 minuto",
             "intraday5m": "5 minutos",

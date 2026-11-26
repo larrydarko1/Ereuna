@@ -349,6 +349,9 @@
         "noData": "L-ebda dejta",
         "timeframeLabel": "Perjodu",
         "clearDrawingsBody": "Żgur li trid tħassar id-drawjngs kollha għal dan is-simbolu? Dan ma jistax jiġi annullat.",
+        "drawingsLoadFailed": "Ma setgħux jitgħabbew it-tpinġijiet tiegħek fuq {symbol}, għalhekk dak li tpinġi hemm issa mhux se jiġi salvat fuqhom. Erġa' iftaħ il-grafiku biex terġa' tipprova.",
+        "drawingsSaveFailed": "Ma setgħux jiġu salvati t-tpinġijiet tiegħek fuq {symbol}. Il-bidla li jmiss tiegħek terġa' tipprova.",
+        "drawingsClearFailed": "Ma setgħux jitħassru t-tpinġijiet salvati fuq {symbol}. Jerġgħu jidhru meta tiftaħu d-darba li jmiss.",
         "timeframes": {
             "intraday1m": "1 minuta",
             "intraday5m": "5 minuti",

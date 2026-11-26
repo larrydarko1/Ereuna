@@ -349,6 +349,9 @@
         "noData": "데이터 없음",
         "timeframeLabel": "기간",
         "clearDrawingsBody": "이 종목의 모든 그림을 지우시겠습니까? 이 작업은 취소할 수 없습니다.",
+        "drawingsLoadFailed": "{symbol}의 그림을 불러오지 못했습니다. 기존 그림을 덮어쓰지 않도록 지금 그리는 내용은 저장되지 않습니다. 차트를 다시 열어 재시도하세요.",
+        "drawingsSaveFailed": "{symbol}의 그림을 저장하지 못했습니다. 다음 변경 시 다시 시도합니다.",
+        "drawingsClearFailed": "{symbol}에 저장된 그림을 지우지 못했습니다. 다음에 열 때 다시 나타납니다.",
         "timeframes": {
             "intraday1m": "1분",
             "intraday5m": "5분",

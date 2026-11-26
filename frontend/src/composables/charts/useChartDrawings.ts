@@ -9,6 +9,8 @@ import { onScopeDispose, ref, type Ref } from 'vue';
 import type { ChartDrawings, ChartTimeframe } from '@ereuna/shared';
 
 import { clearDrawings, getDrawings, saveDrawings } from '@/api/chart';
+import { notify } from '@/composables/ui/useNotifications';
+import { i18n } from '@/i18n';
 
 export type UseChartDrawingsReturn = {
     hasDrawings: Ref<boolean>; //  True while the chart holds at least one annotation, so "clear all" can hide itself
@@ -72,6 +74,9 @@ export function useChartDrawings(): UseChartDrawingsReturn {
     let loading = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let queued: ChartKey | null = null;
+    // The chart whose stored drawings could not be read. Its canvas starts blank and
+    // a PUT replaces the whole stored document, so writing it would erase them.
+    let unread: string | null = null;
 
     onScopeDispose(() => {
         if (timer !== undefined) clearTimeout(timer);
@@ -110,12 +115,21 @@ export function useChartDrawings(): UseChartDrawingsReturn {
             const { data } = await getDrawings(key.symbol, key.timeframe);
             apply(data);
             hasDrawings.value = !isEmpty(data);
+            if (unread === noticeId(key)) {
+                unread = null;
+                notify.dismiss(noticeId(key));
+            }
         } catch {
             // A chart that will not load its annotations still draws prices.
             // Leaving the canvas clean is the honest failure: showing the
             // previous symbol's trendlines over this one would be worse.
             apply(EMPTY);
             hasDrawings.value = false;
+            unread = noticeId(key);
+            notify.error(i18n.global.t('charts.drawingsLoadFailed', { symbol: key.symbol }), {
+                id: noticeId(key),
+                persistent: true,
+            });
         } finally {
             loading = false;
         }
@@ -136,12 +150,17 @@ export function useChartDrawings(): UseChartDrawingsReturn {
 
         const drawings = collect(managers);
         hasDrawings.value = !isEmpty(drawings);
+        if (unread === noticeId(key)) return;
         try {
             await saveDrawings(key.symbol, key.timeframe, drawings);
+            notify.dismiss(noticeId(key));
         } catch {
-            // The drawing is still on screen and will be written by the next
-            // edit or the next chart switch; a failed save is not worth
-            // interrupting someone mid-annotation over.
+            // Persistent, because the drawing on screen stays unsaved until the
+            // next edit or chart switch writes it, and that write clears this
+            notify.error(i18n.global.t('charts.drawingsSaveFailed', { symbol: key.symbol }), {
+                id: noticeId(key),
+                persistent: true,
+            });
         }
     }
 
@@ -160,12 +179,17 @@ export function useChartDrawings(): UseChartDrawingsReturn {
     async function clear(key: ChartKey): Promise<void> {
         cancelPending();
         reset();
-        if (key.symbol === '') return;
+        if (key.symbol === '' || unread === noticeId(key)) return;
         try {
             await clearDrawings(key.symbol, key.timeframe);
+            notify.dismiss(noticeId(key));
         } catch {
-            // Same reasoning as `save`: the canvas is already clear, and the
-            // next write for this chart replaces the stored document anyway.
+            // The canvas is already clear but the stored drawings are not, so
+            // they come back on the next visit unless a later write replaces them
+            notify.error(i18n.global.t('charts.drawingsClearFailed', { symbol: key.symbol }), {
+                id: noticeId(key),
+                persistent: true,
+            });
         }
     }
 
@@ -184,6 +208,11 @@ export function useChartDrawings(): UseChartDrawingsReturn {
     }
 
     return { hasDrawings, attach, snapshot, restore, load, save, touch, clear, reset };
+}
+
+// One notice per chart, so a later failure replaces the earlier reason and a later success clears it
+function noticeId(key: ChartKey): string {
+    return `drawings:${key.symbol}:${key.timeframe}`;
 }
 
 function isEmpty(drawings: ChartDrawings): boolean {

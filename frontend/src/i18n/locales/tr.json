@@ -349,6 +349,9 @@
         "noData": "Veri yok",
         "timeframeLabel": "Zaman aralığı",
         "clearDrawingsBody": "Bu sembol için tüm çizimleri temizlemek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+        "drawingsLoadFailed": "{symbol} üzerindeki çizimleriniz yüklenemedi, bu yüzden şimdi orada çizdikleriniz onların üzerine kaydedilmeyecek. Yeniden denemek için grafiği tekrar açın.",
+        "drawingsSaveFailed": "{symbol} üzerindeki çizimleriniz kaydedilemedi. Bir sonraki değişikliğiniz tekrar deneyecek.",
+        "drawingsClearFailed": "{symbol} üzerindeki kayıtlı çizimler silinemedi. Bir sonraki açışınızda geri gelecekler.",
         "timeframes": {
             "intraday1m": "1 dakika",
             "intraday5m": "5 dakika",

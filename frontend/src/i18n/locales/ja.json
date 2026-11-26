@@ -349,6 +349,9 @@
         "noData": "データなし",
         "timeframeLabel": "時間軸",
         "clearDrawingsBody": "このシンボルの描画をすべて消去しますか？この操作は元に戻せません。",
+        "drawingsLoadFailed": "{symbol} の描画を読み込めませんでした。上書きを防ぐため、今そこに描いたものは保存されません。チャートを開き直して再試行してください。",
+        "drawingsSaveFailed": "{symbol} の描画を保存できませんでした。次の変更時にもう一度試みます。",
+        "drawingsClearFailed": "{symbol} の保存済みの描画を消去できませんでした。次に開いたときに再び表示されます。",
         "timeframes": {
             "intraday1m": "1分",
             "intraday5m": "5分",

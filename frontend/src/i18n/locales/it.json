@@ -349,6 +349,9 @@
         "noData": "Nessun dato",
         "timeframeLabel": "Intervallo",
         "clearDrawingsBody": "Sei sicuro di voler cancellare tutti i disegni per questo simbolo? Questa azione non può essere annullata.",
+        "drawingsLoadFailed": "Impossibile caricare i tuoi disegni su {symbol}, quindi ciò che disegni lì ora non verrà salvato sopra di essi. Riapri il grafico per riprovare.",
+        "drawingsSaveFailed": "Impossibile salvare i tuoi disegni su {symbol}. La tua prossima modifica riproverà.",
+        "drawingsClearFailed": "Impossibile cancellare i disegni salvati su {symbol}. Ricompariranno la prossima volta che lo apri.",
         "timeframes": {
             "intraday1m": "1 minuto",
             "intraday5m": "5 minuti",

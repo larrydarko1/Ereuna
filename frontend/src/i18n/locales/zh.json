@@ -349,6 +349,9 @@
         "noData": "无数据",
         "timeframeLabel": "时间周期",
         "clearDrawingsBody": "您确定要清除此代码的所有绘图吗？此操作无法撤销。",
+        "drawingsLoadFailed": "无法加载你在 {symbol} 上的绘图，因此你现在在那里绘制的内容不会覆盖保存。请重新打开图表重试。",
+        "drawingsSaveFailed": "无法保存你在 {symbol} 上的绘图。你的下一次修改会重试。",
+        "drawingsClearFailed": "无法清除 {symbol} 上已保存的绘图。下次打开时它们会重新出现。",
         "timeframes": {
             "intraday1m": "1 分钟",
             "intraday5m": "5 分钟",
