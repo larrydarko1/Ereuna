@@ -62,5 +62,6 @@ function routeLabel(req: Request): string {
     // The probes and /metrics itself, which sit on the app outside any router
     const route: unknown = req.route;
     const routePath = isRecord(route) ? route['path'] : undefined;
-    return typeof routePath === 'string' ? routePath : 'unknown';
+    if (typeof routePath !== 'string') return 'unknown';
+    return routePath;
 }
