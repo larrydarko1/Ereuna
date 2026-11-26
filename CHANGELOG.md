@@ -41,6 +41,7 @@ here marks a point in development, and its date is the day the number was set.
 - The screener's columns and reset dialogs stay open with the reason when the save fails, and a refused filter says so on its own card. Each failure used to appear in a line of text somewhere on the page.
 - A portfolio dialog's failure shows in that dialog only. It used to show again on the page behind, stay there after Cancel, and reappear in the next dialog opened.
 - The portfolio says so when its trades or the monthly breakdown cannot be loaded. The trade list used to stay empty and the breakdown button did nothing.
+- Deleting a watchlist that fails keeps the dialog open with the reason, instead of closing as if it had worked. A row that cannot be moved or removed says so in a notice, and a refused name shows only in its dialog, not again on the panel behind it.
 
 ### Removed
 

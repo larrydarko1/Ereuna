@@ -8,11 +8,12 @@ import { apiErrorMessage } from '@/api/client';
 import IconArrowDown from '@/components/icons/IconArrowDown.vue';
 import IconArrowUp from '@/components/icons/IconArrowUp.vue';
 import IconClose from '@/components/icons/IconClose.vue';
-import AppDialog from '@/components/ui/AppDialog.vue';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import PromptDialog from '@/components/ui/PromptDialog.vue';
 import { useMarketStatus } from '@/composables/charts/useMarketStatus';
 import { useWatchlists } from '@/composables/charts/useWatchlists';
 import { useLiveQuotes } from '@/composables/data/useLiveQuotes';
+import { notify } from '@/composables/ui/useNotifications';
 import { targetOf } from '@/utils/dom';
 import { formatNumber, formatPercent } from '@/utils/formatters';
 
@@ -55,7 +56,9 @@ const prompt = ref<Prompt>(null);
 const confirmingDelete = ref(false);
 const draftSymbol = ref('');
 const busy = ref(false);
+// The panel's own line: a list that could not be read, or what the add form or an import ran into
 const error = ref<string | null>(null);
+const dialogError = ref<string | null>(null);
 const notice = ref<string | null>(null);
 const fileInput = useTemplateRef<HTMLInputElement>('fileInput');
 
@@ -79,14 +82,17 @@ const displayRows = computed<DisplayRow[]>(() =>
     }),
 );
 
-/** Every write goes through here, so one place reports failure and clears it. */
-async function run(action: () => Promise<void>): Promise<void> {
+/**
+ * Every request goes through here, so the busy flag covers them all. It answers
+ * why the request failed, or null, and the caller puts that where it was made.
+ */
+async function attempt(action: () => Promise<void>): Promise<string | null> {
     busy.value = true;
-    error.value = null;
     try {
         await action();
+        return null;
     } catch (err) {
-        error.value = apiErrorMessage(err, t('watchlist.actionFailed'));
+        return apiErrorMessage(err, t('watchlist.actionFailed'));
     } finally {
         busy.value = false;
     }
@@ -95,25 +101,31 @@ async function run(action: () => Promise<void>): Promise<void> {
 async function submitPrompt(value: string): Promise<void> {
     const mode = prompt.value;
     const current = activeName.value;
-    await run(async () => {
+    dialogError.value = await attempt(async () => {
         if (mode === 'create') await create(value);
         else if (mode === 'rename' && current !== null) await rename(current, value);
     });
-    if (error.value === null) prompt.value = null;
+    if (dialogError.value === null) prompt.value = null;
 }
 
 async function confirmDelete(): Promise<void> {
     const current = activeName.value;
     if (current === null) return;
-    await run(() => remove(current));
-    confirmingDelete.value = false;
+    dialogError.value = await attempt(() => remove(current));
+    if (dialogError.value === null) confirmingDelete.value = false;
 }
 
 async function submitSymbol(): Promise<void> {
     const value = draftSymbol.value.trim().toUpperCase();
     if (value === '') return;
-    await run(() => addTicker(value));
+    error.value = await attempt(() => addTicker(value));
     if (error.value === null) draftSymbol.value = '';
+}
+
+// A row that did not move or did not go shows nothing of the failure itself
+async function changeRows(action: () => Promise<void>): Promise<void> {
+    const failure = await attempt(action);
+    if (failure !== null) notify.error(failure);
 }
 
 function moveRow(index: number, delta: number): void {
@@ -121,12 +133,16 @@ function moveRow(index: number, delta: number): void {
     if (target < 0 || target >= tickers.value.length) return;
     const next = [...tickers.value];
     next.splice(target, 0, ...next.splice(index, 1));
-    void run(() => reorderTickers(next));
+    void changeRows(() => reorderTickers(next));
+}
+
+async function readList(action: () => Promise<void>): Promise<void> {
+    error.value = await attempt(action);
 }
 
 function pickList(event: Event): void {
     const name = targetOf(event, HTMLSelectElement).value;
-    void run(() => open(name));
+    void readList(() => open(name));
 }
 
 async function importFile(event: Event): Promise<void> {
@@ -156,7 +172,7 @@ async function importFile(event: Event): Promise<void> {
         return;
     }
 
-    await run(async () => {
+    error.value = await attempt(async () => {
         const result = await addTickers(symbols);
         notice.value = t('watchlist.imported', { added: result.added, skipped: result.rejected.length });
     });
@@ -195,10 +211,15 @@ function changeTone(value: number | null): string {
     return value > 0 ? 'watchlist__change--up' : 'watchlist__change--down';
 }
 
+// A reason left from a cancelled dialog would otherwise greet the next one opened
+watch([prompt, confirmingDelete], () => {
+    dialogError.value = null;
+});
+
 // The rows outlive the panel, and this one may mount after the bell with rows
 // read during the session, priced before the day's close existed
 onMounted(() => {
-    void run(() => (loaded.value ? refresh() : load()));
+    void readList(() => (loaded.value ? refresh() : load()));
 });
 
 // A tab left open overnight holds rows read before the last bell, so their
@@ -206,7 +227,7 @@ onMounted(() => {
 watch(
     () => market.status.value,
     (status) => {
-        if (status === 'open') void run(refresh);
+        if (status === 'open') void readList(refresh);
     },
 );
 </script>
@@ -375,7 +396,7 @@ watch(
                     class="watchlist__icon"
                     :aria-label="t('watchlist.removeSymbol', { symbol: row.ticker })"
                     :disabled="busy"
-                    @click="run(() => removeTicker(row.ticker))">
+                    @click="changeRows(() => removeTicker(row.ticker))">
                     <IconClose />
                 </button>
             </li>
@@ -387,31 +408,19 @@ watch(
             :label="t('watchlist.name')"
             :initial="prompt === 'rename' ? (activeName ?? '') : ''"
             :pending="busy"
-            :error="error"
+            :error="dialogError"
             @submit="submitPrompt"
             @close="prompt = null" />
 
-        <AppDialog
+        <ConfirmDialog
             v-if="confirmingDelete"
             :title="t('watchlist.confirmDelete')"
-            size="sm"
-            @close="confirmingDelete = false">
-            <p class="watchlist__confirm">{{ t('watchlist.confirmDeleteBody', { name: activeName ?? '' }) }}</p>
-            <template #footer>
-                <button
-                    type="button"
-                    @click="confirmingDelete = false"
-                    >{{ t('common.cancel') }}</button
-                >
-                <button
-                    type="button"
-                    class="watchlist__danger"
-                    :disabled="busy"
-                    @click="confirmDelete">
-                    {{ t('common.delete') }}
-                </button>
-            </template>
-        </AppDialog>
+            :message="t('watchlist.confirmDeleteBody', { name: activeName ?? '' })"
+            :confirm-label="t('common.delete')"
+            :pending="busy"
+            :error="dialogError"
+            @confirm="confirmDelete"
+            @close="confirmingDelete = false" />
     </section>
 </template>
 
@@ -598,21 +607,5 @@ watch(
         width: 16px;
         height: 16px;
     }
-}
-
-.watchlist__confirm {
-    margin: 0;
-    color: $color-text;
-    font-size: $font-size-sm;
-}
-
-.watchlist__danger {
-    padding: $space-1 $space-3;
-    border: none;
-    border-radius: $radius-sm;
-    background: $color-negative;
-    color: $color-text-inverted;
-    font-size: $font-size-sm;
-    cursor: pointer;
 }
 </style>
