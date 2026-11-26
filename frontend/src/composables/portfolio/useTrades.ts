@@ -13,7 +13,7 @@ export type UseTradesReturn = {
     page: Ref<number>;
     pageCount: ComputedRef<number>;
     pending: Ref<boolean>;
-    error: Ref<string | null>;
+    error: Ref<string | null>; // Why the page of trades could not be read; a write's failure is thrown to the caller
     load: () => Promise<void>;
     goToPage: (page: number) => Promise<void>;
     create: (trade: TradeInput) => Promise<void>;
@@ -66,13 +66,7 @@ export function useTrades(portfolio: () => number, onWrite: () => Promise<void> 
      * the moment this returns — `onWrite` is how it learns to re-read.
      */
     async function mutate(action: () => Promise<unknown>): Promise<void> {
-        error.value = null;
-        try {
-            await action();
-        } catch (err) {
-            error.value = apiErrorMessage(err, i18n.global.t('errors.INTERNAL'));
-            throw err;
-        }
+        await action();
         await load();
         await onWrite();
     }

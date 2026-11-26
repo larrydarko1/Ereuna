@@ -39,6 +39,8 @@ here marks a point in development, and its date is the day the number was set.
 - A copy button the browser refuses (the recovery codes, a summary value) says so, instead of leaving whatever was copied before on the clipboard.
 - Deleting a screener that the server refuses says why in the delete dialog. The dialog used to stay open with no message.
 - The screener's columns and reset dialogs stay open with the reason when the save fails, and a refused filter says so on its own card. Each failure used to appear in a line of text somewhere on the page.
+- A portfolio dialog's failure shows in that dialog only. It used to show again on the page behind, stay there after Cancel, and reappear in the next dialog opened.
+- The portfolio says so when its trades or the monthly breakdown cannot be loaded. The trade list used to stay empty and the breakdown button did nothing.
 
 ### Removed
 

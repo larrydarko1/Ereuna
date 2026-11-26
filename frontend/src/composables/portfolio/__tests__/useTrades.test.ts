@@ -154,7 +154,8 @@ describe('the writes', () => {
 
         await expect(trades.create(trade)).rejects.toBeDefined();
 
-        expect(trades.error.value).not.toBeNull();
+        // The caller shows the refusal where it was made; the list itself was read fine
+        expect(trades.error.value).toBeNull();
         expect(onWrite).not.toHaveBeenCalled();
     });
 
