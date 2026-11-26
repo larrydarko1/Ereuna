@@ -19,6 +19,7 @@ import {
     hexSecret,
     LIMITS,
     loggerEnv,
+    metricsEnv,
     mongoEnv,
     nodeEnv,
     redisEnv,
@@ -32,6 +33,7 @@ const Env = z.object({
     ...loggerEnv,
     ...mongoEnv,
     ...redisEnv,
+    ...metricsEnv,
 
     PORT: z.coerce.number().int().positive().default(5500),
     CORS_ORIGIN: z.url().default('http://localhost:3500'),
@@ -42,8 +44,6 @@ const Env = z.object({
     JWT_SECRET: requiredSecret(32),
     TOTP_ENCRYPTION_KEY: hexSecret(32), // AES-256-GCM key for TOTP secrets at rest.
     TOTP_ISSUER: z.string().min(1).default('Ereuna'),
-
-    METRICS_TOKEN: z.string().optional(),
 
     /** Where the ticker logos live. The default sits two levels above this
      *  module, which resolves to `api/assets/logos` from `src/` and from

@@ -50,6 +50,19 @@ export const redisEnv = {
     REDIS_DB: z.coerce.number().int().min(0).max(15).default(0),
 };
 
+export const metricsEnv = {
+    // Bearer token guarding GET /metrics. Required in production, where the
+    // API serves it on its public port. Optional elsewhere, so a local scrape
+    // needs no setup. Unset is '', not undefined: Zod skips a refine on a
+    // missing optional key
+    METRICS_TOKEN: z
+        .string()
+        .default('')
+        .refine((v) => !isProd() || v.length >= 32, {
+            message: 'is required in production (at least 32 characters)',
+        }),
+};
+
 /**
  * The upstream market-data vendor. Both the ingestor (its trade websocket) and
  * the aggregator (its REST endpoints) authenticate with the same key, which is

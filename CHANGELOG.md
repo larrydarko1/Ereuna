@@ -15,6 +15,11 @@ here marks a point in development, and its date is the day the number was set.
 
 ## [Unreleased]
 
+### Upgrading
+
+1. Set `METRICS_TOKEN` to a random value of at least 32 characters in the production
+   env of the API, the worker and the ingestor. Each one refuses to start without it.
+
 ### Changed
 
 - Supported browsers are now Safari and iOS 26, Chrome and Edge 136, Firefox 134 and newer, the first of each that runs all of ES2025. They were Safari and iOS 14 and up.
@@ -22,6 +27,10 @@ here marks a point in development, and its date is the day the number was set.
 ### Fixed
 
 - The nightly no longer marks symbols delisted on a night its price update failed, and it refuses a delisting scan that would retire more than 5% of active symbols at once. Weeks of failed price updates used to delist the whole market.
+
+### Security
+
+- In production, `/metrics` answers only with a bearer token: the API, the worker and the ingestor refuse to start without `METRICS_TOKEN`. It used to be optional, and unset left the endpoint open.
 
 ## [2026.11.0] - 2026-11-21
 

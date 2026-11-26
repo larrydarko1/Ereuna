@@ -6,7 +6,7 @@
  */
 import { z } from 'zod';
 
-import { loggerEnv, mongoEnv, nodeEnv, redisEnv, toMongoConfig, toRedisConfig } from '@ereuna/shared';
+import { loggerEnv, metricsEnv, mongoEnv, nodeEnv, redisEnv, toMongoConfig, toRedisConfig } from '@ereuna/shared';
 
 const WORKER_ROLES = ['all', 'aggregate', 'organize'] as const;
 
@@ -16,6 +16,7 @@ const Env = z
         ...loggerEnv,
         ...mongoEnv,
         ...redisEnv,
+        ...metricsEnv,
 
         WORKER_ROLE: z.enum(WORKER_ROLES).default('all'),
 
@@ -24,7 +25,6 @@ const Env = z
         TIINGO_REQUESTS_PER_HOUR: z.coerce.number().int().positive().default(9_500),
 
         PROBE_PORT: z.coerce.number().int().positive().default(9093),
-        METRICS_TOKEN: z.string().optional(),
     })
     // superRefine rather than refine: the key is required for two of the three
     // roles and absent for the third, so it cannot be declared required in the
