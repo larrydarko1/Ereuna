@@ -37,6 +37,8 @@ here marks a point in development, and its date is the day the number was set.
 - Drawing on a chart whose saved drawings failed to load no longer erases them. The chart says they didn't load and saves nothing there until they do.
 - A chart says so when its drawings could not be saved or cleared, and the notice stays until a later save gets through. Both failures used to be silent.
 - A copy button the browser refuses (the recovery codes, a summary value) says so, instead of leaving whatever was copied before on the clipboard.
+- Deleting a screener that the server refuses says why in the delete dialog. The dialog used to stay open with no message.
+- The screener's columns and reset dialogs stay open with the reason when the save fails, and a refused filter says so on its own card. Each failure used to appear in a line of text somewhere on the page.
 
 ### Removed
 

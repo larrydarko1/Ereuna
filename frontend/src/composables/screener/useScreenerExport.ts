@@ -10,6 +10,7 @@ import { ref, type Ref } from 'vue';
 import type { ScreenerResult } from '@ereuna/shared';
 
 import { fetchResults, type ResultsSource } from '@/composables/screener/useScreenerResults';
+import { notify } from '@/composables/ui/useNotifications';
 import { findColumn, readColumn } from '@/constants/screener';
 import { i18n } from '@/i18n';
 import { CSV_TYPE, toCsv } from '@/utils/csv';
@@ -17,7 +18,6 @@ import { downloadFile } from '@/utils/download';
 
 type UseScreenerExportReturn = {
     exporting: Ref<boolean>;
-    error: Ref<string | null>;
     run: () => Promise<void>;
 };
 
@@ -31,7 +31,6 @@ export function useScreenerExport(options: {
     filename: () => string;
 }): UseScreenerExportReturn {
     const exporting = ref(false);
-    const error = ref<string | null>(null);
 
     async function collect(): Promise<ScreenerResult[]> {
         const collected: ScreenerResult[] = [];
@@ -48,7 +47,6 @@ export function useScreenerExport(options: {
     async function run(): Promise<void> {
         const translate = i18n.global.t;
         exporting.value = true;
-        error.value = null;
 
         try {
             const columns = options.columns();
@@ -63,11 +61,12 @@ export function useScreenerExport(options: {
 
             downloadFile(`${options.filename()}.csv`, toCsv(headers, body), CSV_TYPE);
         } catch {
-            error.value = translate('screener.exportFailed');
+            // The toolbar button that started it shows no result of its own
+            notify.error(translate('screener.exportFailed'));
         } finally {
             exporting.value = false;
         }
     }
 
-    return { exporting, error, run };
+    return { exporting, run };
 }

@@ -25,12 +25,16 @@ export type ActiveFilter =
     | ({ kind: 'ma' } & MaChoice)
     | { kind: 'flag'; enabled: boolean };
 
+/** `key` is the filter's slug, or `''` for clearing them all. */
+export type FilterWriteError = { key: string; message: string };
+
 export type UseScreenerFiltersReturn = {
     filters: Ref<ScreenerFilters>;
     activeCount: ComputedRef<number>;
     pending: Ref<boolean>;
     saving: Ref<string | null>; // The key currently being written, for a per-card spinner
-    error: Ref<string | null>;
+    error: Ref<string | null>; // Why the screener's filters could not be read
+    writeError: Ref<FilterWriteError | null>; // Why the last write failed, kept on the card it came from
     valueFor: (key: string, kind: FilterKind) => ActiveFilter | null;
     set: (key: string, value: FilterValue) => Promise<void>;
     clear: (key: string) => Promise<void>;
@@ -43,6 +47,7 @@ export function useScreenerFilters(name: Ref<string>): UseScreenerFiltersReturn 
     const pending = ref(false);
     const saving = ref<string | null>(null);
     const error = ref<string | null>(null);
+    const writeError = ref<FilterWriteError | null>(null);
 
     // Switching screeners mid-request must not paint the old one's filters
     // under the new one's name.
@@ -51,6 +56,7 @@ export function useScreenerFilters(name: Ref<string>): UseScreenerFiltersReturn 
     async function reload(): Promise<void> {
         const target = name.value;
         const ticket = (sequence += 1);
+        writeError.value = null;
 
         if (target === '') {
             filters.value = {};
@@ -108,12 +114,12 @@ export function useScreenerFilters(name: Ref<string>): UseScreenerFiltersReturn 
     async function write(key: string, action: () => Promise<{ data: { filters: ScreenerFilters } }>): Promise<void> {
         if (name.value === '') return;
         saving.value = key;
-        error.value = null;
+        writeError.value = null;
         try {
             const { data } = await action();
             filters.value = data.filters;
         } catch (err) {
-            error.value = apiErrorMessage(err, i18n.global.t('errors.INTERNAL'));
+            writeError.value = { key, message: apiErrorMessage(err, i18n.global.t('errors.INTERNAL')) };
         } finally {
             saving.value = null;
         }
@@ -131,7 +137,7 @@ export function useScreenerFilters(name: Ref<string>): UseScreenerFiltersReturn 
         await write('', () => clearAllFilters(name.value));
     }
 
-    return { filters, activeCount, pending, saving, error, valueFor, set, clear, clearAll, reload };
+    return { filters, activeCount, pending, saving, error, writeError, valueFor, set, clear, clearAll, reload };
 }
 
 /** The stored `abv200` / `blwPrice` shorthand, split back into its two parts. */
