@@ -456,9 +456,7 @@
             "includeInfoHint": "إظهار الرمز والسعر والتاريخ",
             "includeLogo": "تضمين الشعار",
             "includeLogoHint": "إظهار علامة التطبيق التجارية",
-            "download": "تحميل PNG",
-            "includeWatermark": "إضافة علامة مائية",
-            "includeWatermarkHint": "اسم التطبيق باهتًا خلف الرسم البياني"
+            "download": "تحميل PNG"
         }
     },
     "search": {

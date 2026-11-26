@@ -456,9 +456,7 @@
             "includeInfoHint": "Sembol, fiyat ve tarihi göster",
             "includeLogo": "Logoyu Dahil Et",
             "includeLogoHint": "Uygulama markalarını göster",
-            "download": "PNG İndir",
-            "includeWatermark": "Filigran ekle",
-            "includeWatermarkHint": "Grafiğin arkasında soluk uygulama adı"
+            "download": "PNG İndir"
         }
     },
     "search": {

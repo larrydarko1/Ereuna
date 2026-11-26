@@ -91,7 +91,9 @@ async function boot(role: string): Promise<void> {
     state.role = role;
     vi.resetModules();
     await import('@/index.js');
-    await vi.waitFor(() => expect(calls).toContain('startProbeServer'));
+    await vi.waitFor(() =>
+        expect(calls.some((call) => call === 'startAggregator' || call === 'startOrganizer')).toBe(true),
+    );
 }
 
 const indexedCollections = (): string[] => db.current.writes().map((write) => write.collection);
@@ -141,6 +143,12 @@ describe('startup', () => {
         await boot('aggregate');
         expect(logged.errors).toHaveLength(1);
         expect(calls).toContain('startAggregator');
+    });
+
+    it('serves probes before it connects, so a slow database or index build is not mistaken for a dead process', async () => {
+        await boot('all');
+        expect(calls[0]).toBe('startProbeServer');
+        expect(calls.indexOf('startProbeServer')).toBeLessThan(calls.indexOf('connectDb'));
     });
 
     it('serves probes on the configured port', async () => {

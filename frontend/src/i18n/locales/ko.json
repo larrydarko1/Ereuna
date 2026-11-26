@@ -456,9 +456,7 @@
             "includeInfoHint": "심볼, 가격 및 날짜 표시",
             "includeLogo": "로고 포함",
             "includeLogoHint": "앱 브랜딩 표시",
-            "download": "PNG 다운로드",
-            "includeWatermark": "워터마크 포함",
-            "includeWatermarkHint": "차트 뒤에 흐린 앱 이름"
+            "download": "PNG 다운로드"
         }
     },
     "search": {

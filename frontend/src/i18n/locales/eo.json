@@ -456,9 +456,7 @@
             "includeInfoHint": "Montri simbolon, prezon, kaj daton",
             "includeLogo": "Inkluzivi Logon",
             "includeLogoHint": "Montri aplikan markon",
-            "download": "Elŝuti PNG",
-            "includeWatermark": "Inkluzivi akvomarkon",
-            "includeWatermarkHint": "Pala aplikaĵnomo malantaŭ la diagramo"
+            "download": "Elŝuti PNG"
         }
     },
     "search": {

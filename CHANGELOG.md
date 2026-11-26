@@ -15,13 +15,32 @@ here marks a point in development, and its date is the day the number was set.
 
 ## [Unreleased]
 
+### Upgrading
+
+1. Set `METRICS_TOKEN` to a random value of at least 32 characters in the production
+   env of the API, the worker and the ingestor. Each one refuses to start without it.
+
+### Added
+
+- The API serves `/metrics` for Prometheus: the rate, errors and latency of every route, beside the process metrics the worker and the ingestor already report.
+
 ### Changed
 
 - Supported browsers are now Safari and iOS 26, Chrome and Edge 136, Firefox 134 and newer, the first of each that runs all of ES2025. They were Safari and iOS 14 and up.
 
 ### Fixed
 
+- The API reports itself not ready when the database takes more than 5 seconds to answer, instead of waiting until the readiness probe times out.
+- The worker and the ingestor answer their liveness probe while they connect to the database and build its indexes, so Kubernetes no longer restarts one that is only slow to start.
 - The nightly no longer marks symbols delisted on a night its price update failed, and it refuses a delisting scan that would retire more than 5% of active symbols at once. Weeks of failed price updates used to delist the whole market.
+
+### Removed
+
+- The chart screenshot no longer offers "Include watermark". Ticked or not, it never drew one.
+
+### Security
+
+- In production, `/metrics` answers only with a bearer token: the API, the worker and the ingestor refuse to start without `METRICS_TOKEN`. It used to be optional, and unset left the endpoint open.
 
 ## [2026.11.0] - 2026-11-21
 

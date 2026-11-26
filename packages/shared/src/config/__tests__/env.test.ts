@@ -4,6 +4,7 @@ import { z } from 'zod';
 import {
     hexSecret,
     loggerEnv,
+    metricsEnv,
     mongoEnv,
     nodeEnv,
     redisEnv,
@@ -49,6 +50,26 @@ describe('the fragments', () => {
         expect(z.object(redisEnv).parse({ REDIS_DB: '1' }).REDIS_DB).toBe(1);
         expect(z.object(redisEnv).safeParse({ REDIS_DB: '16' }).success).toBe(false);
         expect(z.object(redisEnv).safeParse({ REDIS_DB: '-1' }).success).toBe(false);
+    });
+
+    it('leaves METRICS_TOKEN empty outside production, so a local scrape needs no setup', () => {
+        process.env['NODE_ENV'] = 'development';
+        expect(z.object(metricsEnv).parse({}).METRICS_TOKEN).toBe('');
+    });
+
+    it.each([
+        ['missing', {}],
+        ['empty', { METRICS_TOKEN: '' }],
+        ['shorter than 32 characters', { METRICS_TOKEN: 'short-token' }],
+    ])('refuses a METRICS_TOKEN that is %s in production', (_case, env) => {
+        process.env['NODE_ENV'] = 'production';
+        expect(z.object(metricsEnv).safeParse(env).success).toBe(false);
+    });
+
+    it('takes a 32-character METRICS_TOKEN in production', () => {
+        process.env['NODE_ENV'] = 'production';
+        const token = 'a'.repeat(32);
+        expect(z.object(metricsEnv).parse({ METRICS_TOKEN: token }).METRICS_TOKEN).toBe(token);
     });
 
     it('gives TIINGO_KEY no default — both services need the real one', () => {

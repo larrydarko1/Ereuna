@@ -6,8 +6,6 @@
  *   all        both in one process — the single-host default
  */
 import 'dotenv/config';
-import { type Server } from 'http';
-
 import { OHLCV_INDEXES, REFERENCE_INDEXES } from '@ereuna/shared';
 import { startProbeServer } from '@ereuna/shared/service/probes';
 
@@ -23,7 +21,8 @@ const { role } = config;
 const runsAggregate = role === 'all' || role === 'aggregate';
 const runsOrganize = role === 'all' || role === 'organize';
 
-let probes: Server | undefined;
+// Listening first starts no work: it lets kubelet see a live process while Mongo is dialled and a new index builds
+const probes = startProbeServer({ ...config.probe, logger });
 
 /**
  * Startup is all-or-nothing. Without Mongo there is nowhere to put a finished
@@ -33,7 +32,6 @@ let probes: Server | undefined;
 connectDb()
     .then(() => ensureIndexes([...OHLCV_INDEXES, ...(runsOrganize ? REFERENCE_INDEXES : [])]))
     .then(() => {
-        probes = startProbeServer({ ...config.probe, logger });
         logger.info({ role, port: config.probe.port }, 'Worker started');
 
         // Both roles resolve only when stopped, so this settles at shutdown
@@ -51,7 +49,7 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
     process.on(signal, () => {
         logger.info({ signal, role }, 'Shutting down');
         stopOrganizer();
-        probes?.close();
+        probes.close();
 
         stopAggregator()
             .catch((err: unknown) => logger.error({ err }, 'Final candle flush failed'))

@@ -121,7 +121,7 @@ const exit = vi.spyOn(process, 'exit').mockImplementation(() => {
 async function boot(): Promise<void> {
     vi.resetModules();
     await import('@/index.js');
-    await vi.waitFor(() => expect(calls).toContain('startProbeServer'));
+    await vi.waitFor(() => expect(calls).toContain('getHolidays'));
 }
 
 beforeAll(() => {
@@ -162,10 +162,15 @@ afterEach(async () => {
 });
 
 describe('startup', () => {
-    it('connects before it serves probes or opens a session', async () => {
+    it('serves probes before it connects, so a slow database is not mistaken for a dead process', async () => {
         await boot();
-        expect(calls[0]).toBe('connectDb');
-        expect(calls.indexOf('connectDb')).toBeLessThan(calls.indexOf('startProbeServer'));
+        expect(calls[0]).toBe('startProbeServer');
+        expect(calls.indexOf('startProbeServer')).toBeLessThan(calls.indexOf('connectDb'));
+    });
+
+    it('connects before it opens a session', async () => {
+        await boot();
+        expect(calls.indexOf('connectDb')).toBeLessThan(calls.indexOf('getHolidays'));
     });
 
     it('kills the process with a reason when the database is unreachable', async () => {

@@ -2,9 +2,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { config } from '@/lib/config.js';
 
-// Production also refuses the local Mongo and Redis defaults, so a production
-// load sets those too and the only thing left to judge is the feed address
-const PRODUCTION = { NODE_ENV: 'production', MONGO_URI: 'mongodb://db:27017', REDIS_HOST: 'redis' };
+// Production also refuses the local Mongo and Redis defaults and a missing metrics
+// token, so a production load sets those too and the only thing left to judge is
+// the feed address
+const PRODUCTION = {
+    NODE_ENV: 'production',
+    MONGO_URI: 'mongodb://db:27017',
+    REDIS_HOST: 'redis',
+    METRICS_TOKEN: 'a'.repeat(32),
+};
 
 /** A fresh parse of the schema under `env`: the module reads it once, at import. */
 async function loadConfig(env: Record<string, string>): Promise<typeof config> {
@@ -66,6 +72,10 @@ describe('config', () => {
         await expect(
             loadConfig({ ...PRODUCTION, TIINGO_URL: 'wss://api.tiingo.com/equity/intraday' }),
         ).resolves.toMatchObject({ isDev: false });
+    });
+
+    it('refuses to start in production without a metrics token', async () => {
+        await expect(loadConfig({ ...PRODUCTION, METRICS_TOKEN: '' })).rejects.toThrow(/METRICS_TOKEN/);
     });
 
     it('bounds the handshake, so a vendor that never answers does not hold the session open', () => {

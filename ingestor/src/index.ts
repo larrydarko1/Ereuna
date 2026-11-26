@@ -9,7 +9,6 @@
  * way to tell the copies apart.
  */
 import 'dotenv/config';
-import { type Server } from 'http';
 import { setTimeout as delay } from 'node:timers/promises';
 
 import { startProbeServer } from '@ereuna/shared/service/probes';
@@ -23,7 +22,8 @@ import { runSession } from '@/tiingo.js';
 import { loadUniverse } from '@/universe.js';
 
 const shutdown = new AbortController();
-let probes: Server | undefined;
+// Listening first starts no work: it lets kubelet see a live process while Mongo is dialled
+const probes = startProbeServer({ ...config.probe, logger });
 
 /**
  * Startup is all-or-nothing. Without Mongo there is no ticker universe and
@@ -32,8 +32,7 @@ let probes: Server | undefined;
  */
 const running = connectDb()
     .then(() => {
-        probes = startProbeServer({ ...config.probe, logger });
-        logger.info({ port: config.probe.port }, 'Probes listening');
+        logger.info({ port: config.probe.port }, 'Ingestor started');
         return run();
     })
     .catch((err: unknown) => {
@@ -94,7 +93,7 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
         if (shutdown.signal.aborted) return;
         logger.info({ signal }, 'Shutting down');
         shutdown.abort();
-        probes?.close();
+        probes.close();
         awaitSessionEnd()
             .then(async (ended) => {
                 if (!ended) logger.error({ timeoutMs: config.shutdownTimeoutMs }, 'Session did not end in time');

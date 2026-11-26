@@ -637,7 +637,9 @@ export default defineConfig({
             /** The two sanctioned emitters of a code without going through AppError. */
             directCodeEmitters: ['api/src/middleware/validate.ts', 'api/src/lib/rate-limiters.ts'],
         },
-        'metrics': { skip: 'No script ran it before larry upgrade.' },
+        'metrics': {
+            skip: 'This lint-config refuses a repo with no deployment manifests, and its route-label rule requires `req.baseUrl`, which the API avoids on purpose (see `api/src/lib/metrics.ts`).',
+        },
         // `unauthenticatedMounts` and `fileRoutes` — /api/logos is the one mount without
         // requireAuth besides /api/auth. An `<img>` carries no token, so three controls
         // stand in for authentication there: both path segments allow-listed by a pattern

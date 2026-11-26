@@ -11,7 +11,16 @@
  */
 import { z } from 'zod';
 
-import { loggerEnv, mongoEnv, nodeEnv, redisEnv, tiingoEnv, toMongoConfig, toRedisConfig } from '@ereuna/shared';
+import {
+    loggerEnv,
+    metricsEnv,
+    mongoEnv,
+    nodeEnv,
+    redisEnv,
+    tiingoEnv,
+    toMongoConfig,
+    toRedisConfig,
+} from '@ereuna/shared';
 
 const Env = z
     .object({
@@ -20,6 +29,7 @@ const Env = z
         ...mongoEnv,
         ...redisEnv,
         ...tiingoEnv,
+        ...metricsEnv,
         // Blank counts as unset, because an .env copied from the example carries the key empty
         TIINGO_URL: z
             .string()
@@ -28,7 +38,6 @@ const Env = z
             .pipe(z.url({ protocol: /^wss?$/ })),
 
         PROBE_PORT: z.coerce.number().int().positive().default(9092),
-        METRICS_TOKEN: z.string().optional(),
     })
     .refine((env) => env.NODE_ENV !== 'production' || env.TIINGO_URL.startsWith('wss://'), {
         path: ['TIINGO_URL'],

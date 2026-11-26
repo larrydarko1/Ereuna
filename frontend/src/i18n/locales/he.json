@@ -456,9 +456,7 @@
             "includeInfoHint": "הצג סמל, מחיר ותאריך",
             "includeLogo": "כלול לוגו",
             "includeLogoHint": "הצג מיתוג אפליקציה",
-            "download": "הורד PNG",
-            "includeWatermark": "הוספת סימן מים",
-            "includeWatermarkHint": "שם האפליקציה בעמעום מאחורי הגרף"
+            "download": "הורד PNG"
         }
     },
     "search": {

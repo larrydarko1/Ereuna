@@ -456,9 +456,7 @@
             "includeInfoHint": "Symbol, Preis und Datum anzeigen",
             "includeLogo": "Logo einbeziehen",
             "includeLogoHint": "App-Branding anzeigen",
-            "download": "PNG herunterladen",
-            "includeWatermark": "Wasserzeichen einfügen",
-            "includeWatermarkHint": "Blasser App-Name hinter dem Chart"
+            "download": "PNG herunterladen"
         }
     },
     "search": {

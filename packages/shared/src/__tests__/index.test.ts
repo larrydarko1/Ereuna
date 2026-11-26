@@ -25,6 +25,7 @@ describe('the package barrel', () => {
         'mongoEnv',
         'redisEnv',
         'tiingoEnv',
+        'metricsEnv',
         'requiredSecret',
         'hexSecret',
         'AGGREGATOR_TIMEFRAMES',

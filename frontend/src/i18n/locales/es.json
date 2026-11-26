@@ -456,9 +456,7 @@
             "includeInfoHint": "Mostrar símbolo, precio y fecha",
             "includeLogo": "Incluir Logo",
             "includeLogoHint": "Mostrar marca de la aplicación",
-            "download": "Descargar PNG",
-            "includeWatermark": "Incluir marca de agua",
-            "includeWatermarkHint": "El nombre de la app, tenue, tras el gráfico"
+            "download": "Descargar PNG"
         }
     },
     "search": {
