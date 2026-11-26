@@ -458,7 +458,8 @@
             "includeInfoHint": "הצג סמל, מחיר ותאריך",
             "includeLogo": "כלול לוגו",
             "includeLogoHint": "הצג מיתוג אפליקציה",
-            "download": "הורד PNG"
+            "download": "הורד PNG",
+            "failed": "לא ניתן היה לייצא את התרשים. נסו שוב."
         }
     },
     "search": {

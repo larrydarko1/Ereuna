@@ -458,7 +458,8 @@
             "includeInfoHint": "シンボル、価格、日付を表示",
             "includeLogo": "ロゴを含める",
             "includeLogoHint": "アプリブランドを表示",
-            "download": "PNGをダウンロード"
+            "download": "PNGをダウンロード",
+            "failed": "チャートをエクスポートできませんでした。もう一度お試しください。"
         }
     },
     "search": {

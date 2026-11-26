@@ -458,7 +458,8 @@
             "includeInfoHint": "显示代码、价格和日期",
             "includeLogo": "包含徽标",
             "includeLogoHint": "显示应用品牌",
-            "download": "下载PNG"
+            "download": "下载PNG",
+            "failed": "无法导出图表，请重试。"
         }
     },
     "search": {

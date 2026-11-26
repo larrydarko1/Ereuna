@@ -458,7 +458,8 @@
             "includeInfoHint": "Uri simbolu, prezz, u data",
             "includeLogo": "Inkludi Logo",
             "includeLogoHint": "Uri branding tal-app",
-            "download": "Niżżel PNG"
+            "download": "Niżżel PNG",
+            "failed": "Ma setax jiġi esportat il-grafiku. Erġa' pprova."
         }
     },
     "search": {

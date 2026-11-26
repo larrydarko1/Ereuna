@@ -1,5 +1,5 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CHART_TIMEFRAMES } from '@ereuna/shared';
 import type { AssetProfile, Candle, ChartSeries } from '@ereuna/shared';
@@ -11,12 +11,14 @@ import { mockApi } from '@/__tests__/support/msw';
 import { clearAuth } from '@/api/client';
 import PriceChart from '@/components/charts/PriceChart.vue';
 import { loadPreferences } from '@/composables/data/usePreferences';
+import { useNotifications } from '@/composables/ui/useNotifications';
 import { EOD_TIMEFRAMES, TIMEFRAME_LABELS } from '@/constants/chart';
 import { i18n } from '@/i18n';
 
 vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());
 
 const api = mockApi();
+const { notifications, dismiss } = useNotifications();
 
 const DAY_MS = 86_400_000;
 const FIRST_DAY = Date.UTC(2023, 10, 14);
@@ -67,12 +69,17 @@ beforeEach(() => {
     clearAuth();
     localStorage.clear();
     document.body.innerHTML = '';
+    for (const notice of [...notifications.value]) dismiss(notice.id);
     api.on('GET /api/preferences', preferences());
     api.on('GET /api/charts/AAPL', series());
     api.on('GET /api/charts/MSFT', { ...series(), symbol: 'MSFT' });
     api.on('GET /api/charts/AAPL/drawings', noDrawings());
     api.on('GET /api/charts/MSFT/drawings', noDrawings());
     api.on('DELETE /api/charts/AAPL/drawings', null, { status: 204 });
+});
+
+afterEach(() => {
+    vi.restoreAllMocks();
 });
 
 describe('PriceChart', () => {
@@ -201,6 +208,25 @@ describe('PriceChart', () => {
 
         await click(toolbarButton(wrapper, i18n.global.t('charts.tools.screenshot')));
         expect(document.body.querySelector('.screenshot')).not.toBeNull();
+        wrapper.unmount();
+    });
+
+    it('tells the user when the screenshot cannot be made, instead of doing nothing', async () => {
+        // A browser hands toBlob a null when it cannot encode the canvas (one too large, say); jsdom never calls back
+        vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation((callback) => {
+            callback(null);
+        });
+        const wrapper = await chart({ profile: profile() });
+        await click(toolbarButton(wrapper, i18n.global.t('charts.tools.screenshot')));
+        // jsdom loads no images, so a wordmark in the header would keep the export waiting forever
+        const [, logo] = document.body.querySelectorAll<HTMLInputElement>('.screenshot__option input');
+        logo?.click();
+
+        await click(getElement('.screenshot__download'));
+
+        expect(notifications.value.map((notice) => notice.message)).toEqual([
+            i18n.global.t('charts.screenshot.failed'),
+        ]);
         wrapper.unmount();
     });
 

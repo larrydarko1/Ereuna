@@ -458,7 +458,8 @@
             "includeInfoHint": "Εμφάνιση συμβόλου, τιμής, ημ/νίας",
             "includeLogo": "Λογότυπο",
             "includeLogoHint": "Εμφάνιση branding",
-            "download": "Λήψη PNG"
+            "download": "Λήψη PNG",
+            "failed": "Δεν ήταν δυνατή η εξαγωγή του γραφήματος. Δοκιμάστε ξανά."
         }
     },
     "search": {

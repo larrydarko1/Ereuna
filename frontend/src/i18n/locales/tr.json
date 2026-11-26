@@ -458,7 +458,8 @@
             "includeInfoHint": "Sembol, fiyat ve tarihi göster",
             "includeLogo": "Logoyu Dahil Et",
             "includeLogoHint": "Uygulama markalarını göster",
-            "download": "PNG İndir"
+            "download": "PNG İndir",
+            "failed": "Grafik dışa aktarılamadı. Tekrar deneyin."
         }
     },
     "search": {

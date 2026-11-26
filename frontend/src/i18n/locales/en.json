@@ -458,7 +458,8 @@
             "includeInfoHint": "Show symbol, price, and date",
             "includeLogo": "Include Logo",
             "includeLogoHint": "Show app branding",
-            "download": "Download PNG"
+            "download": "Download PNG",
+            "failed": "Couldn't export the chart. Try again."
         }
     },
     "search": {

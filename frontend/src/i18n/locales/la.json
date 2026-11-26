@@ -458,7 +458,8 @@
             "includeInfoHint": "Monstrare symbolum, pretium, et diem",
             "includeLogo": "Includere Insigne",
             "includeLogoHint": "Monstrare insignia applicationis",
-            "download": "Deponere PNG"
+            "download": "Deponere PNG",
+            "failed": "Tabula exportari non potuit. Iterum conare."
         }
     },
     "search": {

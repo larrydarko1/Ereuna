@@ -458,7 +458,8 @@
             "includeInfoHint": "प्रतीक, कीमत और तारीख दिखाएं",
             "includeLogo": "लोगो शामिल करें",
             "includeLogoHint": "ऐप ब्रांडिंग दिखाएं",
-            "download": "PNG डाउनलोड करें"
+            "download": "PNG डाउनलोड करें",
+            "failed": "चार्ट निर्यात नहीं हो सका। फिर से कोशिश करें।"
         }
     },
     "search": {

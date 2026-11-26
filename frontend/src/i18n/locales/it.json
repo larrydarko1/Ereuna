@@ -458,7 +458,8 @@
             "includeInfoHint": "Mostra simbolo, prezzo e data",
             "includeLogo": "Includi Logo",
             "includeLogoHint": "Mostra branding app",
-            "download": "Scarica PNG"
+            "download": "Scarica PNG",
+            "failed": "Impossibile esportare il grafico. Riprova."
         }
     },
     "search": {

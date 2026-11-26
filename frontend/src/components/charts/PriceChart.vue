@@ -23,6 +23,7 @@ import { useChartTheme, withAlpha } from '@/composables/charts/useChartTheme';
 import { useLiveCandle } from '@/composables/charts/useLiveCandle';
 import { useMarketStatus } from '@/composables/charts/useMarketStatus';
 import { usePreferences } from '@/composables/data/usePreferences';
+import { notify } from '@/composables/ui/useNotifications';
 import {
     EOD_TIMEFRAMES,
     MIN_PATTERN_BARS,
@@ -475,18 +476,22 @@ function clearPatterns(): void {
 
 function exportScreenshot(config: Partial<ScreenshotConfig>): void {
     dialog.value = null;
-    void screenshotManager?.takeScreenshot(
-        {
-            symbol,
-            name: profile?.name ?? '',
-            timeframe: t(`charts.timeframes.${timeframe.value}`),
-            price: quote.value === null ? '' : quote.value.close.toFixed(2),
-            change: quote.value === null ? '' : quote.value.change.toFixed(2),
-            changePercent: quote.value === null ? '' : `${quote.value.changePercent.toFixed(2)}%`,
-            date: new Date().toLocaleDateString(),
-        },
-        config,
-    );
+    screenshotManager
+        ?.takeScreenshot(
+            {
+                symbol,
+                name: profile?.name ?? '',
+                timeframe: t(`charts.timeframes.${timeframe.value}`),
+                price: quote.value === null ? '' : quote.value.close.toFixed(2),
+                change: quote.value === null ? '' : quote.value.change.toFixed(2),
+                changePercent: quote.value === null ? '' : `${quote.value.changePercent.toFixed(2)}%`,
+                date: new Date().toLocaleDateString(),
+            },
+            config,
+        )
+        .catch(() => {
+            notify.error(t('charts.screenshot.failed'));
+        });
 }
 
 function onReplayButton(): void {

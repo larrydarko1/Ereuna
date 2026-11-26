@@ -458,7 +458,8 @@
             "includeInfoHint": "심볼, 가격 및 날짜 표시",
             "includeLogo": "로고 포함",
             "includeLogoHint": "앱 브랜딩 표시",
-            "download": "PNG 다운로드"
+            "download": "PNG 다운로드",
+            "failed": "차트를 내보내지 못했습니다. 다시 시도하세요."
         }
     },
     "search": {

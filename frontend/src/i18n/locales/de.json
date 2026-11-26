@@ -458,7 +458,8 @@
             "includeInfoHint": "Symbol, Preis und Datum anzeigen",
             "includeLogo": "Logo einbeziehen",
             "includeLogoHint": "App-Branding anzeigen",
-            "download": "PNG herunterladen"
+            "download": "PNG herunterladen",
+            "failed": "Das Diagramm konnte nicht exportiert werden. Versuche es erneut."
         }
     },
     "search": {

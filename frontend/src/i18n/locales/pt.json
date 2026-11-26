@@ -458,7 +458,8 @@
             "includeInfoHint": "Mostrar símbolo, preço e data",
             "includeLogo": "Incluir Logo",
             "includeLogoHint": "Mostrar marca do aplicativo",
-            "download": "Baixar PNG"
+            "download": "Baixar PNG",
+            "failed": "Não foi possível exportar o gráfico. Tente novamente."
         }
     },
     "search": {

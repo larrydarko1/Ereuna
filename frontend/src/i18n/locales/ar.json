@@ -458,7 +458,8 @@
             "includeInfoHint": "إظهار الرمز والسعر والتاريخ",
             "includeLogo": "تضمين الشعار",
             "includeLogoHint": "إظهار علامة التطبيق التجارية",
-            "download": "تحميل PNG"
+            "download": "تحميل PNG",
+            "failed": "تعذّر تصدير الرسم البياني. حاول مرة أخرى."
         }
     },
     "search": {
