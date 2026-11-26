@@ -64,7 +64,6 @@ const { notifications, dismiss, pause, resume } = useNotifications();
     max-width: calc(100vw - 2 * #{$space-4});
     padding: $space-2 $space-2 $space-2 $space-3;
     border: $border-width solid $color-elevated;
-    border-left: 3px solid $color-negative;
     border-radius: $radius-md;
     background: $color-surface;
     box-shadow: $shadow-md;
