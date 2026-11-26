@@ -10,6 +10,7 @@
         "add": "追加",
         "search": "検索",
         "close": "閉じる",
+        "dismiss": "閉じる",
         "next": "次へ",
         "previous": "前へ",
         "yes": "はい",
@@ -20,6 +21,7 @@
         "import": "インポート",
         "download": "ダウンロード",
         "mainNavigation": "メインナビゲーション",
+        "notifications": "通知",
         "saving": "保存中...",
         "pageOf": "{pages} ページ中 {page} ページ"
     },

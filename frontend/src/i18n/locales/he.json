@@ -10,6 +10,7 @@
         "add": "הוספה",
         "search": "חיפוש",
         "close": "סגירה",
+        "dismiss": "סגירת ההודעה",
         "next": "הבא",
         "previous": "הקודם",
         "yes": "כן",
@@ -20,6 +21,7 @@
         "import": "ייבוא",
         "download": "הורדה",
         "mainNavigation": "ניווט ראשי",
+        "notifications": "התראות",
         "saving": "שומר...",
         "pageOf": "עמוד {page} מתוך {pages}"
     },

@@ -10,6 +10,7 @@
         "add": "जोड़ें",
         "search": "खोजें",
         "close": "बंद करें",
+        "dismiss": "हटाएँ",
         "next": "आगे",
         "previous": "पिछला",
         "yes": "हाँ",
@@ -20,6 +21,7 @@
         "import": "आयात करें",
         "download": "डाउनलोड करें",
         "mainNavigation": "मुख्य नेविगेशन",
+        "notifications": "सूचनाएँ",
         "saving": "सहेज रहा है...",
         "pageOf": "पृष्ठ {page} / {pages}"
     },

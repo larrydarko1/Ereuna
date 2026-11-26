@@ -10,6 +10,7 @@
         "add": "Addere",
         "search": "Quaerere",
         "close": "Claudere",
+        "dismiss": "Dimittere",
         "next": "Proximum",
         "previous": "Prius",
         "yes": "Ita",
@@ -20,6 +21,7 @@
         "import": "Importare",
         "download": "Deponere",
         "mainNavigation": "Navigatio principalis",
+        "notifications": "Nuntii",
         "saving": "Servante...",
         "pageOf": "Pagina {page} ex {pages}"
     },

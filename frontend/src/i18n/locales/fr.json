@@ -10,6 +10,7 @@
         "add": "Ajouter",
         "search": "Rechercher",
         "close": "Fermer",
+        "dismiss": "Ignorer",
         "next": "Suivant",
         "previous": "Précédent",
         "yes": "Oui",
@@ -20,6 +21,7 @@
         "import": "Importer",
         "download": "Télécharger",
         "mainNavigation": "Navigation principale",
+        "notifications": "Notifications",
         "saving": "Enregistrement...",
         "pageOf": "Page {page} sur {pages}"
     },

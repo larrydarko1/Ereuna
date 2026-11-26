@@ -10,6 +10,7 @@
         "add": "إضافة",
         "search": "بحث",
         "close": "إغلاق",
+        "dismiss": "تجاهل",
         "next": "التالي",
         "previous": "السابق",
         "yes": "نعم",
@@ -20,6 +21,7 @@
         "import": "استيراد",
         "download": "تحميل",
         "mainNavigation": "التنقل الرئيسي",
+        "notifications": "الإشعارات",
         "saving": "جاري الحفظ...",
         "pageOf": "الصفحة {page} من {pages}"
     },

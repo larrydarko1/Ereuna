@@ -10,6 +10,7 @@
         "add": "Aldoni",
         "search": "Serĉi",
         "close": "Fermi",
+        "dismiss": "Forigi",
         "next": "Sekva",
         "previous": "Antaŭa",
         "yes": "Jes",
@@ -20,6 +21,7 @@
         "import": "Importi",
         "download": "Elŝuti",
         "mainNavigation": "Ĉefa navigado",
+        "notifications": "Sciigoj",
         "saving": "Konservante...",
         "pageOf": "Paĝo {page} el {pages}"
     },

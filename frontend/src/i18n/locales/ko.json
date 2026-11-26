@@ -10,6 +10,7 @@
         "add": "추가",
         "search": "검색",
         "close": "닫기",
+        "dismiss": "닫기",
         "next": "다음",
         "previous": "이전",
         "yes": "예",
@@ -20,6 +21,7 @@
         "import": "가져오기",
         "download": "다운로드",
         "mainNavigation": "주요 탐색",
+        "notifications": "알림",
         "saving": "저장 중...",
         "pageOf": "{pages}페이지 중 {page}페이지"
     },

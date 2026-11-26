@@ -10,6 +10,7 @@
         "add": "添加",
         "search": "搜索",
         "close": "关闭",
+        "dismiss": "忽略",
         "next": "下一步",
         "previous": "上一步",
         "yes": "是",
@@ -20,6 +21,7 @@
         "import": "导入",
         "download": "下载",
         "mainNavigation": "主导航",
+        "notifications": "通知",
         "saving": "保存中...",
         "pageOf": "第 {page} 页，共 {pages} 页"
     },

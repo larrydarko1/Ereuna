@@ -10,6 +10,7 @@
         "add": "Żid",
         "search": "Fittex",
         "close": "Agħlaq",
+        "dismiss": "Neħħi",
         "next": "Li jmiss",
         "previous": "Preċedenti",
         "yes": "Iva",
@@ -20,6 +21,7 @@
         "import": "Importa",
         "download": "Niżżel",
         "mainNavigation": "Navigazzjoni prinċipali",
+        "notifications": "Notifiki",
         "saving": "Qed jissejvja...",
         "pageOf": "Paġna {page} minn {pages}"
     },

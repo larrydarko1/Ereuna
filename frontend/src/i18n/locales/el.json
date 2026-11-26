@@ -10,6 +10,7 @@
         "add": "Προσθήκη",
         "search": "Αναζήτηση",
         "close": "Κλείσιμο",
+        "dismiss": "Απόρριψη",
         "next": "Επόμενο",
         "previous": "Προηγούμενο",
         "yes": "Ναι",
@@ -20,6 +21,7 @@
         "import": "Εισαγωγή",
         "download": "Λήψη",
         "mainNavigation": "Κύρια πλοήγηση",
+        "notifications": "Ειδοποιήσεις",
         "saving": "Αποθήκευση...",
         "pageOf": "Σελίδα {page} από {pages}"
     },

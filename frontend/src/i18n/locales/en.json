@@ -10,6 +10,7 @@
         "add": "Add",
         "search": "Search",
         "close": "Close",
+        "dismiss": "Dismiss",
         "next": "Next",
         "previous": "Previous",
         "yes": "Yes",
@@ -20,6 +21,7 @@
         "import": "Import",
         "download": "Download",
         "mainNavigation": "Main navigation",
+        "notifications": "Notifications",
         "saving": "Saving...",
         "pageOf": "Page {page} of {pages}"
     },

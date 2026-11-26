@@ -10,6 +10,7 @@
         "add": "Добавить",
         "search": "Поиск",
         "close": "Закрыть",
+        "dismiss": "Скрыть",
         "next": "Далее",
         "previous": "Предыдущий",
         "yes": "Да",
@@ -20,6 +21,7 @@
         "import": "Импорт",
         "download": "Скачать",
         "mainNavigation": "Основная навигация",
+        "notifications": "Уведомления",
         "saving": "Сохранение...",
         "pageOf": "Страница {page} из {pages}"
     },

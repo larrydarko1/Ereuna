@@ -10,6 +10,7 @@
         "add": "Ekle",
         "search": "Ara",
         "close": "Kapat",
+        "dismiss": "Kapat",
         "next": "İleri",
         "previous": "Önceki",
         "yes": "Evet",
@@ -20,6 +21,7 @@
         "import": "İçe Aktar",
         "download": "İndir",
         "mainNavigation": "Ana gezinme",
+        "notifications": "Bildirimler",
         "saving": "Kaydediliyor...",
         "pageOf": "Sayfa {page} / {pages}"
     },
