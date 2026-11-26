@@ -456,9 +456,7 @@
             "includeInfoHint": "显示代码、价格和日期",
             "includeLogo": "包含徽标",
             "includeLogoHint": "显示应用品牌",
-            "download": "下载PNG",
-            "includeWatermark": "包含水印",
-            "includeWatermarkHint": "图表背后浅色的应用名称"
+            "download": "下载PNG"
         }
     },
     "search": {

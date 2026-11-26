@@ -32,6 +32,10 @@ here marks a point in development, and its date is the day the number was set.
 
 - The nightly no longer marks symbols delisted on a night its price update failed, and it refuses a delisting scan that would retire more than 5% of active symbols at once. Weeks of failed price updates used to delist the whole market.
 
+### Removed
+
+- The chart screenshot no longer offers "Include watermark". Ticked or not, it never drew one.
+
 ### Security
 
 - In production, `/metrics` answers only with a bearer token: the API, the worker and the ingestor refuse to start without `METRICS_TOKEN`. It used to be optional, and unset left the endpoint open.

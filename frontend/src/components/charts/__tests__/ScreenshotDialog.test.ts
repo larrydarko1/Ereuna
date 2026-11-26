@@ -27,7 +27,7 @@ describe('ScreenshotDialog', () => {
     it('starts with everything included', () => {
         open();
 
-        expect(boxes().map((box) => box.checked)).toEqual([true, true, true]);
+        expect(boxes().map((box) => box.checked)).toEqual([true, true]);
     });
 
     it('exports what is ticked, on the theme the chart is drawn in', async () => {
@@ -40,7 +40,6 @@ describe('ScreenshotDialog', () => {
             {
                 includeChartInfo: true,
                 includeLogo: true,
-                includeWatermark: true,
                 backgroundColor: palette.value.surface,
             },
         ]);

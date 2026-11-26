@@ -456,9 +456,7 @@
             "includeInfoHint": "Monstrare symbolum, pretium, et diem",
             "includeLogo": "Includere Insigne",
             "includeLogoHint": "Monstrare insignia applicationis",
-            "download": "Deponere PNG",
-            "includeWatermark": "Signum aquaticum includere",
-            "includeWatermarkHint": "Nomen applicationis pallidum post diagramma"
+            "download": "Deponere PNG"
         }
     },
     "search": {

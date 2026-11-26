@@ -456,9 +456,7 @@
             "includeInfoHint": "Uri simbolu, prezz, u data",
             "includeLogo": "Inkludi Logo",
             "includeLogoHint": "Uri branding tal-app",
-            "download": "Niżżel PNG",
-            "includeWatermark": "Inkludi l-marka tal-ilma",
-            "includeWatermarkHint": "Isem l-app moħbi wara l-graff"
+            "download": "Niżżel PNG"
         }
     },
     "search": {

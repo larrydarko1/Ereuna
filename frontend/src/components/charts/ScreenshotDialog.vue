@@ -16,13 +16,11 @@ const { palette } = useChartTheme();
 
 const includeChartInfo = ref(true);
 const includeLogo = ref(true);
-const includeWatermark = ref(true);
 
 function submit(): void {
     emit('export', {
         includeChartInfo: includeChartInfo.value,
         includeLogo: includeLogo.value,
-        includeWatermark: includeWatermark.value,
         backgroundColor: palette.value.surface,
     });
 }
@@ -51,16 +49,6 @@ function submit(): void {
                 <span>
                     <span class="screenshot__name">{{ t('charts.screenshot.includeLogo') }}</span>
                     <span class="screenshot__hint">{{ t('charts.screenshot.includeLogoHint') }}</span>
-                </span>
-            </label>
-
-            <label class="screenshot__option">
-                <input
-                    v-model="includeWatermark"
-                    type="checkbox" />
-                <span>
-                    <span class="screenshot__name">{{ t('charts.screenshot.includeWatermark') }}</span>
-                    <span class="screenshot__hint">{{ t('charts.screenshot.includeWatermarkHint') }}</span>
                 </span>
             </label>
         </div>

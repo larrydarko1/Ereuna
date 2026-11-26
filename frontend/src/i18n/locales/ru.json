@@ -456,9 +456,7 @@
             "includeInfoHint": "Показать символ, цену и дату",
             "includeLogo": "Включить логотип",
             "includeLogoHint": "Показать брендинг приложения",
-            "download": "Скачать PNG",
-            "includeWatermark": "Добавить водяной знак",
-            "includeWatermarkHint": "Бледное имя приложения за графиком"
+            "download": "Скачать PNG"
         }
     },
     "search": {

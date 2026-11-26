@@ -456,9 +456,7 @@
             "includeInfoHint": "Εμφάνιση συμβόλου, τιμής, ημ/νίας",
             "includeLogo": "Λογότυπο",
             "includeLogoHint": "Εμφάνιση branding",
-            "download": "Λήψη PNG",
-            "includeWatermark": "Προσθήκη υδατογραφήματος",
-            "includeWatermarkHint": "Αχνό όνομα εφαρμογής πίσω από το γράφημα"
+            "download": "Λήψη PNG"
         }
     },
     "search": {

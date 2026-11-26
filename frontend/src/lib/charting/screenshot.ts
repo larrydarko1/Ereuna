@@ -9,14 +9,9 @@ import { traceRoundedRect } from '@/lib/charting/shared/canvas-path';
 import { getThemeColor } from '@/lib/charting/shared/theme-color';
 
 export type ScreenshotConfig = {
-    includeWatermark: boolean;
     includeLogo: boolean;
     includeChartInfo: boolean;
-    logoUrl?: string;
-    appName: string;
-    websiteUrl: string;
     backgroundColor: string;
-    watermarkOpacity: number;
 };
 
 export type ChartInfo = {
@@ -57,13 +52,9 @@ const NEGATIVE_CHANGE_COLOR = '#ef4444';
 export class ChartScreenshot {
     private readonly chartContainer: HTMLElement;
     private readonly defaultConfig: ScreenshotConfig = {
-        includeWatermark: true,
         includeLogo: true,
         includeChartInfo: true,
-        appName: 'Ereuna',
-        websiteUrl: 'ereuna.io',
         backgroundColor: '#1a1b26',
-        watermarkOpacity: 0.8,
     };
 
     // Reads the canvas layers straight out of the container, so it never needs

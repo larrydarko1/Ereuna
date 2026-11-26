@@ -456,9 +456,7 @@
             "includeInfoHint": "प्रतीक, कीमत और तारीख दिखाएं",
             "includeLogo": "लोगो शामिल करें",
             "includeLogoHint": "ऐप ब्रांडिंग दिखाएं",
-            "download": "PNG डाउनलोड करें",
-            "includeWatermark": "वॉटरमार्क शामिल करें",
-            "includeWatermarkHint": "चार्ट के पीछे हल्का ऐप नाम"
+            "download": "PNG डाउनलोड करें"
         }
     },
     "search": {

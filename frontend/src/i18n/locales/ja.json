@@ -456,9 +456,7 @@
             "includeInfoHint": "シンボル、価格、日付を表示",
             "includeLogo": "ロゴを含める",
             "includeLogoHint": "アプリブランドを表示",
-            "download": "PNGをダウンロード",
-            "includeWatermark": "透かしを入れる",
-            "includeWatermarkHint": "チャートの背後に薄くアプリ名を表示"
+            "download": "PNGをダウンロード"
         }
     },
     "search": {
