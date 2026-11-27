@@ -174,6 +174,20 @@ describe('isInSession', () => {
         expect(session.isInSession(at('2026-09-03T19:59:59Z'))).toBe(false);
     });
 
+    it('seals the session at 13:00 New York on an early-close day', async () => {
+        // 2026-11-27, the day after Thanksgiving, under standard time: the bell is 18:00 UTC
+        vi.setSystemTime(at('2026-11-27T17:59:55Z'));
+        clock.open = true;
+        await session.startSession();
+
+        vi.setSystemTime(at('2026-11-27T18:00:01Z'));
+        clock.open = false;
+        await vi.advanceTimersByTimeAsync(config.candles.sweepIntervalMs);
+
+        clock.open = true;
+        expect(session.isInSession(at('2026-11-27T17:59:59Z'))).toBe(false);
+    });
+
     it('refuses a backlog from a session that closed before a restart', async () => {
         vi.setSystemTime(at('2026-09-04T15:00:00Z'));
         clock.open = true;

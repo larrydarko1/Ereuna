@@ -57,6 +57,14 @@ describe('the session clock', () => {
         expect(inScope().status.status.value).toBe('closed');
     });
 
+    it('closes at 13:00 New York on an early-close day', () => {
+        vi.setSystemTime(new Date('2026-11-27T17:59:00Z'));
+        expect(inScope().status.status.value).toBe('open');
+
+        vi.setSystemTime(new Date('2026-11-27T18:00:00Z'));
+        expect(inScope().status.status.value).toBe('closed');
+    });
+
     it('re-reads the clock on its own, without a timer per second', async () => {
         vi.setSystemTime(new Date('2026-03-06T20:59:30Z'));
         const { status } = inScope();

@@ -30,6 +30,8 @@ here marks a point in development, and its date is the day the number was set.
 
 ### Fixed
 
+- On the exchange's early-close days the session ends at 13:00 New York: the day after Thanksgiving, and 3 July and 24 December when they fall Monday to Thursday. It used to run to 16:00, so after-hours trades went into that day's candles, the closing bar was stamped 15:59, and the chart said the market was open.
+- Friday 31 December 2027 is a trading day. The holiday calendar took it as the observed New Year's Day, which the exchange never does when 1 January falls on a Saturday.
 - The API reports itself not ready when the database takes more than 5 seconds to answer, instead of waiting until the readiness probe times out.
 - The worker and the ingestor answer their liveness probe while they connect to the database and build its indexes, so Kubernetes no longer restarts one that is only slow to start.
 - The nightly no longer marks symbols delisted on a night its price update failed, and it refuses a delisting scan that would retire more than 5% of active symbols at once. Weeks of failed price updates used to delist the whole market.

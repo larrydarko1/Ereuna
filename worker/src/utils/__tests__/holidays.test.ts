@@ -26,6 +26,17 @@ describe('one year of the calendar', () => {
         expect(dates(2027)).toContain('2027-12-24');
     });
 
+    it('leaves 31 December a trading day when New Year falls on a Saturday', () => {
+        // 1 January 2028 is a Saturday; the exchange observes no holiday for it
+        expect(dates(2028)).not.toContain('2027-12-31');
+        expect(dates(2028)).toHaveLength(9);
+        expect(listSessions(new Date('2027-12-31'), new Date('2027-12-31'))).toEqual([new Date('2027-12-31')]);
+    });
+
+    it('moves a Sunday New Year to the Monday after', () => {
+        expect(dates(2023)).toContain('2023-01-02');
+    });
+
     it('tracks Good Friday through the lunar calendar', () => {
         expect(dates(2027)).toContain('2027-03-26');
         expect(dates(2028)).toContain('2028-04-14');

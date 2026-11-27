@@ -70,13 +70,18 @@ function holidaysFor(year: number): Holiday[] {
         { date: iso(easter(year) - 2 * DAY), name: 'Good Friday' },
     ];
 
-    return holidays.sort((left, right) => left.date.localeCompare(right.date));
+    // Only New Year's Day can be moved into the year before, and the exchange
+    // never takes it there: a Saturday 1 January leaves 31 December a trading day
+    return holidays
+        .filter((holiday) => holiday.date.startsWith(String(year)))
+        .sort((left, right) => left.date.localeCompare(right.date));
 }
 
 /**
  * A fixed-date holiday moved off the weekend.
  * A Saturday holiday is taken on the Friday before and a Sunday one on the
- * Monday after, which is the rule the exchange publishes.
+ * Monday after, which is the rule the exchange publishes, except for New
+ * Year's Day (see `holidaysFor`).
  */
 function observed(at: number): number {
     const weekday = new Date(at).getUTCDay();

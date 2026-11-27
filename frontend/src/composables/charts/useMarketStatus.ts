@@ -1,7 +1,7 @@
 /** useMarketStatus — whether the US market is open, and why not when it is shut. */
 import { computed, onScopeDispose, readonly, ref, type ComputedRef, type Ref } from 'vue';
 
-import type { MarketHoliday } from '@ereuna/shared';
+import { isMarketHours, type MarketHoliday } from '@ereuna/shared';
 
 import { getHolidays } from '@/api/market';
 
@@ -20,18 +20,6 @@ export type UseMarketStatusReturn = {
  * what the old chart ran, alongside a second one for a countdown.
  */
 const TICK_MS = 30_000;
-
-const OPEN_MINUTES = 9 * 60 + 30;
-const CLOSE_MINUTES = 16 * 60;
-const WEEKEND = new Set(['Sat', 'Sun']);
-
-const NY_TIME = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/New_York',
-    weekday: 'short',
-    hour: 'numeric',
-    minute: 'numeric',
-    hourCycle: 'h23',
-});
 
 const NY_DATE = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/New_York',
@@ -67,7 +55,7 @@ export function useMarketStatus(alwaysOpen: () => boolean): UseMarketStatusRetur
     const status = computed<MarketStatus>(() => {
         if (alwaysOpen()) return 'open';
         if (holiday.value !== null) return 'holiday';
-        return isSessionTime(now.value) ? 'open' : 'closed';
+        return isMarketHours(now.value) ? 'open' : 'closed';
     });
 
     const holidayName = computed(() => (status.value === 'holiday' ? (holiday.value?.name ?? null) : null));
@@ -90,14 +78,4 @@ function loadHolidays(): Promise<void> {
         });
 
     return loaded;
-}
-
-function isSessionTime(now: Date): boolean {
-    const parts = NY_TIME.formatToParts(now);
-    const part = (type: Intl.DateTimeFormatPartTypes): string => parts.find((p) => p.type === type)?.value ?? '';
-
-    if (WEEKEND.has(part('weekday'))) return false;
-
-    const minutes = Number(part('hour')) * 60 + Number(part('minute'));
-    return minutes >= OPEN_MINUTES && minutes < CLOSE_MINUTES;
 }
