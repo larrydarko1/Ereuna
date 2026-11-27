@@ -3,9 +3,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { getElement } from '@/__tests__/support/dom';
 import RecoveryCodesDialog from '@/components/user/RecoveryCodesDialog.vue';
+import { useNotifications } from '@/composables/ui/useNotifications';
 import { i18n } from '@/i18n';
 
 const CODES = ['aaa-111', 'bbb-222', 'ccc-333'];
+
+const { notifications, dismiss } = useNotifications();
 
 const open = (codes: readonly string[] = CODES): VueWrapper =>
     mount(RecoveryCodesDialog, { props: { codes }, attachTo: document.body });
@@ -23,6 +26,7 @@ const withClipboard = (writeText: () => Promise<void>): void => {
 };
 
 afterEach(() => {
+    for (const notice of [...notifications.value]) dismiss(notice.id);
     document.body.innerHTML = '';
     vi.restoreAllMocks();
 });
@@ -62,13 +66,14 @@ describe('RecoveryCodesDialog', () => {
         expect(buttons()[0]?.textContent.trim()).toBe(i18n.global.t('user.security.codes.copied'));
     });
 
-    it('stays quiet when the browser refuses the clipboard', async () => {
+    it('says so when the browser refuses the clipboard, so nobody pastes stale text as their codes', async () => {
         withClipboard(vi.fn().mockRejectedValue(new Error('denied')));
         open();
 
         await press(0);
 
         expect(buttons()[0]?.textContent.trim()).toBe(i18n.global.t('user.security.codes.copy'));
+        expect(notifications.value.map((notice) => notice.message)).toEqual([i18n.global.t('common.copyFailed')]);
     });
 
     it('downloads the codes as a text file', async () => {

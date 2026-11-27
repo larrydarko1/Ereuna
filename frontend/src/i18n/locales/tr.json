@@ -10,6 +10,8 @@
         "add": "Ekle",
         "search": "Ara",
         "close": "Kapat",
+        "dismiss": "Kapat",
+        "copyFailed": "Tarayıcı kopyalamaya izin vermedi. Metni seçip kendiniz kopyalayın.",
         "next": "İleri",
         "previous": "Önceki",
         "yes": "Evet",
@@ -20,6 +22,7 @@
         "import": "İçe Aktar",
         "download": "İndir",
         "mainNavigation": "Ana gezinme",
+        "notifications": "Bildirimler",
         "saving": "Kaydediliyor...",
         "pageOf": "Sayfa {page} / {pages}"
     },
@@ -347,6 +350,9 @@
         "noData": "Veri yok",
         "timeframeLabel": "Zaman aralığı",
         "clearDrawingsBody": "Bu sembol için tüm çizimleri temizlemek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+        "drawingsLoadFailed": "{symbol} üzerindeki çizimleriniz yüklenemedi, bu yüzden şimdi orada çizdikleriniz onların üzerine kaydedilmeyecek. Yeniden denemek için grafiği tekrar açın.",
+        "drawingsSaveFailed": "{symbol} üzerindeki çizimleriniz kaydedilemedi. Bir sonraki değişikliğiniz tekrar deneyecek.",
+        "drawingsClearFailed": "{symbol} üzerindeki kayıtlı çizimler silinemedi. Bir sonraki açışınızda geri gelecekler.",
         "timeframes": {
             "intraday1m": "1 dakika",
             "intraday5m": "5 dakika",
@@ -456,7 +462,8 @@
             "includeInfoHint": "Sembol, fiyat ve tarihi göster",
             "includeLogo": "Logoyu Dahil Et",
             "includeLogoHint": "Uygulama markalarını göster",
-            "download": "PNG İndir"
+            "download": "PNG İndir",
+            "failed": "Grafik dışa aktarılamadı. Tekrar deneyin."
         }
     },
     "search": {

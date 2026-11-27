@@ -9,12 +9,15 @@ import { mockApi } from '@/__tests__/support/msw';
 import { socket } from '@/__tests__/support/socket';
 import { clearAuth } from '@/api/client';
 import WatchlistPanel from '@/components/charts/WatchlistPanel.vue';
+import { useNotifications } from '@/composables/ui/useNotifications';
 import { i18n } from '@/i18n';
 import { formatNumber, formatPercent } from '@/utils/formatters';
 
 vi.mock('@/api/socket', async () => (await import('@/__tests__/support/socket')).socketModule());
 
 const api = mockApi();
+
+const { notifications, dismiss } = useNotifications();
 
 /** A Friday during the session, and the same day after the bell. */
 const OPEN = new Date('2026-03-06T15:00:00Z'); // 10:00 New York
@@ -62,6 +65,7 @@ beforeEach(() => {
     localStorage.clear();
     document.body.innerHTML = '';
     socket.reset();
+    for (const notification of notifications.value) dismiss(notification.id);
     api.on('GET /api/market/holidays', { holidays: [] });
     // Only the clock is faked: flushPromises runs on the real setTimeout.
     // After the bell by default, so the live feed is off unless a test opens it
@@ -298,6 +302,20 @@ describe('WatchlistPanel', () => {
         expect(wrapper.findAll('.watchlist__ticker').map((node) => node.text())).toEqual(['AAPL']);
     });
 
+    it('says so in a notice when a symbol cannot be removed, since the row stays as it was', async () => {
+        seed();
+        api.on('DELETE /api/watchlists/Tech/tickers/MSFT', { error: 'INTERNAL' }, { status: 500 });
+        const wrapper = await panel();
+
+        await icon(wrapper, 1, i18n.global.t('watchlist.removeSymbol', { symbol: 'MSFT' })).trigger('click');
+        await flushPromises();
+
+        expect(notifications.value.map((notification) => notification.message)).toEqual([
+            i18n.global.t('errors.INTERNAL'),
+        ]);
+        expect(wrapper.find('[role="alert"]').exists()).toBe(false);
+    });
+
     it('reorders the list, sending the whole new order', async () => {
         seed();
         api.on('PUT /api/watchlists/Tech/tickers', {
@@ -357,6 +375,9 @@ describe('WatchlistPanel', () => {
         await flushPromises();
 
         expect(document.body.querySelector('.dialog')).not.toBeNull();
+        expect(getElement('.dialog [role="alert"]').textContent).toBe(i18n.global.t('errors.WATCHLIST_NAME_TAKEN'));
+        // Said once, in the dialog, not again on the panel behind it
+        expect(wrapper.find('.watchlist__message--error').exists()).toBe(false);
         wrapper.unmount();
     });
 
@@ -385,9 +406,22 @@ describe('WatchlistPanel', () => {
 
         await wrapper.findAll('.watchlist__tools button')[2]?.trigger('click');
 
-        expect(getElement('.watchlist__confirm').textContent).toBe(
+        expect(getElement('.confirm-dialog__message').textContent).toBe(
             i18n.global.t('watchlist.confirmDeleteBody', { name: 'Tech' }),
         );
+        wrapper.unmount();
+    });
+
+    it('keeps the delete dialog open with the reason when the delete is refused', async () => {
+        seed();
+        api.on('DELETE /api/watchlists/Tech', { error: 'INTERNAL' }, { status: 500 });
+        const wrapper = await panel();
+
+        await wrapper.findAll('.watchlist__tools button')[2]?.trigger('click');
+        getElement('.dialog__footer .btn--danger').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await flushPromises();
+
+        expect(getElement('.dialog [role="alert"]').textContent).toBe(i18n.global.t('errors.INTERNAL'));
         wrapper.unmount();
     });
 

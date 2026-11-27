@@ -6,22 +6,26 @@ import AppDialog from '@/components/ui/AppDialog.vue';
 import ReorderableList from '@/components/ui/ReorderableList.vue';
 import { COLUMNS } from '@/constants/screener';
 
-const { columns } = defineProps<{ columns: readonly string[] }>();
+const { columns, error = null } = defineProps<{
+    columns: readonly string[];
+    error?: string | null; // Why the last save was refused
+}>();
 
 const emit = defineEmits<{ save: [columns: string[]]; close: [] }>();
 
 const { t } = useI18n();
 
 const selected = ref<string[]>([...columns]);
-const error = ref<string | null>(null);
+const invalid = ref<string | null>(null);
 
 const items = COLUMNS.map((column) => ({ key: column.path, label: t(`screener.fields.${column.filterKey}`) }));
 
 function save(): void {
     if (selected.value.length === 0) {
-        error.value = t('screener.errorNoColumns');
+        invalid.value = t('screener.errorNoColumns');
         return;
     }
+    invalid.value = null;
     emit('save', selected.value);
 }
 </script>
@@ -35,10 +39,10 @@ function save(): void {
             v-model="selected"
             :items="items" />
         <p
-            v-if="error !== null"
+            v-if="invalid !== null || error !== null"
             class="columns-dialog__error"
             role="alert"
-            >{{ error }}</p
+            >{{ invalid ?? error }}</p
         >
 
         <template #footer>

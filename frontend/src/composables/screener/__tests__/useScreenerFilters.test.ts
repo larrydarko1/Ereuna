@@ -180,8 +180,26 @@ describe('writing', () => {
 
         await expect(filters.set('pe', { min: 1 })).resolves.toBeUndefined();
 
-        expect(filters.error.value).not.toBeNull();
+        expect(filters.writeError.value?.key).toBe('pe');
+        expect(filters.writeError.value?.message).not.toBe('');
+        // The filters themselves were read fine, so the panel is not reported broken
+        expect(filters.error.value).toBeNull();
         expect(filters.saving.value).toBeNull();
+    });
+
+    it('forgets a refused write once the next screener is opened', async () => {
+        mock.on('GET /api/screeners/Value', detail({}));
+        mock.on('GET /api/screeners/Growth', detail({}));
+        mock.on('PUT /api/screeners/Value/filters/pe', { error: 'INTERNAL' }, { status: 500 });
+        const name = ref('Value');
+        const { filters } = inScope(name);
+        await vi.waitFor(() => expect(filters.pending.value).toBe(false));
+        await filters.set('pe', { min: 1 });
+
+        name.value = 'Growth';
+        await vi.waitFor(() => expect(filters.pending.value).toBe(false));
+
+        expect(filters.writeError.value).toBeNull();
     });
 
     it('writes nothing when no screener is selected', async () => {

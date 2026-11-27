@@ -10,6 +10,8 @@
         "add": "Add",
         "search": "Search",
         "close": "Close",
+        "dismiss": "Dismiss",
+        "copyFailed": "The browser didn't allow copying. Select the text and copy it yourself.",
         "next": "Next",
         "previous": "Previous",
         "yes": "Yes",
@@ -20,6 +22,7 @@
         "import": "Import",
         "download": "Download",
         "mainNavigation": "Main navigation",
+        "notifications": "Notifications",
         "saving": "Saving...",
         "pageOf": "Page {page} of {pages}"
     },
@@ -347,6 +350,9 @@
         "noData": "No data",
         "timeframeLabel": "Timeframe",
         "clearDrawingsBody": "Are you sure you want to clear all drawings for this symbol? This cannot be undone.",
+        "drawingsLoadFailed": "Couldn't load your drawings on {symbol}, so anything you draw there now won't be saved over them. Open the chart again to retry.",
+        "drawingsSaveFailed": "Couldn't save your drawings on {symbol}. Your next change will try again.",
+        "drawingsClearFailed": "Couldn't clear the saved drawings on {symbol}. They'll be back the next time you open it.",
         "timeframes": {
             "intraday1m": "1 minute",
             "intraday5m": "5 minutes",
@@ -456,7 +462,8 @@
             "includeInfoHint": "Show symbol, price, and date",
             "includeLogo": "Include Logo",
             "includeLogoHint": "Show app branding",
-            "download": "Download PNG"
+            "download": "Download PNG",
+            "failed": "Couldn't export the chart. Try again."
         }
     },
     "search": {

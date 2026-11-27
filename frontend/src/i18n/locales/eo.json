@@ -10,6 +10,8 @@
         "add": "Aldoni",
         "search": "Serĉi",
         "close": "Fermi",
+        "dismiss": "Forigi",
+        "copyFailed": "La retumilo ne permesis kopii. Elektu la tekston kaj kopiu ĝin mem.",
         "next": "Sekva",
         "previous": "Antaŭa",
         "yes": "Jes",
@@ -20,6 +22,7 @@
         "import": "Importi",
         "download": "Elŝuti",
         "mainNavigation": "Ĉefa navigado",
+        "notifications": "Sciigoj",
         "saving": "Konservante...",
         "pageOf": "Paĝo {page} el {pages}"
     },
@@ -347,6 +350,9 @@
         "noData": "Neniuj datumoj",
         "timeframeLabel": "Tempokadro",
         "clearDrawingsBody": "Ĉu vi certas ke vi volas forigi ĉiujn desegnojn por ĉi tiu simbolo? Ĉi tio ne povas esti malfari.",
+        "drawingsLoadFailed": "Ne eblis ŝargi viajn desegnaĵojn sur {symbol}, do tio, kion vi nun desegnas tie, ne estos konservita super ili. Remalfermu la diagramon por reprovi.",
+        "drawingsSaveFailed": "Ne eblis konservi viajn desegnaĵojn sur {symbol}. Via sekva ŝanĝo reprovos.",
+        "drawingsClearFailed": "Ne eblis forigi la konservitajn desegnaĵojn sur {symbol}. Ili reaperos la venontan fojon, kiam vi malfermos ĝin.",
         "timeframes": {
             "intraday1m": "1 minuto",
             "intraday5m": "5 minutoj",
@@ -456,7 +462,8 @@
             "includeInfoHint": "Montri simbolon, prezon, kaj daton",
             "includeLogo": "Inkluzivi Logon",
             "includeLogoHint": "Montri aplikan markon",
-            "download": "Elŝuti PNG"
+            "download": "Elŝuti PNG",
+            "failed": "Ne eblis eksporti la diagramon. Reprovu."
         }
     },
     "search": {

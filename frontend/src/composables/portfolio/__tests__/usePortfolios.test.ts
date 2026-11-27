@@ -208,7 +208,8 @@ describe('the writes', () => {
 
         await expect(portfolios.saveLeverage(1)).rejects.toBeDefined();
 
-        expect(portfolios.error.value).not.toBeNull();
+        // The caller shows the refusal where it was made; the slot itself was read fine
+        expect(portfolios.error.value).toBeNull();
         expect(portfolios.revision.value).toBe(0);
     });
 

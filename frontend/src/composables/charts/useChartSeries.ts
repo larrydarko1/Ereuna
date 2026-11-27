@@ -145,8 +145,8 @@ export function useChartSeries(key: () => ChartSeriesKey): UseChartSeriesReturn 
             overlays.value = mergeOverlays(overlays.value, data.overlays, timeframe);
             cursor = data.candles[0]?.time ?? cursor;
         } catch {
-            // Scrolling further left than the data goes is not an error worth
-            // showing: the chart already has bars on it and keeps them.
+            // Left quiet: the bars already drawn stay, and the cursor has not
+            // moved, so the next scroll left asks for the same page again
         } finally {
             paging = false;
         }

@@ -6,14 +6,20 @@ import type { ChartDrawings } from '@ereuna/shared';
 import { box, noDrawings, trendLine } from '@/__tests__/support/answers';
 import { mockApi } from '@/__tests__/support/msw';
 import { useChartDrawings, type UseChartDrawingsReturn } from '@/composables/charts/useChartDrawings';
+import { useNotifications } from '@/composables/ui/useNotifications';
+import { i18n } from '@/i18n';
 
 const mock = mockApi();
+const { notifications, dismiss } = useNotifications();
 
 const EMPTY: ChartDrawings = noDrawings();
 
 const key = { symbol: 'AAPL', timeframe: 'daily' as const };
 
 const withLine: ChartDrawings = { ...EMPTY, trendLines: [trendLine('1')] };
+
+const shown = (): { message: string; persistent: boolean }[] =>
+    notifications.value.map(({ message, persistent }) => ({ message, persistent }));
 /** The five renderer managers, each of which owns one kind of annotation. */
 function fakeManagers(): {
     managers: Parameters<UseChartDrawingsReturn['attach']>[0];
@@ -60,6 +66,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+    for (const notice of [...notifications.value]) dismiss(notice.id);
     vi.useRealTimers();
 });
 
@@ -107,6 +114,77 @@ describe('load', () => {
 
         expect(managers.held().trendLines).toEqual([]);
         expect(drawings.hasDrawings.value).toBe(false);
+    });
+
+    it('keeps a warning up that the drawings did not load', async () => {
+        mock.on('GET /api/charts/AAPL/drawings', { error: 'INTERNAL' }, { status: 500 });
+        const { drawings } = inScope();
+        drawings.attach(fakeManagers().managers);
+
+        await drawings.load(key);
+
+        expect(shown()).toEqual([
+            { message: i18n.global.t('charts.drawingsLoadFailed', { symbol: 'AAPL' }), persistent: true },
+        ]);
+    });
+
+    it('never writes over drawings it could not read, however much is drawn', async () => {
+        mock.on('GET /api/charts/AAPL/drawings', { error: 'INTERNAL' }, { status: 500 });
+        mock.on('PUT /api/charts/AAPL/drawings', withLine);
+        const { drawings } = inScope();
+        const managers = fakeManagers();
+        drawings.attach(managers.managers);
+        await drawings.load(key);
+
+        managers.set({ trendLines: [trendLine('new')] });
+        drawings.touch(key);
+        await vi.advanceTimersByTimeAsync(5000);
+        await drawings.save(key);
+
+        expect(mock.calls.filter((call) => call.method === 'PUT')).toHaveLength(0);
+        expect(drawings.hasDrawings.value).toBe(true);
+    });
+
+    it('never deletes drawings it could not read', async () => {
+        mock.on('GET /api/charts/AAPL/drawings', { error: 'INTERNAL' }, { status: 500 });
+        mock.on('DELETE /api/charts/AAPL/drawings', null, { status: 204 });
+        const { drawings } = inScope();
+        drawings.attach(fakeManagers().managers);
+        await drawings.load(key);
+
+        await drawings.clear(key);
+
+        expect(mock.calls.filter((call) => call.method === 'DELETE')).toHaveLength(0);
+    });
+
+    it('saves again, and drops the warning, once a later read of that chart succeeds', async () => {
+        mock.on('GET /api/charts/AAPL/drawings', withLine);
+        mock.on('GET /api/charts/AAPL/drawings', { error: 'INTERNAL' }, { status: 500, once: true });
+        mock.on('PUT /api/charts/AAPL/drawings', withLine);
+        const { drawings } = inScope();
+        drawings.attach(fakeManagers().managers);
+
+        await drawings.load(key);
+        await drawings.load(key);
+        await drawings.save(key);
+
+        expect(mock.calls.filter((call) => call.method === 'PUT')).toHaveLength(1);
+        expect(notifications.value).toEqual([]);
+    });
+
+    it('still saves a chart whose drawings did load', async () => {
+        const other = { symbol: 'MSFT', timeframe: 'daily' as const };
+        mock.on('GET /api/charts/AAPL/drawings', { error: 'INTERNAL' }, { status: 500 });
+        mock.on('GET /api/charts/MSFT/drawings', EMPTY);
+        mock.on('PUT /api/charts/MSFT/drawings', EMPTY);
+        const { drawings } = inScope();
+        drawings.attach(fakeManagers().managers);
+
+        await drawings.load(key);
+        await drawings.load(other);
+        await drawings.save(other);
+
+        expect(mock.last().method).toBe('PUT');
     });
 
     it('reads nothing before a chart exists, or without a symbol', async () => {
@@ -157,12 +235,19 @@ describe('save', () => {
         expect(mock.calls).toHaveLength(0);
     });
 
-    it('does not interrupt the user when the write fails', async () => {
-        mock.on('PUT /api/charts/AAPL/drawings', { error: 'INTERNAL' }, { status: 500 });
+    it('keeps a notice up while the drawings are unsaved, until a later save gets through', async () => {
+        mock.on('PUT /api/charts/AAPL/drawings', EMPTY);
+        mock.on('PUT /api/charts/AAPL/drawings', { error: 'INTERNAL' }, { status: 500, once: true });
         const { drawings } = inScope();
         drawings.attach(fakeManagers().managers);
 
-        await expect(drawings.save(key)).resolves.toBeUndefined();
+        await drawings.save(key);
+        expect(shown()).toEqual([
+            { message: i18n.global.t('charts.drawingsSaveFailed', { symbol: 'AAPL' }), persistent: true },
+        ]);
+
+        await drawings.save(key);
+        expect(notifications.value).toEqual([]);
     });
 });
 
@@ -277,12 +362,16 @@ describe('clear', () => {
         expect(mock.calls).toHaveLength(0);
     });
 
-    it('does not interrupt the user when the delete fails', async () => {
+    it('says the stored drawings are still there when the delete fails', async () => {
         mock.on('DELETE /api/charts/AAPL/drawings', { error: 'INTERNAL' }, { status: 500 });
         const { drawings } = inScope();
         drawings.attach(fakeManagers().managers);
 
-        await expect(drawings.clear(key)).resolves.toBeUndefined();
+        await drawings.clear(key);
+
+        expect(shown()).toEqual([
+            { message: i18n.global.t('charts.drawingsClearFailed', { symbol: 'AAPL' }), persistent: true },
+        ]);
     });
 });
 

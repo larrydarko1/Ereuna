@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { CASH_ACTIONS, isOneOf } from '@ereuna/shared';
 import type { PortfolioSummary, PositionAction, TradeInput, TradeRow, ValuedPosition } from '@ereuna/shared';
 
+import { apiErrorMessage } from '@/api/client';
 import BenchmarksDialog from '@/components/portfolio/BenchmarksDialog.vue';
 import BenchmarkStrip from '@/components/portfolio/BenchmarkStrip.vue';
 import CashDialog from '@/components/portfolio/CashDialog.vue';
@@ -74,10 +75,13 @@ const saving = ref(false);
 const tradeToEdit = ref<TradeRow | null>(null);
 const tradeToDelete = ref<TradeRow | null>(null);
 const tradePreset = ref<{ action: PositionAction; symbol: string; shares: number } | null>(null);
+// Why the open dialog's last write failed. Only the dialog shows it: the page behind kept it after a cancel
+const dialogError = ref<string | null>(null);
 
 /** The whole trade log, loaded on demand for the monthly breakdown. */
 const fullLog = ref<TradeInput[] | null>(null);
 const loadingLog = ref(false);
+const logError = ref<string | null>(null);
 
 const valuePoints = computed(() =>
     (summary.value?.valueHistory ?? []).map((point) => ({ label: formatDate(point.date), value: point.value })),
@@ -106,14 +110,14 @@ async function selectSlot(slot: number): Promise<void> {
     await trades.load();
 }
 
-/** Run a write with the dialogs' shared pending flag, swallowing the rejection
- *  the composable has already turned into a message. */
+/** Run a dialog's write with the shared pending flag. On failure the dialog stays open with the reason. */
 async function run(action: () => Promise<void>): Promise<void> {
     saving.value = true;
+    dialogError.value = null;
     try {
         await action();
-    } catch {
-        // `error` carries it; the dialog stays open so it can be read.
+    } catch (err) {
+        dialogError.value = apiErrorMessage(err, t('errors.INTERNAL'));
     } finally {
         saving.value = false;
     }
@@ -191,15 +195,22 @@ async function confirmReset(): Promise<void> {
  */
 async function loadMonthly(): Promise<void> {
     loadingLog.value = true;
+    logError.value = null;
     try {
         const data = await exportCurrent();
         fullLog.value = data.trades;
-    } catch {
+    } catch (err) {
         fullLog.value = null;
+        logError.value = apiErrorMessage(err, t('errors.INTERNAL'));
     } finally {
         loadingLog.value = false;
     }
 }
+
+// A reason left from a cancelled dialog would otherwise greet the next one opened
+watch([dialog, tradeToDelete], () => {
+    dialogError.value = null;
+});
 
 onMounted(async () => {
     await Promise.all([load(), reload(), trades.load()]);
@@ -318,8 +329,14 @@ onMounted(async () => {
                     v-if="fullLog !== null"
                     :value-history="priced.valueHistory"
                     :trades="fullLog" />
+                <p
+                    v-if="fullLog === null && logError !== null"
+                    class="portfolio__error portfolio__error--above"
+                    role="alert"
+                    >{{ logError }}</p
+                >
                 <button
-                    v-else
+                    v-if="fullLog === null"
                     type="button"
                     class="btn"
                     :disabled="loadingLog"
@@ -329,6 +346,12 @@ onMounted(async () => {
             </section>
 
             <section class="portfolio__panel">
+                <p
+                    v-if="trades.error.value !== null"
+                    class="portfolio__error"
+                    role="alert"
+                    >{{ trades.error.value }}</p
+                >
                 <TradeHistory
                     :trades="trades.items.value"
                     :total="trades.total.value"
@@ -345,7 +368,7 @@ onMounted(async () => {
             :editing="tradeToEdit"
             :preset="tradePreset"
             :default-commission="priced?.defaultCommission ?? 0"
-            :error="trades.error.value"
+            :error="dialogError"
             :saving="saving"
             @close="dialog = null"
             @submit="submitTrade" />
@@ -353,7 +376,7 @@ onMounted(async () => {
         <CashDialog
             v-if="dialog === 'cash'"
             :editing="tradeToEdit"
-            :error="trades.error.value"
+            :error="dialogError"
             :saving="saving"
             @close="dialog = null"
             @submit="submitTrade" />
@@ -361,7 +384,7 @@ onMounted(async () => {
         <SettingsDialog
             v-if="dialog === 'settings' && priced !== null"
             :summary="priced"
-            :error="error"
+            :error="dialogError"
             :saving="saving"
             @close="dialog = null"
             @save-base-value="run(() => saveBaseValue($event))"
@@ -371,7 +394,7 @@ onMounted(async () => {
         <BenchmarksDialog
             v-if="dialog === 'benchmarks' && priced !== null"
             :current="priced.benchmarks.map((entry) => entry.symbol)"
-            :error="error"
+            :error="dialogError"
             :saving="saving"
             @close="dialog = null"
             @save="
@@ -383,7 +406,7 @@ onMounted(async () => {
 
         <ImportDialog
             v-if="dialog === 'import'"
-            :error="error"
+            :error="dialogError"
             :saving="saving"
             @close="dialog = null"
             @submit="submitImport" />
@@ -399,7 +422,7 @@ onMounted(async () => {
             :title="t('portfolio.resetPortfolio')"
             :message="t('portfolio.resetConfirmation')"
             :confirm-label="t('portfolio.yesReset')"
-            :error="error"
+            :error="dialogError"
             :pending="saving"
             @close="dialog = null"
             @confirm="confirmReset" />
@@ -409,7 +432,7 @@ onMounted(async () => {
             :title="t('portfolio.deleteTrade')"
             :message="t('portfolio.deleteTradeConfirmation')"
             :confirm-label="t('common.delete')"
-            :error="trades.error.value"
+            :error="dialogError"
             :pending="saving"
             @close="tradeToDelete = null"
             @confirm="confirmDeleteTrade" />
@@ -431,6 +454,10 @@ onMounted(async () => {
     border-radius: $radius-sm;
     color: $color-negative;
     font-size: $font-size-sm;
+}
+
+.portfolio__error--above {
+    margin-bottom: 0.6em;
 }
 
 .portfolio__charts {

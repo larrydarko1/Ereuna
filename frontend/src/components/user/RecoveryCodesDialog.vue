@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import AppDialog from '@/components/ui/AppDialog.vue';
+import { notify } from '@/composables/ui/useNotifications';
 import { downloadFile } from '@/utils/download';
 
 const { codes } = defineProps<{ codes: readonly string[] }>();
@@ -18,8 +19,9 @@ async function copy(): Promise<void> {
         await navigator.clipboard.writeText(codes.join('\n'));
         copied.value = true;
     } catch {
-        // Clipboard access is refused in some browsers and over plain HTTP.
-        // The codes are on screen and downloadable, so this is not worth a toast
+        // Refused in some browsers and over plain HTTP. Unreported, a paste into a
+        // password manager would store whatever was copied before as the codes
+        notify.error(t('common.copyFailed'));
     }
 }
 

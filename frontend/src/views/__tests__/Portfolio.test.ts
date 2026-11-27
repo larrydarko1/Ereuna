@@ -75,6 +75,13 @@ const monthlyButton = (wrapper: VueWrapper): HTMLElement => {
     return elementOf(node.element, HTMLElement);
 };
 
+const cancel = async (): Promise<void> => {
+    const button = [...document.body.querySelectorAll<HTMLElement>('.dialog__footer button')].find(
+        (entry) => entry.textContent.trim() === i18n.global.t('common.cancel'),
+    );
+    await click(button);
+};
+
 const set = async (selector: string, value: string): Promise<void> => {
     const field = query(selector, HTMLInputElement);
     field.value = value;
@@ -185,6 +192,26 @@ describe('Portfolio', () => {
         wrapper.unmount();
     });
 
+    it('keeps a refused trade in its dialog, and forgets it once the dialog is cancelled', async () => {
+        seed();
+        api.on('POST /api/portfolios/0/trades', { error: 'INSUFFICIENT_BUYING_POWER' }, { status: 422 });
+        const wrapper = await view();
+
+        await click(toolbar(wrapper, 0));
+        await fillTrade('AAPL', '5', '200');
+        await click(getElement('.dialog__footer .btn--primary'));
+
+        expect(getElement('.dialog [role="alert"]').textContent).toBe(
+            i18n.global.t('errors.INSUFFICIENT_BUYING_POWER'),
+        );
+
+        await cancel();
+        await click(toolbar(wrapper, 0));
+
+        expect(document.body.querySelector('.dialog [role="alert"]')).toBeNull();
+        wrapper.unmount();
+    });
+
     it('opens the trade dialog on the row being corrected', async () => {
         seed();
         const wrapper = await view();
@@ -286,6 +313,26 @@ describe('Portfolio', () => {
         wrapper.unmount();
     });
 
+    it('shows a refused setting in its dialog only, not on the page behind it', async () => {
+        seed();
+        api.on('PUT /api/portfolios/0/leverage', { error: 'INSUFFICIENT_BUYING_POWER' }, { status: 422 });
+        const wrapper = await view();
+
+        await click(toolbar(wrapper, 2));
+        await set('.settings-dialog__row:nth-child(2) input', '3');
+        await click([...document.body.querySelectorAll<HTMLElement>('.settings-dialog__row button')][1]);
+
+        expect(getElement('.dialog [role="alert"]').textContent).toBe(
+            i18n.global.t('errors.INSUFFICIENT_BUYING_POWER'),
+        );
+        expect(wrapper.find('.portfolio__error').exists()).toBe(false);
+
+        await cancel();
+
+        expect(wrapper.find('.portfolio__error').exists()).toBe(false);
+        wrapper.unmount();
+    });
+
     it('edits the benchmarks from the strip', async () => {
         seed();
         api.on('PUT /api/portfolios/0/benchmarks', { benchmarks: ['SPY'] });
@@ -349,6 +396,19 @@ describe('Portfolio', () => {
         await click(monthlyButton(wrapper));
 
         expect(wrapper.find('.monthly-panel').exists()).toBe(false);
+        expect(monthlyButton(wrapper).parentElement?.querySelector('[role="alert"]')?.textContent).toBe(
+            i18n.global.t('errors.INTERNAL'),
+        );
+    });
+
+    it('reports a failed read of the trades in the trade history panel', async () => {
+        seed();
+        api.on('GET /api/portfolios/0/trades', { error: 'INTERNAL' }, { status: 500 });
+
+        const wrapper = await view();
+
+        const panel = wrapper.findAll('.portfolio__panel').find((entry) => entry.find('.trade-history').exists());
+        expect(panel?.get('[role="alert"]').text()).toBe(i18n.global.t('errors.INTERNAL'));
     });
 
     it('reports a failed read without hiding the tabs', async () => {

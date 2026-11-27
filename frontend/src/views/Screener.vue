@@ -24,6 +24,7 @@ import { EXPORT_LIMIT, useScreenerExport } from '@/composables/screener/useScree
 import { useScreenerFilters } from '@/composables/screener/useScreenerFilters';
 import { useScreenerResults, type ResultsSource } from '@/composables/screener/useScreenerResults';
 import { useScreeners } from '@/composables/screener/useScreeners';
+import { notify } from '@/composables/ui/useNotifications';
 import type { ListMode, ScreenerDialog } from '@/constants/screener';
 
 type Pane = 'filters' | 'results' | 'chart';
@@ -105,15 +106,12 @@ const exportCsv = useScreenerExport({
     filename: (): string => (mode.value === 'screener' ? selected.value : t(`screener.modes.${mode.value}`)),
 });
 
-/** The reason the last toolbar action failed, cleared by the next attempt. */
-const actionError = ref<string | null>(null);
-
 const autoplay = ref(false);
 let timer: ReturnType<typeof setInterval> | undefined;
 
 /** A filter write changes both the matches and the picker's per-screener count. */
 async function afterFilterChange(): Promise<void> {
-    if (filters.error.value !== null) return;
+    if (filters.writeError.value !== null) return;
     revision.value += 1;
     await loadScreeners();
 }
@@ -129,8 +127,14 @@ async function clearFilter(key: string): Promise<void> {
 }
 
 async function resetFilters(): Promise<void> {
-    dialog.value = null;
+    dialogError.value = null;
     await filters.clearAll();
+    const failure = filters.writeError.value;
+    if (failure !== null) {
+        dialogError.value = failure.message;
+        return;
+    }
+    dialog.value = null;
     await afterFilterChange();
 }
 
@@ -158,7 +162,6 @@ function selectSymbol(symbol: string): void {
 
 async function toggleHidden(symbol: string): Promise<void> {
     const hidden = hiddenSymbols.value.includes(symbol);
-    actionError.value = null;
     try {
         const { data } = hidden ? await unhideSymbol(symbol) : await hideSymbol(symbol);
         // The route owns this field and has already stored it, so the answer is
@@ -167,18 +170,18 @@ async function toggleHidden(symbol: string): Promise<void> {
         adoptPreferences({ hiddenSymbols: data.hiddenSymbols });
         revision.value += 1;
     } catch {
-        actionError.value = t('screener.hideFailed');
+        notify.error(t('screener.hideFailed'));
     }
 }
 
 async function saveColumns(next: string[]): Promise<void> {
-    dialog.value = null;
-    actionError.value = null;
+    dialogError.value = null;
     try {
         await patchPreferences({ screenerColumns: next });
         revision.value += 1;
+        dialog.value = null;
     } catch {
-        actionError.value = t('screener.columnsFailed');
+        dialogError.value = t('screener.columnsFailed');
     }
 }
 
@@ -190,6 +193,11 @@ watch(results.items, (current) => {
         return;
     }
     if (!current.some((row) => row.symbol === selectedSymbol.value)) selectedSymbol.value = current[0]?.symbol ?? '';
+});
+
+// A reason left from a cancelled dialog would otherwise greet the next one opened
+watch(dialog, () => {
+    dialogError.value = null;
 });
 
 onMounted(async () => {
@@ -275,6 +283,7 @@ onUnmounted(() => {
                     :groups="registry.grouped.value"
                     :value-for="filters.valueFor"
                     :saving="filters.saving.value"
+                    :failure="filters.writeError.value"
                     :disabled="selected === ''"
                     @apply="applyFilter"
                     @clear="clearFilter" />
@@ -291,13 +300,6 @@ onUnmounted(() => {
                     :exporting="exportCsv.exporting.value"
                     @columns="dialog = 'columns'"
                     @export="exportCsv.run()" />
-
-                <p
-                    v-if="actionError !== null || exportCsv.error.value !== null"
-                    class="screener__error"
-                    role="alert"
-                    >{{ actionError ?? exportCsv.error.value }}</p
-                >
 
                 <p
                     v-if="results.error.value !== null"

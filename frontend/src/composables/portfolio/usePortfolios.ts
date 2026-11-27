@@ -23,7 +23,7 @@ export type UsePortfoliosReturn = {
     summary: Ref<PortfolioSummary | null>;
     revision: Ref<number>;
     pending: Ref<boolean>;
-    error: Ref<string | null>;
+    error: Ref<string | null>; // Why the slots or the open slot could not be read; a write's failure is thrown to the caller
     openedSlots: ComputedRef<Set<number>>;
     isBlank: ComputedRef<boolean>;
     load: () => Promise<void>;
@@ -111,13 +111,7 @@ export function usePortfolios(): UsePortfoliosReturn {
      * alone can change cash, buying power and every statistic built on them.
      */
     async function mutate(action: () => Promise<unknown>): Promise<void> {
-        error.value = null;
-        try {
-            await action();
-        } catch (err) {
-            error.value = fail(err);
-            throw err;
-        }
+        await action();
         revision.value += 1;
         await Promise.all([reload(), load()]);
     }

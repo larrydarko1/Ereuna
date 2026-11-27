@@ -10,6 +10,8 @@
         "add": "Adicionar",
         "search": "Buscar",
         "close": "Fechar",
+        "dismiss": "Dispensar",
+        "copyFailed": "O navegador não permitiu copiar. Selecione o texto e copie você mesmo.",
         "next": "Próximo",
         "previous": "Anterior",
         "yes": "Sim",
@@ -20,6 +22,7 @@
         "import": "Importar",
         "download": "Baixar",
         "mainNavigation": "Navegação principal",
+        "notifications": "Notificações",
         "saving": "Salvando...",
         "pageOf": "Página {page} de {pages}"
     },
@@ -347,6 +350,9 @@
         "noData": "Sem dados",
         "timeframeLabel": "Intervalo",
         "clearDrawingsBody": "Tem certeza de que deseja limpar todos os desenhos para este símbolo? Esta ação não pode ser desfeita.",
+        "drawingsLoadFailed": "Não foi possível carregar seus desenhos em {symbol}, então o que você desenhar ali agora não será salvo por cima deles. Abra o gráfico de novo para tentar outra vez.",
+        "drawingsSaveFailed": "Não foi possível salvar seus desenhos em {symbol}. Sua próxima alteração vai tentar de novo.",
+        "drawingsClearFailed": "Não foi possível apagar os desenhos salvos em {symbol}. Eles voltarão na próxima vez que você abri-lo.",
         "timeframes": {
             "intraday1m": "1 minuto",
             "intraday5m": "5 minutos",
@@ -456,7 +462,8 @@
             "includeInfoHint": "Mostrar símbolo, preço e data",
             "includeLogo": "Incluir Logo",
             "includeLogoHint": "Mostrar marca do aplicativo",
-            "download": "Baixar PNG"
+            "download": "Baixar PNG",
+            "failed": "Não foi possível exportar o gráfico. Tente novamente."
         }
     },
     "search": {

@@ -10,6 +10,8 @@
         "add": "Hinzufügen",
         "search": "Suchen",
         "close": "Schließen",
+        "dismiss": "Ausblenden",
+        "copyFailed": "Der Browser hat das Kopieren nicht erlaubt. Markiere den Text und kopiere ihn selbst.",
         "next": "Weiter",
         "previous": "Vorherige",
         "yes": "Ja",
@@ -20,6 +22,7 @@
         "import": "Importieren",
         "download": "Herunterladen",
         "mainNavigation": "Hauptnavigation",
+        "notifications": "Benachrichtigungen",
         "saving": "Speichert...",
         "pageOf": "Seite {page} von {pages}"
     },
@@ -347,6 +350,9 @@
         "noData": "Keine Daten",
         "timeframeLabel": "Zeitraum",
         "clearDrawingsBody": "Sind Sie sicher, dass Sie alle Zeichnungen für dieses Symbol löschen möchten? Dies kann nicht rückgängig gemacht werden.",
+        "drawingsLoadFailed": "Deine Zeichnungen auf {symbol} konnten nicht geladen werden. Neue Zeichnungen dort werden daher nicht über sie gespeichert. Öffne das Diagramm erneut, um es noch einmal zu versuchen.",
+        "drawingsSaveFailed": "Deine Zeichnungen auf {symbol} konnten nicht gespeichert werden. Deine nächste Änderung versucht es erneut.",
+        "drawingsClearFailed": "Die gespeicherten Zeichnungen auf {symbol} konnten nicht gelöscht werden. Sie erscheinen wieder, wenn du es das nächste Mal öffnest.",
         "timeframes": {
             "intraday1m": "1 Minute",
             "intraday5m": "5 Minuten",
@@ -456,7 +462,8 @@
             "includeInfoHint": "Symbol, Preis und Datum anzeigen",
             "includeLogo": "Logo einbeziehen",
             "includeLogoHint": "App-Branding anzeigen",
-            "download": "PNG herunterladen"
+            "download": "PNG herunterladen",
+            "failed": "Das Diagramm konnte nicht exportiert werden. Versuche es erneut."
         }
     },
     "search": {

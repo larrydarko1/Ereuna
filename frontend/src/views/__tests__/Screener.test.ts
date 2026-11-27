@@ -9,6 +9,7 @@ import { elementOf, getElement, query } from '@/__tests__/support/dom';
 import { mockApi } from '@/__tests__/support/msw';
 import { socket } from '@/__tests__/support/socket';
 import { clearAuth } from '@/api/client';
+import { useNotifications } from '@/composables/ui/useNotifications';
 import { i18n } from '@/i18n';
 import { formatNumber } from '@/utils/formatters';
 import Screener from '@/views/Screener.vue';
@@ -30,6 +31,8 @@ const PriceChartStub = {
 };
 
 const api = mockApi();
+
+const { notifications, dismiss } = useNotifications();
 
 const screener = (name: string): ScreenerSummary => screenerSummary(name, { id: name, filterCount: 1 });
 
@@ -61,6 +64,11 @@ const action = (wrapper: VueWrapper, label: string): HTMLElement => {
     return elementOf(node.element, HTMLElement);
 };
 
+const shown = (): string[] => notifications.value.map((notification) => notification.message);
+
+const pickerButton = (wrapper: VueWrapper, index: number): HTMLElement =>
+    elementOf(wrapper.findAll('.picker__button')[index]?.element, HTMLElement);
+
 const mode = (wrapper: VueWrapper, index: number): HTMLElement =>
     elementOf(wrapper.findAll('.toolbar__mode')[index]?.element, HTMLElement);
 
@@ -69,6 +77,7 @@ beforeEach(() => {
     localStorage.clear();
     document.body.innerHTML = '';
     socket.reset();
+    for (const notification of notifications.value) dismiss(notification.id);
     // After the bell unless a test opens the session, so the live feed stays off
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-03-06T22:00:00Z'));
@@ -220,13 +229,29 @@ describe('Screener', () => {
         expect(api.calls.some((call) => call.path === '/api/preferences/hidden/AAPL')).toBe(true);
     });
 
-    it('says so when hiding a symbol fails', async () => {
+    it('says so in a notice when hiding a symbol fails, since the row has nowhere to show it', async () => {
         api.on('POST /api/preferences/hidden/AAPL', { error: 'INTERNAL' }, { status: 500 });
         const wrapper = await view();
 
         await click(elementOf(wrapper.get('.results-table__action').element, HTMLElement));
 
-        expect(wrapper.get('.screener__error[role="alert"]').text()).toBe(i18n.global.t('screener.hideFailed'));
+        expect(shown()).toEqual([i18n.global.t('screener.hideFailed')]);
+        expect(wrapper.find('.screener__error').exists()).toBe(false);
+    });
+
+    it('shows a refused filter on the card it was applied from', async () => {
+        api.on('PUT /api/screeners/Growth/filters/market-cap', { error: 'INTERNAL' }, { status: 500 });
+        const wrapper = await view();
+        const before = api.calls.length;
+
+        await wrapper.get('.range-filter input').setValue('1000');
+        await wrapper.get('.range-filter').trigger('submit');
+        await flushPromises();
+
+        expect(wrapper.get('.filter-card [role="alert"]').text()).toBe(i18n.global.t('errors.INTERNAL'));
+        expect(wrapper.find('.screener__error').exists()).toBe(false);
+        // Nothing changed, so nothing is re-read
+        expect(api.calls.slice(before).map((call) => call.path)).not.toContain('/api/screeners/Growth/results');
     });
 
     it('saves the chosen columns', async () => {
@@ -236,6 +261,29 @@ describe('Screener', () => {
         await click(getElement('.columns-dialog__button--primary'));
 
         expect(api.calls.find((call) => call.method === 'PATCH')?.body).toHaveProperty('screenerColumns');
+        expect(document.body.querySelector('.columns-dialog__error')).toBeNull();
+        wrapper.unmount();
+    });
+
+    it('keeps the columns dialog open with the reason when the save is refused', async () => {
+        api.on('PATCH /api/preferences', { error: 'INTERNAL' }, { status: 500 });
+        const wrapper = await view();
+
+        await click(action(wrapper, i18n.global.t('screener.columnsTitle')));
+        await click(getElement('.columns-dialog__button--primary'));
+
+        expect(getElement('.columns-dialog__error').textContent).toBe(i18n.global.t('screener.columnsFailed'));
+        wrapper.unmount();
+    });
+
+    it('keeps the reset dialog open with the reason when clearing the filters fails', async () => {
+        api.on('DELETE /api/screeners/Growth/filters', { error: 'INTERNAL' }, { status: 500 });
+        const wrapper = await view();
+
+        await click(pickerButton(wrapper, 2));
+        await click(getElement('.dialog__footer .btn--danger'));
+
+        expect(getElement('.dialog [role="alert"]').textContent).toBe(i18n.global.t('errors.INTERNAL'));
         wrapper.unmount();
     });
 
@@ -273,10 +321,21 @@ describe('Screener', () => {
         api.on('DELETE /api/screeners/Growth', null, { status: 204 });
         const wrapper = await view();
 
-        await click(elementOf(wrapper.findAll('.picker__button')[3]?.element, HTMLElement));
+        await click(pickerButton(wrapper, 3));
         await click(getElement('.dialog__footer .btn--danger'));
 
         expect(api.calls.some((call) => call.method === 'DELETE')).toBe(true);
+        wrapper.unmount();
+    });
+
+    it('keeps the delete dialog open with the reason when the delete is refused', async () => {
+        api.on('DELETE /api/screeners/Growth', { error: 'INTERNAL' }, { status: 500 });
+        const wrapper = await view();
+
+        await click(pickerButton(wrapper, 3));
+        await click(getElement('.dialog__footer .btn--danger'));
+
+        expect(getElement('.dialog [role="alert"]').textContent).toBe(i18n.global.t('errors.INTERNAL'));
         wrapper.unmount();
     });
 
@@ -316,14 +375,16 @@ describe('Screener', () => {
         vi.restoreAllMocks();
     });
 
-    it('says so when an export fails', async () => {
+    it('says so in a notice when an export fails', async () => {
         api.on('GET /api/screeners/Growth/results', page(['AAPL']));
         const wrapper = await view();
         api.on('GET /api/screeners/Growth/results', { error: 'INTERNAL' }, { status: 500 });
 
         await click(action(wrapper, i18n.global.t('common.download')));
 
-        expect(wrapper.get('.screener__error[role="alert"]').text()).toBe(i18n.global.t('screener.exportFailed'));
+        expect(shown()).toEqual([i18n.global.t('screener.exportFailed')]);
+        // The table already drawn stays; the failed export is not a failed read
+        expect(wrapper.find('.screener__error').exists()).toBe(false);
     });
 
     it('walks the selection down the list while autoplay is on, and stops at the end', async () => {

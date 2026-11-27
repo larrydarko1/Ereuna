@@ -11,7 +11,7 @@ import FlagFilter from '@/components/screener/FlagFilter.vue';
 import MaFilter from '@/components/screener/MaFilter.vue';
 import RangeFilter from '@/components/screener/RangeFilter.vue';
 import type { FilterGrouping } from '@/composables/screener/useFilterRegistry';
-import type { ActiveFilter, FilterKind } from '@/composables/screener/useScreenerFilters';
+import type { ActiveFilter, FilterKind, FilterWriteError } from '@/composables/screener/useScreenerFilters';
 import { toShownBound, toStoredBound } from '@/constants/screener';
 import { formatDate, formatNumber } from '@/utils/formatters';
 
@@ -19,11 +19,13 @@ const {
     groups,
     valueFor,
     saving = null,
+    failure = null,
     disabled,
 } = defineProps<{
     groups: FilterGrouping[];
     valueFor: (key: string, kind: FilterKind) => ActiveFilter | null;
     saving?: string | null;
+    failure?: FilterWriteError | null;
     disabled?: boolean; // No screener selected — there is nowhere to write a filter
 }>();
 
@@ -140,6 +142,7 @@ function onFlag(key: string, value: { enabled: boolean }): void {
                 :summary="summary(filter)"
                 :available="filter.available && !disabled"
                 :busy="saving === filter.key"
+                :error="failure?.key === filter.key ? failure.message : null"
                 @clear="emit('clear', filter.key)">
                 <RangeFilter
                     v-if="filter.kind === 'range'"

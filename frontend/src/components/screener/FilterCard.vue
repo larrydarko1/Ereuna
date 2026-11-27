@@ -11,12 +11,14 @@ const {
     summary = null,
     available,
     busy,
+    error = null,
 } = defineProps<{
     label: string;
     tip?: string | null; // Explanatory text, where the locale has one for this filter
     summary?: string | null; // What the filter is currently set to, shown collapsed
     available: boolean; // False when the dataset has nothing to range over yet
     busy?: boolean;
+    error?: string | null; // Why the last write to this filter failed
 }>();
 
 const emit = defineEmits<{ clear: [] }>();
@@ -89,6 +91,14 @@ watch(
             >
             <slot />
         </div>
+
+        <!-- Outside the body, so a failed clear on a collapsed card is still seen -->
+        <p
+            v-if="error !== null"
+            class="form-error filter-card__error"
+            role="alert"
+            >{{ error }}</p
+        >
     </section>
 </template>
 
@@ -168,6 +178,11 @@ watch(
 .filter-card__body {
     grid-column: 1 / -1;
     padding: 0 0 $space-3;
+}
+
+.filter-card__error {
+    grid-column: 1 / -1;
+    margin: 0 0 $space-2;
 }
 
 .filter-card__tip {

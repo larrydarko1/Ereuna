@@ -10,6 +10,8 @@
         "add": "הוספה",
         "search": "חיפוש",
         "close": "סגירה",
+        "dismiss": "סגירת ההודעה",
+        "copyFailed": "הדפדפן לא אפשר העתקה. סמן את הטקסט והעתק אותו בעצמך.",
         "next": "הבא",
         "previous": "הקודם",
         "yes": "כן",
@@ -20,6 +22,7 @@
         "import": "ייבוא",
         "download": "הורדה",
         "mainNavigation": "ניווט ראשי",
+        "notifications": "התראות",
         "saving": "שומר...",
         "pageOf": "עמוד {page} מתוך {pages}"
     },
@@ -347,6 +350,9 @@
         "noData": "אין נתונים",
         "timeframeLabel": "טווח זמן",
         "clearDrawingsBody": "האם אתה בטוח שברצונך לנקות את כל השרטוטים עבור סמל זה? לא ניתן לבטל פעולה זו.",
+        "drawingsLoadFailed": "לא ניתן היה לטעון את השרטוטים שלך על {symbol}, ולכן מה שתשרטט שם עכשיו לא יישמר מעליהם. פתח את התרשים שוב כדי לנסות שוב.",
+        "drawingsSaveFailed": "לא ניתן היה לשמור את השרטוטים שלך על {symbol}. השינוי הבא שלך ינסה שוב.",
+        "drawingsClearFailed": "לא ניתן היה למחוק את השרטוטים השמורים על {symbol}. הם יחזרו בפעם הבאה שתפתח אותו.",
         "timeframes": {
             "intraday1m": "דקה אחת",
             "intraday5m": "5 דקות",
@@ -456,7 +462,8 @@
             "includeInfoHint": "הצג סמל, מחיר ותאריך",
             "includeLogo": "כלול לוגו",
             "includeLogoHint": "הצג מיתוג אפליקציה",
-            "download": "הורד PNG"
+            "download": "הורד PNG",
+            "failed": "לא ניתן היה לייצא את התרשים. נסה שוב."
         }
     },
     "search": {

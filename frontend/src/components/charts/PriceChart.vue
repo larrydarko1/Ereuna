@@ -23,6 +23,7 @@ import { useChartTheme, withAlpha } from '@/composables/charts/useChartTheme';
 import { useLiveCandle } from '@/composables/charts/useLiveCandle';
 import { useMarketStatus } from '@/composables/charts/useMarketStatus';
 import { usePreferences } from '@/composables/data/usePreferences';
+import { notify } from '@/composables/ui/useNotifications';
 import {
     EOD_TIMEFRAMES,
     MIN_PATTERN_BARS,
@@ -54,7 +55,7 @@ import {
     type ScreenshotConfig,
     type SeriesType,
 } from '@/lib/charting';
-import { closes, heikinAshi, relativeVolume } from '@/utils/candles';
+import { closes, findQuote, heikinAshi, relativeVolume } from '@/utils/candles';
 import { timeToIsoDate, timeValue } from '@/utils/chartTime';
 
 const {
@@ -164,25 +165,7 @@ const overlayLabels = computed<OverlayLabel[]>(() =>
  * The change is against the bar before it, which is why a series of one bar
  * has no quote: there is nothing to have changed from.
  */
-const quote = computed<ChartQuote | null>(() => {
-    const bars = shapedBars.value;
-    if (bars.length < 2) return null;
-
-    const index = crosshairIndex.value ?? bars.length - 1;
-    const current = bars[index];
-    const previous = bars[index - 1];
-    if (current === undefined || previous === undefined) return null;
-
-    const change = current.close - previous.close;
-    return {
-        open: current.open,
-        high: current.high,
-        low: current.low,
-        close: current.close,
-        change,
-        changePercent: previous.close === 0 ? 0 : (change / previous.close) * 100,
-    };
-});
+const quote = computed<ChartQuote | null>(() => findQuote(shapedBars.value, crosshairIndex.value));
 
 const badges = computed(() => {
     const flags: string[] = [];
@@ -475,18 +458,22 @@ function clearPatterns(): void {
 
 function exportScreenshot(config: Partial<ScreenshotConfig>): void {
     dialog.value = null;
-    void screenshotManager?.takeScreenshot(
-        {
-            symbol,
-            name: profile?.name ?? '',
-            timeframe: t(`charts.timeframes.${timeframe.value}`),
-            price: quote.value === null ? '' : quote.value.close.toFixed(2),
-            change: quote.value === null ? '' : quote.value.change.toFixed(2),
-            changePercent: quote.value === null ? '' : `${quote.value.changePercent.toFixed(2)}%`,
-            date: new Date().toLocaleDateString(),
-        },
-        config,
-    );
+    screenshotManager
+        ?.takeScreenshot(
+            {
+                symbol,
+                name: profile?.name ?? '',
+                timeframe: t(`charts.timeframes.${timeframe.value}`),
+                price: quote.value === null ? '' : quote.value.close.toFixed(2),
+                change: quote.value === null ? '' : quote.value.change.toFixed(2),
+                changePercent: quote.value === null ? '' : `${quote.value.changePercent.toFixed(2)}%`,
+                date: new Date().toLocaleDateString(),
+            },
+            config,
+        )
+        .catch(() => {
+            notify.error(t('charts.screenshot.failed'));
+        });
 }
 
 function onReplayButton(): void {

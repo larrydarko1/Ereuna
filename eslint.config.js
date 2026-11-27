@@ -149,6 +149,13 @@ export default larry({
             },
         },
         {
+            // A notification's hover and focus handlers only hold its dismiss timer
+            // (WCAG 2.2.1); they activate nothing, and the one action it has is a
+            // real button inside it, so there is no control here to make focusable.
+            files: ['frontend/src/components/ui/NotificationCenter.vue'],
+            rules: { 'a11y/no-static-element-interactions': 'off' },
+        },
+        {
             // A modal opens because the user asked for it, and the first field is
             // where the keyboard then has to be — without autofocus the caret stays
             // behind the overlay on the page underneath. That is the opposite of the

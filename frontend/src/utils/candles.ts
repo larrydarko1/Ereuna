@@ -1,5 +1,6 @@
 /** Bar transforms the renderer needs but the API has no reason to compute. */
 import type { ChartBar, ChartPoint } from '@/composables/charts/useChartSeries';
+import type { ChartQuote } from '@/constants/chart';
 
 /**
  * Heikin-Ashi bars: the same series with each body averaged into its neighbour.
@@ -36,6 +37,27 @@ export function heikinAshi(bars: readonly ChartBar[]): ChartBar[] {
 /** Closing prices, for the series types that draw one line instead of a body. */
 export function closes(bars: readonly ChartBar[]): ChartPoint[] {
     return bars.map((bar) => ({ time: bar.time, value: bar.close }));
+}
+
+/**
+ * The bar at `index` (the last one when null) with its move against the bar before it.
+ * A first bar has nothing to move against, so there is no quote for it.
+ */
+export function findQuote(bars: readonly ChartBar[], index: number | null): ChartQuote | null {
+    const at = index ?? bars.length - 1;
+    const current = bars[at];
+    const previous = bars[at - 1];
+    if (current === undefined || previous === undefined) return null;
+
+    const change = current.close - previous.close;
+    return {
+        open: current.open,
+        high: current.high,
+        low: current.low,
+        close: current.close,
+        change,
+        changePercent: previous.close === 0 ? 0 : (change / previous.close) * 100,
+    };
 }
 
 /**
