@@ -154,6 +154,12 @@ describe('updateDailyPrices', () => {
         expect(insertedInto('OHCLVData1m')).toMatchObject([{ timestamp: new Date('2026-11-10T20:59:00.000Z') }]);
     });
 
+    it('stamps the closing minute at 12:59 New York on an early-close day', async () => {
+        vendor.rows = [row({ date: '2026-11-27T00:00:00.000Z' })];
+        await updateDailyPrices([asset('AAPL')]);
+        expect(insertedInto('OHCLVData1m')).toMatchObject([{ timestamp: new Date('2026-11-27T17:59:00.000Z') }]);
+    });
+
     it('leaves a closing minute the aggregator built from real prints alone', async () => {
         vendor.rows = [row()];
         db.current = fakeDb({ OHCLVData1m: [{ tickerID: 'AAPL', timestamp: CLOSING_MINUTE }] });

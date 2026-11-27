@@ -106,13 +106,14 @@ export function toPricedHistory(symbol: string, rows: readonly VendorDailyBar[])
 }
 
 /**
- * The synthetic 1-minute bar for the session's last minute, 15:59 New York.
+ * The synthetic 1-minute bar for the session's last minute, 15:59 New York,
+ * or 12:59 on an early-close day.
  * It exists so a symbol that never printed in that minute still ends the day
  * on an intraday bar at the official close. Written only where no bar is
  * stored: a symbol that did print then already has the aggregator's bar, and
- * a flat one with zero volume would throw its range away. Stamped 15:59
- * rather than 16:00 because the session ends at 16:00, so the aggregator never
- * builds a 16:00 bar and one stamped there would follow every traded day.
+ * a flat one with zero volume would throw its range away. Stamped a minute
+ * before the close because the session ends on it, so the aggregator never
+ * builds a bar there and one stamped there would follow every traded day.
  */
 export function closingMinute(bar: OhlcvDoc): OhlcvDoc {
     return {
